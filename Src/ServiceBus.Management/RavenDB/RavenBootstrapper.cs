@@ -31,9 +31,5 @@
                 Configure.EndpointName);
         }
 
-        IDocumentStore ResolveStore(TinyIoCContainer arg1, NamedParameterOverloads arg2)
-        {
-            return Configure.Instance.Builder.Build<IDocumentStore>();
-        }
     }
 }

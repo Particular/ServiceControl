@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.FailedMessages
+﻿namespace ServiceBus.Management.FailedMessages.Api
 {
     using System.Linq;
     using Raven.Client;
