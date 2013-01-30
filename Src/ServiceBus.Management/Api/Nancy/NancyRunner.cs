@@ -1,8 +1,8 @@
-﻿namespace ServiceBus.Management.Api
+﻿namespace ServiceBus.Management.Api.Nancy
 {
     using NServiceBus;
     using NServiceBus.Logging;
-    using Nancy.Hosting.Self;
+    using global::Nancy.Hosting.Self;
 
     public class NancyRunner : IWantToRunWhenBusStartsAndStops
     {

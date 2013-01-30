@@ -1,8 +1,8 @@
-﻿namespace ServiceBus.Management.Api
+﻿namespace ServiceBus.Management.Api.Nancy
 {
     using System;
     using NServiceBus;
-    using Nancy.Hosting.Self;
+    using global::Nancy.Hosting.Self;
 
     public class NancyConfigurer : INeedInitialization
     {

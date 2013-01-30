@@ -73,6 +73,7 @@
     <Compile Include="Api\Nancy\NancyRunner.cs" />
     <Compile Include="EndpointConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RavenDB\BootstrapRaven.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
