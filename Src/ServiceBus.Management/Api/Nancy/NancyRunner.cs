@@ -9,6 +9,7 @@
         public NancyHost NancyHost { get; set; }
         public void Start()
         {
+           
             NancyHost.Start();
 
             Logger.InfoFormat("Api is now accepting requests");
