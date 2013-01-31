@@ -46,7 +46,7 @@
                 }
                 else
                 {
-                    failedMessage.Status = MessageStatus.RepetedFailures;
+                    failedMessage.Status = MessageStatus.RepeatedFailures;
                 }
 
                 failedMessage.FailureDetails.Exception = GetException(message);
