@@ -20,6 +20,7 @@
             return response;
         }
 
+        //todo - we need to exclude the headers from the lowercasing
         public class LowercaseContractResolver : DefaultContractResolver
         {
             protected override string ResolvePropertyName(string propertyName)
