@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.FailedMessages.Api
 {
     using System.Linq;
+    using Management.Api;
     using Nancy;
     using Raven.Client;
     using RavenDB;
@@ -8,9 +9,9 @@
     public class Module : NancyModule
     {
         
-        public Module(): base("/failedmessages")
+        public Module()
         {
-            Get["/"]= _ =>
+            Get["/failedmessages"] = _ =>
                 {
                     using (var session = RavenBootstrapper.Store.OpenSession())
                     {
@@ -20,14 +21,26 @@
                             .Take(50)
                             .ToArray();
 
-                        var response = (Response) Newtonsoft.Json.JsonConvert.SerializeObject(results);
-
-                        response.ContentType = "application/json";
-                        response.Headers["X-TotalCount"] = stats.TotalResults.ToString();
-                        
-                        return response;
+                        return Json.Format(results, stats);
                     }
                 };
+
+            Get["/endpoints/{name}/failedmessages"] = parameters =>
+            {
+                using (var session = RavenBootstrapper.Store.OpenSession())
+                {
+                    string endpoint = parameters.name;
+
+                    RavenQueryStatistics stats;
+                    var results = session.Query<FailedMessage>()
+                        .Statistics(out stats)
+                        .Where(f => f.Endpoint == endpoint)
+                        .Take(50)
+                        .ToArray();
+
+                    return Json.Format(results, stats);
+                }
+            };
         }
     }
 }

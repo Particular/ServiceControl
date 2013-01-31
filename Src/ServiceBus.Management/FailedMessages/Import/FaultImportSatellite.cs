@@ -33,7 +33,8 @@
                         Body = DeserializeBody(message),
                         BodyRaw = message.Body,
                         RelatedToMessageId = relatedId,
-                        Status = FailedMessageStatus.New
+                        Status = FailedMessageStatus.New,
+                        Endpoint = GetEndpoint(message)
                     };
                 }
                 else
@@ -50,6 +51,17 @@
             }
 
             return true;
+        }
+
+        string GetEndpoint(TransportMessage message)
+        {
+            if (message.Headers.ContainsKey("NSericeBus.OriginatingEndpoint"))
+                return message.Headers["NSericeBus.OriginatingEndpoint"];
+
+            if (message.ReplyToAddress != null)
+                return message.ReplyToAddress.ToString();
+
+            return null;
         }
 
         static string DeserializeBody(TransportMessage message)
