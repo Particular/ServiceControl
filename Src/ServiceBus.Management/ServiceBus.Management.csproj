@@ -79,9 +79,9 @@
     <Compile Include="Api\Nancy\NancyRunner.cs" />
     <Compile Include="EndpointConfig.cs" />
     <Compile Include="Api\Json.cs" />
-    <Compile Include="FailedMessages\FailedMessage.cs" />
+    <Compile Include="Message.cs" />
     <Compile Include="FailedMessages\Api\Module.cs" />
-    <Compile Include="FailedMessages\FailedMessageStatus.cs" />
+    <Compile Include="MessageStatus.cs" />
     <Compile Include="FailedMessages\Import\FaultImportSatellite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RavenDB\RavenBootstrapper.cs" />

@@ -20,11 +20,11 @@
                 if (message.Headers.ContainsKey(Headers.RelatedTo))
                     relatedId = message.Headers[Headers.RelatedTo];
 
-                var failedMessage = session.Load<FailedMessage>(message.IdForCorrelation);
+                var failedMessage = session.Load<Message>(message.IdForCorrelation);
 
                 if (failedMessage == null)
                 {
-                    failedMessage = new FailedMessage
+                    failedMessage = new Message
                     {
                         Id = message.IdForCorrelation,
                         CorrelationId = message.CorrelationId,
@@ -33,16 +33,24 @@
                         Body = DeserializeBody(message),
                         BodyRaw = message.Body,
                         RelatedToMessageId = relatedId,
-                        Status = FailedMessageStatus.New,
-                        Endpoint = GetEndpoint(message)
+                        ConversationId = message.Headers[" NSericeBus.ConversationId"],//todo, update and use the constant
+                        Status = MessageStatus.Failed,
+                        Endpoint = GetEndpoint(message),
+                        FailureDetails = new FailureDetails
+                            {
+                                FailedInQueue = message.Headers["NServiceBus.FailedQ"],
+                                TimeOfFailure = DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"])
+                            }
+                        
                     };
                 }
                 else
                 {
-                    failedMessage.Status = FailedMessageStatus.RepetedFailures;
+                    failedMessage.Status = MessageStatus.RepetedFailures;
                 }
 
-                failedMessage.NumberOfTimesFailed++;
+                failedMessage.FailureDetails.Exception = GetException(message);
+                failedMessage.FailureDetails.NumberOfTimesFailed++;
 
                 session.Store(failedMessage);
 
@@ -51,6 +59,17 @@
             }
 
             return true;
+        }
+
+        ExceptionDetails GetException(TransportMessage message)
+        {
+            return new ExceptionDetails
+                {
+                    ExceptionType = message.Headers["NServiceBus.ExceptionInfo.ExceptionType"],
+                    Message = message.Headers["NServiceBus.ExceptionInfo.Message"],
+                    Source = message.Headers["NServiceBus.ExceptionInfo.Source"],
+                    StackTrace = message.Headers["NServiceBus.ExceptionInfo.StackTrace"]
+                };
         }
 
         string GetEndpoint(TransportMessage message)

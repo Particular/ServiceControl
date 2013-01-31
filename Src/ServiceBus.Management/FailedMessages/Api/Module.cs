@@ -16,7 +16,7 @@
                     using (var session = RavenBootstrapper.Store.OpenSession())
                     {
                         RavenQueryStatistics stats;
-                        var results = session.Query<FailedMessage>()
+                        var results = session.Query<Message>()
                             .Statistics(out stats)
                             .Take(50)
                             .ToArray();
@@ -32,7 +32,7 @@
                     string endpoint = parameters.name;
 
                     RavenQueryStatistics stats;
-                    var results = session.Query<FailedMessage>()
+                    var results = session.Query<Message>()
                         .Statistics(out stats)
                         .Where(f => f.Endpoint == endpoint)
                         .Take(50)
