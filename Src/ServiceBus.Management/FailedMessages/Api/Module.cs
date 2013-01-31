@@ -1,10 +1,11 @@
 ﻿namespace ServiceBus.Management.FailedMessages.Api
 {
     using System.Linq;
+    using Nancy;
     using Raven.Client;
     using RavenDB;
 
-    public class Module : Nancy.NancyModule
+    public class Module : NancyModule
     {
         
         public Module(): base("/failedmessages")
@@ -19,12 +20,12 @@
                             .Take(50)
                             .ToArray();
 
-                        return Newtonsoft.Json.JsonConvert.SerializeObject(new
-                            {
-                                faults = results,
-                                total = stats.TotalResults
-                            }
-                            );
+                        var response = (Response) Newtonsoft.Json.JsonConvert.SerializeObject(results);
+
+                        response.ContentType = "application/json";
+                        response.Headers["X-TotalCount"] = stats.TotalResults.ToString();
+                        
+                        return response;
                     }
                 };
         }

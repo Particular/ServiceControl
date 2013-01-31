@@ -10,14 +10,16 @@
 
         public Dictionary<string, string> Headers { get; set; }
 
-        public string BodyText { get; set; }
+        public string Body { get; set; }
 
         public byte[] BodyRaw { get; set; }
 
-        public string MessageId { get; set; }
-
-        public string IdForCorrelation { get; set; }
-
         public string RelatedToMessageId { get; set; }
+
+        public string CorrelationId { get; set; }
+
+        public int NumberOfTimesFailed { get; set; }
+
+        public FailedMessageStatus Status { get; set; }
     }
 }
