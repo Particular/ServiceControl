@@ -15,7 +15,7 @@
                                                                 new JsonSerializerSettings { ContractResolver = new LowercaseContractResolver() });
 
             response.ContentType = "application/json";
-            response.Headers["X-TotalCount"] = stats.TotalResults.ToString();
+            response.Headers["TotalCount"] = stats.TotalResults.ToString();
 
             return response;
         }
