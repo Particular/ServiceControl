@@ -55,8 +55,8 @@
 
         string GetEndpoint(TransportMessage message)
         {
-            if (message.Headers.ContainsKey("NSericeBus.OriginatingEndpoint"))
-                return message.Headers["NSericeBus.OriginatingEndpoint"];
+            if (message.Headers.ContainsKey(Headers.OriginatingEndpoint))
+                return message.Headers[Headers.OriginatingEndpoint];
 
             if (message.ReplyToAddress != null)
                 return message.ReplyToAddress.ToString();
