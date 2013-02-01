@@ -1,10 +1,8 @@
 ﻿namespace ServiceBus.Management.FailedMessages.Api
 {
     using System.Linq;
-    using Management.Api;
     using Nancy;
     using Raven.Client;
-    using RavenDB;
 
     public class Module : NancyModule
     {
@@ -14,15 +12,34 @@
         {
             Get["/failedmessages"] = _ =>
                 {
+                    int maxResultsPerPage = 50;
+
+                    if (Request.Query.per_page.HasValue)
+                    {
+                        maxResultsPerPage = Request.Query.per_page;
+                    }
+
+                    int page = 1;
+
+                    if (Request.Query.page.HasValue)
+                    {
+                        maxResultsPerPage = Request.Query.page;
+                    }
+
+                    int skipResults = (page - 1) * maxResultsPerPage;
+
                     using (var session = Store.OpenSession())
                     {
                         RavenQueryStatistics stats;
                         var results = session.Query<Message>()
                             .Statistics(out stats)
-                            .Take(50)
+                            .Skip(skipResults)
+                            .Take(maxResultsPerPage)
                             .ToArray();
 
-                        return Json.Format(results, stats);
+                        return Negotiate
+                            .WithModel(results)
+                            .WithHeader("Total-Count", stats.TotalResults.ToString());
                     }
                 };
 
@@ -39,7 +56,11 @@
                         .Take(50)
                         .ToArray();
 
-                    return Json.Format(results, stats);
+                    
+
+                    return Negotiate
+                            .WithModel(results)
+                            .WithHeader("Total-Count", stats.TotalResults.ToString());
                 }
             };
         }

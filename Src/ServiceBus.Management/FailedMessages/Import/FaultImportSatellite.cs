@@ -1,5 +1,8 @@
 ﻿namespace ServiceBus.Management.FailedMessages.Import
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using System.Xml;
     using NServiceBus;
@@ -25,24 +28,24 @@
                 if (failedMessage == null)
                 {
                     failedMessage = new Message
-                    {
-                        Id = message.IdForCorrelation,
-                        CorrelationId = message.CorrelationId,
-                        MessageType = message.Headers[Headers.EnclosedMessageTypes],
-                        Headers = message.Headers,
-                        Body = DeserializeBody(message),
-                        BodyRaw = message.Body,
-                        RelatedToMessageId = relatedId,
-                        ConversationId = message.Headers[" NSericeBus.ConversationId"],//todo, update and use the constant
-                        Status = MessageStatus.Failed,
-                        Endpoint = GetEndpoint(message),
-                        FailureDetails = new FailureDetails
-                            {
-                                FailedInQueue = message.Headers["NServiceBus.FailedQ"],
-                                TimeOfFailure = DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"])
-                            }
-                        
-                    };
+                        {
+                            Id = message.IdForCorrelation,
+                            CorrelationId = message.CorrelationId,
+                            MessageType = message.Headers[Headers.EnclosedMessageTypes],
+                            Headers = message.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value)),
+                            Body = DeserializeBody(message),
+                            BodyRaw = message.Body,
+                            RelatedToMessageId = relatedId,
+                            ConversationId = message.Headers[Headers.ConversationId],
+                            Status = MessageStatus.Failed,
+                            Endpoint = GetEndpoint(message),
+                            FailureDetails = new FailureDetails
+                                {
+                                    FailedInQueue = message.Headers["NServiceBus.FailedQ"],
+                                    TimeOfFailure =
+                                        DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"])
+                                }
+                        };
                 }
                 else
                 {
