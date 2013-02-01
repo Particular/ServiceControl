@@ -82,6 +82,8 @@
     <Compile Include="Api\Nancy\NancyRunner.cs" />
     <Compile Include="Api\Nancy\NServiceBusContainerBootstrapper.cs" />
     <Compile Include="Api\Nancy\UnderscoreMappingResolver.cs" />
+    <Compile Include="AuditMessages\AuditMessageImportSatellite.cs" />
+    <Compile Include="AuditMessages\AuditMessagesModule.cs" />
     <Compile Include="Conversations\ConversationsModule.cs" />
     <Compile Include="EndpointConfig.cs" />
     <Compile Include="Message.cs" />
@@ -97,9 +99,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="AuditMessages\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

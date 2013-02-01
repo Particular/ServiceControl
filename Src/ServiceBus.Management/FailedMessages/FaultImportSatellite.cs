@@ -1,5 +1,6 @@
 ﻿namespace ServiceBus.Management.FailedMessages
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -17,40 +18,31 @@
         {
             using (var session = Store.OpenSession())
             {
-                string relatedId = null;
-
-                if (message.Headers.ContainsKey(Headers.RelatedTo))
-                    relatedId = message.Headers[Headers.RelatedTo];
 
                 var failedMessage = session.Load<Message>(message.IdForCorrelation);
 
                 if (failedMessage == null)
                 {
-                    failedMessage = new Message
+                    failedMessage = new Message(message)
+                    {
+                        FailureDetails = new FailureDetails
                         {
-                            Id = message.IdForCorrelation,
-                            CorrelationId = message.CorrelationId,
-                            MessageType = message.Headers[Headers.EnclosedMessageTypes],
-                            Headers = message.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value)),
-                            TimeSent = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.TimeSent]),
-                            Body = DeserializeBody(message),
-                            BodyRaw = message.Body,
-                            RelatedToMessageId = relatedId,
-                            ConversationId = message.Headers[Headers.ConversationId],
-                            Status = MessageStatus.Failed,
-                            Endpoint = GetEndpoint(message),
-                            FailureDetails = new FailureDetails
-                                {
-                                    FailedInQueue = message.Headers["NServiceBus.FailedQ"],
-                                    TimeOfFailure =
-                                        DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"])
-                                }
-                        };
+                            FailedInQueue = message.Headers["NServiceBus.FailedQ"],
+                            TimeOfFailure =
+                                DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"])
+                        },
+                        Status = MessageStatus.Failed
+                    };
                 }
                 else
                 {
+                    if (failedMessage.Status == MessageStatus.Successfull)
+                        throw new InvalidOperationException("A message can't first be processed successfully and then fail, Id: " + failedMessage.Id);
+
                     failedMessage.Status = MessageStatus.RepeatedFailures;
                 }
+
+
 
                 failedMessage.FailureDetails.Exception = GetException(message);
                 failedMessage.FailureDetails.NumberOfTimesFailed++;
@@ -58,11 +50,11 @@
                 session.Store(failedMessage);
 
                 session.SaveChanges();
-
             }
 
             return true;
         }
+
 
         ExceptionDetails GetException(TransportMessage message)
         {
