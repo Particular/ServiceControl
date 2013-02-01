@@ -9,7 +9,7 @@
 
         public string MessageType { get; set; }
 
-        public Dictionary<string, string> Headers { get; set; }
+        public IEnumerable<KeyValuePair<string, string>> Headers { get; set; }
 
         public string Body { get; set; }
 
@@ -26,7 +26,6 @@
         public string Endpoint { get; set; }
 
         public FailureDetails FailureDetails { get; set; }
-
     }
 
     public class FailureDetails

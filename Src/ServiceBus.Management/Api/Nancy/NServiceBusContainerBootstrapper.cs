@@ -8,9 +8,29 @@
     using global::Nancy;
     using global::Nancy.Bootstrapper;
     using global::Nancy.Diagnostics;
+    using global::Nancy.Responses;
 
     public class NServiceBusContainerBootstrapper : NancyBootstrapperWithRequestContainerBase<IContainer>
     {
+        protected override NancyInternalConfiguration InternalConfiguration
+        {
+            get
+            {
+                // Insert at position 0 so it takes precedence over the built in one.
+                return NancyInternalConfiguration.WithOverrides(
+                        c =>
+                            {
+                                c.Serializers.Remove(typeof (DefaultJsonSerializer));
+                                
+                            });
+            }
+        }
+
+        protected override DiagnosticsConfiguration DiagnosticsConfiguration
+        {
+            get { return new DiagnosticsConfiguration { Password = @"john" }; }
+        }
+
         protected override IDiagnostics GetDiagnostics()
         {
             return ApplicationContainer.Build(typeof(IDiagnostics)) as IDiagnostics;

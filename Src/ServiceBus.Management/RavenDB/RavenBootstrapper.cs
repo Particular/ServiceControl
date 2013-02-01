@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.RavenDB
 {
     using NServiceBus;
-    using Nancy.TinyIoc;
     using Raven.Client;
     using Raven.Client.Embedded;
 
