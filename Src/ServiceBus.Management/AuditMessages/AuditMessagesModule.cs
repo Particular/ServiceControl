@@ -30,6 +30,29 @@
                             .WithHeader("Total-Count", stats.TotalResults.ToString());
                 }
             };
+
+            Get["/endpoints/{name}/auditmessages"] = parameters =>
+                {
+                    using (var session = Store.OpenSession())
+                    {
+                        string endpoint = parameters.name;
+
+                        RavenQueryStatistics stats;
+                        var results = session.Query<Message>()
+                            .Statistics(out stats)
+                            .Where(m =>m.Endpoint == endpoint &&  m.Status == MessageStatus.Successfull)
+                            .OrderBy(m => m.TimeSent)
+                            .Take(50)
+                            .ToArray();
+
+
+
+                        return Negotiate
+                                .WithModel(results)
+                                .WithHeader("Total-Count", stats.TotalResults.ToString());
+                    }
+                };
+
         }
     }
 }
