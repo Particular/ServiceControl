@@ -1,6 +1,5 @@
-﻿namespace ServiceBus.Management.FailedMessages.Import
+﻿namespace ServiceBus.Management.FailedMessages
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -33,6 +32,7 @@
                             CorrelationId = message.CorrelationId,
                             MessageType = message.Headers[Headers.EnclosedMessageTypes],
                             Headers = message.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value)),
+                            TimeSent = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.TimeSent]),
                             Body = DeserializeBody(message),
                             BodyRaw = message.Body,
                             RelatedToMessageId = relatedId,

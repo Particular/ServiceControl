@@ -3,6 +3,7 @@
     public enum MessageStatus
     {
         Failed = 1,
-        RepeatedFailures = 2
+        RepeatedFailures = 2,
+        Successfull = 3
     }
 }

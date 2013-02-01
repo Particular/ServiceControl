@@ -26,6 +26,8 @@
         public string Endpoint { get; set; }
 
         public FailureDetails FailureDetails { get; set; }
+
+        public DateTime TimeSent { get; set; }
     }
 
     public class FailureDetails

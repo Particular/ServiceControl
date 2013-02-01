@@ -1,14 +1,14 @@
-﻿namespace ServiceBus.Management.FailedMessages.Api
+﻿namespace ServiceBus.Management.FailedMessages
 {
     using System.Linq;
     using Nancy;
     using Raven.Client;
 
-    public class Module : NancyModule
+    public class FailedMessagesModule : NancyModule
     {
         public IDocumentStore Store { get; set; }
 
-        public Module()
+        public FailedMessagesModule()
         {
             Get["/failedmessages"] = _ =>
                 {
@@ -33,6 +33,8 @@
                         RavenQueryStatistics stats;
                         var results = session.Query<Message>()
                             .Statistics(out stats)
+                            .Where(m => m.Status != MessageStatus.Successfull)
+                            .OrderBy(m => m.FailureDetails.TimeOfFailure)
                             .Skip(skipResults)
                             .Take(maxResultsPerPage)
                             .ToArray();
@@ -52,11 +54,12 @@
                     RavenQueryStatistics stats;
                     var results = session.Query<Message>()
                         .Statistics(out stats)
-                        .Where(f => f.Endpoint == endpoint)
+                        .Where(m => m.Endpoint == endpoint && m.Status != MessageStatus.Successfull)
+                        .OrderBy(m => m.FailureDetails.TimeOfFailure)
                         .Take(50)
                         .ToArray();
 
-                    
+
 
                     return Negotiate
                             .WithModel(results)
