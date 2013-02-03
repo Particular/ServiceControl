@@ -40,7 +40,7 @@
                         RavenQueryStatistics stats;
                         var results = session.Query<Message>()
                             .Statistics(out stats)
-                            .Where(m =>m.Endpoint == endpoint &&  m.Status == MessageStatus.Successfull)
+                            .Where(m =>m.OriginatingEndpoint.Endpoint == endpoint &&  m.Status == MessageStatus.Successfull)
                             .OrderBy(m => m.TimeSent)
                             .Take(50)
                             .ToArray();

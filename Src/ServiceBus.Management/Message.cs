@@ -26,23 +26,12 @@
             RelatedToMessageId = message.Headers.ContainsKey(NServiceBus.Headers.RelatedTo) ?  message.Headers[NServiceBus.Headers.RelatedTo] : null;
             ConversationId = message.Headers[NServiceBus.Headers.ConversationId];
             Status = MessageStatus.Failed;
-            Endpoint = GetEndpoint(message);
+            OriginatingEndpoint = EndpointDetails.Parse(message);
             OriginatingSaga = SagaDetails.Parse(message);
             IsDeferredMessage = message.Headers.ContainsKey(NServiceBus.Headers.IsDeferedMessage);
         }
 
         protected bool IsDeferredMessage { get; set; }
-
-        string GetEndpoint(TransportMessage message)
-        {
-            if (message.Headers.ContainsKey(NServiceBus.Headers.OriginatingEndpoint))
-                return message.Headers[NServiceBus.Headers.OriginatingEndpoint];
-
-            if (message.ReplyToAddress != null)
-                return message.ReplyToAddress.ToString();
-
-            return null;
-        }
 
         static string DeserializeBody(TransportMessage message)
         {
@@ -71,7 +60,7 @@
 
         public MessageStatus Status { get; set; }
 
-        public string Endpoint { get; set; }
+        public EndpointDetails OriginatingEndpoint { get; set; }
 
         public SagaDetails OriginatingSaga{ get; set; }
 
@@ -81,14 +70,45 @@
         public MessageStatistics Statistics { get; set; }
     }
 
+    public class EndpointDetails
+    {
+        public EndpointDetails(TransportMessage message)
+        {
+            if (message.Headers.ContainsKey(Headers.OriginatingEndpoint))
+                Endpoint=message.Headers[Headers.OriginatingEndpoint];
+
+            if (message.Headers.ContainsKey("NServiceBus.OriginatingMachine"))
+                Machine = message.Headers["NServiceBus.OriginatingMachine"];
+            
+            if (message.ReplyToAddress != null)
+            {
+                Endpoint = message.ReplyToAddress.Queue;
+                Machine = message.ReplyToAddress.Machine;
+            }
+        }
+
+        public string Endpoint { get; set; }
+        public string Machine { get; set; }
+
+        public static EndpointDetails Parse(TransportMessage message)
+        {
+            return new EndpointDetails(message);
+        }
+    }
+
     public class SagaDetails
     {
+        protected SagaDetails()
+        {
+        }
+
         public SagaDetails(TransportMessage message)
         {
             SagaId = message.Headers[Headers.SagaId];
             SagaType = message.Headers[Headers.SagaType];
             IsTimeoutMessage = message.Headers.ContainsKey(Headers.IsSagaTimeoutMessage);
         }
+
 
         protected bool IsTimeoutMessage { get; set; }
 
