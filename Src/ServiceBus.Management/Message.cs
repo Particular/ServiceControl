@@ -27,7 +27,11 @@
             ConversationId = message.Headers[NServiceBus.Headers.ConversationId];
             Status = MessageStatus.Failed;
             Endpoint = GetEndpoint(message);
+            OriginatingSaga = SagaDetails.Parse(message);
+            IsDeferredMessage = message.Headers.ContainsKey(NServiceBus.Headers.IsDeferedMessage);
         }
+
+        protected bool IsDeferredMessage { get; set; }
 
         string GetEndpoint(TransportMessage message)
         {
@@ -69,11 +73,33 @@
 
         public string Endpoint { get; set; }
 
-        public FailureDetails FailureDetails { get; set; }
+        public SagaDetails OriginatingSaga{ get; set; }
 
+        public FailureDetails FailureDetails { get; set; }
         public DateTime TimeSent { get; set; }
 
         public MessageStatistics Statistics { get; set; }
+    }
+
+    public class SagaDetails
+    {
+        public SagaDetails(TransportMessage message)
+        {
+            SagaId = message.Headers[Headers.SagaId];
+            SagaType = message.Headers[Headers.SagaType];
+            IsTimeoutMessage = message.Headers.ContainsKey(Headers.IsSagaTimeoutMessage);
+        }
+
+        protected bool IsTimeoutMessage { get; set; }
+
+        public string SagaId { get; set; }
+
+        public string SagaType { get; set; }
+
+        public static SagaDetails Parse(TransportMessage message)
+        {
+            return !message.Headers.ContainsKey(Headers.SagaId) ? null : new SagaDetails(message);
+        }
     }
 
     public class MessageStatistics
