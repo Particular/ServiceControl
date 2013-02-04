@@ -4,7 +4,7 @@
     using Nancy;
     using Raven.Client;
 
-    /*
+   
     public class ConversationsModule : NancyModule
     {
         public IDocumentStore Store { get; set; }
@@ -34,5 +34,5 @@
             };
         }
     }
-     */ 
+ 
 }

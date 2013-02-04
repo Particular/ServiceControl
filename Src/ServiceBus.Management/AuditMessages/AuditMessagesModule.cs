@@ -3,7 +3,7 @@
     using System.Linq;
     using Nancy;
     using Raven.Client;
-    /*
+    
     public class AuditMessagesModule : NancyModule
     {
         public IDocumentStore Store { get; set; }
@@ -55,5 +55,4 @@
                 };
         }
     }
-     */
 }

@@ -107,19 +107,13 @@
 
         protected override void RegisterRequestContainerModules(IContainer container, IEnumerable<ModuleRegistration> moduleRegistrationTypes)
         {
-            if (initialized)
-            {
-                return;
-            }
-
             foreach (var moduleRegistrationType in moduleRegistrationTypes)
             {
-                Configure.Instance.Configurer.ConfigureComponent(moduleRegistrationType.ModuleType, DependencyLifecycle.InstancePerUnitOfWork);
-
-                Configure.Instance.Configurer.ConfigureComponent(() => Configure.Instance.Builder.Build(moduleRegistrationType.ModuleType) as NancyModule, DependencyLifecycle.InstancePerUnitOfWork);
+                Configure.Instance.Configurer.ConfigureComponent(moduleRegistrationType.ModuleType,
+                                                                 DependencyLifecycle.SingleInstance);
+                container.RegisterSingleton(typeof(NancyModule),
+                                            Configure.Instance.Builder.Build(moduleRegistrationType.ModuleType));
             }
-
-            initialized = true;
         }
 
         protected override IEnumerable<NancyModule> GetAllModules(IContainer container)
@@ -131,7 +125,5 @@
         {
             return container.Build(Type.GetType(moduleKey)) as NancyModule;
         }
-
-        bool initialized;
     }
 }
