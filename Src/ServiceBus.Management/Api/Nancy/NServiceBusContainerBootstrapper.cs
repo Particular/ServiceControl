@@ -12,23 +12,24 @@
 
     public class NServiceBusContainerBootstrapper : NancyBootstrapperWithRequestContainerBase<IContainer>
     {
+        protected override void ApplicationStartup(IContainer container, IPipelines pipelines)
+        {
+            StaticConfiguration.EnableRequestTracing = true;
+        }
+
         protected override NancyInternalConfiguration InternalConfiguration
         {
             get
             {
                 // Insert at position 0 so it takes precedence over the built in one.
                 return NancyInternalConfiguration.WithOverrides(
-                        c =>
-                            {
-                                c.Serializers.Remove(typeof (DefaultJsonSerializer));
-                                
-                            });
+                        c => c.Serializers.Remove(typeof (DefaultJsonSerializer)));
             }
         }
 
         protected override DiagnosticsConfiguration DiagnosticsConfiguration
         {
-            get { return new DiagnosticsConfiguration { Password = @"john" }; }
+            get { return new DiagnosticsConfiguration { Password = @"password" }; }
         }
 
         protected override IDiagnostics GetDiagnostics()
@@ -104,19 +105,18 @@
             return GetApplicationContainer().BuildChildContainer();
         }
 
-        protected override void RegisterRequestContainerModules(IContainer container,
-                                                                IEnumerable<ModuleRegistration> moduleRegistrationTypes)
+        protected override void RegisterRequestContainerModules(IContainer container, IEnumerable<ModuleRegistration> moduleRegistrationTypes)
         {
-
             if (initialized)
+            {
                 return;
+            }
 
             foreach (var moduleRegistrationType in moduleRegistrationTypes)
             {
-                
-                Configure.Instance.Configurer.ConfigureComponent(moduleRegistrationType.ModuleType,DependencyLifecycle.InstancePerUnitOfWork);
-                
-                Configure.Instance.Configurer.ConfigureComponent(()=>Configure.Instance.Builder.Build(moduleRegistrationType.ModuleType) as NancyModule, DependencyLifecycle.InstancePerUnitOfWork);
+                Configure.Instance.Configurer.ConfigureComponent(moduleRegistrationType.ModuleType, DependencyLifecycle.InstancePerUnitOfWork);
+
+                Configure.Instance.Configurer.ConfigureComponent(() => Configure.Instance.Builder.Build(moduleRegistrationType.ModuleType) as NancyModule, DependencyLifecycle.InstancePerUnitOfWork);
             }
 
             initialized = true;
@@ -124,15 +124,15 @@
 
         protected override IEnumerable<NancyModule> GetAllModules(IContainer container)
         {
-            return (IEnumerable<NancyModule>)container.BuildAll(typeof(NancyModule));
+            return container.BuildAll(typeof(NancyModule)).Cast<NancyModule>();
         }
 
         protected override NancyModule GetModuleByKey(IContainer container, string moduleKey)
         {
-            var t = Type.GetType(moduleKey);
-            return container.Build(t) as NancyModule;
+            return container.Build(Type.GetType(moduleKey)) as NancyModule;
         }
 
-        static bool initialized;
+        bool initialized;
+
     }
 }
