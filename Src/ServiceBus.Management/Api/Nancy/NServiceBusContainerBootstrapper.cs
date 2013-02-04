@@ -133,6 +133,5 @@
         }
 
         bool initialized;
-
     }
 }
