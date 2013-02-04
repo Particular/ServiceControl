@@ -23,24 +23,17 @@
             TimeSent = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent]);
             Body = DeserializeBody(message);
             BodyRaw = message.Body;
-            RelatedToMessageId = message.Headers.ContainsKey(NServiceBus.Headers.RelatedTo) ?  message.Headers[NServiceBus.Headers.RelatedTo] : null;
+            RelatedToMessageId = message.Headers.ContainsKey(NServiceBus.Headers.RelatedTo) ? message.Headers[NServiceBus.Headers.RelatedTo] : null;
             ConversationId = message.Headers[NServiceBus.Headers.ConversationId];
             Status = MessageStatus.Failed;
-            OriginatingEndpoint = EndpointDetails.Parse(message);
+            OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(message);
+            ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message);
             OriginatingSaga = SagaDetails.Parse(message);
             IsDeferredMessage = message.Headers.ContainsKey(NServiceBus.Headers.IsDeferedMessage);
         }
 
-        protected bool IsDeferredMessage { get; set; }
 
-        static string DeserializeBody(TransportMessage message)
-        {
-            //todo examine content type
-            var doc = new XmlDocument();
-            doc.LoadXml(Encoding.UTF8.GetString(message.Body));
-            return JsonConvert.SerializeXmlNode(doc.DocumentElement);
-        }
-
+        public bool IsDeferredMessage { get; set; }
 
         public string Id { get; set; }
 
@@ -62,37 +55,73 @@
 
         public EndpointDetails OriginatingEndpoint { get; set; }
 
-        public SagaDetails OriginatingSaga{ get; set; }
+        protected EndpointDetails ReceivingEndpoint { get; set; }
+
+        public SagaDetails OriginatingSaga { get; set; }
 
         public FailureDetails FailureDetails { get; set; }
         public DateTime TimeSent { get; set; }
 
         public MessageStatistics Statistics { get; set; }
+
+        public string ReplyToAddress { get; set; }
+
+        static string DeserializeBody(TransportMessage message)
+        {
+            //todo examine content type
+            var doc = new XmlDocument();
+            doc.LoadXml(Encoding.UTF8.GetString(message.Body));
+            return JsonConvert.SerializeXmlNode(doc.DocumentElement);
+        }
     }
 
     public class EndpointDetails
     {
-        public EndpointDetails(TransportMessage message)
-        {
-            if (message.Headers.ContainsKey(Headers.OriginatingEndpoint))
-                Endpoint=message.Headers[Headers.OriginatingEndpoint];
+        public string Name { get; set; }
 
-            if (message.Headers.ContainsKey("NServiceBus.OriginatingMachine"))
-                Machine = message.Headers["NServiceBus.OriginatingMachine"];
-            
-            if (message.ReplyToAddress != null)
-            {
-                Endpoint = message.ReplyToAddress.Queue;
-                Machine = message.ReplyToAddress.Machine;
-            }
-        }
-
-        public string Endpoint { get; set; }
         public string Machine { get; set; }
 
-        public static EndpointDetails Parse(TransportMessage message)
+        public static EndpointDetails OriginatingEndpoint(TransportMessage message)
         {
-            return new EndpointDetails(message);
+            var endpoint = new EndpointDetails();
+
+            if (message.Headers.ContainsKey(Headers.OriginatingEndpoint))
+                endpoint.Name = message.Headers[Headers.OriginatingEndpoint];
+
+            if (message.Headers.ContainsKey("NServiceBus.OriginatingMachine"))
+                endpoint.Machine = message.Headers["NServiceBus.OriginatingMachine"];
+
+            if (message.ReplyToAddress != null)
+            {
+                endpoint.Name = message.ReplyToAddress.Queue;
+                endpoint.Machine = message.ReplyToAddress.Machine;
+            }
+
+            return endpoint;
+        }
+
+
+        public static EndpointDetails ReceivingEndpoint(TransportMessage message)
+        {
+            var endpoint = new EndpointDetails();
+
+            //use the failed q to determine the receiving endpoint
+            if (message.Headers.ContainsKey("NServiceBus.FailedQ"))
+            {
+                var failedAddress = Address.Parse(message.Headers["NServiceBus.FailedQ"]);
+
+
+                endpoint.Name = failedAddress.Queue;
+                endpoint.Machine = failedAddress.Machine;
+            }
+            else
+            {
+                //for successfull messages the replytoaddress will be the address of the endpoint who processed the message
+                endpoint.Name = message.ReplyToAddress.Queue;
+                endpoint.Machine = message.ReplyToAddress.Machine;
+            }
+
+            return endpoint;
         }
     }
 
@@ -124,7 +153,7 @@
 
     public class MessageStatistics
     {
-        public TimeSpan CriticalTime{ get; set; }
+        public TimeSpan CriticalTime { get; set; }
         public TimeSpan ProcessingTime { get; set; }
     }
 

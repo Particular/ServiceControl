@@ -67,25 +67,6 @@
                 };
         }
 
-        string GetEndpoint(TransportMessage message)
-        {
-            if (message.Headers.ContainsKey(Headers.OriginatingEndpoint))
-                return message.Headers[Headers.OriginatingEndpoint];
-
-            if (message.ReplyToAddress != null)
-                return message.ReplyToAddress.ToString();
-
-            return null;
-        }
-
-        static string DeserializeBody(TransportMessage message)
-        {
-            //todo examine content type
-            var doc = new XmlDocument();
-            doc.LoadXml(Encoding.UTF8.GetString(message.Body));
-            return JsonConvert.SerializeXmlNode(doc.DocumentElement);
-        }
-
         public void Start()
         {
 

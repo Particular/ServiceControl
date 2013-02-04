@@ -33,6 +33,9 @@
                     auditMessage.Status = MessageStatus.Successfull;
                 }
 
+                if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
+                    auditMessage.ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
+
                 auditMessage.Statistics = GetStatistics(message);
 
                 session.Store(auditMessage);
