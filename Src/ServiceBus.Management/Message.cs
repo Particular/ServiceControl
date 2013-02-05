@@ -55,7 +55,7 @@
 
         public EndpointDetails OriginatingEndpoint { get; set; }
 
-        protected EndpointDetails ReceivingEndpoint { get; set; }
+        public EndpointDetails ReceivingEndpoint { get; set; }
 
         public SagaDetails OriginatingSaga { get; set; }
 
@@ -83,21 +83,33 @@
 
         public static EndpointDetails OriginatingEndpoint(TransportMessage message)
         {
-            var endpoint = new EndpointDetails();
-
             if (message.Headers.ContainsKey(Headers.OriginatingEndpoint))
-                endpoint.Name = message.Headers[Headers.OriginatingEndpoint];
-
-            if (message.Headers.ContainsKey("NServiceBus.OriginatingMachine"))
-                endpoint.Machine = message.Headers["NServiceBus.OriginatingMachine"];
-
-            if (message.ReplyToAddress != null)
             {
-                endpoint.Name = message.ReplyToAddress.Queue;
-                endpoint.Machine = message.ReplyToAddress.Machine;
-            }
+                return new EndpointDetails
+                {
 
-            return endpoint;
+                    Name = message.Headers[Headers.OriginatingEndpoint],
+                    Machine = message.Headers["NServiceBus.OriginatingMachine"]
+                };
+
+            }
+          
+
+            if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
+            {
+
+                var address = Address.Parse(message.Headers["NServiceBus.OriginatingAddress"]);
+
+                return new EndpointDetails
+                    {
+
+                        Name = address.Queue,
+                        Machine = address.Machine
+                    };
+            }
+                
+
+            return null;
         }
 
 

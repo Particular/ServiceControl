@@ -30,7 +30,7 @@
 
         static string RetrieveDbPath()
         {
-            var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "NServiceBus", "Monitor");
+            var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceBus.Management");
 
             Directory.CreateDirectory(dbPath);
 

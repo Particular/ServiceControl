@@ -1,5 +1,6 @@
 ﻿namespace ServiceBus.Management.AuditMessages
 {
+    using System;
     using NServiceBus;
     using NServiceBus.Satellites;
     using Raven.Client;
@@ -25,7 +26,7 @@
                 else
                 {
                     if (auditMessage.Status == MessageStatus.Successfull)
-                        return true;//duplicate
+                        throw new InvalidOperationException("Duplicate audit message detected " + message.IdForCorrelation);
 
                     auditMessage.FailureDetails.ResolvedAt =
                         DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);

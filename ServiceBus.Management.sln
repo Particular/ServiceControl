@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1F1D74
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceBus.Management.AcceptanceTests", "Src\ServiceBus.Management.AcceptanceTests\ServiceBus.Management.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
