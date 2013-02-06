@@ -56,7 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AcceptanceTest.cs" />
+    <Compile Include="HttpUtil.cs" />
     <Compile Include="Contexts\ConfigureExtensions.cs" />
     <Compile Include="Contexts\DefaultServer.cs" />
     <Compile Include="Contexts\ManagementEndpoint.cs" />

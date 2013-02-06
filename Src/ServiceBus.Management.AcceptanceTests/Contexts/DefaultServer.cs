@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Reflection;
     using NServiceBus.AcceptanceTesting.Support;
@@ -16,7 +15,6 @@
         public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointBehavior endpointBehavior, IConfigurationSource configSource)
         {
             var settings = runDescriptor.Settings;
-            //SetupLogging(endpointBehavior);
 
             var types = GetTypesToUse(endpointBehavior);
 
@@ -55,28 +53,6 @@
                                      t.DeclaringType == endpointBehavior.BuilderType); //and the specific types for this endpoint
             return types;
 
-        }
-
-        static void SetupLogging(EndpointBehavior endpointBehavior)
-        {
-            var logDir = "..\\..\\logfiles\\";
-
-            if (!Directory.Exists(logDir))
-                Directory.CreateDirectory(logDir);
-
-            var logFile = Path.Combine(logDir, endpointBehavior.EndpointName + ".txt");
-
-            if (File.Exists(logFile))
-                File.Delete(logFile);
-
-            var logLevel = "WARN";
-            var logLevelOverride =  Environment.GetEnvironmentVariable("tests_loglevel");
-
-            if (!string.IsNullOrEmpty(logLevelOverride))
-                logLevel = logLevelOverride;
-
-            SetLoggingLibrary.Log4Net(null,
-                                      NServiceBus.Logging.Loggers.Log4NetAdapter.Log4NetAppenderFactory.CreateRollingFileAppender(logLevel, logFile));
         }
     }
 }

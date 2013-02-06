@@ -7,10 +7,10 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class When_a_message_has_been_successfully_processed : AcceptanceTest
+    public class When_a_message_has_been_successfully_processed : HttpUtil
     {
         [Test]
-        public void Should_be_imported_and_published_be_the_api()
+        public void Should_be_imported_and_accessible_via_the_rest_api()
         {
             var context = new MyContext();
 
@@ -38,8 +38,6 @@
 
             Assert.NotNull(context.ApiData);
         }
-
-       
 
         public class Sender : EndpointBuilder
         {
@@ -77,7 +75,6 @@
         public class MyMessage : ICommand
         {
         }
-
 
         public class MyContext : ScenarioContext
         {

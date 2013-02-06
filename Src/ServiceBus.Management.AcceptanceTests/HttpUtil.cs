@@ -4,9 +4,8 @@
     using System.IO;
     using System.Net;
 
-    public class AcceptanceTest
+    public class HttpUtil
     {
-
         protected string ApiCall(string url)
         {
             var request = HttpWebRequest.Create("http://localhost:8888" + url);
@@ -44,9 +43,6 @@
             {
                 return new StreamReader(stream).ReadToEnd();
             }
-
-
         }
-
     }
 }
