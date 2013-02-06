@@ -6,12 +6,13 @@
 
     public class HttpUtil
     {
-        protected string ApiCall(string url)
+        protected T ApiCall<T>(string url) where T:class 
         {
-            var request = HttpWebRequest.Create("http://localhost:8888" + url);
+            var request = (HttpWebRequest)HttpWebRequest.Create("http://localhost:8888" + url);
 
             request.ContentType = "application/json";
 
+            request.Accept = "application/json";
             Console.Out.Write(request.RequestUri);
 
             HttpWebResponse response;
@@ -41,7 +42,9 @@
 
             using (var stream = response.GetResponseStream())
             {
-                return new StreamReader(stream).ReadToEnd();
+                var body = new StreamReader(stream).ReadToEnd();
+
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(body);
             }
         }
     }
