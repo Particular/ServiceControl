@@ -90,6 +90,8 @@
     <Compile Include="FailedMessages\FailedMessagesModule.cs" />
     <Compile Include="MessageStatus.cs" />
     <Compile Include="FailedMessages\FaultImportSatellite.cs" />
+    <Compile Include="Ping\PingModule.cs" />
+    <Compile Include="Ping\VersionInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RavenDB\RavenBootstrapper.cs" />
   </ItemGroup>
