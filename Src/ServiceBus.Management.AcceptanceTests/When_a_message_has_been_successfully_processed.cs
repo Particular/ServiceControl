@@ -28,7 +28,7 @@
                             if (c.MessageId == null)
                                 return false;
 
-                            c.ApiData = ApiCall("/messages/" + context.MessageId + ".json");
+                            c.ApiData = ApiCall<Message>("/messages/" + context.MessageId);
 
 
                             return true;
@@ -36,7 +36,7 @@
                     })
                 .Run();
 
-            Assert.NotNull(context.ApiData);
+            Assert.AreEqual(context.MessageId,context.ApiData.Id,"The returned message should match the processed one");
         }
 
         public class Sender : EndpointBuilder
@@ -79,7 +79,7 @@
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-            public string ApiData { get; set; }
+            public Message ApiData { get; set; }
         }
     }
 }
