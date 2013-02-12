@@ -18,27 +18,13 @@
                 .WithEndpoint<ManagementEndpoint>()
                 .WithEndpoint<Sender>()
                 .WithEndpoint<Receiver>()
-                .Done(c =>
-                    {
-                        lock (context)
-                        {
-                            if (c.ApiData != null)
-                                return true;
-
-                            if (c.MessageId == null)
-                                return false;
-
-                            c.ApiData = ApiCall<Message>("/messages/" + context.MessageId);
-
-
-                            return true;
-                        }
-                    })
+                .Done(c => AuditDataAvailable(context, c))
                 .Run();
 
             Assert.AreEqual(context.MessageId,context.ApiData.Id,"The returned message should match the processed one");
         }
 
+       
         public class Sender : EndpointBuilder
         {
             public Sender()
@@ -81,5 +67,24 @@
             public string MessageId { get; set; }
             public Message ApiData { get; set; }
         }
+
+
+        bool AuditDataAvailable(MyContext context, MyContext c)
+        {
+            lock (context)
+            {
+                if (c.ApiData != null)
+                    return true;
+
+                if (c.MessageId == null)
+                    return false;
+
+                c.ApiData = ApiCall<Message>("/messages/" + context.MessageId);
+
+
+                return true;
+            }
+        }
+
     }
 }
