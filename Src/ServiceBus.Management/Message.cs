@@ -66,6 +66,8 @@
 
         public string ReplyToAddress { get; set; }
 
+        public DateTime ProcessedAt { get; set; }
+
         static string DeserializeBody(TransportMessage message)
         {
             //todo examine content type
@@ -171,6 +173,18 @@
 
     public class FailureDetails
     {
+        public FailureDetails()
+        {
+        }
+
+        public FailureDetails(TransportMessage message)
+        {
+            FailedInQueue = message.Headers["NServiceBus.FailedQ"];
+            TimeOfFailure = DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"]);
+            Exception = GetException(message);
+            NumberOfTimesFailed = 1;
+        }
+
         public int NumberOfTimesFailed { get; set; }
 
         public string FailedInQueue { get; set; }
@@ -180,6 +194,32 @@
         public ExceptionDetails Exception { get; set; }
 
         public DateTime ResolvedAt { get; set; }
+
+        ExceptionDetails GetException(TransportMessage message)
+        {
+            return new ExceptionDetails
+            {
+                ExceptionType = message.Headers["NServiceBus.ExceptionInfo.ExceptionType"],
+                Message = message.Headers["NServiceBus.ExceptionInfo.Message"],
+                Source = message.Headers["NServiceBus.ExceptionInfo.Source"],
+                StackTrace = message.Headers["NServiceBus.ExceptionInfo.StackTrace"]
+            };
+        }
+
+        public void RegisterException(TransportMessage message)
+        {
+            NumberOfTimesFailed++;
+
+            var timeOfFailure = DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"]);
+
+            if (TimeOfFailure < timeOfFailure)
+            {
+                Exception = GetException(message);
+                TimeOfFailure = timeOfFailure;
+            }
+
+            //todo -  add history
+        }
     }
 
     public class ExceptionDetails

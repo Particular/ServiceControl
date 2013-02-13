@@ -7,7 +7,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class When_a_message_has_been_successfully_processed : HttpUtil
+    public class When_a_message_has_failed : HttpUtil
     {
         [Test]
         public void Should_be_imported_and_accessible_via_the_rest_api()
@@ -22,7 +22,9 @@
                 .Run();
 
             Assert.AreEqual(context.MessageId,context.Message.Id,"The returned message should match the processed one");
-            Assert.AreEqual(MessageStatus.Successfull, context.Message.Status, "Status should be set to success");
+            Assert.AreEqual(MessageStatus.Failed, context.Message.Status, "Status should be set to failed");
+            Assert.AreEqual(1, context.Message.FailureDetails.NumberOfTimesFailed, "Failed count should be 1");
+            Assert.AreEqual("Simulated exception", context.Message.FailureDetails.Exception.Message, "Exception message should be captured");
         }
 
        
@@ -40,7 +42,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServer>()
+                EndpointSetup<DefaultServer>(c=>c.DisableSecondLevelRetries())
                     .AuditTo(Address.Parse("audit"));
             }
 
@@ -54,6 +56,7 @@
                 public void Handle(MyMessage message)
                 {
                     Context.MessageId = Bus.CurrentMessageContext.Id;
+                    throw new Exception("Simulated exception");
                 }
             }
         }

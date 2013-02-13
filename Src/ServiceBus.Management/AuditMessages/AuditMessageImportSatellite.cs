@@ -13,23 +13,25 @@
         {
             using (var session = Store.OpenSession())
             {
-               
                 var auditMessage = session.Load<Message>(message.IdForCorrelation);
 
+                var processedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
                 if (auditMessage == null)
                 {
                     auditMessage = new Message(message)
                         {
-                            Status = MessageStatus.Successfull
+                            Status = MessageStatus.Successfull,
+                            ProcessedAt = processedAt
                         };
                 }
                 else
                 {
-                    if (auditMessage.Status == MessageStatus.Successfull)
-                        throw new InvalidOperationException("Duplicate audit message detected " + message.IdForCorrelation);
+                    if (auditMessage.Status == MessageStatus.Successfull && auditMessage.ProcessedAt > processedAt)
+                        return true; //don't overwrite since this message is older
 
-                    auditMessage.FailureDetails.ResolvedAt =
-                        DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
+
+                    if(auditMessage.Status != MessageStatus.Successfull)
+                        auditMessage.FailureDetails.ResolvedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
 
                     auditMessage.Status = MessageStatus.Successfull;
                 }

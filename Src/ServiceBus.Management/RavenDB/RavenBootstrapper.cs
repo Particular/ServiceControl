@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using NServiceBus;
+    using Raven.Client;
     using Raven.Client.Embedded;
 
     public class RavenBootstrapper : INeedInitialization
@@ -18,7 +19,7 @@
                 };
 
             documentStore.Configuration.Port = port;
-
+            Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Instance.RavenPersistence(documentStore);
         }
 

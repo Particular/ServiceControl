@@ -2,7 +2,7 @@
 {
     using Newtonsoft.Json.Serialization;
 
-    class UnderscoreMappingResolver : DefaultContractResolver
+    public class UnderscoreMappingResolver : DefaultContractResolver
     {
         protected override string ResolvePropertyName(string propertyName)
         {

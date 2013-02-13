@@ -20,32 +20,35 @@
             {
 
                 var failedMessage = session.Load<Message>(message.IdForCorrelation);
+                var timeOfFailure = DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"]);
 
                 if (failedMessage == null)
                 {
                     failedMessage = new Message(message)
                     {
-                        FailureDetails = new FailureDetails
-                        {
-                            FailedInQueue = message.Headers["NServiceBus.FailedQ"],
-                            TimeOfFailure =
-                                DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"])
-                        },
+                        FailureDetails = new FailureDetails(message),
                         Status = MessageStatus.Failed
                     };
                 }
                 else
                 {
-                    if (failedMessage.Status == MessageStatus.Successfull)
+                    if (failedMessage.FailureDetails.TimeOfFailure == timeOfFailure)
+                        return true;//duplicate
+
+                    if (failedMessage.Status == MessageStatus.Successfull && timeOfFailure > failedMessage.ProcessedAt)
                         throw new InvalidOperationException("A message can't first be processed successfully and then fail, Id: " + failedMessage.Id);
 
-                    failedMessage.Status = MessageStatus.RepeatedFailures;
+                    if (failedMessage.Status == MessageStatus.Successfull)
+                    {
+                        failedMessage.FailureDetails = new FailureDetails(message);
+                    }
+                    else
+                    {
+                        failedMessage.Status = MessageStatus.RepeatedFailures;
+
+                        failedMessage.FailureDetails.RegisterException(message);                      
+                    }
                 }
-
-
-
-                failedMessage.FailureDetails.Exception = GetException(message);
-                failedMessage.FailureDetails.NumberOfTimesFailed++;
 
                 session.Store(failedMessage);
 
@@ -56,16 +59,7 @@
         }
 
 
-        ExceptionDetails GetException(TransportMessage message)
-        {
-            return new ExceptionDetails
-                {
-                    ExceptionType = message.Headers["NServiceBus.ExceptionInfo.ExceptionType"],
-                    Message = message.Headers["NServiceBus.ExceptionInfo.Message"],
-                    Source = message.Headers["NServiceBus.ExceptionInfo.Source"],
-                    StackTrace = message.Headers["NServiceBus.ExceptionInfo.StackTrace"]
-                };
-        }
+       
 
         public void Start()
         {

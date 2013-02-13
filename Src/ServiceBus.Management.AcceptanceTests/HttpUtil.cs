@@ -1,8 +1,12 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Globalization;
     using System.IO;
     using System.Net;
+    using Api.Nancy;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     public class HttpUtil
     {
@@ -34,17 +38,23 @@
                 return null;
             }
 
+            Console.Out.WriteLine(" - {0}",response.StatusCode);
 
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new InvalidOperationException("Call failed - " + response.StatusDescription);
 
-            Console.Out.WriteLine(" - 200");
+           
 
             using (var stream = response.GetResponseStream())
             {
-                var body = new StreamReader(stream).ReadToEnd();
+                var serializerSettings = new JsonSerializerSettings
+                {
+                    ContractResolver = new UnderscoreMappingResolver(),
+                    Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
+                };
+                var serializer = JsonSerializer.Create(serializerSettings);
 
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(body);
+                return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
             }
         }
     }
