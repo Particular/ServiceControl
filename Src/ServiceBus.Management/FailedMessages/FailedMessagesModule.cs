@@ -34,7 +34,7 @@
                         var results = session.Query<Message>()
                             .Statistics(out stats)
                             .Where(m => m.Status != MessageStatus.Successfull)
-                            .OrderBy(m => m.FailureDetails.TimeOfFailure)
+                            .OrderByDescending(m => m.FailureDetails.TimeOfFailure)
                             .Skip(skipResults)
                             .Take(maxResultsPerPage)
                             .ToArray();
@@ -55,7 +55,7 @@
                     var results = session.Query<Message>()
                         .Statistics(out stats)
                         .Where(m => m.OriginatingEndpoint.Name == endpoint && m.Status != MessageStatus.Successfull)
-                        .OrderBy(m => m.FailureDetails.TimeOfFailure)
+                        .OrderByDescending(m => m.FailureDetails.TimeOfFailure)
                         .Take(50)
                         .ToArray();
 

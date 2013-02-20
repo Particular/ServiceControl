@@ -58,7 +58,7 @@
                         var results = session.Query<Message>()
                             .Statistics(out stats)
                             .Where(m => m.OriginatingEndpoint.Name == endpoint && m.Status == MessageStatus.Successfull)
-                            .OrderBy(m => m.TimeSent)
+                            .OrderByDescending(m => m.TimeSent)
                             .Take(50)
                             .ToArray();
 
