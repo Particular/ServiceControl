@@ -1,16 +1,16 @@
-﻿namespace ServiceBus.Management.FailedMessages
+﻿namespace ServiceBus.Management.ErrorMessages
 {
     using System.Linq;
     using Nancy;
     using Raven.Client;
 
-    public class FailedMessagesModule : NancyModule
+    public class ErrorsMessagesModule : NancyModule
     {
         public IDocumentStore Store { get; set; }
 
-        public FailedMessagesModule()
+        public ErrorsMessagesModule()
         {
-            Get["/failedmessages"] = _ =>
+            Get["/errors"] = _ =>
                 {
                     int maxResultsPerPage = 50;
 
@@ -45,7 +45,7 @@
                     }
                 };
 
-            Get["/endpoints/{name}/failedmessages"] = parameters =>
+            Get["/endpoints/{name}/errors"] = parameters =>
             {
                 using (var session = Store.OpenSession())
                 {

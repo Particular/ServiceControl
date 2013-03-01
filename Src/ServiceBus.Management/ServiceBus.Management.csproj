@@ -91,9 +91,9 @@
     <Compile Include="Conversations\ConversationsModule.cs" />
     <Compile Include="EndpointConfig.cs" />
     <Compile Include="Message.cs" />
-    <Compile Include="FailedMessages\FailedMessagesModule.cs" />
+    <Compile Include="ErrorMessages\ErrorsMessagesModule.cs" />
     <Compile Include="MessageStatus.cs" />
-    <Compile Include="FailedMessages\FaultImportSatellite.cs" />
+    <Compile Include="ErrorMessages\ErrorImportSatellite.cs" />
     <Compile Include="Ping\PingModule.cs" />
     <Compile Include="Ping\VersionInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

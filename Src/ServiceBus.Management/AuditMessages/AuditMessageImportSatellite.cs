@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.AuditMessages
 {
-    using System;
     using NServiceBus;
     using NServiceBus.Satellites;
     using Raven.Client;

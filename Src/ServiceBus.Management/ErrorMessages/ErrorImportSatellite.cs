@@ -1,16 +1,11 @@
-﻿namespace ServiceBus.Management.FailedMessages
+﻿namespace ServiceBus.Management.ErrorMessages
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Xml;
     using NServiceBus;
     using NServiceBus.Satellites;
-    using Newtonsoft.Json;
     using Raven.Client;
 
-    public class FaultImportSatellite : ISatellite
+    public class ErrorImportSatellite : ISatellite
     {
         public IDocumentStore Store { get; set; }
 

@@ -141,7 +141,7 @@
 
     public class SagaDetails
     {
-        protected SagaDetails()
+        public SagaDetails()
         {
         }
 
