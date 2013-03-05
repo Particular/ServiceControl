@@ -43,15 +43,15 @@
     </Reference>
     <Reference Include="NServiceBus, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NServiceBus.Interfaces.4.0.0-unstable2704\lib\net40\NServiceBus.dll</HintPath>
+      <HintPath>..\..\packages\NServiceBus.Interfaces.4.0.0-unstable2842\lib\net40\NServiceBus.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NServiceBus.4.0.0-unstable2704\lib\net40\NServiceBus.Core.dll</HintPath>
+      <HintPath>..\..\packages\NServiceBus.4.0.0-unstable2842\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.Host, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NServiceBus.Host.4.0.0-unstable2704\lib\net40\NServiceBus.Host.exe</HintPath>
+      <HintPath>..\..\packages\NServiceBus.Host.4.0.0-unstable2842\lib\net40\NServiceBus.Host.exe</HintPath>
     </Reference>
     <Reference Include="Raven.Abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -86,14 +86,17 @@
     <Compile Include="Api\Nancy\NancyRunner.cs" />
     <Compile Include="Api\Nancy\NServiceBusContainerBootstrapper.cs" />
     <Compile Include="Api\Nancy\UnderscoreMappingResolver.cs" />
-    <Compile Include="AuditMessages\AuditMessageImportSatellite.cs" />
-    <Compile Include="AuditMessages\AuditMessagesModule.cs" />
-    <Compile Include="Conversations\ConversationsModule.cs" />
+    <Compile Include="Modules\MessagesModule.cs" />
+    <Compile Include="Satellites\AuditMessageImportSatellite.cs" />
+    <Compile Include="Modules\AuditMessagesModule.cs" />
+    <Compile Include="Modules\ConversationsModule.cs" />
     <Compile Include="EndpointConfig.cs" />
+    <Compile Include="Extensions\NegotiatorExtensions.cs" />
+    <Compile Include="Extensions\QueryableExtensions.cs" />
     <Compile Include="Message.cs" />
-    <Compile Include="ErrorMessages\ErrorsMessagesModule.cs" />
+    <Compile Include="Modules\ErrorsMessagesModule.cs" />
     <Compile Include="MessageStatus.cs" />
-    <Compile Include="ErrorMessages\ErrorImportSatellite.cs" />
+    <Compile Include="Satellites\ErrorImportSatellite.cs" />
     <Compile Include="Ping\PingModule.cs" />
     <Compile Include="Ping\VersionInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

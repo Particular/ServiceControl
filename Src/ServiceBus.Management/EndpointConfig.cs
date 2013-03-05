@@ -17,7 +17,7 @@ namespace ServiceBus.Management
     {
         public void Init()
         {
-            Configure.Transactions.Advanced(t => t.SuppressDistributedTransactions = true);
+            Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
         }
     }
 }

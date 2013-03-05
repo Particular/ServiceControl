@@ -19,6 +19,9 @@
                 };
 
             documentStore.Configuration.Port = port;
+
+            documentStore.Initialize();
+
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Instance.RavenPersistence(documentStore);
         }

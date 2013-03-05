@@ -29,7 +29,7 @@
             OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(message);
             ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message);
             OriginatingSaga = SagaDetails.Parse(message);
-            IsDeferredMessage = message.Headers.ContainsKey(NServiceBus.Headers.IsDeferedMessage);
+            IsDeferredMessage = message.Headers.ContainsKey(NServiceBus.Headers.IsDeferredMessage);
         }
 
 

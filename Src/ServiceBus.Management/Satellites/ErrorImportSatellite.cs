@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.ErrorMessages
+﻿namespace ServiceBus.Management.Satellites
 {
     using System;
     using NServiceBus;
