@@ -60,6 +60,7 @@
         public SagaDetails OriginatingSaga { get; set; }
 
         public FailureDetails FailureDetails { get; set; }
+
         public DateTime TimeSent { get; set; }
 
         public MessageStatistics Statistics { get; set; }

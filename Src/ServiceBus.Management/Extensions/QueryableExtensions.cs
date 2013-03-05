@@ -54,7 +54,7 @@ namespace ServiceBus.Management.Extensions
             }
 
             var sortOptions = new [] {"time_of_failure", "id", "message_type", "time_sent"};
-            var sort = "time_of_failure";
+            var sort = "time_sent";
             Expression<Func<Message, object>> keySelector;
 
             if (request.Query.sort.HasValue)
@@ -64,7 +64,7 @@ namespace ServiceBus.Management.Extensions
 
             if (!sortOptions.Contains(sort))
             {
-                sort = "time_of_failure"; 
+                sort = "time_sent"; 
             }
 
             switch (sort)
@@ -77,12 +77,12 @@ namespace ServiceBus.Management.Extensions
                     keySelector = m => m.MessageType;
                     break;
 
-                case "time_sent":
-                    keySelector = m => m.TimeSent;
+                case "time_of_failure":
+                    keySelector = m => m.FailureDetails != null ? m.FailureDetails.TimeOfFailure : m.TimeSent;
                     break;
 
                 default:
-                    keySelector = m => m.FailureDetails.TimeOfFailure;
+                    keySelector = m => m.TimeSent;
                     break;
             }
 
