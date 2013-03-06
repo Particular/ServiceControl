@@ -22,7 +22,7 @@
                 .Run();
 
             Assert.AreEqual(context.MessageId,context.Message.Id,"The returned message should match the processed one");
-            Assert.AreEqual(MessageStatus.Successfull, context.Message.Status, "Status should be set to success");
+            Assert.AreEqual(MessageStatus.Successful, context.Message.Status, "Status should be set to success");
         }
 
        

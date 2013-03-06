@@ -19,24 +19,29 @@
                 {
                     auditMessage = new Message(message)
                         {
-                            Status = MessageStatus.Successfull,
+                            Status = MessageStatus.Successful,
                             ProcessedAt = processedAt
                         };
                 }
                 else
                 {
-                    if (auditMessage.Status == MessageStatus.Successfull && auditMessage.ProcessedAt > processedAt)
+                    if (auditMessage.Status == MessageStatus.Successful && auditMessage.ProcessedAt > processedAt)
+                    {
                         return true; //don't overwrite since this message is older
+                    }
 
-
-                    if(auditMessage.Status != MessageStatus.Successfull)
+                    if (auditMessage.Status != MessageStatus.Successful)
+                    {
                         auditMessage.FailureDetails.ResolvedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
+                    }
 
-                    auditMessage.Status = MessageStatus.Successfull;
+                    auditMessage.Status = MessageStatus.Successful;
                 }
 
                 if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
+                {
                     auditMessage.ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
+                }
 
                 auditMessage.Statistics = GetStatistics(message);
 

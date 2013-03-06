@@ -7,6 +7,7 @@
     public class NancyRunner : IWantToRunWhenBusStartsAndStops
     {
         public NancyHost NancyHost { get; set; }
+
         public void Start()
         {
            

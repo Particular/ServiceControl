@@ -1,8 +1,10 @@
 namespace ServiceBus.Management.Modules
 {
     using System.Linq;
+    using Extensions;
     using Nancy;
     using Raven.Client;
+    using RavenDB.Indexes;
 
     public class MessagesModule : NancyModule
     {
@@ -10,6 +12,25 @@ namespace ServiceBus.Management.Modules
 
         public MessagesModule()
         {
+            Get["/messages/search/{keyword}"] = parameters =>
+            {
+                string keyword = parameters.keyword;
+
+                using (var session = Store.OpenSession())
+                {
+                    RavenQueryStatistics stats;
+                    var results = session.Query<Messages_Search.Result, Messages_Search>()
+                                         .Statistics(out stats)
+                                         .Search(s => s.Query, keyword)
+                                         .As<Message>()
+                                         .Paging(Request)
+                                         .ToArray();
+
+                    return Negotiate.WithModel(results)
+                                    .WithTotalCount(stats);
+                }
+            };
+
             Get["/messages/{id}"] = parameters =>
                 {
                     string messageId = parameters.id;
@@ -26,14 +47,13 @@ namespace ServiceBus.Management.Modules
                         return Negotiate.WithModel(message);
                     }
                 };
-
+            
             Get["/endpoints"] = parameters =>
                 {
                     using (var session = Store.OpenSession())
                     {
-                        var endpoints = session.Query<Message>()
-                                               .Select(m => m.OriginatingEndpoint)
-                                               .Distinct()
+                        var endpoints = session.Query<Endpoints_Distinct.Result, Endpoints_Distinct>()
+                                               .Select(r => r.Endpoint)
                                                .ToArray();
 
                         return Negotiate.WithModel(endpoints);

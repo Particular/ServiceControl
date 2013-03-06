@@ -92,16 +92,15 @@
                 {
 
                     Name = message.Headers[Headers.OriginatingEndpoint],
-                    Machine = message.Headers["NServiceBus.OriginatingMachine"]
+                    Machine = message.Headers[Headers.OriginatingMachine]
                 };
 
             }
-          
 
-            if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
+            if (message.Headers.ContainsKey(Headers.OriginatingAddress))
             {
 
-                var address = Address.Parse(message.Headers["NServiceBus.OriginatingAddress"]);
+                var address = Address.Parse(message.Headers[Headers.OriginatingAddress]);
 
                 return new EndpointDetails
                     {

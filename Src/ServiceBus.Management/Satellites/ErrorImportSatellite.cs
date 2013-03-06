@@ -13,7 +13,6 @@
         {
             using (var session = Store.OpenSession())
             {
-
                 var failedMessage = session.Load<Message>(message.IdForCorrelation);
                 var timeOfFailure = DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"]);
 
@@ -28,18 +27,22 @@
                 else
                 {
                     if (failedMessage.FailureDetails.TimeOfFailure == timeOfFailure)
+                    {
                         return true;//duplicate
+                    }
 
-                    if (failedMessage.Status == MessageStatus.Successfull && timeOfFailure > failedMessage.ProcessedAt)
+                    if (failedMessage.Status == MessageStatus.Successful && timeOfFailure > failedMessage.ProcessedAt)
+                    {
                         throw new InvalidOperationException("A message can't first be processed successfully and then fail, Id: " + failedMessage.Id);
+                    }
 
-                    if (failedMessage.Status == MessageStatus.Successfull)
+                    if (failedMessage.Status == MessageStatus.Successful)
                     {
                         failedMessage.FailureDetails = new FailureDetails(message);
                     }
                     else
                     {
-                        failedMessage.Status = MessageStatus.RepeatedFailures;
+                        failedMessage.Status = MessageStatus.RepeatedFailure;
 
                         failedMessage.FailureDetails.RegisterException(message);                      
                     }

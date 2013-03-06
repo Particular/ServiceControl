@@ -18,7 +18,7 @@
                         RavenQueryStatistics stats;
                         var results = session.Query<Message>()
                             .Statistics(out stats)
-                            .Where(m => m.Status != MessageStatus.Successfull)
+                            .Where(m => m.Status != MessageStatus.Successful)
                             .Sort(Request)
                             .Paging(Request)
                             .ToArray();
@@ -38,7 +38,7 @@
                     RavenQueryStatistics stats;
                     var results = session.Query<Message>()
                         .Statistics(out stats)
-                        .Where(m => m.OriginatingEndpoint.Name == endpoint && m.Status != MessageStatus.Successfull)
+                        .Where(m => m.OriginatingEndpoint.Name == endpoint && m.Status != MessageStatus.Successful)
                         .Sort(Request)
                         .Paging(Request)
                         .ToArray();

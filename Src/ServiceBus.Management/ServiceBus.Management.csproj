@@ -87,6 +87,8 @@
     <Compile Include="Api\Nancy\NServiceBusContainerBootstrapper.cs" />
     <Compile Include="Api\Nancy\UnderscoreMappingResolver.cs" />
     <Compile Include="Modules\MessagesModule.cs" />
+    <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
+    <Compile Include="RavenDB\Indexes\Messages_Search.cs" />
     <Compile Include="Satellites\AuditMessageImportSatellite.cs" />
     <Compile Include="Modules\AuditMessagesModule.cs" />
     <Compile Include="Modules\ConversationsModule.cs" />
