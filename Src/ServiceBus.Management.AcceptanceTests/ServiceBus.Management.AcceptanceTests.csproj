@@ -52,6 +52,7 @@
       <HintPath>..\..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -60,6 +61,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Performance\Seed_audit_queue.cs" />
     <Compile Include="When_a_message_has_failed.cs" />
     <Compile Include="HttpUtil.cs" />
     <Compile Include="Contexts\ConfigureExtensions.cs" />

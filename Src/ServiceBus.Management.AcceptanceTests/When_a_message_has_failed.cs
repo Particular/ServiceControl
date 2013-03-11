@@ -16,33 +16,32 @@
 
             Scenario.Define(() => context)
                 .WithEndpoint<ManagementEndpoint>()
-                .WithEndpoint<Sender>()
+                .WithEndpoint<Sender>(b => b.Given(bus => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(c => AuditDataAvailable(context, c))
                 .Run();
 
-            Assert.AreEqual(context.MessageId,context.Message.Id,"The returned message should match the processed one");
+            Assert.AreEqual(context.MessageId, context.Message.Id, "The returned message should match the processed one");
             Assert.AreEqual(MessageStatus.Failed, context.Message.Status, "Status should be set to failed");
             Assert.AreEqual(1, context.Message.FailureDetails.NumberOfTimesFailed, "Failed count should be 1");
             Assert.AreEqual("Simulated exception", context.Message.FailureDetails.Exception.Message, "Exception message should be captured");
         }
 
-       
-        public class Sender : EndpointBuilder
+
+        public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
             {
                 EndpointSetup<DefaultServer>()
-                    .AddMapping<MyMessage>(typeof(Receiver))
-                    .When(bus => bus.Send(new MyMessage()));
+                    .AddMapping<MyMessage>(typeof(Receiver));
             }
         }
 
-        public class Receiver : EndpointBuilder
+        public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServer>(c=>c.DisableSecondLevelRetries())
+                EndpointSetup<DefaultServer>(c => c.DisableSecondLevelRetries())
                     .AuditTo(Address.Parse("audit"));
             }
 

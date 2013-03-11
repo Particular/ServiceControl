@@ -16,7 +16,7 @@
 
             Scenario.Define(() => context)
                 .WithEndpoint<ManagementEndpoint>()
-                .WithEndpoint<Sender>()
+                .WithEndpoint<Sender>(b => b.Given(bus =>bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(c => AuditDataAvailable(context, c))
                 .Run();
@@ -25,18 +25,17 @@
             Assert.AreEqual(MessageStatus.Successful, context.Message.Status, "Status should be set to success");
         }
 
-       
-        public class Sender : EndpointBuilder
+
+        public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
             {
                 EndpointSetup<DefaultServer>()
-                    .AddMapping<MyMessage>(typeof(Receiver))
-                    .When(bus => bus.Send(new MyMessage()));
+                    .AddMapping<MyMessage>(typeof(Receiver));
             }
         }
 
-        public class Receiver : EndpointBuilder
+        public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver()
             {

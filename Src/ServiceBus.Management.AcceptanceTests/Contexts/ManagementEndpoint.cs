@@ -3,9 +3,10 @@
     using System;
     using System.IO;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Config;
     using NUnit.Framework;
 
-    public class ManagementEndpoint : EndpointBuilder
+    public class ManagementEndpoint : EndpointConfigurationBuilder
     {
         public ManagementEndpoint()
         {

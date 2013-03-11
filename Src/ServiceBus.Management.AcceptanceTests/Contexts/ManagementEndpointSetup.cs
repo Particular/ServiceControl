@@ -7,8 +7,7 @@
 
     public class ManagementEndpointSetup : IEndpointSetupTemplate
     {
-        public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointBehavior endpointBehavior,
-                                          IConfigurationSource configSource)
+        public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource)
         {
 
             return Configure.With(AllAssemblies.Except(Assembly.GetExecutingAssembly().FullName))
