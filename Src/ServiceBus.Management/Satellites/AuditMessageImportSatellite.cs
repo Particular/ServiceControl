@@ -1,7 +1,9 @@
 ﻿namespace ServiceBus.Management.Satellites
 {
+    using System;
     using NServiceBus;
     using NServiceBus.Satellites;
+    using Raven.Abstractions.Exceptions;
     using Raven.Client;
 
     public class AuditMessageImportSatellite : ISatellite
@@ -12,45 +14,68 @@
         {
             using (var session = Store.OpenSession())
             {
-                var auditMessage = session.Load<Message>(message.IdForCorrelation);
+                session.Advanced.UseOptimisticConcurrency = true;
 
                 var processedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
-                if (auditMessage == null)
-                {
-                    auditMessage = new Message(message)
-                        {
-                            Status = MessageStatus.Successful,
-                            ProcessedAt = processedAt
-                        };
-                }
-                else
-                {
-                    if (auditMessage.Status == MessageStatus.Successful && auditMessage.ProcessedAt > processedAt)
-                    {
-                        return true; //don't overwrite since this message is older
-                    }
 
-                    if (auditMessage.Status != MessageStatus.Successful)
-                    {
-                        auditMessage.FailureDetails.ResolvedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
-                    }
-
-                    auditMessage.Status = MessageStatus.Successful;
-                }
+                var auditMessage = new Message(message)
+                {
+                    Status = MessageStatus.Successful,
+                    ProcessedAt = processedAt,
+                    Statistics = GetStatistics(message)
+                };
 
                 if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
                 {
                     auditMessage.ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
                 }
 
-                auditMessage.Statistics = GetStatistics(message);
+                try
+                {
+                    session.Store(auditMessage);
 
-                session.Store(auditMessage);
-
-                session.SaveChanges();
+                    session.SaveChanges();
+                }
+                catch (ConcurrencyException)
+                {
+                    UpdateExistingMessage(session, message);
+                }
             }
 
             return true;
+        }
+
+        void UpdateExistingMessage(IDocumentSession session, TransportMessage message)
+        {
+            var processedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
+
+            var auditMessage = session.Load<Message>(message.IdForCorrelation);
+
+            if (auditMessage == null)
+                throw new InvalidOperationException("There should be a message in the store");
+
+            if (auditMessage.Status == MessageStatus.Successful && auditMessage.ProcessedAt > processedAt)
+            {
+                return; //don't overwrite since this message is older
+            }
+
+            if (auditMessage.Status != MessageStatus.Successful)
+            {
+                auditMessage.FailureDetails.ResolvedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
+            }
+
+            auditMessage.Status = MessageStatus.Successful;
+
+            if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
+            {
+                auditMessage.ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
+            }
+
+            auditMessage.Statistics = GetStatistics(message);
+
+
+
+            session.SaveChanges();
         }
 
         MessageStatistics GetStatistics(TransportMessage message)

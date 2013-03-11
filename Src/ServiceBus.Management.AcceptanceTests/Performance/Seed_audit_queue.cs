@@ -2,6 +2,7 @@
 {
     using System;
     using System.Diagnostics;
+    using System.Messaging;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Config;
@@ -30,10 +31,11 @@
         
         }
 
-        [Test]
+        [Test,Explicit("For now")]
         public void Import()
         {
             var context = new MyContext();
+
 
             Scenario.Define(() => context)
                 .WithEndpoint<ManagementEndpoint>()
@@ -42,7 +44,7 @@
                     //var counter = new PerformanceCounter("NServiceBus", "# of msgs successfully processed / sec", "audit", true);
 
                     //Console.Out.WriteLine("{0} Msg/s",counter.RawValue);
-                    return false;
+                    return false; //todo
                 })
                 .Run();
 

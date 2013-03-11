@@ -17,6 +17,7 @@
                     DataDirectory = RetrieveDbPath(),
                     UseEmbeddedHttpServer = true,
                     ResourceManagerId = new Guid("{1AD6E17D-74FF-445B-925D-F22C4A82B30A}"),
+                    EnlistInDistributedTransactions = false
                 };
             
             documentStore.Configuration.Port = port;
