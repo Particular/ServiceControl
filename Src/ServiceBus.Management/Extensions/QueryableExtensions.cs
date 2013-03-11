@@ -39,9 +39,9 @@ namespace ServiceBus.Management.Extensions
                          .Take(maxResultsPerPage);
         }
 
-        public static IOrderedQueryable<Message> Sort(this IQueryable<Message> source, Request request)
+        public static IOrderedQueryable<Message> Sort(this IQueryable<Message> source, Request request, Expression<Func<Message, object>> defaultKeySelector = null,string defaultSortDirection = "desc")
         {
-            var direction = "desc";
+            var direction = defaultSortDirection;
 
             if (request.Query.direction.HasValue)
             {
@@ -50,7 +50,7 @@ namespace ServiceBus.Management.Extensions
 
             if (direction != "asc" && direction != "desc")
             {
-                direction = "desc";
+                direction = defaultSortDirection;
             }
 
             var sortOptions = new [] {"time_of_failure", "id", "message_type", "time_sent"};
@@ -82,7 +82,14 @@ namespace ServiceBus.Management.Extensions
                     break;
 
                 default:
-                    keySelector = m => m.TimeSent;
+                    if (defaultKeySelector == null)
+                    {
+                        keySelector = m => m.TimeSent;
+                    }
+                    else
+                    {
+                        keySelector = defaultKeySelector;
+                    }
                     break;
             }
 

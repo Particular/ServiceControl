@@ -21,7 +21,7 @@
                         var results = session.Query<Message>()
                                              .Statistics(out stats)
                                              .Where(m => m.ConversationId == conversationId)
-                                             .Sort(Request)
+                                             .Sort(Request,defaultSortDirection: "asc")
                                              .Paging(Request)
                                              .ToArray();
 
