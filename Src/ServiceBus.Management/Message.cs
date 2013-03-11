@@ -6,6 +6,7 @@
     using System.Text;
     using System.Xml;
     using NServiceBus;
+    using NServiceBus.Unicast.Transport;
     using Newtonsoft.Json;
 
     public class Message
@@ -18,18 +19,26 @@
         {
             Id = message.IdForCorrelation;
             CorrelationId = message.CorrelationId;
-            MessageType = message.Headers[NServiceBus.Headers.EnclosedMessageTypes];
             Headers = message.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value));
             TimeSent = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent]);
-            Body = DeserializeBody(message);
-            BodyRaw = message.Body;
-            RelatedToMessageId = message.Headers.ContainsKey(NServiceBus.Headers.RelatedTo) ? message.Headers[NServiceBus.Headers.RelatedTo] : null;
-            ConversationId = message.Headers[NServiceBus.Headers.ConversationId];
-            Status = MessageStatus.Failed;
+
+            if (message.IsControlMessage())
+            {
+                MessageType = "SystemMessage";
+            }
+            else
+            {
+                MessageType = message.Headers[NServiceBus.Headers.EnclosedMessageTypes];
+                Body = DeserializeBody(message);
+                BodyRaw = message.Body;
+                RelatedToMessageId = message.Headers.ContainsKey(NServiceBus.Headers.RelatedTo) ? message.Headers[NServiceBus.Headers.RelatedTo] : null;
+                ConversationId = message.Headers[NServiceBus.Headers.ConversationId];
+                OriginatingSaga = SagaDetails.Parse(message);
+                IsDeferredMessage = message.Headers.ContainsKey(NServiceBus.Headers.IsDeferredMessage);
+            }
+
             OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(message);
             ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message);
-            OriginatingSaga = SagaDetails.Parse(message);
-            IsDeferredMessage = message.Headers.ContainsKey(NServiceBus.Headers.IsDeferredMessage);
         }
 
 

@@ -5,11 +5,11 @@
     using Nancy;
     using Raven.Client;
 
-    public class ErrorsMessagesModule : NancyModule
+    public class ErrorMessagesModule : NancyModule
     {
         public IDocumentStore Store { get; set; }
 
-        public ErrorsMessagesModule()
+        public ErrorMessagesModule()
         {
             Get["/errors"] = _ =>
                 {

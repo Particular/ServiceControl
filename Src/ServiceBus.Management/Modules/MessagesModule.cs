@@ -47,18 +47,6 @@ namespace ServiceBus.Management.Modules
                         return Negotiate.WithModel(message);
                     }
                 };
-            
-            Get["/endpoints"] = parameters =>
-                {
-                    using (var session = Store.OpenSession())
-                    {
-                        var endpoints = session.Query<Endpoints_Distinct.Result, Endpoints_Distinct>()
-                                               .Select(r => r.Endpoint)
-                                               .ToArray();
-
-                        return Negotiate.WithModel(endpoints);
-                    }
-                };
         }
     }
 }

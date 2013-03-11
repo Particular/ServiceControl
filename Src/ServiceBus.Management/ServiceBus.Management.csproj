@@ -86,6 +86,7 @@
     <Compile Include="Api\Nancy\NancyRunner.cs" />
     <Compile Include="Api\Nancy\NServiceBusContainerBootstrapper.cs" />
     <Compile Include="Api\Nancy\UnderscoreMappingResolver.cs" />
+    <Compile Include="Modules\EndpointModule.cs" />
     <Compile Include="Modules\MessagesModule.cs" />
     <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
     <Compile Include="RavenDB\Indexes\Messages_Search.cs" />
@@ -96,7 +97,7 @@
     <Compile Include="Extensions\NegotiatorExtensions.cs" />
     <Compile Include="Extensions\QueryableExtensions.cs" />
     <Compile Include="Message.cs" />
-    <Compile Include="Modules\ErrorsMessagesModule.cs" />
+    <Compile Include="Modules\ErrorMessagesModule.cs" />
     <Compile Include="MessageStatus.cs" />
     <Compile Include="Satellites\ErrorImportSatellite.cs" />
     <Compile Include="Ping\PingModule.cs" />
