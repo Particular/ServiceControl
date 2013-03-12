@@ -6,6 +6,7 @@
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
+    using Raven.Database.Server;
 
     public class RavenBootstrapper : INeedInitialization
     {
@@ -19,7 +20,10 @@
                     ResourceManagerId = new Guid("{1AD6E17D-74FF-445B-925D-F22C4A82B30A}"),
                     EnlistInDistributedTransactions = false
                 };
-            
+
+            //TODO: We need to do more robust check here, but at the same time I wonder if we even need to expose raven via http?
+            NonAdminHttp.EnsureCanListenToWhenInNonAdminContext(port);
+
             documentStore.Configuration.Port = port;
 
             documentStore.Initialize();
