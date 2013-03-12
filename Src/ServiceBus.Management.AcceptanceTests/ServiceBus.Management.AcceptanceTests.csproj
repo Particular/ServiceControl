@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Performance\Seed_audit_queue.cs" />
+    <Compile Include="Performance\When_Thousands_Of_Messages_Has_Been_Processed.cs" />
     <Compile Include="When_a_message_has_failed.cs" />
     <Compile Include="HttpUtil.cs" />
     <Compile Include="Contexts\ConfigureExtensions.cs" />
