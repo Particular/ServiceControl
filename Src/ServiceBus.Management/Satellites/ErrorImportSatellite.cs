@@ -2,6 +2,7 @@
 {
     using System;
     using NServiceBus;
+    using NServiceBus.Logging;
     using NServiceBus.Satellites;
     using Raven.Client;
 
@@ -56,12 +57,9 @@
             return true;
         }
 
-
-       
-
         public void Start()
         {
-
+            Logger.InfoFormat("Error import is now started, feeding error messages from: {0}", InputAddress);
         }
 
         public void Stop()
@@ -69,8 +67,20 @@
 
         }
 
-        public Address InputAddress { get { return Address.Parse("error"); } }
+        public Address InputAddress
+        {
+            get { return Settings.ErrorQueue; }
+        }
 
-        public bool Disabled { get { return false; } }
+        public bool Disabled
+        {
+            get
+            {
+                return InputAddress == Address.Undefined;
+            }
+        }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorImportSatellite));
+       
     }
 }

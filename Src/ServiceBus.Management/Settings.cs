@@ -1,25 +1,25 @@
 ﻿namespace ServiceBus.Management
 {
     using System;
+    using System.Configuration;
     using System.IO;
+    using NServiceBus;
+    using NServiceBus.Logging;
+    using Satellites;
 
     public class Settings
     {
-        static int port;
-        static string hostname;
-        static string virtualDirectory;
-        static string dbPath;
 
         public static int Port
         {
             get
             {
-                if(port == 0)
-                    port = SettingsReader<int>.Read("Port",8888);
-                
+                if (port == 0)
+                    port = SettingsReader<int>.Read("Port", 8888);
+
                 return port;
             }
-            
+
         }
 
         public static string Hostname
@@ -27,7 +27,7 @@
             get
             {
                 if (hostname == null)
-                    hostname = SettingsReader<string>.Read("Hostname","localhost");
+                    hostname = SettingsReader<string>.Read("Hostname", "localhost");
 
                 return hostname;
             }
@@ -45,7 +45,7 @@
                     if (virtualDirectory.StartsWith("/"))
                         virtualDirectory = virtualDirectory.Substring(1);
                 }
-                    
+
                 return virtualDirectory;
             }
         }
@@ -54,12 +54,63 @@
         {
             get
             {
-                var url = string.Format("http://{0}:{1}/{2}",Hostname,Port,VirtualDirectory);
+                var url = string.Format("http://{0}:{1}/{2}", Hostname, Port, VirtualDirectory);
 
                 if (!url.EndsWith("/"))
                     url += "/";
 
                 return url;
+            }
+        }
+
+
+        public static Address AuditQueue
+        {
+            get
+            {
+                if (auditQueue == null)
+                {
+                    var value = SettingsReader<string>.Read("NServiceBus", "AuditQueue", null);
+
+                    if (value != null)
+                        auditQueue = Address.Parse(value);
+                    else
+                    {
+                        Logger.Warn("No settings found for audit queue to import, if this is not intentional please set add NServiceBus/AuditQueue to your appSettings");
+
+                        auditQueue = Address.Undefined;
+                    }
+                        
+
+                }
+
+
+                return auditQueue;
+            }
+        }
+
+        public static Address ErrorQueue
+        {
+            get
+            {
+                if (errorQueue == null)
+                {
+                    var value = SettingsReader<string>.Read("NServiceBus", "ErrorQueue", null);
+
+                    if (value != null)
+                        errorQueue = Address.Parse(value);
+                    else
+                    {
+                        Logger.Warn("No settings found for error queue to import, if this is not intentional please set add NServiceBus/ErrorQueue to your appSettings");
+
+                        errorQueue = Address.Undefined;
+                    }
+
+
+                }
+
+
+                return errorQueue;
             }
         }
 
@@ -72,7 +123,15 @@
 
                 return dbPath;
             }
-           
+
         }
+
+        static int port;
+        static string hostname;
+        static string virtualDirectory;
+        static string dbPath;
+        static Address auditQueue;
+        static Address errorQueue;
+        static readonly ILog Logger = LogManager.GetLogger(typeof(Settings));
     }
 }
