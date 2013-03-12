@@ -38,7 +38,7 @@
                                                  index++;
                                              });
                         }))
-                    .Done(c => true)
+                    .Done(c => c.IsProcessingComplete)
                     .Run();
 
         }
@@ -49,7 +49,9 @@
             public ProcessOrderEndpoint()
             {
                 EndpointSetup<DefaultServer>()
-                    .WithConfig<TransportConfig>(c => c.MaximumConcurrencyLevel = 10)
+                    .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
+                    .WithConfig<MessageForwardingInCaseOfFaultConfig>(e => e.ErrorQueue = errorQueue)
+                    .WithConfig<SecondLevelRetriesConfig>(slr => slr.Enabled = false)
                     .AuditTo(Address.Parse(auditQueue));
 
             }
@@ -60,8 +62,16 @@
 
               
                 public IBus Bus { get; set; }
+                static int numberOfMessagesProcessed;
+
                 public void Handle(ProcessOrder message)
                 {
+                    var current = Interlocked.Increment(ref numberOfMessagesProcessed);
+                    if (current >= maxLoadToGenerate)
+                    {
+                        Context.IsProcessingComplete = true;
+                    }
+
                     if (!string.IsNullOrEmpty(breakWhenContentContains) && message.Content.Contains(breakWhenContentContains))
                     {
                         throw new ArgumentException("Message content contains the configured error string : {0}", breakWhenContentContains);
@@ -72,6 +82,7 @@
                         m.OrderId = message.OrderId;
                         m.OrderReceivedAt = DateTime.Now;
                     });
+
                 }
             }
         }
@@ -94,7 +105,7 @@
 
         public class MyContext : ScenarioContext
         {
-            public bool IsSendComplete { get; set; }
+            public bool IsProcessingComplete { get; set; }
         }
     }
 }
