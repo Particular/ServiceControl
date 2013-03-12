@@ -71,6 +71,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -90,6 +91,8 @@
     <Compile Include="Modules\MessagesModule.cs" />
     <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
     <Compile Include="RavenDB\Indexes\Messages_Search.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="SettingsReader.cs" />
     <Compile Include="Satellites\AuditMessageImportSatellite.cs" />
     <Compile Include="Modules\AuditMessagesModule.cs" />
     <Compile Include="Modules\ConversationsModule.cs" />

@@ -12,19 +12,24 @@
     {
         public void Init()
         {
-            const int port = 8082;
+            Directory.CreateDirectory(Settings.DbPath);
+
             var documentStore = new EmbeddableDocumentStore
                 {
-                    DataDirectory = RetrieveDbPath(),
+                    DataDirectory = Settings.DbPath,
                     UseEmbeddedHttpServer = true,
-                    ResourceManagerId = new Guid("{1AD6E17D-74FF-445B-925D-F22C4A82B30A}"),
                     EnlistInDistributedTransactions = false
                 };
 
-            //TODO: We need to do more robust check here, but at the same time I wonder if we even need to expose raven via http?
-            NonAdminHttp.EnsureCanListenToWhenInNonAdminContext(port);
+            //TODO: We need to do more robust check here
+            NonAdminHttp.EnsureCanListenToWhenInNonAdminContext(Settings.Port);
 
-            documentStore.Configuration.Port = port;
+            documentStore.Configuration.Port = Settings.Port;
+            documentStore.Configuration.HostName = Settings.Hostname;
+
+
+            //TODO: Can't get nancy and raven to cooperate so that raven can use a sub url
+            documentStore.Configuration.VirtualDirectory = "/management/storage";
 
             documentStore.Initialize();
 
@@ -32,16 +37,6 @@
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Instance.RavenPersistence(documentStore);
-        }
-
-
-        static string RetrieveDbPath()
-        {
-            var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceBus.Management");
-
-            Directory.CreateDirectory(dbPath);
-
-            return dbPath;
         }
     }
 }
