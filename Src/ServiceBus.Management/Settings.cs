@@ -41,9 +41,6 @@
                 if (virtualDirectory == null)
                 {
                     virtualDirectory = SettingsReader<string>.Read("VirtualDirectory", "");
-
-                    if (virtualDirectory.StartsWith("/"))
-                        virtualDirectory = virtualDirectory.Substring(1);
                 }
 
                 return virtualDirectory;
@@ -54,7 +51,14 @@
         {
             get
             {
-                var url = string.Format("http://{0}:{1}/{2}", Hostname, Port, VirtualDirectory);
+                var vdir = VirtualDirectory;
+
+                if (!string.IsNullOrEmpty(vdir))
+                    vdir += "/";
+
+                vdir += "api";
+
+                var url = string.Format("http://{0}:{1}/{2}", Hostname, Port, vdir);
 
                 if (!url.EndsWith("/"))
                     url += "/";
@@ -80,7 +84,7 @@
 
                         auditQueue = Address.Undefined;
                     }
-                        
+
 
                 }
 
