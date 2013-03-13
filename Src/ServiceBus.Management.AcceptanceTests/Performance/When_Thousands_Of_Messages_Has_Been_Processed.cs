@@ -10,35 +10,59 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using NServiceBus.Unicast.Subscriptions;
 
     [TestFixture]
-    public class When_Thousands_Of_Messages_Has_Been_Processed : HttpUtil
+    public class When_Thousands_Of_Messages_Has_Been_Processed 
     {
         const string AuditQueue = "audit";
         const string ErrorQueue = "error";
         const string BreakWhenContentContains = "";
-        const int MaxLoadToGenerate = 5;
-        [Test, Ignore]
+        const int MaxLoadToGenerate = 50;
+        const int MaxTimeInSecondsForSimulatingProcessingTime = 0;
+               
+        [Test]
         public void Generate_Load_Test()
         {
-            var context = new MyContext();
-            Scenario.Define(() => context)
-                    .WithEndpoint<ProcessOrderReceivedEndpoint>()
-                    .WithEndpoint<ProcessOrderEndpoint>(condition => condition.Given(bus =>
+            Scenario.Define<MyContext>()
+                 .WithEndpoint<ProcessOrderReceivedEndpoint>(c =>
+                     c.Given((bus, context) =>
+                     {
+                         bus.Subscribe<OrderReceived>();
+                         context.IsOrderReceivedEndpointSubscribedToEvent = true;
+                     }))
+                 .WithEndpoint<ProcessOrderEndpoint>(b => 
+                    b.Given((bus, context) =>
                         {
-                            int index = 0;
-                            Parallel.For(index, MaxLoadToGenerate,
-                                         (s, u) =>
-                                             {
-                                                 bus.SendLocal(new ProcessOrder
-                                                     {
-                                                         OrderId = Guid.NewGuid(),
-                                                         OrderPlacedOn = DateTime.Now,
-                                                         Content = index.ToString()
-                                                     });
-                                                 index++;
-                                             });
-                        }))
+                            Configure.Instance.Builder.Build<MessageDrivenSubscriptionManager>().ClientSubscribed +=
+                                       (sender, args) =>
+                                       {
+                                           lock (context)
+                                           {
+                                               context.IsClientSubscribed = true;
+
+                                           }
+                                       };
+
+                        })
+                        .When(c => c.IsOrderReceivedEndpointSubscribedToEvent && !c.IsProcessOrderSent , (bus, c) =>
+                            {
+                                lock (c)
+                                {
+                                    c.IsProcessOrderSent = true;
+                                }
+                                for (int index = 0; index < MaxLoadToGenerate; index++)
+                                {
+                                    bus.SendLocal(new ProcessOrder
+                                        {
+                                            OrderId = Guid.NewGuid(),
+                                            OrderPlacedOn = DateTime.Now,
+                                            Content = index.ToString()
+                                        });
+                                }
+                            }
+                        ))
+                            
                     .Done(c => c.IsOrderProcessingComplete && c.IsOrderReceivedComplete)
                     .Run();
 
@@ -66,12 +90,16 @@
 
                 public void Handle(ProcessOrder message)
                 {
+
                     var current = Interlocked.Increment(ref numberOfMessagesProcessed);
                     if (current >= MaxLoadToGenerate)
                     {
-                        Context.IsOrderProcessingComplete = true;
+                        lock (Context)
+                        {
+                            Context.IsOrderProcessingComplete = true;
+                        }
                     }
-
+                   
                     if (!string.IsNullOrEmpty(BreakWhenContentContains) && message.Content.Contains(BreakWhenContentContains))
                     {
                         throw new ArgumentException("Message content contains the configured error string : {0}", BreakWhenContentContains);
@@ -92,7 +120,7 @@
 
             public ProcessOrderReceivedEndpoint()
             {
-                EndpointSetup<DefaultServer>()
+                EndpointSetup<DefaultServer>(c => c.UnicastBus().DoNotAutoSubscribe())
                    .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
                    .WithConfig<MessageForwardingInCaseOfFaultConfig>(e => e.ErrorQueue = ErrorQueue)
                    .WithConfig<SecondLevelRetriesConfig>(slr => slr.Enabled = false)
@@ -104,26 +132,32 @@
             {
                 public IBus Bus { get; set; }
   
-                private const int MaxTimeInSecondsForSimulatingProcessingTime = 10;
-                private static int numberOfMessagesProcessed;
+                private static int numberOfOrderReceivedProcessed;
                 public MyContext Context { get; set; }
 
                 public void Handle(OrderReceived message)
                 {
-                    var current = Interlocked.Increment(ref numberOfMessagesProcessed);
-                    if (current >= MaxLoadToGenerate)
+                    if (MaxTimeInSecondsForSimulatingProcessingTime > 0)
                     {
-                        Context.IsOrderReceivedComplete = true;
+                        // Throw in a random processing time anywhere between 1 and specified processing time
+                        var timeToSleep = (new Random()).Next(1, MaxTimeInSecondsForSimulatingProcessingTime);
+                        System.Threading.Thread.Sleep(TimeSpan.FromSeconds(timeToSleep));
                     }
-
-                    // Throw in a random processing time anywhere between 1 and specified processing time
-                   // int timeToSleep = (new Random()).Next(1, MaxTimeInSecondsForSimulatingProcessingTime);
 
                     Bus.Publish<OrderAccepted>(m =>
                     {
                         m.OrderId = message.OrderId;
                         m.OrderAcceptedAt = DateTime.Now;
                     });
+
+                    var current = Interlocked.Increment(ref numberOfOrderReceivedProcessed);
+                    if (current >= MaxLoadToGenerate)
+                    {
+                        lock (Context)
+                        {
+                            Context.IsOrderReceivedComplete = true;
+                        }
+                    }
                 }
             }
         }
@@ -149,8 +183,11 @@
         
         public class MyContext : ScenarioContext
         {
+            public bool IsOrderReceivedEndpointSubscribedToEvent { get; set; }
             public bool IsOrderProcessingComplete { get; set; }
             public bool IsOrderReceivedComplete { get; set; }
+            public bool IsClientSubscribed { get; set; }
+            public bool IsProcessOrderSent { get; set; }
         }
     }
 }
