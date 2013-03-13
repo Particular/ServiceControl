@@ -16,13 +16,14 @@
     {
         const string AuditQueue = "audit";
         const string ErrorQueue = "error";
-        const string BreakWhenContentContains = "66";
-        const int MaxLoadToGenerate = 1000;
-        [Test]
+        const string BreakWhenContentContains = "";
+        const int MaxLoadToGenerate = 5;
+        [Test, Ignore]
         public void Generate_Load_Test()
         {
             var context = new MyContext();
             Scenario.Define(() => context)
+                    .WithEndpoint<ProcessOrderReceivedEndpoint>()
                     .WithEndpoint<ProcessOrderEndpoint>(condition => condition.Given(bus =>
                         {
                             int index = 0;
@@ -38,7 +39,7 @@
                                                  index++;
                                              });
                         }))
-                    .Done(c => c.IsProcessingComplete)
+                    .Done(c => c.IsOrderProcessingComplete && c.IsOrderReceivedComplete)
                     .Run();
 
         }
@@ -68,7 +69,7 @@
                     var current = Interlocked.Increment(ref numberOfMessagesProcessed);
                     if (current >= MaxLoadToGenerate)
                     {
-                        Context.IsProcessingComplete = true;
+                        Context.IsOrderProcessingComplete = true;
                     }
 
                     if (!string.IsNullOrEmpty(BreakWhenContentContains) && message.Content.Contains(BreakWhenContentContains))
@@ -86,9 +87,45 @@
             }
         }
 
-        public class ProcessOrderAcceptedEndpoint: EndpointConfigurationBuilder
+        public class ProcessOrderReceivedEndpoint: EndpointConfigurationBuilder
         {
-            
+
+            public ProcessOrderReceivedEndpoint()
+            {
+                EndpointSetup<DefaultServer>()
+                   .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
+                   .WithConfig<MessageForwardingInCaseOfFaultConfig>(e => e.ErrorQueue = ErrorQueue)
+                   .WithConfig<SecondLevelRetriesConfig>(slr => slr.Enabled = false)
+                   .AddMapping<OrderReceived>(typeof(ProcessOrderEndpoint))
+                   .AuditTo(Address.Parse(AuditQueue));
+            }
+
+            public class ProcessOrderReceivedHandler : IHandleMessages<OrderReceived>
+            {
+                public IBus Bus { get; set; }
+  
+                private const int MaxTimeInSecondsForSimulatingProcessingTime = 10;
+                private static int numberOfMessagesProcessed;
+                public MyContext Context { get; set; }
+
+                public void Handle(OrderReceived message)
+                {
+                    var current = Interlocked.Increment(ref numberOfMessagesProcessed);
+                    if (current >= MaxLoadToGenerate)
+                    {
+                        Context.IsOrderReceivedComplete = true;
+                    }
+
+                    // Throw in a random processing time anywhere between 1 and specified processing time
+                   // int timeToSleep = (new Random()).Next(1, MaxTimeInSecondsForSimulatingProcessingTime);
+
+                    Bus.Publish<OrderAccepted>(m =>
+                    {
+                        m.OrderId = message.OrderId;
+                        m.OrderAcceptedAt = DateTime.Now;
+                    });
+                }
+            }
         }
         
         public class ProcessOrder : ICommand
@@ -103,10 +140,17 @@
             public Guid OrderId { get; set; }
             public DateTime OrderReceivedAt { get; set; }
         }
+
+        public class OrderAccepted : IEvent
+        {
+            public Guid OrderId { get; set; }
+            public DateTime OrderAcceptedAt { get; set; }
+        }
         
         public class MyContext : ScenarioContext
         {
-            public bool IsProcessingComplete { get; set; }
+            public bool IsOrderProcessingComplete { get; set; }
+            public bool IsOrderReceivedComplete { get; set; }
         }
     }
 }
