@@ -27,9 +27,7 @@
             documentStore.Configuration.Port = Settings.Port;
             documentStore.Configuration.HostName = Settings.Hostname;
 
-
-            //TODO: Can't get nancy and raven to cooperate so that raven can use a sub url
-            documentStore.Configuration.VirtualDirectory = "/management/storage";
+            documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
 
             documentStore.Initialize();
 
