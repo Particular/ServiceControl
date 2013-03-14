@@ -18,7 +18,7 @@
         const string AuditQueue = "audit";
         const string ErrorQueue = "error";
         const string BreakWhenContentContains = "";
-        const int MaxLoadToGenerate = 1000;
+        const int MaxLoadToGenerateForStartMessage = 1000;
         const int MaxTimeInSecondsForSimulatingProcessingTime = 0;
 
                
@@ -34,7 +34,7 @@
                                        {
                                            lock (context)
                                            {
-                                               context.IsSubscriptionCompleteForProcessOrderEndpoint = true;
+                                               context.IsSubscriptionCompleteForOrderBilledEndpoint = true;
                                            }
                                        };
                          bus.Subscribe<OrderBilled>();
@@ -48,7 +48,7 @@
                                        {
                                            lock (context)
                                            {
-                                               context.IsSubscriptionCompleteForProcessOrderEndpoint = true;
+                                               context.IsSubscriptionCompleteForOrderAcceptedEndpoint = true;
                                            }
                                        };
                          bus.Subscribe<OrderAccepted>();
@@ -62,7 +62,7 @@
                                        {
                                            lock (context)
                                            {
-                                               context.IsSubscriptionCompleteForProcessOrderEndpoint = true;
+                                               context.IsSubscriptionCompleteForOrderReceivedEndpoint = true;
                                            }
                                        };
                          bus.Subscribe<OrderReceived>();
@@ -87,7 +87,7 @@
                                 {
                                     c.IsProcessOrderSent = true;
                                 }
-                                for (int index = 0; index < MaxLoadToGenerate; index++)
+                                for (int index = 0; index < MaxLoadToGenerateForStartMessage; index++)
                                 {
                                     bus.SendLocal(new ProcessOrder
                                         {
@@ -99,7 +99,7 @@
                             }
                         ))
                             
-                    .Done(c => c.IsOrderProcessingComplete && c.IsOrderReceivedComplete)
+                    .Done(c => c.IsOrderProcessingComplete && c.IsOrderReceivedComplete && c.IsOrderAcceptedComplete && c.IsOrderBilledComplete)
                     .Run();
 
         }
@@ -128,7 +128,7 @@
                 {
 
                     var current = Interlocked.Increment(ref numberOfMessagesProcessed);
-                    if (current >= MaxLoadToGenerate)
+                    if (current >= MaxLoadToGenerateForStartMessage)
                     {
                         lock (Context)
                         {
@@ -187,7 +187,7 @@
                     });
 
                     var current = Interlocked.Increment(ref numberOfOrderReceivedProcessed);
-                    if (current >= MaxLoadToGenerate)
+                    if (current >= MaxLoadToGenerateForStartMessage)
                     {
                         lock (Context)
                         {
@@ -233,7 +233,7 @@
                     });
 
                     var current = Interlocked.Increment(ref numberOfOrderReceivedProcessed);
-                    if (current >= MaxLoadToGenerate)
+                    if (current >= MaxLoadToGenerateForStartMessage)
                     {
                         lock (Context)
                         {
@@ -280,7 +280,7 @@
                     });
 
                     var current = Interlocked.Increment(ref numberOfOrderReceivedProcessed);
-                    if (current >= MaxLoadToGenerate)
+                    if (current >= MaxLoadToGenerateForStartMessage)
                     {
                         lock (Context)
                         {
