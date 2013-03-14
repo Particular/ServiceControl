@@ -18,16 +18,53 @@
         const string AuditQueue = "audit";
         const string ErrorQueue = "error";
         const string BreakWhenContentContains = "";
-        const int MaxLoadToGenerate = 50;
+        const int MaxLoadToGenerate = 1000;
         const int MaxTimeInSecondsForSimulatingProcessingTime = 0;
+
                
         [Test]
         public void Generate_Load_Test()
         {
             Scenario.Define<MyContext>()
+                 .WithEndpoint<ProcessOrderBilledEndpoint>(c =>
+                     c.Given((bus, context) =>
+                     {
+                         Configure.Instance.Builder.Build<MessageDrivenSubscriptionManager>().ClientSubscribed +=
+                                       (sender, args) =>
+                                       {
+                                           lock (context)
+                                           {
+                                               context.IsSubscriptionCompleteForProcessOrderEndpoint = true;
+                                           }
+                                       };
+                         bus.Subscribe<OrderBilled>();
+                         context.IsOrderBilledEndpointSubscribedToEvent = true;
+                     }))
+                 .WithEndpoint<ProcessOrderAcceptedEndpoint>(c =>
+                     c.Given((bus, context) =>
+                     {
+                         Configure.Instance.Builder.Build<MessageDrivenSubscriptionManager>().ClientSubscribed +=
+                                       (sender, args) =>
+                                       {
+                                           lock (context)
+                                           {
+                                               context.IsSubscriptionCompleteForProcessOrderEndpoint = true;
+                                           }
+                                       };
+                         bus.Subscribe<OrderAccepted>();
+                         context.IsOrderAcceptedEndpointSubscribedToEvent = true;
+                     }))
                  .WithEndpoint<ProcessOrderReceivedEndpoint>(c =>
                      c.Given((bus, context) =>
                      {
+                         Configure.Instance.Builder.Build<MessageDrivenSubscriptionManager>().ClientSubscribed +=
+                                       (sender, args) =>
+                                       {
+                                           lock (context)
+                                           {
+                                               context.IsSubscriptionCompleteForProcessOrderEndpoint = true;
+                                           }
+                                       };
                          bus.Subscribe<OrderReceived>();
                          context.IsOrderReceivedEndpointSubscribedToEvent = true;
                      }))
@@ -39,8 +76,7 @@
                                        {
                                            lock (context)
                                            {
-                                               context.IsClientSubscribed = true;
-
+                                               context.IsSubscriptionCompleteForProcessOrderEndpoint = true;
                                            }
                                        };
 
@@ -161,6 +197,100 @@
                 }
             }
         }
+
+        public class ProcessOrderAcceptedEndpoint: EndpointConfigurationBuilder
+        {
+            public ProcessOrderAcceptedEndpoint()
+            {
+                EndpointSetup<DefaultServer>(c => c.UnicastBus().DoNotAutoSubscribe())
+                   .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
+                   .WithConfig<MessageForwardingInCaseOfFaultConfig>(e => e.ErrorQueue = ErrorQueue)
+                   .WithConfig<SecondLevelRetriesConfig>(slr => slr.Enabled = false)
+                   .AddMapping<OrderAccepted>(typeof(ProcessOrderReceivedEndpoint))
+                   .AuditTo(Address.Parse(AuditQueue));
+            }
+
+            public class ProcessOrderAcceptedHandler : IHandleMessages<OrderAccepted>
+            {
+                public IBus Bus { get; set; }
+
+                private static int numberOfOrderReceivedProcessed;
+                public MyContext Context { get; set; }
+
+                public void Handle(OrderAccepted message)
+                {
+                    if (MaxTimeInSecondsForSimulatingProcessingTime > 0)
+                    {
+                        // Throw in a random processing time anywhere between 1 and specified processing time
+                        var timeToSleep = (new Random()).Next(1, MaxTimeInSecondsForSimulatingProcessingTime);
+                        System.Threading.Thread.Sleep(TimeSpan.FromSeconds(timeToSleep));
+                    }
+
+                    Bus.Publish<OrderBilled>(m =>
+                    {
+                        m.OrderId = message.OrderId;
+                        m.OrderBilledAt = DateTime.Now;
+                    });
+
+                    var current = Interlocked.Increment(ref numberOfOrderReceivedProcessed);
+                    if (current >= MaxLoadToGenerate)
+                    {
+                        lock (Context)
+                        {
+                            Context.IsOrderAcceptedComplete = true;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        public class ProcessOrderBilledEndpoint : EndpointConfigurationBuilder
+        {
+            public ProcessOrderBilledEndpoint()
+            {
+                EndpointSetup<DefaultServer>(c => c.UnicastBus().DoNotAutoSubscribe())
+                   .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
+                   .WithConfig<MessageForwardingInCaseOfFaultConfig>(e => e.ErrorQueue = ErrorQueue)
+                   .WithConfig<SecondLevelRetriesConfig>(slr => slr.Enabled = false)
+                   .AddMapping<OrderBilled>(typeof(ProcessOrderAcceptedEndpoint))
+                   .AuditTo(Address.Parse(AuditQueue));
+            }
+
+            public class ProcessOrderBilledHandler : IHandleMessages<OrderBilled>
+            {
+                public IBus Bus { get; set; }
+
+                private static int numberOfOrderReceivedProcessed;
+                public MyContext Context { get; set; }
+
+                public void Handle(OrderBilled message)
+                {
+                    if (MaxTimeInSecondsForSimulatingProcessingTime > 0)
+                    {
+                        // Throw in a random processing time anywhere between 1 and specified processing time
+                        var timeToSleep = (new Random()).Next(1, MaxTimeInSecondsForSimulatingProcessingTime);
+                        System.Threading.Thread.Sleep(TimeSpan.FromSeconds(timeToSleep));
+                    }
+
+                    Bus.Publish<OrderShipped>(m =>
+                    {
+                        m.OrderId = message.OrderId;
+                        m.OrderShippedAt = DateTime.Now;
+                    });
+
+                    var current = Interlocked.Increment(ref numberOfOrderReceivedProcessed);
+                    if (current >= MaxLoadToGenerate)
+                    {
+                        lock (Context)
+                        {
+                            Context.IsOrderBilledComplete = true;
+                        }
+                    }
+                }
+            }
+
+        }
         
         public class ProcessOrder : ICommand
         {
@@ -180,14 +310,40 @@
             public Guid OrderId { get; set; }
             public DateTime OrderAcceptedAt { get; set; }
         }
+
+        public class OrderBilled : IEvent
+        {
+            public Guid OrderId { get; set; }
+            public DateTime OrderBilledAt { get; set; }
+        }
+
+        public class OrderShipped : IEvent
+        {
+            public Guid OrderId { get; set; }
+            public DateTime OrderShippedAt { get; set; }
+        }
         
         public class MyContext : ScenarioContext
         {
             public bool IsOrderReceivedEndpointSubscribedToEvent { get; set; }
+            public bool IsOrderAcceptedEndpointSubscribedToEvent { get; set; }
+            public bool IsOrderBilledEndpointSubscribedToEvent { get; set; }
+           
+
             public bool IsOrderProcessingComplete { get; set; }
             public bool IsOrderReceivedComplete { get; set; }
-            public bool IsClientSubscribed { get; set; }
+            public bool IsOrderAcceptedComplete { get; set; }
+            public bool IsOrderBilledComplete { get; set; }
+            
+            public bool IsSubscriptionCompleteForProcessOrderEndpoint { get; set; }
+            public bool IsSubscriptionCompleteForOrderReceivedEndpoint { get; set; }
+            public bool IsSubscriptionCompleteForOrderAcceptedEndpoint { get; set; }
+            public bool IsSubscriptionCompleteForOrderBilledEndpoint { get; set; }
+
+
+            // Hack to make sure When doesn't fire many times.
             public bool IsProcessOrderSent { get; set; }
+
         }
     }
 }
