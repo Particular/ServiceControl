@@ -74,13 +74,13 @@
             {
                 if (auditQueue == null)
                 {
-                    var value = SettingsReader<string>.Read("NServiceBus", "AuditQueue", null);
+                    var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", null);
 
                     if (value != null)
                         auditQueue = Address.Parse(value);
                     else
                     {
-                        Logger.Warn("No settings found for audit queue to import, if this is not intentional please set add NServiceBus/AuditQueue to your appSettings");
+                        Logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
 
                         auditQueue = Address.Undefined;
                     }
@@ -99,13 +99,13 @@
             {
                 if (errorQueue == null)
                 {
-                    var value = SettingsReader<string>.Read("NServiceBus", "ErrorQueue", null);
+                    var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", null);
 
                     if (value != null)
                         errorQueue = Address.Parse(value);
                     else
                     {
-                        Logger.Warn("No settings found for error queue to import, if this is not intentional please set add NServiceBus/ErrorQueue to your appSettings");
+                        Logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
 
                         errorQueue = Address.Undefined;
                     }
