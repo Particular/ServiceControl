@@ -31,6 +31,30 @@ namespace ServiceBus.Management.Modules
                 }
             };
 
+
+            Get["/endpoint/{name}/messages/search/{keyword}"] = parameters =>
+                {
+                    string keyword = parameters.keyword;
+                    string name = parameters.name;
+
+                    using (var session = Store.OpenSession())
+                    {
+                        RavenQueryStatistics stats;
+                        var results = session.Query<Messages_Search.Result, Messages_Search>()
+                                             .Statistics(out stats)
+                                             .Search(s => s.Query, keyword)
+                                             .Where(m => m.ReceivingEndpoint == name)
+                                             .As<Message>()
+                                             .Paging(Request)
+                                             .ToArray();
+
+                        return Negotiate.WithModel(results)
+                                        .WithTotalCount(stats);
+                    }
+                };
+
+            //
+
             Get["/messages/{id}"] = parameters =>
                 {
                     string messageId = parameters.id;
@@ -41,7 +65,7 @@ namespace ServiceBus.Management.Modules
 
                         if (message == null)
                         {
-                            return new Response {StatusCode = HttpStatusCode.NotFound};
+                            return new Response { StatusCode = HttpStatusCode.NotFound };
                         }
 
                         return Negotiate.WithModel(message);

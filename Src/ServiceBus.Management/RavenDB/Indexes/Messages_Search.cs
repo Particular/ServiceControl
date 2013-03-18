@@ -10,6 +10,7 @@ namespace ServiceBus.Management.RavenDB.Indexes
         public class Result
         {
             public string Query { get; set; }
+            public string ReceivingEndpoint { get; set; }
         }
 
         public Messages_Search()
@@ -21,16 +22,18 @@ namespace ServiceBus.Management.RavenDB.Indexes
                                         {
                                             message.MessageType,
                                             message.Body,
-                                            message.OriginatingEndpoint.Name,
-                                            message.OriginatingEndpoint.Machine,
+                                            message.ReceivingEndpoint.Name,
+                                            message.ReceivingEndpoint.Machine,
                                             message.Headers.Select(kvp => String.Format("{0} {1}", kvp.Key, kvp.Value)),
-                                        }
+                                        },
+                                    ReceivingEndpoint = message.ReceivingEndpoint.Name
+
                                 };
 
             Analyze(x => x.Query, "Lucene.Net.Analysis.Standard.StandardAnalyzer");
 
             Index(x => x.Query, FieldIndexing.Analyzed);
-            
+            Index(x => x.ReceivingEndpoint, FieldIndexing.Default);
         }
     }
 }

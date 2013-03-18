@@ -41,7 +41,7 @@
                                              .Statistics(out stats)
                                              .Where(
                                                  m =>
-                                                 m.OriginatingEndpoint.Name == endpoint &&
+                                                 m.ReceivingEndpoint.Name == endpoint &&
                                                  m.Status == MessageStatus.Successful)
                                              .Sort(Request)
                                              .Paging(Request)
