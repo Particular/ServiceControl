@@ -1,4 +1,5 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Performance
+﻿
+namespace ServiceBus.Management.AcceptanceTests.Profiler
 {
     using System;
     using System.Diagnostics;
@@ -13,17 +14,17 @@
     using NServiceBus.Unicast.Subscriptions;
 
     [TestFixture]
-    public class When_Thousands_Of_Messages_Has_Been_Processed 
+    public class Generate_Messages_With_Messages_That_Endup_In_The_ErrorQueue
     {
         const string AuditQueue = "audit";
         const string ErrorQueue = "error";
-        const string BreakWhenContentContains = "";
-        const int MaxLoadToGenerateForStartMessage = 1000;
-        const int MaxTimeInSecondsForSimulatingProcessingTime = 0;
+        const int MaxLoadToGenerateForStartMessage = 5;
+        const int MaxTimeInSecondsForSimulatingProcessingTime = 10;
+        static readonly TimeSpan MaxTimeToWaitBeforeAbortingTest = new TimeSpan(0, 0, 5, 0);
 
-               
+
         [Test]
-        public void Generate_Load_Test()
+        public void Generate_Messages_With_Error_And_Wait_For_Reprocess_From_Profiler()
         {
             Scenario.Define<MyContext>()
                  .WithEndpoint<ProcessOrderBilledEndpoint>(c =>
@@ -68,39 +69,40 @@
                          bus.Subscribe<OrderReceived>();
                          context.IsOrderReceivedEndpointSubscribedToEvent = true;
                      }))
-                 .WithEndpoint<ProcessOrderEndpoint>(b => 
+                 .WithEndpoint<ProcessOrderEndpoint>(b =>
                     b.Given((bus, context) =>
-                        {
-                            Configure.Instance.Builder.Build<MessageDrivenSubscriptionManager>().ClientSubscribed +=
-                                       (sender, args) =>
+                    {
+                        Configure.Instance.Builder.Build<MessageDrivenSubscriptionManager>().ClientSubscribed +=
+                                   (sender, args) =>
+                                   {
+                                       lock (context)
                                        {
-                                           lock (context)
-                                           {
-                                               context.IsSubscriptionCompleteForProcessOrderEndpoint = true;
-                                           }
-                                       };
+                                           context.IsSubscriptionCompleteForProcessOrderEndpoint = true;
+                                       }
+                                   };
 
-                        })
-                        .When(c => c.IsOrderReceivedEndpointSubscribedToEvent && !c.IsProcessOrderSent , (bus, c) =>
+                    })
+                        .When(c => c.IsOrderReceivedEndpointSubscribedToEvent && !c.IsProcessOrderSent, (bus, c) =>
+                        {
+                            lock (c)
                             {
-                                lock (c)
-                                {
-                                    c.IsProcessOrderSent = true;
-                                }
-                                for (int index = 0; index < MaxLoadToGenerateForStartMessage; index++)
-                                {
-                                    bus.SendLocal(new ProcessOrder
-                                        {
-                                            OrderId = Guid.NewGuid(),
-                                            OrderPlacedOn = DateTime.Now,
-                                            Content = index.ToString()
-                                        });
-                                }
+                                c.IsProcessOrderSent = true;
+                                c.TestStartedAt = DateTime.Now;
                             }
+                            for (int index = 0; index < MaxLoadToGenerateForStartMessage; index++)
+                            {
+                                bus.SendLocal(new ProcessOrder
+                                {
+                                    OrderId = Guid.NewGuid(),
+                                    OrderPlacedOn = DateTime.Now,
+                                    Content = index.ToString()
+                                });
+                            }
+                        }
                         ))
-                            
-                    .Done(c => c.IsOrderProcessingComplete && c.IsOrderReceivedComplete && c.IsOrderAcceptedComplete && c.IsOrderBilledComplete)
-                    .Run();
+
+                    .Done(c => c.IsTestComplete)
+                    .Run(MaxTimeToWaitBeforeAbortingTest);
 
         }
 
@@ -120,26 +122,16 @@
             {
                 public MyContext Context { get; set; }
 
-              
+
                 public IBus Bus { get; set; }
-                static int numberOfMessagesProcessed;
 
                 public void Handle(ProcessOrder message)
                 {
 
-                    var current = Interlocked.Increment(ref numberOfMessagesProcessed);
-                    if (current >= MaxLoadToGenerateForStartMessage)
-                    {
-                        lock (Context)
-                        {
-                            Context.IsOrderProcessingComplete = true;
-                        }
-                    }
+                    var doIFail = new Random().Next(1, 11) < 3;
+                    if (doIFail)
+                        throw new Exception("Random exception occured in ProcessOrder!");
                    
-                    if (!string.IsNullOrEmpty(BreakWhenContentContains) && message.Content.Contains(BreakWhenContentContains))
-                    {
-                        throw new ArgumentException("Message content contains the configured error string : {0}", BreakWhenContentContains);
-                    }
 
                     Bus.Publish<OrderReceived>(m =>
                     {
@@ -151,7 +143,7 @@
             }
         }
 
-        public class ProcessOrderReceivedEndpoint: EndpointConfigurationBuilder
+        public class ProcessOrderReceivedEndpoint : EndpointConfigurationBuilder
         {
 
             public ProcessOrderReceivedEndpoint()
@@ -167,12 +159,15 @@
             public class ProcessOrderReceivedHandler : IHandleMessages<OrderReceived>
             {
                 public IBus Bus { get; set; }
-  
-                private static int numberOfOrderReceivedProcessed;
+
                 public MyContext Context { get; set; }
 
                 public void Handle(OrderReceived message)
                 {
+                    var doIFail = new Random().Next(1, 11) < 3;
+                    if (doIFail)
+                        throw new Exception("Random exception occured in ProcessOrderReceived Handler!");
+                        
                     if (MaxTimeInSecondsForSimulatingProcessingTime > 0)
                     {
                         // Throw in a random processing time anywhere between 1 and specified processing time
@@ -186,19 +181,11 @@
                         m.OrderAcceptedAt = DateTime.Now;
                     });
 
-                    var current = Interlocked.Increment(ref numberOfOrderReceivedProcessed);
-                    if (current >= MaxLoadToGenerateForStartMessage)
-                    {
-                        lock (Context)
-                        {
-                            Context.IsOrderReceivedComplete = true;
-                        }
-                    }
                 }
             }
         }
 
-        public class ProcessOrderAcceptedEndpoint: EndpointConfigurationBuilder
+        public class ProcessOrderAcceptedEndpoint : EndpointConfigurationBuilder
         {
             public ProcessOrderAcceptedEndpoint()
             {
@@ -214,11 +201,14 @@
             {
                 public IBus Bus { get; set; }
 
-                private static int numberOfOrderReceivedProcessed;
                 public MyContext Context { get; set; }
 
                 public void Handle(OrderAccepted message)
                 {
+                    var doIFail = new Random().Next(1, 11) < 3;
+                    if (doIFail)
+                        throw new Exception("Random exception occured in ProcessOrderAccepted!");
+                   
                     if (MaxTimeInSecondsForSimulatingProcessingTime > 0)
                     {
                         // Throw in a random processing time anywhere between 1 and specified processing time
@@ -232,14 +222,6 @@
                         m.OrderBilledAt = DateTime.Now;
                     });
 
-                    var current = Interlocked.Increment(ref numberOfOrderReceivedProcessed);
-                    if (current >= MaxLoadToGenerateForStartMessage)
-                    {
-                        lock (Context)
-                        {
-                            Context.IsOrderAcceptedComplete = true;
-                        }
-                    }
                 }
             }
 
@@ -261,11 +243,15 @@
             {
                 public IBus Bus { get; set; }
 
-                private static int numberOfOrderReceivedProcessed;
                 public MyContext Context { get; set; }
-
+                private static int numberOfOrderBilledProcessed;
+           
                 public void Handle(OrderBilled message)
                 {
+                    var doIFail = new Random().Next(1, 11) < 3;
+                    if (doIFail)
+                        throw new Exception("Random exception occured in ProcessOrderBilled!");
+                   
                     if (MaxTimeInSecondsForSimulatingProcessingTime > 0)
                     {
                         // Throw in a random processing time anywhere between 1 and specified processing time
@@ -279,19 +265,19 @@
                         m.OrderShippedAt = DateTime.Now;
                     });
 
-                    var current = Interlocked.Increment(ref numberOfOrderReceivedProcessed);
+                    var current = Interlocked.Increment(ref numberOfOrderBilledProcessed);
                     if (current >= MaxLoadToGenerateForStartMessage)
                     {
                         lock (Context)
                         {
-                            Context.IsOrderBilledComplete = true;
+                            Context.IsTestComplete = true;
                         }
                     }
                 }
             }
 
         }
-        
+
         public class ProcessOrder : ICommand
         {
             public Guid OrderId { get; set; }
@@ -322,19 +308,17 @@
             public Guid OrderId { get; set; }
             public DateTime OrderShippedAt { get; set; }
         }
-        
+
         public class MyContext : ScenarioContext
         {
+            public DateTime TestStartedAt { get; set; }
             public bool IsOrderReceivedEndpointSubscribedToEvent { get; set; }
             public bool IsOrderAcceptedEndpointSubscribedToEvent { get; set; }
             public bool IsOrderBilledEndpointSubscribedToEvent { get; set; }
-           
 
-            public bool IsOrderProcessingComplete { get; set; }
-            public bool IsOrderReceivedComplete { get; set; }
-            public bool IsOrderAcceptedComplete { get; set; }
-            public bool IsOrderBilledComplete { get; set; }
-            
+
+            public bool IsTestComplete { get; set; }
+
             public bool IsSubscriptionCompleteForProcessOrderEndpoint { get; set; }
             public bool IsSubscriptionCompleteForOrderReceivedEndpoint { get; set; }
             public bool IsSubscriptionCompleteForOrderAcceptedEndpoint { get; set; }
@@ -344,6 +328,8 @@
             // Hack to make sure When doesn't fire many times.
             public bool IsProcessOrderSent { get; set; }
 
+
         }
     }
 }
+
