@@ -17,35 +17,15 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
         const string AuditQueue = "audit";
         const string ErrorQueue = "error";
 
-        [Test, Ignore] // Breakpoints in the Saga class message handlers don't hit.
+        [Test] 
         public void Generate_Messages_With_NoBuyersRemorse_For_Profiler()
         {
-
             Scenario.Define<Context>()
                     .WithEndpoint<ProcessOrderEndpoint>(b => b.Given((bus, context) =>
-                        {
-                            if (Configure.Instance.Configurer.HasComponent<MessageDrivenSubscriptionManager>())
-                            {
-                                Configure.Instance.Builder.Build<MessageDrivenSubscriptionManager>().ClientSubscribed +=
-                                    (sender, args) =>
-                                        {
-                                            lock (context)
-                                            {
-                                                context.NumberOfSubscribers++;
-
-                                                if (context.NumberOfSubscribers >= 2)
-                                                {
-                                                    context.Subscriber1Subscribed = true;
-                                                    context.Subscriber2Subscribed = true;
-                                                }
-                                            }
-                                        };
-                            }
+                        { 
                         })
                     .When(
-                        c =>
-                        c.Subscriber1Subscribed && c.Subscriber2Subscribed &&
-                        !c.IsSubmitOrderSent, (bus, c) =>
+                        c => !c.IsSubmitOrderSent, (bus, c) =>
                             {
                                 lock (c)
                                 {
@@ -59,20 +39,59 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
                                     });
 
                             }))
-                     .WithEndpoint<NotificationEndpoint>(b => b.Given((bus, context) =>
-                        {
-                            bus.Subscribe<OrderReceived>();
-
-                            if (!Configure.Instance.Configurer.HasComponent<MessageDrivenSubscriptionManager>())
-                                context.Subscriber1Subscribed = true;
-                        }))
                     .WithEndpoint<BuyersRemorseSagaEndpoint>(b => b.Given((bus, context) =>
                         {
                             bus.Subscribe<OrderReceived>();
-
-                            if (!Configure.Instance.Configurer.HasComponent<MessageDrivenSubscriptionManager>())
-                                context.Subscriber2Subscribed = true;
                         }))
+                    .WithEndpoint<NotificationEndpoint>(b => b.Given((bus, context) =>
+                       {
+                           bus.Subscribe<OrderReceived>();
+                           bus.Subscribe<OrderAccepted>();
+                       }))
+                  
+                    .Done(c => c.IsSagaComplete && c.IsNotificationComplete)
+                    .Run(TimeSpan.FromMinutes(3));
+        }
+
+        [Test]
+        public void Generate_Messages_With_BuyersRemorse_For_Profiler()
+        {
+            Scenario.Define<Context>()
+                    .WithEndpoint<ProcessOrderEndpoint>(b => b.Given((bus, context) =>
+                    {
+                    })
+                    .When(
+                        c => !c.IsSubmitOrderSent, (bus, c) =>
+                        {
+                            lock (c)
+                            {
+                                c.IsSubmitOrderSent = true;
+                            }
+
+                            var orderId = Guid.NewGuid();
+                            // Place an order
+                            bus.SendLocal<SubmitOrder>(m =>
+                            {
+                                m.OrderId = orderId;
+                                m.OrderPlacedOn = DateTime.Now;
+                            });
+
+                            System.Threading.Thread.Sleep(500);
+
+                            // Buyer's Remorse -- Cancel the order
+                            bus.Send<CancelOrder>(m =>
+                            {
+                                m.OrderId = orderId;
+                                m.OrderCancelRequestReceivedOn = DateTime.Now;
+                            });
+
+                        }))
+                    .WithEndpoint<BuyersRemorseSagaEndpoint>(b => b.Given((bus, context) => bus.Subscribe<OrderReceived>()))
+                    .WithEndpoint<NotificationEndpoint>(b => b.Given((bus, context) =>
+                    {
+                        bus.Subscribe<OrderReceived>();
+                        bus.Subscribe<OrderAccepted>();
+                    }))
 
                     .Done(c => c.IsSagaComplete && c.IsNotificationComplete)
                     .Run(TimeSpan.FromMinutes(3));
@@ -86,6 +105,7 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
                      .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
                     .WithConfig<MessageForwardingInCaseOfFaultConfig>(e => e.ErrorQueue = ErrorQueue)
                     .WithConfig<SecondLevelRetriesConfig>(slr => slr.Enabled = false)
+                    .AddMapping<CancelOrder>(typeof(BuyersRemorseSagaEndpoint))
                     .AuditTo(Address.Parse(AuditQueue));
             }
 
@@ -113,15 +133,23 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
             {
                 EndpointSetup<DefaultServer>()
                     .AddMapping<OrderReceived>(typeof (ProcessOrderEndpoint))
+                    .AddMapping<OrderAccepted>(typeof(BuyersRemorseSagaEndpoint))
                     .AuditTo(Address.Parse(AuditQueue));
             }
 
-            public class NotifyOrderReceivedHandler : IHandleMessages<OrderReceived> 
+            public class NotifyOrderReceivedHandler : IHandleMessages<OrderReceived> ,
+                IHandleMessages<OrderAccepted>
             {
                 public Context Context { get; set; }
                 public void Handle(OrderReceived message)
                 {
  	                // Send email to whoever needs to know!
+                    Context.IsNotificationComplete = true;
+                }
+
+                public void Handle(OrderAccepted message)
+                {
+                    // Send email to whoever needs to know!
                     Context.IsNotificationComplete = true;
                 }
             }
@@ -131,9 +159,8 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
         {
             public BuyersRemorseSagaEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => c.UseRavenTimeoutPersister()
-                    .RavenSagaPersister()
-                    .UnicastBus()
+                EndpointSetup<DefaultServer>(c => 
+                    c.UnicastBus()
                     .DoNotAutoSubscribe()
                     .DoNotAutoSubscribeSagas())
                     .AddMapping<OrderReceived>(typeof(ProcessOrderEndpoint))
@@ -181,6 +208,9 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
                 public void Timeout(CancelPolicyTimeout state)
                 {
                     Bus.Publish<OrderAccepted>(m => m.OrderId = Data.OrderId);
+                    Context.IsSagaComplete = true;
+                    Context.IsNotificationComplete = false;
+                    MarkAsComplete();
                 }
 
                 public override void ConfigureHowToFindSaga()
@@ -250,6 +280,8 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
             public bool Subscriber2Subscribed { get; set; }
 
             public int NumberOfSubscribers { get; set; }
+
+            public bool IsNotificationsEndpointSubscribedForOrderAccepted { get; set; }
         }
     }
 }

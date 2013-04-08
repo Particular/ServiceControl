@@ -21,11 +21,14 @@
             var transportToUse = settings.GetOrNull("Transport");
 
             var config = Configure.With(types)
-                            .DefineEndpointName(endpointConfiguration.EndpointName)
-                            .DefineBuilder(settings.GetOrNull("Builder"))
-                            .CustomConfigurationSource(configSource)
-                            .DefineSerializer(settings.GetOrNull("Serializer"))
-                            .DefineTransport(transportToUse);
+                                  .DefineEndpointName(endpointConfiguration.EndpointName)
+                                  .DefineBuilder(settings.GetOrNull("Builder"))
+                                  .CustomConfigurationSource(configSource)
+                                  .DefineSerializer(settings.GetOrNull("Serializer"))
+                                  .DefineTransport(transportToUse)
+                                  .Sagas()
+                                  .InMemorySagaPersister();
+                            
 
             if (transportToUse == null || transportToUse.Contains("Msmq") || transportToUse.Contains("SqlServer") || transportToUse.Contains("RabbitMq"))
                 config.UseInMemoryTimeoutPersister();
