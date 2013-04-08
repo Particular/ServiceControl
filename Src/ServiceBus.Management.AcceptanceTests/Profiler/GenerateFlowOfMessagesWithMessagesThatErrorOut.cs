@@ -87,7 +87,6 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
                             lock (c)
                             {
                                 c.IsProcessOrderSent = true;
-                                c.TestStartedAt = DateTime.Now;
                             }
                             for (int index = 0; index < MaxLoadToGenerateForStartMessage; index++)
                             {
@@ -311,7 +310,6 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
 
         public class MyContext : ScenarioContext
         {
-            public DateTime TestStartedAt { get; set; }
             public bool IsOrderReceivedEndpointSubscribedToEvent { get; set; }
             public bool IsOrderAcceptedEndpointSubscribedToEvent { get; set; }
             public bool IsOrderBilledEndpointSubscribedToEvent { get; set; }

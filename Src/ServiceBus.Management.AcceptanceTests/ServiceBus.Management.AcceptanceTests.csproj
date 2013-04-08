@@ -62,8 +62,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NServiceBusAcceptanceTest.cs" />
     <Compile Include="Performance\Seed_audit_queue.cs" />
     <Compile Include="Profiler\AddLinearFlowOfMessagesToAuditQueue.cs" />
+    <Compile Include="Profiler\SagaWorkflow.cs" />
     <Compile Include="Profiler\GenerateFlowOfMessagesWithMessagesThatErrorOut.cs" />
     <Compile Include="When_a_message_has_failed.cs" />
     <Compile Include="HttpUtil.cs" />

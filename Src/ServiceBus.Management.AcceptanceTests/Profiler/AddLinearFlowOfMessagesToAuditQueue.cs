@@ -18,7 +18,7 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
     {
         const string AuditQueue = "audit";
         const string ErrorQueue = "error";
-        const int MaxLoadToGenerateForStartMessage = 10;
+        const int MaxLoadToGenerateForStartMessage = 1;
         const int MaxTimeInSecondsForSimulatingProcessingTime = 10;
         static readonly TimeSpan MaxTimeToWaitBeforeAbortingTest = new TimeSpan(0, 0, 5, 0);
 
