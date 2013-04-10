@@ -62,8 +62,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NServiceBusAcceptanceTest.cs" />
     <Compile Include="Performance\Seed_audit_queue.cs" />
-    <Compile Include="Performance\When_Thousands_Of_Messages_Has_Been_Processed.cs" />
+    <Compile Include="Profiler\AddLinearFlowOfMessagesToAuditQueue.cs" />
+    <Compile Include="Profiler\SagaWorkflow.cs" />
+    <Compile Include="Profiler\GenerateFlowOfMessagesWithMessagesThatErrorOut.cs" />
     <Compile Include="When_a_message_has_failed.cs" />
     <Compile Include="HttpUtil.cs" />
     <Compile Include="Contexts\ConfigureExtensions.cs" />
@@ -85,6 +88,7 @@
       <Name>ServiceBus.Management</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
