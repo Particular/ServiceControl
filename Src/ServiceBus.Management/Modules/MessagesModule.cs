@@ -53,7 +53,28 @@ namespace ServiceBus.Management.Modules
                     }
                 };
 
-            //
+            Get["/endpoints/{name}/messages"] = parameters =>
+            {
+                using (var session = Store.OpenSession())
+                {
+                    string endpoint = parameters.name;
+
+                    RavenQueryStatistics stats;
+                    var results = session.Query<Message>()
+                                         .Statistics(out stats)
+                                         .Where(
+                                             m =>
+                                             m.ReceivingEndpoint.Name == endpoint)
+                                         .Sort(Request)
+                                         .Paging(Request)
+                                         .ToArray();
+
+                    return Negotiate
+                        .WithModel(results)
+                        .WithTotalCount(stats);
+                }
+            };
+
 
             Get["/messages/{id}"] = parameters =>
                 {
