@@ -34,7 +34,7 @@
             IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
-            Configure.Instance.RavenPersistence(documentStore);
+            Configure.Instance.RavenPersistenceWithStore(documentStore);
         }
     }
 }

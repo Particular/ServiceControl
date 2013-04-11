@@ -2,16 +2,13 @@
 namespace ServiceBus.Management.AcceptanceTests.Profiler
 {
     using System;
-    using System.Diagnostics;
-    using System.Messaging;
     using System.Threading;
-    using System.Threading.Tasks;
     using NServiceBus.Config;
+    using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using NServiceBus.Unicast.Subscriptions;
 
     [TestFixture]
     public class AddLinearFlowOfMessagesToAuditQueue

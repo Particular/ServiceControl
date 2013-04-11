@@ -3,7 +3,7 @@ namespace ServiceBus.Management.RavenDB.Indexes
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class Endpoints_Distinct : AbstractIndexCreationTask<Message, Endpoints_Distinct.Result>
+    public class Endpoints_Distinct : AbstractMultiMapIndexCreationTask<Endpoints_Distinct.Result>
     {
         public class Result
         {
@@ -12,12 +12,17 @@ namespace ServiceBus.Management.RavenDB.Indexes
 
         public Endpoints_Distinct()
         {
-            Map = messages => from message in messages
+            AddMap<Message>( messages => from message in messages
                               select new
                                   {
                                       Endpoint = message.OriginatingEndpoint
-                                  };
-
+                                  });
+            AddMap<Message>(messages => from message in messages
+                                        select new
+                                        {
+                                            Endpoint = message.ReceivingEndpoint
+                                        });
+          
             Reduce = results => from result in results
                                 group result by result.Endpoint
                                 into g
