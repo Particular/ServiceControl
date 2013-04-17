@@ -40,6 +40,7 @@
                 }
                 catch (ConcurrencyException)
                 {
+                    session.Advanced.Clear();
                     UpdateExistingMessage(session, message);
                 }
             }
