@@ -16,13 +16,22 @@
 
             Scenario.Define(() => context)
                 .WithEndpoint<ManagementEndpoint>()
-                .WithEndpoint<Sender>(b => b.Given(bus =>bus.Send(new MyMessage())))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                    {
+                        c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
+                        bus.Send(new MyMessage());
+                    }))
                 .WithEndpoint<Receiver>()
                 .Done(c => AuditDataAvailable(context, c))
                 .Run();
 
+            Assert.NotNull(context.ReturnedMessage, "No message was returned by the management api");
             Assert.AreEqual(context.MessageId,context.ReturnedMessage.MessageId,"The returned message should match the processed one");
             Assert.AreEqual(MessageStatus.Successful, context.ReturnedMessage.Status, "Status should be set to success");
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, context.ReturnedMessage.ReceivingEndpoint.Name, "Receiving endpoint name should be parsed correctly");
+            Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.ReceivingEndpoint.Machine, "Receiving machine should be parsed correctly");
+            Assert.AreEqual(context.EndpointNameOfSendingEndpoint, context.ReturnedMessage.OriginatingEndpoint.Name, "Sending endpoint name should be parsed correctly");
+            Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.OriginatingEndpoint.Machine, "Sending machine should be parsed correctly");
         }
 
 
@@ -52,7 +61,7 @@
 
                 public void Handle(MyMessage message)
                 {
-                    Context.EndpointName = Configure.EndpointName;
+                    Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
                     Context.MessageId = Bus.CurrentMessageContext.Id;
                 }
             }
@@ -69,7 +78,9 @@
 
             public Message ReturnedMessage { get; set; }
 
-            public string EndpointName { get; set; }
+            public string EndpointNameOfReceivingEndpoint { get; set; }
+
+            public string EndpointNameOfSendingEndpoint { get; set; }
         }
 
 
@@ -83,7 +94,7 @@
                 if (c.MessageId == null)
                     return false;
 
-                c.ReturnedMessage = ApiCall<Message>("/api/messages/" + context.MessageId + "-" + context.EndpointName);
+                c.ReturnedMessage = ApiCall<Message>("/api/messages/" + context.MessageId + "-" + context.EndpointNameOfReceivingEndpoint);
 
 
                 return true;

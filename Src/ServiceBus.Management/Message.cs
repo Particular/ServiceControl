@@ -122,7 +122,7 @@
                         Machine = address.Machine
                     };
             }
-                
+
 
             return null;
         }
@@ -132,23 +132,43 @@
         {
             var endpoint = new EndpointDetails();
 
+            if (message.Headers.ContainsKey(Headers.ProcessingEndpoint))
+            {
+                //todo: remove this line after we have updated to the next unstableversion (due to a bug in the core)
+                if (message.Headers[Headers.ProcessingEndpoint] != Configure.EndpointName)
+                    endpoint.Name = message.Headers[Headers.ProcessingEndpoint];
+            }
+
+            if (message.Headers.ContainsKey(Headers.ProcessingMachine))
+            {
+                endpoint.Machine = message.Headers[Headers.ProcessingMachine];
+            }
+
+            if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Name))
+            {
+                return endpoint;
+            }
+
+            var address = message.ReplyToAddress;
+
             //use the failed q to determine the receiving endpoint
             if (message.Headers.ContainsKey("NServiceBus.FailedQ"))
             {
-                var failedAddress = Address.Parse(message.Headers["NServiceBus.FailedQ"]);
-
-
-                endpoint.Name = failedAddress.Queue;
-                endpoint.Machine = failedAddress.Machine;
+                address = Address.Parse(message.Headers["NServiceBus.FailedQ"]);
             }
-            else
-            {
-                //for successfull messages the replytoaddress will be the address of the endpoint who processed the message
-                endpoint.Name = message.ReplyToAddress.Queue;
-                endpoint.Machine = message.ReplyToAddress.Machine;
-            }
+
+            endpoint.FromAddress(address);
 
             return endpoint;
+        }
+
+        void FromAddress(Address address)
+        {
+            if (string.IsNullOrEmpty(Name))
+                Name = address.Queue;
+
+            if (string.IsNullOrEmpty(Machine))
+                Name = address.Machine;
         }
     }
 
