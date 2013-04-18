@@ -21,7 +21,7 @@
                 .Done(c => AuditDataAvailable(context, c))
                 .Run();
 
-            Assert.AreEqual(context.MessageId, context.Message.Id, "The returned message should match the processed one");
+            Assert.AreEqual(context.MessageId, context.Message.MessageId, "The returned message should match the processed one");
             Assert.AreEqual(MessageStatus.Failed, context.Message.Status, "Status should be set to failed");
             Assert.AreEqual(1, context.Message.FailureDetails.NumberOfTimesFailed, "Failed count should be 1");
             Assert.AreEqual("Simulated exception", context.Message.FailureDetails.Exception.Message, "Exception message should be captured");
@@ -54,6 +54,7 @@
 
                 public void Handle(MyMessage message)
                 {
+                    Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
                     Context.MessageId = Bus.CurrentMessageContext.Id;
                     throw new Exception("Simulated exception");
                 }
@@ -69,6 +70,8 @@
         {
             public string MessageId { get; set; }
             public Message Message { get; set; }
+
+            public string EndpointNameOfReceivingEndpoint { get; set; }
         }
 
 
@@ -82,7 +85,7 @@
                 if (c.MessageId == null)
                     return false;
 
-                c.Message = ApiCall<Message>("/messages/" + context.MessageId);
+                c.Message = ApiCall<Message>("/api/messages/" + context.MessageId + "-" + context.EndpointNameOfReceivingEndpoint);
 
 
                 return true;

@@ -6,6 +6,7 @@
     using System.Text;
     using System.Xml;
     using NServiceBus;
+    using NServiceBus.Logging;
     using NServiceBus.Unicast.Transport;
     using Newtonsoft.Json;
 
@@ -31,7 +32,8 @@
             else
             {
                 MessageType = message.Headers[NServiceBus.Headers.EnclosedMessageTypes];
-                Body = DeserializeBody(message);
+                ContentType = DetermineContentType(message);
+                Body = DeserializeBody(message, ContentType);
                 BodyRaw = message.Body;
                 RelatedToMessageId = message.Headers.ContainsKey(NServiceBus.Headers.RelatedTo) ? message.Headers[NServiceBus.Headers.RelatedTo] : null;
                 ConversationId = message.Headers[NServiceBus.Headers.ConversationId];
@@ -81,14 +83,49 @@
 
         public DateTime ProcessedAt { get; set; }
 
+        public string ContentType { get; set; }
 
-        static string DeserializeBody(TransportMessage message)
+
+        string DetermineContentType(TransportMessage message)
         {
-            //todo examine content type
-            var doc = new XmlDocument();
-            doc.LoadXml(Encoding.UTF8.GetString(message.Body));
-            return JsonConvert.SerializeXmlNode(doc.DocumentElement);
+            if (message.Headers.ContainsKey(NServiceBus.Headers.ContentType))
+            {
+                return message.Headers[NServiceBus.Headers.ContentType];
+            }
+
+            return "text/xml"; //default to xml for now
         }
+
+        static string DeserializeBody(TransportMessage message,string contentType)
+        {
+            var bodyString = Encoding.UTF8.GetString(message.Body);
+ 
+            if (contentType == "text/json")
+            {
+                return bodyString;
+            }
+
+            if (contentType != "text/xml")
+            {
+                return null;
+            }
+
+
+            try
+            {
+                var doc = new XmlDocument();
+                doc.LoadXml(bodyString);
+                return JsonConvert.SerializeXmlNode(doc.DocumentElement);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Failed to convert XML payload to json",ex);
+                return null;
+            }
+        }
+
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(Message));
     }
 
     public class EndpointDetails

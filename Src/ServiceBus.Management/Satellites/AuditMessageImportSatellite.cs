@@ -4,7 +4,6 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
-    using NServiceBus.Utils;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
 
@@ -41,22 +40,22 @@
                 catch (ConcurrencyException)
                 {
                     session.Advanced.Clear();
-                    UpdateExistingMessage(session, message);
+                    UpdateExistingMessage(session,auditMessage.Id, message);
                 }
             }
 
             return true;
         }
 
-        void UpdateExistingMessage(IDocumentSession session, TransportMessage message)
+        void UpdateExistingMessage(IDocumentSession session,string messageId, TransportMessage message)
         {
-            var processedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
-
-            var auditMessage = session.Load<Message>(message.IdForCorrelation);
+            var auditMessage = session.Load<Message>(messageId);
 
             if (auditMessage == null)
                 throw new InvalidOperationException("There should be a message in the store");
 
+            var processedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
+            
             if (auditMessage.Status == MessageStatus.Successful && auditMessage.ProcessedAt > processedAt)
             {
                 return; //don't overwrite since this message is older

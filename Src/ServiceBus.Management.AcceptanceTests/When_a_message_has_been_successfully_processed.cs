@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Text;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -32,6 +33,8 @@
             Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.ReceivingEndpoint.Machine, "Receiving machine should be parsed correctly");
             Assert.AreEqual(context.EndpointNameOfSendingEndpoint, context.ReturnedMessage.OriginatingEndpoint.Name, "Sending endpoint name should be parsed correctly");
             Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.OriginatingEndpoint.Machine, "Sending machine should be parsed correctly");
+            Assert.True(context.ReturnedMessage.Body.StartsWith("{\"Messages\":{"), "The body should be converted to json");
+            Assert.True(Encoding.UTF8.GetString(context.ReturnedMessage.BodyRaw).Contains("<MyMessage"), "The raw body should be stored");
         }
 
 
