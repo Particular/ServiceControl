@@ -41,8 +41,8 @@ task BuildMergeModule {
 
 task BuildSetup {  
     
-	copy $mergeModuleOutPutDir\*.* $baseDir\Setup\bundles
-	
+	robocopy "$mergeModuleOutPutDir" "$baseDir\Setup\bundles" *.msm
+		
 	if($PreRelease -eq "") {
 		$archive = "NServiceBus.$ProductVersion.$PatchVersion" 
 	} else {
