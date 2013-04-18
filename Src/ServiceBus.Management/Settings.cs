@@ -5,7 +5,6 @@
     using System.IO;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Satellites;
 
     public class Settings
     {
@@ -118,6 +117,31 @@
             }
         }
 
+        public static Address ErrorLogQueue
+        {
+            get
+            {
+                if (errorLogQueue == null)
+                {
+                    var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
+
+                    if (value != null)
+                        errorLogQueue = Address.Parse(value);
+                    else
+                    {
+                        Logger.Info("No settings found for error log queue to import, default name will be used");
+
+                        errorLogQueue = Settings.ErrorQueue.SubScope("log");
+                    }
+
+
+                }
+
+
+                return errorLogQueue;
+            }
+        }
+
         public static string DbPath
         {
             get
@@ -135,6 +159,7 @@
         static string virtualDirectory;
         static string dbPath;
         static Address auditQueue;
+        static Address errorLogQueue;
         static Address errorQueue;
         static readonly ILog Logger = LogManager.GetLogger(typeof(Settings));
     }

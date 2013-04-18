@@ -1,15 +1,18 @@
-﻿namespace ServiceBus.Management.Satellites
+﻿namespace ServiceBus.Management.Errors
 {
     using System;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
+    using NServiceBus.Transports;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
 
     public class ErrorImportSatellite : ISatellite
     {
         public IDocumentStore Store { get; set; }
+
+        public ISendMessages Forwarder { get; set; }
 
         public bool Handle(TransportMessage message)
         {
@@ -35,6 +38,8 @@
                     UpdateExistingMessage(session, failedMessage.Id, message);
                 }
             }
+
+            Forwarder.Send(message,Settings.ErrorLogQueue);
 
             return true;
         }
