@@ -116,12 +116,12 @@
             }
         }
 
-        protected override IEnumerable<NancyModule> GetAllModules(IContainer container)
+        protected override IEnumerable<INancyModule> GetAllModules(IContainer container)
         {
             return container.BuildAll(typeof(NancyModule)).Cast<NancyModule>();
         }
 
-        protected override NancyModule GetModuleByKey(IContainer container, string moduleKey)
+        protected override INancyModule GetModuleByKey(IContainer container, string moduleKey)
         {
             return container.Build(Type.GetType(moduleKey)) as NancyModule;
         }

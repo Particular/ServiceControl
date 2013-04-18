@@ -32,39 +32,44 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Nancy">
-      <HintPath>..\..\packages\Nancy.0.15.3\lib\net40\Nancy.dll</HintPath>
+    <Reference Include="Nancy, Version=0.16.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Nancy.0.16.1\lib\net40\Nancy.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Hosting.Self">
-      <HintPath>..\..\packages\Nancy.Hosting.Self.0.15.3\lib\net40\Nancy.Hosting.Self.dll</HintPath>
+    <Reference Include="Nancy.Hosting.Self, Version=0.16.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Nancy.Hosting.Self.0.16.1\lib\net40\Nancy.Hosting.Self.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus">
-      <HintPath>..\..\packages\NServiceBus.Interfaces.4.0.0-unstable2927\lib\net40\NServiceBus.dll</HintPath>
-    </Reference>
-    <Reference Include="NServiceBus.Core">
-      <HintPath>..\..\packages\NServiceBus.4.0.0-unstable2927\lib\net40\NServiceBus.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="NServiceBus.Host">
-      <HintPath>..\..\packages\NServiceBus.Host.4.0.0-unstable2927\lib\net40\NServiceBus.Host.exe</HintPath>
-    </Reference>
-    <Reference Include="Raven.Abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+    <Reference Include="NServiceBus, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\RavenDB.Client.2.0.2261\lib\net40\Raven.Abstractions.dll</HintPath>
+      <HintPath>..\..\packages\NServiceBus.Interfaces.4.0.0-unstable2948\lib\net40\NServiceBus.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Client.Embedded, Version=2.0.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+    <Reference Include="NServiceBus.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\RavenDB.Embedded.2.0.2261\lib\net40\Raven.Client.Embedded.dll</HintPath>
+      <HintPath>..\..\packages\NServiceBus.4.0.0-unstable2948\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Client.Lightweight, Version=2.0.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+    <Reference Include="NServiceBus.Host, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\RavenDB.Client.2.0.2261\lib\net40\Raven.Client.Lightweight.dll</HintPath>
+      <HintPath>..\..\packages\NServiceBus.Host.4.0.0-unstable2948\lib\net40\NServiceBus.Host.exe</HintPath>
     </Reference>
-    <Reference Include="Raven.Database, Version=2.0.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+    <Reference Include="Raven.Abstractions, Version=2.0.3.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\RavenDB.Database.2.0.2261\lib\net40\Raven.Database.dll</HintPath>
+      <HintPath>..\..\packages\RavenDB.Client.2.0.2330\lib\net40\Raven.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Client.Embedded, Version=2.0.3.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\RavenDB.Embedded.2.0.2330\lib\net40\Raven.Client.Embedded.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Client.Lightweight, Version=2.0.3.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\RavenDB.Client.2.0.2330\lib\net40\Raven.Client.Lightweight.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Database, Version=2.0.3.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\RavenDB.Database.2.0.2330\lib\net40\Raven.Database.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
