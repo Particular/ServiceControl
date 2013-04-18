@@ -17,7 +17,9 @@
 
         public Message(TransportMessage message)
         {
-            Id = message.IdForCorrelation;
+            ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message);
+            Id = message.IdForCorrelation + "-" + ReceivingEndpoint.Name;
+            MessageId = message.IdForCorrelation;
             CorrelationId = message.CorrelationId;
             Headers = message.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value));
             TimeSent = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent]);
@@ -38,13 +40,14 @@
             }
 
             OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(message);
-            ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message);
         }
 
 
         public bool IsDeferredMessage { get; set; }
 
         public string Id { get; set; }
+
+        public string MessageId { get; set; }
 
         public string MessageType { get; set; }
 
@@ -77,6 +80,7 @@
         public string ReplyToAddress { get; set; }
 
         public DateTime ProcessedAt { get; set; }
+
 
         static string DeserializeBody(TransportMessage message)
         {

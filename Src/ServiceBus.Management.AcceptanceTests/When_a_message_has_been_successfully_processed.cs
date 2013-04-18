@@ -21,8 +21,8 @@
                 .Done(c => AuditDataAvailable(context, c))
                 .Run();
 
-            Assert.AreEqual(context.MessageId,context.Message.Id,"The returned message should match the processed one");
-            Assert.AreEqual(MessageStatus.Successful, context.Message.Status, "Status should be set to success");
+            Assert.AreEqual(context.MessageId,context.ReturnedMessage.MessageId,"The returned message should match the processed one");
+            Assert.AreEqual(MessageStatus.Successful, context.ReturnedMessage.Status, "Status should be set to success");
         }
 
 
@@ -52,6 +52,7 @@
 
                 public void Handle(MyMessage message)
                 {
+                    Context.EndpointName = Configure.EndpointName;
                     Context.MessageId = Bus.CurrentMessageContext.Id;
                 }
             }
@@ -65,7 +66,10 @@
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-            public Message Message { get; set; }
+
+            public Message ReturnedMessage { get; set; }
+
+            public string EndpointName { get; set; }
         }
 
 
@@ -73,13 +77,13 @@
         {
             lock (context)
             {
-                if (c.Message != null)
+                if (c.ReturnedMessage != null)
                     return true;
 
                 if (c.MessageId == null)
                     return false;
 
-                c.Message = ApiCall<Message>("/messages/" + context.MessageId);
+                c.ReturnedMessage = ApiCall<Message>("/api/messages/" + context.MessageId + "-" + context.EndpointName);
 
 
                 return true;
