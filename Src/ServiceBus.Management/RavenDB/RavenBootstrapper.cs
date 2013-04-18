@@ -1,8 +1,9 @@
 ﻿namespace ServiceBus.Management.RavenDB
 {
-    using System;
+    using System.Diagnostics;
     using System.IO;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
@@ -21,7 +22,6 @@
                     EnlistInDistributedTransactions = false
                 };
 
-            //TODO: We need to do more robust check here
             NonAdminHttp.EnsureCanListenToWhenInNonAdminContext(Settings.Port);
 
             documentStore.Configuration.Port = Settings.Port;
@@ -31,10 +31,29 @@
 
             documentStore.Initialize();
 
-            IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
+            var sw = new Stopwatch();
+
+            sw.Start();
+            Logger.Info("Index creation started");
+
+            IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore)
+                .ContinueWith(c =>
+                    {
+                        sw.Stop();
+                        if (c.IsFaulted)
+                        {
+                            Logger.Error("Index creation failed",c.Exception);
+                        }
+                        else
+                        {
+                            Logger.InfoFormat("Index creation completed, totaltime: {0}",sw.Elapsed);
+                        }
+                    });
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Instance.RavenPersistenceWithStore(documentStore);
         }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
     }
 }
