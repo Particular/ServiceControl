@@ -14,68 +14,96 @@
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
-    <ROW Component="Esent.Interop.dll" ComponentId="{F6D72C59-1702-41DE-9FED-35DECA02345F}" Directory_="Management_Dir" Attributes="0" KeyPath="Esent.Interop.dll"/>
-    <ROW Component="GeoAPI.dll" ComponentId="{46465CFB-5CC8-4B35-9F9C-7752821871A4}" Directory_="Management_Dir" Attributes="0" KeyPath="GeoAPI.dll"/>
+    <ROW Component="Esent.Interop.dll" ComponentId="{8D38BB1C-C381-4972-8D70-2428F214D748}" Directory_="Management_Dir" Attributes="0" KeyPath="Esent.Interop.dll"/>
+    <ROW Component="Esent.Interop.xml" ComponentId="{784B5583-67E4-4322-8613-64AAFC567102}" Directory_="Management_Dir" Attributes="0" KeyPath="Esent.Interop.xml" Type="0"/>
+    <ROW Component="GeoAPI.dll" ComponentId="{173AC8DB-3B48-4317-B1F1-6C5AA6F97783}" Directory_="Management_Dir" Attributes="0" KeyPath="GeoAPI.dll"/>
     <ROW Component="Hostname" ComponentId="{E8A8D5EA-1B29-4410-8EB2-F528C3FB2EC1}" Directory_="APPDIR" Attributes="4" KeyPath="Hostname"/>
     <ROW Component="Hostname_1" ComponentId="{442CD16A-62C1-4B2B-B9F3-039112B34955}" Directory_="APPDIR" Attributes="260" KeyPath="Hostname_1"/>
-    <ROW Component="ICSharpCode.NRefactory.CSharp.dll" ComponentId="{FD84B992-5638-455C-95ED-FEAB3E095DDF}" Directory_="Management_Dir" Attributes="0" KeyPath="ICSharpCode.NRefactory.CSharp.dl"/>
-    <ROW Component="ICSharpCode.NRefactory.dll" ComponentId="{C00EFE8E-8026-4AE8-8C95-FF1F88103A90}" Directory_="Management_Dir" Attributes="0" KeyPath="ICSharpCode.NRefactory.dll"/>
-    <ROW Component="Jint.Raven.dll" ComponentId="{38E93E0B-E50D-445C-AFDA-A7301DD4FF3F}" Directory_="Management_Dir" Attributes="0" KeyPath="Jint.Raven.dll"/>
-    <ROW Component="Lucene.Net.Contrib.FastVectorHighli" ComponentId="{34E495E3-AA91-49BF-9323-39FFE150C1DA}" Directory_="Management_Dir" Attributes="0" KeyPath="Lucene.Net.Contrib.FastVectorHig"/>
-    <ROW Component="Lucene.Net.Contrib.Spatial.NTS.dll" ComponentId="{0D245E51-D3DC-481B-9ADF-D9F48DAC0D98}" Directory_="Management_Dir" Attributes="0" KeyPath="Lucene.Net.Contrib.Spatial.NTS.d"/>
-    <ROW Component="Lucene.Net.dll" ComponentId="{D85870F4-B727-49E4-9919-526367938AFB}" Directory_="Management_Dir" Attributes="0" KeyPath="Lucene.Net.dll"/>
+    <ROW Component="ICSharpCode.NRefactory.CSharp.dll" ComponentId="{7E3BEDBD-26F7-41C2-B4DB-48E994A5FD21}" Directory_="Management_Dir" Attributes="0" KeyPath="ICSharpCode.NRefactory.CSharp.dl"/>
+    <ROW Component="ICSharpCode.NRefactory.dll" ComponentId="{8DBA0B32-6E20-40C1-8DB2-78002FD4FA02}" Directory_="Management_Dir" Attributes="0" KeyPath="ICSharpCode.NRefactory.dll"/>
+    <ROW Component="Jint.Raven.dll" ComponentId="{BA695900-8957-4DA8-BC5E-33635FDE5629}" Directory_="Management_Dir" Attributes="0" KeyPath="Jint.Raven.dll"/>
+    <ROW Component="Lucene.Net.Contrib.FastVectorHighli" ComponentId="{3FBA4258-546B-4005-96D3-20662016A3D9}" Directory_="Management_Dir" Attributes="0" KeyPath="Lucene.Net.Contrib.FastVectorHig"/>
+    <ROW Component="Lucene.Net.Contrib.Spatial.NTS.dll" ComponentId="{C549AE61-1856-4DB1-9D64-5EFF14F28845}" Directory_="Management_Dir" Attributes="0" KeyPath="Lucene.Net.Contrib.Spatial.NTS.d"/>
+    <ROW Component="Lucene.Net.dll" ComponentId="{183A7B2A-01A3-4FFD-9162-61265526A4DD}" Directory_="Management_Dir" Attributes="0" KeyPath="Lucene.Net.dll"/>
     <ROW Component="Management" ComponentId="{A51EFC16-BCB7-4AA5-AB50-AD9FBB57B52E}" Directory_="APPDIR" Attributes="4" KeyPath="Management"/>
-    <ROW Component="Mono.Cecil.dll" ComponentId="{CC835151-83A3-4B3D-9EC4-E8626BD4AA03}" Directory_="Management_Dir" Attributes="0" KeyPath="Mono.Cecil.dll"/>
-    <ROW Component="NServiceBus.Core.dll" ComponentId="{881E951D-5BF7-4B68-8FD1-4E1D7CD0E4EA}" Directory_="Management_Dir" Attributes="0" KeyPath="NServiceBus.Core.dll"/>
+    <ROW Component="Mono.Cecil.dll" ComponentId="{D5BA22DE-5258-4849-8D27-DAFE44F199A8}" Directory_="Management_Dir" Attributes="0" KeyPath="Mono.Cecil.dll"/>
+    <ROW Component="NServiceBus.Core.dll" ComponentId="{1743363E-3EB5-462D-8805-33DB1D23F993}" Directory_="Management_Dir" Attributes="0" KeyPath="NServiceBus.Core.dll"/>
     <ROW Component="NServiceBus.Host.exe" ComponentId="{36106A0E-86F9-4660-8813-E052CC78BCCE}" Directory_="Management_Dir" Attributes="0" KeyPath="NServiceBus.Host.exe"/>
-    <ROW Component="NServiceBus.dll" ComponentId="{52C1468D-33E3-4E61-82C9-C1714623D529}" Directory_="Management_Dir" Attributes="0" KeyPath="NServiceBus.dll"/>
-    <ROW Component="Nancy.Hosting.Self.dll" ComponentId="{A96A271C-DC1F-46D6-8E4A-CE128CF62820}" Directory_="Management_Dir" Attributes="0" KeyPath="Nancy.Hosting.Self.dll"/>
-    <ROW Component="Nancy.dll" ComponentId="{202BEB3F-683A-4233-8425-E053B202C2DA}" Directory_="Management_Dir" Attributes="0" KeyPath="Nancy.dll"/>
-    <ROW Component="NetTopologySuite.dll" ComponentId="{6410F9A1-FB9E-4743-BCF4-32E3A5BCB4D6}" Directory_="Management_Dir" Attributes="0" KeyPath="NetTopologySuite.dll"/>
-    <ROW Component="Newtonsoft.Json.dll" ComponentId="{BEB61687-BCBE-437E-A002-D93C6AA024B9}" Directory_="Management_Dir" Attributes="0" KeyPath="Newtonsoft.Json.dll"/>
+    <ROW Component="NServiceBus.dll" ComponentId="{33176AF5-68D7-4EAC-8C8E-682502487772}" Directory_="Management_Dir" Attributes="0" KeyPath="NServiceBus.dll"/>
+    <ROW Component="Nancy.Hosting.Self.dll" ComponentId="{9CC16D71-F48E-487F-B3B8-78EEE4F16B4D}" Directory_="Management_Dir" Attributes="0" KeyPath="Nancy.Hosting.Self.dll"/>
+    <ROW Component="Nancy.dll" ComponentId="{9D1C3773-8A21-4DAA-A094-F69B107326F8}" Directory_="Management_Dir" Attributes="0" KeyPath="Nancy.dll"/>
+    <ROW Component="NetTopologySuite.dll" ComponentId="{B8249317-7B1B-4E20-A85D-E5A053D38B9B}" Directory_="Management_Dir" Attributes="0" KeyPath="NetTopologySuite.dll"/>
+    <ROW Component="Newtonsoft.Json.dll" ComponentId="{DC002C1D-B594-4BC5-88AC-67550A8E3D41}" Directory_="Management_Dir" Attributes="0" KeyPath="Newtonsoft.Json.dll"/>
     <ROW Component="Port" ComponentId="{5BF54FB8-61C5-4019-BD64-C35FF362D136}" Directory_="APPDIR" Attributes="4" KeyPath="Port"/>
     <ROW Component="Port_1" ComponentId="{67B33651-A5D1-4E03-903D-7AFF6C0C2EF1}" Directory_="APPDIR" Attributes="260" KeyPath="Port_1"/>
-    <ROW Component="PowerCollections.dll" ComponentId="{D954FF99-0B90-45EF-856F-171C54C0D16E}" Directory_="Management_Dir" Attributes="0" KeyPath="PowerCollections.dll"/>
-    <ROW Component="Raven.Abstractions.dll" ComponentId="{13D2DB5B-FB59-41A7-860C-E4F0CFF12151}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Abstractions.dll"/>
-    <ROW Component="Raven.Client.Embedded.dll" ComponentId="{5E234871-DF43-4212-B948-212CF21F1615}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Client.Embedded.dll"/>
-    <ROW Component="Raven.Client.Lightweight.dll" ComponentId="{F1188EA7-8FCD-45F5-A050-544D6495ACEC}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Client.Lightweight.dll"/>
-    <ROW Component="Raven.Database.dll" ComponentId="{E3B26CF8-8E0B-41D5-9D26-B3278DDBABA0}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Database.dll"/>
-    <ROW Component="ServiceBus.Management.dll" ComponentId="{0152DA1E-4B5E-4BEF-AFC1-BD7B5A78A1B8}" Directory_="Management_Dir" Attributes="0" KeyPath="ServiceBus.Management.dll"/>
-    <ROW Component="ServiceBus.Management.dll.config" ComponentId="{F2238544-A41A-45E8-A7E5-0DF7115A3E9D}" Directory_="Management_Dir" Attributes="0" KeyPath="ServiceBus.Management.dll.config" Type="0"/>
-    <ROW Component="Spatial4n.Core.NTS.dll" ComponentId="{E862F90A-13B2-4C00-9D48-F996E5A8C4FD}" Directory_="Management_Dir" Attributes="0" KeyPath="Spatial4n.Core.NTS.dll"/>
+    <ROW Component="PowerCollections.dll" ComponentId="{CADB96E6-53F8-490A-B44C-3AD900201A62}" Directory_="Management_Dir" Attributes="0" KeyPath="PowerCollections.dll"/>
+    <ROW Component="Raven.Abstractions.dll" ComponentId="{2320246F-134B-4EFD-8319-4C8CB8406467}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Abstractions.dll"/>
+    <ROW Component="Raven.Client.Embedded.dll" ComponentId="{F51A8F33-ACDB-4AA0-9DCF-0A4A188E1BAA}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Client.Embedded.dll"/>
+    <ROW Component="Raven.Client.Lightweight.dll" ComponentId="{E130B8EC-023A-45D7-A672-9B51DEF1C32E}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Client.Lightweight.dll"/>
+    <ROW Component="Raven.Database.dll" ComponentId="{5387B2D1-0313-4CBF-8D1F-29B9AAC3B6DE}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Database.dll"/>
+    <ROW Component="ServiceBus.Management.dll" ComponentId="{EE82480E-713C-4A22-B6CA-BEC1CE449742}" Directory_="Management_Dir" Attributes="0" KeyPath="ServiceBus.Management.dll"/>
+    <ROW Component="Spatial4n.Core.NTS.dll" ComponentId="{5EBEFCA8-FF69-441E-B795-E42C253DAFE1}" Directory_="Management_Dir" Attributes="0" KeyPath="Spatial4n.Core.NTS.dll"/>
     <ROW Component="VirtualDirectory" ComponentId="{9F9C139C-27C4-4925-8C05-8118A10185DF}" Directory_="APPDIR" Attributes="4" KeyPath="VirtualDirectory"/>
     <ROW Component="VirtualDirectory_1" ComponentId="{217B2264-E6C8-4966-A43F-254FF3C1A120}" Directory_="APPDIR" Attributes="260" KeyPath="VirtualDirectory_1"/>
     <ROW Component="X64_REG" ComponentId="{BCF4CBEC-674F-439A-B937-F5B4F65C0CBA}" Directory_="APPDIR" Attributes="260" KeyPath="X64_REG"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="TargetFeature" Title="TargetFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="Esent.Interop.dll GeoAPI.dll Hostname Hostname_1 ICSharpCode.NRefactory.CSharp.dll ICSharpCode.NRefactory.dll Jint.Raven.dll Lucene.Net.Contrib.FastVectorHighli Lucene.Net.Contrib.Spatial.NTS.dll Lucene.Net.dll Management Mono.Cecil.dll NServiceBus.Core.dll NServiceBus.Host.exe NServiceBus.dll Nancy.Hosting.Self.dll Nancy.dll NetTopologySuite.dll Newtonsoft.Json.dll Port Port_1 PowerCollections.dll Raven.Abstractions.dll Raven.Client.Embedded.dll Raven.Client.Lightweight.dll Raven.Database.dll ServiceBus.Management.dll ServiceBus.Management.dll.config Spatial4n.Core.NTS.dll VirtualDirectory VirtualDirectory_1 X64_REG"/>
+    <ROW Feature="TargetFeature" Title="TargetFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="Esent.Interop.dll Esent.Interop.xml GeoAPI.dll Hostname Hostname_1 ICSharpCode.NRefactory.CSharp.dll ICSharpCode.NRefactory.dll Jint.Raven.dll Lucene.Net.Contrib.FastVectorHighli Lucene.Net.Contrib.Spatial.NTS.dll Lucene.Net.dll Management Mono.Cecil.dll NServiceBus.Core.dll NServiceBus.Host.exe NServiceBus.dll Nancy.Hosting.Self.dll Nancy.dll NetTopologySuite.dll Newtonsoft.Json.dll Port Port_1 PowerCollections.dll Raven.Abstractions.dll Raven.Client.Embedded.dll Raven.Client.Lightweight.dll Raven.Database.dll ServiceBus.Management.dll Spatial4n.Core.NTS.dll VirtualDirectory VirtualDirectory_1 X64_REG"/>
     <ATTRIBUTE name="CurrentFeature" value="TargetFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="Esent.Interop.dll" Component_="Esent.Interop.dll" FileName="EsentI~1.dll|Esent.Interop.dll" Attributes="0" SourcePath="Files\Esent.Interop.dll" SelfReg="false" NextFile="GeoAPI.dll"/>
+    <ROW File="Esent.Interop.dll" Component_="Esent.Interop.dll" FileName="EsentI~1.dll|Esent.Interop.dll" Attributes="0" SourcePath="Files\Esent.Interop.dll" SelfReg="false" NextFile="Esent.Interop.pdb"/>
+    <ROW File="Esent.Interop.pdb" Component_="Esent.Interop.dll" FileName="EsentI~1.pdb|Esent.Interop.pdb" Attributes="0" SourcePath="Files\Esent.Interop.pdb" SelfReg="false" NextFile="Esent.Interop.xml"/>
+    <ROW File="Esent.Interop.xml" Component_="Esent.Interop.xml" FileName="EsentI~1.xml|Esent.Interop.xml" Attributes="0" SourcePath="Files\Esent.Interop.xml" SelfReg="false" NextFile="GeoAPI.dll"/>
     <ROW File="GeoAPI.dll" Component_="GeoAPI.dll" FileName="GeoAPI.dll" Attributes="0" SourcePath="Files\GeoAPI.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.CSharp.dl"/>
-    <ROW File="ICSharpCode.NRefactory.CSharp.dl" Component_="ICSharpCode.NRefactory.CSharp.dll" FileName="ICShar~1.dll|ICSharpCode.NRefactory.CSharp.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.CSharp.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.dll"/>
-    <ROW File="ICSharpCode.NRefactory.dll" Component_="ICSharpCode.NRefactory.dll" FileName="ICShar~2.dll|ICSharpCode.NRefactory.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.dll" SelfReg="false" NextFile="Jint.Raven.dll"/>
-    <ROW File="Jint.Raven.dll" Component_="Jint.Raven.dll" FileName="JintRa~1.dll|Jint.Raven.dll" Attributes="0" SourcePath="Files\Jint.Raven.dll" SelfReg="false" NextFile="Lucene.Net.Contrib.FastVectorHig"/>
-    <ROW File="Lucene.Net.Contrib.FastVectorHig" Component_="Lucene.Net.Contrib.FastVectorHighli" FileName="Lucene~1.dll|Lucene.Net.Contrib.FastVectorHighlighter.dll" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.FastVectorHighlighter.dll" SelfReg="false" NextFile="ServiceBus.Management.dll.config"/>
-    <ROW File="Lucene.Net.Contrib.Spatial.NTS.d" Component_="Lucene.Net.Contrib.Spatial.NTS.dll" FileName="Lucene~2.dll|Lucene.Net.Contrib.Spatial.NTS.dll" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.dll" SelfReg="false" NextFile="Lucene.Net.dll"/>
-    <ROW File="Lucene.Net.dll" Component_="Lucene.Net.dll" FileName="Lucene~3.dll|Lucene.Net.dll" Attributes="0" SourcePath="Files\Lucene.Net.dll" SelfReg="false" NextFile="Mono.Cecil.dll"/>
+    <ROW File="ICSharpCode.NRefactory.CSharp.dl" Component_="ICSharpCode.NRefactory.CSharp.dll" FileName="ICShar~1.dll|ICSharpCode.NRefactory.CSharp.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.CSharp.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.CSharp.xm"/>
+    <ROW File="ICSharpCode.NRefactory.CSharp.xm" Component_="Esent.Interop.xml" FileName="ICShar~1.xml|ICSharpCode.NRefactory.CSharp.xml" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.CSharp.xml" SelfReg="false" NextFile="ICSharpCode.NRefactory.dll"/>
+    <ROW File="ICSharpCode.NRefactory.dll" Component_="ICSharpCode.NRefactory.dll" FileName="ICShar~2.dll|ICSharpCode.NRefactory.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.xml"/>
+    <ROW File="ICSharpCode.NRefactory.xml" Component_="Esent.Interop.xml" FileName="ICShar~2.xml|ICSharpCode.NRefactory.xml" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.xml" SelfReg="false" NextFile="Jint.Raven.dll"/>
+    <ROW File="Jint.Raven.dll" Component_="Jint.Raven.dll" FileName="JintRa~1.dll|Jint.Raven.dll" Attributes="0" SourcePath="Files\Jint.Raven.dll" SelfReg="false" NextFile="Jint.Raven.pdb"/>
+    <ROW File="Jint.Raven.pdb" Component_="Jint.Raven.dll" FileName="JintRa~1.pdb|Jint.Raven.pdb" Attributes="0" SourcePath="Files\Jint.Raven.pdb" SelfReg="false" NextFile="Lucene.Net.Contrib.FastVectorHig"/>
+    <ROW File="Lucene.Net.Contrib.FastVectorH_1" Component_="Lucene.Net.Contrib.FastVectorHighli" FileName="Lucene~1.pdb|Lucene.Net.Contrib.FastVectorHighlighter.pdb" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.FastVectorHighlighter.pdb" SelfReg="false" NextFile="Lucene.Net.Contrib.FastVectorH_2"/>
+    <ROW File="Lucene.Net.Contrib.FastVectorH_2" Component_="Esent.Interop.xml" FileName="Lucene~1.xml|Lucene.Net.Contrib.FastVectorHighlighter.xml" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.FastVectorHighlighter.xml" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.d"/>
+    <ROW File="Lucene.Net.Contrib.FastVectorHig" Component_="Lucene.Net.Contrib.FastVectorHighli" FileName="Lucene~1.dll|Lucene.Net.Contrib.FastVectorHighlighter.dll" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.FastVectorHighlighter.dll" SelfReg="false" NextFile="Lucene.Net.Contrib.FastVectorH_1"/>
+    <ROW File="Lucene.Net.Contrib.Spatial.NTS.d" Component_="Lucene.Net.Contrib.Spatial.NTS.dll" FileName="Lucene~2.dll|Lucene.Net.Contrib.Spatial.NTS.dll" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.dll" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.p"/>
+    <ROW File="Lucene.Net.Contrib.Spatial.NTS.p" Component_="Lucene.Net.Contrib.Spatial.NTS.dll" FileName="Lucene~2.pdb|Lucene.Net.Contrib.Spatial.NTS.pdb" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.pdb" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.x"/>
+    <ROW File="Lucene.Net.Contrib.Spatial.NTS.x" Component_="Esent.Interop.xml" FileName="Lucene~2.xml|Lucene.Net.Contrib.Spatial.NTS.xml" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.xml" SelfReg="false" NextFile="Lucene.Net.dll"/>
+    <ROW File="Lucene.Net.dll" Component_="Lucene.Net.dll" FileName="Lucene~3.dll|Lucene.Net.dll" Attributes="0" SourcePath="Files\Lucene.Net.dll" SelfReg="false" NextFile="Lucene.Net.pdb"/>
+    <ROW File="Lucene.Net.pdb" Component_="Lucene.Net.dll" FileName="Lucene~3.pdb|Lucene.Net.pdb" Attributes="0" SourcePath="Files\Lucene.Net.pdb" SelfReg="false" NextFile="Lucene.Net.xml"/>
+    <ROW File="Lucene.Net.xml" Component_="Esent.Interop.xml" FileName="Lucene~3.xml|Lucene.Net.xml" Attributes="0" SourcePath="Files\Lucene.Net.xml" SelfReg="false" NextFile="Mono.Cecil.dll"/>
     <ROW File="Mono.Cecil.dll" Component_="Mono.Cecil.dll" FileName="MonoCe~1.dll|Mono.Cecil.dll" Attributes="0" SourcePath="Files\Mono.Cecil.dll" SelfReg="false" NextFile="Nancy.dll"/>
-    <ROW File="NServiceBus.Core.dll" Component_="NServiceBus.Core.dll" FileName="NServi~1.dll|NServiceBus.Core.dll" Attributes="0" SourcePath="Files\NServiceBus.Core.dll" SelfReg="false" NextFile="NServiceBus.dll"/>
-    <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="NServi~1.exe|NServiceBus.Host.exe" Attributes="0" SourcePath="Files\NServiceBus.Host.exe" SelfReg="false" NextFile="PowerCollections.dll" DigSign="true"/>
-    <ROW File="NServiceBus.dll" Component_="NServiceBus.dll" FileName="NServi~2.dll|NServiceBus.dll" Attributes="0" SourcePath="Files\NServiceBus.dll" SelfReg="false" NextFile="NServiceBus.Host.exe"/>
+    <ROW File="NServiceBus.Core.dll" Component_="NServiceBus.Core.dll" FileName="NServi~1.dll|NServiceBus.Core.dll" Attributes="0" SourcePath="Files\NServiceBus.Core.dll" SelfReg="false" NextFile="NServiceBus.Core.pdb"/>
+    <ROW File="NServiceBus.Core.pdb" Component_="NServiceBus.Core.dll" FileName="NServi~1.pdb|NServiceBus.Core.pdb" Attributes="0" SourcePath="Files\NServiceBus.Core.pdb" SelfReg="false" NextFile="NServiceBus.Core.xml"/>
+    <ROW File="NServiceBus.Core.xml" Component_="Esent.Interop.xml" FileName="NServi~1.xml|NServiceBus.Core.xml" Attributes="0" SourcePath="Files\NServiceBus.Core.xml" SelfReg="false" NextFile="NServiceBus.dll"/>
+    <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="NServi~1.exe|NServiceBus.Host.exe" Attributes="0" SourcePath="Files\NServiceBus.Host.exe" SelfReg="false" NextFile="Esent.Interop.dll" DigSign="true"/>
+    <ROW File="NServiceBus.Host.pdb" Component_="NServiceBus.Host.exe" FileName="NServi~2.pdb|NServiceBus.Host.pdb" Attributes="0" SourcePath="Files\NServiceBus.Host.pdb" SelfReg="false" NextFile="NServiceBus.Host.xml"/>
+    <ROW File="NServiceBus.Host.xml" Component_="Esent.Interop.xml" FileName="NServi~2.xml|NServiceBus.Host.xml" Attributes="0" SourcePath="Files\NServiceBus.Host.xml" SelfReg="false" NextFile="NServiceBus.pdb"/>
+    <ROW File="NServiceBus.dll" Component_="NServiceBus.dll" FileName="NServi~2.dll|NServiceBus.dll" Attributes="0" SourcePath="Files\NServiceBus.dll" SelfReg="false" NextFile="NServiceBus.Host.pdb"/>
+    <ROW File="NServiceBus.pdb" Component_="NServiceBus.dll" FileName="NServi~3.pdb|NServiceBus.pdb" Attributes="0" SourcePath="Files\NServiceBus.pdb" SelfReg="false" NextFile="NServiceBus.xml"/>
+    <ROW File="NServiceBus.xml" Component_="Esent.Interop.xml" FileName="NServi~3.xml|NServiceBus.xml" Attributes="0" SourcePath="Files\NServiceBus.xml" SelfReg="false" NextFile="PowerCollections.dll"/>
     <ROW File="Nancy.Hosting.Self.dll" Component_="Nancy.Hosting.Self.dll" FileName="NancyH~1.dll|Nancy.Hosting.Self.dll" Attributes="0" SourcePath="Files\Nancy.Hosting.Self.dll" SelfReg="false" NextFile="NetTopologySuite.dll"/>
     <ROW File="Nancy.dll" Component_="Nancy.dll" FileName="Nancy.dll" Attributes="0" SourcePath="Files\Nancy.dll" SelfReg="false" NextFile="Nancy.Hosting.Self.dll"/>
     <ROW File="NetTopologySuite.dll" Component_="NetTopologySuite.dll" FileName="NetTop~1.dll|NetTopologySuite.dll" Attributes="0" SourcePath="Files\NetTopologySuite.dll" SelfReg="false" NextFile="Newtonsoft.Json.dll"/>
-    <ROW File="Newtonsoft.Json.dll" Component_="Newtonsoft.Json.dll" FileName="Newton~1.dll|Newtonsoft.Json.dll" Attributes="0" SourcePath="Files\Newtonsoft.Json.dll" SelfReg="false" NextFile="NServiceBus.Core.dll"/>
+    <ROW File="Newtonsoft.Json.dll" Component_="Newtonsoft.Json.dll" FileName="Newton~1.dll|Newtonsoft.Json.dll" Attributes="0" SourcePath="Files\Newtonsoft.Json.dll" SelfReg="false" NextFile="Newtonsoft.Json.xml"/>
+    <ROW File="Newtonsoft.Json.xml" Component_="Esent.Interop.xml" FileName="Newton~1.xml|Newtonsoft.Json.xml" Attributes="0" SourcePath="Files\Newtonsoft.Json.xml" SelfReg="false" NextFile="NServiceBus.Core.dll"/>
     <ROW File="PowerCollections.dll" Component_="PowerCollections.dll" FileName="PowerC~1.dll|PowerCollections.dll" Attributes="0" SourcePath="Files\PowerCollections.dll" SelfReg="false" NextFile="Raven.Abstractions.dll"/>
-    <ROW File="Raven.Abstractions.dll" Component_="Raven.Abstractions.dll" FileName="RavenA~1.dll|Raven.Abstractions.dll" Attributes="0" SourcePath="Files\Raven.Abstractions.dll" SelfReg="false" NextFile="Raven.Client.Embedded.dll"/>
-    <ROW File="Raven.Client.Embedded.dll" Component_="Raven.Client.Embedded.dll" FileName="RavenC~1.dll|Raven.Client.Embedded.dll" Attributes="0" SourcePath="Files\Raven.Client.Embedded.dll" SelfReg="false" NextFile="Raven.Client.Lightweight.dll"/>
-    <ROW File="Raven.Client.Lightweight.dll" Component_="Raven.Client.Lightweight.dll" FileName="RavenC~2.dll|Raven.Client.Lightweight.dll" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.dll" SelfReg="false" NextFile="Raven.Database.dll"/>
-    <ROW File="Raven.Database.dll" Component_="Raven.Database.dll" FileName="RavenD~1.dll|Raven.Database.dll" Attributes="0" SourcePath="Files\Raven.Database.dll" SelfReg="false" NextFile="ServiceBus.Management.dll"/>
-    <ROW File="ServiceBus.Management.dll" Component_="ServiceBus.Management.dll" FileName="Servic~1.dll|ServiceBus.Management.dll" Attributes="0" SourcePath="Files\ServiceBus.Management.dll" SelfReg="false" NextFile="Spatial4n.Core.NTS.dll"/>
-    <ROW File="ServiceBus.Management.dll.config" Component_="ServiceBus.Management.dll.config" FileName="Servic~1.con|ServiceBus.Management.dll.config" Attributes="0" SourcePath="Files\ServiceBus.Management.dll.config" SelfReg="false"/>
-    <ROW File="Spatial4n.Core.NTS.dll" Component_="Spatial4n.Core.NTS.dll" FileName="Spatia~1.dll|Spatial4n.Core.NTS.dll" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.dll" SelfReg="false" NextFile="Esent.Interop.dll"/>
+    <ROW File="Raven.Abstractions.dll" Component_="Raven.Abstractions.dll" FileName="RavenA~1.dll|Raven.Abstractions.dll" Attributes="0" SourcePath="Files\Raven.Abstractions.dll" SelfReg="false" NextFile="Raven.Abstractions.pdb"/>
+    <ROW File="Raven.Abstractions.pdb" Component_="Raven.Abstractions.dll" FileName="RavenA~1.pdb|Raven.Abstractions.pdb" Attributes="0" SourcePath="Files\Raven.Abstractions.pdb" SelfReg="false" NextFile="Raven.Abstractions.xml"/>
+    <ROW File="Raven.Abstractions.xml" Component_="Esent.Interop.xml" FileName="RavenA~1.xml|Raven.Abstractions.xml" Attributes="0" SourcePath="Files\Raven.Abstractions.xml" SelfReg="false" NextFile="Raven.Client.Embedded.dll"/>
+    <ROW File="Raven.Client.Embedded.dll" Component_="Raven.Client.Embedded.dll" FileName="RavenC~1.dll|Raven.Client.Embedded.dll" Attributes="0" SourcePath="Files\Raven.Client.Embedded.dll" SelfReg="false" NextFile="Raven.Client.Embedded.pdb"/>
+    <ROW File="Raven.Client.Embedded.pdb" Component_="Raven.Client.Embedded.dll" FileName="RavenC~1.pdb|Raven.Client.Embedded.pdb" Attributes="0" SourcePath="Files\Raven.Client.Embedded.pdb" SelfReg="false" NextFile="Raven.Client.Embedded.xml"/>
+    <ROW File="Raven.Client.Embedded.xml" Component_="Esent.Interop.xml" FileName="RavenC~1.xml|Raven.Client.Embedded.xml" Attributes="0" SourcePath="Files\Raven.Client.Embedded.xml" SelfReg="false" NextFile="Raven.Client.Lightweight.dll"/>
+    <ROW File="Raven.Client.Lightweight.dll" Component_="Raven.Client.Lightweight.dll" FileName="RavenC~2.dll|Raven.Client.Lightweight.dll" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.dll" SelfReg="false" NextFile="Raven.Client.Lightweight.pdb"/>
+    <ROW File="Raven.Client.Lightweight.pdb" Component_="Raven.Client.Lightweight.dll" FileName="RavenC~2.pdb|Raven.Client.Lightweight.pdb" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.pdb" SelfReg="false" NextFile="Raven.Client.Lightweight.xml"/>
+    <ROW File="Raven.Client.Lightweight.xml" Component_="Esent.Interop.xml" FileName="RavenC~2.xml|Raven.Client.Lightweight.xml" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.xml" SelfReg="false" NextFile="Raven.Database.dll"/>
+    <ROW File="Raven.Database.dll" Component_="Raven.Database.dll" FileName="RavenD~1.dll|Raven.Database.dll" Attributes="0" SourcePath="Files\Raven.Database.dll" SelfReg="false" NextFile="Raven.Database.pdb"/>
+    <ROW File="Raven.Database.pdb" Component_="Raven.Database.dll" FileName="RavenD~1.pdb|Raven.Database.pdb" Attributes="0" SourcePath="Files\Raven.Database.pdb" SelfReg="false" NextFile="ServiceBus.Management.dll"/>
+    <ROW File="ServiceBus.Management.dll" Component_="ServiceBus.Management.dll" FileName="Servic~1.dll|ServiceBus.Management.dll" Attributes="0" SourcePath="Files\ServiceBus.Management.dll" SelfReg="false" NextFile="ServiceBus.Management.dll.config"/>
+    <ROW File="ServiceBus.Management.dll.config" Component_="Esent.Interop.xml" FileName="Servic~1.con|ServiceBus.Management.dll.config" Attributes="0" SourcePath="Files\ServiceBus.Management.dll.config" SelfReg="false" NextFile="ServiceBus.Management.pdb"/>
+    <ROW File="ServiceBus.Management.pdb" Component_="ServiceBus.Management.dll" FileName="Servic~1.pdb|ServiceBus.Management.pdb" Attributes="0" SourcePath="Files\ServiceBus.Management.pdb" SelfReg="false" NextFile="Spatial4n.Core.NTS.dll"/>
+    <ROW File="Spatial4n.Core.NTS.dll" Component_="Spatial4n.Core.NTS.dll" FileName="Spatia~1.dll|Spatial4n.Core.NTS.dll" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.dll" SelfReg="false" NextFile="Spatial4n.Core.NTS.pdb"/>
+    <ROW File="Spatial4n.Core.NTS.pdb" Component_="Spatial4n.Core.NTS.dll" FileName="Spatia~1.pdb|Spatial4n.Core.NTS.pdb" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.pdb" SelfReg="false" NextFile="Spatial4n.Core.NTS.xml"/>
+    <ROW File="Spatial4n.Core.NTS.xml" Component_="Esent.Interop.xml" FileName="Spatia~1.xml|Spatial4n.Core.NTS.xml" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.xml" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
     <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFolder="Output Package" PackageFileName="ManagementAPI" Languages="en" InstallationType="4"/>
@@ -132,5 +160,8 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsmModuleSignatureComponent">
     <ROW ModuleID="MergeMod" Version="5.0.0" GUID="CB8171C5_FE21_41EE_BC42_72123C0AD0F7" Name="Management API" Manufacturer="Particular Software" Comments="This database contains the logic and data required to install &lt;module name&gt; component."/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.SynchronizedFolderComponent">
+    <ROW Directory_="Management_Dir" SourcePath="Files" Feature="TargetFeature" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store" ExcludeFlags="6"/>
   </COMPONENT>
 </DOCUMENT>
