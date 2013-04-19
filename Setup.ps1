@@ -1,7 +1,7 @@
 properties {
 	$ProductVersion = "1.0"
 	$PatchVersion = "0"
-	$BuildNumber = "0"
+	$BuildNumber = if($env:BUILD_NUMBER -ne $null) { $env:BUILD_NUMBER } else { "0" }
 	$PreRelease = ""
 	$SignFile = if($env:SIGN_CER_PATH -ne $null) { $env:SIGN_CER_PATH } else { "" }
 }
