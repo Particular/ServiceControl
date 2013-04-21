@@ -48,6 +48,9 @@
     <ROW Path="&lt;AI_DICTS&gt;ui.ail"/>
     <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
   </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
+    <ROW TimeStampUrl="http://timestamp.verisign.com/scripts/timstamp.dll" SignerDescription="Management REST API" DescriptionUrl="http://www.nservicebus.com" SignOptions="7" SignTool="0" Thumbprint="69ebd61ccbd9a73a972a789c19bfacbbea171c67 Subject: NServiceBus Ltd.&#10;Issuer: VeriSign Class 3 Code Signing 2010 CA&#10;Valid from 10/19/2012 to 10/10/2013"/>
+  </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
     <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
     <ROW Fragment="InstallDlg.aip" Path="&lt;AI_THEMES&gt;surface\fragments\InstallDlg.aip"/>

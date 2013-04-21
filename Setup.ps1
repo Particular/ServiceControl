@@ -3,7 +3,6 @@ properties {
 	$PatchVersion = "0"
 	$BuildNumber = if($env:BUILD_NUMBER -ne $null) { $env:BUILD_NUMBER } else { "0" }
 	$PreRelease = ""
-	$SignFile = if($env:SIGN_CER_PATH -ne $null) { $env:SIGN_CER_PATH } else { "" }
 }
 
 $baseDir = Split-Path (Resolve-Path $MyInvocation.MyCommand.Path)
@@ -15,17 +14,10 @@ $setupModuleOutPutDir = "$baseDir\Setup\Output Package"
 
 include $toolsDir\psake\buildutils.ps1
 
-task default -depends Init, BuildMergeModule, SignMergeModule, BuildSetup, SignSetup
+task default -depends Init, BuildMergeModule, BuildSetup
 
 task Init {
 
-	$sdkInstallRoot = Get-RegistryValue "HKLM:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.1" "InstallationFolder"
-	if($sdkInstallRoot -eq $null) {
-		$sdkInstallRoot = Get-RegistryValue "HKLM:\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A" "InstallationFolder"
-	}
-
-	$script:signTool = $sdkInstallRoot + "Bin\signtool.exe"
-	
     # Install path for Advanced Installer
     $AdvancedInstallerPath = ""
     $AdvancedInstallerPath = Get-RegistryValue "HKLM:\SOFTWARE\Wow6432Node\Caphyon\Advanced Installer\" "Advanced Installer Path" 
@@ -55,17 +47,5 @@ task BuildSetup {
 	
 	# Build setup with Advanced Installer	
 	exec { &$script:AdvinstCLI /rebuild $setupProjectFile }
-}
-
-task SignMergeModule -depends Init {
-	if($SignFile -ne "") {
-		exec { &$script:signTool sign /f "$SignFile" /p "$env:SIGN_CER_PASSWORD" /d "Management API Merge Module" /du "http://www.nservicebus.com" /q  $mergeModuleOutPutDir\*.* }
-	}
-}
-
-task SignSetup -depends Init {
-	if($SignFile -ne "") {
-		exec { &$script:signTool sign /f "$SignFile" /p "$env:SIGN_CER_PASSWORD" /d "Management API" /du "http://www.nservicebus.com" /q  $setupModuleOutPutDir\*.* }
-	}
 }
 
