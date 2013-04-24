@@ -36,9 +36,9 @@ task BuildSetup {
 	robocopy "$mergeModuleOutPutDir" "$baseDir\Setup\bundles" *.msm
 		
 	if($PreRelease -eq "") {
-		$archive = "ManagementAPI.$ProductVersion.$PatchVersion" 
+		$archive = "ParticularManagement.$ProductVersion.$PatchVersion" 
 	} else {
-		$archive = "ManagementAPI.$ProductVersion.$PatchVersion-$PreRelease$BuildNumber"
+		$archive = "ParticularManagement.$ProductVersion.$PatchVersion-$PreRelease$BuildNumber"
 	}
 
 	# edit Advanced Installer Project	  
