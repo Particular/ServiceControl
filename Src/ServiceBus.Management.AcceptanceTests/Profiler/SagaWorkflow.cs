@@ -215,8 +215,8 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
 
                 public override void ConfigureHowToFindSaga()
                 {
-                    ConfigureMapping<OrderReceived>(s => s.OrderId, m => m.OrderId);
-                    ConfigureMapping<CancelOrder>(s => s.OrderId, m => m.OrderId);
+                    ConfigureMapping<OrderReceived>(m => m.OrderId).ToSaga(s => s.OrderId);
+                    ConfigureMapping<CancelOrder>(m => m.OrderId).ToSaga(s => s.OrderId);
                 }
             }
 
