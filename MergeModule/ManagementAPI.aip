@@ -129,17 +129,17 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
     <ROW Action="AI_DATA_SETTER" Type="51" Source="CustomActionData" Target="Particular.Management"/>
-    <ROW Action="AI_DATA_SETTER_1" Type="51" Source="NServiceBus.Host_Install" Target="&quot;[#NServiceBus.Host.exe]&quot; /install /serviceName:&quot;Particular.Management&quot; /displayName:&quot;Particular Management&quot; /description:&quot;Particular Software Management service for NServiceBus.&quot;"/>
-    <ROW Action="AI_DATA_SETTER_2" Type="51" Source="NServiceBus.Host_Uninstall" Target="&quot;[#NServiceBus.Host.exe]&quot; /uninstall /serviceName:&quot;Particular.Management&quot;"/>
+    <ROW Action="AI_DATA_SETTER_1" Type="51" Source="InstallService" Target="&quot;[#NServiceBus.Host.exe]&quot; /install /serviceName:&quot;Particular.Management&quot; /displayName:&quot;Particular Management&quot; /description:&quot;Particular Software Management service for NServiceBus.&quot;"/>
+    <ROW Action="AI_DATA_SETTER_2" Type="51" Source="UninstallService" Target="&quot;[#NServiceBus.Host.exe]&quot; /uninstall /serviceName:&quot;Particular.Management&quot;"/>
     <ROW Action="AI_DATA_SETTER_3" Type="51" Source="StopService" Target="&quot;[SystemFolder]net.exe&quot; stop Particular.Management"/>
     <ROW Action="AI_DATA_SETTER_4" Type="51" Source="StartService" Target="&quot;[SystemFolder]net.exe&quot; start Particular.Management"/>
     <ROW Action="DetectService" Type="65" Source="aicustact.dll" Target="DetectService" Options="3" AdditionalSeq="AI_DATA_SETTER"/>
     <ROW Action="InstallMsmq" Type="1025" Source="Particular.CustomA" Target="InstallMsmq"/>
     <ROW Action="InstallPerformanceCounters" Type="1025" Source="Particular.CustomA" Target="InstallPerformanceCounters"/>
-    <ROW Action="NServiceBus.Host_Install" Type="1025" Source="aicustact.dll_2" Target="CreateExeProcess" AdditionalSeq="AI_DATA_SETTER_1"/>
-    <ROW Action="NServiceBus.Host_Uninstall" Type="1089" Source="aicustact.dll_2" Target="CreateExeProcess" AdditionalSeq="AI_DATA_SETTER_2"/>
+    <ROW Action="InstallService" Type="1025" Source="Particular.CustomA" Target="RunExe" AdditionalSeq="AI_DATA_SETTER_1"/>
     <ROW Action="StartService" Type="1217" Source="aicustact.dll_2" Target="CreateExeProcess" AdditionalSeq="AI_DATA_SETTER_4"/>
     <ROW Action="StopService" Type="1089" Source="aicustact.dll_2" Target="CreateExeProcess" AdditionalSeq="AI_DATA_SETTER_3"/>
+    <ROW Action="UninstallService" Type="1089" Source="Particular.CustomA" Target="RunExe" AdditionalSeq="AI_DATA_SETTER_2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRegsComponent">
     <ROW Registry="Hostname" Root="2" Key="Software\ParticularSoftware\ServiceBus\Management" Name="Hostname" Value="localhost" Component_="Hostname"/>
@@ -154,16 +154,16 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsmModuleInstExSeqComponent">
     <ROW Action="DetectService" BaseAction="FindRelatedProducts" After="1"/>
     <ROW Action="AI_DATA_SETTER" BaseAction="DetectService" After="0"/>
-    <ROW Action="NServiceBus.Host_Install" BaseAction="InstallExecute" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Not Found&quot; )"/>
     <ROW Action="AI_DATA_SETTER_2" BaseAction="InstallPerformanceCounters" After="1" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Started&quot; OR AI_SERVICE_STATE=&quot;Stopped&quot; )"/>
-    <ROW Action="NServiceBus.Host_Uninstall" BaseAction="AI_DATA_SETTER_2" After="1" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Started&quot; OR AI_SERVICE_STATE=&quot;Stopped&quot; )"/>
-    <ROW Action="AI_DATA_SETTER_4" BaseAction="NServiceBus.Host_Install" After="1" Condition="( NOT Installed )"/>
-    <ROW Action="StartService" BaseAction="AI_DATA_SETTER_4" After="1" Condition="( NOT Installed )"/>
+    <ROW Action="UninstallService" BaseAction="AI_DATA_SETTER_2" After="1" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Started&quot; OR AI_SERVICE_STATE=&quot;Stopped&quot; )"/>
+    <ROW Action="AI_DATA_SETTER_4" BaseAction="InstallService" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )"/>
+    <ROW Action="StartService" BaseAction="AI_DATA_SETTER_4" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )"/>
     <ROW Action="InstallMsmq" BaseAction="StopService" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )"/>
-    <ROW Action="AI_DATA_SETTER_1" BaseAction="NServiceBus.Host_Install" After="0" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Not Found&quot; )"/>
     <ROW Action="AI_DATA_SETTER_3" BaseAction="ProcessComponents" After="1" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )"/>
     <ROW Action="StopService" BaseAction="AI_DATA_SETTER_3" After="1" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )"/>
     <ROW Action="InstallPerformanceCounters" BaseAction="InstallMsmq" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )"/>
+    <ROW Action="AI_DATA_SETTER_1" BaseAction="InstallExecute" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Not Found&quot; )"/>
+    <ROW Action="InstallService" BaseAction="AI_DATA_SETTER_1" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Not Found&quot; )"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsmModuleSignatureComponent">
     <ROW ModuleID="MergeMod" Version="5.0.0" GUID="CB8171C5_FE21_41EE_BC42_72123C0AD0F7" Name="Particular Management" Manufacturer="Particular Software" Comments="This database contains the logic and data required to install &lt;module name&gt; component."/>
