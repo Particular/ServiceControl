@@ -42,7 +42,8 @@
                 .Run();
 
             Assert.IsNotNull(context.Message.ProcessedAt,"Processed at should be set when the message has been successfully been processed");
-            Assert.AreEqual(context.Message.History.First().Action,"RetryIssued", "There should be an audit trail for audits");
+            Assert.AreEqual(context.Message.History.OrderBy(h=>h.Time).First().Action,"RetryIssued", "There should be an audit trail for retry attempts");
+            Assert.AreEqual(context.Message.History.OrderBy(h => h.Time).Skip(1).First().Action, "ErrorResolved", "There should be an audit trail for successfull retries");
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder

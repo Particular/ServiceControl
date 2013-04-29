@@ -177,6 +177,66 @@
                 "NServiceBus.ExceptionInfo.Source",
                 "NServiceBus.ExceptionInfo.StackTrace"
             };
+
+        public void Update(TransportMessage message)
+        {
+            var processedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
+
+            if (Status == MessageStatus.Successful && ProcessedAt > processedAt)
+            {
+                return; //don't overwrite since this message is older
+            }
+
+            ProcessedAt = processedAt;
+
+            if (Status != MessageStatus.Successful)
+            {
+                FailureDetails.ResolvedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
+                History.Add(new HistoryItem
+                    {
+                        Action = "ErrorResolved",
+                        Time = FailureDetails.ResolvedAt
+                    });
+            }
+
+            Status = MessageStatus.Successful;
+
+            if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
+            {
+                ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
+            }
+
+            Statistics = GetProcessingStatistics(message);
+
+        }
+        
+        public void MarkAsSuccessful(TransportMessage message)
+        {
+            Status = MessageStatus.Successful;
+            ProcessedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
+            Statistics = GetProcessingStatistics(message);
+
+            if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
+            {
+                ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
+            }
+
+        }
+
+        MessageStatistics GetProcessingStatistics(TransportMessage message)
+        {
+            return new MessageStatistics
+            {
+                CriticalTime =
+                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]) -
+                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent]),
+                ProcessingTime =
+                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]) -
+                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingStarted])
+            };
+        }
+
+
     }
 
     public class HistoryItem
