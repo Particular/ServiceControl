@@ -7,8 +7,10 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class When_a_message_has_failed : HttpUtil
+    [Serializable]
+    public class When_issuing_a_retry_for_a_failed_essage
     {
+
         [Test]
         public void Should_be_imported_and_accessible_via_the_rest_api()
         {
@@ -16,32 +18,31 @@
 
             Scenario.Define(() => context)
                 .WithEndpoint<ManagementEndpoint>()
-                .WithEndpoint<Sender>(b => b.Given(bus => bus.Send(new MyMessage())))
-                .WithEndpoint<Receiver>()
-                .Done(c => AuditDataAvailable(context, c))
+                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.Send(new MyMessage())))
+                .Done(c =>
+                    {
+                        lock (context)
+                        {
+                            if (!c.RetryIssued && AuditDataAvailable(c, MessageStatus.Failed))
+                            {
+                                HttpUtil.Post("/api/error/retry", c.Message.Id);
+                                c.RetryIssued = true;
+
+                                return false;
+                            }
+
+                            return AuditDataAvailable(c, MessageStatus.Successful);
+                        }
+                    })
                 .Run();
-
-            Assert.AreEqual(context.MessageId, context.Message.MessageId, "The returned message should match the processed one");
-            Assert.AreEqual(MessageStatus.Failed, context.Message.Status, "Status should be set to failed");
-            Assert.AreEqual(1, context.Message.FailureDetails.NumberOfTimesFailed, "Failed count should be 1");
-            Assert.AreEqual("Simulated exception", context.Message.FailureDetails.Exception.Message, "Exception message should be captured");
         }
 
-
-        public class Sender : EndpointConfigurationBuilder
+        public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
-                EndpointSetup<DefaultServer>()
-                    .AddMapping<MyMessage>(typeof(Receiver));
-            }
-        }
-
-        public class Receiver : EndpointConfigurationBuilder
-        {
-            public Receiver()
+            public FailureEndpoint()
             {
                 EndpointSetup<DefaultServer>(c => c.DisableSecondLevelRetries())
+                       .AddMapping<MyMessage>(typeof(FailureEndpoint))
                     .AuditTo(Address.Parse("audit"));
             }
 
@@ -72,25 +73,26 @@
             public Message Message { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
+
+            public bool RetryIssued { get; set; }
         }
 
-
-        bool AuditDataAvailable(MyContext context, MyContext c)
-        {
-            lock (context)
+        Func<MyContext, MessageStatus, bool> AuditDataAvailable = (context, status) =>
             {
-                if (c.Message != null)
-                    return true;
 
-                if (c.MessageId == null)
+                if (context.MessageId == null)
                     return false;
 
-                c.Message = Get<Message>("/api/messages/" + context.MessageId + "-" + context.EndpointNameOfReceivingEndpoint);
+                context.Message =
+                    HttpUtil.Get<Message>("/api/messages/" + context.MessageId + "-" +
+                                          context.EndpointNameOfReceivingEndpoint);
 
 
-                return true;
-            }
-        }
+                if (context.Message == null)
+                    return false;
+
+                return context.Message.Status == status;
+            };
 
     }
 }

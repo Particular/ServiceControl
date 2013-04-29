@@ -62,12 +62,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="When_a_message_has_failed.cs" />
     <Compile Include="NServiceBusAcceptanceTest.cs" />
     <Compile Include="Performance\Seed_audit_queue.cs" />
     <Compile Include="Profiler\AddLinearFlowOfMessagesToAuditQueue.cs" />
     <Compile Include="Profiler\SagaWorkflow.cs" />
     <Compile Include="Profiler\GenerateFlowOfMessagesWithMessagesThatErrorOut.cs" />
-    <Compile Include="When_a_message_has_failed.cs" />
+    <Compile Include="When_issuing_a_retry_for_a_failed_essage.cs" />
     <Compile Include="HttpUtil.cs" />
     <Compile Include="Contexts\ConfigureExtensions.cs" />
     <Compile Include="Contexts\DefaultServer.cs" />
