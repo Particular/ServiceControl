@@ -42,15 +42,17 @@
                         sw.Stop();
                         if (c.IsFaulted)
                         {
-                            Logger.Error("Index creation failed",c.Exception);
+                            Logger.Error("Index creation failed", c.Exception);
                         }
                         else
                         {
-                            Logger.InfoFormat("Index creation completed, totaltime: {0}",sw.Elapsed);
+                            Logger.InfoFormat("Index creation completed, totaltime: {0}", sw.Elapsed);
                         }
                     });
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
+            Configure.Instance.Configurer.ConfigureComponent(builder => builder.Build<IDocumentStore>().OpenSession(), DependencyLifecycle.InstancePerUnitOfWork);
+            Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);
             Configure.Instance.RavenPersistenceWithStore(documentStore);
         }
 

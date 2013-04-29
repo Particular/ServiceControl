@@ -93,11 +93,14 @@
     <Compile Include="Api\Nancy\NancyRunner.cs" />
     <Compile Include="Api\Nancy\NServiceBusContainerBootstrapper.cs" />
     <Compile Include="Api\Nancy\UnderscoreMappingResolver.cs" />
+    <Compile Include="Errors\IssueRetryHandler.cs" />
     <Compile Include="Errors\LogQueueInstaller.cs" />
     <Compile Include="Modules\EndpointModule.cs" />
+    <Compile Include="Commands\IssueRetry.cs" />
     <Compile Include="Modules\MessagesModule.cs" />
     <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
     <Compile Include="RavenDB\Indexes\Messages_Search.cs" />
+    <Compile Include="RavenDB\RavenUnitOfWork.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="SettingsReader.cs" />
     <Compile Include="AuditMessages\AuditMessageImportSatellite.cs" />

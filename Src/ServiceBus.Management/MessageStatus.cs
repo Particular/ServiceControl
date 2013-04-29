@@ -4,6 +4,7 @@
     {
         Failed = 1,
         RepeatedFailure = 2,
-        Successful = 3
+        Successful = 3,
+        RetryIssued = 4
     }
 }

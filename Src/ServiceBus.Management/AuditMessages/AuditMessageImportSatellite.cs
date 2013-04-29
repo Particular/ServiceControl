@@ -17,19 +17,9 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var processedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
+                var auditMessage = new Message(message);
 
-                var auditMessage = new Message(message)
-                {
-                    Status = MessageStatus.Successful,
-                    ProcessedAt = processedAt,
-                    Statistics = GetStatistics(message)
-                };
-
-                if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
-                {
-                    auditMessage.ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
-                }
+                auditMessage.MarkAsSuccessful(message);
 
                 try
                 {
@@ -54,45 +44,11 @@
             if (auditMessage == null)
                 throw new InvalidOperationException("There should be a message in the store");
 
-            var processedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
-            
-            if (auditMessage.Status == MessageStatus.Successful && auditMessage.ProcessedAt > processedAt)
-            {
-                return; //don't overwrite since this message is older
-            }
 
-            if (auditMessage.Status != MessageStatus.Successful)
-            {
-                auditMessage.FailureDetails.ResolvedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
-            }
-
-            auditMessage.Status = MessageStatus.Successful;
-
-            if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
-            {
-                auditMessage.ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
-            }
-
-            auditMessage.Statistics = GetStatistics(message);
-
-
-
+            auditMessage.Update(message);
+          
             session.SaveChanges();
         }
-
-        MessageStatistics GetStatistics(TransportMessage message)
-        {
-            return new MessageStatistics
-                {
-                    CriticalTime =
-                        DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]) -
-                        DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.TimeSent]),
-                    ProcessingTime =
-                        DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]) -
-                        DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingStarted])
-                };
-        }
-
 
         public void Start()
         {

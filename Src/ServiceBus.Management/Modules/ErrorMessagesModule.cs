@@ -1,13 +1,19 @@
 ﻿namespace ServiceBus.Management.Modules
 {
+    using System;
     using System.Linq;
+    using Commands;
     using Extensions;
+    using NServiceBus;
     using Nancy;
+    using Nancy.ModelBinding;
     using Raven.Client;
 
     public class ErrorMessagesModule : NancyModule
     {
         public IDocumentStore Store { get; set; }
+
+        public IBus Bus { get; set; }
 
         public ErrorMessagesModule()
         {
@@ -49,8 +55,18 @@
 
                 }
             };
+
+            Post["/errors/retry"] = _ =>
+                {
+                    var request = this.Bind<IssueRetry>();
+
+                    request.SetHeader("RequestedAt", DateTime.UtcNow.ToString());
+
+                    Bus.SendLocal(request);
+
+                    return HttpStatusCode.OK;
+                };
+
         }
     }
-
-    
 }

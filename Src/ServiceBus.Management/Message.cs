@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Linq;
     using System.Text;
     using System.Xml;
@@ -22,6 +23,8 @@
             Id = message.IdForCorrelation + "-" + ReceivingEndpoint.Name;
             MessageId = message.IdForCorrelation;
             CorrelationId = message.CorrelationId;
+            Recoverable = message.Recoverable;
+            MessageIntent = message.MessageIntent;
             Headers = message.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value));
             TimeSent = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent]);
 
@@ -85,6 +88,18 @@
 
         public string ContentType { get; set; }
 
+        public bool Recoverable { get; set; }
+
+        public MessageIntentEnum MessageIntent { get; set; }
+
+        public ICollection<HistoryItem> History
+        {
+            get { return history ?? (history = new Collection<HistoryItem>()); }
+            set { history = value; }
+        }
+
+        ICollection<HistoryItem> history { get; set; }
+
 
         string DetermineContentType(TransportMessage message)
         {
@@ -96,10 +111,10 @@
             return "text/xml"; //default to xml for now
         }
 
-        static string DeserializeBody(TransportMessage message,string contentType)
+        static string DeserializeBody(TransportMessage message, string contentType)
         {
             var bodyString = Encoding.UTF8.GetString(message.Body);
- 
+
             if (contentType == "text/json")
             {
                 return bodyString;
@@ -119,13 +134,119 @@
             }
             catch (Exception ex)
             {
-                Logger.Warn("Failed to convert XML payload to json",ex);
+                Logger.Warn("Failed to convert XML payload to json", ex);
                 return null;
             }
         }
 
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(Message));
+
+        public TransportMessage IssueRetry(DateTime requestedAt)
+        {
+            var rawMessage = new TransportMessage
+            {
+                Body = BodyRaw,
+                CorrelationId = CorrelationId,
+                Recoverable = Recoverable,
+                MessageIntent = MessageIntent,
+                ReplyToAddress = Address.Parse(ReplyToAddress),
+                Headers = Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value)
+            };
+
+
+            Status = MessageStatus.RetryIssued;
+
+            History.Add(new HistoryItem
+                {
+                    Action = "RetryIssued",
+                    Time = requestedAt
+                });
+
+            return rawMessage;
+        }
+
+
+        static readonly IList<string> KeysToRemoveWhenRetryingAMessage = new List<string>
+            {
+                "NServiceBus.FailedQ",
+                "NServiceBus.TimeOfFailure",
+                "NServiceBus.ExceptionInfo.ExceptionType",
+                "NServiceBus.ExceptionInfo.Message",
+                "NServiceBus.ExceptionInfo.Source",
+                "NServiceBus.ExceptionInfo.StackTrace"
+            };
+
+        public void Update(TransportMessage message)
+        {
+            var processedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
+
+            if (Status == MessageStatus.Successful && ProcessedAt > processedAt)
+            {
+                return; //don't overwrite since this message is older
+            }
+
+            if (BodyRaw.Length != message.Body.Length)
+                throw new InvalidOperationException("Message bodies differ, message has been tampered with");
+
+
+            ProcessedAt = processedAt;
+
+            if (Status != MessageStatus.Successful)
+            {
+                FailureDetails.ResolvedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
+                History.Add(new HistoryItem
+                    {
+                        Action = "ErrorResolved",
+                        Time = FailureDetails.ResolvedAt
+                    });
+            }
+
+            Status = MessageStatus.Successful;
+
+            if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
+            {
+                ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
+            }
+
+            Statistics = GetProcessingStatistics(message);
+
+        }
+
+        public void MarkAsSuccessful(TransportMessage message)
+        {
+            Status = MessageStatus.Successful;
+            ProcessedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
+            Statistics = GetProcessingStatistics(message);
+
+            if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
+            {
+                ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
+            }
+
+        }
+
+        MessageStatistics GetProcessingStatistics(TransportMessage message)
+        {
+            return new MessageStatistics
+            {
+                CriticalTime =
+                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]) -
+                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent]),
+                ProcessingTime =
+                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]) -
+                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingStarted])
+            };
+        }
+
+
+    }
+
+    public class HistoryItem
+    {
+        public string Action { get; set; }
+
+        public DateTime Time { get; set; }
     }
 
     public class EndpointDetails

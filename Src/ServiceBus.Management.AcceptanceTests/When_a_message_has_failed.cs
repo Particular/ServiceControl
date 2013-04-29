@@ -85,7 +85,7 @@
                 if (c.MessageId == null)
                     return false;
 
-                c.Message = ApiCall<Message>("/api/messages/" + context.MessageId + "-" + context.EndpointNameOfReceivingEndpoint);
+                c.Message = Get<Message>("/api/messages/" + context.MessageId + "-" + context.EndpointNameOfReceivingEndpoint);
 
 
                 return true;
