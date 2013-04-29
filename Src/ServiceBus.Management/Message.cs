@@ -163,7 +163,6 @@
                     Time = requestedAt
                 });
 
-
             return rawMessage;
         }
 
@@ -187,6 +186,10 @@
                 return; //don't overwrite since this message is older
             }
 
+            if (BodyRaw.Length != message.Body.Length)
+                throw new InvalidOperationException("Message bodies differ, message has been tampered with");
+
+
             ProcessedAt = processedAt;
 
             if (Status != MessageStatus.Successful)
@@ -209,7 +212,7 @@
             Statistics = GetProcessingStatistics(message);
 
         }
-        
+
         public void MarkAsSuccessful(TransportMessage message)
         {
             Status = MessageStatus.Successful;
