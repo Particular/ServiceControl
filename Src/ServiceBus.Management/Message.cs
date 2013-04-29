@@ -22,6 +22,8 @@
             Id = message.IdForCorrelation + "-" + ReceivingEndpoint.Name;
             MessageId = message.IdForCorrelation;
             CorrelationId = message.CorrelationId;
+            Recoverable = message.Recoverable;
+            MessageIntent = message.MessageIntent;
             Headers = message.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value));
             TimeSent = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent]);
 
@@ -85,6 +87,10 @@
 
         public string ContentType { get; set; }
 
+        public bool Recoverable { get; set; }
+
+        public MessageIntentEnum MessageIntent { get; set; }
+
 
         string DetermineContentType(TransportMessage message)
         {
@@ -126,6 +132,34 @@
 
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(Message));
+
+        public TransportMessage IssueRetry()
+        {
+            var rawMessage = new TransportMessage
+            {
+                Body = BodyRaw,
+                CorrelationId = CorrelationId,
+                Recoverable = Recoverable,
+                MessageIntent = MessageIntent,
+                ReplyToAddress = Address.Parse(ReplyToAddress),
+                Headers = Headers.Where(kv=>!KeysToRemoveWhenRetryingAMessage.Contains(kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value)
+            };
+
+            Status = MessageStatus.RetryIssued;
+
+            return rawMessage;
+        }
+
+
+        static readonly IList<string> KeysToRemoveWhenRetryingAMessage = new List<string>
+            {
+                "NServiceBus.FailedQ",
+                "NServiceBus.TimeOfFailure",
+                "NServiceBus.ExceptionInfo.ExceptionType",
+                "NServiceBus.ExceptionInfo.Message",
+                "NServiceBus.ExceptionInfo.Source",
+                "NServiceBus.ExceptionInfo.StackTrace"
+            };
     }
 
     public class EndpointDetails

@@ -25,7 +25,11 @@
                         {
                             if (!c.RetryIssued && AuditDataAvailable(c, MessageStatus.Failed))
                             {
-                                HttpUtil.Post("/api/error/retry", c.Message.Id);
+                                HttpUtil.Post("/api/errors/retry", new
+                                    {
+                                        MessageId = c.Message.Id
+                                    });
+
                                 c.RetryIssued = true;
 
                                 return false;
@@ -35,6 +39,9 @@
                         }
                     })
                 .Run();
+
+            Assert.IsNotNull(context.Message.ProcessedAt,"Processed at should be set when the message has been successfully been processed");
+            //Assert.AreEqual(context.Message.History.First().Action,"RetryIssed", "There should be an audit trail for audits");
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder
@@ -57,7 +64,9 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
                     Context.MessageId = Bus.CurrentMessageContext.Id;
-                    throw new Exception("Simulated exception");
+
+                    if (!Context.RetryIssued) //simulate that the exception will be resolved with the retry
+                        throw new Exception("Simulated exception");
                 }
             }
         }

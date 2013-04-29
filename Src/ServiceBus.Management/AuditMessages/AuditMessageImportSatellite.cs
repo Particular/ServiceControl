@@ -61,6 +61,8 @@
                 return; //don't overwrite since this message is older
             }
 
+            auditMessage.ProcessedAt = processedAt;
+
             if (auditMessage.Status != MessageStatus.Successful)
             {
                 auditMessage.FailureDetails.ResolvedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[Headers.ProcessingEnded]);
@@ -74,9 +76,7 @@
             }
 
             auditMessage.Statistics = GetStatistics(message);
-
-
-
+          
             session.SaveChanges();
         }
 

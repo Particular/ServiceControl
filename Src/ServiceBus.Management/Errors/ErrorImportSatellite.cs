@@ -21,10 +21,11 @@
                 session.Advanced.UseOptimisticConcurrency = true;
 
                 var failedMessage = new Message(message)
-                     {
-                         FailureDetails = new FailureDetails(message),
-                         Status = MessageStatus.Failed
-                     };
+                    {
+                        FailureDetails = new FailureDetails(message),
+                        Status = MessageStatus.Failed,
+                        ReplyToAddress = message.ReplyToAddress.ToString()
+                    };
 
                 try
                 {

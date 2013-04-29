@@ -41,7 +41,7 @@
             Console.Out.WriteLine(" - {0}", response.StatusCode);
 
             if (response.StatusCode != HttpStatusCode.OK)
-                throw new InvalidOperationException("Call failed: " +response.StatusCode + " - " + response.StatusDescription);
+                throw new InvalidOperationException("Call failed: " +response.StatusCode.GetHashCode() + " - " + response.StatusDescription);
 
 
 
@@ -86,7 +86,7 @@
             Console.Out.WriteLine(" - {0}", response.StatusCode);
 
             if (response.StatusCode != HttpStatusCode.OK)
-                throw new InvalidOperationException("Call failed: " + response.StatusCode + " - " + response.StatusDescription);
+                throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " + response.StatusDescription);
         }
 
         static JsonSerializerSettings serializerSettings = new JsonSerializerSettings

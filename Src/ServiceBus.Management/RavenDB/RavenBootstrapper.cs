@@ -51,6 +51,8 @@
                     });
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
+            Configure.Instance.Configurer.ConfigureComponent(builder => builder.Build<IDocumentStore>().OpenSession(),DependencyLifecycle.InstancePerUnitOfWork);
+
             Configure.Instance.RavenPersistenceWithStore(documentStore);
         }
 
