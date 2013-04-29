@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Linq;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -41,7 +42,7 @@
                 .Run();
 
             Assert.IsNotNull(context.Message.ProcessedAt,"Processed at should be set when the message has been successfully been processed");
-            //Assert.AreEqual(context.Message.History.First().Action,"RetryIssed", "There should be an audit trail for audits");
+            Assert.AreEqual(context.Message.History.First().Action,"RetryIssued", "There should be an audit trail for audits");
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder

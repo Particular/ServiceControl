@@ -100,6 +100,7 @@
     <Compile Include="Modules\MessagesModule.cs" />
     <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
     <Compile Include="RavenDB\Indexes\Messages_Search.cs" />
+    <Compile Include="RavenDB\RavenUnitOfWork.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="SettingsReader.cs" />
     <Compile Include="AuditMessages\AuditMessageImportSatellite.cs" />

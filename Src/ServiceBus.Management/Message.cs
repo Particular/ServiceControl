@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Linq;
     using System.Text;
     using System.Xml;
@@ -91,6 +92,14 @@
 
         public MessageIntentEnum MessageIntent { get; set; }
 
+        public ICollection<HistoryItem> History
+        {
+            get { return history ?? (history = new Collection<HistoryItem>()); }
+            set { history = value; }
+        }
+
+        ICollection<HistoryItem> history { get; set; }
+
 
         string DetermineContentType(TransportMessage message)
         {
@@ -102,10 +111,10 @@
             return "text/xml"; //default to xml for now
         }
 
-        static string DeserializeBody(TransportMessage message,string contentType)
+        static string DeserializeBody(TransportMessage message, string contentType)
         {
             var bodyString = Encoding.UTF8.GetString(message.Body);
- 
+
             if (contentType == "text/json")
             {
                 return bodyString;
@@ -125,7 +134,7 @@
             }
             catch (Exception ex)
             {
-                Logger.Warn("Failed to convert XML payload to json",ex);
+                Logger.Warn("Failed to convert XML payload to json", ex);
                 return null;
             }
         }
@@ -133,7 +142,7 @@
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(Message));
 
-        public TransportMessage IssueRetry()
+        public TransportMessage IssueRetry(DateTime requestedAt)
         {
             var rawMessage = new TransportMessage
             {
@@ -142,10 +151,18 @@
                 Recoverable = Recoverable,
                 MessageIntent = MessageIntent,
                 ReplyToAddress = Address.Parse(ReplyToAddress),
-                Headers = Headers.Where(kv=>!KeysToRemoveWhenRetryingAMessage.Contains(kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value)
+                Headers = Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value)
             };
 
+
             Status = MessageStatus.RetryIssued;
+
+            History.Add(new HistoryItem
+                {
+                    Action = "RetryIssued",
+                    Time = requestedAt
+                });
+
 
             return rawMessage;
         }
@@ -160,6 +177,13 @@
                 "NServiceBus.ExceptionInfo.Source",
                 "NServiceBus.ExceptionInfo.StackTrace"
             };
+    }
+
+    public class HistoryItem
+    {
+        public string Action { get; set; }
+
+        public DateTime Time { get; set; }
     }
 
     public class EndpointDetails

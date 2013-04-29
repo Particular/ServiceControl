@@ -20,8 +20,9 @@
             if (failedMessage == null)
                 throw new InvalidOperationException(string.Format("Retry failed, message {0} could not be found", message.MessageId));
 
-            var transportMessage = failedMessage.IssueRetry();
+            var transportMessage = failedMessage.IssueRetry(DateTime.Parse(message.GetHeader("RequestedAt")));
 
+            
             Forwarder.Send(transportMessage, Address.Parse(failedMessage.FailureDetails.FailedInQueue));
         }
     }

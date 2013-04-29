@@ -1,5 +1,6 @@
 ﻿namespace ServiceBus.Management.Modules
 {
+    using System;
     using System.Linq;
     using Commands;
     using Extensions;
@@ -58,6 +59,8 @@
             Post["/errors/retry"] = _ =>
                 {
                     var request = this.Bind<IssueRetry>();
+
+                    request.SetHeader("RequestedAt", DateTime.UtcNow.ToString());
 
                     Bus.SendLocal(request);
 
