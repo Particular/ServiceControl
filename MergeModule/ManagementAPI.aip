@@ -14,22 +14,98 @@
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
+    <ROW Component="AWSSDK.dll" ComponentId="{7851CEDF-B649-4B8A-8CFA-68262AA937BE}" Directory_="Management_Dir" Attributes="0" KeyPath="AWSSDK.dll"/>
+    <ROW Component="AWSSDK.xml" ComponentId="{3BF83708-C692-4439-8663-0DC9EB3FAB84}" Directory_="Management_Dir" Attributes="0" KeyPath="AWSSDK.xml" Type="0"/>
+    <ROW Component="Esent.Interop.dll" ComponentId="{F89EFF00-AA21-4898-A77F-F45F70B7B1EF}" Directory_="Management_Dir" Attributes="0" KeyPath="Esent.Interop.dll"/>
+    <ROW Component="GeoAPI.dll" ComponentId="{48EBE643-A449-4546-A032-62EA76C83E69}" Directory_="Management_Dir" Attributes="0" KeyPath="GeoAPI.dll"/>
     <ROW Component="Hostname" ComponentId="{E8A8D5EA-1B29-4410-8EB2-F528C3FB2EC1}" Directory_="APPDIR" Attributes="4" KeyPath="Hostname"/>
     <ROW Component="Hostname_1" ComponentId="{442CD16A-62C1-4B2B-B9F3-039112B34955}" Directory_="APPDIR" Attributes="260" KeyPath="Hostname_1"/>
+    <ROW Component="ICSharpCode.NRefactory.CSharp.dll" ComponentId="{7D053112-B049-4669-AADC-143F2F8EFF8B}" Directory_="Management_Dir" Attributes="0" KeyPath="ICSharpCode.NRefactory.CSharp.dl"/>
+    <ROW Component="ICSharpCode.NRefactory.dll" ComponentId="{0FF79AA2-4840-4AAE-A2C0-E993E91D9838}" Directory_="Management_Dir" Attributes="0" KeyPath="ICSharpCode.NRefactory.dll"/>
+    <ROW Component="Jint.Raven.dll" ComponentId="{EC39DB5A-D5DB-47B0-9592-A301F4E533DA}" Directory_="Management_Dir" Attributes="0" KeyPath="Jint.Raven.dll"/>
+    <ROW Component="Lucene.Net.Contrib.Spatial.NTS.dll" ComponentId="{4127C88F-F23F-443E-B6EB-996DB01E82DC}" Directory_="Management_Dir" Attributes="0" KeyPath="Lucene.Net.Contrib.Spatial.NTS.d"/>
+    <ROW Component="Lucene.Net.dll" ComponentId="{B86EA021-547C-4A3A-A006-777048C13520}" Directory_="Management_Dir" Attributes="0" KeyPath="Lucene.Net.dll"/>
     <ROW Component="Management" ComponentId="{A51EFC16-BCB7-4AA5-AB50-AD9FBB57B52E}" Directory_="APPDIR" Attributes="4" KeyPath="Management"/>
+    <ROW Component="Mono.Cecil.dll" ComponentId="{E0ACE7F4-21A1-4EE6-9821-258B60621534}" Directory_="Management_Dir" Attributes="0" KeyPath="Mono.Cecil.dll"/>
+    <ROW Component="NServiceBus.Core.dll" ComponentId="{76FD2A75-2EC2-4FB7-BF60-46514D760919}" Directory_="Management_Dir" Attributes="0" KeyPath="NServiceBus.Core.dll"/>
     <ROW Component="NServiceBus.Host.exe" ComponentId="{36106A0E-86F9-4660-8813-E052CC78BCCE}" Directory_="Management_Dir" Attributes="0" KeyPath="NServiceBus.Host.exe"/>
+    <ROW Component="NServiceBus.dll" ComponentId="{61190194-85D8-4172-B5B4-A8280460EB6D}" Directory_="Management_Dir" Attributes="0" KeyPath="NServiceBus.dll"/>
+    <ROW Component="Nancy.Hosting.Self.dll" ComponentId="{0EE38EC5-A0FE-45D3-9EAE-373B55800031}" Directory_="Management_Dir" Attributes="0" KeyPath="Nancy.Hosting.Self.dll"/>
+    <ROW Component="Nancy.dll" ComponentId="{09ABD312-9E87-42AE-B732-EEEC61D95445}" Directory_="Management_Dir" Attributes="0" KeyPath="Nancy.dll"/>
+    <ROW Component="NetTopologySuite.dll" ComponentId="{01B47FB6-4501-4E47-983C-C0CE19102E17}" Directory_="Management_Dir" Attributes="0" KeyPath="NetTopologySuite.dll"/>
+    <ROW Component="Newtonsoft.Json.dll" ComponentId="{CDD83E83-32D5-44CA-A7F3-26509DC11E72}" Directory_="Management_Dir" Attributes="0" KeyPath="Newtonsoft.Json.dll"/>
     <ROW Component="Port" ComponentId="{5BF54FB8-61C5-4019-BD64-C35FF362D136}" Directory_="APPDIR" Attributes="4" KeyPath="Port"/>
     <ROW Component="Port_1" ComponentId="{67B33651-A5D1-4E03-903D-7AFF6C0C2EF1}" Directory_="APPDIR" Attributes="260" KeyPath="Port_1"/>
+    <ROW Component="PowerCollections.dll" ComponentId="{D8193236-97F2-4C0C-9D1A-7AC09AAC6943}" Directory_="Management_Dir" Attributes="0" KeyPath="PowerCollections.dll"/>
+    <ROW Component="Raven.Abstractions.dll" ComponentId="{63F3CED1-F35B-4790-A100-FAE04207F8CE}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Abstractions.dll"/>
+    <ROW Component="Raven.Client.Embedded.dll" ComponentId="{244718C3-1067-4FBF-BD9B-7F6D4D61696E}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Client.Embedded.dll"/>
+    <ROW Component="Raven.Client.Lightweight.dll" ComponentId="{E2D57B58-3058-45BC-8FAF-5621B950ACB2}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Client.Lightweight.dll"/>
+    <ROW Component="Raven.Database.dll" ComponentId="{C1359FC4-02A1-481A-8883-6C4F2392CC3A}" Directory_="Management_Dir" Attributes="0" KeyPath="Raven.Database.dll"/>
+    <ROW Component="ServiceBus.Management.dll" ComponentId="{5E3AACA5-5ECB-48F9-9C3A-CF23FAE9C00B}" Directory_="Management_Dir" Attributes="0" KeyPath="ServiceBus.Management.dll"/>
+    <ROW Component="Spatial4n.Core.NTS.dll" ComponentId="{92B56D15-1014-4CF7-B8BA-0A12A4272E72}" Directory_="Management_Dir" Attributes="0" KeyPath="Spatial4n.Core.NTS.dll"/>
     <ROW Component="VirtualDirectory" ComponentId="{9F9C139C-27C4-4925-8C05-8118A10185DF}" Directory_="APPDIR" Attributes="4" KeyPath="VirtualDirectory"/>
     <ROW Component="VirtualDirectory_1" ComponentId="{217B2264-E6C8-4966-A43F-254FF3C1A120}" Directory_="APPDIR" Attributes="260" KeyPath="VirtualDirectory_1"/>
     <ROW Component="X64_REG" ComponentId="{BCF4CBEC-674F-439A-B937-F5B4F65C0CBA}" Directory_="APPDIR" Attributes="260" KeyPath="X64_REG"/>
+    <ROW Component="log4net.dll" ComponentId="{6698F25C-AFEC-4B4F-9D23-D8C33174C862}" Directory_="Management_Dir" Attributes="0" KeyPath="log4net.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="TargetFeature" Title="TargetFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="Hostname Hostname_1 Management NServiceBus.Host.exe Port Port_1 VirtualDirectory VirtualDirectory_1 X64_REG"/>
+    <ROW Feature="TargetFeature" Title="TargetFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="AWSSDK.dll AWSSDK.xml Esent.Interop.dll GeoAPI.dll Hostname Hostname_1 ICSharpCode.NRefactory.CSharp.dll ICSharpCode.NRefactory.dll Jint.Raven.dll Lucene.Net.Contrib.Spatial.NTS.dll Lucene.Net.dll Management Mono.Cecil.dll NServiceBus.Core.dll NServiceBus.Host.exe NServiceBus.dll Nancy.Hosting.Self.dll Nancy.dll NetTopologySuite.dll Newtonsoft.Json.dll Port Port_1 PowerCollections.dll Raven.Abstractions.dll Raven.Client.Embedded.dll Raven.Client.Lightweight.dll Raven.Database.dll ServiceBus.Management.dll Spatial4n.Core.NTS.dll VirtualDirectory VirtualDirectory_1 X64_REG log4net.dll"/>
     <ATTRIBUTE name="CurrentFeature" value="TargetFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="NServi~1.exe|NServiceBus.Host.exe" Attributes="0" SourcePath="Files\NServiceBus.Host.exe" SelfReg="false" DigSign="true"/>
+    <ROW File="AWSSDK.dll" Component_="AWSSDK.dll" FileName="AWSSDK.dll" Attributes="0" SourcePath="Files\AWSSDK.dll" SelfReg="false" NextFile="AWSSDK.xml"/>
+    <ROW File="AWSSDK.xml" Component_="AWSSDK.xml" FileName="AWSSDK.xml" Attributes="0" SourcePath="Files\AWSSDK.xml" SelfReg="false" NextFile="Esent.Interop.dll"/>
+    <ROW File="Esent.Interop.dll" Component_="Esent.Interop.dll" FileName="EsentI~1.dll|Esent.Interop.dll" Attributes="0" SourcePath="Files\Esent.Interop.dll" SelfReg="false" NextFile="Esent.Interop.pdb"/>
+    <ROW File="Esent.Interop.pdb" Component_="Esent.Interop.dll" FileName="EsentI~1.pdb|Esent.Interop.pdb" Attributes="0" SourcePath="Files\Esent.Interop.pdb" SelfReg="false" NextFile="Esent.Interop.xml"/>
+    <ROW File="Esent.Interop.xml" Component_="AWSSDK.xml" FileName="EsentI~1.xml|Esent.Interop.xml" Attributes="0" SourcePath="Files\Esent.Interop.xml" SelfReg="false" NextFile="GeoAPI.dll"/>
+    <ROW File="GeoAPI.dll" Component_="GeoAPI.dll" FileName="GeoAPI.dll" Attributes="0" SourcePath="Files\GeoAPI.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.CSharp.dl"/>
+    <ROW File="ICSharpCode.NRefactory.CSharp.dl" Component_="ICSharpCode.NRefactory.CSharp.dll" FileName="ICShar~1.dll|ICSharpCode.NRefactory.CSharp.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.CSharp.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.CSharp.xm"/>
+    <ROW File="ICSharpCode.NRefactory.CSharp.xm" Component_="AWSSDK.xml" FileName="ICShar~1.xml|ICSharpCode.NRefactory.CSharp.xml" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.CSharp.xml" SelfReg="false" NextFile="ICSharpCode.NRefactory.dll"/>
+    <ROW File="ICSharpCode.NRefactory.dll" Component_="ICSharpCode.NRefactory.dll" FileName="ICShar~2.dll|ICSharpCode.NRefactory.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.xml"/>
+    <ROW File="ICSharpCode.NRefactory.xml" Component_="AWSSDK.xml" FileName="ICShar~2.xml|ICSharpCode.NRefactory.xml" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.xml" SelfReg="false" NextFile="Jint.Raven.dll"/>
+    <ROW File="Jint.Raven.dll" Component_="Jint.Raven.dll" FileName="JintRa~1.dll|Jint.Raven.dll" Attributes="0" SourcePath="Files\Jint.Raven.dll" SelfReg="false" NextFile="Jint.Raven.pdb"/>
+    <ROW File="Jint.Raven.pdb" Component_="Jint.Raven.dll" FileName="JintRa~1.pdb|Jint.Raven.pdb" Attributes="0" SourcePath="Files\Jint.Raven.pdb" SelfReg="false" NextFile="log4net.dll"/>
+    <ROW File="Lucene.Net.Contrib.Spatial.NTS.d" Component_="Lucene.Net.Contrib.Spatial.NTS.dll" FileName="Lucene~1.dll|Lucene.Net.Contrib.Spatial.NTS.dll" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.dll" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.p"/>
+    <ROW File="Lucene.Net.Contrib.Spatial.NTS.p" Component_="Lucene.Net.Contrib.Spatial.NTS.dll" FileName="Lucene~1.pdb|Lucene.Net.Contrib.Spatial.NTS.pdb" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.pdb" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.x"/>
+    <ROW File="Lucene.Net.Contrib.Spatial.NTS.x" Component_="AWSSDK.xml" FileName="Lucene~1.xml|Lucene.Net.Contrib.Spatial.NTS.xml" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.xml" SelfReg="false" NextFile="Lucene.Net.dll"/>
+    <ROW File="Lucene.Net.dll" Component_="Lucene.Net.dll" FileName="Lucene~2.dll|Lucene.Net.dll" Attributes="0" SourcePath="Files\Lucene.Net.dll" SelfReg="false" NextFile="Lucene.Net.pdb"/>
+    <ROW File="Lucene.Net.pdb" Component_="Lucene.Net.dll" FileName="Lucene~2.pdb|Lucene.Net.pdb" Attributes="0" SourcePath="Files\Lucene.Net.pdb" SelfReg="false" NextFile="Lucene.Net.xml"/>
+    <ROW File="Lucene.Net.xml" Component_="AWSSDK.xml" FileName="Lucene~2.xml|Lucene.Net.xml" Attributes="0" SourcePath="Files\Lucene.Net.xml" SelfReg="false" NextFile="Mono.Cecil.dll"/>
+    <ROW File="Mono.Cecil.dll" Component_="Mono.Cecil.dll" FileName="MonoCe~1.dll|Mono.Cecil.dll" Attributes="0" SourcePath="Files\Mono.Cecil.dll" SelfReg="false" NextFile="Nancy.dll"/>
+    <ROW File="NServiceBus.Core.dll" Component_="NServiceBus.Core.dll" FileName="NServi~1.dll|NServiceBus.Core.dll" Attributes="0" SourcePath="Files\NServiceBus.Core.dll" SelfReg="false" NextFile="NServiceBus.Core.pdb"/>
+    <ROW File="NServiceBus.Core.pdb" Component_="NServiceBus.Core.dll" FileName="NServi~1.pdb|NServiceBus.Core.pdb" Attributes="0" SourcePath="Files\NServiceBus.Core.pdb" SelfReg="false" NextFile="NServiceBus.Core.xml"/>
+    <ROW File="NServiceBus.Core.xml" Component_="AWSSDK.xml" FileName="NServi~1.xml|NServiceBus.Core.xml" Attributes="0" SourcePath="Files\NServiceBus.Core.xml" SelfReg="false" NextFile="NServiceBus.dll"/>
+    <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="NServi~1.exe|NServiceBus.Host.exe" Attributes="0" SourcePath="Files\NServiceBus.Host.exe" SelfReg="false" NextFile="AWSSDK.dll" DigSign="true"/>
+    <ROW File="NServiceBus.Host.pdb" Component_="NServiceBus.Host.exe" FileName="NServi~2.pdb|NServiceBus.Host.pdb" Attributes="0" SourcePath="Files\NServiceBus.Host.pdb" SelfReg="false" NextFile="NServiceBus.Host.xml"/>
+    <ROW File="NServiceBus.Host.xml" Component_="AWSSDK.xml" FileName="NServi~2.xml|NServiceBus.Host.xml" Attributes="0" SourcePath="Files\NServiceBus.Host.xml" SelfReg="false" NextFile="NServiceBus.pdb"/>
+    <ROW File="NServiceBus.dll" Component_="NServiceBus.dll" FileName="NServi~2.dll|NServiceBus.dll" Attributes="0" SourcePath="Files\NServiceBus.dll" SelfReg="false" NextFile="NServiceBus.Host.pdb"/>
+    <ROW File="NServiceBus.pdb" Component_="NServiceBus.dll" FileName="NServi~3.pdb|NServiceBus.pdb" Attributes="0" SourcePath="Files\NServiceBus.pdb" SelfReg="false" NextFile="NServiceBus.xml"/>
+    <ROW File="NServiceBus.xml" Component_="AWSSDK.xml" FileName="NServi~3.xml|NServiceBus.xml" Attributes="0" SourcePath="Files\NServiceBus.xml" SelfReg="false" NextFile="PowerCollections.dll"/>
+    <ROW File="Nancy.Hosting.Self.dll" Component_="Nancy.Hosting.Self.dll" FileName="NancyH~1.dll|Nancy.Hosting.Self.dll" Attributes="0" SourcePath="Files\Nancy.Hosting.Self.dll" SelfReg="false" NextFile="NetTopologySuite.dll"/>
+    <ROW File="Nancy.dll" Component_="Nancy.dll" FileName="Nancy.dll" Attributes="0" SourcePath="Files\Nancy.dll" SelfReg="false" NextFile="Nancy.Hosting.Self.dll"/>
+    <ROW File="NetTopologySuite.dll" Component_="NetTopologySuite.dll" FileName="NetTop~1.dll|NetTopologySuite.dll" Attributes="0" SourcePath="Files\NetTopologySuite.dll" SelfReg="false" NextFile="Newtonsoft.Json.dll"/>
+    <ROW File="Newtonsoft.Json.dll" Component_="Newtonsoft.Json.dll" FileName="Newton~1.dll|Newtonsoft.Json.dll" Attributes="0" SourcePath="Files\Newtonsoft.Json.dll" SelfReg="false" NextFile="Newtonsoft.Json.xml"/>
+    <ROW File="Newtonsoft.Json.xml" Component_="AWSSDK.xml" FileName="Newton~1.xml|Newtonsoft.Json.xml" Attributes="0" SourcePath="Files\Newtonsoft.Json.xml" SelfReg="false" NextFile="NServiceBus.Core.dll"/>
+    <ROW File="PowerCollections.dll" Component_="PowerCollections.dll" FileName="PowerC~1.dll|PowerCollections.dll" Attributes="0" SourcePath="Files\PowerCollections.dll" SelfReg="false" NextFile="Raven.Abstractions.dll"/>
+    <ROW File="Raven.Abstractions.dll" Component_="Raven.Abstractions.dll" FileName="RavenA~1.dll|Raven.Abstractions.dll" Attributes="0" SourcePath="Files\Raven.Abstractions.dll" SelfReg="false" NextFile="Raven.Abstractions.pdb"/>
+    <ROW File="Raven.Abstractions.pdb" Component_="Raven.Abstractions.dll" FileName="RavenA~1.pdb|Raven.Abstractions.pdb" Attributes="0" SourcePath="Files\Raven.Abstractions.pdb" SelfReg="false" NextFile="Raven.Abstractions.xml"/>
+    <ROW File="Raven.Abstractions.xml" Component_="AWSSDK.xml" FileName="RavenA~1.xml|Raven.Abstractions.xml" Attributes="0" SourcePath="Files\Raven.Abstractions.xml" SelfReg="false" NextFile="Raven.Client.Embedded.dll"/>
+    <ROW File="Raven.Client.Embedded.dll" Component_="Raven.Client.Embedded.dll" FileName="RavenC~1.dll|Raven.Client.Embedded.dll" Attributes="0" SourcePath="Files\Raven.Client.Embedded.dll" SelfReg="false" NextFile="Raven.Client.Embedded.pdb"/>
+    <ROW File="Raven.Client.Embedded.pdb" Component_="Raven.Client.Embedded.dll" FileName="RavenC~1.pdb|Raven.Client.Embedded.pdb" Attributes="0" SourcePath="Files\Raven.Client.Embedded.pdb" SelfReg="false" NextFile="Raven.Client.Embedded.xml"/>
+    <ROW File="Raven.Client.Embedded.xml" Component_="AWSSDK.xml" FileName="RavenC~1.xml|Raven.Client.Embedded.xml" Attributes="0" SourcePath="Files\Raven.Client.Embedded.xml" SelfReg="false" NextFile="Raven.Client.Lightweight.dll"/>
+    <ROW File="Raven.Client.Lightweight.dll" Component_="Raven.Client.Lightweight.dll" FileName="RavenC~2.dll|Raven.Client.Lightweight.dll" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.dll" SelfReg="false" NextFile="Raven.Client.Lightweight.pdb"/>
+    <ROW File="Raven.Client.Lightweight.pdb" Component_="Raven.Client.Lightweight.dll" FileName="RavenC~2.pdb|Raven.Client.Lightweight.pdb" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.pdb" SelfReg="false" NextFile="Raven.Client.Lightweight.xml"/>
+    <ROW File="Raven.Client.Lightweight.xml" Component_="AWSSDK.xml" FileName="RavenC~2.xml|Raven.Client.Lightweight.xml" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.xml" SelfReg="false" NextFile="Raven.Database.dll"/>
+    <ROW File="Raven.Database.dll" Component_="Raven.Database.dll" FileName="RavenD~1.dll|Raven.Database.dll" Attributes="0" SourcePath="Files\Raven.Database.dll" SelfReg="false" NextFile="Raven.Database.pdb"/>
+    <ROW File="Raven.Database.pdb" Component_="Raven.Database.dll" FileName="RavenD~1.pdb|Raven.Database.pdb" Attributes="0" SourcePath="Files\Raven.Database.pdb" SelfReg="false" NextFile="ServiceBus.Management.dll"/>
+    <ROW File="ServiceBus.Management.dll" Component_="ServiceBus.Management.dll" FileName="Servic~1.dll|ServiceBus.Management.dll" Attributes="0" SourcePath="Files\ServiceBus.Management.dll" SelfReg="false" NextFile="ServiceBus.Management.dll.config"/>
+    <ROW File="ServiceBus.Management.dll.config" Component_="AWSSDK.xml" FileName="Servic~1.con|ServiceBus.Management.dll.config" Attributes="0" SourcePath="Files\ServiceBus.Management.dll.config" SelfReg="false" NextFile="ServiceBus.Management.pdb"/>
+    <ROW File="ServiceBus.Management.pdb" Component_="ServiceBus.Management.dll" FileName="Servic~1.pdb|ServiceBus.Management.pdb" Attributes="0" SourcePath="Files\ServiceBus.Management.pdb" SelfReg="false" NextFile="Spatial4n.Core.NTS.dll"/>
+    <ROW File="Spatial4n.Core.NTS.dll" Component_="Spatial4n.Core.NTS.dll" FileName="Spatia~1.dll|Spatial4n.Core.NTS.dll" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.dll" SelfReg="false" NextFile="Spatial4n.Core.NTS.pdb"/>
+    <ROW File="Spatial4n.Core.NTS.pdb" Component_="Spatial4n.Core.NTS.dll" FileName="Spatia~1.pdb|Spatial4n.Core.NTS.pdb" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.pdb" SelfReg="false" NextFile="Spatial4n.Core.NTS.xml"/>
+    <ROW File="Spatial4n.Core.NTS.xml" Component_="AWSSDK.xml" FileName="Spatia~1.xml|Spatial4n.Core.NTS.xml" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.xml" SelfReg="false"/>
+    <ROW File="log4net.dll" Component_="log4net.dll" FileName="log4net.dll" Attributes="0" SourcePath="Files\log4net.dll" SelfReg="false" NextFile="log4net.xml"/>
+    <ROW File="log4net.xml" Component_="AWSSDK.xml" FileName="log4net.xml" Attributes="0" SourcePath="Files\log4net.xml" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.d"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
     <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFolder="Output Package" PackageFileName="ManagementAPI" Languages="en" InstallationType="4"/>
@@ -54,16 +130,14 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
     <ROW Action="AI_DATA_SETTER" Type="51" Source="CustomActionData" Target="Particular.Management"/>
     <ROW Action="AI_DATA_SETTER_1" Type="51" Source="InstallService" Target="&quot;[#NServiceBus.Host.exe]&quot; /install /serviceName:&quot;Particular.Management&quot; /displayName:&quot;Particular Management&quot; /description:&quot;Particular Software Management service for NServiceBus (version [ProductVersion])&quot;"/>
-    <ROW Action="AI_DATA_SETTER_2" Type="51" Source="UninstallService" Target="&quot;[#NServiceBus.Host.exe]&quot; /uninstall /serviceName:&quot;Particular.Management&quot;"/>
-    <ROW Action="AI_DATA_SETTER_3" Type="51" Source="StopService" Target="&quot;[SystemFolder]net.exe&quot; stop Particular.Management"/>
+    <ROW Action="AI_DATA_SETTER_2" Type="51" Source="CustomActionData" Target="&quot;[#NServiceBus.Host.exe]&quot; /uninstall /serviceName:&quot;Particular.Management&quot;"/>
     <ROW Action="AI_DATA_SETTER_4" Type="51" Source="StartService" Target="&quot;[SystemFolder]net.exe&quot; start Particular.Management"/>
     <ROW Action="DetectService" Type="65" Source="aicustact.dll" Target="DetectService" Options="3" AdditionalSeq="AI_DATA_SETTER"/>
     <ROW Action="InstallMsmq" Type="1025" Source="Particular.CustomA" Target="InstallMsmq"/>
     <ROW Action="InstallPerformanceCounters" Type="1025" Source="Particular.CustomA" Target="InstallPerformanceCounters"/>
     <ROW Action="InstallService" Type="1025" Source="Particular.CustomA" Target="RunExe" AdditionalSeq="AI_DATA_SETTER_1"/>
     <ROW Action="StartService" Type="1217" Source="aicustact.dll_2" Target="CreateExeProcess" AdditionalSeq="AI_DATA_SETTER_4"/>
-    <ROW Action="StopService" Type="1089" Source="aicustact.dll_2" Target="CreateExeProcess" AdditionalSeq="AI_DATA_SETTER_3"/>
-    <ROW Action="UninstallService" Type="1089" Source="Particular.CustomA" Target="RunExe" AdditionalSeq="AI_DATA_SETTER_2"/>
+    <ROW Action="UninstallService" Type="65" Source="Particular.CustomA" Target="RunExe" AdditionalSeq="AI_DATA_SETTER_2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRegsComponent">
     <ROW Registry="Hostname" Root="2" Key="Software\ParticularSoftware\ServiceBus\Management" Name="Hostname" Value="localhost" Component_="Hostname"/>
@@ -75,19 +149,20 @@
     <ROW Registry="VirtualDirectory_1" Root="2" Key="Software\ParticularSoftware\ServiceBus\[X64_REG]" Name="VirtualDirectory" Component_="VirtualDirectory_1"/>
     <ROW Registry="X64_REG" Root="2" Key="Software\ParticularSoftware\ServiceBus\[X64_REG]" Name="+" Component_="X64_REG"/>
   </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiServCtrlComponent">
+    <ROW ServiceControl="ServiceName" Name="Particular.Management" Event="32" Wait="1" Component_="AWSSDK.dll"/>
+  </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsmModuleInstExSeqComponent">
     <ROW Action="DetectService" BaseAction="FindRelatedProducts" After="1"/>
     <ROW Action="AI_DATA_SETTER" BaseAction="DetectService" After="0"/>
-    <ROW Action="AI_DATA_SETTER_2" BaseAction="InstallPerformanceCounters" After="1" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Started&quot; OR AI_SERVICE_STATE=&quot;Stopped&quot; )"/>
-    <ROW Action="UninstallService" BaseAction="AI_DATA_SETTER_2" After="1" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Started&quot; OR AI_SERVICE_STATE=&quot;Stopped&quot; )"/>
     <ROW Action="AI_DATA_SETTER_4" BaseAction="InstallService" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )"/>
     <ROW Action="StartService" BaseAction="AI_DATA_SETTER_4" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )"/>
-    <ROW Action="InstallMsmq" BaseAction="StopService" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )"/>
-    <ROW Action="AI_DATA_SETTER_3" BaseAction="ProcessComponents" After="1" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )"/>
-    <ROW Action="StopService" BaseAction="AI_DATA_SETTER_3" After="1" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )"/>
+    <ROW Action="InstallMsmq" BaseAction="ProcessComponents" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )"/>
     <ROW Action="InstallPerformanceCounters" BaseAction="InstallMsmq" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )"/>
     <ROW Action="AI_DATA_SETTER_1" BaseAction="InstallExecute" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Not Found&quot; )"/>
     <ROW Action="InstallService" BaseAction="AI_DATA_SETTER_1" After="1" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Not Found&quot; )"/>
+    <ROW Action="AI_DATA_SETTER_2" BaseAction="InstallPerformanceCounters" After="1" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Started&quot; OR AI_SERVICE_STATE=&quot;Stopped&quot; )"/>
+    <ROW Action="UninstallService" BaseAction="AI_DATA_SETTER_2" After="1" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE=&quot;Started&quot; OR AI_SERVICE_STATE=&quot;Stopped&quot; )"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsmModuleSignatureComponent">
     <ROW ModuleID="MergeMod" Version="5.0.0" GUID="CB8171C5_FE21_41EE_BC42_72123C0AD0F7" Name="Particular Management" Manufacturer="Particular Software" Comments="This database contains the logic and data required to install &lt;module name&gt; component."/>
