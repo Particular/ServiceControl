@@ -4,18 +4,17 @@
     using Commands;
     using NServiceBus;
     using NServiceBus.Transports;
-    using Raven.Client;
+    using RavenDB;
 
     public class IssueRetryHandler : IHandleMessages<IssueRetry>
     {
-        public IDocumentSession Session { get; set; }
+        public RavenUnitOfWork RavenUnitOfWork { get; set; }
 
         public ISendMessages Forwarder { get; set; }
 
-
         public void Handle(IssueRetry message)
         {
-            var failedMessage = Session.Load<Message>(message.MessageId);
+            var failedMessage = RavenUnitOfWork.Session.Load<Message>(message.MessageId);
 
             if (failedMessage == null)
                 throw new InvalidOperationException(string.Format("Retry failed, message {0} could not be found", message.MessageId));
