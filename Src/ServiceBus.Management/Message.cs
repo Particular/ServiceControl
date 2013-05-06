@@ -139,9 +139,7 @@
             }
         }
 
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(Message));
-
+  
         public TransportMessage IssueRetry(DateTime requestedAt)
         {
             var rawMessage = new TransportMessage
@@ -166,9 +164,11 @@
             return rawMessage;
         }
 
+        static readonly ILog Logger = LogManager.GetLogger(typeof(Message));
 
         static readonly IList<string> KeysToRemoveWhenRetryingAMessage = new List<string>
             {
+                NServiceBus.Headers.Retries,
                 "NServiceBus.FailedQ",
                 "NServiceBus.TimeOfFailure",
                 "NServiceBus.ExceptionInfo.ExceptionType",
@@ -238,8 +238,6 @@
                     DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingStarted])
             };
         }
-
-
     }
 
     public class HistoryItem
