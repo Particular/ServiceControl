@@ -38,7 +38,7 @@
     </Reference>
     <Reference Include="NServiceBus, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NServiceBus.Interfaces.4.0.0-unstable2996\lib\net40\NServiceBus.dll</HintPath>
+      <HintPath>..\..\packages\NServiceBus.Interfaces.4.0.0-unstable3064\lib\net40\NServiceBus.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.AcceptanceTesting, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -46,7 +46,7 @@
     </Reference>
     <Reference Include="NServiceBus.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NServiceBus.4.0.0-unstable2996\lib\net40\NServiceBus.Core.dll</HintPath>
+      <HintPath>..\..\packages\NServiceBus.4.0.0-unstable3064\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>

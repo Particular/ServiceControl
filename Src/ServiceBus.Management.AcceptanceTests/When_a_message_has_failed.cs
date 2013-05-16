@@ -4,6 +4,7 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Features;
     using NUnit.Framework;
 
     [TestFixture]
@@ -41,7 +42,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServer>(c => c.DisableSecondLevelRetries())
+                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<SecondLevelRetries>())
                     .AuditTo(Address.Parse("audit"));
             }
 

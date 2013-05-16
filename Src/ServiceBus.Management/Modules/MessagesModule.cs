@@ -22,7 +22,7 @@ namespace ServiceBus.Management.Modules
                     var results = session.Query<Messages_Search.Result, Messages_Search>()
                                          .Statistics(out stats)
                                          .Search(s => s.Query, keyword)
-                                         .As<Message>()
+                                         .OfType<Message>()
                                          .Paging(Request)
                                          .ToArray();
 
@@ -44,7 +44,7 @@ namespace ServiceBus.Management.Modules
                                              .Statistics(out stats)
                                              .Search(s => s.Query, keyword)
                                              .Where(m => m.ReceivingEndpoint == name)
-                                             .As<Message>()
+                                             .OfType<Message>()
                                              .Paging(Request)
                                              .ToArray();
 

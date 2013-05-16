@@ -6,6 +6,7 @@
     using System.Reflection;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
+    using NServiceBus.Features;
     using NServiceBus.Hosting.Helpers;
     using NServiceBus;
 
@@ -20,13 +21,13 @@
 
             var transportToUse = settings.GetOrNull("Transport");
 
-            var config = Configure.With(types)
+            Configure.Features.Enable<Sagas>()
+                ; var config = Configure.With(types)
                                   .DefineEndpointName(endpointConfiguration.EndpointName)
                                   .DefineBuilder(settings.GetOrNull("Builder"))
                                   .CustomConfigurationSource(configSource)
                                   .DefineSerializer(settings.GetOrNull("Serializer"))
                                   .DefineTransport(transportToUse)
-                                  .Sagas()
                                   .InMemorySagaPersister();
                             
 

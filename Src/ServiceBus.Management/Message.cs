@@ -249,6 +249,11 @@
 
     public class EndpointDetails
     {
+        public EndpointDetails()
+        {
+            
+        }
+
         public string Name { get; set; }
 
         public string Machine { get; set; }
@@ -356,6 +361,11 @@
 
     public class MessageStatistics
     {
+        public MessageStatistics()
+        {
+            
+        }
+
         public TimeSpan CriticalTime { get; set; }
         public TimeSpan ProcessingTime { get; set; }
     }
@@ -413,6 +423,11 @@
 
     public class ExceptionDetails
     {
+        public ExceptionDetails()
+        {
+            
+        }
+
         public string ExceptionType { get; set; }
 
         public string Message { get; set; }

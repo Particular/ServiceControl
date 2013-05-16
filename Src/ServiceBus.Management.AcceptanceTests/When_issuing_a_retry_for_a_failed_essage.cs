@@ -5,6 +5,7 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Features;
     using NUnit.Framework;
 
     [TestFixture]
@@ -50,7 +51,7 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => c.DisableSecondLevelRetries())
+                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<SecondLevelRetries>())
                        .AddMapping<MyMessage>(typeof(FailureEndpoint))
                     .AuditTo(Address.Parse("audit"));
             }

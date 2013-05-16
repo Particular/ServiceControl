@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;

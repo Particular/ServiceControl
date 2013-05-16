@@ -12,6 +12,8 @@ using ServiceBus.Management.AcceptanceTests.Contexts;
 
 namespace ServiceBus.Management.AcceptanceTests.Profiler
 {
+    using NServiceBus.Features;
+
     public class SagaWorkflow : NServiceBusAcceptanceTest
     {
         const string AuditQueue = "audit";
@@ -159,11 +161,11 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
         {
             public BuyersRemorseSagaEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => 
-                    c.UnicastBus()
-                    .DoNotAutoSubscribe()
-                    .DoNotAutoSubscribeSagas())
-                    .AddMapping<OrderReceived>(typeof(ProcessOrderEndpoint))
+                Configure.Features.Disable<AutoSubscribe>();
+                Configure.Features.AutoSubscribe(s=> s.DoNotAutoSubscribeSagas());
+                EndpointSetup<DefaultServer>(c =>
+                                             c.UnicastBus())
+                    .AddMapping<OrderReceived>(typeof (ProcessOrderEndpoint))
                     .AuditTo(Address.Parse(AuditQueue));
             }
 

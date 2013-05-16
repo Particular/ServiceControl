@@ -4,6 +4,7 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
     using System;
     using System.Threading;
     using NServiceBus.Config;
+    using NServiceBus.Features;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using NServiceBus;
@@ -137,7 +138,7 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
 
             public ProcessOrderReceivedEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => c.UnicastBus().DoNotAutoSubscribe())
+                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<AutoSubscribe>())
                    .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
                    .WithConfig<MessageForwardingInCaseOfFaultConfig>(e => e.ErrorQueue = ErrorQueue)
                    .WithConfig<SecondLevelRetriesConfig>(slr => slr.Enabled = false)
@@ -157,7 +158,7 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
                     {
                         // Throw in a random processing time anywhere between 1 and specified processing time
                         var timeToSleep = (new Random()).Next(1, MaxTimeInSecondsForSimulatingProcessingTime);
-                        System.Threading.Thread.Sleep(TimeSpan.FromSeconds(timeToSleep));
+                        Thread.Sleep(TimeSpan.FromSeconds(timeToSleep));
                     }
 
                     Bus.Publish<OrderAccepted>(m =>
@@ -174,7 +175,7 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
         {
             public ProcessOrderAcceptedEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => c.UnicastBus().DoNotAutoSubscribe())
+                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<AutoSubscribe>())
                    .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
                    .WithConfig<MessageForwardingInCaseOfFaultConfig>(e => e.ErrorQueue = ErrorQueue)
                    .WithConfig<SecondLevelRetriesConfig>(slr => slr.Enabled = false)
@@ -211,7 +212,7 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
         {
             public ProcessOrderBilledEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => c.UnicastBus().DoNotAutoSubscribe())
+                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<AutoSubscribe>())
                    .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
                    .WithConfig<MessageForwardingInCaseOfFaultConfig>(e => e.ErrorQueue = ErrorQueue)
                    .WithConfig<SecondLevelRetriesConfig>(slr => slr.Enabled = false)

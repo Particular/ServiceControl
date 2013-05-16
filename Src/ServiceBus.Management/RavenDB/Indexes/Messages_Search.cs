@@ -2,6 +2,7 @@ namespace ServiceBus.Management.RavenDB.Indexes
 {
     using System;
     using System.Linq;
+    using Lucene.Net.Analysis.Standard;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 
@@ -29,11 +30,11 @@ namespace ServiceBus.Management.RavenDB.Indexes
                                     ReceivingEndpoint = message.ReceivingEndpoint.Name
 
                                 };
-
-            Analyze(x => x.Query, "Lucene.Net.Analysis.Standard.StandardAnalyzer");
-
+            
             Index(x => x.Query, FieldIndexing.Analyzed);
             Index(x => x.ReceivingEndpoint, FieldIndexing.Default);
+
+            Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
         }
     }
 }
