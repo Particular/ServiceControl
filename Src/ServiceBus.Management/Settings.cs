@@ -14,7 +14,7 @@
             get
             {
                 if (port == 0)
-                    port = SettingsReader<int>.Read("Port", 8888);
+                    port = SettingsReader<int>.Read("Port", 33333);
 
                 return port;
             }
