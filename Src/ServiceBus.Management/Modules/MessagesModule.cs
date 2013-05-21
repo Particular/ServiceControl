@@ -32,7 +32,7 @@ namespace ServiceBus.Management.Modules
             };
 
 
-            Get["/endpoint/{name}/messages/search/{keyword}"] = parameters =>
+            Get["/endpoints/{name}/messages/search/{keyword}"] = parameters =>
                 {
                     string keyword = parameters.keyword;
                     string name = parameters.name;
