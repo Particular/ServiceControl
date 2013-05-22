@@ -27,7 +27,8 @@ task Init {
 
 task BuildMergeModule {  
        
-	# Build setup with Advanced Installer	
+	# Build setup with Advanced Installer
+   exec { &$script:AdvinstCLI /edit $mergeModuleProjectFile /SetOutputLocation -buildname DefaultBuild -path "$mergeModuleOutPutDir" }	
    exec { &$script:AdvinstCLI /rebuild $mergeModuleProjectFile }
 }
 
@@ -44,7 +45,7 @@ task BuildSetup {
 	# edit Advanced Installer Project	  
 	exec { &$script:AdvinstCLI /edit $setupProjectFile /SetVersion "$ProductVersion.$PatchVersion" -noprodcode }	
 	exec { &$script:AdvinstCLI /edit $setupProjectFile /SetPackageName "$archive.exe" -buildname DefaultBuild }
-	
+	exec { &$script:AdvinstCLI /edit $setupProjectFile /SetOutputLocation -buildname DefaultBuild -path "$setupModuleOutPutDir" }
 	# Build setup with Advanced Installer	
 	exec { &$script:AdvinstCLI /rebuild $setupProjectFile }
 }
