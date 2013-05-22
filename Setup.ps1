@@ -28,7 +28,6 @@ task Init {
 task BuildMergeModule {  
        
 	# Build setup with Advanced Installer
-   exec { &$script:AdvinstCLI /edit $mergeModuleProjectFile /SetOutputLocation -buildname DefaultBuild -path "$mergeModuleOutPutDir" }	
    exec { &$script:AdvinstCLI /rebuild $mergeModuleProjectFile }
 }
 
