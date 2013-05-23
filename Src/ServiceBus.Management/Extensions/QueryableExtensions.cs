@@ -39,7 +39,7 @@ namespace ServiceBus.Management.Extensions
                          .Take(maxResultsPerPage);
         }
 
-        public static IOrderedQueryable<Message> Sort(this IQueryable<Message> source, Request request, Expression<Func<Message, object>> defaultKeySelector = null,string defaultSortDirection = "desc")
+        public static IOrderedQueryable<Message> Sort(this IQueryable<Message> source, Request request, Expression<Func<Message, object>> defaultKeySelector = null, string defaultSortDirection = "desc")
         {
             var direction = defaultSortDirection;
 
@@ -53,7 +53,7 @@ namespace ServiceBus.Management.Extensions
                 direction = defaultSortDirection;
             }
 
-            var sortOptions = new [] {"time_of_failure", "id", "message_type", "time_sent"};
+            var sortOptions = new[] { "time_of_failure", "id", "message_type", "time_sent", "critical_time", "processing_time" };
             var sort = "time_sent";
             Expression<Func<Message, object>> keySelector;
 
@@ -77,8 +77,16 @@ namespace ServiceBus.Management.Extensions
                     keySelector = m => m.MessageType;
                     break;
 
+                case "critical_time":
+                    keySelector = m => m.Statistics != null ? m.Statistics.CriticalTime : TimeSpan.Zero;
+                    break;
+
+                case "processing_time":
+                    keySelector = m => m.Statistics != null ? m.Statistics.ProcessingTime : TimeSpan.Zero;
+                    break;
+
                 case "time_of_failure":
-                    keySelector = m => m.FailureDetails != null ? m.FailureDetails.TimeOfFailure : m.TimeSent;
+                    keySelector = m => m.FailureDetails != null ? m.FailureDetails.TimeOfFailure : DateTime.MinValue;
                     break;
 
                 default:

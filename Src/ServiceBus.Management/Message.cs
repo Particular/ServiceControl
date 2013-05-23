@@ -187,7 +187,9 @@
             }
 
             if (BodyRaw.Length != message.Body.Length)
+            {
                 throw new InvalidOperationException("Message bodies differ, message has been tampered with");
+            }
 
 
             ProcessedAt = processedAt;
