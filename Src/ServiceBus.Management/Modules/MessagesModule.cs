@@ -86,7 +86,7 @@ namespace ServiceBus.Management.Modules
 
                         if (message == null)
                         {
-                            return new Response { StatusCode = HttpStatusCode.NotFound };
+                            return HttpStatusCode.NotFound;
                         }
 
                         return Negotiate.WithModel(message);

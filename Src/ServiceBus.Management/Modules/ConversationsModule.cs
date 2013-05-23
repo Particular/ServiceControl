@@ -25,6 +25,11 @@
                                              .Paging(Request)
                                              .ToArray();
 
+                        if (results.Length == 0)
+                        {
+                            return HttpStatusCode.NotFound;
+                        }
+
                         return Negotiate
                             .WithModel(results)
                             .WithTotalCount(stats);
