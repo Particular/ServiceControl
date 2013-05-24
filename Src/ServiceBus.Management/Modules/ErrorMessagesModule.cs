@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.Modules
 {
     using System;
+    using System.Globalization;
     using System.Linq;
     using Commands;
     using Extensions;
@@ -61,18 +62,15 @@
                 }
             };
 
-            Post["/errors/retry"] = _ =>
+            Post["/errors/{messageid}/retry"] = parameters =>
                 {
                     var request = this.Bind<IssueRetry>();
 
-                    if (request.MessageId == null)
-                        return HttpStatusCode.BadRequest;
-
-                    request.SetHeader("RequestedAt", DateTime.UtcNow.ToString());
+                    request.SetHeader("RequestedAt", DateTime.UtcNow.ToString(CultureInfo.InvariantCulture));
 
                     Bus.SendLocal(request);
 
-                    return HttpStatusCode.OK;
+                    return HttpStatusCode.Accepted;
                 };
 
         }
