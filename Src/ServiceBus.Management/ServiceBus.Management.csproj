@@ -104,6 +104,7 @@
     <Compile Include="Modules\EndpointModule.cs" />
     <Compile Include="Commands\IssueRetry.cs" />
     <Compile Include="Modules\MessagesModule.cs" />
+    <Compile Include="Modules\VersionModule.cs" />
     <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
     <Compile Include="RavenDB\Indexes\Messages_Search.cs" />
     <Compile Include="RavenDB\RavenUnitOfWork.cs" />
