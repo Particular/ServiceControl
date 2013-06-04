@@ -20,8 +20,8 @@
         public Message(TransportMessage message)
         {
             ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message);
-            Id = message.IdForCorrelation + "-" + ReceivingEndpoint.Name;
-            MessageId = message.IdForCorrelation;
+            Id = message.Id + "-" + ReceivingEndpoint.Name;
+            MessageId = message.Id;
             CorrelationId = message.CorrelationId;
             Recoverable = message.Recoverable;
             MessageIntent = message.MessageIntent;
@@ -142,14 +142,13 @@
   
         public TransportMessage IssueRetry(DateTime requestedAt)
         {
-            var rawMessage = new TransportMessage
+            var rawMessage = new TransportMessage(MessageId, Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value))
             {
                 Body = BodyRaw,
                 CorrelationId = CorrelationId,
                 Recoverable = Recoverable,
                 MessageIntent = MessageIntent,
-                ReplyToAddress = Address.Parse(ReplyToAddress),
-                Headers = Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value)
+                ReplyToAddress = Address.Parse(ReplyToAddress)
             };
 
 

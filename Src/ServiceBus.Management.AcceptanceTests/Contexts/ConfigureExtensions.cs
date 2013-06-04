@@ -49,7 +49,7 @@
             if (type == typeof(BsonMessageSerializer))
                 return config.BsonSerializer();
 
-            if (type == typeof(MessageSerializer))
+            if (type == typeof(BinaryMessageSerializer))
                 return config.BinarySerializer();
 
 

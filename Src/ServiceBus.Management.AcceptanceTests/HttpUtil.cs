@@ -41,7 +41,7 @@
             Console.Out.WriteLine(" - {0}", response.StatusCode);
 
             if (response.StatusCode != HttpStatusCode.OK)
-                throw new InvalidOperationException("Call failed: " +response.StatusCode.GetHashCode() + " - " + response.StatusDescription);
+                throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " + response.StatusDescription);
 
 
 
@@ -52,8 +52,8 @@
                 return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
             }
         }
-
-        public static void Post<T>(string url, T payload) where T : class
+    
+        public static void Post<T>(string url, T payload = null) where T : class
         {
             var request = (HttpWebRequest)HttpWebRequest.Create("http://localhost:8888" + url);
 
@@ -66,7 +66,7 @@
             using (var stream = request.GetRequestStream())
             using (var sw = new StreamWriter(stream))
             {
-              
+
                 sw.Write(json);
             }
 
@@ -85,7 +85,7 @@
 
             Console.Out.WriteLine(" - {0}", response.StatusCode);
 
-            if (response.StatusCode != HttpStatusCode.OK)
+            if (response.StatusCode != HttpStatusCode.OK && response.StatusCode != HttpStatusCode.Accepted)
                 throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " + response.StatusDescription);
         }
 
@@ -95,6 +95,6 @@
             Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
         };
 
-            
+
     }
 }

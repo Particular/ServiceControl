@@ -27,10 +27,7 @@
                         {
                             if (!c.RetryIssued && AuditDataAvailable(c, MessageStatus.Failed))
                             {
-                                HttpUtil.Post("/api/errors/retry", new
-                                    {
-                                        MessageId = c.Message.Id
-                                    });
+                                HttpUtil.Post<object>("/api/errors/" + c.Message.Id + "/retry");
 
                                 c.RetryIssued = true;
 
