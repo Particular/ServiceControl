@@ -35,6 +35,9 @@
             Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.OriginatingEndpoint.Machine, "Sending machine should be parsed correctly");
             Assert.True(context.ReturnedMessage.Body.StartsWith("{\"Messages\":{"), "The body should be converted to json");
             Assert.True(Encoding.UTF8.GetString(context.ReturnedMessage.BodyRaw).Contains("<MyMessage"), "The raw body should be stored");
+            Assert.AreEqual(typeof(MyMessage).FullName, context.ReturnedMessage.MessageType, "Message type should be set to the fullname of the message type");
+            Assert.False(context.ReturnedMessage.IsSystemMessage, "Message should not be marked as a system message");
+            
         }
 
 

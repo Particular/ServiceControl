@@ -14,12 +14,14 @@
         {
             Get["/audit"] = parameters =>
                 {
+                    var includeSystemMessages = (bool)Request.Query.includesystemmessages.HasValue;
+
                     using (var session = Store.OpenSession())
                     {
                         RavenQueryStatistics stats;
                         var results = session.Query<Message>()
                                              .Statistics(out stats)
-                                             .Where(m => m.Status == MessageStatus.Successful)
+                                             .Where(m => m.Status == MessageStatus.Successful && (includeSystemMessages || !m.IsSystemMessage))
                                              .Sort(Request)
                                              .Paging(Request)
                                              .ToArray();
@@ -32,6 +34,8 @@
 
             Get["/endpoints/{name}/audit"] = parameters =>
                 {
+                    var includeSystemMessages = (bool)Request.Query.includesystemmessages.HasValue;
+                    
                     using (var session = Store.OpenSession())
                     {
                         string endpoint = parameters.name;
@@ -42,7 +46,8 @@
                                              .Where(
                                                  m =>
                                                  m.ReceivingEndpoint.Name == endpoint &&
-                                                 m.Status == MessageStatus.Successful)
+                                                 m.Status == MessageStatus.Successful &&
+                                                 (includeSystemMessages || !m.IsSystemMessage))
                                              .Sort(Request)
                                              .Paging(Request)
                                              .ToArray();

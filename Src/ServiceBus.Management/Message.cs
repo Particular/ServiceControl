@@ -8,6 +8,7 @@
     using System.Xml;
     using NServiceBus;
     using NServiceBus.Logging;
+    using NServiceBus.Scheduling.Messages;
     using NServiceBus.Unicast.Transport;
     using Newtonsoft.Json;
 
@@ -31,10 +32,14 @@
             if (message.IsControlMessage())
             {
                 MessageType = "SystemMessage";
+                IsSystemMessage = true;
             }
             else
             {
-                MessageType = message.Headers[NServiceBus.Headers.EnclosedMessageTypes];
+                var messageTypeString = message.Headers[NServiceBus.Headers.EnclosedMessageTypes];
+
+                MessageType = GetMessageType(messageTypeString);
+                IsSystemMessage = DetectSystemMessage(messageTypeString);
                 ContentType = DetermineContentType(message);
                 Body = DeserializeBody(message, ContentType);
                 BodyRaw = message.Body;
@@ -45,6 +50,19 @@
             }
 
             OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(message);
+        }
+
+        bool DetectSystemMessage(string messageTypeString)
+        {
+            return messageTypeString.Contains(typeof (ScheduledTask).FullName);
+        }
+
+        string GetMessageType(string messageTypeString)
+        {
+            if (!messageTypeString.Contains(","))
+                return messageTypeString;
+
+            return messageTypeString.Split(',').First();
         }
 
 
@@ -99,6 +117,8 @@
         }
 
         ICollection<HistoryItem> history { get; set; }
+
+        public bool IsSystemMessage { get; set; }
 
 
         string DetermineContentType(TransportMessage message)

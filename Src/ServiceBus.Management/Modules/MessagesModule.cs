@@ -55,6 +55,8 @@ namespace ServiceBus.Management.Modules
 
             Get["/endpoints/{name}/messages"] = parameters =>
             {
+                var includeSystemMessages = (bool)Request.Query.includesystemmessages.HasValue;
+
                 using (var session = Store.OpenSession())
                 {
                     string endpoint = parameters.name;
@@ -63,8 +65,8 @@ namespace ServiceBus.Management.Modules
                     var results = session.Query<Message>()
                                          .Statistics(out stats)
                                          .Where(
-                                             m =>
-                                             m.ReceivingEndpoint.Name == endpoint)
+                                             m =>m.ReceivingEndpoint.Name == endpoint &&
+                                                 (includeSystemMessages || !m.IsSystemMessage))
                                          .Sort(Request)
                                          .Paging(Request)
                                          .ToArray();
