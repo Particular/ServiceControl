@@ -23,6 +23,7 @@ namespace ServiceBus.Management.Modules
                                          .Statistics(out stats)
                                          .Search(s => s.Query, keyword)
                                          .OfType<Message>()
+                                         .Sort(Request)
                                          .Paging(Request)
                                          .ToArray();
 
@@ -45,6 +46,7 @@ namespace ServiceBus.Management.Modules
                                              .Search(s => s.Query, keyword)
                                              .Where(m => m.ReceivingEndpoint == name)
                                              .OfType<Message>()
+                                             .Sort(Request)
                                              .Paging(Request)
                                              .ToArray();
 
