@@ -54,11 +54,6 @@
             return ApplicationContainer.Build(typeof(INancyEngine)) as INancyEngine;
         }
 
-        protected override IModuleKeyGenerator GetModuleKeyGenerator()
-        {
-            return ApplicationContainer.Build(typeof(IModuleKeyGenerator)) as IModuleKeyGenerator;
-        }
-
         protected override IContainer GetApplicationContainer()
         {
             var builder = Configure.Instance.Builder as CommonObjectBuilder;
@@ -118,12 +113,12 @@
 
         protected override IEnumerable<INancyModule> GetAllModules(IContainer container)
         {
-            return container.BuildAll(typeof(NancyModule)).Cast<NancyModule>();
+            return container.BuildAll(typeof(NancyModule)).Cast<INancyModule>();
         }
 
-        protected override INancyModule GetModuleByKey(IContainer container, string moduleKey)
+        protected override INancyModule GetModule(IContainer container, Type moduleType)
         {
-            return container.Build(Type.GetType(moduleKey)) as NancyModule;
+            return container.Build(moduleType) as INancyModule;
         }
     }
 }
