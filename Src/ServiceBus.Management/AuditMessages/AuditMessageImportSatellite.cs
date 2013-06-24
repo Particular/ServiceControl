@@ -37,7 +37,7 @@
             return true;
         }
 
-        void UpdateExistingMessage(IDocumentSession session,string messageId, TransportMessage message)
+        void UpdateExistingMessage(IDocumentSession session, string messageId, TransportMessage message)
         {
             var auditMessage = session.Load<Message>(messageId);
 

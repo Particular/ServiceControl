@@ -127,7 +127,7 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
 
                     var doIFail = new Random().Next(1, 11) < 3;
                     if (doIFail)
-                        throw new Exception("Random exception occured in ProcessOrder!");
+                        throw new Exception("Random exception occurred in ProcessOrder!");
                    
 
                     Bus.Publish<OrderReceived>(m =>
@@ -163,7 +163,7 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
                 {
                     var doIFail = new Random().Next(1, 11) < 3;
                     if (doIFail)
-                        throw new Exception("Random exception occured in ProcessOrderReceived Handler!");
+                        throw new Exception("Random exception occurred in ProcessOrderReceived Handler!");
                         
                     if (MaxTimeInSecondsForSimulatingProcessingTime > 0)
                     {
@@ -204,7 +204,7 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
                 {
                     var doIFail = new Random().Next(1, 11) < 3;
                     if (doIFail)
-                        throw new Exception("Random exception occured in ProcessOrderAccepted!");
+                        throw new Exception("Random exception occurred in ProcessOrderAccepted!");
                    
                     if (MaxTimeInSecondsForSimulatingProcessingTime > 0)
                     {
@@ -247,7 +247,7 @@ namespace ServiceBus.Management.AcceptanceTests.Profiler
                 {
                     var doIFail = new Random().Next(1, 11) < 3;
                     if (doIFail)
-                        throw new Exception("Random exception occured in ProcessOrderBilled!");
+                        throw new Exception("Random exception occurred in ProcessOrderBilled!");
                    
                     if (MaxTimeInSecondsForSimulatingProcessingTime > 0)
                     {

@@ -9,15 +9,15 @@
 
     public static class ConfigureExtensions
     {
-          public static string GetOrNull(this IDictionary<string,string> dictionary, string key)
-          {
-              if (!dictionary.ContainsKey(key))
-              {
-                  return null;
-              }
+        public static string GetOrNull(this IDictionary<string, string> dictionary, string key)
+        {
+            if (!dictionary.ContainsKey(key))
+            {
+                return null;
+            }
 
-              return dictionary[key];
-          }
+            return dictionary[key];
+        }
 
         public static Configure DefineTransport(this Configure config, string transport)
         {
@@ -34,24 +34,37 @@
         public static Configure DefineSerializer(this Configure config, string serializer)
         {
             if (string.IsNullOrEmpty(serializer))
-                return config.XmlSerializer();
+            {
+                Configure.Serialization.Xml();
+                return config;
+            }
 
             var type = Type.GetType(serializer);
 
-            if (type == typeof(XmlMessageSerializer))
-                return config.XmlSerializer();
+            if (type == typeof (XmlMessageSerializer))
+            {
+                Configure.Serialization.Xml();
+                return config;
+            }
 
 
-            if (type == typeof(JsonMessageSerializer))
-                return config.JsonSerializer();
+            if (type == typeof (JsonMessageSerializer))
+            {
+                Configure.Serialization.Json();
+                return config;
+            }
 
+            if (type == typeof (BsonMessageSerializer))
+            {
+                Configure.Serialization.Bson();
+                return config;
+            }
 
-            if (type == typeof(BsonMessageSerializer))
-                return config.BsonSerializer();
-
-            if (type == typeof(BinaryMessageSerializer))
-                return config.BinarySerializer();
-
+            if (type == typeof (BinaryMessageSerializer))
+            {
+                Configure.Serialization.Binary();
+                return config;
+            }
 
             throw new InvalidOperationException("Unknown serializer:" + serializer);
         }
@@ -61,10 +74,9 @@
             if (string.IsNullOrEmpty(builder))
                 return config.DefaultBuilder();
 
-            
-            
+
+
             throw new InvalidOperationException("Unknown builder:" + builder);
         }
-
     }
 }

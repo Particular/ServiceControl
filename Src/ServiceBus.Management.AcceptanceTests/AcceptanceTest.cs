@@ -5,14 +5,27 @@
     using System.IO;
     using System.Net;
     using Api.Nancy;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NUnit.Framework;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 
-    public class HttpUtil
+    public abstract class AcceptanceTest
     {
+        [SetUp]
+        public void SetUp()
+        {
+            Conventions.EndpointNamingConvention = t =>
+            {
+                var baseNs = typeof(NServiceBusAcceptanceTest).Namespace;
+                var testName = GetType().Name;
+                return t.FullName.Replace(baseNs + ".", "").Replace(testName + "+", "");
+            };
+        }
+
         public static T Get<T>(string url) where T : class
         {
-            var request = (HttpWebRequest)HttpWebRequest.Create("http://localhost:8888" + url);
+            var request = (HttpWebRequest)HttpWebRequest.Create("http://localhost:33333" + url);
 
             request.ContentType = "application/json";
 
@@ -55,13 +68,15 @@
     
         public static void Post<T>(string url, T payload = null) where T : class
         {
-            var request = (HttpWebRequest)HttpWebRequest.Create("http://localhost:8888" + url);
+            var request = (HttpWebRequest)HttpWebRequest.Create("http://localhost:33333" + url);
 
             request.ContentType = "application/json";
             request.Method = "POST";
 
             var json = JsonConvert.SerializeObject(payload, serializerSettings);
             request.ContentLength = json.Length;
+
+            Console.Out.Write(request.RequestUri);
 
             using (var stream = request.GetRequestStream())
             using (var sw = new StreamWriter(stream))

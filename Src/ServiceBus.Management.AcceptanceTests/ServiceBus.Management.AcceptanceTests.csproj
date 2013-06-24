@@ -68,8 +68,8 @@
     <Compile Include="Profiler\AddLinearFlowOfMessagesToAuditQueue.cs" />
     <Compile Include="Profiler\SagaWorkflow.cs" />
     <Compile Include="Profiler\GenerateFlowOfMessagesWithMessagesThatErrorOut.cs" />
-    <Compile Include="When_issuing_a_retry_for_a_failed_essage.cs" />
-    <Compile Include="HttpUtil.cs" />
+    <Compile Include="When_issuing_a_retry_for_a_failed_message.cs" />
+    <Compile Include="AcceptanceTest.cs" />
     <Compile Include="Contexts\ConfigureExtensions.cs" />
     <Compile Include="Contexts\DefaultServer.cs" />
     <Compile Include="Contexts\ManagementEndpoint.cs" />

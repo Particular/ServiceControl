@@ -9,13 +9,12 @@
     {
         public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource)
         {
+            Configure.Serialization.Xml();
 
             return Configure.With(AllAssemblies.Except(Assembly.GetExecutingAssembly().FullName))
                             .DefaultBuilder()
-                            .XmlSerializer()
                             .UseTransport<Msmq>()
                             .UnicastBus();
-
         }
     }
 }

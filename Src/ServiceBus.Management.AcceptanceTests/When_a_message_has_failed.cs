@@ -8,7 +8,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class When_a_message_has_failed : HttpUtil
+    public class When_a_message_has_failed : AcceptanceTest
     {
         [Test]
         public void Should_be_imported_and_accessible_via_the_rest_api()
@@ -87,7 +87,6 @@
                     return false;
 
                 c.Message = Get<Message>("/api/messages/" + context.MessageId + "-" + context.EndpointNameOfReceivingEndpoint);
-
 
                 return true;
             }

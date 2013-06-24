@@ -1,8 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Performance
 {
     using System;
-    using System.Diagnostics;
-    using System.Messaging;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Config;
@@ -12,7 +10,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class Audit_import_performance : HttpUtil
+    public class Audit_import_performance : AcceptanceTest
     {
         [Test]
         public void Seed_the_input_q()
