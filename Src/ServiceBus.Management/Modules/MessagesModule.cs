@@ -34,26 +34,26 @@ namespace ServiceBus.Management.Modules
 
 
             Get["/endpoints/{name}/messages/search/{keyword}"] = parameters =>
+            {
+                string keyword = parameters.keyword;
+                string name = parameters.name;
+
+                using (var session = Store.OpenSession())
                 {
-                    string keyword = parameters.keyword;
-                    string name = parameters.name;
+                    RavenQueryStatistics stats;
+                    var results = session.Query<Messages_Search.Result, Messages_Search>()
+                                            .Statistics(out stats)
+                                            .Search(s => s.Query, keyword)
+                                            .Where(m => m.ReceivingEndpoint == name)
+                                            .OfType<Message>()
+                                            .Sort(Request)
+                                            .Paging(Request)
+                                            .ToArray();
 
-                    using (var session = Store.OpenSession())
-                    {
-                        RavenQueryStatistics stats;
-                        var results = session.Query<Messages_Search.Result, Messages_Search>()
-                                             .Statistics(out stats)
-                                             .Search(s => s.Query, keyword)
-                                             .Where(m => m.ReceivingEndpoint == name)
-                                             .OfType<Message>()
-                                             .Sort(Request)
-                                             .Paging(Request)
-                                             .ToArray();
-
-                        return Negotiate.WithModel(results)
-                                        .WithTotalCount(stats);
-                    }
-                };
+                    return Negotiate.WithModel(results)
+                                    .WithTotalCount(stats);
+                }
+            };
 
             Get["/endpoints/{name}/messages"] = parameters =>
             {
@@ -67,8 +67,8 @@ namespace ServiceBus.Management.Modules
                     var results = session.Query<Message>()
                                          .Statistics(out stats)
                                          .Where(
-                                             m =>m.ReceivingEndpoint.Name == endpoint &&
-                                                 (includeSystemMessages || !m.IsSystemMessage))
+                                             m => m.ReceivingEndpoint.Name == endpoint &&
+                                                  (includeSystemMessages || !m.IsSystemMessage))
                                          .Sort(Request)
                                          .Paging(Request)
                                          .ToArray();
@@ -81,21 +81,21 @@ namespace ServiceBus.Management.Modules
 
 
             Get["/messages/{id}"] = parameters =>
+            {
+                string messageId = parameters.id;
+
+                using (var session = Store.OpenSession())
                 {
-                    string messageId = parameters.id;
+                    var message = session.Load<Message>(messageId);
 
-                    using (var session = Store.OpenSession())
+                    if (message == null)
                     {
-                        var message = session.Load<Message>(messageId);
-
-                        if (message == null)
-                        {
-                            return HttpStatusCode.NotFound;
-                        }
-
-                        return Negotiate.WithModel(message);
+                        return HttpStatusCode.NotFound;
                     }
-                };
+
+                    return Negotiate.WithModel(message);
+                }
+            };
         }
     }
 }

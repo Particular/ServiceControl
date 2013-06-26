@@ -78,15 +78,15 @@ namespace ServiceBus.Management.Extensions
                     break;
 
                 case "critical_time":
-                    keySelector = m => m.Statistics != null ? m.Statistics.CriticalTime : TimeSpan.Zero;
+                    keySelector = m => m.Statistics.CriticalTime;
                     break;
 
                 case "processing_time":
-                    keySelector = m => m.Statistics != null ? m.Statistics.ProcessingTime : TimeSpan.Zero;
+                    keySelector = m => m.Statistics.ProcessingTime;
                     break;
 
                 case "time_of_failure":
-                    keySelector = m => m.FailureDetails != null ? m.FailureDetails.TimeOfFailure : DateTime.MinValue;
+                    keySelector = m => m.FailureDetails.TimeOfFailure;
                     break;
 
                 default:
