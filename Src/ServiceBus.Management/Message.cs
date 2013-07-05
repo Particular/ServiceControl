@@ -14,6 +14,8 @@
 
     public class Message
     {
+        ICollection<HistoryItem> history;
+
         public Message()
         {
         }
@@ -116,10 +118,7 @@
             set { history = value; }
         }
 
-        ICollection<HistoryItem> history { get; set; }
-
         public bool IsSystemMessage { get; set; }
-
 
         string DetermineContentType(TransportMessage message)
         {
