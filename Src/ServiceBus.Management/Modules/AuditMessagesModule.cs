@@ -14,14 +14,13 @@
         {
             Get["/audit"] = parameters =>
                 {
-                    var includeSystemMessages = (bool)Request.Query.includesystemmessages.HasValue;
-
                     using (var session = Store.OpenSession())
                     {
                         RavenQueryStatistics stats;
                         var results = session.Query<Message>()
                                              .Statistics(out stats)
-                                             .Where(m => m.Status == MessageStatus.Successful && (includeSystemMessages || !m.IsSystemMessage))
+                                             .IncludeSystemMessagesWhere(Request)
+                                             .Where(m => m.Status == MessageStatus.Successful)
                                              .Sort(Request)
                                              .Paging(Request)
                                              .ToArray();
@@ -34,8 +33,6 @@
 
             Get["/endpoints/{name}/audit"] = parameters =>
                 {
-                    var includeSystemMessages = (bool)Request.Query.includesystemmessages.HasValue;
-                    
                     using (var session = Store.OpenSession())
                     {
                         string endpoint = parameters.name;
@@ -43,11 +40,11 @@
                         RavenQueryStatistics stats;
                         var results = session.Query<Message>()
                                              .Statistics(out stats)
+                                             .IncludeSystemMessagesWhere(Request)
                                              .Where(
                                                  m =>
                                                  m.ReceivingEndpoint.Name == endpoint &&
-                                                 m.Status == MessageStatus.Successful &&
-                                                 (includeSystemMessages || !m.IsSystemMessage))
+                                                 m.Status == MessageStatus.Successful)
                                              .Sort(Request)
                                              .Paging(Request)
                                              .ToArray();

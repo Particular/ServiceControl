@@ -32,33 +32,30 @@ namespace ServiceBus.Management.Modules
                 }
             };
 
-
             Get["/endpoints/{name}/messages/search/{keyword}"] = parameters =>
-            {
-                string keyword = parameters.keyword;
-                string name = parameters.name;
-
-                using (var session = Store.OpenSession())
                 {
-                    RavenQueryStatistics stats;
-                    var results = session.Query<Messages_Search.Result, Messages_Search>()
-                                            .Statistics(out stats)
-                                            .Search(s => s.Query, keyword)
-                                            .Where(m => m.ReceivingEndpoint == name)
-                                            .OfType<Message>()
-                                            .Sort(Request)
-                                            .Paging(Request)
-                                            .ToArray();
+                    string keyword = parameters.keyword;
+                    string name = parameters.name;
 
-                    return Negotiate.WithModel(results)
-                                    .WithTotalCount(stats);
-                }
-            };
+                    using (var session = Store.OpenSession())
+                    {
+                        RavenQueryStatistics stats;
+                        var results = session.Query<Messages_Search.Result, Messages_Search>()
+                                             .Statistics(out stats)
+                                             .Search(s => s.Query, keyword)
+                                             .Where(m => m.ReceivingEndpoint == name)
+                                             .OfType<Message>()
+                                             .Sort(Request)
+                                             .Paging(Request)
+                                             .ToArray();
+
+                        return Negotiate.WithModel(results)
+                                        .WithTotalCount(stats);
+                    }
+                };
 
             Get["/endpoints/{name}/messages"] = parameters =>
             {
-                var includeSystemMessages = (bool)Request.Query.includesystemmessages.HasValue;
-
                 using (var session = Store.OpenSession())
                 {
                     string endpoint = parameters.name;
@@ -66,9 +63,8 @@ namespace ServiceBus.Management.Modules
                     RavenQueryStatistics stats;
                     var results = session.Query<Message>()
                                          .Statistics(out stats)
-                                         .Where(
-                                             m => m.ReceivingEndpoint.Name == endpoint &&
-                                                  (includeSystemMessages || !m.IsSystemMessage))
+                                         .IncludeSystemMessagesWhere(Request)
+                                         .Where(m =>m.ReceivingEndpoint.Name == endpoint)
                                          .Sort(Request)
                                          .Paging(Request)
                                          .ToArray();
@@ -79,23 +75,22 @@ namespace ServiceBus.Management.Modules
                 }
             };
 
-
             Get["/messages/{id}"] = parameters =>
-            {
-                string messageId = parameters.id;
-
-                using (var session = Store.OpenSession())
                 {
-                    var message = session.Load<Message>(messageId);
+                    string messageId = parameters.id;
 
-                    if (message == null)
+                    using (var session = Store.OpenSession())
                     {
-                        return HttpStatusCode.NotFound;
-                    }
+                        var message = session.Load<Message>(messageId);
 
-                    return Negotiate.WithModel(message);
-                }
-            };
+                        if (message == null)
+                        {
+                            return HttpStatusCode.NotFound;
+                        }
+
+                        return Negotiate.WithModel(message);
+                    }
+                };
         }
     }
 }

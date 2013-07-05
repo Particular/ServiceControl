@@ -7,6 +7,23 @@ namespace ServiceBus.Management.Extensions
 
     public static class QueryableExtensions
     {
+        public static IQueryable<Message> IncludeSystemMessagesWhere(this IQueryable<Message> source, Request request)
+        {
+            bool includeSystemMessages = false;
+
+            if ((bool) request.Query.include_system_messages.HasValue)
+            {
+                includeSystemMessages = (bool) request.Query.include_system_messages;
+            }
+
+            if (!includeSystemMessages)
+            {
+                return source.Where(m => !m.IsSystemMessage);
+            }
+
+            return source;
+        }
+
         public static IQueryable<TSource> Paging<TSource>(this IQueryable<TSource> source, Request request)
         {
             var maxResultsPerPage = 50;

@@ -40,7 +40,7 @@
                 }
             }
 
-            Forwarder.Send(message,Settings.ErrorLogQueue);
+            Forwarder.Send(message, Settings.ErrorLogQueue);
 
             return true;
         }
