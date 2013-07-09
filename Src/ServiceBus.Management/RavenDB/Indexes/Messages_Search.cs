@@ -8,16 +8,9 @@ namespace ServiceBus.Management.RavenDB.Indexes
 
     public class Messages_Search : AbstractIndexCreationTask<Message, Messages_Search.Result>
     {
-        public class Result
+        public class Result : CommonResult
         {
             public string Query { get; set; }
-            public string ReceivingEndpoint { get; set; }
-            public string Id { get; set; }
-            public string MessageType { get; set; }
-            public DateTime TimeSent { get; set; }
-            public DateTime TimeOfFailure { get; set; }
-            public TimeSpan CriticalTime { get; set; }
-            public TimeSpan ProcessingTime { get; set; }
         }
 
         public Messages_Search()
@@ -39,11 +32,16 @@ namespace ServiceBus.Management.RavenDB.Indexes
                                             message.ReceivingEndpoint.Machine,
                                             message.Headers.Select(kvp => String.Format("{0} {1}", kvp.Key, kvp.Value)),
                                         },
-                                    ReceivingEndpoint = message.ReceivingEndpoint.Name
+                                    ReceivingEndpointName = message.ReceivingEndpoint.Name
                                 };
 
             Index(x => x.Query, FieldIndexing.Analyzed);
-            Index(x => x.ReceivingEndpoint, FieldIndexing.Default);
+            Index(x => x.ReceivingEndpointName, FieldIndexing.Default);
+            Index(x => x.CriticalTime, FieldIndexing.Default);
+            Index(x => x.ProcessingTime, FieldIndexing.Default);
+
+            Sort(x => x.CriticalTime, SortOptions.Long);
+            Sort(x => x.ProcessingTime, SortOptions.Long);
 
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
         }

@@ -9,6 +9,7 @@
     using Nancy;
     using Nancy.ModelBinding;
     using Raven.Client;
+    using RavenDB.Indexes;
 
     public class ErrorMessagesModule : NancyModule
     {
@@ -23,12 +24,13 @@
                     using (var session = Store.OpenSession())
                     {
                         RavenQueryStatistics stats;
-                        var results = session.Query<Message>()
+                        var results = session.Query<Messages_Sort.Result, Messages_Sort>()
                             .Statistics(out stats)
                             .Where(m => 
                                 m.Status != MessageStatus.Successful &&
                                 m.Status != MessageStatus.RetryIssued)
                             .Sort(Request)
+                            .OfType<Message>() 
                             .Paging(Request)
                             .ToArray();
 
@@ -45,13 +47,14 @@
                     string endpoint = parameters.name;
 
                     RavenQueryStatistics stats;
-                    var results = session.Query<Message>()
+                    var results = session.Query<Messages_Sort.Result, Messages_Sort>()
                         .Statistics(out stats)
                         .Where(m => 
-                            m.ReceivingEndpoint.Name == endpoint &&  
+                            m.ReceivingEndpointName == endpoint &&  
                             m.Status != MessageStatus.Successful && 
                             m.Status != MessageStatus.RetryIssued)
                         .Sort(Request)
+                        .OfType<Message>() 
                         .Paging(Request)
                         .ToArray();
 

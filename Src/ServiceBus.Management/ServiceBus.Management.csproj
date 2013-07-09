@@ -105,8 +105,11 @@
     <Compile Include="Commands\IssueRetry.cs" />
     <Compile Include="Modules\MessagesModule.cs" />
     <Compile Include="Modules\VersionModule.cs" />
+    <Compile Include="RavenDB\Indexes\CommonResult.cs" />
+    <Compile Include="RavenDB\Indexes\Conversations_Sorted.cs" />
     <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
     <Compile Include="RavenDB\Indexes\Messages_Search.cs" />
+    <Compile Include="RavenDB\Indexes\Messages_Sort.cs" />
     <Compile Include="RavenDB\RavenUnitOfWork.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="SettingsReader.cs" />

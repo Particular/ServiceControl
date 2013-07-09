@@ -22,8 +22,8 @@ namespace ServiceBus.Management.Modules
                     var results = session.Query<Messages_Search.Result, Messages_Search>()
                                          .Statistics(out stats)
                                          .Search(s => s.Query, keyword)
-                                         .OfType<Message>()
                                          .Sort(Request)
+                                         .OfType<Message>()
                                          .Paging(Request)
                                          .ToArray();
 
@@ -43,9 +43,9 @@ namespace ServiceBus.Management.Modules
                         var results = session.Query<Messages_Search.Result, Messages_Search>()
                                              .Statistics(out stats)
                                              .Search(s => s.Query, keyword)
-                                             .Where(m => m.ReceivingEndpoint == name)
-                                             .OfType<Message>()
+                                             .Where(m => m.ReceivingEndpointName == name)
                                              .Sort(Request)
+                                             .OfType<Message>()
                                              .Paging(Request)
                                              .ToArray();
 
@@ -61,11 +61,12 @@ namespace ServiceBus.Management.Modules
                     string endpoint = parameters.name;
 
                     RavenQueryStatistics stats;
-                    var results = session.Query<Message>()
+                    var results = session.Query<Messages_Sort.Result, Messages_Sort>()
                                          .Statistics(out stats)
                                          .IncludeSystemMessagesWhere(Request)
-                                         .Where(m =>m.ReceivingEndpoint.Name == endpoint)
+                                         .Where(m =>m.ReceivingEndpointName == endpoint)
                                          .Sort(Request)
+                                         .OfType<Message>()
                                          .Paging(Request)
                                          .ToArray();
 
