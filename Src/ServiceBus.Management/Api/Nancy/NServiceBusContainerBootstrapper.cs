@@ -15,6 +15,8 @@
         protected override void ApplicationStartup(IContainer container, IPipelines pipelines)
         {
             StaticConfiguration.EnableRequestTracing = true;
+
+            pipelines.AfterRequest.AddItemToEndOfPipeline(NancyCompressionExtension.CheckForCompression);
         }
 
         protected override NancyInternalConfiguration InternalConfiguration

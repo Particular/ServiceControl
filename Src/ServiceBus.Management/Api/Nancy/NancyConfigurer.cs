@@ -5,6 +5,7 @@
     using NServiceBus.Logging;
     using global::Nancy.Hosting.Self;
 
+
     public class NancyConfigurer : INeedInitialization
     {
         public void Init()

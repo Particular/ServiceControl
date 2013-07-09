@@ -95,6 +95,7 @@
     <Compile Include="Api\Nancy\Helpers.cs" />
     <Compile Include="Api\Nancy\JsonNetBodyDeserializer.cs" />
     <Compile Include="Api\Nancy\JsonNetSerializer.cs" />
+    <Compile Include="Api\Nancy\NancyCompressionExtension.cs" />
     <Compile Include="Api\Nancy\NancyConfigurer.cs" />
     <Compile Include="Api\Nancy\NancyRunner.cs" />
     <Compile Include="Api\Nancy\NServiceBusContainerBootstrapper.cs" />
