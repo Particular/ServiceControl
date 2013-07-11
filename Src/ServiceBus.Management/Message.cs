@@ -134,7 +134,7 @@
         {
             var bodyString = Encoding.UTF8.GetString(message.Body);
 
-            if (contentType == "text/json")
+            if (contentType == "application/json")
             {
                 return bodyString;
             }
@@ -143,7 +143,6 @@
             {
                 return null;
             }
-
 
             try
             {
@@ -169,7 +168,6 @@
                 MessageIntent = MessageIntent,
                 ReplyToAddress = Address.Parse(ReplyToAddress)
             };
-
 
             Status = MessageStatus.RetryIssued;
 
