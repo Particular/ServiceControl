@@ -11,7 +11,7 @@
     using Raven.Client;
     using RavenDB.Indexes;
 
-    public class ErrorMessagesModule : NancyModule
+    public class ErrorMessagesModule : BaseModule
     {
         public IDocumentStore Store { get; set; }
 
@@ -36,7 +36,8 @@
 
                         return Negotiate
                             .WithModel(results)
-                            .WithTotalCount(stats);
+                            .WithPagingLinksAndTotalCount(stats, Request)
+                            .WithEtagAndLastModified(stats);
                     }
                 };
 
@@ -60,8 +61,8 @@
 
                     return Negotiate
                             .WithModel(results)
-                            .WithTotalCount(stats);
-
+                            .WithPagingLinksAndTotalCount(stats, Request)
+                            .WithEtagAndLastModified(stats);
                 }
             };
 

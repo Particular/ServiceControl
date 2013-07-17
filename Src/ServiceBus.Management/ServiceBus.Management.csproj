@@ -92,20 +92,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Api\Nancy\CacheControlExtension.cs" />
     <Compile Include="Api\Nancy\Helpers.cs" />
     <Compile Include="Api\Nancy\JsonNetBodyDeserializer.cs" />
     <Compile Include="Api\Nancy\JsonNetSerializer.cs" />
     <Compile Include="Api\Nancy\NancyCompressionExtension.cs" />
     <Compile Include="Api\Nancy\NancyConfigurer.cs" />
     <Compile Include="Api\Nancy\NancyRunner.cs" />
+    <Compile Include="Api\Nancy\NotModifiedStatusExtension.cs" />
     <Compile Include="Api\Nancy\NServiceBusContainerBootstrapper.cs" />
     <Compile Include="Api\Nancy\UnderscoreMappingResolver.cs" />
+    <Compile Include="Api\Nancy\VersionExtension.cs" />
     <Compile Include="Errors\IssueRetryHandler.cs" />
     <Compile Include="Errors\LogQueueInstaller.cs" />
+    <Compile Include="Modules\BaseModule.cs" />
     <Compile Include="Modules\EndpointModule.cs" />
     <Compile Include="Commands\IssueRetry.cs" />
     <Compile Include="Modules\MessagesModule.cs" />
-    <Compile Include="Modules\VersionModule.cs" />
+    <Compile Include="Modules\RootModule.cs" />
     <Compile Include="RavenDB\Indexes\CommonResult.cs" />
     <Compile Include="RavenDB\Indexes\Conversations_Sorted.cs" />
     <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
@@ -124,8 +128,6 @@
     <Compile Include="Modules\ErrorMessagesModule.cs" />
     <Compile Include="MessageStatus.cs" />
     <Compile Include="Errors\ErrorImportSatellite.cs" />
-    <Compile Include="Ping\PingModule.cs" />
-    <Compile Include="Ping\VersionInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RavenDB\RavenBootstrapper.cs" />
   </ItemGroup>

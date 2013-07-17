@@ -14,9 +14,10 @@
     {
         protected override void ApplicationStartup(IContainer container, IPipelines pipelines)
         {
-            StaticConfiguration.EnableRequestTracing = true;
-
-            pipelines.AfterRequest.AddItemToEndOfPipeline(NancyCompressionExtension.CheckForCompression);
+            pipelines.AfterRequest.AddItemToStartOfPipeline(new PipelineItem<Action<NancyContext>>("NotModified", NotModifiedStatusExtension.Check));
+            pipelines.AfterRequest.InsertAfter("NotModified", new PipelineItem<Action<NancyContext>>("CacheControl", CacheControlExtension.Add));
+            pipelines.AfterRequest.InsertAfter("NotModified", new PipelineItem<Action<NancyContext>>("Version", VersionExtension.Add));
+            pipelines.AfterRequest.AddItemToEndOfPipeline(new PipelineItem<Action<NancyContext>>("Compression", NancyCompressionExtension.CheckForCompression));
         }
 
         protected override NancyInternalConfiguration InternalConfiguration

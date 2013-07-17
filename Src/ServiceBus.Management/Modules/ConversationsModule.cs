@@ -6,7 +6,7 @@
     using Raven.Client;
     using RavenDB.Indexes;
 
-    public class ConversationsModule : NancyModule
+    public class ConversationsModule : BaseModule
     {
         public IDocumentStore Store { get; set; }
 
@@ -34,8 +34,8 @@
 
                         return Negotiate
                             .WithModel(results)
-                            .WithTotalCount(stats);
-
+                            .WithPagingLinksAndTotalCount(stats, Request)
+                            .WithEtagAndLastModified(stats);
                     }
                 };
         }

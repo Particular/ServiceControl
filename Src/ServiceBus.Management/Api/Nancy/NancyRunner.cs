@@ -10,7 +10,6 @@
 
         public void Start()
         {
-           
             NancyHost.Start();
 
             Logger.InfoFormat("Api is now accepting requests");
@@ -22,6 +21,6 @@
             Logger.InfoFormat("Api is now stopped");
         }
 
-        static ILog Logger = LogManager.GetLogger("api");
+        static readonly ILog Logger = LogManager.GetLogger("api");
     }
 }

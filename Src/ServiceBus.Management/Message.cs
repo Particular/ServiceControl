@@ -67,7 +67,6 @@
             return messageTypeString.Split(',').First();
         }
 
-
         public bool IsDeferredMessage { get; set; }
 
         public string Id { get; set; }
@@ -127,19 +126,19 @@
                 return message.Headers[NServiceBus.Headers.ContentType];
             }
 
-            return "text/xml"; //default to xml for now
+            return "application/xml"; //default to xml for now
         }
 
         static string DeserializeBody(TransportMessage message, string contentType)
         {
             var bodyString = Encoding.UTF8.GetString(message.Body);
 
-            if (contentType == "application/json")
+            if (contentType == "application/json" || contentType == "text/json")
             {
                 return bodyString;
             }
 
-            if (contentType != "text/xml")
+            if (contentType != "text/xml" || contentType != "application/xml")
             {
                 return null;
             }
@@ -157,7 +156,6 @@
             }
         }
 
-  
         public TransportMessage IssueRetry(DateTime requestedAt)
         {
             var rawMessage = new TransportMessage(MessageId, Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value))

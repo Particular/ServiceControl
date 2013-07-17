@@ -6,10 +6,9 @@
     using Raven.Client;
     using RavenDB.Indexes;
 
-    public class AuditMessagesModule : NancyModule
+    public class AuditMessagesModule : BaseModule
     {
         public IDocumentStore Store { get; set; }
-
 
         public AuditMessagesModule()
         {
@@ -26,10 +25,11 @@
                                              .OfType<Message>()
                                              .Paging(Request)
                                              .ToArray();
-
+                       
                         return Negotiate
                             .WithModel(results)
-                            .WithTotalCount(stats);
+                            .WithPagingLinksAndTotalCount(stats, Request)
+                            .WithEtagAndLastModified(stats);
                     }
                 };
 
@@ -54,7 +54,8 @@
 
                         return Negotiate
                             .WithModel(results)
-                            .WithTotalCount(stats);
+                            .WithPagingLinksAndTotalCount(stats, Request)
+                            .WithEtagAndLastModified(stats);
                     }
                 };
         }

@@ -5,6 +5,7 @@
     using System.Linq;
     using global::Nancy;
 
+
     public static class NancyCompressionExtension
     {
         public static void CheckForCompression(NancyContext context)
@@ -66,7 +67,9 @@
                 "text/html",
                 "text/plain",
                 "application/xml",
+                "text/xml",
                 "application/json",
+                "text/json",
                 "application/xaml+xml",
                 "application/x-javascript"
             };

@@ -1,12 +1,14 @@
 namespace ServiceBus.Management.Modules
 {
+    using System;
     using System.Linq;
     using Extensions;
     using Nancy;
     using Raven.Client;
     using RavenDB.Indexes;
 
-    public class MessagesModule : NancyModule
+
+    public class MessagesModule : BaseModule
     {
         public IDocumentStore Store { get; set; }
 
@@ -28,7 +30,8 @@ namespace ServiceBus.Management.Modules
                                          .ToArray();
 
                     return Negotiate.WithModel(results)
-                                    .WithTotalCount(stats);
+                                    .WithPagingLinksAndTotalCount(stats, Request)
+                                    .WithEtagAndLastModified(stats);
                 }
             };
 
@@ -50,7 +53,8 @@ namespace ServiceBus.Management.Modules
                                              .ToArray();
 
                         return Negotiate.WithModel(results)
-                                        .WithTotalCount(stats);
+                                        .WithPagingLinksAndTotalCount(stats, Request)
+                                        .WithEtagAndLastModified(stats);
                     }
                 };
 
@@ -69,10 +73,11 @@ namespace ServiceBus.Management.Modules
                                          .OfType<Message>()
                                          .Paging(Request)
                                          .ToArray();
-
+                    
                     return Negotiate
                         .WithModel(results)
-                        .WithTotalCount(stats);
+                        .WithPagingLinksAndTotalCount(stats, Request)
+                        .WithEtagAndLastModified(stats);
                 }
             };
 
@@ -89,7 +94,13 @@ namespace ServiceBus.Management.Modules
                             return HttpStatusCode.NotFound;
                         }
 
-                        return Negotiate.WithModel(message);
+                        var metadata = session.Advanced.GetMetadataFor(message);
+                        var etag = metadata.Value<Guid>("@etag");
+                        var lastModified = metadata.Value<DateTime>("Last-Modified ");
+
+                        return Negotiate.WithModel(message)
+                            .WithHeader("ETag", etag.ToString("N"))
+                            .WithHeader("Last-Modified", lastModified.ToString("R"));
                     }
                 };
         }
