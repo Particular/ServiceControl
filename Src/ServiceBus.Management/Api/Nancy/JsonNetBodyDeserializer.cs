@@ -36,13 +36,8 @@
         {
             this.serializer = serializer;
         }
-
-        /// <summary>
-        /// Whether the deserializer can deserialize the content type
-        /// </summary>
-        /// <param name="contentType">Content type to deserialize</param>
-        /// <returns>True if supported, false otherwise</returns>
-        public bool CanDeserialize(string contentType)
+   
+        public bool CanDeserialize(string contentType, BindingContext context)
         {
             return Helpers.IsJsonType(contentType);
         }
