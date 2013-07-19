@@ -35,7 +35,7 @@
                             .ToArray();
 
                         return Negotiate
-                            .WithModel(results)
+                            .WithModelAppendedRestfulUrls(results, Request)
                             .WithPagingLinksAndTotalCount(stats, Request)
                             .WithEtagAndLastModified(stats);
                     }
@@ -60,7 +60,7 @@
                         .ToArray();
 
                     return Negotiate
-                            .WithModel(results)
+                            .WithModelAppendedRestfulUrls(results, Request)
                             .WithPagingLinksAndTotalCount(stats, Request)
                             .WithEtagAndLastModified(stats);
                 }

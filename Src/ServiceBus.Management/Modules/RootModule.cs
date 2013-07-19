@@ -21,35 +21,30 @@
         {
             Get["/"] = parameters =>
                 {
-                    string baseUrl = Request.Url.SiteBase + Request.Url.BasePath;
-
                     return Negotiate
                         //.WithMediaRangeModel(MediaRange.FromString(@"application/vnd.particular-v1"), new RootUrls{
                         //        AuditUrl = baseUrl + "/audit/{?page,per_page,direction,sort}",
                         //        EndpointsAuditUrl = baseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
-                        //        ConversationUrl = baseUrl + "/conversations/{id}",
                         //    })
                         //.WithMediaRangeModel(MediaRange.FromString(@"application/vnd.particular-v2"), new RootUrls
                         //    {
                         //        AuditUrl = baseUrl + "/audit/{?page,per_page,direction,sort}",
                         //        EndpointsAuditUrl = baseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
-                        //        ConversationUrl = baseUrl + "/conversations/{id}",
                         //    })
                         .WithModel(new RootUrls
                             {
-                                AuditUrl = baseUrl + "/audit/{?page,per_page,direction,sort}",
-                                EndpointsAuditUrl = baseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
-                                ConversationUrl = baseUrl + "/conversations/{id}",
-                                EndpointsUrl = baseUrl + "/endpoints",
-                                ErrorsUrl = baseUrl + "/errors/{?page,per_page,direction,sort}",
-                                EndpointsErrorUrl = baseUrl + "/endpoints/{name}/errors/{?page,per_page,direction,sort}",
+                                AuditUrl = BaseUrl + "/audit/{?page,per_page,direction,sort}",
+                                EndpointsAuditUrl = BaseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
+                                EndpointsUrl = BaseUrl + "/endpoints",
+                                ErrorsUrl = BaseUrl + "/errors/{?page,per_page,direction,sort}",
+                                EndpointsErrorUrl = BaseUrl + "/endpoints/{name}/errors/{?page,per_page,direction,sort}",
                                 MessageSearchUrl =
-                                    baseUrl + "/messages/search/{keyword}/{?page,per_page,direction,sort}",
+                                    BaseUrl + "/messages/search/{keyword}/{?page,per_page,direction,sort}",
                                 EndpointsMessageSearchUrl =
-                                    baseUrl +
+                                    BaseUrl +
                                     "/endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
                                 EndpointsMessagesUrl =
-                                    baseUrl + "/endpoints/{name}/messages/{?page,per_page,direction,sort}",
+                                    BaseUrl + "/endpoints/{name}/messages/{?page,per_page,direction,sort}",
                             })
                         .WithHeader("ETag", CurrentEtag)
                         .WithHeader("Last-Modified", CurrentLastModified)
@@ -61,7 +56,6 @@
         {
             public string AuditUrl { get; set; }
             public string EndpointsAuditUrl { get; set; }
-            public string ConversationUrl { get; set; }
             public string EndpointsUrl { get; set; }
             public string ErrorsUrl { get; set; }
             public string EndpointsErrorUrl { get; set; }

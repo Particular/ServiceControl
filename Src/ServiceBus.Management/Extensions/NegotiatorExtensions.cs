@@ -12,6 +12,19 @@ namespace ServiceBus.Management.Extensions
 
     public static class NegotiatorExtensions
     {
+
+        public static Negotiator WithModelAppendedRestfulUrls(this Negotiator negotiator, IEnumerable<Message> messages, Request request)
+        {
+            string baseUrl = request.Url.SiteBase + request.Url.BasePath;
+
+            foreach (var message in messages)
+            {
+                message.Url = baseUrl + "/messages/" + message.Id;
+            }
+
+            return negotiator.WithModel(messages);
+        }
+
         public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, RavenQueryStatistics stats, Request request)
         {
             return negotiator.WithTotalCount(stats)

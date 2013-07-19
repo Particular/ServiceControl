@@ -67,6 +67,16 @@
             return messageTypeString.Split(',').First();
         }
 
+        [Raven.Imports.Newtonsoft.Json.JsonIgnore] 
+        public string Url { get; set; }
+
+        [Raven.Imports.Newtonsoft.Json.JsonIgnore]
+        public string RetryUrl { get; set; }
+
+        [Raven.Imports.Newtonsoft.Json.JsonIgnore] 
+        public string ConversationUrl { get; set; }
+
+
         public bool IsDeferredMessage { get; set; }
 
         public string Id { get; set; }

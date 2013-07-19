@@ -20,6 +20,8 @@
             var serializerSettings = new JsonSerializerSettings
                 {
                     ContractResolver = new UnderscoreMappingResolver(),
+                    Formatting = Formatting.None,
+                    NullValueHandling = NullValueHandling.Ignore,
                     Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
                 };
             serializer = JsonSerializer.Create(serializerSettings);

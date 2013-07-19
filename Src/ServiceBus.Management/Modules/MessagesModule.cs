@@ -29,7 +29,7 @@ namespace ServiceBus.Management.Modules
                                          .Paging(Request)
                                          .ToArray();
 
-                    return Negotiate.WithModel(results)
+                    return Negotiate.WithModelAppendedRestfulUrls(results, Request)
                                     .WithPagingLinksAndTotalCount(stats, Request)
                                     .WithEtagAndLastModified(stats);
                 }
@@ -52,7 +52,7 @@ namespace ServiceBus.Management.Modules
                                              .Paging(Request)
                                              .ToArray();
 
-                        return Negotiate.WithModel(results)
+                        return Negotiate.WithModelAppendedRestfulUrls(results, Request)
                                         .WithPagingLinksAndTotalCount(stats, Request)
                                         .WithEtagAndLastModified(stats);
                     }
@@ -75,7 +75,7 @@ namespace ServiceBus.Management.Modules
                                          .ToArray();
                     
                     return Negotiate
-                        .WithModel(results)
+                        .WithModelAppendedRestfulUrls(results, Request)
                         .WithPagingLinksAndTotalCount(stats, Request)
                         .WithEtagAndLastModified(stats);
                 }
@@ -96,7 +96,19 @@ namespace ServiceBus.Management.Modules
 
                         var metadata = session.Advanced.GetMetadataFor(message);
                         var etag = metadata.Value<Guid>("@etag");
-                        var lastModified = metadata.Value<DateTime>("Last-Modified ");
+                        var lastModified = metadata.Value<DateTime>("Last-Modified");
+
+                        message.Url = BaseUrl + "/messages/" + message.Id;
+
+                        if (!String.IsNullOrEmpty(message.ConversationId))
+                        {
+                            message.ConversationUrl = BaseUrl + "/conversations/" + message.ConversationId;
+                        }
+
+                        if (message.Status == MessageStatus.Failed || message.Status == MessageStatus.RepeatedFailure)
+                        {
+                            message.RetryUrl = BaseUrl + "/errors/" + message.Id + "/retry";
+                        }
 
                         return Negotiate.WithModel(message)
                             .WithHeader("ETag", etag.ToString("N"))
