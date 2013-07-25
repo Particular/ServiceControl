@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AuditMessages
+﻿namespace ServiceBus.Management.Satellites
 {
     using System;
     using NServiceBus;

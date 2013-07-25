@@ -1,10 +1,10 @@
-﻿namespace ServiceBus.Management.Errors
+﻿namespace ServiceBus.Management.Handlers
 {
     using System;
-    using Commands;
+    using ServiceBus.Management.Commands;
     using NServiceBus;
     using NServiceBus.Transports;
-    using RavenDB;
+    using ServiceBus.Management.RavenDB;
 
     public class IssueRetryHandler : IHandleMessages<IssueRetry>
     {

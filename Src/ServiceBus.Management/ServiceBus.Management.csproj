@@ -103,8 +103,8 @@
     <Compile Include="Api\Nancy\NServiceBusContainerBootstrapper.cs" />
     <Compile Include="Api\Nancy\UnderscoreMappingResolver.cs" />
     <Compile Include="Api\Nancy\VersionExtension.cs" />
-    <Compile Include="Errors\IssueRetryHandler.cs" />
-    <Compile Include="Errors\LogQueueInstaller.cs" />
+    <Compile Include="Handlers\IssueRetryHandler.cs" />
+    <Compile Include="Installers\LogQueueInstaller.cs" />
     <Compile Include="Modules\BaseModule.cs" />
     <Compile Include="Modules\EndpointModule.cs" />
     <Compile Include="Commands\IssueRetry.cs" />
@@ -118,7 +118,7 @@
     <Compile Include="RavenDB\RavenUnitOfWork.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="SettingsReader.cs" />
-    <Compile Include="AuditMessages\AuditMessageImportSatellite.cs" />
+    <Compile Include="Satellites\AuditMessageImportSatellite.cs" />
     <Compile Include="Modules\AuditMessagesModule.cs" />
     <Compile Include="Modules\ConversationsModule.cs" />
     <Compile Include="EndpointConfig.cs" />
@@ -127,7 +127,7 @@
     <Compile Include="Message.cs" />
     <Compile Include="Modules\ErrorMessagesModule.cs" />
     <Compile Include="MessageStatus.cs" />
-    <Compile Include="Errors\ErrorImportSatellite.cs" />
+    <Compile Include="Satellites\ErrorImportSatellite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RavenDB\RavenBootstrapper.cs" />
   </ItemGroup>
@@ -142,6 +142,7 @@
   <ItemGroup>
     <EmbeddedResource Include="License.xml" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

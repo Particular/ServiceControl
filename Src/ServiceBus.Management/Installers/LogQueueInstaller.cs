@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Errors
+﻿namespace ServiceBus.Management.Installers
 {
     using NServiceBus;
     using NServiceBus.Unicast.Queuing;
