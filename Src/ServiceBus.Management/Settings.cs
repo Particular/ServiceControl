@@ -1,20 +1,21 @@
 ﻿namespace ServiceBus.Management
 {
     using System;
-    using System.Configuration;
     using System.IO;
+    using System.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
 
     public class Settings
     {
-
         public static int Port
         {
             get
             {
                 if (port == 0)
+                {
                     port = SettingsReader<int>.Read("Port", 33333);
+                }
 
                 return port;
             }
@@ -26,7 +27,9 @@
             get
             {
                 if (hostname == null)
+                {
                     hostname = SettingsReader<string>.Read("Hostname", "localhost");
+                }
 
                 return hostname;
             }
@@ -39,7 +42,7 @@
             {
                 if (virtualDirectory == null)
                 {
-                    virtualDirectory = SettingsReader<string>.Read("VirtualDirectory", "");
+                    virtualDirectory = SettingsReader<string>.Read("VirtualDirectory", String.Empty);
                 }
 
                 return virtualDirectory;
@@ -53,40 +56,42 @@
                 var vdir = VirtualDirectory;
 
                 if (!string.IsNullOrEmpty(vdir))
+                {
                     vdir += "/";
+                }
 
                 vdir += "api";
 
                 var url = string.Format("http://{0}:{1}/{2}", Hostname, Port, vdir);
 
                 if (!url.EndsWith("/"))
+                {
                     url += "/";
+                }
 
                 return url;
             }
         }
 
-
         public static Address AuditQueue
         {
             get
             {
-                if (auditQueue == null)
+                if (auditQueue != null)
                 {
-                    var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", null);
-
-                    if (value != null)
-                        auditQueue = Address.Parse(value);
-                    else
-                    {
-                        Logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
-
-                        auditQueue = Address.Undefined;
-                    }
-
-
+                    return auditQueue;
                 }
 
+                var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", null);
+
+                if (value != null)
+                    auditQueue = Address.Parse(value);
+                else
+                {
+                    Logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
+
+                    auditQueue = Address.Undefined;
+                }
 
                 return auditQueue;
             }
@@ -96,22 +101,23 @@
         {
             get
             {
-                if (errorQueue == null)
+                if (errorQueue != null)
                 {
-                    var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", null);
-
-                    if (value != null)
-                        errorQueue = Address.Parse(value);
-                    else
-                    {
-                        Logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
-
-                        errorQueue = Address.Undefined;
-                    }
-
-
+                    return errorQueue;
                 }
 
+                var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", null);
+
+                if (value != null)
+                {
+                    errorQueue = Address.Parse(value);
+                }
+                else
+                {
+                    Logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
+
+                    errorQueue = Address.Undefined;
+                }
 
                 return errorQueue;
             }
@@ -131,12 +137,9 @@
                     {
                         Logger.Info("No settings found for error log queue to import, default name will be used");
 
-                        errorLogQueue = Settings.ErrorQueue.SubScope("log");
+                        errorLogQueue = ErrorQueue.SubScope("log");
                     }
-
-
                 }
-
 
                 return errorLogQueue;
             }
@@ -147,11 +150,26 @@
             get
             {
                 if (dbPath == null)
-                    dbPath = SettingsReader<string>.Read("DbPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceBus.Management"));
+                {
+                    var dbFolder = String.Format("{0}-{1}", Hostname, Port);
+
+                    if (!string.IsNullOrEmpty(VirtualDirectory))
+                    {
+                        dbFolder += String.Format("-{0}", SanitiseFolderName(VirtualDirectory));
+                    }
+
+                    var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceBus.Management", dbFolder);
+
+                    dbPath = SettingsReader<string>.Read("DbPath", defaultPath);
+                }
 
                 return dbPath;
             }
+        }
 
+        static string SanitiseFolderName(string folderName)
+        {
+            return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
         }
 
         static int port;
