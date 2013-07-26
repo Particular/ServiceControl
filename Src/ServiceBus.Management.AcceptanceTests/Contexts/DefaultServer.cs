@@ -14,7 +14,6 @@
 
     public class DefaultServer : IEndpointSetupTemplate
     {
-
         public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration,
                                           IConfigurationSource configSource)
         {
@@ -66,6 +65,7 @@
 
             SetLoggingLibrary.Log4Net(null, Log4NetAppenderFactory.CreateRollingFileAppender(logLevel, logFile));
         }
+
         static IEnumerable<Type> GetTypesToUse(EndpointConfiguration endpointConfiguration)
         {
             var assemblies = AssemblyScanner.GetScannableAssemblies().Assemblies
