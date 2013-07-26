@@ -148,7 +148,7 @@
                 return bodyString;
             }
 
-            if (contentType != "text/xml" || contentType != "application/xml")
+            if (contentType != "text/xml" && contentType != "application/xml")
             {
                 return null;
             }
