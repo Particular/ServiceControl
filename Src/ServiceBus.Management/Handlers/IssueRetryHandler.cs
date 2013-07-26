@@ -17,11 +17,13 @@
             var failedMessage = RavenUnitOfWork.Session.Load<Message>(message.MessageId);
 
             if (failedMessage == null)
+            {
                 throw new InvalidOperationException(string.Format("Retry failed, message {0} could not be found", message.MessageId));
+            }
 
-            var transportMessage = failedMessage.IssueRetry(DateTime.Parse(message.GetHeader("RequestedAt")));
+            var requestedAtHeader = message.GetHeader("RequestedAt");
+            var transportMessage = failedMessage.IssueRetry(DateTimeExtensions.ToUtcDateTime(requestedAtHeader));
 
-            
             Forwarder.Send(transportMessage, Address.Parse(failedMessage.FailureDetails.FailedInQueue));
         }
     }

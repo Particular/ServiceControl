@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.Modules
 {
     using System;
-    using System.Globalization;
     using System.Linq;
     using Commands;
     using Extensions;
@@ -70,7 +69,7 @@
                 {
                     var request = this.Bind<IssueRetry>();
 
-                    request.SetHeader("RequestedAt", DateTime.UtcNow.ToString(CultureInfo.InvariantCulture));
+                    request.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
 
                     Bus.SendLocal(request);
 
