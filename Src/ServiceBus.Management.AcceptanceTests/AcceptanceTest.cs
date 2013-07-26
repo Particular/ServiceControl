@@ -10,6 +10,7 @@
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 
+    [TestFixture]
     public abstract class AcceptanceTest
     {
         [SetUp]
@@ -17,9 +18,9 @@
         {
             Conventions.EndpointNamingConvention = t =>
             {
-                var baseNs = typeof(NServiceBusAcceptanceTest).Namespace;
+                var baseNs = typeof(AcceptanceTest).Namespace;
                 var testName = GetType().Name;
-                return t.FullName.Replace(baseNs + ".", "").Replace(testName + "+", "");
+                return t.FullName.Replace(baseNs + ".", String.Empty).Replace(testName + "+", String.Empty);
             };
         }
 
@@ -28,8 +29,8 @@
             var request = (HttpWebRequest)HttpWebRequest.Create("http://localhost:33333" + url);
 
             request.ContentType = "application/json";
-
             request.Accept = "application/json";
+
             Console.Out.Write(request.RequestUri);
 
             HttpWebResponse response;
@@ -43,7 +44,6 @@
                 response = ex.Response as HttpWebResponse;
             }
 
-
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
@@ -54,9 +54,9 @@
             Console.Out.WriteLine(" - {0}", response.StatusCode);
 
             if (response.StatusCode != HttpStatusCode.OK)
+            {
                 throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " + response.StatusDescription);
-
-
+            }
 
             using (var stream = response.GetResponseStream())
             {
