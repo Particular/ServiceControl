@@ -9,8 +9,13 @@
     {
         public ManagementEndpoint()
         {
-            var pathToAppConfig = Path.Combine(Environment.CurrentDirectory,
+            var pathToAppConfig = "ServiceBus.Management.dll.config";
+
+            if (!File.Exists(pathToAppConfig))
+            {
+                pathToAppConfig = Path.Combine(Environment.CurrentDirectory,
                                                "..\\..\\..\\ServiceBus.Management\\bin\\debug\\ServiceBus.Management.dll.config");
+            }
 
             Assert.True(File.Exists(pathToAppConfig));
 
