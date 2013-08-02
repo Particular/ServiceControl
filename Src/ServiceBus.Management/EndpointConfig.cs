@@ -1,5 +1,9 @@
 namespace ServiceBus.Management
 {
+    using NLog;
+    using NLog.Config;
+    using NLog.Targets;
+    using NServiceBus.Logging.Loggers.NLogAdapter;
     using System;
     using System.IO;
     using System.Reflection;
@@ -9,9 +13,22 @@ namespace ServiceBus.Management
     {
         public void Init()
         {
-            SetLoggingLibrary.Log4Net(() => log4net.Config.XmlConfigurator.Configure());
+            var nlogConfig = new LoggingConfiguration();
 
-            var transportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
+            var fileTarget = new FileTarget
+                             {
+                                 ArchiveEvery = FileArchivePeriod.Day,
+                                 FileName = "${specialfolder:folder=ApplicationData}/ServiceBus.Management/logs/logfile.txt",
+                                 ArchiveFileName = "${specialfolder:folder=ApplicationData}/ServiceBus.Management/logs/log.{#}.txt",
+                                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                                 MaxArchiveFiles = 14
+                             };
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
+            nlogConfig.AddTarget("debugger", fileTarget);
+            NLogConfigurator.Configure(fileTarget, "Info");
+            LogManager.Configuration = nlogConfig;
+
+            var transportType = SettingsReader<string>.Read("TransportType", typeof (Msmq).AssemblyQualifiedName);
             Configure.With().UseTransport(Type.GetType(transportType));
 
             using (var licenseStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceBus.Management.License.xml"))
