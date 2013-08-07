@@ -16,16 +16,24 @@ namespace ServiceBus.Management
             var nlogConfig = new LoggingConfiguration();
 
             var fileTarget = new FileTarget
-                             {
-                                 ArchiveEvery = FileArchivePeriod.Day,
-                                 FileName = "${specialfolder:folder=ApplicationData}/ServiceBus.Management/logs/logfile.txt",
-                                 ArchiveFileName = "${specialfolder:folder=ApplicationData}/ServiceBus.Management/logs/log.{#}.txt",
-                                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
-                                 MaxArchiveFiles = 14
-                             };
+            {
+                ArchiveEvery = FileArchivePeriod.Day,
+                FileName = "${specialfolder:folder=ApplicationData}/ServiceBus.Management/logs/logfile.txt",
+                ArchiveFileName = "${specialfolder:folder=ApplicationData}/ServiceBus.Management/logs/log.{#}.txt",
+                ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                MaxArchiveFiles = 14
+            };
+
+            var consoleTarget = new ColoredConsoleTarget
+            {
+                UseDefaultRowHighlightingRules = true,
+            };
+
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
-            NLogConfigurator.Configure(fileTarget, "Info");
+            nlogConfig.AddTarget("console", consoleTarget);
+            NLogConfigurator.Configure(new object[] { fileTarget, consoleTarget }, "Info");
             LogManager.Configuration = nlogConfig;
 
             var transportType = SettingsReader<string>.Read("TransportType", typeof (Msmq).AssemblyQualifiedName);
