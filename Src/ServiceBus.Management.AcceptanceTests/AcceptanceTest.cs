@@ -8,25 +8,23 @@
     using System.Security.AccessControl;
     using System.Security.Principal;
     using Api.Nancy;
-    using NServiceBus.AcceptanceTesting.Customization;
-    using NUnit.Framework;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NUnit.Framework;
 
     [TestFixture]
     public abstract class AcceptanceTest
     {
-        protected string RavenPath;
-
         [SetUp]
         public void SetUp()
         {
-            RavenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
             Conventions.EndpointNamingConvention = t =>
             {
-                var baseNs = typeof(AcceptanceTest).Namespace;
-                var testName = GetType().Name;
+                string baseNs = typeof (AcceptanceTest).Namespace;
+                string testName = GetType().Name;
                 return t.FullName.Replace(baseNs + ".", String.Empty).Replace(testName + "+", String.Empty);
             };
         }
@@ -37,6 +35,13 @@
             Delete(RavenPath);
         }
 
+        [ThreadStatic] private static string ravenPath;
+
+        public static string RavenPath
+        {
+            get { return ravenPath; }
+        }
+
         public void Delete(string path)
         {
             DirectoryInfo emptyTempDirectory = null;
@@ -45,8 +50,9 @@
             {
                 emptyTempDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
                 emptyTempDirectory.Create();
-                var arguments = string.Format("\"{0}\" \"{1}\" /W:1  /R:1 /FFT /MIR /NFL", emptyTempDirectory.FullName, path.TrimEnd('\\'));
-                using (var process = Process.Start(new ProcessStartInfo("robocopy")
+                string arguments = string.Format("\"{0}\" \"{1}\" /W:1  /R:1 /FFT /MIR /NFL",
+                    emptyTempDirectory.FullName, path.TrimEnd('\\'));
+                using (Process process = Process.Start(new ProcessStartInfo("robocopy")
                 {
                     Arguments = arguments,
                     WindowStyle = ProcessWindowStyle.Hidden,
@@ -56,7 +62,7 @@
                     process.WaitForExit();
                 }
 
-                using (var windowsIdentity = WindowsIdentity.GetCurrent())
+                using (WindowsIdentity windowsIdentity = WindowsIdentity.GetCurrent())
                 {
                     var directorySecurity = new DirectorySecurity();
                     directorySecurity.SetOwner(windowsIdentity.User);
@@ -76,7 +82,7 @@
 
         public static T Get<T>(string url) where T : class
         {
-            var request = (HttpWebRequest)HttpWebRequest.Create("http://localhost:33333" + url);
+            var request = (HttpWebRequest) WebRequest.Create("http://localhost:33333" + url);
 
             request.Accept = "application/json";
 
@@ -104,33 +110,33 @@
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " + response.StatusDescription);
+                throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " +
+                                                    response.StatusDescription);
             }
 
-            using (var stream = response.GetResponseStream())
+            using (Stream stream = response.GetResponseStream())
             {
-                var serializer = JsonSerializer.Create(serializerSettings);
+                JsonSerializer serializer = JsonSerializer.Create(serializerSettings);
 
                 return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
             }
         }
-    
+
         public static void Post<T>(string url, T payload = null) where T : class
         {
-            var request = (HttpWebRequest)HttpWebRequest.Create("http://localhost:33333" + url);
+            var request = (HttpWebRequest) WebRequest.Create("http://localhost:33333" + url);
 
             request.ContentType = "application/json";
             request.Method = "POST";
 
-            var json = JsonConvert.SerializeObject(payload, serializerSettings);
+            string json = JsonConvert.SerializeObject(payload, serializerSettings);
             request.ContentLength = json.Length;
 
             Console.Out.Write(request.RequestUri);
 
-            using (var stream = request.GetRequestStream())
+            using (Stream stream = request.GetRequestStream())
             using (var sw = new StreamWriter(stream))
             {
-
                 sw.Write(json);
             }
 
@@ -150,13 +156,14 @@
             Console.Out.WriteLine(" - {0}", response.StatusCode);
 
             if (response.StatusCode != HttpStatusCode.OK && response.StatusCode != HttpStatusCode.Accepted)
-                throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " + response.StatusDescription);
+                throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " +
+                                                    response.StatusDescription);
         }
 
-        static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
         {
             ContractResolver = new UnderscoreMappingResolver(),
-            Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
+            Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}}
         };
     }
 }

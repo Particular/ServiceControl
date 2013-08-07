@@ -36,7 +36,7 @@
         public ManagementEndpoint()
         {
             string pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
-            File.WriteAllText(pathToAppConfig, String.Format(AppConfigFile, Path.Combine(Path.GetTempPath(), Path.GetRandomFileName())));
+            File.WriteAllText(pathToAppConfig, String.Format(AppConfigFile, AcceptanceTest.RavenPath));
 
             EndpointSetup<ManagementEndpointSetup>()
                 .AppConfig(pathToAppConfig);
