@@ -65,7 +65,6 @@
                     .AuditTo(Address.Parse("audit"));
             }
 
-
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
@@ -119,6 +118,5 @@
                 return true;
             }
         }
-
     }
 }

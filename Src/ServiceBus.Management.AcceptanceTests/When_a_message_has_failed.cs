@@ -80,13 +80,23 @@
             lock (context)
             {
                 if (c.Message != null)
+                {
                     return true;
+                }
 
                 if (c.MessageId == null)
+                {
                     return false;
+                }
 
-                c.Message =
-                    Get<Message>("/api/messages/" + context.MessageId + "-" + context.EndpointNameOfReceivingEndpoint);
+                var message = Get<Message>("/api/messages/" + context.MessageId + "-" + context.EndpointNameOfReceivingEndpoint);
+                
+                if (message == null)
+                {
+                    return false;
+                }
+
+                c.Message = message;
 
                 return true;
             }

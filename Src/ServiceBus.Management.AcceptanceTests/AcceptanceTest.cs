@@ -1,9 +1,12 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Net;
+    using System.Security.AccessControl;
+    using System.Security.Principal;
     using Api.Nancy;
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
@@ -13,9 +16,13 @@
     [TestFixture]
     public abstract class AcceptanceTest
     {
+        protected string RavenPath;
+
         [SetUp]
         public void SetUp()
         {
+            RavenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
             Conventions.EndpointNamingConvention = t =>
             {
                 var baseNs = typeof(AcceptanceTest).Namespace;
@@ -24,11 +31,53 @@
             };
         }
 
+        [TearDown]
+        public void Cleanup()
+        {
+            Delete(RavenPath);
+        }
+
+        public void Delete(string path)
+        {
+            DirectoryInfo emptyTempDirectory = null;
+
+            try
+            {
+                emptyTempDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+                emptyTempDirectory.Create();
+                var arguments = string.Format("\"{0}\" \"{1}\" /W:1  /R:1 /FFT /MIR /NFL", emptyTempDirectory.FullName, path.TrimEnd('\\'));
+                using (var process = Process.Start(new ProcessStartInfo("robocopy")
+                {
+                    Arguments = arguments,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    CreateNoWindow = true
+                }))
+                {
+                    process.WaitForExit();
+                }
+
+                using (var windowsIdentity = WindowsIdentity.GetCurrent())
+                {
+                    var directorySecurity = new DirectorySecurity();
+                    directorySecurity.SetOwner(windowsIdentity.User);
+                    Directory.SetAccessControl(path, directorySecurity);
+                }
+
+                Directory.Delete(path);
+            }
+            finally
+            {
+                if (emptyTempDirectory != null)
+                {
+                    emptyTempDirectory.Delete();
+                }
+            }
+        }
+
         public static T Get<T>(string url) where T : class
         {
             var request = (HttpWebRequest)HttpWebRequest.Create("http://localhost:33333" + url);
 
-            request.ContentType = "application/json";
             request.Accept = "application/json";
 
             Console.Out.Write(request.RequestUri);
@@ -104,12 +153,10 @@
                 throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " + response.StatusDescription);
         }
 
-        static JsonSerializerSettings serializerSettings = new JsonSerializerSettings
+        static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
         {
             ContractResolver = new UnderscoreMappingResolver(),
             Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
         };
-
-
     }
 }

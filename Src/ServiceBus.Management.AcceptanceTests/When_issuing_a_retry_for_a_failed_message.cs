@@ -96,10 +96,7 @@
                 return false;
             }
 
-            Message message =
-                context.Message =
-                    Get<Message>(String.Format("/api/messages/{0}-{1}", context.MessageId,
-                        context.EndpointNameOfReceivingEndpoint));
+            context.Message = Get<Message>(String.Format("/api/messages/{0}-{1}", context.MessageId, context.EndpointNameOfReceivingEndpoint));
 
             if (context.Message == null)
             {
