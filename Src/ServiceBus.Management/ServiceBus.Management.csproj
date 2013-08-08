@@ -40,11 +40,11 @@
     </Reference>
     <Reference Include="Nancy, Version=0.18.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.0.18.0\lib\net40\Nancy.dll</HintPath>
+      <HintPath>..\..\..\Nancy\src\Nancy.Hosting.Self\bin\Debug\Nancy.dll</HintPath>
     </Reference>
     <Reference Include="Nancy.Hosting.Self, Version=0.18.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.Hosting.Self.0.18.0\lib\net40\Nancy.Hosting.Self.dll</HintPath>
+      <HintPath>..\..\..\Nancy\src\Nancy.Hosting.Self\bin\Debug\Nancy.Hosting.Self.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -101,8 +101,16 @@
     <Compile Include="Api\Nancy\NancyRunner.cs" />
     <Compile Include="Api\Nancy\NotModifiedStatusExtension.cs" />
     <Compile Include="Api\Nancy\NServiceBusContainerBootstrapper.cs" />
+    <Compile Include="Api\Nancy\StringListBinder.cs" />
     <Compile Include="Api\Nancy\UnderscoreMappingResolver.cs" />
     <Compile Include="Api\Nancy\VersionExtension.cs" />
+    <Compile Include="Commands\IssueEndpointRetryAll.cs" />
+    <Compile Include="Commands\IssueRetries.cs" />
+    <Compile Include="Commands\IssueRetryAll.cs" />
+    <Compile Include="Handlers\IssueEndpointRetryAllHandler.cs" />
+    <Compile Include="Handlers\IssueRetriesHandler.cs" />
+    <Compile Include="Handlers\IssueRetryAllHandler.cs" />
+    <Compile Include="Handlers\IssueRetryAllHandlerBase.cs" />
     <Compile Include="Handlers\IssueRetryHandler.cs" />
     <Compile Include="Installers\LogQueueInstaller.cs" />
     <Compile Include="Modules\BaseModule.cs" />
@@ -113,6 +121,7 @@
     <Compile Include="RavenDB\Indexes\CommonResult.cs" />
     <Compile Include="RavenDB\Indexes\Conversations_Sorted.cs" />
     <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
+    <Compile Include="RavenDB\Indexes\Messages_Ids.cs" />
     <Compile Include="RavenDB\Indexes\Messages_Search.cs" />
     <Compile Include="RavenDB\Indexes\Messages_Sort.cs" />
     <Compile Include="RavenDB\RavenUnitOfWork.cs" />
