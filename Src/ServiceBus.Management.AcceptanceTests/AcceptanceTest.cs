@@ -140,7 +140,6 @@
                 sw.Write(json);
             }
 
-
             HttpWebResponse response;
 
             try
@@ -151,7 +150,6 @@
             {
                 response = ex.Response as HttpWebResponse;
             }
-
 
             Console.Out.WriteLine(" - {0}", (int) response.StatusCode);
 

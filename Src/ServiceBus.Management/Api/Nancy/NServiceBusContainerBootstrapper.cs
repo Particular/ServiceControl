@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using NServiceBus;
+    using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder.Common;
     using global::Nancy;
     using global::Nancy.Bootstrapper;
@@ -12,8 +13,16 @@
 
     public class NServiceBusContainerBootstrapper : NancyBootstrapperWithRequestContainerBase<IContainer>
     {
+        private readonly ILog Logger = LogManager.GetLogger(typeof (NServiceBusContainerBootstrapper));
+
         protected override void ApplicationStartup(IContainer container, IPipelines pipelines)
         {
+            pipelines.OnError.AddItemToEndOfPipeline((context, exception) =>
+            {
+                Logger.Error("Unhandled exception", exception);
+                return null;
+            });
+
             pipelines.AfterRequest.AddItemToStartOfPipeline(new PipelineItem<Action<NancyContext>>("NotModified", NotModifiedStatusExtension.Check));
             pipelines.AfterRequest.InsertAfter("NotModified", new PipelineItem<Action<NancyContext>>("CacheControl", CacheControlExtension.Add));
             pipelines.AfterRequest.InsertAfter("NotModified", new PipelineItem<Action<NancyContext>>("Version", VersionExtension.Add));
