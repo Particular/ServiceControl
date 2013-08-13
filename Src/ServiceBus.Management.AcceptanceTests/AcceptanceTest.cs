@@ -7,6 +7,7 @@
     using System.Net;
     using System.Security.AccessControl;
     using System.Security.Principal;
+    using System.Text;
     using Api.Nancy;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
@@ -106,12 +107,11 @@
                 return null;
             }
 
-            Console.Out.WriteLine(" - {0}", response.StatusCode);
+            Console.Out.WriteLine(" - {0}", (int)response.StatusCode);
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " +
-                                                    response.StatusDescription);
+                throw new InvalidOperationException(String.Format("Call failed: {0} - {1}", (int)response.StatusCode, response.StatusDescription));
             }
 
             using (Stream stream = response.GetResponseStream())
@@ -153,11 +153,18 @@
             }
 
 
-            Console.Out.WriteLine(" - {0}", response.StatusCode);
+            Console.Out.WriteLine(" - {0}", (int) response.StatusCode);
 
             if (response.StatusCode != HttpStatusCode.OK && response.StatusCode != HttpStatusCode.Accepted)
-                throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " +
-                                                    response.StatusDescription);
+            {
+                string body;
+                using (var reader = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding("utf-8")))
+                {
+                    body = reader.ReadToEnd();
+                }
+                throw new InvalidOperationException(String.Format("Call failed: {0} - {1} - {2}",
+                    (int) response.StatusCode, response.StatusDescription, body));
+            }
         }
 
         private static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
