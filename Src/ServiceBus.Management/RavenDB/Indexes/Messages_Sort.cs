@@ -9,7 +9,6 @@ namespace ServiceBus.Management.RavenDB.Indexes
     {
         public class Result : CommonResult
         {
-            public MessageStatus Status { get; set; }
             public bool IsSystemMessage { get; set; }
         }
 

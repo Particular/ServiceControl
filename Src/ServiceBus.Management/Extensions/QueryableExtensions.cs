@@ -71,7 +71,13 @@ namespace ServiceBus.Management.Extensions
                 direction = defaultSortDirection;
             }
 
-            var sortOptions = new[] { "time_of_failure", "id", "message_type", "time_sent", "critical_time", "processing_time" };
+            var sortOptions = new[]
+            {
+                "time_of_failure", "id", "message_type", 
+                "time_sent", "critical_time", "processing_time",
+                "message_status"
+            };
+
             var sort = "time_sent";
             Expression<Func<TSource, object>> keySelector;
 
@@ -105,6 +111,10 @@ namespace ServiceBus.Management.Extensions
 
                 case "time_of_failure":
                     keySelector = m => m.TimeOfFailure;
+                    break;
+
+                case "message_status":
+                    keySelector = m => m.Status;
                     break;
 
                 default:
