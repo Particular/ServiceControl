@@ -75,7 +75,7 @@ namespace ServiceBus.Management.Extensions
             {
                 "time_of_failure", "id", "message_type", 
                 "time_sent", "critical_time", "processing_time",
-                "message_status"
+                "status"
             };
 
             var sort = "time_sent";
@@ -113,7 +113,7 @@ namespace ServiceBus.Management.Extensions
                     keySelector = m => m.TimeOfFailure;
                     break;
 
-                case "message_status":
+                case "status":
                     keySelector = m => m.Status;
                     break;
 
