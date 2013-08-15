@@ -101,6 +101,7 @@
     <Compile Include="Api\Nancy\NancyRunner.cs" />
     <Compile Include="Api\Nancy\NotModifiedStatusExtension.cs" />
     <Compile Include="Api\Nancy\NServiceBusContainerBootstrapper.cs" />
+    <Compile Include="Api\Nancy\OverrideDefaultModelBinderLocatorBecauseWeHaveABugThatICantShakeIt.cs" />
     <Compile Include="Api\Nancy\StringListBinder.cs" />
     <Compile Include="Api\Nancy\UnderscoreMappingResolver.cs" />
     <Compile Include="Api\Nancy\VersionExtension.cs" />

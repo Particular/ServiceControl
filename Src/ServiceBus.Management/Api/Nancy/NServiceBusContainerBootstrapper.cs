@@ -33,9 +33,13 @@
         {
             get
             {
-                // Insert at position 0 so it takes precedence over the built in one.
                 return NancyInternalConfiguration.WithOverrides(
-                        c => c.Serializers.Remove(typeof (DefaultJsonSerializer)));
+                    c =>
+                    {
+                        c.Serializers.Remove(typeof (DefaultJsonSerializer));
+                        c.ModelBinderLocator =
+                            typeof (OverrideDefaultModelBinderLocatorBecauseWeHaveABugThatICantShakeIt);
+                    });
             }
         }
 

@@ -28,7 +28,7 @@ namespace ServiceBus.Management
             {
                 UseDefaultRowHighlightingRules = true,
             };
-
+            
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
