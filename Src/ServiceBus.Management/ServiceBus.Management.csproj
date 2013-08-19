@@ -104,6 +104,8 @@
     <Compile Include="Api\Nancy\UnderscoreMappingResolver.cs" />
     <Compile Include="Api\Nancy\VersionExtension.cs" />
     <Compile Include="Handlers\IssueRetryHandler.cs" />
+    <Compile Include="Infrastructure\Heartbeats\DisableLocalHeartbeats.cs" />
+    <Compile Include="Infrastructure\Heartbeats\EndpointHeartbeatHandler.cs" />
     <Compile Include="Installers\LogQueueInstaller.cs" />
     <Compile Include="Modules\BaseModule.cs" />
     <Compile Include="Modules\EndpointModule.cs" />
@@ -142,7 +144,12 @@
   <ItemGroup>
     <EmbeddedResource Include="License.xml" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.EndpointPlugins.Heartbeat\ServiceControl.EndpointPlugins.Heartbeat.csproj">
+      <Project>{07393fa7-8577-42d7-8fe4-3c4d955a5a31}</Project>
+      <Name>ServiceControl.EndpointPlugins.Heartbeat</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
