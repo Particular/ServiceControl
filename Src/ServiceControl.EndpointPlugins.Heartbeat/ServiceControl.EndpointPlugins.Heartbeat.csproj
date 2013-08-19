@@ -43,8 +43,11 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EndpointHeartbeat.cs" />
+    <Compile Include="HeartbeatInfoProvider.cs" />
     <Compile Include="Heartbeats.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Providers\EndpointSLASettingsProvider.cs" />
     <Compile Include="RegisterHeartbeatMessage.cs" />
   </ItemGroup>
   <ItemGroup>

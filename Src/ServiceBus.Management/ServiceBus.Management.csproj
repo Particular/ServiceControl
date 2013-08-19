@@ -135,7 +135,7 @@
     <Compile Include="Nancy\VersionExtension.cs" />
     <Compile Include="Handlers\IssueRetryHandler.cs" />
     <Compile Include="Infrastructure\Heartbeats\DisableLocalHeartbeats.cs" />
-    <Compile Include="Infrastructure\Heartbeats\EndpointHeartbeatHandler.cs" />
+    <Compile Include="Infrastructure\Heartbeats\DisplayEndpointSLAHandler.cs" />
     <Compile Include="Installers\LogQueueInstaller.cs" />
     <Compile Include="Modules\BaseModule.cs" />
     <Compile Include="Modules\EndpointModule.cs" />
