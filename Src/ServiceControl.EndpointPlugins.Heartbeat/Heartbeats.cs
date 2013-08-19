@@ -1,18 +1,21 @@
 ﻿namespace ServiceControl.EndpointPlugins.Heartbeat
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.ObjectBuilder;
 
     public class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
     {
         public IBus Bus { get; set; }
 
+        public IBuilder Builder { get; set; }
+
         public override void Initialize()
         {
-            
-
+            Configure.Instance.ForAllTypes<IHeartbeatInfoProvider>(t => Configure.Component(t, DependencyLifecycle.InstancePerCall));
         }
 
         public override bool IsEnabledByDefault
@@ -22,7 +25,16 @@
 
         void ExecuteHeartbeat(object state)
         {
-            Bus.Send(ServiceControlAddress, new EndpointHeartbeat());
+            var heartBeat = new EndpointHeartbeat
+                {
+                    ExecutedAt = DateTime.UtcNow
+                };
+
+            Builder.BuildAll<IHeartbeatInfoProvider>().ToList()
+                .ForEach(p => p.HeartbeatExecuted(heartBeat));
+
+
+            Bus.Send(ServiceControlAddress, heartBeat);
         }
 
         public void Start()
@@ -44,14 +56,9 @@
 
         TimeSpan HeartbeatInterval
         {
-            get { return TimeSpan.FromSeconds(60); }//todo: make this configurable
+            get { return TimeSpan.FromSeconds(10); }//todo: make this configurable
         }
 
-
         Timer heartbeatTimer;
-    }
-
-    public class EndpointHeartbeat
-    {
     }
 }
