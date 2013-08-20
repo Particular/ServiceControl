@@ -1,9 +1,10 @@
-﻿namespace ServiceControl.EndpointPlugins.Heartbeat.Providers
+﻿namespace ServiceControl.EndpointPlugin.BusinessMonitoring
 {
+    using Heartbeats;
     using NServiceBus;
 
     //todo: this provider is only relevant to execure on startup
-    public class EndpointSLASettingsProvider:HeartbeatInfoProvider
+    public class EndpointSLAProvider:HeartbeatInfoProvider
     {
         public override void HeartbeatExecuted(EndpointHeartbeat heartbeat)
         {

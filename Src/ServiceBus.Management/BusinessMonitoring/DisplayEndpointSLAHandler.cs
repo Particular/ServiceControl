@@ -1,8 +1,8 @@
-﻿namespace ServiceBus.Management.Infrastructure.Heartbeats
+﻿namespace ServiceBus.Management.BusinessMonitoring
 {
     using System;
     using NServiceBus;
-    using ServiceControl.EndpointPlugins.Heartbeat;
+    using ServiceControl.EndpointPlugin.Heartbeats;
 
     public class DisplayEndpointSLAHandler:IHandleMessages<EndpointHeartbeat>
     {

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointPlugins.Heartbeat
+﻿namespace ServiceControl.EndpointPlugin.Heartbeats
 {
     using System;
     using System.Linq;
