@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Heartbeats
 {
     using NServiceBus;
-    using ServiceControl.EndpointPlugins.Heartbeat;
 
     public class DisableLocalHeartbeats:INeedInitialization
     {

@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1F1D74
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceBus.Management.AcceptanceTests", "Src\ServiceBus.Management.AcceptanceTests\ServiceBus.Management.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.EndpointPlugins.Heartbeat", "src\ServiceControl.EndpointPlugins.Heartbeat\ServiceControl.EndpointPlugins.Heartbeat.csproj", "{07393FA7-8577-42D7-8FE4-3C4D955A5A31}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.EndpointPlugin", "Src\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj", "{07393FA7-8577-42D7-8FE4-3C4D955A5A31}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
