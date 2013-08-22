@@ -32,19 +32,48 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>..\..\packages\Autofac.3.0.2\lib\net40\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Autofac.Configuration">
+      <HintPath>..\..\packages\Autofac.3.0.2\lib\net40\Autofac.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Autofac.Integration.SignalR">
+      <HintPath>..\..\packages\Autofac.SignalR.3.0.1\lib\net40\Autofac.Integration.SignalR.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net">
       <HintPath>..\..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.Core">
+      <HintPath>..\..\packages\Microsoft.AspNet.SignalR.Core.1.1.3\lib\net40\Microsoft.AspNet.SignalR.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.Owin">
+      <HintPath>..\..\packages\Microsoft.AspNet.SignalR.Owin.1.1.3\lib\net40\Microsoft.AspNet.SignalR.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin">
+      <HintPath>..\..\packages\Microsoft.Owin.1.1.0-beta2\lib\net40\Microsoft.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Diagnostics">
+      <HintPath>..\..\packages\Microsoft.Owin.Diagnostics.1.1.0-beta2\lib\net40\Microsoft.Owin.Diagnostics.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Host.HttpListener">
+      <HintPath>..\..\packages\Microsoft.Owin.Host.HttpListener.1.1.0-beta2\lib\net40\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Hosting">
+      <HintPath>..\..\packages\Microsoft.Owin.Hosting.1.1.0-beta2\lib\net40\Microsoft.Owin.Hosting.dll</HintPath>
+    </Reference>
     <Reference Include="Nancy, Version=0.18.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Nancy.0.18.0\lib\net40\Nancy.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Hosting.Self, Version=0.18.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.Hosting.Self.0.18.0\lib\net40\Nancy.Hosting.Self.dll</HintPath>
+    <Reference Include="Nancy.Bootstrappers.Autofac">
+      <HintPath>..\..\packages\Nancy.Bootstrappers.Autofac.0.18.0\lib\net40\Nancy.Bootstrappers.Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Nancy.Owin">
+      <HintPath>..\..\packages\Nancy.Owin.0.18.0\lib\net40\Nancy.Owin.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -55,15 +84,21 @@
     </Reference>
     <Reference Include="NServiceBus, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NServiceBus.Interfaces.4.0.1\lib\net40\NServiceBus.dll</HintPath>
+      <HintPath>..\..\packages\NServiceBus.Interfaces.4.0.3\lib\net40\NServiceBus.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NServiceBus.4.0.1\lib\net40\NServiceBus.Core.dll</HintPath>
+      <HintPath>..\..\packages\NServiceBus.4.0.3\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.Host, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NServiceBus.Host.4.0.1\lib\net40\NServiceBus.Host.exe</HintPath>
+      <HintPath>..\..\packages\NServiceBus.Host.4.0.3\lib\net40\NServiceBus.Host.exe</HintPath>
+    </Reference>
+    <Reference Include="NServiceBus.ObjectBuilder.Autofac">
+      <HintPath>..\..\packages\NServiceBus.Autofac.4.0.3\lib\net40\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin">
+      <HintPath>..\..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
     <Reference Include="Raven.Abstractions, Version=2.0.3.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -85,24 +120,19 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api\Nancy\CacheControlExtension.cs" />
-    <Compile Include="Api\Nancy\Helpers.cs" />
-    <Compile Include="Api\Nancy\JsonNetBodyDeserializer.cs" />
-    <Compile Include="Api\Nancy\JsonNetSerializer.cs" />
-    <Compile Include="Api\Nancy\NancyCompressionExtension.cs" />
-    <Compile Include="Api\Nancy\NancyConfigurer.cs" />
-    <Compile Include="Api\Nancy\NancyRunner.cs" />
-    <Compile Include="Api\Nancy\NotModifiedStatusExtension.cs" />
-    <Compile Include="Api\Nancy\NServiceBusContainerBootstrapper.cs" />
-    <Compile Include="Api\Nancy\UnderscoreMappingResolver.cs" />
-    <Compile Include="Api\Nancy\VersionExtension.cs" />
+    <Compile Include="Nancy\CacheControlExtension.cs" />
+    <Compile Include="Nancy\Helpers.cs" />
+    <Compile Include="Nancy\JsonNetBodyDeserializer.cs" />
+    <Compile Include="Nancy\JsonNetSerializer.cs" />
+    <Compile Include="Nancy\NancyCompressionExtension.cs" />
+    <Compile Include="Nancy\NotModifiedStatusExtension.cs" />
+    <Compile Include="Nancy\NServiceBusContainerBootstrapper.cs" />
+    <Compile Include="Nancy\UnderscoreMappingResolver.cs" />
+    <Compile Include="Nancy\VersionExtension.cs" />
     <Compile Include="Handlers\IssueRetryHandler.cs" />
     <Compile Include="Installers\LogQueueInstaller.cs" />
     <Compile Include="Modules\BaseModule.cs" />
@@ -110,6 +140,8 @@
     <Compile Include="Commands\IssueRetry.cs" />
     <Compile Include="Modules\MessagesModule.cs" />
     <Compile Include="Modules\RootModule.cs" />
+    <Compile Include="OWIN\OwinRunner.cs" />
+    <Compile Include="OWIN\Startup.cs" />
     <Compile Include="RavenDB\Indexes\CommonResult.cs" />
     <Compile Include="RavenDB\Indexes\Conversations_Sorted.cs" />
     <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
@@ -130,6 +162,7 @@
     <Compile Include="Satellites\ErrorImportSatellite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RavenDB\RavenBootstrapper.cs" />
+    <Compile Include="SignalR\EndpointsConnection.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

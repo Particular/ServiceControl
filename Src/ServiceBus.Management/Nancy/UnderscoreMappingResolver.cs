@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Api.Nancy
+﻿namespace ServiceBus.Management.Nancy
 {
     using Newtonsoft.Json.Serialization;
 

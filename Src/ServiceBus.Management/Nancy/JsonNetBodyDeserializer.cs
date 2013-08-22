@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Api.Nancy
+﻿namespace ServiceBus.Management.Nancy
 {
     using System;
     using System.Collections;
@@ -52,7 +52,7 @@
         public object Deserialize(string contentType, Stream bodyStream, BindingContext context)
         {
             var deserializedObject =
-                this.serializer.Deserialize(new StreamReader(bodyStream), context.DestinationType);
+                serializer.Deserialize(new StreamReader(bodyStream), context.DestinationType);
 
             if (context.DestinationType.GetProperties(BindingFlags.Public | BindingFlags.Instance).Except(context.ValidModelProperties).Any())
             {

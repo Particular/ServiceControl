@@ -3,7 +3,7 @@ namespace ServiceBus.Management.Modules
     using System;
     using System.Linq;
     using Extensions;
-    using Nancy;
+    using global::Nancy;
     using Raven.Client;
     using RavenDB.Indexes;
 

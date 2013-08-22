@@ -5,9 +5,9 @@ namespace ServiceBus.Management.Extensions
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using Nancy;
-    using Nancy.Helpers;
-    using Nancy.Responses.Negotiation;
+    using global::Nancy;
+    using global::Nancy.Helpers;
+    using global::Nancy.Responses.Negotiation;
     using Raven.Client;
 
     public static class NegotiatorExtensions

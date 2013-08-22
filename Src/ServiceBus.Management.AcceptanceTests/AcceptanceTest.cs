@@ -7,7 +7,7 @@
     using System.Net;
     using System.Security.AccessControl;
     using System.Security.Principal;
-    using Api.Nancy;
+    using Nancy;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using NServiceBus.AcceptanceTesting.Customization;

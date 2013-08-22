@@ -3,7 +3,7 @@ namespace ServiceBus.Management.Extensions
     using System;
     using System.Linq;
     using System.Linq.Expressions;
-    using Nancy;
+    using global::Nancy;
     using RavenDB.Indexes;
 
     public static class QueryableExtensions

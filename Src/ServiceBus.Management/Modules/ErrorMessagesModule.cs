@@ -4,9 +4,9 @@
     using System.Linq;
     using Commands;
     using Extensions;
+    using global::Nancy;
+    using global::Nancy.ModelBinding;
     using NServiceBus;
-    using Nancy;
-    using Nancy.ModelBinding;
     using Raven.Client;
     using RavenDB.Indexes;
 

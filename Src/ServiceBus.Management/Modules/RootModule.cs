@@ -1,7 +1,7 @@
 ﻿namespace ServiceBus.Management.Modules
 {
     using System.IO;
-    using Nancy;
+    using global::Nancy;
 
     public class RootModule : BaseModule
     {

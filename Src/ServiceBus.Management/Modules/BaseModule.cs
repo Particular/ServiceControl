@@ -1,7 +1,7 @@
 ﻿namespace ServiceBus.Management.Modules
 {
-    using Nancy;
-    using Nancy.Responses.Negotiation;
+    using global::Nancy;
+    using global::Nancy.Responses.Negotiation;
 
     public abstract class BaseModule : NancyModule
     {
