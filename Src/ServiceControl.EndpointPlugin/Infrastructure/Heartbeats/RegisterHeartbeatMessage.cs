@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointPlugin.Heartbeats
+﻿namespace ServiceControl.EndpointPlugin.Infrastructure.Heartbeats
 {
     using NServiceBus;
 

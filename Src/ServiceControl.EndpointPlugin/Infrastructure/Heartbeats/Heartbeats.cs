@@ -1,10 +1,11 @@
-﻿namespace ServiceControl.EndpointPlugin.Heartbeats
+﻿namespace ServiceControl.EndpointPlugin.Infrastructure.Heartbeats
 {
     using System;
     using System.Linq;
     using System.Threading;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
 
     public class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
@@ -31,7 +32,11 @@
                 };
 
             Builder.BuildAll<IHeartbeatInfoProvider>().ToList()
-                .ForEach(p => p.HeartbeatExecuted(heartBeat));
+                .ForEach(p =>
+                    {
+                        Logger.DebugFormat("Invoking heartbeat provider {0}",p.GetType().FullName);
+                        p.HeartbeatExecuted(heartBeat);
+                    });
 
 
             Bus.Send(ServiceControlAddress, heartBeat);
@@ -39,12 +44,17 @@
 
         public void Start()
         {
+            if(!Enabled)
+                return;
             heartbeatTimer = new Timer(ExecuteHeartbeat, null, TimeSpan.Zero, HeartbeatInterval);
         }
 
 
         public void Stop()
         {
+            if (!Enabled)
+                return;
+
             heartbeatTimer.Change(TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
         }
 
@@ -60,5 +70,7 @@
         }
 
         Timer heartbeatTimer;
+
+        static ILog Logger = LogManager.GetLogger(typeof(Heartbeats));
     }
 }
