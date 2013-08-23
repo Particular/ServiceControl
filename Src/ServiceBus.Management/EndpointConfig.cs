@@ -4,11 +4,11 @@ namespace ServiceBus.Management
     using NLog;
     using NLog.Config;
     using NLog.Targets;
-    using NServiceBus.Logging.Loggers.NLogAdapter;
     using System;
     using System.IO;
     using System.Reflection;
     using NServiceBus;
+    using NServiceBus.Logging.Loggers.NLogAdapter;
 
     public class EndpointConfig : IConfigureThisEndpoint, AsA_Server, IWantCustomLogging, IWantCustomInitialization
     {
@@ -21,7 +21,8 @@ namespace ServiceBus.Management
             var transportType = SettingsReader<string>.Read("TransportType", typeof (Msmq).AssemblyQualifiedName);
             Configure.With()
                 .AutofacBuilder(Container)
-                .UseTransport(Type.GetType(transportType));
+                .UseTransport(Type.GetType(transportType))
+                .UnicastBus();
 
             ConfigureLicense();
 

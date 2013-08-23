@@ -23,7 +23,7 @@
                 }))
                 .WithEndpoint<Receiver>()
                 .Done(c => AuditDataAvailable(context, c))
-                .Run();
+                .Run(TimeSpan.FromSeconds(40));
 
             Assert.NotNull(context.ReturnedMessage, "No message was returned by the management api");
             Assert.AreEqual(context.MessageId, context.ReturnedMessage.MessageId,

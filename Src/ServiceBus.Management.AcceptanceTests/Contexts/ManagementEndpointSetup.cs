@@ -1,24 +1,24 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts
 {
     using System.IO;
-    using System.Reflection;
+    using NLog;
+    using NLog.Config;
+    using NLog.Targets;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
-    using NServiceBus.Logging.Loggers.Log4NetAdapter;
+    using NServiceBus.Logging.Loggers.NLogAdapter;
 
     public class ManagementEndpointSetup : IEndpointSetupTemplate
     {
         public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource)
         {
+            EndpointConfig c = new EndpointConfig();
+            c.Init();
+
             SetupLogging(endpointConfiguration);
-
-            Configure.Serialization.Xml();
-
-            return Configure.With(AllAssemblies.Except(Assembly.GetExecutingAssembly().FullName))
-                            .DefaultBuilder()
-                            .UseTransport<Msmq>()
-                            .UnicastBus();
+            
+            return Configure.Instance;
         }
 
         static void SetupLogging(EndpointConfiguration endpointConfiguration)
@@ -36,7 +36,17 @@
 
             var logLevel = "INFO";
 
-            SetLoggingLibrary.Log4Net(null, Log4NetAppenderFactory.CreateRollingFileAppender(logLevel, logFile));
+            var nlogConfig = new LoggingConfiguration();
+
+            var fileTarget = new FileTarget
+            {
+                FileName = logFile,
+            };
+
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
+            nlogConfig.AddTarget("debugger", fileTarget);
+            NLogConfigurator.Configure(new object[] { fileTarget }, logLevel);
+            LogManager.Configuration = nlogConfig;
         }
     }
 }

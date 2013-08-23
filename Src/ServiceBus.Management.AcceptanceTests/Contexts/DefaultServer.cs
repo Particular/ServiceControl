@@ -5,12 +5,15 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using NLog;
+    using NLog.Config;
+    using NLog.Targets;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
     using NServiceBus.Features;
     using NServiceBus.Hosting.Helpers;
     using NServiceBus;
-    using NServiceBus.Logging.Loggers.Log4NetAdapter;
+    using NServiceBus.Logging.Loggers.NLogAdapter;
 
     public class DefaultServer : IEndpointSetupTemplate
     {
@@ -63,7 +66,17 @@
 
             var logLevel = "INFO";
 
-            SetLoggingLibrary.Log4Net(null, Log4NetAppenderFactory.CreateRollingFileAppender(logLevel, logFile));
+            var nlogConfig = new LoggingConfiguration();
+
+            var fileTarget = new FileTarget
+            {
+                FileName = logFile,
+            };
+
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
+            nlogConfig.AddTarget("debugger", fileTarget);
+            NLogConfigurator.Configure(new object[] { fileTarget }, logLevel);
+            LogManager.Configuration = nlogConfig;
         }
 
         static IEnumerable<Type> GetTypesToUse(EndpointConfiguration endpointConfiguration)
