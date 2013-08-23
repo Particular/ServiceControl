@@ -50,7 +50,6 @@
     <Compile Include="Infrastructure\Heartbeats\Heartbeats.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAHeartbeatProvider.cs" />
-    <Compile Include="Infrastructure\Heartbeats\RegisterHeartbeatMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

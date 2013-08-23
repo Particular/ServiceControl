@@ -1,16 +1,21 @@
 ﻿namespace ServiceControl.EndpointPlugin.Infrastructure.Heartbeats
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
+    using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NServiceBus.ObjectBuilder;
+    using NServiceBus.Serializers.XML;
+    using NServiceBus.Transports;
 
     public class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
     {
-        public IBus Bus { get; set; }
+        public ISendMessages MessageSender { get; set; }
+
 
         public IBuilder Builder { get; set; }
 
@@ -53,6 +58,10 @@
 
         public override void Initialize()
         {
+            serializer = new XmlMessageSerializer(new MessageMapper());
+
+            serializer.InitType(typeof(EndpointHeartbeat));
+
             Configure.Instance.ForAllTypes<IHeartbeatInfoProvider>(
                 t => Configure.Component(t, DependencyLifecycle.InstancePerCall));
         }
@@ -71,10 +80,21 @@
                     p.HeartbeatExecuted(heartBeat);
                 });
 
+            var message = new TransportMessage();
 
-            Bus.Send(ServiceControlAddress, heartBeat);
+            using (var stream = new MemoryStream())
+            {
+                serializer.Serialize(new[] {heartBeat}, stream);
+
+                stream.Position = 0;
+                message.Body = new byte[stream.Length];
+                stream.Read(message.Body, 0, Convert.ToInt32(stream.Length));
+            }
+            
+            MessageSender.Send(message,ServiceControlAddress);
         }
 
+        static XmlMessageSerializer serializer;//change this when we switch to json for ServiceControl
         static readonly ILog Logger = LogManager.GetLogger(typeof(Heartbeats));
         Timer heartbeatTimer;
     }
