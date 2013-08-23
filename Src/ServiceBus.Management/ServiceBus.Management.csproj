@@ -127,59 +127,59 @@
     <Compile Include="BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Infrastructure\Heartbeats\RegisterHeartbeatMessage.cs" />
-    <Compile Include="Nancy\CacheControlExtension.cs" />
-    <Compile Include="Nancy\Helpers.cs" />
-    <Compile Include="Nancy\JsonNetBodyDeserializer.cs" />
-    <Compile Include="Nancy\JsonNetSerializer.cs" />
-    <Compile Include="Nancy\NancyCompressionExtension.cs" />
-    <Compile Include="Nancy\NotModifiedStatusExtension.cs" />
-    <Compile Include="Nancy\NServiceBusContainerBootstrapper.cs" />
-    <Compile Include="Nancy\UnderscoreMappingResolver.cs" />
-    <Compile Include="Nancy\VersionExtension.cs" />
-    <Compile Include="Nancy\StringListBinder.cs" />
-    <Compile Include="Commands\IssueEndpointRetryAll.cs" />
-    <Compile Include="Commands\IssueRetries.cs" />
-    <Compile Include="Commands\IssueRetryAll.cs" />
-    <Compile Include="Handlers\IssueEndpointRetryAllHandler.cs" />
-    <Compile Include="Handlers\IssueRetriesHandler.cs" />
-    <Compile Include="Handlers\IssueRetryAllHandler.cs" />
-    <Compile Include="Handlers\IssueRetryAllHandlerBase.cs" />
-    <Compile Include="Handlers\IssueRetryHandler.cs" />
+    <Compile Include="Infrastructure\Nancy\CacheControlExtension.cs" />
+    <Compile Include="Infrastructure\Nancy\Helpers.cs" />
+    <Compile Include="Infrastructure\Nancy\JsonNetBodyDeserializer.cs" />
+    <Compile Include="Infrastructure\Nancy\JsonNetSerializer.cs" />
+    <Compile Include="Infrastructure\Nancy\NancyCompressionExtension.cs" />
+    <Compile Include="Infrastructure\Nancy\NotModifiedStatusExtension.cs" />
+    <Compile Include="Infrastructure\Nancy\NServiceBusContainerBootstrapper.cs" />
+    <Compile Include="Infrastructure\Nancy\UnderscoreMappingResolver.cs" />
+    <Compile Include="Infrastructure\Nancy\VersionExtension.cs" />
+    <Compile Include="Infrastructure\Nancy\StringListBinder.cs" />
+    <Compile Include="MessageFailures\InternalMessages\IssueEndpointRetryAll.cs" />
+    <Compile Include="MessageFailures\InternalMessages\IssueRetries.cs" />
+    <Compile Include="MessageFailures\InternalMessages\IssueRetryAll.cs" />
+    <Compile Include="MessageFailures\Handlers\IssueEndpointRetryAllHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\IssueRetriesHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\IssueRetryAllHandlerBase.cs" />
+    <Compile Include="MessageFailures\Handlers\IssueRetryHandler.cs" />
     <Compile Include="Infrastructure\Heartbeats\DisableLocalHeartbeats.cs" />
     <Compile Include="BusinessMonitoring\EndpointHeartbeatHandler.cs" />
-    <Compile Include="Installers\LogQueueInstaller.cs" />
-    <Compile Include="Modules\BaseModule.cs" />
-    <Compile Include="Modules\EndpointModule.cs" />
-    <Compile Include="Commands\IssueRetry.cs" />
-    <Compile Include="Modules\MessagesModule.cs" />
-    <Compile Include="Modules\RootModule.cs" />
-    <Compile Include="OWIN\OwinRunner.cs" />
-    <Compile Include="OWIN\Startup.cs" />
-    <Compile Include="RavenDB\Indexes\CommonResult.cs" />
-    <Compile Include="RavenDB\Indexes\Conversations_Sorted.cs" />
-    <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
-    <Compile Include="RavenDB\Indexes\Messages_Ids.cs" />
-    <Compile Include="RavenDB\Indexes\Messages_Search.cs" />
-    <Compile Include="RavenDB\Indexes\Messages_Sort.cs" />
-    <Compile Include="RavenDB\RavenUnitOfWork.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="SettingsReader.cs" />
-    <Compile Include="Satellites\AuditMessageImportSatellite.cs" />
-    <Compile Include="Modules\AuditMessagesModule.cs" />
-    <Compile Include="Modules\ConversationsModule.cs" />
-    <Compile Include="EndpointConfig.cs" />
-    <Compile Include="Extensions\NegotiatorExtensions.cs" />
-    <Compile Include="Extensions\QueryableExtensions.cs" />
-    <Compile Include="Message.cs" />
-    <Compile Include="Modules\ErrorMessagesModule.cs" />
-    <Compile Include="MessageStatus.cs" />
-    <Compile Include="Satellites\ErrorImportSatellite.cs" />
+    <Compile Include="Infrastructure\Installers\LogQueueInstaller.cs" />
+    <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
+    <Compile Include="EndpointControl\EndpointModule.cs" />
+    <Compile Include="MessageFailures\InternalMessages\IssueRetry.cs" />
+    <Compile Include="MessageAuditing\MessagesModule.cs" />
+    <Compile Include="Infrastructure\Nancy\Modules\RootModule.cs" />
+    <Compile Include="Infrastructure\OWIN\OwinRunner.cs" />
+    <Compile Include="Infrastructure\OWIN\Startup.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\CommonResult.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\Conversations_Sorted.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\Endpoints_Distinct.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Ids.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Search.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Sort.cs" />
+    <Compile Include="Infrastructure\RavenDB\RavenUnitOfWork.cs" />
+    <Compile Include="Infrastructure\Settings\Settings.cs" />
+    <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
+    <Compile Include="Infrastructure\Satellites\AuditMessageImportSatellite.cs" />
+    <Compile Include="MessageAuditing\AuditMessagesModule.cs" />
+    <Compile Include="BusinessProcessTracking\ConversationsModule.cs" />
+    <Compile Include="Infrastructure\EndpointConfiguration\EndpointConfig.cs" />
+    <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />
+    <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
+    <Compile Include="MessageAuditing\Message.cs" />
+    <Compile Include="MessageFailures\ErrorMessagesModule.cs" />
+    <Compile Include="MessageAuditing\MessageStatus.cs" />
+    <Compile Include="Infrastructure\Satellites\ErrorImportSatellite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RavenDB\RavenBootstrapper.cs" />
-    <Compile Include="SignalR\MessageStreamerConnection.cs" />
+    <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
+    <Compile Include="Infrastructure\SignalR\MessageStreamerConnection.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
+    <None Include="Infrastructure\EndpointConfiguration\App.config">
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config">
@@ -187,7 +187,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="License.xml" />
+    <EmbeddedResource Include="Infrastructure\EndpointConfiguration\License.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj">
@@ -195,6 +195,7 @@
       <Name>ServiceControl.EndpointPlugin</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

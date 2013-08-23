@@ -2,6 +2,7 @@
 {
     using System;
     using Contexts;
+    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;

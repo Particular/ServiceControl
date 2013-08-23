@@ -5,6 +5,7 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using MessageAuditing;
     using NLog;
     using NLog.Config;
     using NLog.Targets;

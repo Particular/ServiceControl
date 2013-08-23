@@ -3,6 +3,7 @@
     using System;
     using System.Text;
     using Contexts;
+    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;

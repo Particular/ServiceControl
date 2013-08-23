@@ -1,7 +1,7 @@
 namespace ServiceBus.Management.BusinessMonitoring
 {
+    using Infrastructure.Nancy.Modules;
     using global::Nancy;
-    using Modules;
 
     public class ApiModule : BaseModule
     {

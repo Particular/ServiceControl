@@ -27,8 +27,7 @@
 
         Address ServiceControlAddress
         {
-            get { return Address.Parse("ServiceBus.Management"); }
-            //todo: need to be improved for msmq and rename to ServiceControl when the time comes
+            get { return Address.Parse("ServiceControl"); }
         }
 
         TimeSpan HeartbeatInterval

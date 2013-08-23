@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using Contexts;
+    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
