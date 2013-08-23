@@ -126,6 +126,8 @@
     <Compile Include="BusinessMonitoring\ApiModule.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
+    <Compile Include="Operations\Heartbeats\ApiModule.cs" />
+    <Compile Include="Operations\Heartbeats\HeartbeatSummary.cs" />
     <Compile Include="Operations\Heartbeats\RegisterHeartbeatMessage.cs" />
     <Compile Include="Infrastructure\Nancy\CacheControlExtension.cs" />
     <Compile Include="Infrastructure\Nancy\Helpers.cs" />

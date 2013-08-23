@@ -73,6 +73,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Operations\Heartbeats\When_a_message_has_been_successfully_processed.cs" />
     <Compile Include="When_a_message_has_failed.cs" />
     <Compile Include="When_issuing_a_retry_for_a_failed_message.cs" />
     <Compile Include="AcceptanceTest.cs" />
