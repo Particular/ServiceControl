@@ -20,8 +20,6 @@
   <configSections>
     <section name=""TransportConfig"" type=""NServiceBus.Config.TransportConfig, NServiceBus.Core"" />
     <section name=""MessageForwardingInCaseOfFaultConfig"" type=""NServiceBus.Config.MessageForwardingInCaseOfFaultConfig, NServiceBus.Core"" />
-    <section name=""log4net"" type=""log4net.Config.Log4NetConfigurationSectionHandler,log4net"" />
-    <section name=""UnicastBusConfig"" type=""NServiceBus.Config.UnicastBusConfig, NServiceBus.Core"" />
   </configSections>
   <appSettings>
     <!--<add key=""ServiceBus/Management/Port"" value =""9999""/>-->
@@ -38,8 +36,14 @@
   </connectionStrings>
   <TransportConfig MaximumConcurrencyLevel=""10"" MaxRetries=""3"" />
   <MessageForwardingInCaseOfFaultConfig ErrorQueue=""ServiceBus.Management.Errors"" />
-  <UnicastBusConfig ForwardReceivedMessagesTo=""audit"">
-  </UnicastBusConfig>
+  <runtime>
+    <assemblyBinding xmlns=""urn:schemas-microsoft-com:asm.v1"">
+      <dependentAssembly>
+        <assemblyIdentity name=""Microsoft.AspNet.SignalR.Core"" publicKeyToken=""31bf3856ad364e35"" culture=""neutral"" />
+        <bindingRedirect oldVersion=""0.0.0.0-1.1.0.0"" newVersion=""1.1.0.0"" />
+      </dependentAssembly>
+    </assemblyBinding>
+  </runtime>
 </configuration>
 ";
     }

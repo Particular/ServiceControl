@@ -135,6 +135,14 @@
     <Compile Include="Nancy\NServiceBusContainerBootstrapper.cs" />
     <Compile Include="Nancy\UnderscoreMappingResolver.cs" />
     <Compile Include="Nancy\VersionExtension.cs" />
+    <Compile Include="Nancy\StringListBinder.cs" />
+    <Compile Include="Commands\IssueEndpointRetryAll.cs" />
+    <Compile Include="Commands\IssueRetries.cs" />
+    <Compile Include="Commands\IssueRetryAll.cs" />
+    <Compile Include="Handlers\IssueEndpointRetryAllHandler.cs" />
+    <Compile Include="Handlers\IssueRetriesHandler.cs" />
+    <Compile Include="Handlers\IssueRetryAllHandler.cs" />
+    <Compile Include="Handlers\IssueRetryAllHandlerBase.cs" />
     <Compile Include="Handlers\IssueRetryHandler.cs" />
     <Compile Include="Infrastructure\Heartbeats\DisableLocalHeartbeats.cs" />
     <Compile Include="BusinessMonitoring\EndpointHeartbeatHandler.cs" />
@@ -149,6 +157,7 @@
     <Compile Include="RavenDB\Indexes\CommonResult.cs" />
     <Compile Include="RavenDB\Indexes\Conversations_Sorted.cs" />
     <Compile Include="RavenDB\Indexes\Endpoints_Distinct.cs" />
+    <Compile Include="RavenDB\Indexes\Messages_Ids.cs" />
     <Compile Include="RavenDB\Indexes\Messages_Search.cs" />
     <Compile Include="RavenDB\Indexes\Messages_Sort.cs" />
     <Compile Include="RavenDB\RavenUnitOfWork.cs" />

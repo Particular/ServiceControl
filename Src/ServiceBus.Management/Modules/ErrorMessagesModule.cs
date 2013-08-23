@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.Modules
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using Commands;
     using Extensions;
@@ -61,10 +62,42 @@
                 }
             };
 
-            Post["/errors/{messageid}/retry"] = parameters =>
+            Post["/errors/{messageid}/retry"] = _ =>
             {
                 var request = this.Bind<IssueRetry>();
 
+                request.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
+
+                Bus.SendLocal(request);
+
+                return HttpStatusCode.Accepted;
+            };
+
+            Post["/errors/retry"] = _ =>
+            {
+                var ids = this.Bind<List<string>>();
+
+                var request = new IssueRetries {MessageIds = ids};
+                request.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
+
+                Bus.SendLocal(request);
+
+                return HttpStatusCode.Accepted;
+            };
+
+            Post["/errors/retry/all"] = _ =>
+            {
+                var request = new IssueRetryAll();
+                request.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
+
+                Bus.SendLocal(request);
+
+                return HttpStatusCode.Accepted;
+            };
+
+            Post["/errors/{name}/retry/all"] = parameters =>
+            {
+                var request = new IssueEndpointRetryAll {EndpointName = parameters.name};
                 request.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
 
                 Bus.SendLocal(request);

@@ -15,8 +15,7 @@
         {
             get
             {
-                return NancyInternalConfiguration.WithOverrides(
-                    c => c.Serializers.Remove(typeof(DefaultJsonSerializer)));
+                return NancyInternalConfiguration.WithOverrides(c => c.Serializers.Remove(typeof(DefaultJsonSerializer)));
             }
         }
 
