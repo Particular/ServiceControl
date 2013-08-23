@@ -122,6 +122,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Alerts\EndpointSLABreachedHandler.cs" />
+    <Compile Include="BusinessMonitoring\ApiModule.cs" />
+    <Compile Include="BusinessMonitoring\EndpointSLABreached.cs" />
+    <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Nancy\CacheControlExtension.cs" />
     <Compile Include="Nancy\Helpers.cs" />
     <Compile Include="Nancy\JsonNetBodyDeserializer.cs" />
@@ -133,7 +137,7 @@
     <Compile Include="Nancy\VersionExtension.cs" />
     <Compile Include="Handlers\IssueRetryHandler.cs" />
     <Compile Include="Infrastructure\Heartbeats\DisableLocalHeartbeats.cs" />
-    <Compile Include="BusinessMonitoring\DisplayEndpointSLAHandler.cs" />
+    <Compile Include="BusinessMonitoring\EndpointHeartbeatHandler.cs" />
     <Compile Include="Installers\LogQueueInstaller.cs" />
     <Compile Include="Modules\BaseModule.cs" />
     <Compile Include="Modules\EndpointModule.cs" />

@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceBus.Management.Accep
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.EndpointPlugin", "Src\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj", "{07393FA7-8577-42D7-8FE4-3C4D955A5A31}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "src\ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{07393FA7-8577-42D7-8FE4-3C4D955A5A31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07393FA7-8577-42D7-8FE4-3C4D955A5A31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07393FA7-8577-42D7-8FE4-3C4D955A5A31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
