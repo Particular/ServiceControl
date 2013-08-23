@@ -3,10 +3,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNet.SignalR;
+    using NServiceBus;
 
-    public class EndpointsConnection : PersistentConnection
+    public class MessageStreamerConnection : PersistentConnection
     {
-        public EndpointsConnection()
+        public IBus Bus { get; set; }
+
+        public MessageStreamerConnection()
         {
             timer = new Timer(Callback, null, 5000, 5000);
         }
@@ -18,12 +21,13 @@
                 return;
             }
 
+            
             Connection.Broadcast("Are you still there?");
         }
 
         protected override Task OnReceived(IRequest request, string connectionId, string data)
         {
-            return Connection.Broadcast("Hello John!");
+            return Connection.Broadcast(string.Format("Hello John!, we have a Bus={0}", Bus != null));
         }
 
         // ReSharper disable once NotAccessedField.Local
