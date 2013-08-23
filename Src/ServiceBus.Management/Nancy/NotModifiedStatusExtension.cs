@@ -30,7 +30,7 @@
                 currentLastModified = responseHeaders["Last-Modified"];
 
                 var responseLastModified = DateTime.ParseExact(currentLastModified, "R",
-                                                               CultureInfo.InvariantCulture, DateTimeStyles.None);
+                    CultureInfo.InvariantCulture, DateTimeStyles.None);
                 if (responseLastModified <= requestHeaders.IfModifiedSince)
                 {
                     send304 = true;
@@ -39,12 +39,12 @@
 
             if (send304)
             {
-                ctx.Response = new Response { StatusCode = HttpStatusCode.NotModified };
-                
+                ctx.Response = new Response {StatusCode = HttpStatusCode.NotModified};
+
                 if (currentEtag != null)
                 {
                     ctx.Response
-                       .WithHeader("ETag", currentEtag);
+                        .WithHeader("ETag", currentEtag);
                 }
                 if (currentLastModified != null)
                 {

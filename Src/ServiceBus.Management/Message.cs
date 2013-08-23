@@ -10,12 +10,11 @@
     using NServiceBus.Logging;
     using NServiceBus.Scheduling.Messages;
     using NServiceBus.Unicast.Transport;
-    using Newtonsoft.Json;
+    using Raven.Imports.Newtonsoft.Json;
+    using JsonConvert = Newtonsoft.Json.JsonConvert;
 
     public class Message
     {
-        ICollection<HistoryItem> history;
-
         public Message()
         {
         }
@@ -45,7 +44,9 @@
                 ContentType = DetermineContentType(message);
                 Body = DeserializeBody(message, ContentType);
                 BodyRaw = message.Body;
-                RelatedToMessageId = message.Headers.ContainsKey(NServiceBus.Headers.RelatedTo) ? message.Headers[NServiceBus.Headers.RelatedTo] : null;
+                RelatedToMessageId = message.Headers.ContainsKey(NServiceBus.Headers.RelatedTo)
+                    ? message.Headers[NServiceBus.Headers.RelatedTo]
+                    : null;
                 ConversationId = message.Headers[NServiceBus.Headers.ConversationId];
                 OriginatingSaga = SagaDetails.Parse(message);
                 IsDeferredMessage = message.Headers.ContainsKey(NServiceBus.Headers.IsDeferredMessage);
@@ -54,26 +55,13 @@
             OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(message);
         }
 
-        bool DetectSystemMessage(string messageTypeString)
-        {
-            return messageTypeString.Contains(typeof (ScheduledTask).FullName);
-        }
-
-        string GetMessageType(string messageTypeString)
-        {
-            if (!messageTypeString.Contains(","))
-                return messageTypeString;
-
-            return messageTypeString.Split(',').First();
-        }
-
-        [Raven.Imports.Newtonsoft.Json.JsonIgnore] 
+        [JsonIgnore]
         public string Url { get; set; }
 
-        [Raven.Imports.Newtonsoft.Json.JsonIgnore]
+        [JsonIgnore]
         public string RetryUrl { get; set; }
 
-        [Raven.Imports.Newtonsoft.Json.JsonIgnore] 
+        [JsonIgnore]
         public string ConversationUrl { get; set; }
 
 
@@ -129,6 +117,21 @@
 
         public bool IsSystemMessage { get; set; }
 
+        bool DetectSystemMessage(string messageTypeString)
+        {
+            return messageTypeString.Contains(typeof(ScheduledTask).FullName);
+        }
+
+        string GetMessageType(string messageTypeString)
+        {
+            if (!messageTypeString.Contains(","))
+            {
+                return messageTypeString;
+            }
+
+            return messageTypeString.Split(',').First();
+        }
+
         string DetermineContentType(TransportMessage message)
         {
             if (message.Headers.ContainsKey(NServiceBus.Headers.ContentType))
@@ -168,7 +171,9 @@
 
         public TransportMessage IssueRetry(DateTime requestedAt)
         {
-            var rawMessage = new TransportMessage(MessageId, Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value))
+            var rawMessage = new TransportMessage(MessageId,
+                Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key))
+                    .ToDictionary(kv => kv.Key, kv => kv.Value))
             {
                 Body = BodyRaw,
                 CorrelationId = CorrelationId,
@@ -180,26 +185,13 @@
             Status = MessageStatus.RetryIssued;
 
             History.Add(new HistoryItem
-                {
-                    Action = "RetryIssued",
-                    Time = requestedAt
-                });
+            {
+                Action = "RetryIssued",
+                Time = requestedAt
+            });
 
             return rawMessage;
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(Message));
-
-        static readonly IList<string> KeysToRemoveWhenRetryingAMessage = new List<string>
-            {
-                NServiceBus.Headers.Retries,
-                "NServiceBus.FailedQ",
-                "NServiceBus.TimeOfFailure",
-                "NServiceBus.ExceptionInfo.ExceptionType",
-                "NServiceBus.ExceptionInfo.Message",
-                "NServiceBus.ExceptionInfo.Source",
-                "NServiceBus.ExceptionInfo.StackTrace"
-            };
 
         public void Update(TransportMessage message)
         {
@@ -220,12 +212,13 @@
 
             if (Status != MessageStatus.Successful)
             {
-                FailureDetails.ResolvedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
+                FailureDetails.ResolvedAt =
+                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
                 History.Add(new HistoryItem
-                    {
-                        Action = "ErrorResolved",
-                        Time = FailureDetails.ResolvedAt
-                    });
+                {
+                    Action = "ErrorResolved",
+                    Time = FailureDetails.ResolvedAt
+                });
             }
 
             Status = MessageStatus.Successful;
@@ -236,7 +229,6 @@
             }
 
             Statistics = GetProcessingStatistics(message);
-
         }
 
         public void MarkAsSuccessful(TransportMessage message)
@@ -249,7 +241,6 @@
             {
                 ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
             }
-
         }
 
         MessageStatistics GetProcessingStatistics(TransportMessage message)
@@ -264,6 +255,21 @@
                     DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingStarted])
             };
         }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(Message));
+
+        static readonly IList<string> KeysToRemoveWhenRetryingAMessage = new List<string>
+        {
+            NServiceBus.Headers.Retries,
+            "NServiceBus.FailedQ",
+            "NServiceBus.TimeOfFailure",
+            "NServiceBus.ExceptionInfo.ExceptionType",
+            "NServiceBus.ExceptionInfo.Message",
+            "NServiceBus.ExceptionInfo.Source",
+            "NServiceBus.ExceptionInfo.StackTrace"
+        };
+
+        ICollection<HistoryItem> history;
     }
 
     public class HistoryItem
@@ -275,11 +281,6 @@
 
     public class EndpointDetails
     {
-        public EndpointDetails()
-        {
-            
-        }
-
         public string Name { get; set; }
 
         public string Machine { get; set; }
@@ -290,24 +291,20 @@
             {
                 return new EndpointDetails
                 {
-
                     Name = message.Headers[Headers.OriginatingEndpoint],
                     Machine = message.Headers[Headers.OriginatingMachine]
                 };
-
             }
 
             if (message.Headers.ContainsKey(Headers.OriginatingAddress))
             {
-
                 var address = Address.Parse(message.Headers[Headers.OriginatingAddress]);
 
                 return new EndpointDetails
-                    {
-
-                        Name = address.Queue,
-                        Machine = address.Machine
-                    };
+                {
+                    Name = address.Queue,
+                    Machine = address.Machine
+                };
             }
 
 
@@ -323,7 +320,9 @@
             {
                 //todo: remove this line after we have updated to the next unstableversion (due to a bug in the core)
                 if (message.Headers[Headers.ProcessingEndpoint] != Configure.EndpointName)
+                {
                     endpoint.Name = message.Headers[Headers.ProcessingEndpoint];
+                }
             }
 
             if (message.Headers.ContainsKey(Headers.ProcessingMachine))
@@ -352,10 +351,14 @@
         void FromAddress(Address address)
         {
             if (string.IsNullOrEmpty(Name))
+            {
                 Name = address.Queue;
+            }
 
             if (string.IsNullOrEmpty(Machine))
+            {
                 Name = address.Machine;
+            }
         }
     }
 
@@ -387,11 +390,6 @@
 
     public class MessageStatistics
     {
-        public MessageStatistics()
-        {
-            
-        }
-
         public TimeSpan CriticalTime { get; set; }
         public TimeSpan ProcessingTime { get; set; }
     }
@@ -449,11 +447,6 @@
 
     public class ExceptionDetails
     {
-        public ExceptionDetails()
-        {
-            
-        }
-
         public string ExceptionType { get; set; }
 
         public string Message { get; set; }

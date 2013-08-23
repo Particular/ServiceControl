@@ -5,9 +5,6 @@
 
     public class RootModule : BaseModule
     {
-        static readonly string CurrentEtag;
-        static readonly string CurrentLastModified;
-        
         static RootModule()
         {
             var fileInfo = new FileInfo(typeof(RootModule).Assembly.Location);
@@ -41,21 +38,24 @@
 
 
                 return Negotiate
-                        //.WithMediaRangeModel(MediaRange.FromString(@"application/vnd.particular-v1"), new RootUrls{
-                        //        AuditUrl = baseUrl + "/audit/{?page,per_page,direction,sort}",
-                        //        EndpointsAuditUrl = baseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
-                        //    })
-                        //.WithMediaRangeModel(MediaRange.FromString(@"application/vnd.particular-v2"), new RootUrls
-                        //    {
-                        //        AuditUrl = baseUrl + "/audit/{?page,per_page,direction,sort}",
-                        //        EndpointsAuditUrl = baseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
-                        //    })
-                        .WithModel(model)
-                        .WithHeader("ETag", CurrentEtag)
-                        .WithHeader("Last-Modified", CurrentLastModified)
-                        .WithHeader("Cache-Control", "private, max-age=0, must-revalidate");
+                    //.WithMediaRangeModel(MediaRange.FromString(@"application/vnd.particular-v1"), new RootUrls{
+                    //        AuditUrl = baseUrl + "/audit/{?page,per_page,direction,sort}",
+                    //        EndpointsAuditUrl = baseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
+                    //    })
+                    //.WithMediaRangeModel(MediaRange.FromString(@"application/vnd.particular-v2"), new RootUrls
+                    //    {
+                    //        AuditUrl = baseUrl + "/audit/{?page,per_page,direction,sort}",
+                    //        EndpointsAuditUrl = baseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
+                    //    })
+                    .WithModel(model)
+                    .WithHeader("ETag", CurrentEtag)
+                    .WithHeader("Last-Modified", CurrentLastModified)
+                    .WithHeader("Cache-Control", "private, max-age=0, must-revalidate");
             };
         }
+
+        static readonly string CurrentEtag;
+        static readonly string CurrentLastModified;
 
         public class RootUrls
         {

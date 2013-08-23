@@ -9,12 +9,10 @@
         {
             get { return Settings.ErrorLogQueue; }
         }
+
         public bool IsDisabled
         {
-            get
-            {
-                return Settings.ErrorLogQueue == Address.Undefined;
-            }
+            get { return Settings.ErrorLogQueue == Address.Undefined; }
         }
     }
 }

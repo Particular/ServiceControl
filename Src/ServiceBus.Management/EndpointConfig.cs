@@ -1,24 +1,26 @@
 namespace ServiceBus.Management
 {
+    using System;
+    using System.IO;
+    using System.Reflection;
     using Autofac;
     using NLog;
     using NLog.Config;
     using NLog.Targets;
-    using System;
-    using System.IO;
-    using System.Reflection;
     using NServiceBus;
     using NServiceBus.Logging.Loggers.NLogAdapter;
 
     public class EndpointConfig : IConfigureThisEndpoint, AsA_Server, IWantCustomLogging, IWantCustomInitialization
     {
+        public static IContainer Container { get; set; }
+
         public void Init()
         {
             ConfigureLogging();
 
             Container = new ContainerBuilder().Build();
 
-            var transportType = SettingsReader<string>.Read("TransportType", typeof (Msmq).AssemblyQualifiedName);
+            var transportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
             Configure.With()
                 .AutofacBuilder(Container)
                 .UseTransport(Type.GetType(transportType))
@@ -67,7 +69,5 @@ namespace ServiceBus.Management
             NLogConfigurator.Configure(new object[] {fileTarget, consoleTarget}, "Info");
             LogManager.Configuration = nlogConfig;
         }
-
-        public static IContainer Container { get; set; }
     }
 }

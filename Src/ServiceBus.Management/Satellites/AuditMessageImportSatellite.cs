@@ -30,34 +30,20 @@
                 catch (ConcurrencyException)
                 {
                     session.Advanced.Clear();
-                    UpdateExistingMessage(session,auditMessage.Id, message);
+                    UpdateExistingMessage(session, auditMessage.Id, message);
                 }
             }
 
             return true;
         }
 
-        void UpdateExistingMessage(IDocumentSession session, string messageId, TransportMessage message)
-        {
-            var auditMessage = session.Load<Message>(messageId);
-
-            if (auditMessage == null)
-                throw new InvalidOperationException("There should be a message in the store");
-
-
-            auditMessage.Update(message);
-          
-            session.SaveChanges();
-        }
-
         public void Start()
         {
-            Logger.InfoFormat("Audit import is now started, feeding audit messages from: {0}",InputAddress);
+            Logger.InfoFormat("Audit import is now started, feeding audit messages from: {0}", InputAddress);
         }
 
         public void Stop()
         {
-
         }
 
         public Address InputAddress
@@ -67,13 +53,24 @@
 
         public bool Disabled
         {
-            get
+            get { return InputAddress == Address.Undefined; }
+        }
+
+        void UpdateExistingMessage(IDocumentSession session, string messageId, TransportMessage message)
+        {
+            var auditMessage = session.Load<Message>(messageId);
+
+            if (auditMessage == null)
             {
-                return InputAddress == Address.Undefined;
+                throw new InvalidOperationException("There should be a message in the store");
             }
+
+
+            auditMessage.Update(message);
+
+            session.SaveChanges();
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(AuditMessageImportSatellite));
-       
     }
 }

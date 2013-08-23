@@ -10,47 +10,12 @@
 
     public class When_issuing_a_retry_for_a_failed_message : AcceptanceTest
     {
-        [Test]
-        public void Should_be_imported_and_accessible_via_the_rest_api()
-        {
-            var context = new MyContext();
-
-            Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>()
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.Send(new MyMessage())))
-                .Done(c =>
-                {
-                    lock (context)
-                    {
-                        bool b = c.RetryIssued;
-                        if (!b && auditDataAvailable(c, MessageStatus.Failed))
-                        {
-                            Post<object>(String.Format("/api/errors/{0}/retry", c.Message.Id));
-
-                            c.RetryIssued = true;
-
-                            return false;
-                        }
-
-                        return auditDataAvailable(c, MessageStatus.Successful);
-                    }
-                })
-                .Run();
-
-            Assert.IsNotNull(context.Message.ProcessedAt,
-                "Processed at should be set when the message has been successfully been processed");
-            Assert.AreEqual(context.Message.History.OrderBy(h => h.Time).First().Action, "RetryIssued",
-                "There should be an audit trail for retry attempts");
-            Assert.AreEqual(context.Message.History.OrderBy(h => h.Time).Skip(1).First().Action, "ErrorResolved",
-                "There should be an audit trail for successful retries");
-        }
-
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint()
             {
                 EndpointSetup<DefaultServer>(c => Configure.Features.Disable<SecondLevelRetries>())
-                    .AddMapping<MyMessage>(typeof (FailureEndpoint))
+                    .AddMapping<MyMessage>(typeof(FailureEndpoint))
                     .AuditTo(Address.Parse("audit"));
             }
 
@@ -88,15 +53,16 @@
             public bool RetryIssued { get; set; }
         }
 
-        private readonly Func<MyContext, MessageStatus, bool> auditDataAvailable = (context, status) =>
+        readonly Func<MyContext, MessageStatus, bool> auditDataAvailable = (context, status) =>
         {
-
             if (context.MessageId == null)
             {
                 return false;
             }
 
-            context.Message = Get<Message>(String.Format("/api/messages/{0}-{1}", context.MessageId, context.EndpointNameOfReceivingEndpoint));
+            context.Message =
+                Get<Message>(String.Format("/api/messages/{0}-{1}", context.MessageId,
+                    context.EndpointNameOfReceivingEndpoint));
 
             if (context.Message == null)
             {
@@ -106,5 +72,39 @@
             return context.Message.Status == status;
         };
 
+        [Test]
+        public void Should_be_imported_and_accessible_via_the_rest_api()
+        {
+            var context = new MyContext();
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>()
+                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.Send(new MyMessage())))
+                .Done(c =>
+                {
+                    lock (context)
+                    {
+                        var b = c.RetryIssued;
+                        if (!b && auditDataAvailable(c, MessageStatus.Failed))
+                        {
+                            Post<object>(String.Format("/api/errors/{0}/retry", c.Message.Id));
+
+                            c.RetryIssued = true;
+
+                            return false;
+                        }
+
+                        return auditDataAvailable(c, MessageStatus.Successful);
+                    }
+                })
+                .Run();
+
+            Assert.IsNotNull(context.Message.ProcessedAt,
+                "Processed at should be set when the message has been successfully been processed");
+            Assert.AreEqual(context.Message.History.OrderBy(h => h.Time).First().Action, "RetryIssued",
+                "There should be an audit trail for retry attempts");
+            Assert.AreEqual(context.Message.History.OrderBy(h => h.Time).Skip(1).First().Action, "ErrorResolved",
+                "There should be an audit trail for successful retries");
+        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿namespace ServiceBus.Management.OWIN
 {
-    using Nancy;
     using Microsoft.AspNet.SignalR;
+    using Nancy;
     using Owin;
     using SignalR;
 
@@ -10,7 +10,12 @@
         public void Configuration(IAppBuilder app)
         {
             app.UseErrorPage();
-            app.MapConnection<EndpointsConnection>("/stream/endpoints", new ConnectionConfiguration { EnableCrossDomain = true /*, Resolver = new AutofacDependencyResolver(EndpointConfig.Container) */});
+            app.MapConnection<EndpointsConnection>("/stream/endpoints",
+                new ConnectionConfiguration
+                {
+                    EnableCrossDomain = true
+                    /*, Resolver = new AutofacDependencyResolver(EndpointConfig.Container) */
+                });
             app.UseNancy(new NServiceBusContainerBootstrapper());
         }
     }

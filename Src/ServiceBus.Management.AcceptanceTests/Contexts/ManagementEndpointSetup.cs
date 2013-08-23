@@ -11,13 +11,14 @@
 
     public class ManagementEndpointSetup : IEndpointSetupTemplate
     {
-        public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource)
+        public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration,
+            IConfigurationSource configSource)
         {
-            EndpointConfig c = new EndpointConfig();
+            var c = new EndpointConfig();
             c.Init();
 
             SetupLogging(endpointConfiguration);
-            
+
             return Configure.Instance;
         }
 
@@ -45,7 +46,7 @@
 
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
-            NLogConfigurator.Configure(new object[] { fileTarget }, logLevel);
+            NLogConfigurator.Configure(new object[] {fileTarget}, logLevel);
             LogManager.Configuration = nlogConfig;
         }
     }

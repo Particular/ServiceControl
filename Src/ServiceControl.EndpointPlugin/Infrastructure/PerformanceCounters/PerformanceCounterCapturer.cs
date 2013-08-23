@@ -8,16 +8,11 @@
     using Heartbeats;
     using NServiceBus;
 
-    public class PerformanceCounterCapturer:IWantToRunWhenBusStartsAndStops,INeedInitialization
+    public class PerformanceCounterCapturer : IWantToRunWhenBusStartsAndStops, INeedInitialization
     {
-        public List<DataPoint> GetCollectedData(string counter)
+        public void Init()
         {
-            List<DataPoint> data;
-
-            if (collectedData.TryRemove(counter, out data))
-                return data;
-
-            return new List<DataPoint>();
+            Configure.Component<PerformanceCounterCapturer>(DependencyLifecycle.SingleInstance);
         }
 
         public void Start()
@@ -29,6 +24,18 @@
         public void Stop()
         {
             captureTimer.Change(TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
+        }
+
+        public List<DataPoint> GetCollectedData(string counter)
+        {
+            List<DataPoint> data;
+
+            if (collectedData.TryRemove(counter, out data))
+            {
+                return data;
+            }
+
+            return new List<DataPoint>();
         }
 
         void CaptureCounters(object state)
@@ -43,20 +50,21 @@
                 };
 
 
-                collectedData.AddOrUpdate(counterName, new List<DataPoint> { capturedValue }, (k, existing) =>
+                collectedData.AddOrUpdate(counterName, new List<DataPoint> {capturedValue}, (k, existing) =>
                 {
                     existing.Add(capturedValue);
                     return existing;
                 });
             }
-         
         }
 
-        public void EnableCapturing(string counterCategory, string counterName,string instanceName, string counterKey)
-     
+        public void EnableCapturing(string counterCategory, string counterName, string instanceName, string counterKey)
+
         {
             if (monitoredCounters.ContainsKey(counterKey))
+            {
                 return;
+            }
 
             var counter = new PerformanceCounter(counterCategory, counterName, instanceName, true);
 
@@ -64,18 +72,12 @@
         }
 
 
-        
+        static readonly Dictionary<string, PerformanceCounter> monitoredCounters =
+            new Dictionary<string, PerformanceCounter>();
 
-        public void Init()
-        {
-            Configure.Component<PerformanceCounterCapturer>(DependencyLifecycle.SingleInstance);
-        }
-
-        static Dictionary<string, PerformanceCounter> monitoredCounters = new Dictionary<string, PerformanceCounter>();
-        
-        static ConcurrentDictionary<string, List<DataPoint>> collectedData = new ConcurrentDictionary<string, List<DataPoint>>();
+        static readonly ConcurrentDictionary<string, List<DataPoint>> collectedData =
+            new ConcurrentDictionary<string, List<DataPoint>>();
 
         Timer captureTimer;
-
     }
 }

@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using EndpointPlugin.BusinessMonitoring;
     using EndpointPlugin.Infrastructure.Heartbeats;
     using EndpointPlugin.Infrastructure.PerformanceCounters;
     using NUnit.Framework;
@@ -24,11 +23,10 @@
             capturer.Start();
             capturer.EnableCapturing(counterCategory, counterName, instanceName, counterKey);
 
-            List < DataPoint >  datapoints;
+            List<DataPoint> datapoints;
             do
             {
                 datapoints = capturer.GetCollectedData(counterKey);
-
             } while (!datapoints.Any());
 
             capturer.Stop();
@@ -36,7 +34,7 @@
             var datapoint = datapoints.First();
 
             Assert.GreaterOrEqual(DateTime.UtcNow, datapoint.Time);
-            Assert.Greater( datapoint.Value,0.0);
+            Assert.Greater(datapoint.Value, 0.0);
         }
     }
 }

@@ -5,7 +5,6 @@
     using System.Linq;
     using global::Nancy;
 
-
     public static class NancyCompressionExtension
     {
         public static void CheckForCompression(NancyContext context)
@@ -39,12 +38,12 @@
 
             var contents = response.Contents;
             response.Contents = responseStream =>
+            {
+                using (var compression = new GZipStream(responseStream, CompressionMode.Compress))
                 {
-                    using (var compression = new GZipStream(responseStream, CompressionMode.Compress))
-                    {
-                        contents(compression);
-                    }
-                };
+                    contents(compression);
+                }
+            };
         }
 
         static bool ContentLengthIsTooSmall(Response response)
@@ -61,19 +60,6 @@
             return false;
         }
 
-        static readonly List<string> ValidMimes = new List<string>
-            {
-                "text/css",
-                "text/html",
-                "text/plain",
-                "application/xml",
-                "text/xml",
-                "application/json",
-                "text/json",
-                "application/xaml+xml",
-                "application/x-javascript"
-            };
-
         static bool ResponseIsCompatibleMimeType(Response response)
         {
             return ValidMimes.Any(x => x == response.ContentType);
@@ -83,5 +69,18 @@
         {
             return request.Headers.AcceptEncoding.Any(x => x.Contains("gzip"));
         }
+
+        static readonly List<string> ValidMimes = new List<string>
+        {
+            "text/css",
+            "text/html",
+            "text/plain",
+            "application/xml",
+            "text/xml",
+            "application/json",
+            "text/json",
+            "application/xaml+xml",
+            "application/x-javascript"
+        };
     }
 }

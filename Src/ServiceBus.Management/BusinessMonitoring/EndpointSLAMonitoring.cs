@@ -7,9 +7,14 @@ namespace ServiceBus.Management.BusinessMonitoring
     using NServiceBus;
     using ServiceControl.EndpointPlugin.Infrastructure.Heartbeats;
 
-    public class EndpointSLAMonitoring:INeedInitialization
+    public class EndpointSLAMonitoring : INeedInitialization
     {
         public IBus Bus { get; set; }
+
+        public void Init()
+        {
+            Configure.Component<EndpointSLAMonitoring>(DependencyLifecycle.SingleInstance);
+        }
 
         public TimeSpan GetSLAFor(string endpoint)
         {
@@ -19,10 +24,10 @@ namespace ServiceBus.Management.BusinessMonitoring
         public void RegisterSLA(string endpoint, TimeSpan sla)
         {
             endpointsBeeingMonitored.AddOrUpdate(endpoint, new SLAStatus(sla), (name, e) =>
-                {
-                    e.CurrentSLA = sla;
-                    return e;
-                });
+            {
+                e.CurrentSLA = sla;
+                return e;
+            });
         }
 
         public void ReportCriticalTimeMeasurements(string endpoint, List<DataPoint> dataPoints)
@@ -34,10 +39,13 @@ namespace ServiceBus.Management.BusinessMonitoring
             });
 
             if (currentStatus.SLABreached()) //todo: debounce
+            {
                 Bus.InMemory.Raise<EndpointSLABreached>(e => e.Endpoint = endpoint);
+            }
         }
 
-        ConcurrentDictionary<string, SLAStatus> endpointsBeeingMonitored = new ConcurrentDictionary<string, SLAStatus>();
+        readonly ConcurrentDictionary<string, SLAStatus> endpointsBeeingMonitored =
+            new ConcurrentDictionary<string, SLAStatus>();
 
 
         public class SLAStatus
@@ -52,29 +60,27 @@ namespace ServiceBus.Management.BusinessMonitoring
             {
                 CurrentSLA = TimeSpan.Zero;
                 CriticalTimeValues = dataPoints;
-
             }
 
             public TimeSpan CurrentSLA { get; set; }
 
-            public List<DataPoint> CriticalTimeValues { get;private set; }
+            public List<DataPoint> CriticalTimeValues { get; private set; }
 
 
             public bool SLABreached()
             {
                 if (CurrentSLA == TimeSpan.Zero)
+                {
                     return false;
+                }
 
                 if (!CriticalTimeValues.Any())
+                {
                     return false;
+                }
 
                 return CurrentSLA < TimeSpan.FromSeconds(CriticalTimeValues.Last().Value);
             }
-        }
-
-        public void Init()
-        {
-            Configure.Component<EndpointSLAMonitoring>(DependencyLifecycle.SingleInstance);
         }
     }
 }

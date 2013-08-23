@@ -1,13 +1,10 @@
 namespace ServiceBus.Management.BusinessMonitoring
 {
-    using Modules;
     using global::Nancy;
+    using Modules;
 
     public class ApiModule : BaseModule
     {
-        public EndpointSLAMonitoring EndpointSLAMonitoring { get; set; }
-        
-        
         public ApiModule()
         {
             Get["/endpoints/{name}/sla"] = parameters =>
@@ -18,9 +15,9 @@ namespace ServiceBus.Management.BusinessMonitoring
                 {
                     Current = EndpointSLAMonitoring.GetSLAFor(endpoint)
                 });
-
-
             };
         }
+
+        public EndpointSLAMonitoring EndpointSLAMonitoring { get; set; }
     }
 }

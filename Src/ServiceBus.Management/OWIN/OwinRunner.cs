@@ -7,8 +7,6 @@
 
     public class OwinRunner : IWantToRunWhenBusStartsAndStops
     {
-        private IDisposable webApp;
-
         public void Start()
         {
             webApp = WebApp.Start<Startup>(Settings.ApiUrl);
@@ -22,5 +20,6 @@
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(OwinRunner));
+        IDisposable webApp;
     }
 }

@@ -8,13 +8,14 @@ namespace ServiceBus.Management.Extensions
 
     public static class QueryableExtensions
     {
-        public static IQueryable<Messages_Sort.Result> IncludeSystemMessagesWhere(this IQueryable<Messages_Sort.Result> source, Request request)
+        public static IQueryable<Messages_Sort.Result> IncludeSystemMessagesWhere(
+            this IQueryable<Messages_Sort.Result> source, Request request)
         {
-            bool includeSystemMessages = false;
+            var includeSystemMessages = false;
 
-            if ((bool)request.Query.include_system_messages.HasValue)
+            if ((bool) request.Query.include_system_messages.HasValue)
             {
-                includeSystemMessages = (bool)request.Query.include_system_messages;
+                includeSystemMessages = (bool) request.Query.include_system_messages;
             }
 
             if (!includeSystemMessages)
@@ -51,19 +52,21 @@ namespace ServiceBus.Management.Extensions
                 page = 1;
             }
 
-            var skipResults = (page - 1) * maxResultsPerPage;
+            var skipResults = (page - 1)*maxResultsPerPage;
 
             return source.Skip(skipResults)
-                         .Take(maxResultsPerPage);
+                .Take(maxResultsPerPage);
         }
 
-        public static IOrderedQueryable<TSource> Sort<TSource>(this IQueryable<TSource> source, Request request, Expression<Func<TSource, object>> defaultKeySelector = null, string defaultSortDirection = "desc") where TSource : CommonResult
+        public static IOrderedQueryable<TSource> Sort<TSource>(this IQueryable<TSource> source, Request request,
+            Expression<Func<TSource, object>> defaultKeySelector = null, string defaultSortDirection = "desc")
+            where TSource : CommonResult
         {
             var direction = defaultSortDirection;
 
             if (request.Query.direction.HasValue)
             {
-                direction = (string)request.Query.direction;
+                direction = (string) request.Query.direction;
             }
 
             if (direction != "asc" && direction != "desc")
@@ -73,7 +76,7 @@ namespace ServiceBus.Management.Extensions
 
             var sortOptions = new[]
             {
-                "time_of_failure", "id", "message_type", 
+                "time_of_failure", "id", "message_type",
                 "time_sent", "critical_time", "processing_time",
                 "status"
             };
@@ -83,12 +86,12 @@ namespace ServiceBus.Management.Extensions
 
             if (request.Query.sort.HasValue)
             {
-                sort = (string)request.Query.sort;
+                sort = (string) request.Query.sort;
             }
 
             if (!sortOptions.Contains(sort))
             {
-                sort = "time_sent"; 
+                sort = "time_sent";
             }
 
             switch (sort)

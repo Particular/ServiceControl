@@ -1,10 +1,10 @@
 ﻿namespace ServiceBus.Management.Handlers
 {
     using System;
-    using ServiceBus.Management.Commands;
+    using Commands;
     using NServiceBus;
     using NServiceBus.Transports;
-    using ServiceBus.Management.RavenDB;
+    using RavenDB;
 
     public class IssueRetryHandler : IHandleMessages<IssueRetry>
     {
@@ -18,7 +18,8 @@
 
             if (failedMessage == null)
             {
-                throw new InvalidOperationException(string.Format("Retry failed, message {0} could not be found", message.MessageId));
+                throw new InvalidOperationException(string.Format("Retry failed, message {0} could not be found",
+                    message.MessageId));
             }
 
             var requestedAtHeader = message.GetHeader("RequestedAt");

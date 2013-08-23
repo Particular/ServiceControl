@@ -14,38 +14,29 @@
 
         public IBuilder Builder { get; set; }
 
-        public override void Initialize()
-        {
-            Configure.Instance.ForAllTypes<IHeartbeatInfoProvider>(t => Configure.Component(t, DependencyLifecycle.InstancePerCall));
-        }
-
         public override bool IsEnabledByDefault
         {
             get { return true; }
         }
 
-        void ExecuteHeartbeat(object state)
+
+        Address ServiceControlAddress
         {
-            var heartBeat = new EndpointHeartbeat
-                {
-                    ExecutedAt = DateTime.UtcNow
-                };
+            get { return Address.Parse("ServiceBus.Management"); }
+            //todo: need to be improved for msmq and rename to ServiceControl when the time comes
+        }
 
-            Builder.BuildAll<IHeartbeatInfoProvider>().ToList()
-                .ForEach(p =>
-                    {
-                        Logger.DebugFormat("Invoking heartbeat provider {0}",p.GetType().FullName);
-                        p.HeartbeatExecuted(heartBeat);
-                    });
-
-
-            Bus.Send(ServiceControlAddress, heartBeat);
+        TimeSpan HeartbeatInterval
+        {
+            get { return TimeSpan.FromSeconds(10); } //todo: make this configurable
         }
 
         public void Start()
         {
-            if(!Enabled)
+            if (!Enabled)
+            {
                 return;
+            }
             heartbeatTimer = new Timer(ExecuteHeartbeat, null, TimeSpan.Zero, HeartbeatInterval);
         }
 
@@ -53,24 +44,38 @@
         public void Stop()
         {
             if (!Enabled)
+            {
                 return;
+            }
 
             heartbeatTimer.Change(TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
         }
 
-
-        Address ServiceControlAddress
+        public override void Initialize()
         {
-            get { return Address.Parse("ServiceBus.Management"); }//todo: need to be improved for msmq and rename to ServiceControl when the time comes
+            Configure.Instance.ForAllTypes<IHeartbeatInfoProvider>(
+                t => Configure.Component(t, DependencyLifecycle.InstancePerCall));
         }
 
-        TimeSpan HeartbeatInterval
+        void ExecuteHeartbeat(object state)
         {
-            get { return TimeSpan.FromSeconds(10); }//todo: make this configurable
+            var heartBeat = new EndpointHeartbeat
+            {
+                ExecutedAt = DateTime.UtcNow
+            };
+
+            Builder.BuildAll<IHeartbeatInfoProvider>().ToList()
+                .ForEach(p =>
+                {
+                    Logger.DebugFormat("Invoking heartbeat provider {0}", p.GetType().FullName);
+                    p.HeartbeatExecuted(heartBeat);
+                });
+
+
+            Bus.Send(ServiceControlAddress, heartBeat);
         }
 
+        static readonly ILog Logger = LogManager.GetLogger(typeof(Heartbeats));
         Timer heartbeatTimer;
-
-        static ILog Logger = LogManager.GetLogger(typeof(Heartbeats));
     }
 }

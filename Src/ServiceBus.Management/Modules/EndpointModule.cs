@@ -8,25 +8,25 @@ namespace ServiceBus.Management.Modules
 
     public class EndpointModule : BaseModule
     {
-        public IDocumentStore Store { get; set; }
-
         public EndpointModule()
         {
             Get["/endpoints"] = parameters =>
+            {
+                using (var session = Store.OpenSession())
                 {
-                    using (var session = Store.OpenSession())
-                    {
-                        RavenQueryStatistics stats;
+                    RavenQueryStatistics stats;
 
-                        var endpoints = session.Query<Endpoints_Distinct.Result, Endpoints_Distinct>()
-                                               .Statistics(out stats)
-                                               .Select(r => r.Endpoint)
-                                               .ToArray();
+                    var endpoints = session.Query<Endpoints_Distinct.Result, Endpoints_Distinct>()
+                        .Statistics(out stats)
+                        .Select(r => r.Endpoint)
+                        .ToArray();
 
-                        return Negotiate.WithModel(endpoints)
-                                        .WithEtagAndLastModified(stats);
-                    }
-                };
+                    return Negotiate.WithModel(endpoints)
+                        .WithEtagAndLastModified(stats);
+                }
+            };
         }
+
+        public IDocumentStore Store { get; set; }
     }
 }

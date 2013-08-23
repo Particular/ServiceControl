@@ -4,7 +4,7 @@
     using Infrastructure.PerformanceCounters;
     using NServiceBus;
 
-    public class EndpointSLAHeartbeatProvider:HeartbeatInfoProvider
+    public class EndpointSLAHeartbeatProvider : HeartbeatInfoProvider
     {
         public PerformanceCounterCapturer PerformanceCounterCapturer { get; set; }
 

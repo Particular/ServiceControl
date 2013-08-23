@@ -16,11 +16,11 @@
             Directory.CreateDirectory(Settings.DbPath);
 
             var documentStore = new EmbeddableDocumentStore
-                {
-                    DataDirectory = Settings.DbPath,
-                    UseEmbeddedHttpServer = true,
-                    EnlistInDistributedTransactions = false
-                };
+            {
+                DataDirectory = Settings.DbPath,
+                UseEmbeddedHttpServer = true,
+                EnlistInDistributedTransactions = false
+            };
 
             NonAdminHttp.EnsureCanListenToWhenInNonAdminContext(Settings.Port);
 
@@ -38,17 +38,17 @@
 
             IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore)
                 .ContinueWith(c =>
+                {
+                    sw.Stop();
+                    if (c.IsFaulted)
                     {
-                        sw.Stop();
-                        if (c.IsFaulted)
-                        {
-                            Logger.Error("Index creation failed", c.Exception);
-                        }
-                        else
-                        {
-                            Logger.InfoFormat("Index creation completed, total time: {0}", sw.Elapsed);
-                        }
-                    });
+                        Logger.Error("Index creation failed", c.Exception);
+                    }
+                    else
+                    {
+                        Logger.InfoFormat("Index creation completed, total time: {0}", sw.Elapsed);
+                    }
+                });
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);

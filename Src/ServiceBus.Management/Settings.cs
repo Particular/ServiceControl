@@ -19,7 +19,6 @@
 
                 return port;
             }
-
         }
 
         public static string Hostname
@@ -33,7 +32,6 @@
 
                 return hostname;
             }
-
         }
 
         public static string VirtualDirectory
@@ -85,10 +83,13 @@
                 var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", null);
 
                 if (value != null)
+                {
                     auditQueue = Address.Parse(value);
+                }
                 else
                 {
-                    Logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
+                    Logger.Warn(
+                        "No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
 
                     auditQueue = Address.Undefined;
                 }
@@ -114,7 +115,8 @@
                 }
                 else
                 {
-                    Logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
+                    Logger.Warn(
+                        "No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
 
                     errorQueue = Address.Undefined;
                 }
@@ -132,7 +134,9 @@
                     var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
 
                     if (value != null)
+                    {
                         errorLogQueue = Address.Parse(value);
+                    }
                     else
                     {
                         Logger.Info("No settings found for error log queue to import, default name will be used");
@@ -158,7 +162,9 @@
                         dbFolder += String.Format("-{0}", SanitiseFolderName(VirtualDirectory));
                     }
 
-                    var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceBus.Management", dbFolder);
+                    var defaultPath =
+                        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                            "Particular", "ServiceBus.Management", dbFolder);
 
                     dbPath = SettingsReader<string>.Read("DbPath", defaultPath);
                 }

@@ -18,7 +18,7 @@
 
             if (ConfigurationManager.AppSettings[fullKey] != null)
             {
-                return (T) Convert.ChangeType(ConfigurationManager.AppSettings[fullKey], typeof (T));
+                return (T) Convert.ChangeType(ConfigurationManager.AppSettings[fullKey], typeof(T));
             }
 
             //todo: Pass in "Particular" as the root key when the core has been updated to allow for it
@@ -27,20 +27,19 @@
     }
 
     /// <summary>
-    /// Wrapper to read registry keys.
+    ///     Wrapper to read registry keys.
     /// </summary>
     /// <typeparam name="T">The type of the key to retrieve</typeparam>
     public class RegistryReader<T>
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof (RegistryReader<T>));
-
         /// <summary>
-        /// Attempts to read the key from the registry.
+        ///     Attempts to read the key from the registry.
         /// </summary>
         /// <param name="name">The name of the value to retrieve. This string is not case-sensitive.</param>
-        /// <param name="defaultValue">The value to return if <paramref name="name"/> does not exist. </param>
+        /// <param name="defaultValue">The value to return if <paramref name="name" /> does not exist. </param>
         /// <returns>
-        /// The value associated with <paramref name="name"/>, with any embedded environment variables left unexpanded, or <paramref name="defaultValue"/> if <paramref name="name"/> is not found.
+        ///     The value associated with <paramref name="name" />, with any embedded environment variables left unexpanded, or
+        ///     <paramref name="defaultValue" /> if <paramref name="name" /> is not found.
         /// </returns>
         public static T Read(string subkey, string name, T defaultValue = default(T))
         {
@@ -63,5 +62,7 @@
 
             return defaultValue;
         }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(RegistryReader<T>));
     }
 }

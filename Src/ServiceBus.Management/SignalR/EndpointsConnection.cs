@@ -6,8 +6,6 @@
 
     public class EndpointsConnection : PersistentConnection
     {
-        Timer timer;
-
         public EndpointsConnection()
         {
             timer = new Timer(Callback, null, 5000, 5000);
@@ -27,5 +25,8 @@
         {
             return Connection.Broadcast("Hello John!");
         }
+
+        // ReSharper disable once NotAccessedField.Local
+        Timer timer;
     }
 }

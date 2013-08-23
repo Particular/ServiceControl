@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.BusinessMonitoring
 {
     using System;
-    using Modules;
     using NServiceBus;
     using ServiceControl.EndpointPlugin.Infrastructure.Heartbeats;
 
@@ -15,7 +14,9 @@
             var endpoint = Bus.CurrentMessageContext.Headers[Headers.OriginatingEndpoint];
 
             if (message.Configuration.ContainsKey("Endpoint.SLA"))
+            {
                 EndpointSLAMonitoring.RegisterSLA(endpoint, TimeSpan.Parse(message.Configuration["Endpoint.SLA"]));
+            }
 
             if (message.PerformanceData.ContainsKey("CriticalTime"))
             {

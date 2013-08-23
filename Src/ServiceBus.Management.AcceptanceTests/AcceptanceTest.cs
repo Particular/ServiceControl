@@ -23,8 +23,8 @@
 
             Conventions.EndpointNamingConvention = t =>
             {
-                string baseNs = typeof (AcceptanceTest).Namespace;
-                string testName = GetType().Name;
+                var baseNs = typeof(AcceptanceTest).Namespace;
+                var testName = GetType().Name;
                 return t.FullName.Replace(baseNs + ".", String.Empty).Replace(testName + "+", String.Empty);
             };
         }
@@ -35,7 +35,7 @@
             Delete(RavenPath);
         }
 
-        [ThreadStatic] private static string ravenPath;
+        [ThreadStatic] static string ravenPath;
 
         public static string RavenPath
         {
@@ -50,9 +50,9 @@
             {
                 emptyTempDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
                 emptyTempDirectory.Create();
-                string arguments = string.Format("\"{0}\" \"{1}\" /W:1  /R:1 /FFT /MIR /NFL",
+                var arguments = string.Format("\"{0}\" \"{1}\" /W:1  /R:1 /FFT /MIR /NFL",
                     emptyTempDirectory.FullName, path.TrimEnd('\\'));
-                using (Process process = Process.Start(new ProcessStartInfo("robocopy")
+                using (var process = Process.Start(new ProcessStartInfo("robocopy")
                 {
                     Arguments = arguments,
                     WindowStyle = ProcessWindowStyle.Hidden,
@@ -62,7 +62,7 @@
                     process.WaitForExit();
                 }
 
-                using (WindowsIdentity windowsIdentity = WindowsIdentity.GetCurrent())
+                using (var windowsIdentity = WindowsIdentity.GetCurrent())
                 {
                     var directorySecurity = new DirectorySecurity();
                     directorySecurity.SetOwner(windowsIdentity.User);
@@ -114,9 +114,9 @@
                                                     response.StatusDescription);
             }
 
-            using (Stream stream = response.GetResponseStream())
+            using (var stream = response.GetResponseStream())
             {
-                JsonSerializer serializer = JsonSerializer.Create(serializerSettings);
+                var serializer = JsonSerializer.Create(serializerSettings);
 
                 return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
             }
@@ -129,15 +129,17 @@
             request.ContentType = "application/json";
             request.Method = "POST";
 
-            string json = JsonConvert.SerializeObject(payload, serializerSettings);
+            var json = JsonConvert.SerializeObject(payload, serializerSettings);
             request.ContentLength = json.Length;
 
             Console.Out.Write(request.RequestUri);
 
-            using (Stream stream = request.GetRequestStream())
-            using (var sw = new StreamWriter(stream))
+            using (var stream = request.GetRequestStream())
             {
-                sw.Write(json);
+                using (var sw = new StreamWriter(stream))
+                {
+                    sw.Write(json);
+                }
             }
 
 
@@ -156,11 +158,13 @@
             Console.Out.WriteLine(" - {0}", response.StatusCode);
 
             if (response.StatusCode != HttpStatusCode.OK && response.StatusCode != HttpStatusCode.Accepted)
+            {
                 throw new InvalidOperationException("Call failed: " + response.StatusCode.GetHashCode() + " - " +
                                                     response.StatusDescription);
+            }
         }
 
-        private static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
+        static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
         {
             ContractResolver = new UnderscoreMappingResolver(),
             Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}}

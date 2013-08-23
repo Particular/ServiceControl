@@ -13,28 +13,32 @@
             get
             {
                 if (configuration == null)
+                {
                     configuration = new Dictionary<string, string>();
+                }
 
                 return configuration;
             }
             set { configuration = value; }
         }
 
-        
+
         public Dictionary<string, List<DataPoint>> PerformanceData
         {
             get
             {
                 if (performanceData == null)
+                {
                     performanceData = new Dictionary<string, List<DataPoint>>();
+                }
 
                 return performanceData;
             }
             set { performanceData = value; }
         }
 
-        Dictionary<string, List<DataPoint>> performanceData;
         Dictionary<string, string> configuration;
+        Dictionary<string, List<DataPoint>> performanceData;
     }
 
     public class DataPoint

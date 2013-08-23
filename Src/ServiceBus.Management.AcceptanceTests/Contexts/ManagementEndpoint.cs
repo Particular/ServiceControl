@@ -6,7 +6,16 @@
 
     public class ManagementEndpoint : EndpointConfigurationBuilder
     {
-        private const string AppConfigFile = @"<?xml version=""1.0"" encoding=""utf-8"" standalone=""yes""?>
+        public ManagementEndpoint()
+        {
+            var pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+            File.WriteAllText(pathToAppConfig, String.Format(AppConfigFile, AcceptanceTest.RavenPath));
+
+            EndpointSetup<ManagementEndpointSetup>()
+                .AppConfig(pathToAppConfig);
+        }
+
+        const string AppConfigFile = @"<?xml version=""1.0"" encoding=""utf-8"" standalone=""yes""?>
 <configuration>
   <configSections>
     <section name=""TransportConfig"" type=""NServiceBus.Config.TransportConfig, NServiceBus.Core"" />
@@ -33,13 +42,5 @@
   </UnicastBusConfig>
 </configuration>
 ";
-        public ManagementEndpoint()
-        {
-            string pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
-            File.WriteAllText(pathToAppConfig, String.Format(AppConfigFile, AcceptanceTest.RavenPath));
-
-            EndpointSetup<ManagementEndpointSetup>()
-                .AppConfig(pathToAppConfig);
-        }
     }
 }

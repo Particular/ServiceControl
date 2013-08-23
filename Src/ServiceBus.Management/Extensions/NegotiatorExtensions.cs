@@ -12,10 +12,10 @@ namespace ServiceBus.Management.Extensions
 
     public static class NegotiatorExtensions
     {
-
-        public static Negotiator WithModelAppendedRestfulUrls(this Negotiator negotiator, IEnumerable<Message> messages, Request request)
+        public static Negotiator WithModelAppendedRestfulUrls(this Negotiator negotiator, IEnumerable<Message> messages,
+            Request request)
         {
-            string baseUrl = request.Url.SiteBase + request.Url.BasePath;
+            var baseUrl = request.Url.SiteBase + request.Url.BasePath;
 
             foreach (var message in messages)
             {
@@ -25,10 +25,11 @@ namespace ServiceBus.Management.Extensions
             return negotiator.WithModel(messages);
         }
 
-        public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, RavenQueryStatistics stats, Request request)
+        public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, RavenQueryStatistics stats,
+            Request request)
         {
             return negotiator.WithTotalCount(stats)
-                             .WithPagingLinks(stats, request);
+                .WithPagingLinks(stats, request);
         }
 
         public static Negotiator WithTotalCount(this Negotiator negotiator, RavenQueryStatistics stats)
@@ -69,7 +70,7 @@ namespace ServiceBus.Management.Extensions
             }
 
             var links = new List<string>();
-            var lastPage = (int)Math.Ceiling(stats.TotalResults / maxResultsPerPage);
+            var lastPage = (int) Math.Ceiling(stats.TotalResults/maxResultsPerPage);
 
             // No need to add a Link header if page does not exist!
             if (page > lastPage)

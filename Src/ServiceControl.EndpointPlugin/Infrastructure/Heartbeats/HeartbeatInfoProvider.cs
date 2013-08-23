@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.EndpointPlugin.Infrastructure.Heartbeats
 {
     //todo: better name?
-    public abstract class HeartbeatInfoProvider :IHeartbeatInfoProvider
+    public abstract class HeartbeatInfoProvider : IHeartbeatInfoProvider
     {
         public abstract void HeartbeatExecuted(EndpointHeartbeat heartbeat);
     }

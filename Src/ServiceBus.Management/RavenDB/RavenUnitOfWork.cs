@@ -6,15 +6,13 @@
 
     public class RavenUnitOfWork : IManageUnitsOfWork
     {
-        private readonly IDocumentStore store;
-
         public RavenUnitOfWork(IDocumentStore store)
         {
             this.store = store;
         }
 
         public IDocumentSession Session { get; private set; }
-        
+
         public void Begin()
         {
             Session = store.OpenSession();
@@ -27,5 +25,7 @@
                 Session.SaveChanges();
             }
         }
+
+        readonly IDocumentStore store;
     }
 }
