@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.EndpointPlugin.BusinessMonitoring
 {
-    using Infrastructure.Heartbeats;
     using Infrastructure.PerformanceCounters;
     using NServiceBus;
+    using Operations.Heartbeats;
 
     public class EndpointSLAHeartbeatProvider : HeartbeatInfoProvider
     {

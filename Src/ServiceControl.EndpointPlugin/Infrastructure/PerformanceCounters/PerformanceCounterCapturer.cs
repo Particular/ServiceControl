@@ -5,8 +5,8 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading;
-    using Heartbeats;
     using NServiceBus;
+    using Operations.Heartbeats;
 
     public class PerformanceCounterCapturer : IWantToRunWhenBusStartsAndStops, INeedInitialization
     {

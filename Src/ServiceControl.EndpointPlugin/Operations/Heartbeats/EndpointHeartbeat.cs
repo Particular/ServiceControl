@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointPlugin.Infrastructure.Heartbeats
+﻿namespace ServiceControl.EndpointPlugin.Operations.Heartbeats
 {
     using System;
     using System.Collections.Generic;

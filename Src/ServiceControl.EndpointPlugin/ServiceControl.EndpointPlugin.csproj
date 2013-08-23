@@ -45,9 +45,9 @@
   <ItemGroup>
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Infrastructure\PerformanceCounters\PerformanceCounterCapturer.cs" />
-    <Compile Include="Infrastructure\Heartbeats\EndpointHeartbeat.cs" />
-    <Compile Include="Infrastructure\Heartbeats\HeartbeatInfoProvider.cs" />
-    <Compile Include="Infrastructure\Heartbeats\Heartbeats.cs" />
+    <Compile Include="Operations\Heartbeats\EndpointHeartbeat.cs" />
+    <Compile Include="Operations\Heartbeats\HeartbeatInfoProvider.cs" />
+    <Compile Include="Operations\Heartbeats\Heartbeats.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAHeartbeatProvider.cs" />
   </ItemGroup>

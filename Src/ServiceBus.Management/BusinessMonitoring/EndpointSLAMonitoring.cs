@@ -5,7 +5,7 @@ namespace ServiceBus.Management.BusinessMonitoring
     using System.Collections.Generic;
     using System.Linq;
     using NServiceBus;
-    using ServiceControl.EndpointPlugin.Infrastructure.Heartbeats;
+    using ServiceControl.EndpointPlugin.Operations.Heartbeats;
 
     public class EndpointSLAMonitoring : INeedInitialization
     {

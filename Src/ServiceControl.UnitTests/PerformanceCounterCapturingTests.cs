@@ -3,8 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using EndpointPlugin.Infrastructure.Heartbeats;
     using EndpointPlugin.Infrastructure.PerformanceCounters;
+    using EndpointPlugin.Operations.Heartbeats;
     using NUnit.Framework;
 
     [TestFixture]

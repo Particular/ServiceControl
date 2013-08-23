@@ -36,7 +36,7 @@ namespace ServiceControl
         {
             using (
                 var licenseStream =
-                    Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceBus.Management.Infrastructure.EndpointConfiguration.License.xml"))
+                    Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceBus.Management.Operations.EndpointConfiguration.License.xml"))
             {
                 using (var sr = new StreamReader(licenseStream))
                 {

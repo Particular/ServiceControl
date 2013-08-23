@@ -2,7 +2,7 @@
 {
     using System;
     using NServiceBus;
-    using ServiceControl.EndpointPlugin.Infrastructure.Heartbeats;
+    using ServiceControl.EndpointPlugin.Operations.Heartbeats;
 
     public class EndpointHeartbeatHandler : IHandleMessages<EndpointHeartbeat>
     {

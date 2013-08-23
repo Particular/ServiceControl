@@ -126,7 +126,7 @@
     <Compile Include="BusinessMonitoring\ApiModule.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
-    <Compile Include="Infrastructure\Heartbeats\RegisterHeartbeatMessage.cs" />
+    <Compile Include="Operations\Heartbeats\RegisterHeartbeatMessage.cs" />
     <Compile Include="Infrastructure\Nancy\CacheControlExtension.cs" />
     <Compile Include="Infrastructure\Nancy\Helpers.cs" />
     <Compile Include="Infrastructure\Nancy\JsonNetBodyDeserializer.cs" />
@@ -145,7 +145,7 @@
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandlerBase.cs" />
     <Compile Include="MessageFailures\Handlers\IssueRetryHandler.cs" />
-    <Compile Include="Infrastructure\Heartbeats\DisableLocalHeartbeats.cs" />
+    <Compile Include="Operations\Heartbeats\DisableLocalHeartbeats.cs" />
     <Compile Include="BusinessMonitoring\EndpointHeartbeatHandler.cs" />
     <Compile Include="Infrastructure\Installers\LogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
@@ -167,7 +167,7 @@
     <Compile Include="Infrastructure\Satellites\AuditMessageImportSatellite.cs" />
     <Compile Include="MessageAuditing\AuditMessagesModule.cs" />
     <Compile Include="BusinessProcessTracking\ConversationsModule.cs" />
-    <Compile Include="Infrastructure\EndpointConfiguration\EndpointConfig.cs" />
+    <Compile Include="Operations\EndpointConfiguration\EndpointConfig.cs" />
     <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
     <Compile Include="MessageAuditing\Message.cs" />
@@ -179,7 +179,7 @@
     <Compile Include="Infrastructure\SignalR\MessageStreamerConnection.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Infrastructure\EndpointConfiguration\App.config">
+    <None Include="Operations\EndpointConfiguration\App.config">
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config">
@@ -187,7 +187,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Infrastructure\EndpointConfiguration\License.xml" />
+    <EmbeddedResource Include="Operations\EndpointConfiguration\License.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj">
