@@ -29,6 +29,7 @@ namespace ServiceControl
 
             ConfigureLicense();
 
+            Configure.Serialization.Json();
             Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
         }
 

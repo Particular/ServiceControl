@@ -1,11 +1,8 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Operations.Heartbeats
 {
     using System;
-    using System.Text;
     using Management.Operations.Heartbeats;
     using ServiceBus.Management.AcceptanceTests.Contexts;
-    using ServiceBus.Management.MessageAuditing;
-    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
 
@@ -33,8 +30,6 @@
         {
         }
 
-
-     
         [Test]
         public void Should_be_reflected_as_active_endpoints_in_the_heartbeat_summary()
         {

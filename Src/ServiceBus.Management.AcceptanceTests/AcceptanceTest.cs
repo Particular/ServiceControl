@@ -100,14 +100,13 @@
                 response = ex.Response as HttpWebResponse;
             }
 
+            Console.Out.WriteLine(" - {0}", (int)response.StatusCode);
+
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                Console.Out.WriteLine(" - 404");
                 return null;
             }
-
-            Console.Out.WriteLine(" - {0}", (int)response.StatusCode);
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
