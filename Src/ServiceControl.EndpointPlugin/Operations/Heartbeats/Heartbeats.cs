@@ -9,6 +9,7 @@
     using NServiceBus.Logging;
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NServiceBus.ObjectBuilder;
+    using NServiceBus.Serializers.Json;
     using NServiceBus.Serializers.XML;
     using NServiceBus.Transports;
 
@@ -57,9 +58,8 @@
 
         public override void Initialize()
         {
-            serializer = new XmlMessageSerializer(new MessageMapper());
+            serializer = new JsonMessageSerializer(new MessageMapper());
 
-            serializer.InitType(typeof(EndpointHeartbeat));
 
             Configure.Instance.ForAllTypes<IHeartbeatInfoProvider>(
                 t => Configure.Component(t, DependencyLifecycle.InstancePerCall));
@@ -93,7 +93,7 @@
             MessageSender.Send(message,ServiceControlAddress);
         }
 
-        static XmlMessageSerializer serializer;//change this when we switch to json for ServiceControl
+        static JsonMessageSerializer serializer;//change this when we switch to json for ServiceControl
         static readonly ILog Logger = LogManager.GetLogger(typeof(Heartbeats));
         Timer heartbeatTimer;
     }

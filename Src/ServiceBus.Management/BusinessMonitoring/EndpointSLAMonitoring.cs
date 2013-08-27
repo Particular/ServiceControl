@@ -1,12 +1,12 @@
-namespace ServiceBus.Management.BusinessMonitoring
+namespace ServiceControl.BusinessMonitoring
 {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using Contracts.Operations;
     using NServiceBus;
-    using ServiceControl.Contracts.BusinessMonitoring;
-    using ServiceControl.EndpointPlugin.Operations.Heartbeats;
+    using Contracts.BusinessMonitoring;
 
     public class EndpointSLAMonitoring : INeedInitialization
     {

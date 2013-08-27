@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.Alerts
 {
     using System;
-    using BusinessMonitoring;
     using NServiceBus;
     using ServiceControl.Contracts.BusinessMonitoring;
 

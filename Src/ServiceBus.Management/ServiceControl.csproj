@@ -124,9 +124,14 @@
   <ItemGroup>
     <Compile Include="Alerts\EndpointSLABreachedHandler.cs" />
     <Compile Include="BusinessMonitoring\ApiModule.cs" />
+    <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
     <Compile Include="Contracts\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Operations\Heartbeats\ApiModule.cs" />
+    <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
+    <Compile Include="Operations\Heartbeats\EndpointHeartbeatHandler.cs" />
+    <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
+    <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
     <Compile Include="Operations\Heartbeats\HeartbeatSummary.cs" />
     <Compile Include="Operations\Heartbeats\RegisterHeartbeatMessage.cs" />
     <Compile Include="Infrastructure\Nancy\CacheControlExtension.cs" />
@@ -148,7 +153,7 @@
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandlerBase.cs" />
     <Compile Include="MessageFailures\Handlers\IssueRetryHandler.cs" />
     <Compile Include="Operations\Heartbeats\DisableLocalHeartbeats.cs" />
-    <Compile Include="BusinessMonitoring\EndpointHeartbeatHandler.cs" />
+    <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
     <Compile Include="Infrastructure\Installers\LogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
     <Compile Include="EndpointControl\EndpointModule.cs" />

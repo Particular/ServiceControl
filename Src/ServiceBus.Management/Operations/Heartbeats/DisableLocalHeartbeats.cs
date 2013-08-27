@@ -7,7 +7,7 @@
     {
         public void Init()
         {
-            Configure.Features.Disable<Heartbeats>(); //avoid sending heartbeats to our self
+            //Configure.Features.Disable<Heartbeats>(); //avoid sending heartbeats to our self
         }
     }
 }
