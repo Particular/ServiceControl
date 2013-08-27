@@ -7,8 +7,8 @@
     <ProjectGuid>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceBus.Management</RootNamespace>
-    <AssemblyName>ServiceBus.Management</AssemblyName>
+    <RootNamespace>ServiceControl</RootNamespace>
+    <AssemblyName>ServiceControl</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
@@ -124,7 +124,7 @@
   <ItemGroup>
     <Compile Include="Alerts\EndpointSLABreachedHandler.cs" />
     <Compile Include="BusinessMonitoring\ApiModule.cs" />
-    <Compile Include="BusinessMonitoring\EndpointSLABreached.cs" />
+    <Compile Include="Contracts\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Operations\Heartbeats\ApiModule.cs" />
     <Compile Include="Operations\Heartbeats\HeartbeatSummary.cs" />

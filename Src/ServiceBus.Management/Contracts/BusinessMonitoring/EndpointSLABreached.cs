@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.BusinessMonitoring
+namespace ServiceControl.Contracts.BusinessMonitoring
 {
     using NServiceBus;
 
