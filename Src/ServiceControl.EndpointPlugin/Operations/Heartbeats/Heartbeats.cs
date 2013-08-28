@@ -16,7 +16,6 @@
     {
         public ISendMessages MessageSender { get; set; }
 
-
         public IBuilder Builder { get; set; }
 
         public override bool IsEnabledByDefault
@@ -57,7 +56,11 @@
 
         public override void Initialize()
         {
-            serializer = new JsonMessageSerializer(new MessageMapper());
+            mapper = new MessageMapper();
+
+            mapper.Initialize(new[] { typeof(EndpointHeartbeat) });
+
+            serializer = new JsonMessageSerializer(mapper);
 
 
             Configure.Instance.ForAllTypes<IHeartbeatInfoProvider>(
@@ -82,17 +85,17 @@
 
             using (var stream = new MemoryStream())
             {
-                serializer.Serialize(new[] {heartBeat}, stream);
+                serializer.Serialize(new object[] { heartBeat }, stream);
 
-                stream.Position = 0;
-                message.Body = new byte[stream.Length];
-                stream.Read(message.Body, 0, Convert.ToInt32(stream.Length));
+                message.Body = stream.ToArray();
             }
-            
-            MessageSender.Send(message,ServiceControlAddress);
+
+
+            MessageSender.Send(message, ServiceControlAddress);
         }
 
-        static JsonMessageSerializer serializer;//change this when we switch to json for ServiceControl
+        static MessageMapper mapper;
+        static JsonMessageSerializer serializer;
         static readonly ILog Logger = LogManager.GetLogger(typeof(Heartbeats));
         Timer heartbeatTimer;
     }
