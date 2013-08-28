@@ -183,7 +183,6 @@
     <Compile Include="Infrastructure\Satellites\ErrorImportSatellite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
-    <Compile Include="Infrastructure\SignalR\MessageStreamerConnection.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Operations\EndpointConfiguration\App.config">
@@ -197,6 +196,10 @@
     <EmbeddedResource Include="Operations\EndpointConfiguration\License.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Pulse.Messaging\Pulse.Messaging.csproj">
+      <Project>{188738bc-45c9-438d-80d4-6cd7c8d9a03e}</Project>
+      <Name>Pulse.Messaging</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj">
       <Project>{07393FA7-8577-42D7-8FE4-3C4D955A5A31}</Project>
       <Name>ServiceControl.EndpointPlugin</Name>

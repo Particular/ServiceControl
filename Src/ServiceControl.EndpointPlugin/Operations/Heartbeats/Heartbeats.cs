@@ -10,7 +10,6 @@
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Serializers.Json;
-    using NServiceBus.Serializers.XML;
     using NServiceBus.Transports;
 
     public class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops

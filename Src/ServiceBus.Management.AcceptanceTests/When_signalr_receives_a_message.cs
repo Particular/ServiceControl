@@ -43,11 +43,11 @@
                         }
                     }
 
-                    var data = @"{{ 
-headers: {{""{0}"": ""{1}""}},
-message: {{name: ""John""}}
-}}";
-                    connection.Send(String.Format(data, Headers.EnclosedMessageTypes, typeof(MyMessage).AssemblyQualifiedName));
+                    var data = @"{ 
+type: 'MyRequest',
+message: {name: 'John'}
+}";
+                    connection.Send(data);
                     connection.Stop();
                 }))
                 .Done(c => c.MessageReceived)
@@ -58,11 +58,11 @@ message: {{name: ""John""}}
 
         public class ManagementEndpointEx : ManagementEndpoint
         {
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler : IHandleMessages<MyRequest>
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(MyMessage message)
+                public void Handle(MyRequest message)
                 {
                     Context.MessageReceived = true;
                     Context.Name = message.Name;
@@ -71,7 +71,7 @@ message: {{name: ""John""}}
         }
 
         [Serializable]
-        public class MyMessage : ICommand
+        public class MyRequest : ICommand
         {
             public string Name { get; set; }
         }
