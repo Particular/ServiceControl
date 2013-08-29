@@ -196,7 +196,7 @@
     <EmbeddedResource Include="Operations\EndpointConfiguration\License.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Pulse.Messaging\Pulse.Messaging.csproj">
+    <ProjectReference Include="..\Pulse.Messaging\Pulse.Messaging.csproj">
       <Project>{188738bc-45c9-438d-80d4-6cd7c8d9a03e}</Project>
       <Name>Pulse.Messaging</Name>
     </ProjectReference>

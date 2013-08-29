@@ -21,7 +21,7 @@ namespace ServiceControl.BusinessMonitoring
         {
             SLAStatus status;
 
-            if (endpointsBeeingMonitored.TryGetValue(endpoint, out status))
+            if (endpointsBeingMonitored.TryGetValue(endpoint, out status))
             {
                 return status.CurrentSLA;
             }
@@ -31,7 +31,7 @@ namespace ServiceControl.BusinessMonitoring
 
         public void RegisterSLA(string endpoint, TimeSpan sla)
         {
-            endpointsBeeingMonitored.AddOrUpdate(endpoint, new SLAStatus(sla), (name, e) =>
+            endpointsBeingMonitored.AddOrUpdate(endpoint, new SLAStatus(sla), (name, e) =>
             {
                 e.CurrentSLA = sla;
                 return e;
@@ -40,7 +40,7 @@ namespace ServiceControl.BusinessMonitoring
 
         public void ReportCriticalTimeMeasurements(string endpoint, List<DataPoint> dataPoints)
         {
-            var currentStatus = endpointsBeeingMonitored.AddOrUpdate(endpoint, new SLAStatus(dataPoints), (name, e) =>
+            var currentStatus = endpointsBeingMonitored.AddOrUpdate(endpoint, new SLAStatus(dataPoints), (name, e) =>
             {
                 e.CriticalTimeValues.AddRange(dataPoints);
                 return e;
@@ -52,7 +52,7 @@ namespace ServiceControl.BusinessMonitoring
             }
         }
 
-        readonly ConcurrentDictionary<string, SLAStatus> endpointsBeeingMonitored =
+        readonly ConcurrentDictionary<string, SLAStatus> endpointsBeingMonitored =
             new ConcurrentDictionary<string, SLAStatus>();
 
 
