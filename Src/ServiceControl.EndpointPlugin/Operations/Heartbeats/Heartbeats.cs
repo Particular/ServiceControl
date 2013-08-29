@@ -23,7 +23,6 @@
             get { return true; }
         }
 
-
         Address ServiceControlAddress
         {
             get { return Address.Parse("ServiceControl"); }
@@ -40,9 +39,15 @@
             {
                 return;
             }
+
+            var mapper = new MessageMapper();
+
+            mapper.Initialize(new[] {typeof(EndpointHeartbeat)});
+
+            serializer = new JsonMessageSerializer(mapper);
+
             heartbeatTimer = new Timer(ExecuteHeartbeat, null, TimeSpan.Zero, HeartbeatInterval);
         }
-
 
         public void Stop()
         {
@@ -51,18 +56,15 @@
                 return;
             }
 
-            heartbeatTimer.Change(TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
+            var manualResetEvent = new ManualResetEvent(false);
+
+            heartbeatTimer.Dispose(manualResetEvent);
+
+            manualResetEvent.WaitOne();
         }
 
         public override void Initialize()
         {
-            mapper = new MessageMapper();
-
-            mapper.Initialize(new[] { typeof(EndpointHeartbeat) });
-
-            serializer = new JsonMessageSerializer(mapper);
-
-
             Configure.Instance.ForAllTypes<IHeartbeatInfoProvider>(
                 t => Configure.Component(t, DependencyLifecycle.InstancePerCall));
         }
@@ -85,18 +87,16 @@
 
             using (var stream = new MemoryStream())
             {
-                serializer.Serialize(new object[] { heartBeat }, stream);
+                serializer.Serialize(new object[] {heartBeat}, stream);
 
                 message.Body = stream.ToArray();
             }
 
-
             MessageSender.Send(message, ServiceControlAddress);
         }
 
-        static MessageMapper mapper;
-        static JsonMessageSerializer serializer;
         static readonly ILog Logger = LogManager.GetLogger(typeof(Heartbeats));
         Timer heartbeatTimer;
+        JsonMessageSerializer serializer;
     }
 }

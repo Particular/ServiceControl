@@ -40,7 +40,6 @@
                 });
             }
 
-
             Bus.InMemory.Raise<EndpointHeartbeatReceived>(e =>
                 {
                     e.Endpoint = endpoint;

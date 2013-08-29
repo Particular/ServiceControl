@@ -6,7 +6,7 @@
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
 
-    public class When_endpoints_heartbeats_are_received_in_a_timely_maner: AcceptanceTest
+    public class When_endpoints_heartbeats_are_received_in_a_timely_manner: AcceptanceTest
     {
         public class Endpoint1 : EndpointConfigurationBuilder
         {

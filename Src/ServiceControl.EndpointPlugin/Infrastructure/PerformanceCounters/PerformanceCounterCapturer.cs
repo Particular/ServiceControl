@@ -20,10 +20,9 @@
             captureTimer = new Timer(CaptureCounters, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
         }
 
-
         public void Stop()
         {
-            captureTimer.Change(TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
+            captureTimer.Dispose();
         }
 
         public List<DataPoint> GetCollectedData(string counter)
@@ -49,7 +48,6 @@
                     Value = counter.Value.RawValue
                 };
 
-
                 collectedData.AddOrUpdate(counterName, new List<DataPoint> {capturedValue}, (k, existing) =>
                 {
                     existing.Add(capturedValue);
@@ -71,11 +69,10 @@
             monitoredCounters.Add(counterKey, counter);
         }
 
-
-        static readonly Dictionary<string, PerformanceCounter> monitoredCounters =
+        readonly Dictionary<string, PerformanceCounter> monitoredCounters =
             new Dictionary<string, PerformanceCounter>();
 
-        static readonly ConcurrentDictionary<string, List<DataPoint>> collectedData =
+        readonly ConcurrentDictionary<string, List<DataPoint>> collectedData =
             new ConcurrentDictionary<string, List<DataPoint>>();
 
         Timer captureTimer;

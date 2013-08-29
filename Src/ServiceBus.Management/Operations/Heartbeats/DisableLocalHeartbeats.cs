@@ -6,7 +6,7 @@
     {
         public void Init()
         {
-            Configure.Features.Disable<EndpointPlugin.Operations.Heartbeats.Heartbeats>(); //avoid sending heartbeats to our self
+            //Configure.Features.Disable<EndpointPlugin.Operations.Heartbeats.Heartbeats>(); //avoid sending heartbeats to our self
         }
     }
 }

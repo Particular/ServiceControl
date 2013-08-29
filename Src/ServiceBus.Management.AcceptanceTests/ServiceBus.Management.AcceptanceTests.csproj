@@ -76,7 +76,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Operations\Heartbeats\When_endpoints_heartbeats_are_received_in_a_timely_maner.cs" />
+    <Compile Include="Operations\Heartbeats\When_endpoints_heartbeats_are_received_in_a_timely_manner.cs" />
     <Compile Include="When_a_message_has_failed.cs" />
     <Compile Include="When_issuing_a_retry_for_a_failed_message.cs" />
     <Compile Include="AcceptanceTest.cs" />
