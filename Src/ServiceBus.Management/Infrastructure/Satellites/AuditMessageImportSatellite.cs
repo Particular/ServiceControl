@@ -1,41 +1,31 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Satellites
 {
-    using System;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
-    using Raven.Abstractions.Exceptions;
-    using Raven.Client;
+    using NServiceBus.Unicast.Transport;
+    using ServiceControl.Infrastructure.Messages;
     using Settings;
 
     public class AuditMessageImportSatellite : ISatellite
     {
-        public IDocumentStore Store { get; set; }
+        public IBus Bus { get; set; }
 
         public bool Handle(TransportMessage message)
         {
-            using (var session = Store.OpenSession())
+            var messageDetails = new TransportMessageDetails()
             {
-                session.Advanced.UseOptimisticConcurrency = true;
-
-                var auditMessage = new Message(message);
-
-                auditMessage.MarkAsSuccessful(message);
-
-                try
-                {
-                    session.Store(auditMessage);
-
-                    session.SaveChanges();
-                }
-                catch (ConcurrencyException)
-                {
-                    session.Advanced.Clear();
-                    UpdateExistingMessage(session, auditMessage.Id, message);
-                }
-            }
-
+                Body = message.Body,
+                CorrelationId = message.CorrelationId,
+                Headers = message.Headers,
+                Id = message.Id,
+                MessageIntent = message.MessageIntent,
+                IsControlMessage = message.IsControlMessage(),
+                Recoverable = message.Recoverable,
+                ReplyToAddress = message.ReplyToAddress.ToString(),
+                TimeSent = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent])
+            };
+            Bus.InMemory.Raise<AuditMessageReceived>(m => { m.MessageDetails = messageDetails; });
             return true;
         }
 
@@ -58,20 +48,7 @@
             get { return InputAddress == Address.Undefined; }
         }
 
-        void UpdateExistingMessage(IDocumentSession session, string messageId, TransportMessage message)
-        {
-            var auditMessage = session.Load<Message>(messageId);
-
-            if (auditMessage == null)
-            {
-                throw new InvalidOperationException("There should be a message in the store");
-            }
-
-
-            auditMessage.Update(message);
-
-            session.SaveChanges();
-        }
+      
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(AuditMessageImportSatellite));
     }

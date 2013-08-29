@@ -127,6 +127,11 @@
     <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
     <Compile Include="Contracts\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
+    <Compile Include="Infrastructure\Messages\AuditMessageReceived.cs" />
+    <Compile Include="Infrastructure\Messages\ErrorMessageReceived.cs" />
+    <Compile Include="Infrastructure\Messages\TransportMessageDetails.cs" />
+    <Compile Include="MessageAuditing\AuditMessageHandler.cs" />
+    <Compile Include="MessageFailures\ErrorMessageHandler.cs" />
     <Compile Include="Operations\Heartbeats\ApiModule.cs" />
     <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
     <Compile Include="Operations\Heartbeats\EndpointHeartbeatHandler.cs" />

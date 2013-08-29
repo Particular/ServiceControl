@@ -9,8 +9,8 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Scheduling.Messages;
-    using NServiceBus.Unicast.Transport;
     using Raven.Imports.Newtonsoft.Json;
+    using ServiceControl.Infrastructure.Messages;
     using JsonConvert = Newtonsoft.Json.JsonConvert;
 
     public class Message
@@ -19,7 +19,7 @@
         {
         }
 
-        public Message(TransportMessage message)
+        public Message(ITransportMessage message)
         {
             ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message);
             Id = message.Id + "-" + ReceivingEndpoint.Name;
@@ -28,9 +28,9 @@
             Recoverable = message.Recoverable;
             MessageIntent = message.MessageIntent;
             Headers = message.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value));
-            TimeSent = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent]);
+            TimeSent = message.TimeSent;
 
-            if (message.IsControlMessage())
+            if (message.IsControlMessage)
             {
                 MessageType = "SystemMessage";
                 IsSystemMessage = true;
@@ -132,7 +132,7 @@
             return messageTypeString.Split(',').First();
         }
 
-        string DetermineContentType(TransportMessage message)
+        string DetermineContentType(ITransportMessage message)
         {
             if (message.Headers.ContainsKey(NServiceBus.Headers.ContentType))
             {
@@ -142,7 +142,7 @@
             return "application/xml"; //default to xml for now
         }
 
-        static string DeserializeBody(TransportMessage message, string contentType)
+        static string DeserializeBody(ITransportMessage message, string contentType)
         {
             var bodyString = Encoding.UTF8.GetString(message.Body);
 
@@ -193,7 +193,7 @@
             return rawMessage;
         }
 
-        public void Update(TransportMessage message)
+        public void Update(ITransportMessage message)
         {
             var processedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
 
@@ -231,7 +231,7 @@
             Statistics = GetProcessingStatistics(message);
         }
 
-        public void MarkAsSuccessful(TransportMessage message)
+        public void MarkAsSuccessful(ITransportMessage message)
         {
             Status = MessageStatus.Successful;
             ProcessedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
@@ -243,7 +243,7 @@
             }
         }
 
-        MessageStatistics GetProcessingStatistics(TransportMessage message)
+        MessageStatistics GetProcessingStatistics(ITransportMessage message)
         {
             return new MessageStatistics
             {
@@ -285,7 +285,7 @@
 
         public string Machine { get; set; }
 
-        public static EndpointDetails OriginatingEndpoint(TransportMessage message)
+        public static EndpointDetails OriginatingEndpoint(ITransportMessage message)
         {
             if (message.Headers.ContainsKey(Headers.OriginatingEndpoint))
             {
@@ -312,7 +312,7 @@
         }
 
 
-        public static EndpointDetails ReceivingEndpoint(TransportMessage message)
+        public static EndpointDetails ReceivingEndpoint(ITransportMessage message)
         {
             var endpoint = new EndpointDetails();
 
@@ -335,7 +335,7 @@
                 return endpoint;
             }
 
-            var address = message.ReplyToAddress;
+            var address = Address.Parse(message.ReplyToAddress);
 
             //use the failed q to determine the receiving endpoint
             if (message.Headers.ContainsKey("NServiceBus.FailedQ"))
@@ -368,7 +368,7 @@
         {
         }
 
-        public SagaDetails(TransportMessage message)
+        public SagaDetails(ITransportMessage message)
         {
             SagaId = message.Headers[Headers.SagaId];
             SagaType = message.Headers[Headers.SagaType];
@@ -382,7 +382,7 @@
 
         public string SagaType { get; set; }
 
-        public static SagaDetails Parse(TransportMessage message)
+        public static SagaDetails Parse(ITransportMessage message)
         {
             return !message.Headers.ContainsKey(Headers.SagaId) ? null : new SagaDetails(message);
         }
@@ -400,7 +400,7 @@
         {
         }
 
-        public FailureDetails(TransportMessage message)
+        public FailureDetails(ITransportMessage message)
         {
             FailedInQueue = message.Headers["NServiceBus.FailedQ"];
             TimeOfFailure = DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"]);
@@ -418,7 +418,7 @@
 
         public DateTime ResolvedAt { get; set; }
 
-        ExceptionDetails GetException(TransportMessage message)
+        ExceptionDetails GetException(ITransportMessage message)
         {
             return new ExceptionDetails
             {
@@ -429,7 +429,7 @@
             };
         }
 
-        public void RegisterException(TransportMessage message)
+        public void RegisterException(ITransportMessage message)
         {
             NumberOfTimesFailed++;
 
