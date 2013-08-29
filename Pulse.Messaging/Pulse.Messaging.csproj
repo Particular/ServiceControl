@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Handlers\GlobalEventHandler.cs" />
     <Compile Include="Handlers\PingHandler.cs" />
     <Compile Include="IHandleMessagesExtensions.cs" />
     <Compile Include="MessageStreamerConnection.cs" />

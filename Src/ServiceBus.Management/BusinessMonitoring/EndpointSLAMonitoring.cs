@@ -19,7 +19,14 @@ namespace ServiceControl.BusinessMonitoring
 
         public TimeSpan GetSLAFor(string endpoint)
         {
-            return endpointsBeeingMonitored[endpoint].CurrentSLA;
+            SLAStatus status;
+
+            if (endpointsBeeingMonitored.TryGetValue(endpoint, out status))
+            {
+                return status.CurrentSLA;
+            }
+
+            return TimeSpan.Zero;
         }
 
         public void RegisterSLA(string endpoint, TimeSpan sla)
