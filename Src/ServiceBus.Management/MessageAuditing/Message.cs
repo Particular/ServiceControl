@@ -10,7 +10,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Scheduling.Messages;
     using Raven.Imports.Newtonsoft.Json;
-    using ServiceControl.Infrastructure.Messages;
+    using ServiceControl.Contracts.Operations;
     using JsonConvert = Newtonsoft.Json.JsonConvert;
 
     public class Message
@@ -19,40 +19,52 @@
         {
         }
 
-        public Message(ITransportMessage message)
+        public Message(ErrorMessageReceived message)
         {
-            ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message);
-            Id = message.Id + "-" + ReceivingEndpoint.Name;
-            MessageId = message.Id;
-            CorrelationId = message.CorrelationId;
-            Recoverable = message.Recoverable;
-            MessageIntent = message.MessageIntent;
-            Headers = message.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value));
-            TimeSent = message.TimeSent;
+            Init(message.Id, message.Body, message.Headers);          
+        }
 
-            if (message.IsControlMessage)
+        public Message(AuditMessageReceived message)
+        {
+            Init(message.Id, message.Body, message.Headers);
+        }
+
+        private void Init(string messageId, byte[] body, IDictionary<string, string> headers)
+        {
+            ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(headers);
+            Id = messageId + "-" + ReceivingEndpoint.Name;
+            MessageId = messageId;
+            CorrelationId = headers["NServiceBus.CorrelationId"];
+            //TODO: Do we need to expose Recoverable in AuditMessageReceived? I don't see this in the headers
+            MessageIntentEnum messageIntent;
+            Enum.TryParse(headers["NServiceBus.MessageIntent"], true, out messageIntent);
+            MessageIntent = messageIntent;
+            Headers = headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value));
+            TimeSent = DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.TimeSent]);
+            if (headers.ContainsKey("Headers.ControlMessageHeader"))
             {
                 MessageType = "SystemMessage";
                 IsSystemMessage = true;
             }
             else
             {
-                var messageTypeString = message.Headers[NServiceBus.Headers.EnclosedMessageTypes];
+                var messageTypeString = headers[NServiceBus.Headers.EnclosedMessageTypes];
 
                 MessageType = GetMessageType(messageTypeString);
                 IsSystemMessage = DetectSystemMessage(messageTypeString);
-                ContentType = DetermineContentType(message);
-                Body = DeserializeBody(message, ContentType);
-                BodyRaw = message.Body;
-                RelatedToMessageId = message.Headers.ContainsKey(NServiceBus.Headers.RelatedTo)
-                    ? message.Headers[NServiceBus.Headers.RelatedTo]
+                ContentType = DetermineContentType(headers);
+                Body = DeserializeBody(body, ContentType);
+                BodyRaw = body;
+                RelatedToMessageId = headers.ContainsKey(NServiceBus.Headers.RelatedTo)
+                    ? headers[NServiceBus.Headers.RelatedTo]
                     : null;
-                ConversationId = message.Headers[NServiceBus.Headers.ConversationId];
-                OriginatingSaga = SagaDetails.Parse(message);
-                IsDeferredMessage = message.Headers.ContainsKey(NServiceBus.Headers.IsDeferredMessage);
+                ConversationId = headers[NServiceBus.Headers.ConversationId];
+                OriginatingSaga = SagaDetails.Parse(headers);
+                IsDeferredMessage = headers.ContainsKey(NServiceBus.Headers.IsDeferredMessage);
             }
 
-            OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(message);
+            OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(headers);
+   
         }
 
         [JsonIgnore]
@@ -132,19 +144,19 @@
             return messageTypeString.Split(',').First();
         }
 
-        string DetermineContentType(ITransportMessage message)
+        string DetermineContentType(IDictionary<string,string> headers)
         {
-            if (message.Headers.ContainsKey(NServiceBus.Headers.ContentType))
+            if (headers.ContainsKey(NServiceBus.Headers.ContentType))
             {
-                return message.Headers[NServiceBus.Headers.ContentType];
+                return headers[NServiceBus.Headers.ContentType];
             }
 
             return "application/xml"; //default to xml for now
         }
 
-        static string DeserializeBody(ITransportMessage message, string contentType)
+        static string DeserializeBody(byte[] body, string contentType)
         {
-            var bodyString = Encoding.UTF8.GetString(message.Body);
+            var bodyString = Encoding.UTF8.GetString(body);
 
             if (contentType == "application/json" || contentType == "text/json")
             {
@@ -193,16 +205,16 @@
             return rawMessage;
         }
 
-        public void Update(ITransportMessage message)
+        public void Update(byte[] body, IDictionary<string,string> headers )
         {
-            var processedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
+            var processedAt = DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingEnded]);
 
             if (Status == MessageStatus.Successful && ProcessedAt > processedAt)
             {
                 return; //don't overwrite since this message is older
             }
 
-            if (BodyRaw.Length != message.Body.Length)
+            if (BodyRaw.Length != body.Length)
             {
                 throw new InvalidOperationException("Message bodies differ, message has been tampered with");
             }
@@ -213,7 +225,7 @@
             if (Status != MessageStatus.Successful)
             {
                 FailureDetails.ResolvedAt =
-                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
+                    DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingEnded]);
                 History.Add(new HistoryItem
                 {
                     Action = "ErrorResolved",
@@ -223,36 +235,36 @@
 
             Status = MessageStatus.Successful;
 
-            if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
+            if (headers.ContainsKey("NServiceBus.OriginatingAddress"))
             {
-                ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
+                ReplyToAddress = headers["NServiceBus.OriginatingAddress"];
             }
 
-            Statistics = GetProcessingStatistics(message);
+            Statistics = GetProcessingStatistics(headers);
         }
 
-        public void MarkAsSuccessful(ITransportMessage message)
+        public void MarkAsSuccessful(IDictionary<string,string> headers)
         {
             Status = MessageStatus.Successful;
-            ProcessedAt = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]);
-            Statistics = GetProcessingStatistics(message);
+            ProcessedAt = DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingEnded]);
+            Statistics = GetProcessingStatistics(headers);
 
-            if (message.Headers.ContainsKey("NServiceBus.OriginatingAddress"))
+            if (headers.ContainsKey("NServiceBus.OriginatingAddress"))
             {
-                ReplyToAddress = message.Headers["NServiceBus.OriginatingAddress"];
+                ReplyToAddress = headers["NServiceBus.OriginatingAddress"];
             }
         }
 
-        MessageStatistics GetProcessingStatistics(ITransportMessage message)
+        MessageStatistics GetProcessingStatistics(IDictionary<string,string> headers)
         {
             return new MessageStatistics
             {
                 CriticalTime =
-                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]) -
-                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent]),
+                    DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingEnded]) -
+                    DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.TimeSent]),
                 ProcessingTime =
-                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingEnded]) -
-                    DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.ProcessingStarted])
+                    DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingEnded]) -
+                    DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingStarted])
             };
         }
 
@@ -285,20 +297,20 @@
 
         public string Machine { get; set; }
 
-        public static EndpointDetails OriginatingEndpoint(ITransportMessage message)
+        public static EndpointDetails OriginatingEndpoint(IDictionary<string,string> headers )
         {
-            if (message.Headers.ContainsKey(Headers.OriginatingEndpoint))
+            if (headers.ContainsKey(Headers.OriginatingEndpoint))
             {
                 return new EndpointDetails
                 {
-                    Name = message.Headers[Headers.OriginatingEndpoint],
-                    Machine = message.Headers[Headers.OriginatingMachine]
+                    Name = headers[Headers.OriginatingEndpoint],
+                    Machine = headers[Headers.OriginatingMachine]
                 };
             }
 
-            if (message.Headers.ContainsKey(Headers.OriginatingAddress))
+            if (headers.ContainsKey(Headers.OriginatingAddress))
             {
-                var address = Address.Parse(message.Headers[Headers.OriginatingAddress]);
+                var address = Address.Parse(headers[Headers.OriginatingAddress]);
 
                 return new EndpointDetails
                 {
@@ -312,22 +324,22 @@
         }
 
 
-        public static EndpointDetails ReceivingEndpoint(ITransportMessage message)
+        public static EndpointDetails ReceivingEndpoint(IDictionary<string,string> headers)
         {
             var endpoint = new EndpointDetails();
 
-            if (message.Headers.ContainsKey(Headers.ProcessingEndpoint))
+            if (headers.ContainsKey(Headers.ProcessingEndpoint))
             {
                 //todo: remove this line after we have updated to the next unstableversion (due to a bug in the core)
-                if (message.Headers[Headers.ProcessingEndpoint] != Configure.EndpointName)
+                if (headers[Headers.ProcessingEndpoint] != Configure.EndpointName)
                 {
-                    endpoint.Name = message.Headers[Headers.ProcessingEndpoint];
+                    endpoint.Name = headers[Headers.ProcessingEndpoint];
                 }
             }
 
-            if (message.Headers.ContainsKey(Headers.ProcessingMachine))
+            if (headers.ContainsKey(Headers.ProcessingMachine))
             {
-                endpoint.Machine = message.Headers[Headers.ProcessingMachine];
+                endpoint.Machine = headers[Headers.ProcessingMachine];
             }
 
             if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Name))
@@ -335,12 +347,12 @@
                 return endpoint;
             }
 
-            var address = Address.Parse(message.ReplyToAddress);
+            var address = Address.Parse(headers[Headers.OriginatingAddress]);
 
             //use the failed q to determine the receiving endpoint
-            if (message.Headers.ContainsKey("NServiceBus.FailedQ"))
+            if (headers.ContainsKey("NServiceBus.FailedQ"))
             {
-                address = Address.Parse(message.Headers["NServiceBus.FailedQ"]);
+                address = Address.Parse(headers["NServiceBus.FailedQ"]);
             }
 
             endpoint.FromAddress(address);
@@ -368,11 +380,11 @@
         {
         }
 
-        public SagaDetails(ITransportMessage message)
+        public SagaDetails(IDictionary<string, string> headers)
         {
-            SagaId = message.Headers[Headers.SagaId];
-            SagaType = message.Headers[Headers.SagaType];
-            IsTimeoutMessage = message.Headers.ContainsKey(Headers.IsSagaTimeoutMessage);
+            SagaId = headers[Headers.SagaId];
+            SagaType = headers[Headers.SagaType];
+            IsTimeoutMessage = headers.ContainsKey(Headers.IsSagaTimeoutMessage);
         }
 
 
@@ -382,9 +394,9 @@
 
         public string SagaType { get; set; }
 
-        public static SagaDetails Parse(ITransportMessage message)
+        public static SagaDetails Parse(IDictionary<string,string> headers)
         {
-            return !message.Headers.ContainsKey(Headers.SagaId) ? null : new SagaDetails(message);
+            return !headers.ContainsKey(Headers.SagaId) ? null : new SagaDetails(headers);
         }
     }
 
@@ -400,11 +412,11 @@
         {
         }
 
-        public FailureDetails(ITransportMessage message)
+        public FailureDetails(IDictionary<string,string> headers)
         {
-            FailedInQueue = message.Headers["NServiceBus.FailedQ"];
-            TimeOfFailure = DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"]);
-            Exception = GetException(message);
+            FailedInQueue = headers["NServiceBus.FailedQ"];
+            TimeOfFailure = DateTimeExtensions.ToUtcDateTime(headers["NServiceBus.TimeOfFailure"]);
+            Exception = GetException(headers);
             NumberOfTimesFailed = 1;
         }
 
@@ -418,26 +430,26 @@
 
         public DateTime ResolvedAt { get; set; }
 
-        ExceptionDetails GetException(ITransportMessage message)
+        ExceptionDetails GetException(IDictionary<string,string> headers)
         {
             return new ExceptionDetails
             {
-                ExceptionType = message.Headers["NServiceBus.ExceptionInfo.ExceptionType"],
-                Message = message.Headers["NServiceBus.ExceptionInfo.Message"],
-                Source = message.Headers["NServiceBus.ExceptionInfo.Source"],
-                StackTrace = message.Headers["NServiceBus.ExceptionInfo.StackTrace"]
+                ExceptionType = headers["NServiceBus.ExceptionInfo.ExceptionType"],
+                Message = headers["NServiceBus.ExceptionInfo.Message"],
+                Source = headers["NServiceBus.ExceptionInfo.Source"],
+                StackTrace = headers["NServiceBus.ExceptionInfo.StackTrace"]
             };
         }
 
-        public void RegisterException(ITransportMessage message)
+        public void RegisterException(IDictionary<string,string> headers)
         {
             NumberOfTimesFailed++;
 
-            var timeOfFailure = DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"]);
+            var timeOfFailure = DateTimeExtensions.ToUtcDateTime(headers["NServiceBus.TimeOfFailure"]);
 
             if (TimeOfFailure < timeOfFailure)
             {
-                Exception = GetException(message);
+                Exception = GetException(headers);
                 TimeOfFailure = timeOfFailure;
             }
 

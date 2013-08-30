@@ -4,7 +4,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
     using NServiceBus.Unicast.Transport;
-    using ServiceControl.Infrastructure.Messages;
+    using ServiceControl.Contracts.Operations;
     using Settings;
 
     public class AuditMessageImportSatellite : ISatellite
@@ -13,19 +13,12 @@
 
         public bool Handle(TransportMessage message)
         {
-            var messageDetails = new TransportMessageDetails()
+            Bus.InMemory.Raise<AuditMessageReceived>(m =>
             {
-                Body = message.Body,
-                CorrelationId = message.CorrelationId,
-                Headers = message.Headers,
-                Id = message.Id,
-                MessageIntent = message.MessageIntent,
-                IsControlMessage = message.IsControlMessage(),
-                Recoverable = message.Recoverable,
-                ReplyToAddress = message.ReplyToAddress.ToString(),
-                TimeSent = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent])
-            };
-            Bus.InMemory.Raise<AuditMessageReceived>(m => { m.MessageDetails = messageDetails; });
+                m.Id = message.Id;
+                m.Body = message.Body;
+                m.Headers = message.Headers;
+            });
             return true;
         }
 

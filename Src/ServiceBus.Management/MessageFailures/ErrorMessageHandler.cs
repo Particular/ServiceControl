@@ -1,11 +1,13 @@
 ﻿namespace ServiceControl.MessageFailures
 {
     using System;
-    using Infrastructure.Messages;
+    using System.Collections.Generic;
+    using Contracts.Operations;
     using NServiceBus;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using ServiceBus.Management.MessageAuditing;
+    using SpellChecker.Net.Search.Spell;
 
     class ErrorMessageHandler : IHandleMessages<ErrorMessageReceived>
     {
@@ -13,17 +15,19 @@
         
         public void Handle(ErrorMessageReceived message)
         {
-            var transportMessage = message.MessageDetails;
-
             using (var session = Store.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
-            
-                var failedMessage = new Message(transportMessage)
+
+                var replyToAddress = message.Headers.ContainsKey("NServiceBus.OriginatingAddress")
+                    ? message.Headers["NServiceBus.OriginatingAddress"]
+                    : null;
+                
+                var failedMessage = new Message(message)
                 {
-                    FailureDetails = new FailureDetails(transportMessage),
+                    FailureDetails = new FailureDetails(message.Headers),
                     Status = MessageStatus.Failed,
-                    ReplyToAddress = transportMessage.ReplyToAddress.ToString()
+                    ReplyToAddress = replyToAddress
                 };
 
                 try
@@ -35,16 +39,16 @@
                 catch (ConcurrencyException) //there is already a message in the store with the same id
                 {
                     session.Advanced.Clear();
-                    UpdateExistingMessage(session, failedMessage.Id, transportMessage);
+                    UpdateExistingMessage(session, failedMessage.Id, message.Headers);
                 }
             }
         }
 
-        void UpdateExistingMessage(IDocumentSession session, string id, ITransportMessage message)
+        void UpdateExistingMessage(IDocumentSession session, string id, IDictionary<string,string> headers)
         {
             var failedMessage = session.Load<Message>(id);
 
-            var timeOfFailure = DateTimeExtensions.ToUtcDateTime(message.Headers["NServiceBus.TimeOfFailure"]);
+            var timeOfFailure = DateTimeExtensions.ToUtcDateTime(headers["NServiceBus.TimeOfFailure"]);
 
             if (failedMessage.FailureDetails.TimeOfFailure == timeOfFailure)
             {
@@ -59,13 +63,13 @@
 
             if (failedMessage.Status == MessageStatus.Successful)
             {
-                failedMessage.FailureDetails = new FailureDetails(message);
+                failedMessage.FailureDetails = new FailureDetails(headers);
             }
             else
             {
                 failedMessage.Status = MessageStatus.RepeatedFailure;
 
-                failedMessage.FailureDetails.RegisterException(message);
+                failedMessage.FailureDetails.RegisterException(headers);
             }
 
             session.SaveChanges();

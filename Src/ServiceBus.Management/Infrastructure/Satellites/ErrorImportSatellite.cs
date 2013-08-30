@@ -5,7 +5,7 @@
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
     using NServiceBus.Unicast.Transport;
-    using ServiceControl.Infrastructure.Messages;
+    using ServiceControl.Contracts.Operations;
     using Settings;
 
     public class ErrorImportSatellite : ISatellite
@@ -15,19 +15,16 @@
 
         public bool Handle(TransportMessage message)
         {
-            var messageDetails = new TransportMessageDetails()
+            Bus.Publish<ErrorMessageReceived>(m =>
             {
-                Body = message.Body,
-                CorrelationId = message.CorrelationId,
-                Headers = message.Headers,
-                Id = message.Id,
-                MessageIntent = message.MessageIntent,
-                IsControlMessage = message.IsControlMessage(),
-                Recoverable = message.Recoverable,
-                ReplyToAddress = message.ReplyToAddress.ToString(),
-                TimeSent = DateTimeExtensions.ToUtcDateTime(message.Headers[NServiceBus.Headers.TimeSent])
-            };
-            Bus.Publish<ErrorMessageReceived>(m => { m.MessageDetails = messageDetails; });
+                m.Id = message.Id;
+                m.Headers = message.Headers;
+                m.Body = message.Body;
+                m.ExceptionType = message.Headers["NServiceBus.ExceptionInfo.ExceptionType"];
+                m.ExceptionSource = message.Headers["NServiceBus.ExceptionInfo.ExceptionSource"];
+                m.ExceptionStackTrace = message.Headers["NServiceBus.ExceptionInfo.ExceptionStackTrace"];
+                m.ExceptionMessage = message.Headers["NServiceBus.ExceptionInfo.ExceptionMessage"];
+             });
 
             Forwarder.Send(message, Settings.ErrorLogQueue);
 

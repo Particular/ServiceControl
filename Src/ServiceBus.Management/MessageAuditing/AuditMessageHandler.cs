@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.MessageAuditing
 {
     using System;
-    using Infrastructure.Messages;
+    using Contracts.Operations;
     using NServiceBus;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
@@ -17,25 +17,24 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var auditMessage = new ServiceBus.Management.MessageAuditing.Message(message.MessageDetails);
+                var auditMessage = new ServiceBus.Management.MessageAuditing.Message(message);
 
-                auditMessage.MarkAsSuccessful(message.MessageDetails);
+                auditMessage.MarkAsSuccessful(message.Headers);
 
                 try
                 {
                     session.Store(auditMessage);
-
                     session.SaveChanges();
                 }
                 catch (ConcurrencyException)
                 {
                     session.Advanced.Clear();
-                    UpdateExistingMessage(session, auditMessage.Id, message.MessageDetails);
+                    UpdateExistingMessage(session, auditMessage.Id, message);
                 }
             }
         }
 
-        void UpdateExistingMessage(IDocumentSession session, string messageId, ITransportMessage message)
+        void UpdateExistingMessage(IDocumentSession session, string messageId, AuditMessageReceived message)
         {
             var auditMessage = session.Load<Message>(messageId);
 
@@ -44,7 +43,7 @@
                 throw new InvalidOperationException("There should be a message in the store");
             }
 
-            auditMessage.Update(message);
+            auditMessage.Update(message.Body, message.Headers);
 
             session.SaveChanges();
         }
