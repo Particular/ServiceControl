@@ -123,7 +123,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
         public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, RavenQueryStatistics stats)
         {
-            var currentEtag = stats.IndexEtag.ToString("N");
+            var currentEtag = stats.IndexEtag.ToString();
             var responseLastModified = stats.IndexTimestamp;
 
             return negotiator
