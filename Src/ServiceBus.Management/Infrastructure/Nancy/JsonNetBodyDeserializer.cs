@@ -8,6 +8,7 @@
     using System.Reflection;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using ServiceControl.Infrastructure.SignalR;
     using global::Nancy.Extensions;
     using global::Nancy.ModelBinding;
 

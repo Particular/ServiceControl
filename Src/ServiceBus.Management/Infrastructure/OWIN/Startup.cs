@@ -3,7 +3,7 @@
     using Microsoft.AspNet.SignalR;
     using Nancy;
     using Owin;
-    using Pulse.Messaging;
+    using ServiceControl.Infrastructure.SignalR;
 
     public class Startup
     {

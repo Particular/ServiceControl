@@ -5,6 +5,7 @@
     using System.IO;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using ServiceControl.Infrastructure.SignalR;
     using global::Nancy;
     using global::Nancy.IO;
 

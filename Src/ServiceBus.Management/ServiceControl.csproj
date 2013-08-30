@@ -129,6 +129,13 @@
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Contracts\Operations\AuditMessageReceived.cs" />
     <Compile Include="Contracts\Operations\ErrorMessageReceived.cs" />
+    <Compile Include="Infrastructure\SignalR\Configure.cs" />
+    <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
+    <Compile Include="Infrastructure\SignalR\GlobalEventHandler.cs" />
+    <Compile Include="Infrastructure\SignalR\IHandleMessagesExtensions.cs" />
+    <Compile Include="Infrastructure\SignalR\MessageStreamerConnection.cs" />
+    <Compile Include="Infrastructure\SignalR\Envelope.cs" />
+    <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
     <Compile Include="MessageAuditing\AuditMessageHandler.cs" />
     <Compile Include="MessageFailures\ErrorMessageHandler.cs" />
     <Compile Include="Operations\Heartbeats\ApiModule.cs" />
@@ -199,10 +206,6 @@
     <EmbeddedResource Include="Operations\EndpointConfiguration\License.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Pulse.Messaging\Pulse.Messaging.csproj">
-      <Project>{188738bc-45c9-438d-80d4-6cd7c8d9a03e}</Project>
-      <Name>Pulse.Messaging</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj">
       <Project>{07393FA7-8577-42D7-8FE4-3C4D955A5A31}</Project>
       <Name>ServiceControl.EndpointPlugin</Name>

@@ -13,6 +13,7 @@
     using Newtonsoft.Json.Converters;
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
+    using ServiceControl.Infrastructure.SignalR;
 
     [TestFixture]
     public abstract class AcceptanceTest

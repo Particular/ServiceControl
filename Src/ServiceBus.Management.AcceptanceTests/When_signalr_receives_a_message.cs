@@ -10,7 +10,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using Pulse.Messaging.Infrastructure;
+    using ServiceControl.Infrastructure.SignalR;
 
     public class When_signalr_receives_a_message : AcceptanceTest
     {
