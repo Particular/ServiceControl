@@ -7,7 +7,7 @@
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using ServiceBus.Management.MessageAuditing;
-    using SpellChecker.Net.Search.Spell;
+    
 
     class ErrorMessageHandler : IHandleMessages<ErrorMessageReceived>
     {
@@ -19,15 +19,11 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var replyToAddress = message.Headers.ContainsKey("NServiceBus.OriginatingAddress")
-                    ? message.Headers["NServiceBus.OriginatingAddress"]
-                    : null;
-                
                 var failedMessage = new Message(message)
                 {
                     FailureDetails = new FailureDetails(message.Headers),
                     Status = MessageStatus.Failed,
-                    ReplyToAddress = replyToAddress
+                    ReplyToAddress = message.ReplyToAddress
                 };
 
                 try

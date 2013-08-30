@@ -105,6 +105,7 @@
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
+                System.Threading.Thread.Sleep(1000);
                 return null;
             }
 

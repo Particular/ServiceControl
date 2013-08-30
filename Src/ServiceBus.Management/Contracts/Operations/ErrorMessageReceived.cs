@@ -12,5 +12,6 @@
         public string ExceptionStackTrace { get; set; }
         public string ExceptionType { get; set; }
         public IDictionary<string, string> Headers { get; set; }
+        public string ReplyToAddress { get; set; }
     }
 }

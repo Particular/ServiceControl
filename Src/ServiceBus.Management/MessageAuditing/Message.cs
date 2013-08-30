@@ -61,6 +61,7 @@
                 ConversationId = headers[NServiceBus.Headers.ConversationId];
                 OriginatingSaga = SagaDetails.Parse(headers);
                 IsDeferredMessage = headers.ContainsKey(NServiceBus.Headers.IsDeferredMessage);
+                
             }
 
             OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(headers);

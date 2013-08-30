@@ -24,7 +24,8 @@
                 m.ExceptionSource = message.Headers["NServiceBus.ExceptionInfo.Source"];
                 m.ExceptionStackTrace = message.Headers["NServiceBus.ExceptionInfo.StackTrace"];
                 m.ExceptionMessage = message.Headers["NServiceBus.ExceptionInfo.Message"];
-             });
+                m.ReplyToAddress = message.ReplyToAddress.ToString();
+            });
 
             Forwarder.Send(message, Settings.ErrorLogQueue);
 
