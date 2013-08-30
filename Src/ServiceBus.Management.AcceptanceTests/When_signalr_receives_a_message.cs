@@ -1,9 +1,13 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Globalization;
     using System.Net;
     using Contexts;
+    using Infrastructure.Nancy;
     using Microsoft.AspNet.SignalR.Client;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -25,6 +29,16 @@
                 .WithEndpoint<ManagementEndpointEx>(b => b.When(_ =>
                 {
                     var connection = new Connection("http://localhost:33333/api/messagestream");
+
+                    var serializerSettings = new JsonSerializerSettings
+                    {
+                        ContractResolver = new UnderscoreMappingResolver(),
+                        Formatting = Formatting.None,
+                        NullValueHandling = NullValueHandling.Ignore,
+                        Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
+                    };
+                    
+                    // connection.JsonSerializer = JsonSerializer.Create(serializerSettings);
 
                     while (true)
                     {

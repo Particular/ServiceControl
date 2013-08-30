@@ -20,7 +20,7 @@
                 Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
             });
 
-            GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => serializer); 
+            //GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => serializer); 
         }
     }
 }
