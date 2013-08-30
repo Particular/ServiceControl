@@ -54,13 +54,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\ServiceBus.Management\Infrastructure\Nancy\UnderscoreMappingResolver.cs">
-      <Link>Infrastructure\UnderscoreMappingResolver.cs</Link>
-    </Compile>
     <Compile Include="Handlers\GlobalEventHandler.cs" />
     <Compile Include="Handlers\PingHandler.cs" />
     <Compile Include="IHandleMessagesExtensions.cs" />
     <Compile Include="Infrastructure\Configure.cs" />
+    <Compile Include="Infrastructure\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
+    <Compile Include="Infrastructure\UnderscoreMappingResolver.cs" />
     <Compile Include="MessageStreamerConnection.cs" />
     <Compile Include="Messages\Ping.cs" />
     <Compile Include="Messages\Pong.cs" />

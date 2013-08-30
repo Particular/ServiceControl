@@ -141,7 +141,6 @@
     <Compile Include="Infrastructure\Nancy\NancyCompressionExtension.cs" />
     <Compile Include="Infrastructure\Nancy\NotModifiedStatusExtension.cs" />
     <Compile Include="Infrastructure\Nancy\NServiceBusContainerBootstrapper.cs" />
-    <Compile Include="Infrastructure\Nancy\UnderscoreMappingResolver.cs" />
     <Compile Include="Infrastructure\Nancy\VersionExtension.cs" />
     <Compile Include="Infrastructure\Nancy\StringListBinder.cs" />
     <Compile Include="MessageFailures\InternalMessages\IssueEndpointRetryAll.cs" />

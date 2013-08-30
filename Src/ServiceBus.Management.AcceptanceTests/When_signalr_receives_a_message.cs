@@ -4,13 +4,13 @@
     using System.Globalization;
     using System.Net;
     using Contexts;
-    using Infrastructure.Nancy;
     using Microsoft.AspNet.SignalR.Client;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using Pulse.Messaging.Infrastructure;
 
     public class When_signalr_receives_a_message : AcceptanceTest
     {
@@ -32,13 +32,13 @@
 
                     var serializerSettings = new JsonSerializerSettings
                     {
-                        ContractResolver = new UnderscoreMappingResolver(),
+                        ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
                         Formatting = Formatting.None,
                         NullValueHandling = NullValueHandling.Ignore,
                         Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
                     };
                     
-                    // connection.JsonSerializer = JsonSerializer.Create(serializerSettings);
+                    connection.JsonSerializer = JsonSerializer.Create(serializerSettings);
 
                     while (true)
                     {

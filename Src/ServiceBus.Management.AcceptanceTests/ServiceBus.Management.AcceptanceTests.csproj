@@ -95,6 +95,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Pulse.Messaging\Pulse.Messaging.csproj">
+      <Project>{188738BC-45C9-438D-80D4-6CD7C8D9A03E}</Project>
+      <Name>Pulse.Messaging</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceBus.Management\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>
       <Name>ServiceControl</Name>

@@ -6,7 +6,6 @@
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using NServiceBus;
-    using ServiceBus.Management.Infrastructure.Nancy;
 
     public class Configure : INeedInitialization
     {
@@ -14,13 +13,13 @@
         {
             var serializer = new JsonNetSerializer(new JsonSerializerSettings
             {
-                ContractResolver = new UnderscoreMappingResolver(),
+                ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
                 Formatting = Formatting.None,
                 NullValueHandling = NullValueHandling.Ignore,
                 Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
             });
 
-            //GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => serializer); 
+            GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => serializer); 
         }
     }
 }
