@@ -15,15 +15,15 @@
 
         public bool Handle(TransportMessage message)
         {
-            Bus.Publish<ErrorMessageReceived>(m =>
+            Bus.InMemory.Raise<ErrorMessageReceived>(m =>
             {
                 m.Id = message.Id;
                 m.Headers = message.Headers;
                 m.Body = message.Body;
                 m.ExceptionType = message.Headers["NServiceBus.ExceptionInfo.ExceptionType"];
-                m.ExceptionSource = message.Headers["NServiceBus.ExceptionInfo.ExceptionSource"];
-                m.ExceptionStackTrace = message.Headers["NServiceBus.ExceptionInfo.ExceptionStackTrace"];
-                m.ExceptionMessage = message.Headers["NServiceBus.ExceptionInfo.ExceptionMessage"];
+                m.ExceptionSource = message.Headers["NServiceBus.ExceptionInfo.Source"];
+                m.ExceptionStackTrace = message.Headers["NServiceBus.ExceptionInfo.StackTrace"];
+                m.ExceptionMessage = message.Headers["NServiceBus.ExceptionInfo.Message"];
              });
 
             Forwarder.Send(message, Settings.ErrorLogQueue);
