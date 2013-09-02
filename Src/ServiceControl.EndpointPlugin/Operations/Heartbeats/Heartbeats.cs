@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.EndpointPlugin.Operations.Heartbeats
 {
     using System;
+    using System.Configuration;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -11,6 +12,7 @@
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
 
     public class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
     {
@@ -23,21 +25,24 @@
             get { return true; }
         }
 
-        Address ServiceControlAddress
-        {
-            get { return Address.Parse("ServiceControl"); }
-        }
-
-        TimeSpan HeartbeatInterval
-        {
-            get { return TimeSpan.FromSeconds(10); } //todo: make this configurable
-        }
-
         public void Start()
         {
             if (!Enabled)
             {
                 return;
+            }
+
+            serviceControlAddress = GetServiceControlQueue();
+            if (serviceControlAddress == null)
+            {
+                return;
+            }
+
+            var heartbeatInterval = TimeSpan.FromSeconds(10);
+            var interval = ConfigurationManager.AppSettings[@"Heartbeat/Interval"];
+            if (!String.IsNullOrEmpty(interval))
+            {
+                heartbeatInterval = TimeSpan.Parse(interval);
             }
 
             var mapper = new MessageMapper();
@@ -46,7 +51,7 @@
 
             serializer = new JsonMessageSerializer(mapper);
 
-            heartbeatTimer = new Timer(ExecuteHeartbeat, null, TimeSpan.Zero, HeartbeatInterval);
+            heartbeatTimer = new Timer(ExecuteHeartbeat, null, TimeSpan.Zero, heartbeatInterval);
         }
 
         public void Stop()
@@ -56,11 +61,36 @@
                 return;
             }
 
-            var manualResetEvent = new ManualResetEvent(false);
+            if (heartbeatTimer == null)
+            {
+                return;
+            }
 
-            heartbeatTimer.Dispose(manualResetEvent);
+            using (var manualResetEvent = new ManualResetEvent(false))
+            {
+                heartbeatTimer.Dispose(manualResetEvent);
 
-            manualResetEvent.WaitOne();
+                manualResetEvent.WaitOne();
+            }
+        }
+
+        static Address GetServiceControlQueue()
+        {
+            var queueName = ConfigurationManager.AppSettings[@"ServiceControl/Queue"];
+            if (!String.IsNullOrEmpty(queueName))
+            {
+                return Address.Parse(queueName);
+            }
+
+            var unicastBus = Configure.Instance.Builder.Build<UnicastBus>();
+            var forwardAddress = unicastBus.ForwardReceivedMessagesTo;
+
+            if (forwardAddress != null)
+            {
+                return new Address("ServiceControl", forwardAddress.Machine);
+            }
+
+            return null;
         }
 
         public override void Initialize()
@@ -92,11 +122,12 @@
                 message.Body = stream.ToArray();
             }
 
-            MessageSender.Send(message, ServiceControlAddress);
+            MessageSender.Send(message, serviceControlAddress);
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(Heartbeats));
         Timer heartbeatTimer;
         JsonMessageSerializer serializer;
+        Address serviceControlAddress;
     }
 }
