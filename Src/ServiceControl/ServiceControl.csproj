@@ -129,6 +129,9 @@
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Contracts\Operations\AuditMessageReceived.cs" />
     <Compile Include="Contracts\Operations\ErrorMessageReceived.cs" />
+    <Compile Include="HeartbeatMonitoring\EndpointHeartbeatReceivedHandler.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatMonitor.cs" />
+    <Compile Include="HeartbeatMonitoring\PerformPeriodicCheckForMissingHeartbeats.cs" />
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
@@ -139,12 +142,12 @@
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
     <Compile Include="MessageAuditing\AuditMessageHandler.cs" />
     <Compile Include="MessageFailures\ErrorMessageHandler.cs" />
-    <Compile Include="Operations\Heartbeats\ApiModule.cs" />
+    <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
     <Compile Include="Operations\Heartbeats\EndpointHeartbeatHandler.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
-    <Compile Include="Operations\Heartbeats\HeartbeatSummary.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatSummary.cs" />
     <Compile Include="Operations\Heartbeats\RegisterHeartbeatMessage.cs" />
     <Compile Include="Infrastructure\Nancy\CacheControlExtension.cs" />
     <Compile Include="Infrastructure\Nancy\Helpers.cs" />

@@ -1,10 +1,11 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Operations.Heartbeats
+﻿namespace ServiceBus.Management.AcceptanceTests.HeartbeatMonitoring
 {
     using System;
-    using Management.Operations.Heartbeats;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using System.Threading;
+    using Contexts;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceControl.HeartbeatMonitoring;
 
     public class When_endpoints_heartbeats_are_received_in_a_timely_manner: AcceptanceTest
     {
@@ -48,6 +49,8 @@
                         if (summary == null)
                             return false;
 
+                        if(summary.ActiveEndpoints < 2)
+                            Thread.Sleep(1000);
                         return summary.ActiveEndpoints == 2;
                     })
                 .Run(TimeSpan.FromSeconds(20));

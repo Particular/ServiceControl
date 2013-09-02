@@ -43,6 +43,7 @@
             Bus.InMemory.Raise<EndpointHeartbeatReceived>(e =>
                 {
                     e.Endpoint = endpoint;
+                    e.Machine = Bus.CurrentMessageContext.Headers[Headers.OriginatingMachine];
                     e.SentAt = message.ExecutedAt;
                 } );   
         }

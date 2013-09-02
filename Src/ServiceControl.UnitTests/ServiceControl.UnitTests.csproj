@@ -46,6 +46,8 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HeartbeatMonitoring\When_endpoints_emit_heartbeats.cs" />
+    <Compile Include="HeartbeatMonitoring\When_endpoints_stops_emitting_heartbeats.cs" />
     <Compile Include="PerformanceCounterCapturingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -56,6 +58,10 @@
     <ProjectReference Include="..\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj">
       <Project>{07393FA7-8577-42D7-8FE4-3C4D955A5A31}</Project>
       <Name>ServiceControl.EndpointPlugin</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
+      <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>
+      <Name>ServiceControl</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
