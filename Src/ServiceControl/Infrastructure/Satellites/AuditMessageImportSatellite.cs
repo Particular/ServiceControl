@@ -3,7 +3,6 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
-    using NServiceBus.Unicast.Transport;
     using ServiceControl.Contracts.Operations;
     using Settings;
 

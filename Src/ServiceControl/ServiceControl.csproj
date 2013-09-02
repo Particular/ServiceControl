@@ -129,6 +129,7 @@
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Contracts\Operations\AuditMessageReceived.cs" />
     <Compile Include="Contracts\Operations\ErrorMessageReceived.cs" />
+    <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
     <Compile Include="Infrastructure\SignalR\GlobalEventHandler.cs" />

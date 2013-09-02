@@ -4,7 +4,6 @@
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
-    using NServiceBus.Unicast.Transport;
     using ServiceControl.Contracts.Operations;
     using Settings;
 
