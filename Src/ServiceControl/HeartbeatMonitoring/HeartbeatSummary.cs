@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
-    public class HeartbeatSummary
+    using NServiceBus;
+
+    public class HeartbeatSummaryChanged : IEvent
     {
         public int ActiveEndpoints { get; set; }
         public int NumberOfFailingEndpoints { get; set; }

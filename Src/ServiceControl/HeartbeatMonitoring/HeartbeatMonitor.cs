@@ -6,7 +6,6 @@
     using System.Linq;
     using System.Threading;
     using NServiceBus;
-    using Infrastructure.SignalR;
     using Configure = NServiceBus.Configure;
 
     public class RegisterHeartbeatMonitor : INeedInitialization
@@ -50,7 +49,7 @@
 
         public void Start()
         {
-            timer = new Timer(PerformCheck, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+            timer = new Timer(PerformCheck, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
         }
 
         public void Stop()
@@ -60,16 +59,16 @@
 
         void PerformCheck(object state)
         {
-            RefreshHeartbeatsStatuses();
-
-            var endpointStatus = CurrentStatus();
-
-            Bus.Broadcast(new HeartbeatSummary
+            if (RefreshHeartbeatsStatuses())
             {
-                ActiveEndpoints = endpointStatus.Count(s => s.Failing.HasValue && !s.Failing.Value),
-                NumberOfFailingEndpoints = endpointStatus.Count(s => s.Failing.HasValue && s.Failing.Value)
-            });
+                var endpointStatus = CurrentStatus();
 
+                Bus.Publish(new HeartbeatSummaryChanged
+                {
+                    ActiveEndpoints = endpointStatus.Count(s => s.Failing.HasValue && !s.Failing.Value),
+                    NumberOfFailingEndpoints = endpointStatus.Count(s => s.Failing.HasValue && s.Failing.Value)
+                });
+            }
         }
 
         public void RegisterHeartbeat(string endpoint, string machine, DateTime sentAt)
@@ -89,12 +88,21 @@
                 });
         }
 
-        public void RefreshHeartbeatsStatuses()
+        public bool RefreshHeartbeatsStatuses()
         {
+            var modified = false;
+
             foreach (var status in endpointInstancesBeingMonitored.Values)
             {
-                status.Failing = IsFailing(status);
+                var newStatus = IsFailing(status);
+                if (status.Failing != newStatus)
+                {
+                    status.Failing = newStatus;
+                    modified = true;
+                }
             }
+
+            return modified;
         }
 
         public List<HeartbeatStatus> CurrentStatus()

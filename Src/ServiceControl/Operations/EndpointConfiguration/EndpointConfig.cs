@@ -11,7 +11,7 @@ namespace ServiceControl
     using NServiceBus.Logging.Loggers.NLogAdapter;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class EndpointConfig : IConfigureThisEndpoint, AsA_Server, IWantCustomLogging, IWantCustomInitialization
+    public class EndpointConfig : IConfigureThisEndpoint, AsA_Publisher, IWantCustomLogging, IWantCustomInitialization
     {
         public static IContainer Container { get; set; }
 
@@ -29,6 +29,7 @@ namespace ServiceControl
 
             ConfigureLicense();
 
+            Configure.Features.AutoSubscribe(s => s.DoNotRequireExplicitRouting());
             Configure.Serialization.Json();
             Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
         }

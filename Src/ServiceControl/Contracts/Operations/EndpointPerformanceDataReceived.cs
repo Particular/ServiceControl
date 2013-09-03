@@ -2,12 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus;
 
-    public class EndpointPerformanceDataReceived:IEvent
+    public class EndpointPerformanceDataReceived
     {
         public string Endpoint { get; set; }
-
 
         public Dictionary<string, List<DataPoint>> Data
         {
@@ -24,8 +22,6 @@
         }
 
         Dictionary<string, List<DataPoint>> data;
-
-     
     }
 
     public class DataPoint

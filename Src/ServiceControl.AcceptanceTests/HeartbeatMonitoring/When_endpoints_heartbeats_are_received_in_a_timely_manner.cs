@@ -5,7 +5,6 @@
     using Contexts;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceControl.HeartbeatMonitoring;
 
     public class When_endpoints_heartbeats_are_received_in_a_timely_manner: AcceptanceTest
     {
@@ -44,7 +43,7 @@
                 .WithEndpoint<Endpoint2>()
                 .Done(c =>
                     {
-                        summary = Get<HeartbeatSummary>("/api/heartbeats");
+                        summary = Get<HeartbeatSummary>("/api/heartbeats/stats");
 
                         if (summary == null)
                             return false;
@@ -57,6 +56,12 @@
 
 
             Assert.AreEqual(0, summary.NumberOfFailingEndpoints);
+        }
+
+        public class HeartbeatSummary
+        {
+            public int ActiveEndpoints { get; set; }
+            public int NumberOfFailingEndpoints { get; set; }
         }
     }
 }

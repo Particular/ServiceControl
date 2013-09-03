@@ -1,9 +1,8 @@
 ﻿namespace ServiceControl.Contracts.Operations
 {
     using System.Collections.Generic;
-    using NServiceBus;
 
-    public class ErrorMessageReceived : IEvent
+    public class ErrorMessageReceived
     {
         public string Id { get; set; }
         public byte[] Body { get; set; }

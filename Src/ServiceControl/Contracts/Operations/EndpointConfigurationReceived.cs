@@ -1,9 +1,8 @@
 ﻿namespace ServiceControl.Contracts.Operations
 {
     using System.Collections.Generic;
-    using NServiceBus;
 
-    public class EndpointConfigurationReceived:IEvent
+    public class EndpointConfigurationReceived
     {
         public string Endpoint { get; set; }
 
