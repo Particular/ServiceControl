@@ -140,6 +140,7 @@
     <Compile Include="Infrastructure\SignalR\MessageStreamerConnection.cs" />
     <Compile Include="Infrastructure\SignalR\Envelope.cs" />
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
+    <Compile Include="Infrastructure\Subscriptions\AlwaysIncludeLocalEndpointStorage.cs" />
     <Compile Include="MessageAuditing\AuditMessageHandler.cs" />
     <Compile Include="MessageFailures\ErrorMessageHandler.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
