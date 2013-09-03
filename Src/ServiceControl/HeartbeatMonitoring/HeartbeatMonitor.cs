@@ -4,74 +4,114 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using NServiceBus;
+    using Infrastructure.SignalR;
+    using Configure = NServiceBus.Configure;
 
-    public class HeartbeatMonitor:INeedInitialization
+    public class RegisterHeartbeatMonitor : INeedInitialization
+    {
+        public void Init()
+        {
+            Configure.Component<HeartbeatMonitor>(DependencyLifecycle.SingleInstance);
+        }
+    }
+
+    public class HeartbeatMonitorStarter : IWantToRunWhenBusStartsAndStops
+    {
+        readonly HeartbeatMonitor monitor;
+
+        public HeartbeatMonitorStarter(HeartbeatMonitor monitor)
+        {
+            this.monitor = monitor;
+        }
+
+        public void Start()
+        {
+            monitor.Start();
+        }
+
+        public void Stop()
+        {
+            monitor.Stop();
+        }
+    }
+
+    public class HeartbeatMonitor
     {
         public HeartbeatMonitor()
         {
             GracePeriod = TimeSpan.FromSeconds(60);
         }
 
+        public TimeSpan GracePeriod { get; set; }
+
+        public IBus Bus { get; set; }
+
+        public void Start()
+        {
+            timer = new Timer(PerformCheck, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        }
+
+        public void Stop()
+        {
+            timer.Dispose();
+        }
+
+        void PerformCheck(object state)
+        {
+            RefreshHeartbeatsStatuses();
+
+            var endpointStatus = CurrentStatus();
+
+            Bus.Broadcast(new HeartbeatSummary
+            {
+                ActiveEndpoints = endpointStatus.Count(s => s.Failing.HasValue && !s.Failing.Value),
+                NumberOfFailingEndpoints = endpointStatus.Count(s => s.Failing.HasValue && s.Failing.Value)
+            });
+
+        }
+
         public void RegisterHeartbeat(string endpoint, string machine, DateTime sentAt)
         {
             var endpointInstanceId = endpoint + machine;
 
-            endpointInstancesBeingMonitored.AddOrUpdate(endpointInstanceId, e => new HeartbeatStatus { Endpoint = endpoint, Machine = machine, LastHeartbeatSentAt = sentAt },
+            endpointInstancesBeingMonitored.AddOrUpdate(endpointInstanceId,
+                new HeartbeatStatus {Endpoint = endpoint, Machine = machine, LastHeartbeatSentAt = sentAt},
                 (e, status) =>
                 {
                     if (status.LastHeartbeatSentAt < sentAt)
+                    {
                         status.LastHeartbeatSentAt = sentAt;
+                    }
 
                     return status;
                 });
         }
 
-        public void CheckForMissingHeartbeats()
+        public void RefreshHeartbeatsStatuses()
         {
             foreach (var status in endpointInstancesBeingMonitored.Values)
             {
-                var timeSinceLastHeartbeat = DateTime.UtcNow - status.LastHeartbeatSentAt;
-
-                if (timeSinceLastHeartbeat >= GracePeriod)
-                {
-                    status.Failing = true;
-                }
-                else
-                {
-                    status.Failing = false;
-                }
+                status.Failing = IsFailing(status);
             }
         }
 
-        public TimeSpan GracePeriod { get; set; }
-
-        public IEnumerable<HeartbeatStatus> CurrentStatus()
+        public List<HeartbeatStatus> CurrentStatus()
         {
             return endpointInstancesBeingMonitored.Values.ToList();
         }
 
-        public void Init()
+        bool IsFailing(HeartbeatStatus status)
         {
-            Configure.Component<HeartbeatMonitor>(DependencyLifecycle.SingleInstance);
+            var timeSinceLastHeartbeat = DateTime.UtcNow - status.LastHeartbeatSentAt;
+
+            return timeSinceLastHeartbeat >= GracePeriod;
         }
 
         readonly ConcurrentDictionary<string, HeartbeatStatus> endpointInstancesBeingMonitored =
-          new ConcurrentDictionary<string, HeartbeatStatus>();
+            new ConcurrentDictionary<string, HeartbeatStatus>();
 
-
-
-        public class HeartbeatStatus
-        {
-            public bool Failing { get; set; }
-
-            public string Endpoint { get; set; }
-
-            public string Machine { get; set; }
-
-            public DateTime LastHeartbeatSentAt { get; set; }
-        }
-
-     
+        Timer timer;
     }
 }

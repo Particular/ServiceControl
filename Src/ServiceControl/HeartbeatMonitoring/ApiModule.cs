@@ -11,14 +11,14 @@ namespace ServiceControl.HeartbeatMonitoring
         public ApiModule()
         {
             Get["/heartbeats"] = _ =>
-                {
-                    var endpointStatus = HeartbeatMonitor.CurrentStatus();
-                
+            {
+                var endpointStatus = HeartbeatMonitor.CurrentStatus();
+
                 return Negotiate.WithModel(new HeartbeatSummary
-                    {
-                        ActiveEndpoints = endpointStatus.Count(s=>!s.Failing),
-                        NumberOfFailingEndpoints = endpointStatus.Count(s => s.Failing)
-                    });
+                {
+                    ActiveEndpoints = endpointStatus.Count(s => s.Failing.HasValue && !s.Failing.Value),
+                    NumberOfFailingEndpoints = endpointStatus.Count(s => s.Failing.HasValue && s.Failing.Value)
+                });
             };
         }
     }

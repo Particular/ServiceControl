@@ -18,15 +18,15 @@ namespace ServiceControl.UnitTests.HeartbeatMonitoring
 
             monitor.RegisterHeartbeat("MyEndpoint", "machineA", DateTime.UtcNow );
 
-            monitor.CheckForMissingHeartbeats();
+            monitor.RefreshHeartbeatsStatuses();
 
-            Assert.False(monitor.CurrentStatus().Single().Failing, "Endpoint should be ok when first registered");
+            Assert.False(monitor.CurrentStatus().Single().Failing.Value, "Endpoint should be ok when first registered");
 
             Thread.Sleep(1010);
 
-            monitor.CheckForMissingHeartbeats();
+            monitor.RefreshHeartbeatsStatuses();
 
-            Assert.True(monitor.CurrentStatus().Single().Failing, "Endpoint should be marked as failing when grace period is over");
+            Assert.True(monitor.CurrentStatus().Single().Failing.Value, "Endpoint should be marked as failing when grace period is over");
         }
     }
 }

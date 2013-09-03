@@ -4,9 +4,11 @@
 
     public class GlobalEventHandler : IHandleMessages<IEvent>
     {
+        public IBus Bus { get; set; }
+
         public void Handle(IEvent @event)
         {
-            this.Broadcast(@event);
+            Bus.Broadcast(@event);
         }
     }
 }

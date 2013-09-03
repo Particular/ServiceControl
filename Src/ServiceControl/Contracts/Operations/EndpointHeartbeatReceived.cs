@@ -7,7 +7,6 @@
     {
         public DateTime SentAt { get; set; }
         public string Endpoint { get; set; }
-
         public string Machine { get; set; }
     }
 }

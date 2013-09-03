@@ -4,9 +4,9 @@
     using Microsoft.AspNet.SignalR;
     using NServiceBus;
 
-    public static class IHandleMessagesExtensions
+    public static class BusExtensions
     {
-        public static Task Broadcast<T>(this IHandleMessages<T> _, object message)
+        public static Task Broadcast(this IBus _, object message)
         {
             var context = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
 
