@@ -53,8 +53,8 @@ namespace ServiceControl
             var fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = "${specialfolder:folder=ApplicationData}/ServiceBus.Management/logs/logfile.txt",
-                ArchiveFileName = "${specialfolder:folder=ApplicationData}/ServiceBus.Management/logs/log.{#}.txt",
+                FileName = "${specialfolder:folder=ApplicationData}/Particular/ServiceControl/logs/logfile.txt",
+                ArchiveFileName = "${specialfolder:folder=ApplicationData}/Particular/ServiceControl/logs/log.{#}.txt",
                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
                 MaxArchiveFiles = 14
             };
@@ -63,7 +63,11 @@ namespace ServiceControl
             {
                 UseDefaultRowHighlightingRules = true,
             };
-            
+
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, consoleTarget) { Final = true });
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, consoleTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
             nlogConfig.AddTarget("debugger", fileTarget);

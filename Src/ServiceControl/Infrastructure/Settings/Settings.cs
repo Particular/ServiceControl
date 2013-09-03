@@ -164,7 +164,7 @@
 
                     var defaultPath =
                         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                            "Particular", "ServiceBus.Management", dbFolder);
+                            "Particular", "ServiceControl", dbFolder);
 
                     dbPath = SettingsReader<string>.Read("DbPath", defaultPath);
                 }
