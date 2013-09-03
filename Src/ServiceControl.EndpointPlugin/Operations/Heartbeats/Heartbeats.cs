@@ -38,7 +38,7 @@
                 return;
             }
 
-            var heartbeatInterval = TimeSpan.FromSeconds(10);
+            heartbeatInterval = TimeSpan.FromSeconds(10);
             var interval = ConfigurationManager.AppSettings[@"Heartbeat/Interval"];
             if (!String.IsNullOrEmpty(interval))
             {
@@ -120,6 +120,9 @@
 
             var message = new TransportMessage();
 
+            // Set the TTR to be a factor of 4 of the interval that we expect the hearbeats.
+            message.TimeToBeReceived = TimeSpan.FromTicks(heartbeatInterval.Ticks * 4);
+
             using (var stream = new MemoryStream())
             {
                 serializer.Serialize(new object[] {heartBeat}, stream);
@@ -134,5 +137,6 @@
         Timer heartbeatTimer;
         JsonMessageSerializer serializer;
         Address serviceControlAddress;
+        TimeSpan heartbeatInterval;
     }
 }
