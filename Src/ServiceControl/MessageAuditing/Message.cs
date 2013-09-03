@@ -34,14 +34,14 @@
             ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(headers);
             Id = messageId + "-" + ReceivingEndpoint.Name;
             MessageId = messageId;
-            CorrelationId = headers["NServiceBus.CorrelationId"];
+            CorrelationId = headers[NServiceBus.Headers.CorrelationId];
             //TODO: Do we need to expose Recoverable in AuditMessageReceived? I don't see this in the headers
             MessageIntentEnum messageIntent;
-            Enum.TryParse(headers["NServiceBus.MessageIntent"], true, out messageIntent);
+            Enum.TryParse(headers[NServiceBus.Headers.MessageIntent], true, out messageIntent);
             MessageIntent = messageIntent;
             Headers = headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value));
             TimeSent = DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.TimeSent]);
-            if (headers.ContainsKey("Headers.ControlMessageHeader"))
+            if (headers.ContainsKey(NServiceBus.Headers.ControlMessageHeader))
             {
                 MessageType = "SystemMessage";
                 IsSystemMessage = true;
@@ -236,9 +236,9 @@
 
             Status = MessageStatus.Successful;
 
-            if (headers.ContainsKey("NServiceBus.OriginatingAddress"))
+            if (headers.ContainsKey(NServiceBus.Headers.OriginatingAddress))
             {
-                ReplyToAddress = headers["NServiceBus.OriginatingAddress"];
+                ReplyToAddress = headers[NServiceBus.Headers.OriginatingAddress];
             }
 
             Statistics = GetProcessingStatistics(headers);
@@ -250,9 +250,9 @@
             ProcessedAt = DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingEnded]);
             Statistics = GetProcessingStatistics(headers);
 
-            if (headers.ContainsKey("NServiceBus.OriginatingAddress"))
+            if (headers.ContainsKey(NServiceBus.Headers.OriginatingAddress))
             {
-                ReplyToAddress = headers["NServiceBus.OriginatingAddress"];
+                ReplyToAddress = headers[NServiceBus.Headers.OriginatingAddress];
             }
         }
 
