@@ -1,13 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1F1D7422-276B-4ED2-9EC5-40702E51352B}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.EndpointPlugin", "ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj", "{07393FA7-8577-42D7-8FE4-3C4D955A5A31}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
