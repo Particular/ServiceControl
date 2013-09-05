@@ -27,7 +27,8 @@ namespace ServiceControl
                 .UseTransport(Type.GetType(transportType))
                 .UnicastBus();
 
-            ConfigureLicense();
+            //TODO: Need a new license for v4.1!!!
+            //ConfigureLicense();
 
             Configure.Features.AutoSubscribe(s => s.DoNotRequireExplicitRouting());
             Configure.Serialization.Json();
