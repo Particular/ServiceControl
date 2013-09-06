@@ -9,7 +9,7 @@
 
         public void Handle(EndpointHeartbeatReceived message)
         {
-            HeartbeatMonitor.RegisterHeartbeat(message.Endpoint,message.Machine,message.SentAt);
+            HeartbeatMonitor.RegisterHeartbeat(message.Endpoint, message.Machine, message.SentAt);
         }
     }
 }

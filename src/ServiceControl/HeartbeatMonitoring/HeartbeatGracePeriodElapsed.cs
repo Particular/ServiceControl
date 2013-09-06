@@ -1,15 +1,12 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
+    using NServiceBus;
 
-    public class HeartbeatStatus
+    public class HeartbeatGracePeriodElapsed : IEvent
     {
-        public bool Active { get; set; }
-
         public string Endpoint { get; set; }
-
         public string Machine { get; set; }
-
         public DateTime LastSentAt { get; set; }
     }
 }

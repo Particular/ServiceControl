@@ -11,22 +11,22 @@ namespace ServiceControl.UnitTests.HeartbeatMonitoring
         [Test]
         public void Should_be_marked_as_inactive_after_the_grace_period_elapses()
         {
-            var monitor = new HeartbeatMonitor
+            var monitor = new HeartbeatMonitor(new FakeBus())
                 {
                     GracePeriod = TimeSpan.FromSeconds(1)
                 };
 
             monitor.RegisterHeartbeat("MyEndpoint", "machineA", DateTime.UtcNow );
 
-            monitor.RefreshHeartbeatsStatuses();
+            monitor.RefreshHeartbeatsStatuses(null);
 
-            Assert.False(monitor.CurrentStatus().Single().Failing.Value, "Endpoint should be ok when first registered");
+            Assert.True(monitor.HeartbeatStatuses.Single().Active, "Endpoint should be ok when first registered");
 
             Thread.Sleep(1010);
 
-            monitor.RefreshHeartbeatsStatuses();
+            monitor.RefreshHeartbeatsStatuses(null);
 
-            Assert.True(monitor.CurrentStatus().Single().Failing.Value, "Endpoint should be marked as failing when grace period is over");
+            Assert.False(monitor.HeartbeatStatuses.Single().Active, "Endpoint should be marked as failing when grace period is over");
         }
     }
 }

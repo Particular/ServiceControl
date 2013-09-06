@@ -6,50 +6,25 @@
     using System.Linq;
     using System.Threading;
     using NServiceBus;
-    using Configure = NServiceBus.Configure;
-
-    public class RegisterHeartbeatMonitor : INeedInitialization
-    {
-        public void Init()
-        {
-            Configure.Component<HeartbeatMonitor>(DependencyLifecycle.SingleInstance);
-        }
-    }
-
-    public class HeartbeatMonitorStarter : IWantToRunWhenBusStartsAndStops
-    {
-        readonly HeartbeatMonitor monitor;
-
-        public HeartbeatMonitorStarter(HeartbeatMonitor monitor)
-        {
-            this.monitor = monitor;
-        }
-
-        public void Start()
-        {
-            monitor.Start();
-        }
-
-        public void Stop()
-        {
-            monitor.Stop();
-        }
-    }
 
     public class HeartbeatMonitor
     {
-        public HeartbeatMonitor()
+        public HeartbeatMonitor(IBus bus)
         {
+            this.bus = bus;
             GracePeriod = TimeSpan.FromSeconds(60);
         }
 
         public TimeSpan GracePeriod { get; set; }
 
-        public IBus Bus { get; set; }
+        public List<HeartbeatStatus> HeartbeatStatuses
+        {
+            get { return endpointInstancesBeingMonitored.Values.ToList(); }
+        }
 
         public void Start()
         {
-            timer = new Timer(PerformCheck, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            timer = new Timer(RefreshHeartbeatsStatuses, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
         }
 
         public void Stop()
@@ -57,65 +32,81 @@
             timer.Dispose();
         }
 
-        void PerformCheck(object state)
-        {
-            if (RefreshHeartbeatsStatuses())
-            {
-                var endpointStatus = CurrentStatus();
-
-                Bus.Publish(new HeartbeatSummaryChanged
-                {
-                    ActiveEndpoints = endpointStatus.Count(s => s.Failing.HasValue && !s.Failing.Value),
-                    NumberOfFailingEndpoints = endpointStatus.Count(s => s.Failing.HasValue && s.Failing.Value)
-                });
-            }
-        }
-
         public void RegisterHeartbeat(string endpoint, string machine, DateTime sentAt)
         {
             var endpointInstanceId = endpoint + machine;
 
-            endpointInstancesBeingMonitored.AddOrUpdate(endpointInstanceId,
-                new HeartbeatStatus {Endpoint = endpoint, Machine = machine, LastHeartbeatSentAt = sentAt},
+            endpointInstancesBeingMonitored.AddOrUpdate(endpointInstanceId, 
+                s =>
+                {
+                    bus.Publish(new HeartbeatReceived
+                    {
+                        Endpoint = endpoint,
+                        Machine = machine,
+                        LastSentAt = sentAt,
+                    });
+
+                    return new HeartbeatStatus
+                    {
+                        Endpoint = endpoint,
+                        Machine = machine,
+                        LastSentAt = sentAt,
+                        Active = true
+                    };
+                },
                 (e, status) =>
                 {
-                    if (status.LastHeartbeatSentAt < sentAt)
+                    if (status.LastSentAt < sentAt)
                     {
-                        status.LastHeartbeatSentAt = sentAt;
+                        status.LastSentAt = sentAt;
                     }
 
                     return status;
                 });
         }
 
-        public bool RefreshHeartbeatsStatuses()
+        public void RefreshHeartbeatsStatuses(object state)
         {
-            var modified = false;
-
             foreach (var status in endpointInstancesBeingMonitored.Values)
             {
-                var newStatus = IsFailing(status);
-                if (status.Failing != newStatus)
+                var newStatus = IsActive(status);
+
+                if (status.Active == newStatus)
                 {
-                    status.Failing = newStatus;
-                    modified = true;
+                    continue;
+                }
+
+                status.Active = newStatus;
+
+                if (status.Active)
+                {
+                    bus.Publish(new HeartbeatReceived
+                    {
+                        Endpoint = status.Endpoint,
+                        Machine = status.Machine,
+                        LastSentAt = status.LastSentAt,
+                    });
+                }
+                else
+                {
+                    bus.Publish(new HeartbeatGracePeriodElapsed
+                    {
+                        Endpoint = status.Endpoint,
+                        Machine = status.Machine,
+                        LastSentAt = status.LastSentAt,
+                    });
                 }
             }
-
-            return modified;
         }
 
-        public List<HeartbeatStatus> CurrentStatus()
+        bool IsActive(HeartbeatStatus status)
         {
-            return endpointInstancesBeingMonitored.Values.ToList();
+            var timeSinceLastHeartbeat = DateTime.UtcNow - status.LastSentAt;
+
+            return timeSinceLastHeartbeat < GracePeriod;
         }
 
-        bool IsFailing(HeartbeatStatus status)
-        {
-            var timeSinceLastHeartbeat = DateTime.UtcNow - status.LastHeartbeatSentAt;
-
-            return timeSinceLastHeartbeat >= GracePeriod;
-        }
+        readonly IBus bus;
 
         readonly ConcurrentDictionary<string, HeartbeatStatus> endpointInstancesBeingMonitored =
             new ConcurrentDictionary<string, HeartbeatStatus>();
