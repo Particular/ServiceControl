@@ -16,6 +16,7 @@ _UpgradeReport.*
 *.user
 TestResult.xml
 results
+src/TestResults
 CommonAssemblyInfo.cs
 lib/sqlite/System.Data.SQLite.dll
 *.orig
