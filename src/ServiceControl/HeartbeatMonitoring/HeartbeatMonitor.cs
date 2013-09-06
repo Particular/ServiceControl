@@ -5,6 +5,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
+    using Contracts.HeartbeatMonitoring;
     using NServiceBus;
 
     public class HeartbeatMonitor
@@ -39,11 +40,11 @@
             endpointInstancesBeingMonitored.AddOrUpdate(endpointInstanceId, 
                 s =>
                 {
-                    bus.Publish(new HeartbeatReceived
+                    bus.Publish(new HeartbeatingEndpointDetected
                     {
                         Endpoint = endpoint,
                         Machine = machine,
-                        LastSentAt = sentAt,
+                        HeartbeatSentAt = sentAt,
                     });
 
                     return new HeartbeatStatus
@@ -80,20 +81,20 @@
 
                 if (status.Active)
                 {
-                    bus.Publish(new HeartbeatReceived
+                    bus.Publish(new EndpointHeartbeatRestored
                     {
                         Endpoint = status.Endpoint,
                         Machine = status.Machine,
-                        LastSentAt = status.LastSentAt,
+                        RestoredAt = status.LastSentAt,
                     });
                 }
                 else
                 {
-                    bus.Publish(new HeartbeatGracePeriodElapsed
+                    bus.Publish(new EndpointExceededGracePeriodForHeartbeats
                     {
                         Endpoint = status.Endpoint,
                         Machine = status.Machine,
-                        LastSentAt = status.LastSentAt,
+                        LastHeartbeatReceivedAt = status.LastSentAt,
                     });
                 }
             }
