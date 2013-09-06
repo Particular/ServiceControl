@@ -27,7 +27,7 @@
 
             documentStore.Configuration.Port = Settings.Port;
             documentStore.Configuration.HostName = Settings.Hostname;
-
+            documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
             documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
 
             documentStore.Initialize();
