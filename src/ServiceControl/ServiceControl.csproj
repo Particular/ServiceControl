@@ -169,6 +169,8 @@
     <Compile Include="Alerts\EndpointSLABreachedHandler.cs" />
     <Compile Include="BusinessMonitoring\ApiModule.cs" />
     <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
+    <Compile Include="Contracts\Alerts\EndpointAlertRaised.cs" />
+    <Compile Include="Contracts\Alerts\HeartbeatFailedAlert.cs" />
     <Compile Include="Contracts\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointFailedToHeartbeat.cs" />
