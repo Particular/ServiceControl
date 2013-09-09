@@ -21,7 +21,7 @@
                     RavenQueryStatistics stats;
                     var results = session.Query<Conversations_Sorted.Result, Conversations_Sorted>()
                         .Statistics(out stats)
-                        .Where(m => m.ConversationId == conversationId && m.Status != MessageStatus.RetryIssued)
+                        .Where(m => m.ConversationId == conversationId)
                         .Sort(Request, defaultSortDirection: "asc")
                         .OfType<Message>()
                         .Paging(Request)
