@@ -166,6 +166,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Alerts\EndpointFailedHeartbeatHandler.cs" />
     <Compile Include="Alerts\EndpointSLABreachedHandler.cs" />
     <Compile Include="BusinessMonitoring\ApiModule.cs" />
     <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />

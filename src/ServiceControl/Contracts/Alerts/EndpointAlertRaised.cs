@@ -4,10 +4,11 @@
     using NServiceBus;
     public class EndpointAlertRaised : IEvent
     {
-        public Guid AlertId { get; set; }
-        public DateTime AlertReceivedAt { get; set; }
-        //TODO: Do we need endpoint instance Id? Who sets the Endpoint instance Id? 
+        public string Id { get; set; }
+        public DateTime RaisedAt { get; set; }
         public string Endpoint { get; set; }
-        public string MachineName { get; set; }
+        public string Machine { get; set; }
+        // TODO: Do we need a type since we have explicit events?
+        // public string Type { get; set; }
     }
 }
