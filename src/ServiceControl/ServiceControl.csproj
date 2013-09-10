@@ -167,6 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Alerts\Alert.cs" />
+    <Compile Include="Alerts\MessageFailedHandler.cs" />
     <Compile Include="Alerts\Severity.cs" />
     <Compile Include="Alerts\EndpointFailedHeartbeatHandler.cs" />
     <Compile Include="Alerts\EndpointSLABreachedHandler.cs" />
@@ -177,6 +178,7 @@
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointFailedToHeartbeat.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointRestored.cs" />
+    <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\Operations\AuditMessageReceived.cs" />
     <Compile Include="Contracts\Operations\ErrorMessageReceived.cs" />
     <Compile Include="HeartbeatMonitoring\EndpointHeartbeatReceivedHandler.cs" />
