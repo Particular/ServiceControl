@@ -1,10 +1,11 @@
-﻿namespace ServiceControl.Contracts.Alerts
+﻿namespace ServiceControl.Alerts
 {
     using System;
-    using NServiceBus;
-    using ServiceControl.Alerts;
 
-    public class AlertRaised : IEvent
+    /// <summary>
+    /// Domain object for Alerts. Later we can add behavior to clear alerts etc.
+    /// </summary>
+    public class Alert
     {
         public string Id { get; set; }
         public string Description { get; set; }
