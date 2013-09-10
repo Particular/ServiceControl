@@ -3,23 +3,45 @@
     using System;
     using Contracts.Alerts;
     using Contracts.HeartbeatMonitoring;
+    using Raven.Abstractions.Exceptions;
+    using Raven.Client;
+
     using NServiceBus;
 
     class EndpointFailedHeartbeatHandler : IHandleMessages<EndpointFailedToHeartbeat>
     {
         public IBus Bus { get; set; }
+        public IDocumentStore DocumentStore { get; set; }
+
         public void Handle(EndpointFailedToHeartbeat message)
         {
-            // TODO: Store this alert in Raven.
-
-            Bus.Publish<HeartbeatFailedAlert>(m =>
+            using (var session = DocumentStore.OpenSession())
             {
-                m.Id = Guid.NewGuid().ToString(); //TODO: Pass in the Raven generated Id for the doc, instead of a new guid.
-                m.RaisedAt = DateTime.Now;
-                m.Endpoint = message.Endpoint;
-                m.Machine = message.Machine;
-                m.LastHeartbeatReceivedAt = message.LastReceivedAt;
-            });
+                session.Advanced.UseOptimisticConcurrency = true;
+
+                var alertRaised = new AlertRaised()
+                {
+                    RaisedAt = DateTime.Now,
+                    Endpoint = message.Endpoint,
+                    Machine = message.Machine,
+                    Severity = Severity.Error,
+                    Description =
+                        "Endpoint has failed to send expected heartbeats to ServiceControl. It is possible that the endpoint could be down or is unresponsive. If this condition persists, you might want to restart your endpoint.",
+                    Type = message.GetType().FullName,
+                    RelatedId = null
+                };
+
+                try
+                {
+                    session.Store(alertRaised);
+                    session.SaveChanges();
+                    Bus.Publish(alertRaised);
+                }
+                catch (ConcurrencyException) //there is already a message in the store with the same id
+                {
+                    session.Advanced.Clear();
+                }
+            }
         }
     }
 }
