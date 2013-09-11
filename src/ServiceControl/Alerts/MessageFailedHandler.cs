@@ -22,7 +22,7 @@
                     Severity = Severity.Error,
                     Description = string.Format("This message processing failed due to: {0}", message.Reason),
                     Type = message.GetType().FullName,
-                    RelatedTo = message.Id
+                    RelatedTo = string.Format("/failedMessageId/{0}",message.Id)
                 };
 
                 session.Store(alert);
