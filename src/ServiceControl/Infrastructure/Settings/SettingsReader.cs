@@ -9,7 +9,7 @@
     {
         public static T Read(string name, T defaultValue = default(T))
         {
-            return Read("ServiceBus/Management", name, defaultValue);
+            return Read("ServiceControl", name, defaultValue);
         }
 
         public static T Read(string root, string name, T defaultValue = default(T))
