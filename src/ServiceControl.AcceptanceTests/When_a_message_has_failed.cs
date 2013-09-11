@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Linq;
     using Contexts;
     using MessageAuditing;
     using NServiceBus;
@@ -103,6 +104,7 @@
             Assert.AreEqual(1, context.Message.FailureDetails.NumberOfTimesFailed, "Failed count should be 1");
             Assert.AreEqual("Simulated exception", context.Message.FailureDetails.Exception.Message,
                 "Exception message should be captured");
+
         }
 
         [Test]
@@ -119,7 +121,8 @@
 
             Assert.IsTrue(context.Alerts.Length == 1, "Must store the alert in Raven database.");
             Assert.IsTrue(context.Alerts[0].Description.Contains("exception"), "For failed messages, the description should contain the exception information");
-            Assert.IsTrue(context.Alerts[0].RelatedTo.Contains("/failedMessageId/"), "For failed message, the RelatedId must contain the api url to retrieve additional details about the failed message");
+            var containsFailedMessageId = context.Alerts[0].RelatedTo.Any(item => item.Contains("/failedMessageId/"));
+            Assert.IsTrue(containsFailedMessageId, "For failed message, the RelatedId must contain the api url to retrieve additional details about the failed message");
         }
 
 

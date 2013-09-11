@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Alerts
 {
+    using System.Collections.Generic;
     using Contracts.MessageFailures;
     using NServiceBus;
     using Raven.Client;
@@ -15,14 +16,17 @@
             using (var session = DocumentStore.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
+                var relatedToList = new List<string>();
+                relatedToList.Add(string.Format("/failedMessageId/{0}", message.Id));
+                relatedToList.Add(string.Format("/endpoint/{0}/{1}", message.Endpoint, message.Machine));
 
                 var alert = new Alert()
                 {
                     RaisedAt = message.FailedAt,
                     Severity = Severity.Error,
                     Description = string.Format("This message processing failed due to: {0}", message.Reason),
-                    Type = message.GetType().FullName,
-                    RelatedTo = string.Format("/failedMessageId/{0}",message.Id)
+                    Tags = string.Format("{0}, {1}",Category.MessageFailures, Category.EndpointFailures),
+                    RelatedTo = relatedToList
                 };
 
                 session.Store(alert);
@@ -35,7 +39,7 @@
                     m.Description = alert.Description;
                     m.Id = alert.Id;
                     m.RelatedTo = alert.RelatedTo;
-                    m.Type = alert.Type;
+                    m.Tags = alert.Tags;
                 });
             }
         }

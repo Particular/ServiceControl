@@ -172,6 +172,7 @@
     <Compile Include="Alerts\Severity.cs" />
     <Compile Include="Alerts\EndpointFailedHeartbeatHandler.cs" />
     <Compile Include="Alerts\EndpointSLABreachedHandler.cs" />
+    <Compile Include="Alerts\Category.cs" />
     <Compile Include="BusinessMonitoring\ApiModule.cs" />
     <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
     <Compile Include="Contracts\Alerts\AlertRaised.cs" />

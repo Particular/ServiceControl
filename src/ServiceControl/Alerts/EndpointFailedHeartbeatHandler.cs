@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Alerts
 {
+    using System.Collections.Generic;
     using Contracts.Alerts;
     using Contracts.HeartbeatMonitoring;
     using Raven.Client;
@@ -23,8 +24,8 @@
                     Severity = Severity.Error,
                     Description =
                         "Endpoint has failed to send expected heartbeats to ServiceControl. It is possible that the endpoint could be down or is unresponsive. If this condition persists, you might want to restart your endpoint.",
-                    Type = message.GetType().FullName,
-                    RelatedTo = string.Format("Endpoint/{0}/{1}",message.Endpoint, message.Machine)
+                    Tags = string.Format("{0}, {1}",Category.HeartbeatFailure, Category.EndpointFailures),
+                    RelatedTo = new List<string>(){string.Format("endpoint/{0}/{1}",message.Endpoint, message.Machine)}
                 };
 
                 session.Store(alert);
@@ -37,7 +38,7 @@
                     m.Description = alert.Description;
                     m.Id = alert.Id;
                     m.RelatedTo = alert.RelatedTo;
-                    m.Type = alert.Type;
+                    m.Tags = alert.Tags;
                 });
             }
         }
