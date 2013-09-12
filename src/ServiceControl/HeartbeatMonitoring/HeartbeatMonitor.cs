@@ -40,11 +40,11 @@
             endpointInstancesBeingMonitored.AddOrUpdate(endpointInstanceId, 
                 s =>
                 {
-                    bus.Publish(new EndpointDetected
+                    bus.Publish(new HeartbeatingEndpointDetected
                     {
                         Endpoint = endpoint,
                         Machine = machine,
-                        At = sentAt,
+                        DetectedAt = sentAt,
                     });
 
                     return new HeartbeatStatus
@@ -81,11 +81,11 @@
 
                 if (status.Active)
                 {
-                    bus.Publish(new EndpointRestored
+                    bus.Publish(new EndpointHeartbeatRestored
                     {
                         Endpoint = status.Endpoint,
                         Machine = status.Machine,
-                        At = status.LastSentAt,
+                        RestoredAt = status.LastSentAt
                     });
                 }
                 else

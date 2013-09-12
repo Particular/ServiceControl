@@ -26,6 +26,7 @@
                     Severity = Severity.Error,
                     Description = string.Format("This message processing failed due to: {0}", message.Reason),
                     Tags = string.Format("{0}, {1}",Category.MessageFailures, Category.EndpointFailures),
+                    Category = Category.MessageFailures,
                     RelatedTo = relatedToList
                 };
 
@@ -38,6 +39,7 @@
                     m.Severity = alert.Severity;
                     m.Description = alert.Description;
                     m.Id = alert.Id;
+                    m.Category = alert.Category;
                     m.RelatedTo = alert.RelatedTo;
                     m.Tags = alert.Tags;
                 });

@@ -3,10 +3,10 @@
     using System;
     using NServiceBus;
 
-    public class EndpointDetected : IEvent
+    public class HeartbeatingEndpointDetected : IEvent
     {
         public string Endpoint { get; set; }
         public string Machine { get; set; }
-        public DateTime At { get; set; }
+        public DateTime DetectedAt { get; set; }
     }
 }
