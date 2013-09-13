@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
+    <Compile Include="CustomChecks\CustomCheck.cs" />
     <Compile Include="Infrastructure\PerformanceCounters\PerformanceCounterCapturer.cs" />
     <Compile Include="Operations\Heartbeats\EndpointHeartbeat.cs" />
     <Compile Include="Operations\Heartbeats\HeartbeatInfoProvider.cs" />
