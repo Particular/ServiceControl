@@ -38,7 +38,7 @@
                         m.Endpoint = failedMessage.OriginatingEndpoint.Name;
                         m.Machine = failedMessage.OriginatingEndpoint.Machine;
                         m.FailedAt = failedMessage.TimeSent;
-                        m.Reason = string.Format("Exception: {0}, StackTrace: {1}", failedMessage.FailureDetails.Exception.Message, failedMessage.FailureDetails.Exception.StackTrace);
+                        m.Reason = string.Format("Exception: {0}", failedMessage.FailureDetails.Exception.Message);
                     });
                 }
                 catch (ConcurrencyException) //there is already a message in the store with the same id
