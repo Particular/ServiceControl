@@ -1,17 +1,17 @@
-﻿namespace ServiceBus.Management.MessageFailures
+﻿namespace ServiceControl.MessageFailures
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Infrastructure.Extensions;
-    using Infrastructure.Nancy.Modules;
-    using Infrastructure.RavenDB.Indexes;
     using InternalMessages;
-    using MessageAuditing;
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
     using Raven.Client;
+    using Infrastructure.Extensions;
+    using Infrastructure.Nancy.Modules;
+    using Infrastructure.RavenDB.Indexes;
+    using MessageAuditing;
 
     public class ErrorMessagesModule : BaseModule
     {

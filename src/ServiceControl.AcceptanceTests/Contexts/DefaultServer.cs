@@ -1,11 +1,10 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Contexts
+﻿namespace ServiceControl.AcceptanceTests.Contexts
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using MessageAuditing;
     using NLog;
     using NLog.Config;
     using NLog.Targets;
@@ -15,6 +14,7 @@
     using NServiceBus.Features;
     using NServiceBus.Hosting.Helpers;
     using NServiceBus.Logging.Loggers.NLogAdapter;
+    using MessageAuditing;
 
     public class DefaultServer : IEndpointSetupTemplate
     {

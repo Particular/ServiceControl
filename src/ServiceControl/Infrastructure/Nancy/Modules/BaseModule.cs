@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Nancy.Modules
+﻿namespace ServiceControl.Infrastructure.Nancy.Modules
 {
     using global::Nancy;
     using global::Nancy.Responses.Negotiation;

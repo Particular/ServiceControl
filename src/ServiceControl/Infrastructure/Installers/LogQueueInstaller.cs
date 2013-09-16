@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Installers
+﻿namespace ServiceControl.Infrastructure.Installers
 {
     using NServiceBus;
     using NServiceBus.Unicast.Queuing;

@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.BusinessProcessTracking
+﻿namespace ServiceControl.BusinessProcessTracking
 {
     using System.Linq;
     using Infrastructure.Extensions;

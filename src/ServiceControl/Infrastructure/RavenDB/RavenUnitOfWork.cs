@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.RavenDB
+﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System;
     using NServiceBus.UnitOfWork;

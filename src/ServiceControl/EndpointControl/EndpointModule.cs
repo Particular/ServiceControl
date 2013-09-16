@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.EndpointControl
+namespace ServiceControl.EndpointControl
 {
     using System.Linq;
     using Infrastructure.Extensions;

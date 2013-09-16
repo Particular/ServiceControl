@@ -1,13 +1,13 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceControl.AcceptanceTests
 {
     using System;
     using System.Linq;
     using Contexts;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
+    using MessageAuditing;
 
     public class When_issuing_a_retry_for_a_failed_message : AcceptanceTest
     {

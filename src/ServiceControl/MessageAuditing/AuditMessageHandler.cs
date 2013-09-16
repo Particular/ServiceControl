@@ -5,7 +5,6 @@
     using NServiceBus;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
-    using ServiceBus.Management.MessageAuditing;
 
     class AuditMessageHandler : IHandleMessages<AuditMessageReceived>
     {
@@ -17,7 +16,7 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var auditMessage = new ServiceBus.Management.MessageAuditing.Message(message);
+                var auditMessage = new Message(message);
 
                 auditMessage.MarkAsSuccessful(message.Headers);
 

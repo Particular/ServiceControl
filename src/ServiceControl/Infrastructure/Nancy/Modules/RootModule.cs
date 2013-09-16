@@ -1,8 +1,8 @@
-﻿namespace ServiceBus.Management.Infrastructure.Nancy.Modules
+﻿namespace ServiceControl.Infrastructure.Nancy.Modules
 {
     using System.IO;
-    using Settings;
     using global::Nancy;
+    using Settings;
 
     public class RootModule : BaseModule
     {

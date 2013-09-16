@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Nancy
+﻿namespace ServiceControl.Infrastructure.Nancy
 {
     using System.Collections.Generic;
     using System.IO.Compression;

@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.OWIN
+﻿namespace ServiceControl.Infrastructure.OWIN
 {
     using System;
     using Microsoft.Owin.Hosting;

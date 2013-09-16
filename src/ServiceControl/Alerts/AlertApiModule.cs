@@ -1,12 +1,12 @@
 ﻿namespace ServiceControl.Alerts
 {
     using System.Linq;
+    using Infrastructure.Extensions;
+    using Infrastructure.Nancy.Modules;
     using Nancy;
     using NServiceBus;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Extensions;
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
- 
+
     public class AlertApiModule : BaseModule
     {
         public IDocumentStore Store { get; set; }

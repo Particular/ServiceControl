@@ -4,11 +4,11 @@
     using System.Collections.Generic;
     using Contracts.MessageFailures;
     using Contracts.Operations;
+    using MessageAuditing;
     using NServiceBus;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
-    using ServiceBus.Management.MessageAuditing;
-    
+
 
     class ErrorMessageHandler : IHandleMessages<ErrorMessageReceived>
     {

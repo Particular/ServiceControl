@@ -1,6 +1,6 @@
 namespace ServiceControl.BusinessMonitoring
 {
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using Infrastructure.Nancy.Modules;
     using Nancy;
 
     public class ApiModule : BaseModule

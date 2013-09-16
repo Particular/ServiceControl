@@ -1,13 +1,13 @@
-﻿namespace ServiceBus.Management.Infrastructure.Nancy
+﻿namespace ServiceControl.Infrastructure.Nancy
 {
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-    using ServiceControl.Infrastructure.SignalR;
     using global::Nancy;
     using global::Nancy.IO;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+    using SignalR;
 
     public class JsonNetSerializer : ISerializer
     {

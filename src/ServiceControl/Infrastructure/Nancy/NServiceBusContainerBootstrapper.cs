@@ -1,16 +1,15 @@
-﻿namespace ServiceBus.Management.Infrastructure.Nancy
+﻿namespace ServiceControl.Infrastructure.Nancy
 {
     using System;
     using System.Collections.Generic;
     using Autofac;
-    using Particular.ServiceControl;
-    using ServiceControl;
     using global::Nancy;
     using global::Nancy.Bootstrapper;
     using global::Nancy.Bootstrappers.Autofac;
     using global::Nancy.Diagnostics;
     using global::Nancy.Responses;
-
+    using Particular.ServiceControl;
+   
     public class NServiceBusContainerBootstrapper : AutofacNancyBootstrapper
     {
         protected override NancyInternalConfiguration InternalConfiguration

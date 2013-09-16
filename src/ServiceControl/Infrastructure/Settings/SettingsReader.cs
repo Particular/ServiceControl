@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Settings
+﻿namespace ServiceControl.Infrastructure.Settings
 {
     using System;
     using System.Configuration;

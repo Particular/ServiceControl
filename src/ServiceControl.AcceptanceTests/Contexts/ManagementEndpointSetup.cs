@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Contexts
+﻿namespace ServiceControl.AcceptanceTests.Contexts
 {
     using System.IO;
     using NLog;

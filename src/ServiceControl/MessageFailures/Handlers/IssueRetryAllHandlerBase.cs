@@ -1,12 +1,12 @@
-﻿namespace ServiceBus.Management.MessageFailures.Handlers
+﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System.Linq;
-    using Infrastructure.RavenDB.Indexes;
     using InternalMessages;
-    using MessageAuditing;
     using NServiceBus;
     using Raven.Client;
     using Raven.Client.Linq;
+    using Infrastructure.RavenDB.Indexes;
+    using MessageAuditing;
 
     public abstract class IssueRetryAllHandlerBase
     {

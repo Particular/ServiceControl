@@ -1,6 +1,6 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using Infrastructure.Nancy.Modules;
     using Nancy;
     using System.Linq;
 

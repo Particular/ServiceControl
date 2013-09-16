@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.MessageAuditing
+﻿namespace ServiceControl.MessageAuditing
 {
     using System;
     using System.Collections.Generic;
@@ -10,7 +10,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Scheduling.Messages;
     using Raven.Imports.Newtonsoft.Json;
-    using ServiceControl.Contracts.Operations;
+    using Contracts.Operations;
     using JsonConvert = Newtonsoft.Json.JsonConvert;
 
     public class Message
