@@ -86,13 +86,13 @@
             var forwardAddress = unicastBus.ForwardReceivedMessagesTo;
             if (forwardAddress != null)
             {
-                return new Address("ServiceControl", forwardAddress.Machine);
+                return new Address("Particular.ServiceControl", forwardAddress.Machine);
             }
 
             var errorAddress = ConfigureFaultsForwarder.ErrorQueue;
             if (errorAddress != null)
             {
-                return new Address("ServiceControl", errorAddress.Machine);
+                return new Address("Particular.ServiceControl", errorAddress.Machine);
             }
 
             return null;

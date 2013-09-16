@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using Autofac;
+    using Particular.ServiceControl;
     using ServiceControl;
     using global::Nancy;
     using global::Nancy.Bootstrapper;

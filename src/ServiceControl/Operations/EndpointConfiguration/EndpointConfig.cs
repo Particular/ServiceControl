@@ -1,4 +1,4 @@
-namespace ServiceControl
+namespace Particular.ServiceControl
 {
     using System;
     using System.IO;

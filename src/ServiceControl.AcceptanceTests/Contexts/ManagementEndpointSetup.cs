@@ -8,7 +8,7 @@
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
     using NServiceBus.Logging.Loggers.NLogAdapter;
-    using ServiceControl;
+    using Particular.ServiceControl;
 
     public class ManagementEndpointSetup : IEndpointSetupTemplate
     {
