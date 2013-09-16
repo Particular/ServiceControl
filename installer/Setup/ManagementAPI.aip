@@ -11,18 +11,21 @@
     <ROW Property="AI_PRODUCTNAME_ARP" Value="Particular Management"/>
     <ROW Property="AI_UNINSTALLER" Value="msiexec.exe"/>
     <ROW Property="ALLUSERS" Value="1"/>
-    <ROW Property="ARPCOMMENTS" Value="This installer database contains the logic and data required to install [|ProductName]." ValueLocId="*"/>
+    <ROW Property="ARPCOMMENTS" Value="Particular Software ServiceControl version [|ProductVersion] for NServiceBus" ValueLocId="*"/>
+    <ROW Property="ARPHELPLINK" Value="http://particular.net/support"/>
     <ROW Property="ARPNOREPAIR" Value="1"/>
-    <ROW Property="ARPPRODUCTICON" Value="Particular_ServiceBus_all.exe" Type="8"/>
+    <ROW Property="ARPPRODUCTICON" Value="Operations.exe" Type="8"/>
     <ROW Property="ARPSYSTEMCOMPONENT" Value="1"/>
-    <ROW Property="AppLogoIcon" Value="applogoicon" MultiBuildValue="DefaultBuild:Particular_NServiceBus_White.png" Type="1" MsiKey="AppLogoIcon"/>
+    <ROW Property="ARPURLUPDATEINFO" Value="http://particular.net/downloads"/>
+    <ROW Property="AppLogoIcon" Value="applogoicon" MultiBuildValue="DefaultBuild:Operationslogo.png" Type="1" MsiKey="AppLogoIcon"/>
     <ROW Property="Manufacturer" Value="Particular Software Ltd."/>
-    <ROW Property="PORT_VAL.CB8171C5_FE21_41EE_BC42_72123C0AD0F7" Value="33333"/>
+    <ROW Property="PORT_VAL" Value="3333" Type="4"/>
     <ROW Property="ProductCode" Value="1033:{12BDB3E7-3A70-410A-A2C0-43037E33E3E6} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
-    <ROW Property="ProductName" Value="NServiceBus Management Pack 4.0.0"/>
+    <ROW Property="ProductName" Value="ServiceControl [|ProductVersion]"/>
     <ROW Property="ProductVersion" Value="1.0.0" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
+    <ROW Property="TRANSPORT_TYPE" Value="MSMQ" Type="4"/>
     <ROW Property="UpgradeCode" Value="{8F59B8C7-A3EB-4D19-9B88-0EA69FF1B26C}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
     <ROW Property="WindowsType9XDisplay" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -33,15 +36,23 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="AI_CustomARPName" ComponentId="{AF26B4EA-8C15-439E-92C1-70944943F779}" Directory_="APPDIR" Attributes="4" KeyPath="DisplayName" Options="1"/>
-    <ROW Component="AI_ExePath" ComponentId="{C8C367F4-9BF0-4019-8F46-71057E873FE2}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
+    <ROW Component="AI_ExePath" ComponentId="{59801BAC-F25B-40AA-A4BD-86EBACC29DB4}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
+    <ROW Component="InstanceDescription" ComponentId="{F785A481-7F6B-46C6-8BE2-E09968944ED7}" Directory_="APPDIR" Attributes="4" KeyPath="InstanceDescription"/>
+    <ROW Component="InstanceName" ComponentId="{A827F43A-BAAC-4926-A337-0F9BF5427BAF}" Directory_="APPDIR" Attributes="4" KeyPath="InstanceName"/>
+    <ROW Component="NServiceBus.Host.exe" ComponentId="{E1B461FE-B9EC-425A-8CD2-D66C99BAA52C}" Directory_="APPDIR" Attributes="0" KeyPath="NServiceBus.Host.exe"/>
+    <ROW Component="Port" ComponentId="{C088BA38-E0D6-42EA-BBA7-44B27431C16F}" Directory_="APPDIR" Attributes="4" KeyPath="Port"/>
     <ROW Component="ProductInformation" ComponentId="{2951F750-F690-40DB-97F6-C5B2486033ED}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
+    <ROW Component="TransportType" ComponentId="{A9BCAEE6-1554-4603-BDD3-46777ED49001}" Directory_="APPDIR" Attributes="4" KeyPath="TransportType"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="MainFeature" Title="NServiceBus Management Pack" Description="Management Pack provides auditing and analysis features for NServiceBus." Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="AI_CustomARPName AI_ExePath ProductInformation"/>
+    <ROW Feature="MainFeature" Title="NServiceBus Management Pack" Description="Management Pack provides auditing and analysis features for NServiceBus." Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="AI_CustomARPName AI_ExePath InstanceDescription InstanceName NServiceBus.Host.exe Port ProductInformation TransportType"/>
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
+    <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="NServi~1.exe|NServiceBus.Host.exe" Attributes="0" SourcePath="Files\NServiceBus.Host.exe" SelfReg="false" DigSign="true"/>
+  </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" PackageFolder="Output Package" PackageFileName="ManagementPack" Languages="en" InstallationType="4" CabsLocation="1" PackageType="1" FilesInsideExe="true" ExeIconPath="res\Particular_ServiceBus_all.ico" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName] [|ProductVersion]\install" MsiCmdLine="/L*V [TempFolder]ManagementPack.LOG" ExtUI="true" UseLargeSchema="true" ExeName="ParticularManagement.1.0.0"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" PackageFolder="Output Package" PackageFileName="ServiceControl " Languages="en" InstallationType="4" CabsLocation="1" PackageType="1" FilesInsideExe="true" ExeIconPath="res\Operations.ico" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName] [|ProductVersion]\install" MsiCmdLine="/L*V [TempFolder]ManagementPack.LOG" ExtUI="true" UseLargeSchema="true" ExeName="ServiceControl [|ProductVersion]"/>
     <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
@@ -77,10 +88,20 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiBinaryComponent">
     <ROW Name="ExternalUICleaner.dll" SourcePath="&lt;AI_CUSTACTS&gt;ExternalUICleaner.dll"/>
-    <ROW Name="Particular_NServiceBus_White.png" SourcePath="res\Particular_NServiceBus_White.png"/>
+    <ROW Name="Operationslogo.png" SourcePath="res\Operations-logo.png"/>
     <ROW Name="Prereq.dll" SourcePath="&lt;AI_CUSTACTS&gt;Prereq.dll"/>
     <ROW Name="aicustact.dll" SourcePath="&lt;AI_CUSTACTS&gt;aicustact.dll"/>
     <ROW Name="lzmaextractor.dll" SourcePath="&lt;AI_CUSTACTS&gt;lzmaextractor.dll"/>
+    <ROW Name="viewer.exe" SourcePath="&lt;AI_CUSTACTS&gt;viewer.exe"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiComboBoxComponent">
+    <ROW Property="TRANSPORT_TYPE" Order="1" Value="MSMQ" Text="MSMQ"/>
+    <ROW Property="TRANSPORT_TYPE" Order="2" Value="SQL Server" Text="SQL Server"/>
+    <ROW Property="TRANSPORT_TYPE" Order="3" Value="ActiveMQ" Text="ActiveMQ"/>
+    <ROW Property="TRANSPORT_TYPE" Order="4" Value="RabbitMQ" Text="RabbitMQ"/>
+    <ROW Property="TRANSPORT_TYPE" Order="5" Value="Windows Azure Queue" Text="Windows Azure Queue"/>
+    <ROW Property="TRANSPORT_TYPE" Order="6" Value="Windows Azure Service Bus" Text="Windows Azure Service Bus"/>
+    <ROW Property="TRANSPORT_TYPE" Order="7" Value="WebSphereMQ" Text="WebSphereMQ"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiControlComponent">
     <ROW Dialog_="AdminBrowseDlg" Control="DirectoryCombo" Type="DirectoryCombo" X="68" Y="131" Width="209" Height="16" Attributes="393227" Property="TARGETDIR" Order="800" MsiKey="AdminBrowseDlg#DirectoryCombo"/>
@@ -114,15 +135,22 @@
     <ROW Dialog_="FatalError" Control="ProductLogo" Type="Bitmap" X="17" Y="28" Width="257" Height="63" Attributes="1" Text="[AppLogoIcon]" Order="1000"/>
     <ROW Dialog_="FilesInUse" Control="AdvInst" Type="Text" X="5" Y="388" Width="74" Height="11" Attributes="65539" Text="Advanced Installer" TextStyle="[BrandingStyle]" Order="800" MsiKey="FilesInUse#AdvInst"/>
     <ROW Dialog_="FilesInUse" Control="ProductLogo" Type="Bitmap" X="17" Y="28" Width="257" Height="63" Attributes="1" Text="[AppLogoIcon]" Order="900"/>
-    <ROW Dialog_="InstallDlg" Control="Description" Type="Text" X="17" Y="127" Width="299" Height="17" Attributes="589827" Text="Setup requires [PrimaryVolumeSpaceRequired] in:" Order="500" TextLocId="Control.Text.InstallDlg#DescWithSize" MsiKey="InstallDlg#Description"/>
-    <ROW Dialog_="InstallDlg" Control="FolderEdit" Type="PathEdit" X="17" Y="143" Width="290" Height="20" Attributes="7" Property="APPDIR" Text="Control.Text.InstallDlg#Edit_1" TextStyle="[InputCtrlFont]" Order="600" TextLocId="Control.Text.InstallDlg#Edit_1" MsiKey="InstallDlg#FolderEdit"/>
-    <ROW Dialog_="InstallDlg" Control="Browse" Type="ImageButton" X="311" Y="143" Width="21" Height="20" Attributes="3" Text="[browsebutton]" TextStyle="[MetroButtonText]" Order="700" MsiKey="InstallDlg#Browse" ExtType="ImageButton" ExtData="..." ExtDataLocId="Metro.Control.ExtData.WelcomeDlg.BrowseTxt"/>
-    <ROW Dialog_="InstallDlg" Control="YouMustAgreeCtrl" Type="Hyperlink" X="18" Y="257" Width="311" Height="33" Attributes="65539" Text="You must agree to the &lt;a href=&quot;&quot;&gt;Licenses terms and conditions&lt;/a&gt; before you can install [ProductName]." TextStyle="[HyperlinkFont]" Order="800" TextLocId="Metro.Control.Text.WelcomeDlg#YouMustAgreeCtrl" MsiKey="InstallDlg#YouMustAgreeCtrl"/>
-    <ROW Dialog_="InstallDlg" Control="LicenseCheckbox" Type="ImageCheckBox" X="17" Y="303" Width="311" Height="20" Attributes="3" Property="AGREE_CHECKBOX" Text="[checkbox]" Order="900" MsiKey="InstallDlg#LicenseCheckbox" ExtType="ImageCheckBox" ExtData="I agree to the License terms and conditions." ExtDataLocId="Metro.Control.Text.WelcomeDlg.AgreeToLicense"/>
+    <ROW Dialog_="InstallDlg" Control="Bitmap" Type="Bitmap" X="0" Y="0" Width="345" Height="400" Attributes="1" Text="[Background]" Order="100" MsiKey="InstallDlg#Bitmap"/>
+    <ROW Dialog_="InstallDlg" Control="Description" Type="Text" X="17" Y="117" Width="299" Height="17" Attributes="589827" Text="Setup requires [PrimaryVolumeSpaceRequired] in:" Order="500" TextLocId="Control.Text.InstallDlg#DescWithSize" MsiKey="InstallDlg#Description"/>
+    <ROW Dialog_="InstallDlg" Control="FolderEdit" Type="PathEdit" X="17" Y="133" Width="290" Height="20" Attributes="7" Property="APPDIR" Text="Control.Text.InstallDlg#Edit_1" TextStyle="[InputCtrlFont]" Order="600" TextLocId="Control.Text.InstallDlg#Edit_1" MsiKey="InstallDlg#FolderEdit"/>
+    <ROW Dialog_="InstallDlg" Control="Browse" Type="ImageButton" X="311" Y="133" Width="21" Height="20" Attributes="3" Text="[browsebutton]" TextStyle="[MetroButtonText]" Order="700" MsiKey="InstallDlg#Browse" ExtType="ImageButton" ExtData="..." ExtDataLocId="Metro.Control.ExtData.WelcomeDlg.BrowseTxt"/>
+    <ROW Dialog_="InstallDlg" Control="YouMustAgreeCtrl" Type="Hyperlink" X="18" Y="299" Width="311" Height="33" Attributes="65539" Text="You must agree to the &lt;a href=&quot;&quot;&gt;Licenses terms and conditions&lt;/a&gt; before you can install [ProductName]." TextStyle="[HyperlinkFont]" Order="800" TextLocId="Metro.Control.Text.WelcomeDlg#YouMustAgreeCtrl" MsiKey="InstallDlg#YouMustAgreeCtrl"/>
+    <ROW Dialog_="InstallDlg" Control="LicenseCheckbox" Type="ImageCheckBox" X="17" Y="335" Width="311" Height="20" Attributes="3" Property="AGREE_CHECKBOX" Text="[checkbox]" Order="900" MsiKey="InstallDlg#LicenseCheckbox" ExtType="ImageCheckBox" ExtData="I agree to the License terms and conditions." ExtDataLocId="Metro.Control.Text.WelcomeDlg.AgreeToLicense"/>
     <ROW Dialog_="InstallDlg" Control="InstallButton" Type="ImageButton" X="251" Y="359" Width="78" Height="28" Attributes="3" Text="[metrobuttonimage]" TextStyle="[MetroButtonText]" Order="1100" MsiKey="InstallDlg#InstallButton" ExtType="ImageButton" ExtData="Install" ExtDataLocId="Metro.Control.ExtData.VerifyReadyDlg#InstallButton"/>
     <ROW Dialog_="InstallDlg" Control="ProductLogo" Type="Bitmap" X="17" Y="28" Width="257" Height="63" Attributes="1" Text="[AppLogoIcon]" Order="1200" MsiKey="InstallDlg#ProductLogo"/>
-    <ROW Dialog_="InstallDlg" Control="Edit_1" Type="Edit" X="174" Y="200" Width="77" Height="18" Attributes="19" Property="PORT_VAL.CB8171C5_FE21_41EE_BC42_72123C0AD0F7" Text="{260}" Order="1300"/>
-    <ROW Dialog_="InstallDlg" Control="Text_1" Type="Text" X="17" Y="200" Width="125" Height="18" Attributes="65539" Property="TEXT_1_PROP" Text="Management Pack Port:" Order="1400"/>
+    <ROW Dialog_="InstallDlg" Control="Edit_1" Type="Edit" X="174" Y="174" Width="132" Height="18" Attributes="19" Property="PORT_VAL" Text="{260}" Order="1300"/>
+    <ROW Dialog_="InstallDlg" Control="Text_1" Type="Text" X="17" Y="174" Width="125" Height="18" Attributes="65539" Property="TEXT_1_PROP" Text="ServiceControl Port:" Order="1400"/>
+    <ROW Dialog_="InstallDlg" Control="Text_2" Type="Text" X="17" Y="202" Width="125" Height="18" Attributes="65539" Property="TEXT_1_PROP_1" Text="Transport type:" Order="1500"/>
+    <ROW Dialog_="InstallDlg" Control="Text_3" Type="Text" X="17" Y="227" Width="125" Height="18" Attributes="65539" Property="TEXT_1_PROP_1_1" Text="Instance name:" Order="1600"/>
+    <ROW Dialog_="InstallDlg" Control="Text_4" Type="Text" X="17" Y="251" Width="125" Height="18" Attributes="65539" Property="TEXT_1_PROP_1_1_1" Text="Instance description:" Order="1700"/>
+    <ROW Dialog_="InstallDlg" Control="Edit_2" Type="Edit" X="174" Y="227" Width="132" Height="18" Attributes="3" Property="INST_NAME" Text="{260}" Order="1800"/>
+    <ROW Dialog_="InstallDlg" Control="Edit_3" Type="Edit" X="174" Y="251" Width="132" Height="18" Attributes="3" Property="INST_DESCRIPTION" Text="{260}" Order="1900"/>
+    <ROW Dialog_="InstallDlg" Control="ComboBox_1" Type="ComboBox" X="174" Y="202" Width="132" Height="16" Attributes="196611" Property="TRANSPORT_TYPE" Text="{260}" Order="2000"/>
     <ROW Dialog_="LicenseAgreementDlg" Control="AgreementText" Type="ScrollableText" X="17" Y="106" Width="312" Height="243" Attributes="3" Property="EulaRead" Text="License.rtf" Order="600" TextLocId="Control.Text.LicenseAgreementDlg#AgreementText_2" MsiKey="LicenseAgreementDlg#AgreementText"/>
     <ROW Dialog_="LicenseAgreementDlg" Control="PrintBtn" Type="ImageButton" X="301" Y="77" Width="28" Height="28" Attributes="3" Text="[MetroPrintButton]" Order="700" MsiKey="LicenseAgreementDlg#PrintBtn" AssociatedCtrl="AgreementText" ExtType="ImageButton"/>
     <ROW Dialog_="LicenseAgreementDlg" Control="AdvInst" Type="Text" X="5" Y="388" Width="74" Height="11" Attributes="65539" Text="Advanced Installer" TextStyle="[BrandingStyle]" Order="800" MsiKey="LicenseAgreementDlg#AdvInst"/>
@@ -191,10 +219,10 @@
     <ROW Dialog_="InstallDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfRbDiskDlg" Condition="AI_INSTALL AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST=&quot;P&quot; OR NOT PROMPTROLLBACKCOST)" Ordering="302" Options="2"/>
     <ROW Dialog_="InstallDlg" Control_="Next" Event="EnableRollback" Argument="False" Condition="AI_INSTALL AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST=&quot;D&quot;" Ordering="303" Options="2"/>
     <ROW Dialog_="InstallDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfDiskDlg" Condition="AI_INSTALL AND ( (OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST=&quot;F&quot;) )" Ordering="304" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[AI_ButtonText_Next_Orig]" Argument="[ButtonText_Next]" Condition="AI_INSTALL" Ordering="101" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[ButtonText_Next]" Argument="[[AI_CommitButton]]" Condition="AI_INSTALL" Ordering="102" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[AI_Text_Next_Orig]" Argument="[Text_Next]" Condition="AI_INSTALL" Ordering="103" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[Text_Next]" Argument="[Text_Install]" Condition="AI_INSTALL" Ordering="104" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[AI_ButtonText_Next_Orig]" Argument="[ButtonText_Next]" Condition="AI_INSTALL" Ordering="110" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[ButtonText_Next]" Argument="[[AI_CommitButton]]" Condition="AI_INSTALL" Ordering="111" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[AI_Text_Next_Orig]" Argument="[Text_Next]" Condition="AI_INSTALL" Ordering="112" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[Text_Next]" Argument="[Text_Install]" Condition="AI_INSTALL" Ordering="113" Options="2"/>
     <ROW Dialog_="InstallDlg" Control_="YouMustAgreeCtrl" Event="[ButtonText_Next]" Argument="[AI_ButtonText_Next_Orig]" Condition="AI_INSTALL" Ordering="202" Options="2"/>
     <ROW Dialog_="InstallDlg" Control_="YouMustAgreeCtrl" Event="[Text_Next]" Argument="[AI_Text_Next_Orig]" Condition="AI_INSTALL" Ordering="203" Options="2"/>
     <ROW Dialog_="InstallDlg" Control_="Back" Event="[ButtonText_Next]" Argument="[AI_ButtonText_Next_Orig]" Condition="AI_INSTALL" Ordering="0" Options="2"/>
@@ -230,6 +258,8 @@
     <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[STORE_DEFAULT_VISUAL_STYLE]" Argument="[AI_CONTROL_VISUAL_STYLE]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="103"/>
     <ROW Dialog_="LicenseAgreementDlg" Control_="Back" Event="[AI_CONTROL_VISUAL_STYLE]" Argument="[STORE_DEFAULT_VISUAL_STYLE]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="2"/>
     <ROW Dialog_="LicenseAgreementDlg" Control_="AgreeInstall" Event="[AI_CONTROL_VISUAL_STYLE]" Argument="[STORE_DEFAULT_VISUAL_STYLE]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="99"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[INST_NAME]" Argument="ServiceControl@[ComputerName]" Condition="AI_INSTALL" Ordering="98"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[INST_DESCRIPTION]" Argument="ServiceControl on [ComputerName]" Condition="AI_INSTALL" Ordering="99"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
     <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Type="51" Source="AI_SETUPEXEPATH_ORIGINAL" Target="[AI_SETUPEXEPATH]"/>
@@ -256,12 +286,13 @@
     <ROW Action="AI_ResolveLocalizedCredentials" Type="1" Source="aicustact.dll" Target="GetLocalizedCredentials"/>
     <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
     <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
-    <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[ProgramFilesFolder]Particular Software\"/>
+    <ROW Action="Launch_Url" Type="1090" Source="viewer.exe" Target="http://www.particular.net/Installation-completed?installer=ServiceControl&amp;version=[ProductVersion]" Options="1"/>
+    <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[ProgramFilesFolder]\Particular Software\ServiceControl\"/>
     <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
     <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
-    <ROW Name="Particular_ServiceBus_all.exe" SourcePath="res\Particular_ServiceBus_all.ico" Index="0"/>
+    <ROW Name="Operations.exe" SourcePath="res\Operations.ico" Index="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
     <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
@@ -272,6 +303,7 @@
     <ROW Action="AI_ResolveLocalizedCredentials" Sequence="52"/>
     <ROW Action="AI_GetArpIconPath" Sequence="51"/>
     <ROW Action="AI_RemoveExternalUIStub" Condition="(REMOVE=&quot;ALL&quot;) AND ((VersionNT &gt; 500) OR((VersionNT = 500) AND (ServicePackLevel &gt;= 4)))" Sequence="1501"/>
+    <ROW Action="Launch_Url" Condition="( NOT Installed )" Sequence="6401"/>
     <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Sequence="99" Builds="DefaultBuild"/>
     <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Condition="AI_SETUPEXEPATH_ORIGINAL" Sequence="101" Builds="DefaultBuild"/>
     <ROW Action="AI_DeleteCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="199" Builds="DefaultBuild"/>
@@ -299,9 +331,6 @@
     <ROW Condition="(AI_DOTNET40_SEARCH = &quot;#1&quot;) OR (AI_DOTNET45_SEARCH &gt;= &quot;4.5&quot;)" Description="[ProductName] cannot be installed on systems with .NET Framework version lower than [AI_MINDOTNETVERSION]" DescriptionLocId="AI.LaunchCondition.DotNET" IsPredefined="true" Builds="DefaultBuild"/>
     <ROW Condition="VersionNT" Description="[ProductName] cannot be installed on [WindowsType9XDisplay]" DescriptionLocId="AI.LaunchCondition.No9X" IsPredefined="true" Builds="DefaultBuild"/>
   </COMPONENT>
-  <COMPONENT cid="caphyon.advinst.msicomp.MsiMergeModsComponent">
-    <ROW Module="ManagementAPI.msm" Path="bundles\ManagementAPI.msm" Feature="MainFeature" Directory="APPDIR"/>
-  </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRegLocatorComponent">
     <ROW Signature_="AI_DotNet40SearchSgn" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Install" Type="2"/>
     <ROW Signature_="AI_EXE_PATH_CU" Root="1" Key="Software\Caphyon\Advanced Installer\LZMA\[ProductCode]\[ProductVersion]" Name="AI_ExePath" Type="2"/>
@@ -317,17 +346,27 @@
     <ROW Registry="HelpLink" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="HelpLink" Value="[ARPHELPLINK]" Component_="AI_CustomARPName"/>
     <ROW Registry="HelpTelephone" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="HelpTelephone" Value="[ARPHELPTELEPHONE]" Component_="AI_CustomARPName"/>
     <ROW Registry="InstallLocation" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="InstallLocation" Value="[APPDIR]" Component_="AI_CustomARPName"/>
+    <ROW Registry="InstanceDescription" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="InstanceDescription" Value="[INST_DESCRIPTION]" Component_="InstanceDescription"/>
+    <ROW Registry="InstanceName" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="InstanceName" Value="[INST_NAME]" Component_="InstanceName"/>
     <ROW Registry="ModifyPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="ModifyPath" Value="[AI_UNINSTALLER] /I [ProductCode]" Component_="AI_CustomARPName"/>
     <ROW Registry="NoRepair" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="NoRepair" Value="#1" Component_="AI_CustomARPName"/>
-    <ROW Registry="Path" Root="2" Key="Software\ParticularSoftware\[ProductName]" Name="Path" Value="[APPDIR]" Component_="ProductInformation"/>
+    <ROW Registry="Path" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="Path" Value="[APPDIR]" Component_="ProductInformation"/>
+    <ROW Registry="Port" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="Port" Value="#[PORT_VAL]" Component_="Port"/>
     <ROW Registry="Publisher" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Publisher" Value="[Manufacturer]" Component_="AI_CustomARPName"/>
+    <ROW Registry="TransportType" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="TransportType" Value="[TRANSPORT_TYPE]" Component_="TransportType"/>
     <ROW Registry="URLInfoAbout" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLInfoAbout" Value="[ARPURLINFOABOUT]" Component_="AI_CustomARPName"/>
     <ROW Registry="URLUpdateInfo" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLUpdateInfo" Value="[ARPURLUPDATEINFO]" Component_="AI_CustomARPName"/>
     <ROW Registry="UninstallPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallPath" Value="[AI_UNINSTALLER] /x [ProductCode]" Component_="AI_CustomARPName"/>
     <ROW Registry="UninstallString" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallString" Value="[AI_UNINSTALLER] /x [ProductCode]" Component_="AI_CustomARPName"/>
-    <ROW Registry="Version" Root="2" Key="Software\ParticularSoftware\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
+    <ROW Registry="Version" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
     <ROW Registry="VersionMajor" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="VersionMajor" Value="#4" Component_="AI_CustomARPName"/>
     <ROW Registry="VersionMinor" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="VersionMinor" Value="#0" Component_="AI_CustomARPName"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiServCtrlComponent">
+    <ROW ServiceControl="NServiceBus.Host.exe_1" Name="Particular.ServiceControl" Event="161" Wait="1" Component_="NServiceBus.Host.exe"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiServInstComponent">
+    <ROW ServiceInstall="NServiceBus.Host.exe" Name="Particular.ServiceControl" DisplayName="Particular ServiceControl" ServiceType="16" StartType="2" ErrorControl="1" Component_="NServiceBus.Host.exe" Description="Particular Software ServiceControl for NServiceBus (version [ProductVersion])"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
     <ATTRIBUTE name="UsedTheme" value="surface"/>
@@ -335,5 +374,8 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiUpgradeComponent">
     <ROW UpgradeCode="[|UpgradeCode]" VersionMax="[|ProductVersion]" Attributes="1025" ActionProperty="OLDPRODUCTS"/>
     <ROW UpgradeCode="[|UpgradeCode]" VersionMin="[|ProductVersion]" Attributes="2" ActionProperty="AI_NEWERPRODUCTFOUND"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.SynchronizedFolderComponent">
+    <ROW Directory_="APPDIR" SourcePath="Files" Feature="MainFeature" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store" ExcludeFlags="6"/>
   </COMPONENT>
 </DOCUMENT>
