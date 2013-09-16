@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.MessageFailures.Handlers
+﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using InternalMessages;
     using NServiceBus;

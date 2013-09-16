@@ -1,9 +1,9 @@
-﻿namespace ServiceBus.Management.Infrastructure.OWIN
+﻿namespace ServiceControl.Infrastructure.OWIN
 {
     using Microsoft.AspNet.SignalR;
     using Nancy;
     using Owin;
-    using ServiceControl.Infrastructure.SignalR;
+    using SignalR;
 
     public class Startup
     {

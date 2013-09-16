@@ -4,12 +4,12 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.Reflection;
     using Autofac;
+    using global::ServiceControl.Infrastructure.Settings;
     using NLog;
     using NLog.Config;
     using NLog.Targets;
     using NServiceBus;
     using NServiceBus.Logging.Loggers.NLogAdapter;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     public class EndpointConfig : IConfigureThisEndpoint, AsA_Publisher, IWantCustomLogging, IWantCustomInitialization
     {

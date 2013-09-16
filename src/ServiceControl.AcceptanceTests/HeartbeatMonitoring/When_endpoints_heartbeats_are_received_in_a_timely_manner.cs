@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.HeartbeatMonitoring
+﻿namespace ServiceControl.AcceptanceTests.HeartbeatMonitoring
 {
     using System;
     using System.Threading;

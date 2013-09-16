@@ -1,11 +1,11 @@
-﻿namespace ServiceBus.Management.MessageFailures.Handlers
+﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System;
-    using Infrastructure.RavenDB;
     using InternalMessages;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.Transports;
+    using Infrastructure.RavenDB;
+    using MessageAuditing;
 
     public class IssueRetryHandler : IHandleMessages<IssueRetry>
     {

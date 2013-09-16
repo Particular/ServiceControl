@@ -1,10 +1,10 @@
-﻿namespace ServiceBus.Management.Infrastructure.Satellites
+﻿namespace ServiceControl.Infrastructure.Satellites
 {
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
-    using ServiceControl.Contracts.Operations;
+    using Contracts.Operations;
     using Settings;
 
     public class ErrorImportSatellite : ISatellite

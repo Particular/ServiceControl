@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceControl.AcceptanceTests
 {
     using System;
     using System.Diagnostics;
@@ -12,7 +12,7 @@
     using Newtonsoft.Json.Converters;
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure.SignalR;
+    using Infrastructure.SignalR;
 
     [TestFixture]
     public abstract class AcceptanceTest

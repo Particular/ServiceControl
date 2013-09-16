@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
+namespace ServiceControl.Infrastructure.RavenDB.Indexes
 {
     using System;
     using MessageAuditing;

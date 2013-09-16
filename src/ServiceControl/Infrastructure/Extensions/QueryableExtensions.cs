@@ -1,10 +1,10 @@
-namespace ServiceBus.Management.Infrastructure.Extensions
+namespace ServiceControl.Infrastructure.Extensions
 {
     using System;
     using System.Linq;
     using System.Linq.Expressions;
-    using RavenDB.Indexes;
     using global::Nancy;
+    using RavenDB.Indexes;
 
     public static class QueryableExtensions
     {

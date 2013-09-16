@@ -1,12 +1,12 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceControl.AcceptanceTests
 {
     using System;
     using System.Text;
     using Contexts;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using MessageAuditing;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {

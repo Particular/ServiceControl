@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.MessageAuditing
+﻿namespace ServiceControl.MessageAuditing
 {
     public enum MessageStatus
     {

@@ -1,14 +1,14 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceControl.AcceptanceTests
 {
     using System;
     using System.Linq;
     using Contexts;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceControl.Alerts;
+    using Alerts;
+    using MessageAuditing;
 
     public class When_a_message_has_failed : AcceptanceTest
     {

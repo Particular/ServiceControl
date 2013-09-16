@@ -1,15 +1,15 @@
-namespace ServiceBus.Management.Infrastructure.Extensions
+namespace ServiceControl.Infrastructure.Extensions
 {
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using MessageAuditing;
-    using Raven.Client;
     using global::Nancy;
     using global::Nancy.Helpers;
     using global::Nancy.Responses.Negotiation;
+    using MessageAuditing;
+    using Raven.Client;
 
     public static class NegotiatorExtensions
     {

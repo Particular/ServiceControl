@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceControl.AcceptanceTests
 {
     using System;
     using System.Globalization;
@@ -10,7 +10,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure.SignalR;
+    using Infrastructure.SignalR;
 
     public class When_signalr_receives_a_message : AcceptanceTest
     {
