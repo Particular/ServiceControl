@@ -168,6 +168,7 @@
   <ItemGroup>
     <Compile Include="Alerts\Alert.cs" />
     <Compile Include="Alerts\AlertApiModule.cs" />
+    <Compile Include="Alerts\EndpointHeartbeatRestoredHandler.cs" />
     <Compile Include="Alerts\MessageFailedHandler.cs" />
     <Compile Include="Alerts\Severity.cs" />
     <Compile Include="Alerts\EndpointFailedHeartbeatHandler.cs" />
