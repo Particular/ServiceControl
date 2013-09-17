@@ -21,7 +21,7 @@
                 ContractResolver = new UnderscoreMappingResolver(),
                 Formatting = Formatting.None,
                 NullValueHandling = NullValueHandling.Ignore,
-                Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}}
+                Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}, {new StringEnumConverter{CamelCaseText = true}}}
             };
             serializer = JsonSerializer.Create(serializerSettings);
         }

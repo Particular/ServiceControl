@@ -16,7 +16,7 @@
                 ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
                 Formatting = Formatting.None,
                 NullValueHandling = NullValueHandling.Ignore,
-                Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
+                Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind }, { new StringEnumConverter { CamelCaseText = true } } }
             });
 
             GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => serializer); 
