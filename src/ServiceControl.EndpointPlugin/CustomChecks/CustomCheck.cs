@@ -2,8 +2,10 @@
 {
     using System;
     using System.Linq;
+    using Infrastructure.ServiceControlBackend;
+    using Internal;
 
-    public abstract class CustomCheck
+    public abstract class CustomCheck : ICustomCheck
     {
         public IServiceControlBackend ServiceControlBackend { get; set; }
 
@@ -14,16 +16,16 @@
                 return GetType().Namespace.Split('.').Last().Replace("Checks", "");
             }
         }
+
         public void ReportOk()
         {
             ReportToBackend(CustomCheckResult.Ok, CustomCheckId, Category);
         }
 
 
-
-        public void ReportFailed(string failureDescription)
+        public void ReportFailed(string failureReason)
         {
-            ReportToBackend(CustomCheckResult.Failed(failureDescription), CustomCheckId, Category);
+            ReportToBackend(CustomCheckResult.Failed(failureReason), CustomCheckId, Category);
         }
 
         string CustomCheckId
@@ -36,7 +38,7 @@
         
         void ReportToBackend(CustomCheckResult result, string customCheckId, string category)
         {
-            ServiceControlBackend.Send(new ReportCustomCheck
+            ServiceControlBackend.Send(new ReportCustomCheckResult
             {
                 CustomCheckId = customCheckId,
                 Category = category,
@@ -44,58 +46,5 @@
                 ReportedAt = DateTime.UtcNow
             });
         }
-    }
-
-    public  class ReportCustomCheck
-    {
-        public string CustomCheckId { get; set; }
-        public string Category { get; set; }
-        public CustomCheckResult Result { get; set; }
-        public DateTime ReportedAt { get; set; }
-    }
-
-    public interface IServiceControlBackend
-    {
-        void Send(ReportCustomCheck reportCustomCheck);
-    }
-
-    public  abstract class PeriodicCustomCheck : CustomCheck
-    {
-        protected virtual TimeSpan Interval
-        {
-            get
-            {
-                return TimeSpan.FromMinutes(1);
-            }
-        }
-
-        public abstract void PerformCheck();
-    }
-
-    public class CustomCheckResult
-    {
-        public bool HasFailed { get; set; }
-        public string FailureReason { get; set; }
-
-        public static CustomCheckResult Ok
-        {
-            get
-            {
-                return new CustomCheckResult();
-            }
-
-        }
-
-        public static CustomCheckResult Failed(string reason)
-        {
-            return new CustomCheckResult
-            {
-                HasFailed = true,
-                FailureReason = reason
-            };
-
-
-        }
-
     }
 }

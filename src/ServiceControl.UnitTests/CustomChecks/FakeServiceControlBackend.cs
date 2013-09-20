@@ -1,15 +1,32 @@
 ﻿namespace ServiceControl.UnitTests
 {
     using System.Collections.Generic;
-    using EndpointPlugin.CustomChecks;
-
+    using EndpointPlugin.Infrastructure.ServiceControlBackend;
+    
     public class FakeServiceControlBackend : IServiceControlBackend
     {
-        public List<ReportCustomCheck> ReportedChecks = new List<ReportCustomCheck>();
+        //public List<ReportCustomCheckResult> ReportedChecks = new List<ReportCustomCheckResult>();
 
-        public void Send(ReportCustomCheck reportCustomCheck)
+    //    public void Send(ReportCustomCheckResult reportCustomCheck)
+      //  {
+        //    ReportedChecks.Add(reportCustomCheck);
+        //}
+
+        public List<object> MessagesSent = new List<object>();
+ 
+        public void Send(object messageToSend)
         {
-            ReportedChecks.Add(reportCustomCheck);
+            MessagesSent.Add(messageToSend);
+        }
+
+        public void Send(object messageToSend, System.TimeSpan timeToBeReceived)
+        {
+            MessagesSent.Add(messageToSend);
+        }
+
+        public NServiceBus.Address Address
+        {
+            get { return null; }
         }
     }
 }

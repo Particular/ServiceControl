@@ -2,23 +2,20 @@
 {
     using System;
     using System.Configuration;
-    using System.IO;
     using System.Linq;
     using System.Threading;
+    using Infrastructure.ServiceControlBackend;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
-    using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NServiceBus.ObjectBuilder;
-    using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
-    using NServiceBus.Unicast;
 
     public class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
     {
-        public ISendMessages MessageSender { get; set; }
-
+        public IServiceControlBackend ServiceControlBackend { get; set; }
         public IBuilder Builder { get; set; }
+        public ISendMessages MessageSender { get; set; }
 
         public override bool IsEnabledByDefault
         {
@@ -31,12 +28,8 @@
             {
                 return;
             }
-
-            serviceControlAddress = GetServiceControlQueue();
-            if (serviceControlAddress == null)
-            {
-                return;
-            }
+            ServiceControlBackend = new ServiceControlBackend(MessageSender, Builder);
+            if (ServiceControlBackend.Address == null) return;
 
             heartbeatInterval = TimeSpan.FromSeconds(10);
             var interval = ConfigurationManager.AppSettings[@"Heartbeat/Interval"];
@@ -44,12 +37,6 @@
             {
                 heartbeatInterval = TimeSpan.Parse(interval);
             }
-
-            var mapper = new MessageMapper();
-
-            mapper.Initialize(new[] {typeof(EndpointHeartbeat)});
-
-            serializer = new JsonMessageSerializer(mapper);
 
             heartbeatTimer = new Timer(ExecuteHeartbeat, null, TimeSpan.Zero, heartbeatInterval);
         }
@@ -74,30 +61,6 @@
             }
         }
 
-        static Address GetServiceControlQueue()
-        {
-            var queueName = ConfigurationManager.AppSettings[@"ServiceControl/Queue"];
-            if (!String.IsNullOrEmpty(queueName))
-            {
-                return Address.Parse(queueName);
-            }
-
-            var unicastBus = Configure.Instance.Builder.Build<UnicastBus>();
-            var forwardAddress = unicastBus.ForwardReceivedMessagesTo;
-            if (forwardAddress != null)
-            {
-                return new Address("Particular.ServiceControl", forwardAddress.Machine);
-            }
-
-            var errorAddress = ConfigureFaultsForwarder.ErrorQueue;
-            if (errorAddress != null)
-            {
-                return new Address("Particular.ServiceControl", errorAddress.Machine);
-            }
-
-            return null;
-        }
-
         public override void Initialize()
         {
             Configure.Instance.ForAllTypes<IHeartbeatInfoProvider>(
@@ -118,25 +81,11 @@
                     p.HeartbeatExecuted(heartBeat);
                 });
 
-            var message = new TransportMessage();
-
-            // Set the TTR to be a factor of 4 of the interval that we expect the hearbeats.
-            message.TimeToBeReceived = TimeSpan.FromTicks(heartbeatInterval.Ticks * 4);
-
-            using (var stream = new MemoryStream())
-            {
-                serializer.Serialize(new object[] {heartBeat}, stream);
-
-                message.Body = stream.ToArray();
-            }
-
-            MessageSender.Send(message, serviceControlAddress);
+            ServiceControlBackend.Send(heartBeat, TimeSpan.FromTicks(heartbeatInterval.Ticks*4));
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(Heartbeats));
         Timer heartbeatTimer;
-        JsonMessageSerializer serializer;
-        Address serviceControlAddress;
         TimeSpan heartbeatInterval;
     }
 }

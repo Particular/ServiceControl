@@ -4,8 +4,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using EndpointPlugin.Infrastructure.PerformanceCounters;
-    using EndpointPlugin.Operations.Heartbeats;
     using NUnit.Framework;
+    using ServiceControl.EndpointPlugin.Operations.PerformanceData;
 
     [TestFixture]
     public class PerformanceCounterCapturingTests

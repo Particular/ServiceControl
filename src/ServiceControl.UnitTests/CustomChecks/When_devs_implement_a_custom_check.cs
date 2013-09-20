@@ -5,6 +5,7 @@
     using System.Linq;
     using Acme.ConnectivityChecks;
     using EndpointPlugin.CustomChecks;
+    using EndpointPlugin.CustomChecks.Internal;
     using NUnit.Framework;
 
     public class When_devs_implement_a_custom_check
@@ -13,16 +14,20 @@
         public void Should_default_the_category_to_namespace_minus_checks()
         {
             check.WhenEverIFeelLikeItIllMakeSureThatThisGetsInvoked();
-
-            Assert.AreEqual("Connectivity", fakeBackend.ReportedChecks.First().Category);
+            var messageObject = fakeBackend.MessagesSent.First();
+            
+            Assert.IsTrue(messageObject.GetType() == typeof(ReportCustomCheckResult), "The message sent to ServiceControl in this case must be of type ReportCustomCheckResult");
+            Assert.AreEqual("Connectivity", ((ReportCustomCheckResult)messageObject).Category, "The category must be reported correctly");
         }
 
         [Test]
         public void Should_record_the_time_of_the_check()
         {
             check.WhenEverIFeelLikeItIllMakeSureThatThisGetsInvoked();
+            var messageObject = fakeBackend.MessagesSent.First();
 
-            Assert.LessOrEqual(DateTime.UtcNow, fakeBackend.ReportedChecks.First().ReportedAt);
+            Assert.IsTrue(messageObject.GetType() == typeof(ReportCustomCheckResult), "The message sent to ServiceControl in this case must be of type ReportCustomCheckResult");
+            Assert.LessOrEqual(DateTime.UtcNow, ((ReportCustomCheckResult)messageObject).ReportedAt);
         }
 
 
@@ -31,7 +36,9 @@
         {
             check.WhenEverIFeelLikeItIllMakeSureThatThisGetsInvoked();
 
-            Assert.AreEqual(typeof(CustomResourceFolderCheck).FullName, fakeBackend.ReportedChecks.First().CustomCheckId);
+            var messageObject = fakeBackend.MessagesSent.First();
+            Assert.IsTrue(messageObject.GetType() == typeof(ReportCustomCheckResult), "The message sent to ServiceControl in this case must be of type ReportCustomCheckResult");
+            Assert.AreEqual(typeof(CustomResourceFolderCheck).FullName, ((ReportCustomCheckResult)messageObject).CustomCheckId);
         }
 
         [SetUp]
@@ -52,22 +59,24 @@
 
     namespace Acme.ConnectivityChecks
     {
-        public class PeriodicResourceFolderCheck : PeriodicCustomCheck
+        using EndpointPlugin.CustomChecks.Internal;
+
+        public class PeriodicResourceFolderCheck : PeriodicCheck
         {
-            protected override TimeSpan Interval
+            public override TimeSpan Interval
             {
                 get { return TimeSpan.FromMinutes(15); }
             }
 
-            public override void PerformCheck()
+            public override CheckResult PerformCheck()
             {
                 if (Directory.Exists("./resources"))
                 {
-                    ReportOk();
+                    return new CheckResult() {HasFailed = false};
                 }
                 else
                 {
-                    ReportFailed("Resource directory not found");
+                    return new CheckResult() { HasFailed = false, FailureReason = "Resource directory not found" };
                 }
             }
         }
