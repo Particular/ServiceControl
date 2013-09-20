@@ -1,12 +1,12 @@
-﻿namespace ServiceControl.EndpointPlugin.Infrastructure.PerformanceCounters
+﻿namespace ServiceControl.EndpointPlugin.Operations.PerformanceCounters
 {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading;
+    using Messages.Operations.PerformanceCounters;
     using NServiceBus;
-    using Operations.PerformanceData;
 
     public class PerformanceCounterCapturer : IWantToRunWhenBusStartsAndStops, INeedInitialization
     {

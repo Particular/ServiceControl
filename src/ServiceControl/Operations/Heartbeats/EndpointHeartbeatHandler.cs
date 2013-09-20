@@ -1,8 +1,7 @@
 ﻿namespace ServiceControl.Operations.Heartbeats
 {
-    using System.Linq;
     using Contracts.Operations;
-    using EndpointPlugin.Operations.Heartbeats;
+    using EndpointPlugin.Messages.Heartbeats;
     using NServiceBus;
 
     public class EndpointHeartbeatHandler : IHandleMessages<EndpointHeartbeat>

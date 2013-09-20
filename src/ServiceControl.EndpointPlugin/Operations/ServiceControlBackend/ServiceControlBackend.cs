@@ -1,16 +1,17 @@
-﻿namespace ServiceControl.EndpointPlugin.Infrastructure.ServiceControlBackend
+﻿namespace ServiceControl.EndpointPlugin.Operations.ServiceControlBackend
 {
     using System;
     using System.Configuration;
     using System.IO;
-    using CustomChecks.Internal;
+    using Messages.CustomChecks;
+    using Messages.Heartbeats;
+    using Messages.Operations.ServiceControlBackend;
     using NServiceBus;
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
     using NServiceBus.Unicast;
-    using Operations.Heartbeats;
 
     public class ServiceControlBackend : IServiceControlBackend
     {
@@ -20,11 +21,8 @@
         JsonMessageSerializer serializer;
         Address serviceControlBackendAddress;
 
-        public ServiceControlBackend(ISendMessages messageSender, IBuilder builder)
+        public ServiceControlBackend()
         {
-            //TODO: Need to have a better way of injecting the IServiceControlBackend!
-            MessageSender = messageSender;
-            Builder = builder;
             messageMapper = new MessageMapper();
             // TODO: Should we initialize with all known types of ServiceControl messages here??
             messageMapper.Initialize(new[] { typeof(EndpointHeartbeat), typeof(ReportCustomCheckResult) });
@@ -34,8 +32,6 @@
             // Initialize the backend address
             serviceControlBackendAddress = GetServiceControlAddress();
         }
-
-        public Address Address{get { return serviceControlBackendAddress; }}
 
         public void Send(object messageToSend, TimeSpan timeToBeReceived)
         {
@@ -48,7 +44,7 @@
                 message.Body = stream.ToArray();
             }
 
-            MessageSender.Send(message, Address);
+            MessageSender.Send(message, serviceControlBackendAddress);
         }
 
         public void Send(object messageToSend)
@@ -59,7 +55,7 @@
                 serializer.Serialize(new object[] { messageToSend }, stream);
                 message.Body = stream.ToArray();
             }
-            MessageSender.Send(message, Address);
+            MessageSender.Send(message, serviceControlBackendAddress);
         }
 
         Address GetServiceControlAddress()
@@ -85,11 +81,5 @@
 
             return null;
         }
-        
-        T CreateInstance<T>(Action<T> action)
-        {
-            return messageMapper.CreateInstance(action);
-        }
-
     }
 }

@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.EndpointPlugin.BusinessMonitoring
 {
-    using Infrastructure.PerformanceCounters;
     using NServiceBus;
     using NServiceBus.Features;
+    using Operations.PerformanceCounters;
 
     public class EndpointSLAMonitoring : Feature, IWantToRunWhenBusStartsAndStops
     {

@@ -3,9 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using EndpointPlugin.Infrastructure.PerformanceCounters;
+    using EndpointPlugin.Operations.PerformanceCounters;
     using NUnit.Framework;
-    using ServiceControl.EndpointPlugin.Operations.PerformanceData;
+    using EndpointPlugin.Messages.Operations.PerformanceCounters;
 
     [TestFixture]
     public class PerformanceCounterCapturingTests

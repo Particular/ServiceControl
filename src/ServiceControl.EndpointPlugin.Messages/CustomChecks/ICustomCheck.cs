@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointPlugin.CustomChecks.Internal
+﻿namespace ServiceControl.EndpointPlugin.Messages.CustomChecks
 {
     // needed for DI
     public interface ICustomCheck

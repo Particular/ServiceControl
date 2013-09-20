@@ -2,8 +2,8 @@
 {
     using System;
     using System.Linq;
-    using Infrastructure.ServiceControlBackend;
-    using Internal;
+    using Messages.CustomChecks;
+    using Messages.Operations.ServiceControlBackend;
 
     public abstract class CustomCheck : ICustomCheck
     {

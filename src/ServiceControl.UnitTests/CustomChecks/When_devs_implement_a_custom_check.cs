@@ -5,7 +5,7 @@
     using System.Linq;
     using Acme.ConnectivityChecks;
     using EndpointPlugin.CustomChecks;
-    using EndpointPlugin.CustomChecks.Internal;
+    using EndpointPlugin.Messages.CustomChecks;
     using NUnit.Framework;
 
     public class When_devs_implement_a_custom_check
@@ -59,8 +59,6 @@
 
     namespace Acme.ConnectivityChecks
     {
-        using EndpointPlugin.CustomChecks.Internal;
-
         public class PeriodicResourceFolderCheck : PeriodicCheck
         {
             public override TimeSpan Interval

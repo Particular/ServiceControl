@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointPlugin.Operations.Configuration
+﻿namespace ServiceControl.EndpointPlugin.Messages.Operations.Configuration
 {
     using System.Collections.Generic;
 
