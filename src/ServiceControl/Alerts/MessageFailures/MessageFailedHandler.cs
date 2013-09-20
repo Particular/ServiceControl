@@ -1,10 +1,10 @@
-﻿namespace ServiceControl.Alerts
+﻿namespace ServiceControl.Alerts.MessageFailures
 {
     using System.Collections.Generic;
+    using Contracts.Alerts;
     using Contracts.MessageFailures;
     using NServiceBus;
     using Raven.Client;
-    using Contracts.Alerts;
 
     class MessageFailedHandler : IHandleMessages<MessageFailed>
     {

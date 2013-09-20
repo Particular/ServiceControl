@@ -2,7 +2,6 @@
 {
     using Heartbeats;
     using Messages.Heartbeats;
-    using NServiceBus;
     using Operations.PerformanceCounters;
 
     public class EndpointSLAHeartbeatProvider : HeartbeatInfoProvider

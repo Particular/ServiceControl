@@ -1,18 +1,17 @@
-﻿namespace ServiceControl.Alerts
+﻿namespace ServiceControl.Alerts.CustomChecks
 {
     using System.Collections.Generic;
     using Contracts.Alerts;
-    using Contracts.HeartbeatMonitoring;
+    using Contracts.CustomChecks;
+    using NServiceBus;
     using Raven.Client;
 
-    using NServiceBus;
-
-    class EndpointFailedHeartbeatHandler : IHandleMessages<EndpointFailedToHeartbeat>
+    class CustomChecksFailedHandler : IHandleMessages<CustomCheckFailed>
     {
         public IBus Bus { get; set; }
         public IDocumentStore DocumentStore { get; set; }
 
-        public void Handle(EndpointFailedToHeartbeat message)
+        public void Handle(CustomCheckFailed message)
         {
             using (var session = DocumentStore.OpenSession())
             {
@@ -20,13 +19,12 @@
 
                 var alert = new Alert()
                 {
-                    RaisedAt = message.LastReceivedAt,
+                    RaisedAt = message.FailedAt,
                     Severity = Severity.Error,
-                    Description =
-                        "Endpoint has failed to send expected heartbeats to ServiceControl. It is possible that the endpoint could be down or is unresponsive. If this condition persists, you might want to restart your endpoint.",
-                    Tags = string.Format("{0}, {1}",Category.HeartbeatFailure, Category.EndpointFailures),
-                    Category = Category.HeartbeatFailure,
-                    RelatedTo = new List<string>(){string.Format("endpoint/{0}/{1}",message.Endpoint, message.Machine)}
+                    Description = string.Format("{0} failed. Reason: {1}", message.CustomCheckId, message.FailureReason),
+                    Tags = string.Format("{0}, {1}", Category.CustomChecks, Category.EndpointFailures),
+                    Category = Category.CustomChecks,
+                    RelatedTo = new List<string>() { string.Format("endpoint/{0}/{1}", message.Category, string.Empty) } //TODO: Pass in the machine name
                 };
 
                 session.Store(alert);
@@ -43,6 +41,7 @@
                     m.Tags = alert.Tags;
                 });
             }
+
         }
     }
 }

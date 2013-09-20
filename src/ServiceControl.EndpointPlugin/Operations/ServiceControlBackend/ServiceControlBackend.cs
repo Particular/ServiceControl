@@ -8,7 +8,6 @@
     using Messages.Operations.ServiceControlBackend;
     using NServiceBus;
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
-    using NServiceBus.ObjectBuilder;
     using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
     using NServiceBus.Unicast;
@@ -16,7 +15,6 @@
     public class ServiceControlBackend : IServiceControlBackend
     {
         public ISendMessages MessageSender { get; set; }
-        public IBuilder Builder { get; set; }
         MessageMapper messageMapper;
         JsonMessageSerializer serializer;
         Address serviceControlBackendAddress;

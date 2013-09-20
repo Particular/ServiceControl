@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Alerts
+﻿namespace ServiceControl.Alerts.SlaViolations
 {
     using System;
     using NServiceBus;

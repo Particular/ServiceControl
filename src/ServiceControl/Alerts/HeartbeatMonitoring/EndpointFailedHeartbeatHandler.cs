@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Alerts
+﻿namespace ServiceControl.Alerts.HeartbeatMonitoring
 {
     using System.Collections.Generic;
     using Contracts.Alerts;
@@ -6,12 +6,12 @@
     using NServiceBus;
     using Raven.Client;
 
-    public class EndpointHeartbeatRestoredHandler : IHandleMessages<EndpointHeartbeatRestored>
+    class EndpointFailedHeartbeatHandler : IHandleMessages<EndpointFailedToHeartbeat>
     {
         public IBus Bus { get; set; }
         public IDocumentStore DocumentStore { get; set; }
 
-        public void Handle(EndpointHeartbeatRestored message)
+        public void Handle(EndpointFailedToHeartbeat message)
         {
             using (var session = DocumentStore.OpenSession())
             {
@@ -19,13 +19,13 @@
 
                 var alert = new Alert()
                 {
-                    RaisedAt = message.RestoredAt,
-                    Severity = Severity.Info,
+                    RaisedAt = message.LastReceivedAt,
+                    Severity = Severity.Error,
                     Description =
-                        "Endpoint heartbeats has been restored.",
-                    Tags = string.Format("{0}, {1}", Category.HeartbeatFailure, Category.EndpointFailures),
+                        "Endpoint has failed to send expected heartbeats to ServiceControl. It is possible that the endpoint could be down or is unresponsive. If this condition persists, you might want to restart your endpoint.",
+                    Tags = string.Format("{0}, {1}",Category.HeartbeatFailure, Category.EndpointFailures),
                     Category = Category.HeartbeatFailure,
-                    RelatedTo = new List<string>() { string.Format("endpoint/{0}/{1}", message.Endpoint, message.Machine) }
+                    RelatedTo = new List<string>(){string.Format("endpoint/{0}/{1}",message.Endpoint, message.Machine)}
                 };
 
                 session.Store(alert);
