@@ -2,7 +2,9 @@
 {
     using System;
     using System.IO;
+    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Features;
 
     public class ManagementEndpoint : EndpointConfigurationBuilder
     {
@@ -11,7 +13,7 @@
             var pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
             File.WriteAllText(pathToAppConfig, String.Format(AppConfigFile, AcceptanceTest.RavenPath));
 
-            EndpointSetup<ManagementEndpointSetup>()
+            EndpointSetup<ManagementEndpointSetup>(c=>Configure.Features.Disable<Audit>())
                 .AppConfig(pathToAppConfig);
         }
 
