@@ -1,8 +1,9 @@
 ﻿namespace ServiceControl.EndpointPlugin.BusinessMonitoring
 {
-    using Infrastructure.PerformanceCounters;
+    using Heartbeats;
+    using Messages.Heartbeats;
     using NServiceBus;
-    using Operations.Heartbeats;
+    using Operations.PerformanceCounters;
 
     public class EndpointSLAHeartbeatProvider : HeartbeatInfoProvider
     {
@@ -10,8 +11,8 @@
 
         public override void HeartbeatExecuted(EndpointHeartbeat heartbeat)
         {
-            heartbeat.Configuration.Add("Endpoint.SLA", Configure.Instance.EndpointSLA().ToString());
-            heartbeat.PerformanceData.Add("CriticalTime", PerformanceCounterCapturer.GetCollectedData("CriticalTime"));
+            //heartbeat.Configuration.Add("Endpoint.SLA", Configure.Instance.EndpointSLA().ToString());
+            //heartbeat.PerformanceData.Add("CriticalTime", PerformanceCounterCapturer.GetCollectedData("CriticalTime"));
         }
     }
 }

@@ -4,15 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{07393FA7-8577-42D7-8FE4-3C4D955A5A31}</ProjectGuid>
+    <ProjectGuid>{D2D40B1E-9FB5-4A3E-B4CD-B04B0882690B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceControl.EndpointPlugin</RootNamespace>
-    <AssemblyName>ServiceControl.EndpointPlugin</AssemblyName>
+    <RootNamespace>ServiceControl.EndpointPlugin.Messages</RootNamespace>
+    <AssemblyName>ServiceControl.EndpointPlugin.Messages</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,38 +31,27 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="NServiceBus">
-      <HintPath>..\packages\NServiceBus.Interfaces\lib\net40\NServiceBus.dll</HintPath>
-    </Reference>
-    <Reference Include="NServiceBus.Core">
-      <HintPath>..\packages\NServiceBus\lib\net40\NServiceBus.Core.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
-    <Compile Include="CustomChecks\CustomCheck.cs" />
-    <Compile Include="CustomChecks\PeriodicCheck.cs" />
-    <Compile Include="Operations\PerformanceCounters\PerformanceCounterCapturer.cs" />
-    <Compile Include="Operations\ServiceControlBackend\InitializeBackend.cs" />
-    <Compile Include="Operations\ServiceControlBackend\ServiceControlBackend.cs" />
-    <Compile Include="Heartbeats\HeartbeatInfoProvider.cs" />
-    <Compile Include="Heartbeats\Heartbeats.cs" />
+    <Compile Include="CustomChecks\CustomCheckResult.cs" />
+    <Compile Include="CustomChecks\ICustomCheck.cs" />
+    <Compile Include="CustomChecks\IPeriodicCheck.cs" />
+    <Compile Include="CustomChecks\ReportCustomCheckResult.cs" />
+    <Compile Include="Heartbeats\EndpointHeartbeat.cs" />
+    <Compile Include="Heartbeats\IHeartbeatProvider.cs" />
+    <Compile Include="Operations\Configuration\EndpointConfiguration.cs" />
+    <Compile Include="Operations\PerformanceCounters\EndpointPerformance.cs" />
+    <Compile Include="Operations\ServiceControlBackend\IServiceControlBackend.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BusinessMonitoring\EndpointSLAHeartbeatProvider.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="ripple.dependencies.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.EndpointPlugin.Messages\ServiceControl.EndpointPlugin.Messages.csproj">
-      <Project>{d2d40b1e-9fb5-4a3e-b4cd-b04b0882690b}</Project>
-      <Name>ServiceControl.EndpointPlugin.Messages</Name>
-    </ProjectReference>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
