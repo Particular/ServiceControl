@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Operations.Heartbeats
 {
+    using EndpointPlugin.Messages.Heartbeats;
     using NServiceBus;
-    using EndpointPlugin.Operations.Heartbeats;
 
     public class RegisterHeartbeatMessage : IWantToRunBeforeConfiguration
     {

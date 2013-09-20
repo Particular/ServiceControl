@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl", "ServiceCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTests", "ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.EndpointPlugin.Messages", "ServiceControl.EndpointPlugin.Messages\ServiceControl.EndpointPlugin.Messages.csproj", "{D2D40B1E-9FB5-4A3E-B4CD-B04B0882690B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2D40B1E-9FB5-4A3E-B4CD-B04B0882690B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2D40B1E-9FB5-4A3E-B4CD-B04B0882690B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2D40B1E-9FB5-4A3E-B4CD-B04B0882690B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2D40B1E-9FB5-4A3E-B4CD-B04B0882690B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

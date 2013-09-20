@@ -1,28 +1,10 @@
-﻿namespace ServiceControl.EndpointPlugin.Operations.Heartbeats
+﻿namespace ServiceControl.EndpointPlugin.Messages.Operations.PerformanceCounters
 {
     using System;
     using System.Collections.Generic;
 
-    public class EndpointHeartbeat
+    public class EndpointPerformance
     {
-        public DateTime ExecutedAt { get; set; }
-
-
-        public Dictionary<string, string> Configuration
-        {
-            get
-            {
-                if (configuration == null)
-                {
-                    configuration = new Dictionary<string, string>();
-                }
-
-                return configuration;
-            }
-            set { configuration = value; }
-        }
-
-
         public Dictionary<string, List<DataPoint>> PerformanceData
         {
             get
@@ -37,7 +19,6 @@
             set { performanceData = value; }
         }
 
-        Dictionary<string, string> configuration;
         Dictionary<string, List<DataPoint>> performanceData;
     }
 
