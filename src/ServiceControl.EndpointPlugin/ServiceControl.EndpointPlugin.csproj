@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <FodyPath>..\packages\Fody</FodyPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -56,6 +57,7 @@
     <Compile Include="BusinessMonitoring\EndpointSLAHeartbeatProvider.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Fody.targets" />
     <None Include="ripple.dependencies.config" />
   </ItemGroup>
   <ItemGroup>
@@ -64,6 +66,10 @@
       <Name>ServiceControl.EndpointPlugin.Messages</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="FodyWeavers.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
+  <Import Project="Fody.targets" />
 </Project>
