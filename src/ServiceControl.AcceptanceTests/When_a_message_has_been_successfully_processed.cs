@@ -6,6 +6,7 @@
     using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Features;
     using NUnit.Framework;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
@@ -14,7 +15,7 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServer>()
+                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<Audit>())
                     .AddMapping<MyMessage>(typeof(Receiver));
             }
         }
