@@ -6,15 +6,13 @@ properties {
 }
 
 $baseDir = Split-Path (Resolve-Path $MyInvocation.MyCommand.Path)
-$mergeModuleOutPutDir = "$baseDir\MergeModule\Output Package"
 $toolsDir = "$baseDir\tools"
-$mergeModuleProjectFile = "$baseDir\MergeModule\ManagementAPI.aip"
 $setupProjectFile = "$baseDir\Setup\ManagementAPI.aip"
 $setupModuleOutPutDir = "$baseDir\Setup\Output Package"
 
 include $toolsDir\psake\buildutils.ps1
 
-task default -depends Init, BuildMergeModule, BuildSetup
+task default -depends Init, BuildSetup
 
 task Init {
 
@@ -22,23 +20,14 @@ task Init {
     $AdvancedInstallerPath = ""
     $AdvancedInstallerPath = Get-RegistryValue "HKLM:\SOFTWARE\Wow6432Node\Caphyon\Advanced Installer\" "Advanced Installer Path" 
     $script:AdvinstCLI = $AdvancedInstallerPath + "\bin\x86\AdvancedInstaller.com"
-    
-}
-
-task BuildMergeModule {  
-       
-	# Build setup with Advanced Installer
-   exec { &$script:AdvinstCLI /rebuild $mergeModuleProjectFile }
 }
 
 task BuildSetup {  
     
-	robocopy "$mergeModuleOutPutDir" "$baseDir\Setup\bundles" *.msm
-		
 	if($PreRelease -eq "") {
-		$archive = "ParticularManagement.$ProductVersion.$PatchVersion" 
+		$archive = "Particular.ServiceControl.$ProductVersion.$PatchVersion" 
 	} else {
-		$archive = "ParticularManagement.$ProductVersion.$PatchVersion-$PreRelease$BuildNumber"
+		$archive = "Particular.ServiceControl.$ProductVersion.$PatchVersion-$PreRelease$BuildNumber"
 	}
 
 	# edit Advanced Installer Project	  
