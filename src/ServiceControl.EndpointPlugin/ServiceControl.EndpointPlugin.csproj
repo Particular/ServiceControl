@@ -47,8 +47,8 @@
   <ItemGroup>
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="CustomChecks\CustomCheck.cs" />
-    <Compile Include="CustomChecks\CustomChecksMonitor.cs" />
     <Compile Include="CustomChecks\PeriodicCheck.cs" />
+    <Compile Include="CustomChecks\PeriodicCheckMonitor.cs" />
     <Compile Include="Operations\PerformanceCounters\PerformanceCounterCapturer.cs" />
     <Compile Include="Operations\ServiceControlBackend\InitializeBackend.cs" />
     <Compile Include="Operations\ServiceControlBackend\ServiceControlBackend.cs" />
