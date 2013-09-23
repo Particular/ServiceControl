@@ -8,6 +8,7 @@ namespace Particular.ServiceControl
     using NLog.Config;
     using NLog.Targets;
     using NServiceBus;
+    using NServiceBus.Features;
     using NServiceBus.Logging.Loggers.NLogAdapter;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -22,6 +23,10 @@ namespace Particular.ServiceControl
             Container = new ContainerBuilder().Build();
 
             var transportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
+
+            // Disable Auditing for the service control endpoint
+            Configure.Features.Disable<Audit>();
+
             Configure.With()
                 .AutofacBuilder(Container)
                 .UseTransport(Type.GetType(transportType))
