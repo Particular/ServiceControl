@@ -22,8 +22,8 @@
                     RaisedAt = message.SucceededAt,
                     Severity = Severity.Info,
                     Description = string.Format("{0} is working as expected.", message.CustomCheckId),
-                    Tags = Category.CustomChecks,
-                    Category = Category.CustomChecks,
+                    Tags = string.Format("{0}, {1}", Category.CustomChecks, message.Category),
+                    Category = message.Category,
                     RelatedTo = new List<string>() {string.Format("endpoint/{0}/{1}", message.Category, string.Empty)} //TODO: Pass in the machine name
                 };
 

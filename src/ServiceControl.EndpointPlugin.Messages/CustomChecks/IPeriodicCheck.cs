@@ -5,13 +5,9 @@
     // needed for DI
     public interface IPeriodicCheck
     {
+        string Category { get; }
+        string PeriodicCheckId { get; }
         CheckResult PerformCheck();
         TimeSpan Interval { get; }
-    }
-
-    public class CheckResult
-    {
-        public bool HasFailed { get; set; }
-        public string FailureReason { get; set; }
     }
 }

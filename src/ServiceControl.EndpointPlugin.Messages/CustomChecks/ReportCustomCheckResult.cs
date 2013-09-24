@@ -6,7 +6,7 @@
     {
         public string CustomCheckId { get; set; }
         public string Category { get; set; }
-        public CustomCheckResult Result { get; set; }
+        public CheckResult Result { get; set; }
         public DateTime ReportedAt { get; set; }
     }
 }

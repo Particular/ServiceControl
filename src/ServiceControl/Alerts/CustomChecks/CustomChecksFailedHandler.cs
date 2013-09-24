@@ -22,8 +22,8 @@
                     RaisedAt = message.FailedAt,
                     Severity = Severity.Error,
                     Description = string.Format("{0} failed. Reason: {1}", message.CustomCheckId, message.FailureReason),
-                    Tags = string.Format("{0}, {1}", Category.CustomChecks, Category.EndpointFailures),
-                    Category = Category.CustomChecks,
+                    Tags = string.Format("{0}, {1}", Category.CustomChecks, message.Category),
+                    Category = message.Category,
                     RelatedTo = new List<string>() { string.Format("endpoint/{0}/{1}", message.Category, string.Empty) } //TODO: Pass in the machine name
                 };
 

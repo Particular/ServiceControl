@@ -9,7 +9,7 @@
     {
         public IServiceControlBackend ServiceControlBackend { get; set; }
 
-        protected virtual string Category
+        public virtual string Category
         {
             get
             {
@@ -19,16 +19,16 @@
 
         public void ReportOk()
         {
-            ReportToBackend(CustomCheckResult.Ok, CustomCheckId, Category);
+            ReportToBackend(CheckResult.Ok, CustomCheckId, Category);
         }
 
 
         public void ReportFailed(string failureReason)
         {
-            ReportToBackend(CustomCheckResult.Failed(failureReason), CustomCheckId, Category);
+            ReportToBackend(CheckResult.Failed(failureReason), CustomCheckId, Category);
         }
 
-        string CustomCheckId
+        public string CustomCheckId
         {
             get
             {
@@ -36,7 +36,7 @@
             }
         }
         
-        void ReportToBackend(CustomCheckResult result, string customCheckId, string category)
+        void ReportToBackend(CheckResult result, string customCheckId, string category)
         {
             ServiceControlBackend.Send(new ReportCustomCheckResult
             {

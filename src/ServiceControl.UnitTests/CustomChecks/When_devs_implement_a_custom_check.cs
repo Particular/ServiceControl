@@ -48,7 +48,7 @@
             check = new CustomResourceFolderCheck
             {
                 ServiceControlBackend = fakeBackend
-            }; 
+            };
         }
 
         CustomResourceFolderCheck check;
@@ -59,26 +59,6 @@
 
     namespace Acme.ConnectivityChecks
     {
-        public class PeriodicResourceFolderCheck : PeriodicCheck
-        {
-            public override TimeSpan Interval
-            {
-                get { return TimeSpan.FromMinutes(15); }
-            }
-
-            public override CheckResult PerformCheck()
-            {
-                if (Directory.Exists("./resources"))
-                {
-                    return new CheckResult() {HasFailed = false};
-                }
-                else
-                {
-                    return new CheckResult() { HasFailed = false, FailureReason = "Resource directory not found" };
-                }
-            }
-        }
-
         public class CustomResourceFolderCheck : CustomCheck
         {
             public void WhenEverIFeelLikeItIllMakeSureThatThisGetsInvoked()

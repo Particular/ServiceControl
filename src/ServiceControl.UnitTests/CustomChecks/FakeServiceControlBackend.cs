@@ -1,8 +1,8 @@
-﻿namespace ServiceControl.UnitTests
+﻿namespace ServiceControl.UnitTests.CustomChecks
 {
     using System.Collections.Generic;
     using EndpointPlugin.Messages.Operations.ServiceControlBackend;
-   
+
     public class FakeServiceControlBackend : IServiceControlBackend
     {
         //public List<ReportCustomCheckResult> ReportedChecks = new List<ReportCustomCheckResult>();

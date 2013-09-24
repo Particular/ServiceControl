@@ -41,7 +41,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CustomChecks\CustomCheckResult.cs" />
+    <Compile Include="CustomChecks\CheckResult.cs" />
     <Compile Include="CustomChecks\ICustomCheck.cs" />
     <Compile Include="CustomChecks\IPeriodicCheck.cs" />
     <Compile Include="CustomChecks\ReportCustomCheckResult.cs" />
