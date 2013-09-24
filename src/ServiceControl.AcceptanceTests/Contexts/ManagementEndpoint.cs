@@ -24,14 +24,12 @@
     <section name=""MessageForwardingInCaseOfFaultConfig"" type=""NServiceBus.Config.MessageForwardingInCaseOfFaultConfig, NServiceBus.Core"" />
   </configSections>
   <appSettings>
-    <!--<add key=""ServiceBus/Management/Port"" value =""9999""/>-->
-    <!--<add key=""ServiceBus/Management/VirtualDirectory"" value =""Management""/>-->
     <add key=""ServiceBus/AuditQueue"" value=""audit"" />
     <add key=""ServiceBus/ErrorQueue"" value=""error"" />
-    <add key=""ServiceBus/Management/Name"" value=""Particular Management"" />
-    <add key=""ServiceBus/Management/Description"" value=""Description for Particular Management"" />
-    <add key=""ServiceBus/Management/TransportType"" value=""NServiceBus.Msmq, NServiceBus.Core"" />
-    <add key=""ServiceBus/Management/DbPath"" value=""{0}"" />
+    <add key=""ServiceControl/Name"" value=""Particular Management"" />
+    <add key=""ServiceControl/Description"" value=""Description for Particular Management"" />
+    <add key=""ServiceControl/TransportType"" value=""NServiceBus.Msmq, NServiceBus.Core"" />
+    <add key=""ServiceControl/DbPath"" value=""{0}"" />
   </appSettings>
   <connectionStrings>
     <add name=""NServiceBus/Transport"" connectionString=""cacheSendConnection=true"" />

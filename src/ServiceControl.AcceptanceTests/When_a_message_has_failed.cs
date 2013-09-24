@@ -107,7 +107,7 @@
 
         }
 
-        [Test, Ignore]
+        [Test]
         public void Should_raise_an_alert()
         {
             var context = new MyContext();
@@ -119,7 +119,7 @@
                 .Done(c => AlertDataAvailable(context, c))
                 .Run();
 
-            Assert.IsTrue(context.Alerts.Count == 1, "Must store the alert in Raven database.");
+            Assert.AreEqual(1, context.Alerts.Count);
             Assert.IsTrue(context.Alerts[0].Description.Contains("exception"), "For failed messages, the description should contain the exception information");
             var containsFailedMessageId = context.Alerts[0].RelatedTo.Any(item => item.Contains("/failedMessageId/"));
             Assert.IsTrue(containsFailedMessageId, "For failed message, the RelatedId must contain the api url to retrieve additional details about the failed message");
