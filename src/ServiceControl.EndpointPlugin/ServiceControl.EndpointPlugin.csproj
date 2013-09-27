@@ -56,7 +56,6 @@
     <Compile Include="BusinessMonitoring\EndpointSLAHeartbeatProvider.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Fody.targets" />
     <None Include="ripple.dependencies.config" />
   </ItemGroup>
   <ItemGroup>
