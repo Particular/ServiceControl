@@ -4,10 +4,15 @@
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
+    using System.Linq;
     using System.Net;
+    using System.Net.NetworkInformation;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Text;
+    using System.Threading;
+    using System.Xml.Linq;
+    using System.Xml.XPath;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -22,6 +27,12 @@
         {
             ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
+            port = FindAvailablePort(33333);
+
+            pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+
+            InitialiseAppConfig();
+
             Conventions.EndpointNamingConvention = t =>
             {
                 var baseNs = typeof(AcceptanceTest).Namespace;
@@ -33,17 +44,67 @@
         [TearDown]
         public void Cleanup()
         {
-            Delete(RavenPath);
+            Delete(ravenPath);
+            File.Delete(pathToAppConfig);
         }
 
-        [ThreadStatic] static string ravenPath;
+        string ravenPath;
 
-        public static string RavenPath
+        static int FindAvailablePort(int startPort)
         {
-            get { return ravenPath; }
+            var activeTcpListeners = IPGlobalProperties
+                .GetIPGlobalProperties()
+                .GetActiveTcpListeners();
+
+            for (var port = startPort; port < startPort + 1024; port++)
+            {
+                var portCopy = port;
+                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
+                {
+                    return port;
+                }
+            }
+
+            return startPort;
         }
 
-        public void Delete(string path)
+        void InitialiseAppConfig()
+        {
+            XDocument doc;
+            using (
+                Stream configStream = File.Open(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile,
+                    FileMode.Open))
+            {
+                doc = XDocument.Load(configStream);
+            }
+
+            var appSettingsElement = doc.XPathSelectElement(@"/configuration/appSettings");
+            var dbPathElement = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/DbPath""]");
+            if (dbPathElement != null)
+            {
+                dbPathElement.SetAttributeValue("value", ravenPath);
+            }
+            else
+            {
+                appSettingsElement.Add(new XElement("add",
+                    new XAttribute("key", "ServiceControl/DbPath"), new XAttribute("value", ravenPath)));
+            }
+
+            var dbPortElement = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/Port""]");
+            if (dbPortElement != null)
+            {
+                dbPortElement.SetAttributeValue("value", port);
+            }
+            else
+            {
+                appSettingsElement.Add(new XElement("add",
+                    new XAttribute("key", "ServiceControl/Port"), new XAttribute("value", port)));
+            }
+
+            doc.Save(pathToAppConfig);
+        }
+
+        static void Delete(string path)
         {
             DirectoryInfo emptyTempDirectory = null;
 
@@ -81,9 +142,9 @@
             }
         }
 
-        public static T Get<T>(string url) where T : class
+        public T Get<T>(string url) where T : class
         {
-            var request = (HttpWebRequest) WebRequest.Create("http://localhost:33333" + url);
+            var request = (HttpWebRequest) WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
 
             request.Accept = "application/json";
 
@@ -100,18 +161,19 @@
                 response = ex.Response as HttpWebResponse;
             }
 
-            Console.Out.WriteLine(" - {0}", (int)response.StatusCode);
+            Console.Out.WriteLine(" - {0}", (int) response.StatusCode);
 
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                System.Threading.Thread.Sleep(1000);
+                Thread.Sleep(1000);
                 return null;
             }
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                throw new InvalidOperationException(String.Format("Call failed: {0} - {1}", (int)response.StatusCode, response.StatusDescription));
+                throw new InvalidOperationException(String.Format("Call failed: {0} - {1}", (int) response.StatusCode,
+                    response.StatusDescription));
             }
 
             using (var stream = response.GetResponseStream())
@@ -122,9 +184,9 @@
             }
         }
 
-        public static void Post<T>(string url, T payload = null) where T : class
+        public void Post<T>(string url, T payload = null) where T : class
         {
-            var request = (HttpWebRequest) WebRequest.Create("http://localhost:33333" + url);
+            var request = (HttpWebRequest) WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
 
             request.ContentType = "application/json";
             request.Method = "POST";
@@ -172,5 +234,13 @@
             ContractResolver = new UnderscoreMappingResolver(),
             Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}}
         };
+
+        int port;
+        string pathToAppConfig;
+
+        public string PathToAppConfig
+        {
+            get { return pathToAppConfig; }
+        }
     }
 }

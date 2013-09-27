@@ -12,7 +12,7 @@
         {
             public Endpoint1()
             {
-                EndpointSetup<DefaultServer>();
+                EndpointSetup<DefaultServerWithoutAudit>();
             }
         }
 
@@ -20,7 +20,7 @@
         {
             public Endpoint2()
             {
-                EndpointSetup<DefaultServer>();
+                EndpointSetup<DefaultServerWithoutAudit>();
             }
         }
 
@@ -36,7 +36,7 @@
             HeartbeatSummary summary = null;
 
             Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>()
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Endpoint1>()
                 .WithEndpoint<Endpoint2>()
                 .Done(c =>

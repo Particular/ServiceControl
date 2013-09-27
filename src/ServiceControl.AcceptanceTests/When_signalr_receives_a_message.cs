@@ -26,44 +26,45 @@
             var context = new MyContext();
 
             Scenario.Define(context)
-                .WithEndpoint<ManagementEndpointEx>(b => b.When(_ =>
-                {
-                    var connection = new Connection("http://localhost:33333/api/messagestream");
-
-                    var serializerSettings = new JsonSerializerSettings
+                .WithEndpoint<ManagementEndpointEx>(b => b.AppConfig(PathToAppConfig)
+                    .When(_ =>
                     {
-                        ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
-                        Formatting = Formatting.None,
-                        NullValueHandling = NullValueHandling.Ignore,
-                        Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
-                    };
-                    
-                    connection.JsonSerializer = JsonSerializer.Create(serializerSettings);
+                        var connection = new Connection("http://localhost:33333/api/messagestream");
 
-                    while (true)
-                    {
-                        try
+                        var serializerSettings = new JsonSerializerSettings
                         {
-                            connection.Start().Wait();
-                            break;
-                        }
-                        catch (AggregateException ex)
+                            ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
+                            Formatting = Formatting.None,
+                            NullValueHandling = NullValueHandling.Ignore,
+                            Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}}
+                        };
+
+                        connection.JsonSerializer = JsonSerializer.Create(serializerSettings);
+
+                        while (true)
                         {
-                            if (((HttpWebResponse) ((WebException) ex.GetBaseException()).Response).StatusCode !=
-                                HttpStatusCode.NotFound)
+                            try
                             {
+                                connection.Start().Wait();
                                 break;
                             }
+                            catch (AggregateException ex)
+                            {
+                                if (((HttpWebResponse) ((WebException) ex.GetBaseException()).Response).StatusCode !=
+                                    HttpStatusCode.NotFound)
+                                {
+                                    break;
+                                }
+                            }
                         }
-                    }
 
-                    var data = @"{ 
+                        var data = @"{ 
 type: 'MyRequest',
 message: {name: 'John'}
 }";
-                    connection.Send(data);
-                    connection.Stop();
-                }))
+                        connection.Send(data);
+                        connection.Stop();
+                    }))
                 .Done(c => c.MessageReceived)
                 .Run();
 

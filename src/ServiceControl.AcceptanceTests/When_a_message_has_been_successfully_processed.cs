@@ -6,7 +6,6 @@
     using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NUnit.Framework;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
@@ -15,7 +14,7 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<Audit>())
+                EndpointSetup<DefaultServerWithoutAudit>()
                     .AddMapping<MyMessage>(typeof(Receiver));
             }
         }
@@ -73,8 +72,7 @@
                     return false;
                 }
 
-                c.ReturnedMessage =
-                    Get<Message>("/api/messages/" + context.MessageId + "-" +
+                c.ReturnedMessage = Get<Message>("/api/messages/" + context.MessageId + "-" +
                                  context.EndpointNameOfReceivingEndpoint);
 
                 if (c.ReturnedMessage == null)
@@ -92,7 +90,7 @@
             var context = new MyContext();
 
             Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>()
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     c.EndpointNameOfSendingEndpoint = Configure.EndpointName;

@@ -25,7 +25,7 @@
                 m.ExceptionMessage = message.Headers["NServiceBus.ExceptionInfo.Message"];
                 m.ReplyToAddress = message.ReplyToAddress.ToString();
             });
-
+            
             Forwarder.Send(message, Settings.ErrorLogQueue);
 
             return true;

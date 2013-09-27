@@ -215,7 +215,7 @@
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
     <Compile Include="Operations\Heartbeats\RegisterHeartbeatMessage.cs" />
-    <Compile Include="Infrastructure\Nancy\CacheControlExtension.cs" />
+    <Compile Include="Infrastructure\Nancy\ExtraHeaders.cs" />
     <Compile Include="Infrastructure\Nancy\Helpers.cs" />
     <Compile Include="Infrastructure\Nancy\JsonNetBodyDeserializer.cs" />
     <Compile Include="Infrastructure\Nancy\JsonNetSerializer.cs" />
@@ -254,7 +254,7 @@
     <Compile Include="Infrastructure\Satellites\AuditMessageImportSatellite.cs" />
     <Compile Include="MessageAuditing\AuditMessagesModule.cs" />
     <Compile Include="BusinessProcessTracking\ConversationsModule.cs" />
-    <Compile Include="Operations\EndpointConfiguration\EndpointConfig.cs" />
+    <Compile Include="EndpointConfig.cs" />
     <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
     <Compile Include="MessageAuditing\Message.cs" />
@@ -266,7 +266,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Fody.targets" />
-    <None Include="Operations\EndpointConfiguration\App.config">
+    <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
     <None Include="ripple.dependencies.config">
@@ -274,7 +274,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Operations\EndpointConfiguration\License.xml" />
+    <EmbeddedResource Include="License.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.EndpointPlugin.Messages\ServiceControl.EndpointPlugin.Messages.csproj">
@@ -286,8 +286,8 @@
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <StartAction>Program</StartAction>
     <StartProgram>$(ProjectDir)$(OutputPath)NServiceBus.Host.exe</StartProgram>

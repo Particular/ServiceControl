@@ -7,7 +7,6 @@
     using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceControl.Alerts;
 
@@ -17,7 +16,7 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<Audit>())
+                EndpointSetup<DefaultServerWithoutAudit>()
                     .AddMapping<MyMessage>(typeof(Receiver));
             }
         }
@@ -26,7 +25,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<SecondLevelRetries>())
+                EndpointSetup<DefaultServerWithoutAudit>()
                     .AuditTo(Address.Parse("audit"));
             }
 
@@ -92,7 +91,7 @@
             var context = new MyContext();
 
             Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>()
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given(bus => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(c => AuditDataAvailable(context, c))
@@ -113,10 +112,10 @@
             var context = new MyContext();
 
             Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>()
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given(bus => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
-                .Done(c => AlertDataAvailable(context, c))
+                .Done(AlertDataAvailable)
                 .Run();
 
             Assert.AreEqual(1, context.Alerts.Count);
@@ -126,7 +125,7 @@
         }
 
 
-        bool AlertDataAvailable(MyContext context, MyContext c)
+        bool AlertDataAvailable(MyContext c)
         {
             var alerts = Get<Alert[]>("/api/alerts/");
             if (alerts == null || alerts.Length == 0)

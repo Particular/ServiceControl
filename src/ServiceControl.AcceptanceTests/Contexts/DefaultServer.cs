@@ -16,8 +16,21 @@
     using NServiceBus.Hosting.Helpers;
     using NServiceBus.Logging.Loggers.NLogAdapter;
 
+    public class DefaultServerWithoutAudit : DefaultServer
+    {
+        public override void AddMoreConfig()
+        {
+            Configure.Features.Disable<Audit>();
+        }
+    }
+
     public class DefaultServer : IEndpointSetupTemplate
     {
+        public virtual void AddMoreConfig()
+        {
+            
+        }
+
         public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration,
             IConfigurationSource configSource)
         {
@@ -31,6 +44,8 @@
 
             Configure.Features.Enable<Sagas>();
 
+            AddMoreConfig();
+
             var config = Configure.With(types)
                 .DefineEndpointName(endpointConfiguration.EndpointName)
                 .DefineBuilder(settings.GetOrNull("Builder"))
@@ -38,7 +53,6 @@
                 .DefineSerializer(settings.GetOrNull("Serializer"))
                 .DefineTransport(transportToUse)
                 .InMemorySagaPersister();
-
 
             if (transportToUse == null || transportToUse.Contains("Msmq") || transportToUse.Contains("SqlServer") ||
                 transportToUse.Contains("RabbitMq"))
@@ -94,7 +108,7 @@
                 .SelectMany(a => a.GetTypes())
                 .Where(
                     t =>
-                        t.Assembly != Assembly.GetExecutingAssembly() || //exlude all test types by default
+                        t.Assembly != Assembly.GetExecutingAssembly() || //exclude all test types by default
                         t.DeclaringType == endpointConfiguration.BuilderType.DeclaringType ||
                         //but include types on the test level
                         t.DeclaringType == endpointConfiguration.BuilderType);

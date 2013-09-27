@@ -6,7 +6,6 @@
     using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NUnit.Framework;
 
     public class When_issuing_a_retry_for_a_failed_message : AcceptanceTest
@@ -15,7 +14,7 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<SecondLevelRetries>())
+                EndpointSetup<DefaultServerWithoutAudit>()
                     .AddMapping<MyMessage>(typeof(FailureEndpoint))
                     .AuditTo(Address.Parse("audit"));
             }
@@ -54,7 +53,7 @@
             public bool RetryIssued { get; set; }
         }
 
-        readonly Func<MyContext, MessageStatus, bool> auditDataAvailable = (context, status) =>
+        bool AuditDataAvailable (MyContext context, MessageStatus status)
         {
             if (context.MessageId == null)
             {
@@ -71,7 +70,7 @@
             }
 
             return context.Message.Status == status;
-        };
+        }
 
         [Test]
         public void Should_be_imported_and_accessible_via_the_rest_api()
@@ -79,14 +78,14 @@
             var context = new MyContext();
 
             Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>()
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.Send(new MyMessage())))
                 .Done(c =>
                 {
                     lock (context)
                     {
                         var b = c.RetryIssued;
-                        if (!b && auditDataAvailable(c, MessageStatus.Failed))
+                        if (!b && AuditDataAvailable(c, MessageStatus.Failed))
                         {
                             Post<object>(String.Format("/api/errors/{0}/retry", c.Message.Id));
 
@@ -95,7 +94,7 @@
                             return false;
                         }
 
-                        return auditDataAvailable(c, MessageStatus.Successful);
+                        return AuditDataAvailable(c, MessageStatus.Successful);
                     }
                 })
                 .Run();

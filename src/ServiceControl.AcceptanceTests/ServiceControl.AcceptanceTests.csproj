@@ -84,7 +84,9 @@
     <Compile Include="When_signalr_receives_a_message.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="..\ServiceControl\App.config">
+      <Link>App.config</Link>
+    </None>
     <None Include="Fody.targets" />
     <None Include="ripple.dependencies.config">
       <SubType>Designer</SubType>
@@ -99,7 +101,7 @@
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="Fody.targets" />
 </Project>

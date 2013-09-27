@@ -44,7 +44,7 @@ namespace Particular.ServiceControl
         {
             using (
                 var licenseStream =
-                    Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.Operations.EndpointConfiguration.License.xml"))
+                    Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.License.xml"))
             {
                 using (var sr = new StreamReader(licenseStream))
                 {

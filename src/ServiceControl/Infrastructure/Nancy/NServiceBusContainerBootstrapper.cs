@@ -30,7 +30,7 @@
             pipelines.AfterRequest.AddItemToStartOfPipeline(new PipelineItem<Action<NancyContext>>("NotModified",
                 NotModifiedStatusExtension.Check));
             pipelines.AfterRequest.InsertAfter("NotModified",
-                new PipelineItem<Action<NancyContext>>("CacheControl", CacheControlExtension.Add));
+                new PipelineItem<Action<NancyContext>>("CacheControl", ExtraHeaders.Add));
             pipelines.AfterRequest.InsertAfter("NotModified",
                 new PipelineItem<Action<NancyContext>>("Version", VersionExtension.Add));
             pipelines.AfterRequest.AddItemToEndOfPipeline(new PipelineItem<Action<NancyContext>>("Compression",
