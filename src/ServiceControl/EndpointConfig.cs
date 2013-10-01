@@ -34,8 +34,9 @@ namespace Particular.ServiceControl
 
             //TODO: Need a new license for v4.1!!!
             //ConfigureLicense();
-
-            Configure.Features.AutoSubscribe(s => s.DoNotRequireExplicitRouting());
+            
+            Feature.Disable<AutoSubscribe>();
+            //Configure.Features.AutoSubscribe(s => s.DoNotRequireExplicitRouting());
             Configure.Serialization.Json();
             Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
         }
