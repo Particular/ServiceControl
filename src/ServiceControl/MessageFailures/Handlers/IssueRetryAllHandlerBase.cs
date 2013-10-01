@@ -38,7 +38,10 @@
 
                         foreach (var result in results)
                         {
-                            Bus.SendLocal(new IssueRetry {MessageId = result.Id});
+                            var requestedAt = Bus.CurrentMessageContext.Headers["RequestedAt"];
+                            var message = new IssueRetry {MessageId = result.Id};
+                            message.SetHeader("RequestedAt", requestedAt);
+                            Bus.SendLocal(message);
                         }
 
                         skip += 1024;
