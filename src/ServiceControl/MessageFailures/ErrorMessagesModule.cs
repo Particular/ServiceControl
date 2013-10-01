@@ -39,6 +39,18 @@
                 }
             };
 
+            Get["/errors/facets"] = _ =>
+            {
+                using (var session = Store.OpenSession())
+                {
+                    var facetResults = (session.Query<Message>("MessageFailures")
+                        .ToFacets("facets/messageFailureFacets")).Results;
+
+                    return Negotiate.WithModel(facetResults);
+
+                }
+            };
+
             Get["/endpoints/{name}/errors"] = parameters =>
             {
                 using (var session = Store.OpenSession())
