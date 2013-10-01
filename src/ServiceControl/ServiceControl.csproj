@@ -196,7 +196,6 @@
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
     <Compile Include="HeartbeatMonitoring\RegisterHeartbeatMonitor.cs" />
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
-    <Compile Include="Infrastructure\RavenDB\Facets\MessageFailures.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
     <Compile Include="Infrastructure\SignalR\GlobalEventHandler.cs" />
