@@ -13,7 +13,7 @@
         public HeartbeatMonitor(IBus bus)
         {
             this.bus = bus;
-            GracePeriod = TimeSpan.FromSeconds(10);
+            GracePeriod = TimeSpan.FromSeconds(40);
         }
 
         public TimeSpan GracePeriod { get; set; }
