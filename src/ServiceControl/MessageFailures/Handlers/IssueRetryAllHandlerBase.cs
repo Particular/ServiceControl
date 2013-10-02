@@ -38,9 +38,8 @@
 
                         foreach (var result in results)
                         {
-                            var requestedAt = Bus.CurrentMessageContext.Headers["RequestedAt"];
                             var message = new IssueRetry {MessageId = result.Id};
-                            message.SetHeader("RequestedAt", requestedAt);
+                            message.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
                             Bus.SendLocal(message);
                         }
 

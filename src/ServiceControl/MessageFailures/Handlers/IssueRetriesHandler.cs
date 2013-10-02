@@ -11,7 +11,9 @@
         {
             foreach (var messageId in message.MessageIds)
             {
-                Bus.SendLocal(new IssueRetry {MessageId = messageId});
+                var messageToSend = new IssueRetry { MessageId = messageId };
+                messageToSend.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
+                Bus.SendLocal(messageToSend);
             }
 
         }
