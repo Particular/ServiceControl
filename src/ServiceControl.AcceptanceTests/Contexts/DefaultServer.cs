@@ -100,7 +100,7 @@
 
         static IEnumerable<Type> GetTypesToUse(EndpointConfiguration endpointConfiguration)
         {
-            var assemblies = AssemblyScanner.GetScannableAssemblies().Assemblies
+            var assemblies = new AssemblyScanner().GetScannableAssemblies().Assemblies
                 .Where(a => a != typeof(Message).Assembly).ToList();
 
 
