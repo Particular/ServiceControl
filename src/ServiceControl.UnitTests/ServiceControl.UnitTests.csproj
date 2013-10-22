@@ -70,5 +70,5 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
-  <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\GitFlowVersionTask.targets" />
+  <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />
 </Project>
