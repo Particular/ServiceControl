@@ -19,5 +19,5 @@
                 });
             app.UseNancy(new NancyOptions { Bootstrapper = new NServiceBusContainerBootstrapper() });
         }
-    //}
+    }
 }
