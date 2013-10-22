@@ -1,5 +1,6 @@
 ﻿namespace ServiceBus.Management.Infrastructure.OWIN
 {
+    using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
     using Nancy;
     using Owin;
@@ -16,7 +17,7 @@
                 {
                     EnableCrossDomain = true,
                 });
-            app.UseNancy(new NServiceBusContainerBootstrapper());
+            app.UseNancy(new NancyOptions { Bootstrapper = new NServiceBusContainerBootstrapper() });
         }
-    }
+    //}
 }
