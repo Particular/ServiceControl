@@ -14,6 +14,8 @@
     <releaseNotes></releaseNotes>
     <copyright>Copyright 2010-2013 NServiceBus. All rights reserved</copyright>
     <tags>nservicebus servicebus msmq cqrs publish subscribe</tags>
+    <dependencies>
+    </dependencies>
   </metadata>
   <files>
     <file src="..\..\src\ServiceControl.EndpointPlugin\bin\Release\ServiceControl.EndpointPlugin*.dll" target="lib\net40" />

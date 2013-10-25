@@ -32,3 +32,4 @@ logs
 /installer/Setup/Files
 /installer/Setup/ManagementAPI-cache
 /installer/Setup/Output Package
+nugets
