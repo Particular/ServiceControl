@@ -1,9 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-  <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
     <id>ServiceControl.EndpointPlugin</id>
+    <version>1.0.0.0</version>
     <title>ServiceControl EndpointPlugin</title>
-    <version>4.0.0-alpha0</version>
     <authors>NServiceBus Ltd</authors>
     <owners>Udi Dahan, Andreas Ohlund, John Simons</owners>
     <licenseUrl>http://particular.net/LicenseAgreement</licenseUrl>
@@ -11,11 +11,12 @@
     <iconUrl>http://s3.amazonaws.com/nuget.images/NServiceBus_32.png</iconUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>The endpoint plugin to connect an endpoint to Service Control</description>
-    <releaseNotes></releaseNotes>
+    <releaseNotes />
     <copyright>Copyright 2010-2013 NServiceBus. All rights reserved</copyright>
     <tags>nservicebus servicebus msmq cqrs publish subscribe</tags>
+    <dependencies>
+      <dependency id="NServiceBus" version="[4.0.0.0, 5.0.0.0)" />
+      <dependency id="NServiceBus.Interfaces" version="[4.0.0.0, 5.0.0.0)" />
+    </dependencies>
   </metadata>
-  <files>
-    <file src="..\..\src\ServiceControl.EndpointPlugin\bin\Release\ServiceControl.EndpointPlugin*.dll" target="lib\net40" />
-  </files>
 </package>
