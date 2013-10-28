@@ -38,7 +38,7 @@
                 public void Handle(MyMessage message)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
             }
@@ -97,7 +97,8 @@
                 .Done(c => AuditDataAvailable(context, c))
                 .Run();
 
-            Assert.AreEqual(context.MessageId, context.Message.MessageId,
+            // The message Ids may contain a \ if they are from older versions. 
+            Assert.AreEqual(context.MessageId, context.Message.MessageId.Replace(@"\","-"),
                 "The returned message should match the processed one");
             Assert.AreEqual(MessageStatus.Failed, context.Message.Status, "Status should be set to failed");
             Assert.AreEqual(1, context.Message.FailureDetails.NumberOfTimesFailed, "Failed count should be 1");

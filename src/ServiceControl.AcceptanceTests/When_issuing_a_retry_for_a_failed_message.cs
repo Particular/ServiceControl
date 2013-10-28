@@ -28,7 +28,7 @@
                 public void Handle(MyMessage message)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\","-");
 
                     if (!Context.RetryIssued) //simulate that the exception will be resolved with the retry
                     {

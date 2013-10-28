@@ -35,8 +35,8 @@
                     Bus.Publish<MessageFailed>(m =>
                     {
                         m.Id = failedMessage.Id;
-                        m.Endpoint = failedMessage.OriginatingEndpoint.Name;
-                        m.Machine = failedMessage.OriginatingEndpoint.Machine;
+                        m.Endpoint = failedMessage.ReceivingEndpoint.Name;
+                        m.Machine = failedMessage.ReceivingEndpoint.Machine;
                         m.FailedAt = failedMessage.TimeSent;
                         m.Reason = string.Format("Exception: {0}", failedMessage.FailureDetails.Exception.Message);
                     });

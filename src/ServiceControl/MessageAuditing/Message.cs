@@ -32,38 +32,50 @@
         private void Init(string messageId, byte[] body, IDictionary<string, string> headers)
         {
             ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(headers);
-            Id = messageId + "-" + ReceivingEndpoint.Name;
+
+            // 3.3.x version of MessageIds had a \ in it.
+            Id = string.Format("{0}-{1}", messageId.Replace(@"\", "-"), ReceivingEndpoint.Name);
             MessageId = messageId;
-            CorrelationId = headers[NServiceBus.Headers.CorrelationId];
+
+            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.CorrelationId, headers, s => CorrelationId = s);
             //TODO: Do we need to expose Recoverable in AuditMessageReceived? I don't see this in the headers
             MessageIntentEnum messageIntent;
             Enum.TryParse(headers[NServiceBus.Headers.MessageIntent], true, out messageIntent);
             MessageIntent = messageIntent;
             Headers = headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value));
-            TimeSent = DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.TimeSent]);
-            if (headers.ContainsKey(NServiceBus.Headers.ControlMessageHeader))
-            {
-                MessageType = "SystemMessage";
-                IsSystemMessage = true;
-            }
-            else
-            {
-                var messageTypeString = headers[NServiceBus.Headers.EnclosedMessageTypes];
 
-                MessageType = GetMessageType(messageTypeString);
-                IsSystemMessage = DetectSystemMessage(messageTypeString);
+            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.TimeSent, headers, (timeSentValue) =>
+            {
+                TimeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
+            });
+
+            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.ControlMessageHeader, headers,
+                (controlMessage) =>
+                {
+                    MessageType = "SystemMessage";
+                    IsSystemMessage = true;
+                });
+
+            if (!IsSystemMessage)
+            {
+                DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.EnclosedMessageTypes, headers,
+                (messageType) =>
+                {
+                    MessageType = GetMessageType(messageType);
+                    IsSystemMessage = DetectSystemMessage(messageType);
+                });
+
                 ContentType = DetermineContentType(headers);
                 Body = DeserializeBody(body, ContentType);
                 BodyRaw = body;
-                RelatedToMessageId = headers.ContainsKey(NServiceBus.Headers.RelatedTo)
-                    ? headers[NServiceBus.Headers.RelatedTo]
-                    : null;
-                ConversationId = headers[NServiceBus.Headers.ConversationId];
+
+                DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.RelatedTo, headers, msgId => RelatedToMessageId = msgId);
+                DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.CorrelationId, headers, id => ConversationId = id);
                 OriginatingSaga = SagaDetails.Parse(headers);
-                IsDeferredMessage = headers.ContainsKey(NServiceBus.Headers.IsDeferredMessage);
-                
+                DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.IsDeferredMessage, headers, isDeferred => IsDeferredMessage = true);
             }
 
+            
             OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(headers);
    
         }
@@ -147,12 +159,9 @@
 
         string DetermineContentType(IDictionary<string,string> headers)
         {
-            if (headers.ContainsKey(NServiceBus.Headers.ContentType))
-            {
-                return headers[NServiceBus.Headers.ContentType];
-            }
-
-            return "application/xml"; //default to xml for now
+            var contentType = "application/xml"; //default to xml for now
+            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.ContentType, headers, s => contentType = s);
+            return contentType;
         }
 
         static string DeserializeBody(byte[] body, string contentType)
@@ -208,25 +217,31 @@
 
         public void Update(byte[] body, IDictionary<string,string> headers )
         {
-            var processedAt = DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingEnded]);
-
+            DateTime processedAt = DateTime.MinValue;
+            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.ProcessingEnded, headers, (processEndedAt) =>
+            {
+                processedAt = DateTimeExtensions.ToUtcDateTime(processEndedAt);
+            });
+            
             if (Status == MessageStatus.Successful && ProcessedAt > processedAt)
             {
                 return; //don't overwrite since this message is older
             }
-
-            if (BodyRaw.Length != body.Length)
+            
+            if (body.Length > 0 && BodyRaw.Length != body.Length)
             {
                 throw new InvalidOperationException("Message bodies differ, message has been tampered with");
             }
-
 
             ProcessedAt = processedAt;
 
             if (Status != MessageStatus.Successful)
             {
-                FailureDetails.ResolvedAt =
-                    DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingEnded]);
+                DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.ProcessingEnded, headers, (processingEnded) =>
+                {
+                    FailureDetails.ResolvedAt = DateTimeExtensions.ToUtcDateTime(processingEnded);
+                });
+                
                 History.Add(new HistoryItem
                 {
                     Action = "ErrorResolved",
@@ -236,10 +251,7 @@
 
             Status = MessageStatus.Successful;
 
-            if (headers.ContainsKey(NServiceBus.Headers.OriginatingAddress))
-            {
-                ReplyToAddress = headers[NServiceBus.Headers.OriginatingAddress];
-            }
+            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.OriginatingAddress, headers, (address) => ReplyToAddress = address);
 
             Statistics = GetProcessingStatistics(headers);
         }
@@ -247,26 +259,47 @@
         public void MarkAsSuccessful(IDictionary<string,string> headers)
         {
             Status = MessageStatus.Successful;
-            ProcessedAt = DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingEnded]);
-            Statistics = GetProcessingStatistics(headers);
-
-            if (headers.ContainsKey(NServiceBus.Headers.OriginatingAddress))
+            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.ProcessingEnded, headers, (processingEnded) =>
             {
-                ReplyToAddress = headers[NServiceBus.Headers.OriginatingAddress];
-            }
+                ProcessedAt = DateTimeExtensions.ToUtcDateTime(processingEnded);
+                Statistics = GetProcessingStatistics(headers);
+            });
+
+            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.OriginatingAddress, headers, 
+                (originatingAddress) => ReplyToAddress = originatingAddress);
         }
 
         MessageStatistics GetProcessingStatistics(IDictionary<string,string> headers)
         {
-            return new MessageStatistics
+            var messageStatistics = new MessageStatistics();
+            var processingEnded = DateTime.MinValue;
+            var timeSent = DateTime.MinValue;
+            var processingStarted = DateTime.MinValue;
+
+            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.ProcessingEnded, headers, (ended) =>
             {
-                CriticalTime =
-                    DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingEnded]) -
-                    DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.TimeSent]),
-                ProcessingTime =
-                    DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingEnded]) -
-                    DateTimeExtensions.ToUtcDateTime(headers[NServiceBus.Headers.ProcessingStarted])
-            };
+                processingEnded = DateTimeExtensions.ToUtcDateTime(ended);
+            });
+            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.TimeSent, headers, (time) =>
+            {
+                timeSent = DateTimeExtensions.ToUtcDateTime(time);
+            });
+            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.ProcessingStarted, headers, (started) =>
+            {
+                processingStarted = DateTimeExtensions.ToUtcDateTime(started);
+            });
+
+            if (processingEnded != DateTime.MinValue && timeSent != DateTime.MinValue)
+            {
+                messageStatistics.CriticalTime = processingEnded - timeSent;
+            }
+            if (processingEnded != DateTime.MinValue && processingStarted != DateTime.MinValue)
+            {
+                messageStatistics.ProcessingTime = processingEnded - processingStarted;
+            }
+
+            return messageStatistics;
+
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(Message));
@@ -283,6 +316,17 @@
         };
 
         ICollection<HistoryItem> history;
+
+    }
+
+    internal static class DictionaryExtensions
+    {
+        public static void CheckIfKeyExists(string key, IDictionary<string, string> headers, Action<string> actionToInvokeWhenKeyIsFound)
+        {
+            var value = string.Empty;
+            if (headers.TryGetValue(key, out value))
+                actionToInvokeWhenKeyIsFound(value);
+        }
     }
 
     public class HistoryItem
@@ -300,62 +344,44 @@
 
         public static EndpointDetails OriginatingEndpoint(IDictionary<string,string> headers )
         {
-            if (headers.ContainsKey(Headers.OriginatingEndpoint))
+            var endpointDetails = new EndpointDetails();
+            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingEndpoint, headers, s => endpointDetails.Name = s );
+            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingMachine, headers, s => endpointDetails.Machine = s);
+
+            if (!string.IsNullOrEmpty(endpointDetails.Name) && !string.IsNullOrEmpty(endpointDetails.Machine))
             {
-                return new EndpointDetails
-                {
-                    Name = headers[Headers.OriginatingEndpoint],
-                    Machine = headers[Headers.OriginatingMachine]
-                };
+                return endpointDetails;
             }
 
-            if (headers.ContainsKey(Headers.OriginatingAddress))
+            Address address = Address.Undefined; 
+            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingAddress, headers, s => address = Address.Parse(s));
+
+            if (address != Address.Undefined)
             {
-                var address = Address.Parse(headers[Headers.OriginatingAddress]);
-
-                return new EndpointDetails
-                {
-                    Name = address.Queue,
-                    Machine = address.Machine
-                };
+                endpointDetails.Name = address.Queue;
+                endpointDetails.Machine = address.Machine;
+                return endpointDetails;
             }
-
 
             return null;
         }
 
-
         public static EndpointDetails ReceivingEndpoint(IDictionary<string,string> headers)
         {
             var endpoint = new EndpointDetails();
+            DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingEndpoint, headers, s => endpoint.Name = s);
+            DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingMachine, headers, s => endpoint.Machine = s);
 
-            if (headers.ContainsKey(Headers.ProcessingEndpoint))
-            {
-                //todo: remove this line after we have updated to the next unstableversion (due to a bug in the core)
-                if (headers[Headers.ProcessingEndpoint] != Configure.EndpointName)
-                {
-                    endpoint.Name = headers[Headers.ProcessingEndpoint];
-                }
-            }
-
-            if (headers.ContainsKey(Headers.ProcessingMachine))
-            {
-                endpoint.Machine = headers[Headers.ProcessingMachine];
-            }
-
-            if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Name))
+            if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Machine))
             {
                 return endpoint;
             }
 
-            var address = Address.Parse(headers[Headers.OriginatingAddress]);
-
+            Address address = Address.Undefined;
+            // TODO: do we need the below for the originating address!?
+            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingAddress, headers, s => address = Address.Parse(s));
             //use the failed q to determine the receiving endpoint
-            if (headers.ContainsKey("NServiceBus.FailedQ"))
-            {
-                address = Address.Parse(headers["NServiceBus.FailedQ"]);
-            }
-
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.FailedQ", headers, s => address = Address.Parse(s));
             endpoint.FromAddress(address);
 
             return endpoint;
@@ -370,7 +396,7 @@
 
             if (string.IsNullOrEmpty(Machine))
             {
-                Name = address.Machine;
+                Machine = address.Machine;
             }
         }
     }
@@ -415,8 +441,8 @@
 
         public FailureDetails(IDictionary<string,string> headers)
         {
-            FailedInQueue = headers["NServiceBus.FailedQ"];
-            TimeOfFailure = DateTimeExtensions.ToUtcDateTime(headers["NServiceBus.TimeOfFailure"]);
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.FailedQ", headers, s => FailedInQueue = s);
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => TimeOfFailure = DateTimeExtensions.ToUtcDateTime(s));
             Exception = GetException(headers);
             NumberOfTimesFailed = 1;
         }
@@ -433,20 +459,25 @@
 
         ExceptionDetails GetException(IDictionary<string,string> headers)
         {
-            return new ExceptionDetails
-            {
-                ExceptionType = headers["NServiceBus.ExceptionInfo.ExceptionType"],
-                Message = headers["NServiceBus.ExceptionInfo.Message"],
-                Source = headers["NServiceBus.ExceptionInfo.Source"],
-                StackTrace = headers["NServiceBus.ExceptionInfo.StackTrace"]
-            };
+            var exceptionDetails = new ExceptionDetails();
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.ExceptionType", headers,
+                s => exceptionDetails.ExceptionType = s);
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.Message", headers,
+                s => exceptionDetails.Message = s);
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.Source", headers,
+                s => exceptionDetails.Source = s);
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.StackTrace", headers,
+                           s => exceptionDetails.StackTrace = s);
+            return exceptionDetails;
         }
 
         public void RegisterException(IDictionary<string,string> headers)
         {
             NumberOfTimesFailed++;
 
-            var timeOfFailure = DateTimeExtensions.ToUtcDateTime(headers["NServiceBus.TimeOfFailure"]);
+            var timeOfFailure = DateTime.MinValue;
+
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => timeOfFailure = DateTimeExtensions.ToUtcDateTime(s));
 
             if (TimeOfFailure < timeOfFailure)
             {
@@ -468,4 +499,6 @@
 
         public string StackTrace { get; set; }
     }
+
+
 }

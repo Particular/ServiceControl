@@ -7,6 +7,7 @@
     using Messages.Heartbeats;
     using Messages.Operations.ServiceControlBackend;
     using NServiceBus;
+    using NServiceBus.Config;
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
@@ -64,10 +65,11 @@
                 return Address.Parse(queueName);
             }
 
-            var unicastBus = Configure.Instance.Builder.Build<UnicastBus>();
-            var forwardAddress = unicastBus.ForwardReceivedMessagesTo;
-            if (forwardAddress != null)
+            var auditConfig = Configure.GetConfigSection<AuditConfig>();
+            if (!string.IsNullOrEmpty(auditConfig.QueueName))
             {
+                var forwardAddress = Address.Parse(auditConfig.QueueName);
+
                 return new Address("Particular.ServiceControl", forwardAddress.Machine);
             }
 
