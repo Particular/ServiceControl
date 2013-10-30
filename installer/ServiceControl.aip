@@ -422,7 +422,7 @@
     <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
     <ROW Action="DetectService" Type="1" Source="aicustact.dll" Target="DetectService" AdditionalSeq="AI_DATA_SETTER_1"/>
     <ROW Action="Launch_Url" Type="1090" Source="viewer.exe" Target="http://www.particular.net/Installation-completed?installer=ServiceControl&amp;version=[ProductVersion]" Options="1"/>
-    <ROW Action="NServiceBus.Host.exe_Install" Type="3074" Source="viewer.exe" Target="/HideWindow &quot;[#NServiceBus.Host.exe]&quot; -install -serviceName=&quot;Particular.ServiceControl&quot; -description=&quot;For the description, in the new installer for ServiceControl I used the text from the old ManagementAPI merge module. i.e.: &quot;Particular Software ServiceControl for NServiceBus (version [ProductVersion])&quot;&quot;" Options="1"/>
+    <ROW Action="NServiceBus.Host.exe_Install" Type="3074" Source="viewer.exe" Target="/HideWindow &quot;[#NServiceBus.Host.exe]&quot; -install -serviceName=&quot;Particular.ServiceControl&quot; -description=&quot;Particular Software ServiceControl for NServiceBus (version [ProductVersion])&quot;" Options="1"/>
     <ROW Action="NServiceBus.Host.exe_Uninstall" Type="3074" Source="viewer.exe" Target="/HideWindow &quot;[#NServiceBus.Host.exe]&quot; -uninstall"/>
     <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[ProgramFilesFolder]\Particular Software\ServiceControl\"/>
     <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
