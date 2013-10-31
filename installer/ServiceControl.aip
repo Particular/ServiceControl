@@ -185,7 +185,7 @@
     <ROW File="System.Spatial.xml" Component_="Autofac.Integration.SignalR.xml" FileName="System~1.xml|System.Spatial.xml" Attributes="0" SourcePath="Files\System.Spatial.xml" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" PackageFolder="Output Package" PackageFileName="ServiceControl " Languages="en" InstallationType="4" CabsLocation="1" PackageType="1" FilesInsideExe="true" ExeIconPath="res\Operations.ico" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName] [|ProductVersion]\install" MsiCmdLine="/L*V [TempFolder]Particular.ServiceControl.Installer.log" ExtUI="true" UseLargeSchema="true" ExeName="ServiceControl"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" PackageFolder="Output Package" PackageFileName="ServiceControl " Languages="en" InstallationType="4" CabsLocation="1" PackageType="1" FilesInsideExe="true" ExeIconPath="res\Operations.ico" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\install" MsiCmdLine="/L*V [TempFolder]Particular.ServiceControl.Installer.log" ExtUI="true" UseLargeSchema="true" ExeName="ServiceControl"/>
     <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
@@ -427,7 +427,7 @@
     <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[ProgramFilesFolder]\Particular Software\ServiceControl\"/>
     <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
     <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
-    <ROW Action="Start_Service" Type="3074" Source="viewer.exe" Target="/HideWindow &quot;[SystemFolder]net.exe&quot; start Particular.ServiceControl"/>
+    <ROW Action="Start_Service" Type="3138" Source="viewer.exe" Target="/HideWindow &quot;[SystemFolder]net.exe&quot; start Particular.ServiceControl"/>
     <ROW Action="Stop_Service" Type="66" Source="viewer.exe" Target="/HideWindow &quot;[SystemFolder]net.exe&quot; stop Particular.ServiceControl"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
