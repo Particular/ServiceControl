@@ -47,8 +47,8 @@
     <ROW Component="ICSharpCode.NRefactory.CSharp.dll" ComponentId="{3AA2DDC1-40DB-45E0-B558-8C6C26715117}" Directory_="APPDIR" Attributes="0" KeyPath="ICSharpCode.NRefactory.CSharp.dll"/>
     <ROW Component="ICSharpCode.NRefactory.dll" ComponentId="{8593CA06-9F7A-4533-B923-043590389DC2}" Directory_="APPDIR" Attributes="0" KeyPath="ICSharpCode.NRefactory.dll"/>
     <ROW Component="ICSharpCode.SharpZipLib.dll" ComponentId="{5B61AD83-C279-436F-AC87-2B5205402487}" Directory_="APPDIR" Attributes="0" KeyPath="ICSharpCode.SharpZipLib.dll"/>
-    <ROW Component="InstanceDescription" ComponentId="{F785A481-7F6B-46C6-8BE2-E09968944ED7}" Directory_="APPDIR" Attributes="4" KeyPath="InstanceDescription"/>
-    <ROW Component="InstanceName" ComponentId="{A827F43A-BAAC-4926-A337-0F9BF5427BAF}" Directory_="APPDIR" Attributes="4" KeyPath="InstanceName"/>
+    <ROW Component="InstanceDescription" ComponentId="{F785A481-7F6B-46C6-8BE2-E09968944ED7}" Directory_="APPDIR" Attributes="260" KeyPath="InstanceDescription"/>
+    <ROW Component="InstanceName" ComponentId="{A827F43A-BAAC-4926-A337-0F9BF5427BAF}" Directory_="APPDIR" Attributes="260" KeyPath="InstanceName"/>
     <ROW Component="Jint.Raven.dll" ComponentId="{EE4E49FC-42C9-42EB-B8E8-3A98C4450C87}" Directory_="APPDIR" Attributes="0" KeyPath="Jint.Raven.dll"/>
     <ROW Component="Lucene.Net.Contrib.Spatial.NTS.dll" ComponentId="{07997106-4162-430B-9A14-AE195D3BADF2}" Directory_="APPDIR" Attributes="0" KeyPath="Lucene.Net.Contrib.Spatial.NTS.dll"/>
     <ROW Component="Lucene.Net.dll" ComponentId="{F27482EC-A71B-4313-BC56-916AF4687EB0}" Directory_="APPDIR" Attributes="0" KeyPath="Lucene.Net.dll"/>
@@ -75,9 +75,9 @@
     <ROW Component="NetTopologySuite.dll" ComponentId="{C7011470-9126-4E6F-BE94-CF4DEFE34F52}" Directory_="APPDIR" Attributes="0" KeyPath="NetTopologySuite.dll"/>
     <ROW Component="Newtonsoft.Json.dll" ComponentId="{235622F1-867A-4E24-8D37-956FE88A1B3F}" Directory_="APPDIR" Attributes="0" KeyPath="Newtonsoft.Json.dll"/>
     <ROW Component="Owin.dll" ComponentId="{050A9D97-E1A0-4246-B78C-83E3DDF08475}" Directory_="APPDIR" Attributes="0" KeyPath="Owin.dll"/>
-    <ROW Component="Port" ComponentId="{C088BA38-E0D6-42EA-BBA7-44B27431C16F}" Directory_="APPDIR" Attributes="4" KeyPath="Port"/>
+    <ROW Component="Port" ComponentId="{C088BA38-E0D6-42EA-BBA7-44B27431C16F}" Directory_="APPDIR" Attributes="260" KeyPath="Port"/>
     <ROW Component="PowerCollections.dll" ComponentId="{4DAA16AD-15FC-4E7C-83F9-BAE115FDD5E8}" Directory_="APPDIR" Attributes="0" KeyPath="PowerCollections.dll"/>
-    <ROW Component="ProductInformation" ComponentId="{2951F750-F690-40DB-97F6-C5B2486033ED}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
+    <ROW Component="ProductInformation" ComponentId="{2951F750-F690-40DB-97F6-C5B2486033ED}" Directory_="APPDIR" Attributes="260" KeyPath="Version"/>
     <ROW Component="Raven.Abstractions.dll" ComponentId="{1E1FD1DD-0C02-4AE7-8F53-B51B6E739DC9}" Directory_="APPDIR" Attributes="0" KeyPath="Raven.Abstractions.dll"/>
     <ROW Component="Raven.Client.Embedded.dll" ComponentId="{A07C0014-3FBD-4170-9AEF-0A5B3469E0BA}" Directory_="APPDIR" Attributes="0" KeyPath="Raven.Client.Embedded.dll"/>
     <ROW Component="Raven.Client.Lightweight.dll" ComponentId="{F93ADABA-6F81-4A94-B764-B5FF514FF349}" Directory_="APPDIR" Attributes="0" KeyPath="Raven.Client.Lightweight.dll"/>
@@ -86,7 +86,7 @@
     <ROW Component="ServiceControl.dll" ComponentId="{B32D2CEC-284D-49C4-A1DC-DA2863C39D5D}" Directory_="APPDIR" Attributes="0" KeyPath="ServiceControl.dll"/>
     <ROW Component="Spatial4n.Core.NTS.dll" ComponentId="{06EB261D-B3BB-42BB-B4D7-90ECAC3A0F99}" Directory_="APPDIR" Attributes="0" KeyPath="Spatial4n.Core.NTS.dll"/>
     <ROW Component="System.Spatial.dll" ComponentId="{2713DA51-20F8-4909-A336-F9EE812052C6}" Directory_="APPDIR" Attributes="0" KeyPath="System.Spatial.dll"/>
-    <ROW Component="TransportType" ComponentId="{A9BCAEE6-1554-4603-BDD3-46777ED49001}" Directory_="APPDIR" Attributes="4" KeyPath="TransportType"/>
+    <ROW Component="TransportType" ComponentId="{A9BCAEE6-1554-4603-BDD3-46777ED49001}" Directory_="APPDIR" Attributes="260" KeyPath="TransportType"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
     <ROW Feature="MainFeature" Title="ServiceControl for NServiceBus" Description="ServiceControl for NServiceBus provides auditing and analysis features for NServiceBus." Display="1" Level="1" Directory_="APPDIR" Attributes="16" Components="AI_CustomARPName AI_ExePath AWS.Extensions.dll AWSSDK.dll Autofac.Integration.SignalR.dll Autofac.Integration.SignalR.xml Autofac.dll Esent.Interop.dll GeoAPI.dll ICSharpCode.NRefactory.CSharp.dll ICSharpCode.NRefactory.dll ICSharpCode.SharpZipLib.dll InstanceDescription InstanceName Jint.Raven.dll Lucene.Net.Contrib.Spatial.NTS.dll Lucene.Net.dll Microsoft.AspNet.SignalR.Core.dll Microsoft.AspNet.SignalR.Owin.dll Microsoft.CompilerServices.AsyncTargetin Microsoft.Data.Edm.dll Microsoft.Data.OData.dll Microsoft.Owin.Diagnostics.dll Microsoft.Owin.Host.HttpListener.dll Microsoft.Owin.Hosting.dll Microsoft.Owin.dll Microsoft.WindowsAzure.Configuration.dll Microsoft.WindowsAzure.Storage.dll Mono.Cecil.dll NLog.dll NServiceBus.Core.dll NServiceBus.Host.exe NServiceBus.ObjectBuilder.Autofac.dll NServiceBus.dll Nancy.Bootstrappers.Autofac.dll Nancy.Owin.dll Nancy.dll NetTopologySuite.dll Newtonsoft.Json.dll Owin.dll Port PowerCollections.dll ProductInformation Raven.Abstractions.dll Raven.Client.Embedded.dll Raven.Client.Lightweight.dll Raven.Database.dll ServiceControl.EndpointPlugin.Messages.d ServiceControl.dll Spatial4n.Core.NTS.dll System.Spatial.dll TransportType"/>
@@ -491,8 +491,8 @@
     <ROW Registry="HelpLink" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="HelpLink" Value="[ARPHELPLINK]" Component_="AI_CustomARPName"/>
     <ROW Registry="HelpTelephone" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="HelpTelephone" Value="[ARPHELPTELEPHONE]" Component_="AI_CustomARPName"/>
     <ROW Registry="InstallLocation" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="InstallLocation" Value="[APPDIR]" Component_="AI_CustomARPName"/>
-    <ROW Registry="InstanceDescription" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="InstanceDescription" Value="[INST_DESCRIPTION]" Component_="InstanceDescription"/>
-    <ROW Registry="InstanceName" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="InstanceName" Value="[INST_NAME]" Component_="InstanceName"/>
+    <ROW Registry="InstanceDescription" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="Description" Value="[INST_DESCRIPTION]" Component_="InstanceDescription"/>
+    <ROW Registry="InstanceName" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="Name" Value="[INST_NAME]" Component_="InstanceName"/>
     <ROW Registry="ModifyPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="ModifyPath" Value="[AI_UNINSTALLER] /I [ProductCode]" Component_="AI_CustomARPName"/>
     <ROW Registry="NoRepair" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="NoRepair" Value="#1" Component_="AI_CustomARPName"/>
     <ROW Registry="Path" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="Path" Value="[APPDIR]" Component_="ProductInformation"/>
