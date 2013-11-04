@@ -65,7 +65,7 @@
             }
 
             var auditConfig = Configure.GetConfigSection<AuditConfig>();
-            if (!string.IsNullOrEmpty(auditConfig.QueueName))
+            if (auditConfig != null && !string.IsNullOrEmpty(auditConfig.QueueName))
             {
                 var forwardAddress = Address.Parse(auditConfig.QueueName);
 

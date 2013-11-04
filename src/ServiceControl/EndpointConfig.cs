@@ -34,9 +34,15 @@ namespace Particular.ServiceControl
 
             //TODO: Need a new license for v4.1!!!
             //ConfigureLicense();
+
+            var pluginType = Type.GetType("ServiceControl.EndpointPlugin.Heartbeats.Heartbeats, ServiceControl.EndpointPlugin", false);
+            if (pluginType != null)
+            {
+                Feature.Disable(pluginType);
+            }
             
             Feature.Disable<AutoSubscribe>();
-            //Configure.Features.AutoSubscribe(s => s.DoNotRequireExplicitRouting());
+            
             Configure.Serialization.Json();
             Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
         }

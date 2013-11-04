@@ -44,13 +44,19 @@
                         summary = Get<HeartbeatSummary>("/api/heartbeats/stats");
 
                         if (summary == null)
+                        {
+                            Thread.Sleep(2000);
                             return false;
+                        }
 
-                        if(summary.ActiveEndpoints < 2)
-                            Thread.Sleep(1000);
+                        if (summary.ActiveEndpoints < 2)
+                        {
+                            Thread.Sleep(2000);
+                        }
+
                         return summary.ActiveEndpoints == 2;
                     })
-                .Run(TimeSpan.FromSeconds(20));
+                .Run(TimeSpan.FromMinutes(2));
 
 
             Assert.AreEqual(0, summary.NumberOfFailingEndpoints);
