@@ -22,7 +22,7 @@
                     RaisedAt = message.LastReceivedAt,
                     Severity = Severity.Error,
                     Description =
-                        "Endpoint has failed to send expected heartbeats to ServiceControl. It is possible that the endpoint could be down or is unresponsive. If this condition persists, you might want to restart your endpoint.",
+                        "Endpoint has failed to send expected heartbeat to ServiceControl. It is possible that the endpoint could be down or is unresponsive. If this condition persists, you might want to restart your endpoint.",
                     Tags = string.Format("{0}, {1}",Category.HeartbeatFailure, Category.EndpointFailures),
                     Category = Category.HeartbeatFailure,
                     RelatedTo = new List<string>(){string.Format("endpoint/{0}/{1}",message.Endpoint, message.Machine)}

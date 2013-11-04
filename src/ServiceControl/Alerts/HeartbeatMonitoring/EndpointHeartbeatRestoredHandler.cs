@@ -22,7 +22,7 @@
                     RaisedAt = message.RestoredAt,
                     Severity = Severity.Info,
                     Description =
-                        "Endpoint heartbeats has been restored.",
+                        "Endpoint heartbeat has been restored.",
                     Tags = string.Format("{0}, {1}", Category.HeartbeatFailure, Category.EndpointFailures),
                     Category = Category.HeartbeatFailure,
                     RelatedTo = new List<string>() { string.Format("endpoint/{0}/{1}", message.Endpoint, message.Machine) }
