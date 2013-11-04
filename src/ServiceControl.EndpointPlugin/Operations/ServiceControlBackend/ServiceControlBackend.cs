@@ -11,7 +11,6 @@
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
-    using NServiceBus.Unicast;
 
     public class ServiceControlBackend : IServiceControlBackend
     {
