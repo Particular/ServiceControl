@@ -52,6 +52,7 @@
     <Compile Include="Operations\ServiceControlBackend\ServiceControlBackend.cs" />
     <Compile Include="Heartbeats\HeartbeatInfoProvider.cs" />
     <Compile Include="Heartbeats\Heartbeats.cs" />
+    <Compile Include="Operations\ServiceControlBackend\VersionChecker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAHeartbeatProvider.cs" />
   </ItemGroup>

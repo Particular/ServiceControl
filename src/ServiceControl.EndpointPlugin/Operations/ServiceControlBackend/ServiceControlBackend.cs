@@ -15,9 +15,6 @@
     public class ServiceControlBackend : IServiceControlBackend
     {
         public ISendMessages MessageSender { get; set; }
-        MessageMapper messageMapper;
-        JsonMessageSerializer serializer;
-        Address serviceControlBackendAddress;
 
         public ServiceControlBackend()
         {
@@ -64,13 +61,6 @@
                 return Address.Parse(queueName);
             }
 
-            var auditConfig = Configure.GetConfigSection<AuditConfig>();
-            if (auditConfig != null && !string.IsNullOrEmpty(auditConfig.QueueName))
-            {
-                var forwardAddress = Address.Parse(auditConfig.QueueName);
-
-                return new Address("Particular.ServiceControl", forwardAddress.Machine);
-            }
 
             var errorAddress = ConfigureFaultsForwarder.ErrorQueue;
             if (errorAddress != null)
@@ -78,7 +68,40 @@
                 return new Address("Particular.ServiceControl", errorAddress.Machine);
             }
 
+            if (VersionChecker.CoreVersionIsAtLeast(4,1))
+            {
+                //audit config was added in 4.1
+                Address address;
+                if (TryGetAuditAddress(out address))
+                {
+                    return new Address("Particular.ServiceControl", address.Machine);
+                }
+            }
+
             return null;
         }
+
+        static bool TryGetAuditAddress(out Address address)
+        {
+            var auditConfig = Configure.GetConfigSection<AuditConfig>();
+            if (auditConfig != null && !string.IsNullOrEmpty(auditConfig.QueueName))
+            {
+                var forwardAddress = Address.Parse(auditConfig.QueueName);
+
+                {
+                    address = forwardAddress;
+
+                    return true;
+                }
+            }
+            address = null;
+
+            return false;
+        }
+
+        MessageMapper messageMapper;
+        JsonMessageSerializer serializer;
+        Address serviceControlBackendAddress;
+
     }
 }
