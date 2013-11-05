@@ -1,7 +1,9 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Linq;
     using System.Text;
+    using System.Threading;
     using Contexts;
     using MessageAuditing;
     using NServiceBus;
@@ -119,6 +121,40 @@
             Assert.AreEqual(typeof(MyMessage).FullName, context.ReturnedMessage.MessageType,
                 "Message type should be set to the fullname of the message type");
             Assert.False(context.ReturnedMessage.IsSystemMessage, "Message should not be marked as a system message");
+        }
+
+
+        [Test]
+        public void Should_list_the_endpoint_in_the_list_of_known_endpoints()
+        {
+            var context = new MyContext();
+
+            var knownEndpoints = new EndpointDetails[0];
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
+                    bus.Send(new MyMessage());
+                }))
+                .WithEndpoint<Receiver>()
+                .Done(c =>
+                {
+
+                    knownEndpoints = Get<EndpointDetails[]>("/api/endpoints/");
+
+                    var done = knownEndpoints != null && knownEndpoints.Any(e=>e.Name== c.EndpointNameOfSendingEndpoint);
+
+                    if (!done) Thread.Sleep(5000);
+
+                    return done;
+
+                })
+                .Run(TimeSpan.FromSeconds(40));
+
+
+            Assert.That(knownEndpoints.Single(e => e.Name == context.EndpointNameOfSendingEndpoint), Is.True);
         }
     }
 }
