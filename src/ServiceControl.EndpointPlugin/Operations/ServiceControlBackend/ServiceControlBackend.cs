@@ -5,37 +5,33 @@
     using System.IO;
     using Messages.CustomChecks;
     using Messages.Heartbeats;
-    using Messages.Operations.ServiceControlBackend;
     using NServiceBus;
     using NServiceBus.Config;
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
 
-    public class ServiceControlBackend : IServiceControlBackend
+    public class ServiceControlBackend
     {
-        public ISendMessages MessageSender { get; set; }
-
         public ServiceControlBackend()
         {
-            messageMapper = new MessageMapper();
-            // TODO: Should we initialize with all known types of ServiceControl messages here??
-            messageMapper.Initialize(new[] { typeof(EndpointHeartbeat), typeof(ReportCustomCheckResult) });
+            var messageMapper = new MessageMapper();
+            messageMapper.Initialize(new[] {typeof(EndpointHeartbeat), typeof(ReportCustomCheckResult)});
 
             serializer = new JsonMessageSerializer(messageMapper);
 
-            // Initialize the backend address
             serviceControlBackendAddress = GetServiceControlAddress();
         }
 
+        public ISendMessages MessageSender { get; set; }
+
         public void Send(object messageToSend, TimeSpan timeToBeReceived)
         {
-            var message = new TransportMessage();
-            message.TimeToBeReceived = timeToBeReceived;
+            var message = new TransportMessage {TimeToBeReceived = timeToBeReceived};
 
             using (var stream = new MemoryStream())
             {
-                serializer.Serialize(new object[] { messageToSend }, stream);
+                serializer.Serialize(new[] {messageToSend}, stream);
                 message.Body = stream.ToArray();
             }
 
@@ -44,16 +40,10 @@
 
         public void Send(object messageToSend)
         {
-            var message = new TransportMessage();
-            using (var stream = new MemoryStream())
-            {
-                serializer.Serialize(new object[] { messageToSend }, stream);
-                message.Body = stream.ToArray();
-            }
-            MessageSender.Send(message, serviceControlBackendAddress);
+            Send(messageToSend, TimeSpan.MaxValue);
         }
 
-        Address GetServiceControlAddress()
+        static Address GetServiceControlAddress()
         {
             var queueName = ConfigurationManager.AppSettings[@"ServiceControl/Queue"];
             if (!String.IsNullOrEmpty(queueName))
@@ -68,7 +58,7 @@
                 return new Address("Particular.ServiceControl", errorAddress.Machine);
             }
 
-            if (VersionChecker.CoreVersionIsAtLeast(4,1))
+            if (VersionChecker.CoreVersionIsAtLeast(4, 1))
             {
                 //audit config was added in 4.1
                 Address address;
@@ -99,9 +89,7 @@
             return false;
         }
 
-        MessageMapper messageMapper;
-        JsonMessageSerializer serializer;
-        Address serviceControlBackendAddress;
-
+        readonly JsonMessageSerializer serializer;
+        readonly Address serviceControlBackendAddress;
     }
 }

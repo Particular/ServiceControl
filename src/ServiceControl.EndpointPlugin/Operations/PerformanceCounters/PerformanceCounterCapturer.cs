@@ -8,7 +8,7 @@
     using Messages.Operations.PerformanceCounters;
     using NServiceBus;
 
-    public class PerformanceCounterCapturer : IWantToRunWhenBusStartsAndStops, INeedInitialization
+    class PerformanceCounterCapturer : IWantToRunWhenBusStartsAndStops, INeedInitialization
     {
         public void Init()
         {
