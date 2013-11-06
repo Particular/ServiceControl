@@ -32,8 +32,7 @@ namespace Particular.ServiceControl
                 .UseTransport(Type.GetType(transportType))
                 .UnicastBus();
 
-            //TODO: Need a new license for v4.1!!!
-            //ConfigureLicense();
+            ConfigureLicense();
 
             var pluginType = Type.GetType("ServiceControl.EndpointPlugin.Heartbeats.Heartbeats, ServiceControl.EndpointPlugin", false);
             if (pluginType != null)
