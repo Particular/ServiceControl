@@ -144,17 +144,19 @@
 
                     knownEndpoints = Get<EndpointDetails[]>("/api/endpoints/");
 
-                    var done = knownEndpoints != null && knownEndpoints.Any(e=>e.Name== c.EndpointNameOfSendingEndpoint);
+                    var done = knownEndpoints != null &&
+                               knownEndpoints.Any(e => e.Name == c.EndpointNameOfSendingEndpoint);
 
-                    if (!done) Thread.Sleep(5000);
+                    if (!done)
+                    {
+                        Thread.Sleep(5000);
+                    }
 
                     return done;
-
                 })
                 .Run(TimeSpan.FromSeconds(40));
 
-
-            Assert.That(knownEndpoints.Single(e => e.Name == context.EndpointNameOfSendingEndpoint), Is.True);
+            Assert.IsTrue(knownEndpoints.Any(e => e.Name == context.EndpointNameOfSendingEndpoint));
         }
     }
 }

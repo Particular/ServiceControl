@@ -189,6 +189,7 @@
     <Compile Include="CustomChecks\CustomCheck.cs" />
     <Compile Include="CustomChecks\CustomCheckMonitor.cs" />
     <Compile Include="CustomChecks\CustomCheckResultHandler.cs" />
+    <Compile Include="CustomChecks\CustomChecksModule.cs" />
     <Compile Include="CustomChecks\RaiseCustomCheckChanges.cs" />
     <Compile Include="CustomChecks\RegisterCustomCheckMonitor.cs" />
     <Compile Include="CustomChecks\SaveCustomCheckHandler.cs" />
