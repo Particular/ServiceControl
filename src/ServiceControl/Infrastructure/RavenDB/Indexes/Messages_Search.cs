@@ -18,8 +18,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
                     message.MessageType,
                     message.TimeSent,
                     message.Status,
-                    TimeOfFailure =
-                        message.FailureDetails != null ? message.FailureDetails.TimeOfFailure : DateTime.MinValue,
+                    TimeOfFailure = message.FailureDetails != null ? message.FailureDetails.TimeOfFailure : DateTime.MinValue,
                     CriticalTime = message.Statistics != null ? message.Statistics.CriticalTime : TimeSpan.Zero,
                     ProcessingTime = message.Statistics != null ? message.Statistics.ProcessingTime : TimeSpan.Zero,
                     Query = new object[]

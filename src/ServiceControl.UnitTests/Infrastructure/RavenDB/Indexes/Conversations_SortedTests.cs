@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using NUnit.Framework;
-using Raven.Client.Indexes;
 using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
 using ServiceBus.Management.MessageAuditing;
 
@@ -15,7 +14,7 @@ public class Conversations_SortedTests
         {
             documentStore.Initialize();
 
-            documentStore.ExecuteTransformer(new Conversations_Sorted.MessageTransformer());
+            documentStore.ExecuteTransformer(new MessageTransformer());
 
             var customIndex = new Conversations_Sorted();
             customIndex.Execute(documentStore);
@@ -31,16 +30,14 @@ public class Conversations_SortedTests
                     Status = MessageStatus.Successful,
                     ConversationId = "ConversationId",
                     ProcessedAt = now,
-                    OriginatingEndpoint = new EndpointDetails(){Name = "foo"},
+                    OriginatingEndpoint = new EndpointDetails{Name = "foo"},
                     Recoverable = true,
                 });
                 session.SaveChanges();
 
                 var results = session.Query<Conversations_Sorted.Result, Conversations_Sorted>()
                     .Customize(x => x.WaitForNonStaleResults())
-                    .TransformWith<Conversations_Sorted.MessageTransformer, Message>()
-                    //of type works
-                    //.OfType<Message>()
+                    .TransformWith<MessageTransformer, Message>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 var message = results.First();

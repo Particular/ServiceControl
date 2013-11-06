@@ -35,20 +35,5 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
             public string ConversationId { get; set; }
         }
 
-        public class MessageTransformer : AbstractTransformerCreationTask<Result>
-        {
-            public MessageTransformer()
-            {
-                TransformResults = results => from result in results
-                    select new
-                        {
-                            result.Id,
-                            result.MessageType,
-                            result.TimeSent,
-                            result.Status,
-                            result.ReceivingEndpointName,
-                        };
-            }
-        }
     }
 }

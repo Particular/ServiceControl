@@ -13,6 +13,7 @@ public class Messages_IdsTests
         {
             documentStore.Initialize();
 
+            documentStore.ExecuteTransformer(new MessageTransformer());
 
             var customIndex = new Messages_Ids();
             customIndex.Execute(documentStore);
@@ -31,7 +32,7 @@ public class Messages_IdsTests
 
                 var results = session.Query<Messages_Ids.Result, Messages_Ids>()
                     .Customize(x => x.WaitForNonStaleResults())
-                    .OfType<Message>()
+                    .TransformWith<MessageTransformer, Message>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 var message = results.First();

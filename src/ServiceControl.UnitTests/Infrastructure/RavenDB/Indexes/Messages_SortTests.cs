@@ -14,6 +14,7 @@ public class Messages_SortTests
         {
             documentStore.Initialize();
 
+            documentStore.ExecuteTransformer(new MessageTransformer());
 
             var customIndex = new Messages_Sort();
             customIndex.Execute(documentStore);
@@ -35,7 +36,7 @@ public class Messages_SortTests
 
                 var results = session.Query<Messages_Sort.Result, Messages_Sort>()
                     .Customize(x => x.WaitForNonStaleResults())
-                    .OfType<Message>()
+                    .TransformWith<MessageTransformer, Message>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 var message = results.First();
