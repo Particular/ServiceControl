@@ -12,17 +12,17 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
         {
             Map = messages => from message in messages
                 select new
-                {
-                    message.Id,
-                    message.MessageType,
-                    message.TimeSent,
-                    message.Status,
-                    message.ConversationId,
-                    TimeOfFailure =
-                        message.FailureDetails != null ? message.FailureDetails.TimeOfFailure : DateTime.MinValue,
-                    CriticalTime = message.Statistics != null ? message.Statistics.CriticalTime : TimeSpan.Zero,
-                    ProcessingTime = message.Statistics != null ? message.Statistics.ProcessingTime : TimeSpan.Zero,
-                };
+                    {
+                        message.Id,
+                        message.MessageType,
+                        message.TimeSent,
+                        message.Status,
+                        message.ConversationId,
+                        TimeOfFailure =
+                            message.FailureDetails != null ? message.FailureDetails.TimeOfFailure : DateTime.MinValue,
+                        CriticalTime = message.Statistics != null ? message.Statistics.CriticalTime : TimeSpan.Zero,
+                        ProcessingTime = message.Statistics != null ? message.Statistics.ProcessingTime : TimeSpan.Zero,
+                    };
 
             Index(x => x.CriticalTime, FieldIndexing.Default);
             Index(x => x.ProcessingTime, FieldIndexing.Default);
@@ -34,6 +34,22 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
         public class Result : CommonResult
         {
             public string ConversationId { get; set; }
+        }
+
+        public class MessageTransformer : AbstractTransformerCreationTask<Result>
+        {
+            public MessageTransformer()
+            {
+                TransformResults = orders => from result in orders
+                    select new
+                        {
+                            result.Id,
+                            result.MessageType,
+                            result.TimeSent,
+                            result.Status,
+                            result.ConversationId,
+                        };
+            }
         }
     }
 }

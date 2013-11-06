@@ -60,6 +60,7 @@
     <Compile Include="HeartbeatMonitoring\When_endpoints_emit_heartbeats.cs" />
     <Compile Include="HeartbeatMonitoring\When_endpoints_stops_emitting_heartbeats.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Conversations_SortedTests.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="PerformanceCounterCapturingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
