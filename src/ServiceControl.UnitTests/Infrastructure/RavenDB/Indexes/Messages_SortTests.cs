@@ -14,8 +14,6 @@ public class Messages_SortTests
         {
             documentStore.Initialize();
 
-            documentStore.ExecuteTransformer(new MessageTransformer());
-
             var customIndex = new Messages_Sort();
             customIndex.Execute(documentStore);
 
@@ -30,13 +28,13 @@ public class Messages_SortTests
                         Status = MessageStatus.Successful,
                         ConversationId = "ConversationId",
                         IsSystemMessage = true,
-                        ReceivingEndpoint = new EndpointDetails(){Name = "EndpointName"},
+                        ReceivingEndpoint = new EndpointDetails{Name = "EndpointName"},
                     });
                 session.SaveChanges();
 
                 var results = session.Query<Messages_Sort.Result, Messages_Sort>()
                     .Customize(x => x.WaitForNonStaleResults())
-                    .TransformWith<MessageTransformer, Message>()
+                    .OfType<Message>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 var message = results.First();

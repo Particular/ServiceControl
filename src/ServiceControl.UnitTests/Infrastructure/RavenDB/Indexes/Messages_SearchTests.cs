@@ -13,9 +13,7 @@ public class Messages_SearchTests
         using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
         {
             documentStore.Initialize();
-
-            documentStore.ExecuteTransformer(new MessageTransformer());
-
+            
             var customIndex = new Messages_Search();
             customIndex.Execute(documentStore);
 
@@ -34,7 +32,7 @@ public class Messages_SearchTests
 
                 var results = session.Query<Messages_Search.Result, Messages_Search>()
                     .Customize(x => x.WaitForNonStaleResults())
-                    .TransformWith<MessageTransformer, Message>()
+                    .OfType<Message>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 var message = results.First();

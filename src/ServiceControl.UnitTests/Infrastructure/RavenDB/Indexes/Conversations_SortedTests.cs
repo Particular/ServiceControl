@@ -13,9 +13,7 @@ public class Conversations_SortedTests
         using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
         {
             documentStore.Initialize();
-
-            documentStore.ExecuteTransformer(new MessageTransformer());
-
+            
             var customIndex = new Conversations_Sorted();
             customIndex.Execute(documentStore);
 
@@ -37,7 +35,7 @@ public class Conversations_SortedTests
 
                 var results = session.Query<Conversations_Sorted.Result, Conversations_Sorted>()
                     .Customize(x => x.WaitForNonStaleResults())
-                    .TransformWith<MessageTransformer, Message>()
+                    .OfType<Message>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 var message = results.First();
