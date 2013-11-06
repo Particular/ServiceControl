@@ -18,9 +18,9 @@
             get { return category; }
         }
 
-        public void ReportOk()
+        public void ReportPass()
         {
-            ReportToBackend(CheckResult.Ok);
+            ReportToBackend(CheckResult.Pass);
         }
 
 

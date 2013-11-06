@@ -5,7 +5,7 @@
         public bool HasFailed { get; set; }
         public string FailureReason { get; set; }
 
-        public static CheckResult Ok
+        public static CheckResult Pass
         {
             get
             {

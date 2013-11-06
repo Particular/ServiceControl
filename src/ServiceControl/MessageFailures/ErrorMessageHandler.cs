@@ -8,7 +8,7 @@
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using ServiceBus.Management.MessageAuditing;
-    
+
 
     class ErrorMessageHandler : IHandleMessages<ErrorMessageReceived>
     {
@@ -38,7 +38,7 @@
                         m.Endpoint = failedMessage.ReceivingEndpoint.Name;
                         m.Machine = failedMessage.ReceivingEndpoint.Machine;
                         m.FailedAt = failedMessage.TimeSent;
-                        m.Reason = string.Format("Exception: {0}", failedMessage.FailureDetails.Exception.Message);
+                        m.Reason = failedMessage.FailureDetails.Exception.Message;
                     });
                 }
                 catch (ConcurrencyException) //there is already a message in the store with the same id
@@ -79,7 +79,5 @@
 
             session.SaveChanges();
         }
-
-    
     }
 }

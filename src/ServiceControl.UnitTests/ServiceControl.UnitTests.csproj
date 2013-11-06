@@ -45,8 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackendCommunications\VersionCheckerTests.cs" />
-    <Compile Include="CustomChecks\FakeServiceControlBackend.cs" />
-    <Compile Include="CustomChecks\When_devs_implement_a_custom_check.cs" />
     <Compile Include="HeartbeatMonitoring\When_endpoints_emit_heartbeats.cs" />
     <Compile Include="HeartbeatMonitoring\When_endpoints_stops_emitting_heartbeats.cs" />
     <Compile Include="PerformanceCounterCapturingTests.cs" />

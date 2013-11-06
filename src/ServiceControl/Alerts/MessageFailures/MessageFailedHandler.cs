@@ -16,16 +16,18 @@
             using (var session = DocumentStore.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
-                var relatedToList = new List<string>();
-                relatedToList.Add(string.Format("/failedMessageId/{0}", message.Id));
-                relatedToList.Add(string.Format("/endpoint/{0}/{1}", message.Endpoint, message.Machine));
 
-                var alert = new Alert()
+                var relatedToList = new List<string>
+                {
+                    string.Format("/failedMessageId/{0}", message.Id),
+                    string.Format("/endpoint/{0}/{1}", message.Endpoint, message.Machine)
+                };
+
+                var alert = new Alert
                 {
                     RaisedAt = message.FailedAt,
                     Severity = Severity.Error,
-                    Description = string.Format("This message processing failed due to: {0}", message.Reason),
-                    Tags = string.Format("{0}, {1}",Category.MessageFailures, Category.EndpointFailures),
+                    Description = message.Reason,
                     Category = Category.MessageFailures,
                     RelatedTo = relatedToList
                 };
@@ -41,7 +43,6 @@
                     m.Id = alert.Id;
                     m.Category = alert.Category;
                     m.RelatedTo = alert.RelatedTo;
-                    m.Tags = alert.Tags;
                 });
             }
         }

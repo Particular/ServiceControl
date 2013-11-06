@@ -5,7 +5,7 @@
     {
         string Category { get; }
         string Id { get; }
-        void ReportOk();
+        void ReportPass();
         void ReportFailed(string failureReason);
     }
 }

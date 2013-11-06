@@ -325,7 +325,9 @@
         {
             var value = string.Empty;
             if (headers.TryGetValue(key, out value))
+            {
                 actionToInvokeWhenKeyIsFound(value);
+            }
         }
     }
 
@@ -338,6 +340,11 @@
 
     public class EndpointDetails
     {
+        public EndpointDetails()
+        {
+            
+        }
+
         public string Name { get; set; }
 
         public string Machine { get; set; }
@@ -377,27 +384,23 @@
                 return endpoint;
             }
 
-            Address address = Address.Undefined;
+            var address = Address.Undefined;
             // TODO: do we need the below for the originating address!?
             DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingAddress, headers, s => address = Address.Parse(s));
             //use the failed q to determine the receiving endpoint
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.FailedQ", headers, s => address = Address.Parse(s));
-            endpoint.FromAddress(address);
+            
+            if (string.IsNullOrEmpty(endpoint.Name))
+            {
+                endpoint.Name = address.Queue;
+            }
+
+            if (string.IsNullOrEmpty(endpoint.Machine))
+            {
+                endpoint.Machine = address.Machine;
+            }
 
             return endpoint;
-        }
-
-        void FromAddress(Address address)
-        {
-            if (string.IsNullOrEmpty(Name))
-            {
-                Name = address.Queue;
-            }
-
-            if (string.IsNullOrEmpty(Machine))
-            {
-                Machine = address.Machine;
-            }
         }
     }
 

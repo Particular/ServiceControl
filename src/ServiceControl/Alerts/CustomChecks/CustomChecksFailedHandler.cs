@@ -23,7 +23,6 @@
                     RaisedAt = message.FailedAt,
                     Severity = Severity.Error,
                     Description = String.Format("{0}: {1}", message.CustomCheckId, message.FailureReason),
-                    Tags = string.Format("{0}, {1}", Category.CustomChecks, message.Category),
                     Category = message.Category,
                     RelatedTo = new List<string> { String.Format("endpoint/{0}/{1}", message.OriginatingEndpoint.Name, message.OriginatingEndpoint.Machine) }
                 };
@@ -39,7 +38,6 @@
                     m.Id = alert.Id;
                     m.Category = alert.Category;
                     m.RelatedTo = alert.RelatedTo;
-                    m.Tags = alert.Tags;
                 });
             }
         }
