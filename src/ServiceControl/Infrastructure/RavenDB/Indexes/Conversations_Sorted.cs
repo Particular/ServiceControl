@@ -18,8 +18,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
                         message.TimeSent,
                         message.Status,
                         message.ConversationId,
-                        TimeOfFailure =
-                            message.FailureDetails != null ? message.FailureDetails.TimeOfFailure : DateTime.MinValue,
+                        TimeOfFailure = message.FailureDetails != null ? message.FailureDetails.TimeOfFailure : DateTime.MinValue,
                         CriticalTime = message.Statistics != null ? message.Statistics.CriticalTime : TimeSpan.Zero,
                         ProcessingTime = message.Statistics != null ? message.Statistics.ProcessingTime : TimeSpan.Zero,
                     };
@@ -40,14 +39,14 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
         {
             public MessageTransformer()
             {
-                TransformResults = orders => from result in orders
+                TransformResults = results => from result in results
                     select new
                         {
                             result.Id,
                             result.MessageType,
                             result.TimeSent,
                             result.Status,
-                            result.ConversationId,
+                            result.ReceivingEndpointName,
                         };
             }
         }

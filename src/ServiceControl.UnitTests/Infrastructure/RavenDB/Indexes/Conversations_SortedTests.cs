@@ -22,27 +22,35 @@ public class Conversations_SortedTests
 
             using (var session = documentStore.OpenSession())
             {
-                var timeSent = DateTime.Now;
+                var now = DateTime.Now;
                 session.Store(new Message
                 {
                     Id = "id",
                     MessageType = "MessageType",
-                    TimeSent = timeSent,
+                    TimeSent = now,
                     Status = MessageStatus.Successful,
                     ConversationId = "ConversationId",
+                    ProcessedAt = now,
+                    OriginatingEndpoint = new EndpointDetails(){Name = "foo"},
+                    Recoverable = true,
                 });
                 session.SaveChanges();
 
                 var results = session.Query<Conversations_Sorted.Result, Conversations_Sorted>()
                     .Customize(x => x.WaitForNonStaleResults())
                     .TransformWith<Conversations_Sorted.MessageTransformer, Message>()
+                    //of type works
+                    //.OfType<Message>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 var message = results.First();
                 Assert.AreEqual("id", message.Id);
                 Assert.AreEqual("MessageType", message.MessageType);
-                Assert.AreEqual(timeSent, message.TimeSent);
+                Assert.AreEqual(now, message.TimeSent);
+                Assert.AreEqual(now, message.ProcessedAt);
                 Assert.AreEqual(MessageStatus.Successful, message.Status);
+                Assert.IsTrue(message.Recoverable);
+                Assert.AreEqual("foo", message.OriginatingEndpoint.Name);
                 Assert.AreEqual("ConversationId", message.ConversationId);
             }
 
