@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
+    using ServiceBus.Management.MessageAuditing;
 
     class CustomCheck
     {
@@ -9,5 +10,6 @@
         public Status Status { get; set; }
         public DateTime ReportedAt { get; set; }
         public string FailureReason { get; set; }
+        public EndpointDetails OriginatingEndpoint { get; set; }
     }
 }
