@@ -70,7 +70,9 @@
                 BodyRaw = body;
 
                 DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.RelatedTo, headers, msgId => RelatedToMessageId = msgId);
-                DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.CorrelationId, headers, id => ConversationId = id);
+                DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.CorrelationId, headers, id => CorrelationId = id);
+                DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.ConversationId, headers,
+                    convId => ConversationId = convId);
                 OriginatingSaga = SagaDetails.Parse(headers);
                 DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.IsDeferredMessage, headers, isDeferred => IsDeferredMessage = true);
             }
