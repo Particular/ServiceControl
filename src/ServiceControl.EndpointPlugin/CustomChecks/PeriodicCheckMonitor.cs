@@ -5,20 +5,19 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Messages.CustomChecks;
-    using Messages.Operations.ServiceControlBackend;
     using NServiceBus;
     using NServiceBus.ObjectBuilder;
+    using Operations.ServiceControlBackend;
 
     /// <summary>
-    /// This class will upon startup get the registered PeriodicCheck types
-    /// and will invoke each one's PerformCheck at the desired interval.
+    ///     This class will upon startup get the registered PeriodicCheck types
+    ///     and will invoke each one's PerformCheck at the desired interval.
     /// </summary>
-    class PeriodicCheckMonitor : IWantToRunWhenBusStartsAndStops
+    internal class PeriodicCheckMonitor : IWantToRunWhenBusStartsAndStops
     {
-        public IServiceControlBackend ServiceControlBackend { get; set; }
+        public ServiceControlBackend ServiceControlBackend { get; set; }
         public IBuilder Builder { get; set; }
-        CancellationTokenSource tokenSource = new CancellationTokenSource();
-             
+
         public void Start()
         {
             var cancellationToken = tokenSource.Token;
@@ -28,13 +27,13 @@
                     while (!cancellationToken.IsCancellationRequested)
                     {
                         var result = p.PerformCheck();
-                        ReportToBackend(result, p.PeriodicCheckId, p.Category, TimeSpan.FromTicks(p.Interval.Ticks * 4));
+                        ReportToBackend(result, p.Id, p.Category, TimeSpan.FromTicks(p.Interval.Ticks*4));
 
-                        //if (result.HasFailed)
-                        //    ReportCustomCheckResult
                         Thread.Sleep(p.Interval);
                     }
                 }, cancellationToken));
+
+            Builder.BuildAll<ICustomCheck>();
         }
 
         public void Stop()
@@ -42,7 +41,7 @@
             if (tokenSource != null)
             {
                 tokenSource.Cancel();
-            }   
+            }
         }
 
         void ReportToBackend(CheckResult result, string customCheckId, string category, TimeSpan ttr)
@@ -53,7 +52,9 @@
                 Category = category,
                 Result = result,
                 ReportedAt = DateTime.UtcNow
-            }, ttr); 
+            }, ttr);
         }
+
+        readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
     }
 }

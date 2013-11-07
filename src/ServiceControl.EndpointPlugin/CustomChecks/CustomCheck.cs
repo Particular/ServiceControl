@@ -1,50 +1,51 @@
 ﻿namespace ServiceControl.EndpointPlugin.CustomChecks
 {
     using System;
-    using System.Linq;
     using Messages.CustomChecks;
-    using Messages.Operations.ServiceControlBackend;
+    using NServiceBus;
+    using Operations.ServiceControlBackend;
 
     public abstract class CustomCheck : ICustomCheck
     {
-        public IServiceControlBackend ServiceControlBackend { get; set; }
-
-        public virtual string Category
+        protected CustomCheck(string id, string category)
         {
-            get
-            {
-                return GetType().Namespace.Split('.').Last().Replace("Checks", "");
-            }
+            this.category = category;
+            this.id = id;
         }
 
-        public void ReportOk()
+        public string Category
         {
-            ReportToBackend(CheckResult.Ok, CustomCheckId, Category);
+            get { return category; }
+        }
+
+        public void ReportPass()
+        {
+            ReportToBackend(CheckResult.Pass);
         }
 
 
         public void ReportFailed(string failureReason)
         {
-            ReportToBackend(CheckResult.Failed(failureReason), CustomCheckId, Category);
+            ReportToBackend(CheckResult.Failed(failureReason));
         }
 
-        public string CustomCheckId
+        public string Id
         {
-            get
-            {
-                return GetType().FullName;
-            }
+            get { return id; }
         }
-        
-        void ReportToBackend(CheckResult result, string customCheckId, string category)
+
+        void ReportToBackend(CheckResult result)
         {
-            ServiceControlBackend.Send(new ReportCustomCheckResult
+            Configure.Instance.Builder.Build<ServiceControlBackend>().Send(new ReportCustomCheckResult
             {
-                CustomCheckId = customCheckId,
+                CustomCheckId = id,
                 Category = category,
                 Result = result,
                 ReportedAt = DateTime.UtcNow
             });
         }
+
+        readonly string category;
+        readonly string id;
     }
 }

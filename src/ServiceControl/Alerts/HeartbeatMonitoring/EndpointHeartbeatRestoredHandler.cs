@@ -17,15 +17,14 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var alert = new Alert()
+                var alert = new Alert
                 {
                     RaisedAt = message.RestoredAt,
                     Severity = Severity.Info,
                     Description =
-                        "Endpoint heartbeats has been restored.",
-                    Tags = string.Format("{0}, {1}", Category.HeartbeatFailure, Category.EndpointFailures),
+                        "Endpoint heartbeat has been restored.",
                     Category = Category.HeartbeatFailure,
-                    RelatedTo = new List<string>() { string.Format("endpoint/{0}/{1}", message.Endpoint, message.Machine) }
+                    RelatedTo = new List<string> { string.Format("endpoint/{0}/{1}", message.Endpoint, message.Machine) }
                 };
 
                 session.Store(alert);
@@ -39,7 +38,6 @@
                     m.Id = alert.Id;
                     m.Category = alert.Category;
                     m.RelatedTo = alert.RelatedTo;
-                    m.Tags = alert.Tags;
                 });
             }
         }

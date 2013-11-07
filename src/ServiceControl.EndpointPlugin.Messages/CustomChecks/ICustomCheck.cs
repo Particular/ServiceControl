@@ -4,8 +4,8 @@
     public interface ICustomCheck
     {
         string Category { get; }
-        string CustomCheckId { get; }
-        void ReportOk();
+        string Id { get; }
+        void ReportPass();
         void ReportFailed(string failureReason);
     }
 }

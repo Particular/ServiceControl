@@ -25,7 +25,8 @@
             if (customAttributes.Length >= 1)
             {
                 var fileVersionAttribute = (AssemblyInformationalVersionAttribute) customAttributes[0];
-                return fileVersionAttribute.InformationalVersion;
+                var informationalVersion = fileVersionAttribute.InformationalVersion;
+                return informationalVersion.Split(' ')[0];
             }
 
             return typeof(VersionExtension).Assembly.GetName().Version.ToString(4);

@@ -4,7 +4,7 @@
     using Messages.Heartbeats;
     using Operations.PerformanceCounters;
 
-    public class EndpointSLAHeartbeatProvider : HeartbeatInfoProvider
+    class EndpointSLAHeartbeatProvider : HeartbeatInfoProvider
     {
         public PerformanceCounterCapturer PerformanceCounterCapturer { get; set; }
 

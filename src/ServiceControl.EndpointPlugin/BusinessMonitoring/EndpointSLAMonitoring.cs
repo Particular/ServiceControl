@@ -4,7 +4,7 @@
     using NServiceBus.Features;
     using Operations.PerformanceCounters;
 
-    public class EndpointSLAMonitoring : Feature, IWantToRunWhenBusStartsAndStops
+    class EndpointSLAMonitoring : Feature, IWantToRunWhenBusStartsAndStops
     {
         public PerformanceCounterCapturer PerformanceCounterCapturer { get; set; }
 

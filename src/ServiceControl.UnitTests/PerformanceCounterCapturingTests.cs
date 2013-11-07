@@ -11,7 +11,7 @@
     public class PerformanceCounterCapturingTests
     {
         [Test]
-        public void Should_be_able_to_continously_capture_counter_data()
+        public void Should_be_able_to_continuously_capture_counter_data()
         {
             var capturer = new PerformanceCounterCapturer();
 

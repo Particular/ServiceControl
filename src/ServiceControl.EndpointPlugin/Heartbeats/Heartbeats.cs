@@ -5,15 +5,15 @@
     using System.Linq;
     using System.Threading;
     using Messages.Heartbeats;
-    using Messages.Operations.ServiceControlBackend;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
-   
-    public class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
+    using Operations.ServiceControlBackend;
+
+    class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
     {
-        public IServiceControlBackend ServiceControlBackend { get; set; }
+        public ServiceControlBackend ServiceControlBackend { get; set; }
         public IBuilder Builder { get; set; }
 
         public override bool IsEnabledByDefault

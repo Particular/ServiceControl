@@ -9,9 +9,8 @@
             if (!ctx.Response.Headers.ContainsKey("Cache-Control"))
             {
                 ctx.Response
-                    .WithHeader("Cache-Control", "private, max-age=300, must-revalidate"); //By default cache for 5min
+                    .WithHeader("Cache-Control", "private, max-age=10, must-revalidate");
             }
-
 
             ctx.Response
                 .WithHeader("Access-Control-Expose-Headers",

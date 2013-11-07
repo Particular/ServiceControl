@@ -2,6 +2,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
 {
     using System.Linq;
     using MessageAuditing;
+    using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 
     public class Endpoints_Distinct : AbstractMultiMapIndexCreationTask<Endpoints_Distinct.Result>
@@ -26,6 +27,8 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
                 {
                     Endpoint = g.Key
                 };
+
+            Store(x => x.Endpoint, FieldStorage.Yes);
         }
 
         public class Result

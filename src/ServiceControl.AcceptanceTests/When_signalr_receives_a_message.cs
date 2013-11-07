@@ -50,8 +50,15 @@
                             }
                             catch (AggregateException ex)
                             {
-                                if (((HttpWebResponse) ((WebException) ex.GetBaseException()).Response).StatusCode !=
-                                    HttpStatusCode.NotFound)
+                                var exception = ex.GetBaseException();
+                                var webException = exception as WebException;
+                                
+                                if (webException == null)
+                                {
+                                    continue;
+                                }
+
+                                if (((HttpWebResponse)webException.Response).StatusCode != HttpStatusCode.NotFound)
                                 {
                                     break;
                                 }

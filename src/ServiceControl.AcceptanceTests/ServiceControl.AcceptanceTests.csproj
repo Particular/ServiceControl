@@ -110,6 +110,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.EndpointPlugin.Messages\ServiceControl.EndpointPlugin.Messages.csproj">
+      <Project>{d2d40b1e-9fb5-4a3e-b4cd-b04b0882690b}</Project>
+      <Name>ServiceControl.EndpointPlugin.Messages</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj">
+      <Project>{07393fa7-8577-42d7-8fe4-3c4d955a5a31}</Project>
+      <Name>ServiceControl.EndpointPlugin</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>
       <Name>ServiceControl</Name>

@@ -8,7 +8,7 @@
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using ServiceBus.Management.MessageAuditing;
-    
+
 
     class ErrorMessageHandler : IHandleMessages<ErrorMessageReceived>
     {
@@ -38,7 +38,7 @@
                         m.Endpoint = failedMessage.ReceivingEndpoint.Name;
                         m.Machine = failedMessage.ReceivingEndpoint.Machine;
                         m.FailedAt = failedMessage.TimeSent;
-                        m.Reason = string.Format("Exception: {0}", failedMessage.FailureDetails.Exception.Message);
+                        m.Reason = failedMessage.FailureDetails.Exception.Message;
                     });
                 }
                 catch (ConcurrencyException) //there is already a message in the store with the same id
@@ -51,35 +51,33 @@
 
         void UpdateExistingMessage(IDocumentSession session, string id, IDictionary<string,string> headers)
         {
-            var failedMessage = session.Load<Message>(id);
+            var message = session.Load<Message>(id);
 
             var timeOfFailure = DateTimeExtensions.ToUtcDateTime(headers["NServiceBus.TimeOfFailure"]);
 
-            if (failedMessage.FailureDetails.TimeOfFailure == timeOfFailure)
+            if (message.FailureDetails.TimeOfFailure == timeOfFailure)
             {
                 return;
             }
 
-            if (failedMessage.Status == MessageStatus.Successful && timeOfFailure > failedMessage.ProcessedAt)
+            if (message.Status == MessageStatus.Successful && timeOfFailure > message.ProcessedAt)
             {
                 throw new InvalidOperationException(
-                    "A message can't first be processed successfully and then fail, Id: " + failedMessage.Id);
+                    "A message can't first be processed successfully and then fail, Id: " + message.Id);
             }
 
-            if (failedMessage.Status == MessageStatus.Successful)
+            if (message.Status == MessageStatus.Successful)
             {
-                failedMessage.FailureDetails = new FailureDetails(headers);
+                message.FailureDetails = new FailureDetails(headers);
             }
             else
             {
-                failedMessage.Status = MessageStatus.RepeatedFailure;
+                message.Status = MessageStatus.RepeatedFailure;
 
-                failedMessage.FailureDetails.RegisterException(headers);
+                message.FailureDetails.RegisterException(headers);
             }
 
             session.SaveChanges();
         }
-
-    
     }
 }

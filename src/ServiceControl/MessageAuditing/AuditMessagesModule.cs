@@ -23,7 +23,7 @@
                         .OfType<Message>()
                         .Paging(Request)
                         .ToArray();
-
+                    
                     return Negotiate
                         .WithModelAppendedRestfulUrls(results, Request)
                         .WithPagingLinksAndTotalCount(stats, Request)

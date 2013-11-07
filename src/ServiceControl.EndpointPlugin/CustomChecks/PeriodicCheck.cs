@@ -1,32 +1,36 @@
 ﻿namespace ServiceControl.EndpointPlugin.CustomChecks
 {
     using System;
-    using System.Linq;
     using Messages.CustomChecks;
-    
+
     public abstract class PeriodicCheck : IPeriodicCheck
     {
+        protected PeriodicCheck(string id, string category, TimeSpan interval)
+        {
+            this.category = category;
+            this.id = id;
+            this.interval = interval;
+        }
+
         public abstract CheckResult PerformCheck();
-        
-        public virtual System.TimeSpan Interval
+
+        public TimeSpan Interval
         {
-            get { return TimeSpan.FromMinutes(1); }
+            get { return interval; }
         }
 
-        public virtual string Category
+        public string Category
         {
-            get
-            {
-                return GetType().Namespace.Split('.').Last().Replace("Checks", "");
-            }
+            get { return category; }
         }
 
-        public string PeriodicCheckId
+        public string Id
         {
-            get
-            {
-                return GetType().FullName;
-            }
+            get { return id; }
         }
+
+        readonly string id;
+        readonly string category;
+        readonly TimeSpan interval;
     }
 }

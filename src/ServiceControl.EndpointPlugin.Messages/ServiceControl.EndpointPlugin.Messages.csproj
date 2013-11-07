@@ -47,7 +47,6 @@
     <Compile Include="Heartbeats\IHeartbeatProvider.cs" />
     <Compile Include="Operations\Configuration\EndpointConfiguration.cs" />
     <Compile Include="Operations\PerformanceCounters\EndpointPerformance.cs" />
-    <Compile Include="Operations\ServiceControlBackend\IServiceControlBackend.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -40,14 +40,30 @@
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit\lib\nunit.framework.dll</HintPath>
     </Reference>
+    <Reference Include="Raven.Client.Embedded, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\RavenDB.Embedded\lib\net40\Raven.Client.Embedded.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Client.Lightweight, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\RavenDB.Client\lib\net40\Raven.Client.Lightweight.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Database, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\RavenDB.Database\lib\net40\Raven.Database.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CustomChecks\FakeServiceControlBackend.cs" />
-    <Compile Include="CustomChecks\When_devs_implement_a_custom_check.cs" />
+    <Compile Include="BackendCommunications\VersionCheckerTests.cs" />
     <Compile Include="HeartbeatMonitoring\When_endpoints_emit_heartbeats.cs" />
     <Compile Include="HeartbeatMonitoring\When_endpoints_stops_emitting_heartbeats.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\Conversations_SortedTests.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_IdsTests.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_SearchTests.cs" />
+    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_SortTests.cs" />
     <Compile Include="PerformanceCounterCapturingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

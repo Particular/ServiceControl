@@ -6,7 +6,7 @@
     public interface IPeriodicCheck
     {
         string Category { get; }
-        string PeriodicCheckId { get; }
+        string Id { get; }
         CheckResult PerformCheck();
         TimeSpan Interval { get; }
     }

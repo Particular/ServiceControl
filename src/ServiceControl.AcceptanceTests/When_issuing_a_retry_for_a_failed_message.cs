@@ -2,10 +2,13 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using Contexts;
     using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Config;
+    using NServiceBus.Features;
     using NUnit.Framework;
 
     public class When_issuing_a_retry_for_a_failed_message : AcceptanceTest
@@ -14,7 +17,11 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
+                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<SecondLevelRetries>())
+                    .WithConfig<TransportConfig>(c =>
+                        {
+                            c.MaxRetries = 1;
+                        })
                     .AddMapping<MyMessage>(typeof(FailureEndpoint))
                     .AuditTo(Address.Parse("audit"));
             }
@@ -87,23 +94,31 @@
                         var b = c.RetryIssued;
                         if (!b && AuditDataAvailable(c, MessageStatus.Failed))
                         {
-                            Post<object>(String.Format("/api/errors/{0}/retry", c.Message.Id));
-
                             c.RetryIssued = true;
+
+                            Post<object>(String.Format("/api/errors/{0}/retry", c.Message.Id));
 
                             return false;
                         }
 
-                        return AuditDataAvailable(c, MessageStatus.Successful);
+                        var auditDataAvailable = AuditDataAvailable(c, MessageStatus.Successful);
+
+                        if (!auditDataAvailable)
+                        {
+                            Thread.Sleep(2000);
+                        }
+
+                        return auditDataAvailable;
                     }
                 })
-                .Run();
+                .Run(TimeSpan.FromMinutes(2));
 
             Assert.IsNotNull(context.Message.ProcessedAt,
                 "Processed at should be set when the message has been successfully been processed");
-            Assert.AreEqual(context.Message.History.OrderBy(h => h.Time).First().Action, "RetryIssued",
+            var historyItems = context.Message.History.ToList();
+            Assert.AreEqual(historyItems.OrderBy(h => h.Time).First().Action, "RetryIssued",
                 "There should be an audit trail for retry attempts");
-            Assert.AreEqual(context.Message.History.OrderBy(h => h.Time).Skip(1).First().Action, "ErrorResolved",
+            Assert.AreEqual(historyItems.OrderBy(h => h.Time).Skip(1).First().Action, "ErrorResolved",
                 "There should be an audit trail for successful retries");
         }
     }

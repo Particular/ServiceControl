@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Alerts.CustomChecks
 {
+    using System;
     using System.Collections.Generic;
     using Contracts.Alerts;
     using Contracts.CustomChecks;
@@ -17,14 +18,13 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var alert = new Alert()
+                var alert = new Alert
                 {
                     RaisedAt = message.SucceededAt,
                     Severity = Severity.Info,
-                    Description = string.Format("{0} is working as expected.", message.CustomCheckId),
-                    Tags = string.Format("{0}, {1}", Category.CustomChecks, message.Category),
+                    Description = String.Format("{0}: Working as expected.", message.CustomCheckId),
                     Category = message.Category,
-                    RelatedTo = new List<string>() {string.Format("endpoint/{0}/{1}", message.Category, string.Empty)} //TODO: Pass in the machine name
+                    RelatedTo = new List<string> { String.Format("endpoint/{0}/{1}", message.OriginatingEndpoint.Name, message.OriginatingEndpoint.Machine) }
                 };
 
                 session.Store(alert);
@@ -38,7 +38,6 @@
                     m.Id = alert.Id;
                     m.Category = alert.Category;
                     m.RelatedTo = alert.RelatedTo;
-                    m.Tags = alert.Tags;
                 });
             }
         }

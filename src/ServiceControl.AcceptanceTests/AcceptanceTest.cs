@@ -161,6 +161,12 @@
                 response = ex.Response as HttpWebResponse;
             }
 
+            if (response == null)
+            {
+                Thread.Sleep(1000);
+                return null;
+            }
+
             Console.Out.WriteLine(" - {0}", (int) response.StatusCode);
 
             //for now
