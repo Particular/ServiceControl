@@ -45,6 +45,7 @@
                 FileName = logFile,
             };
 
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, fileTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
             NLogConfigurator.Configure(new object[] {fileTarget}, logLevel);

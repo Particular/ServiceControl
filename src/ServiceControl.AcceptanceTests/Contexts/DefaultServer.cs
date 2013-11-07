@@ -48,11 +48,12 @@
 
             var config = Configure.With(types)
                 .DefineEndpointName(endpointConfiguration.EndpointName)
-                .DefineBuilder(settings.GetOrNull("Builder"))
                 .CustomConfigurationSource(configSource)
+                .DefineBuilder(settings.GetOrNull("Builder"))
                 .DefineSerializer(settings.GetOrNull("Serializer"))
                 .DefineTransport(transportToUse)
                 .InMemorySagaPersister();
+
 
             if (transportToUse == null || transportToUse.Contains("Msmq") || transportToUse.Contains("SqlServer") ||
                 transportToUse.Contains("RabbitMq"))
