@@ -12,6 +12,7 @@
     using Nancy.ModelBinding;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Infrastructure.RavenDB.Indexes;
 
     public class ErrorMessagesModule : BaseModule
     {
@@ -43,11 +44,10 @@
             {
                 using (var session = Store.OpenSession())
                 {
-                    var facetResults = (session.Query<Message>("MessageFailures")
+                    var facetResults = (session.Query<Message, Messages_Failures>()
                         .ToFacets("facets/messageFailureFacets")).Results;
 
                     return Negotiate.WithModel(facetResults);
-
                 }
             };
 
