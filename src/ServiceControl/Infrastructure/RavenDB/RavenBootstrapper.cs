@@ -1,12 +1,9 @@
 ﻿namespace ServiceBus.Management.Infrastructure.RavenDB
 {
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Indexing;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
