@@ -19,5 +19,6 @@
   </metadata>
   <files>
     <file src="..\..\src\ServiceControl.EndpointPlugin\bin\Release\ServiceControl.EndpointPlugin*.dll" target="lib\net40" />
+    <file src="tools\install.ps1" target="tools" />
   </files>
 </package>
