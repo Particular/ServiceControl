@@ -427,9 +427,7 @@
     <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
     <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
     <ROW Action="DetectService" Type="1" Source="aicustact.dll" Target="DetectService" AdditionalSeq="AI_DATA_SETTER_1"/>
-    <ROW Action="InstallDtc" Type="3073" Source="Particular.CustomActions.CA.dll_1" Target="InstallDtc"/>
     <ROW Action="InstallMsmq" Type="3073" Source="Particular.CustomActions.CA.dll_1" Target="InstallMsmq"/>
-    <ROW Action="InstallPerformanceCounters" Type="3073" Source="Particular.CustomActions.CA.dll_1" Target="InstallPerformanceCounters"/>
     <ROW Action="Launch_Url" Type="1090" Source="viewer.exe" Target="http://www.particular.net/Installation-completed?installer=ServiceControl&amp;version=[ProductVersion]" Options="1"/>
     <ROW Action="NServiceBus.Host.exe_Install" Type="3074" Source="viewer.exe" Target="/HideWindow &quot;[#NServiceBus.Host.exe]&quot; -install -serviceName=&quot;Particular.ServiceControl&quot; -displayName=&quot;Particular ServiceControl&quot; -description=&quot;Particular Software ServiceControl for NServiceBus (version [ProductVersion])&quot;" Options="1"/>
     <ROW Action="NServiceBus.Host.exe_Uninstall" Type="3074" Source="viewer.exe" Target="/HideWindow &quot;[#NServiceBus.Host.exe]&quot; -uninstall -serviceName=&quot;Particular.ServiceControl&quot;"/>
@@ -461,9 +459,7 @@
     <ROW Action="Stop_Service" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="201"/>
     <ROW Action="DetectService" Sequence="1602"/>
     <ROW Action="AI_DATA_SETTER_1" Sequence="1601"/>
-    <ROW Action="InstallPerformanceCounters" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )" Sequence="3601"/>
-    <ROW Action="InstallMsmq" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )" Sequence="3603"/>
-    <ROW Action="InstallDtc" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) )" Sequence="3602"/>
+    <ROW Action="InstallMsmq" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) ) AND ( TRANSPORT_TYPE=&quot;NServiceBus.Msmq, NServiceBus.Core&quot; )" Sequence="3601"/>
     <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Sequence="99" Builds="DefaultBuild"/>
     <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Condition="AI_SETUPEXEPATH_ORIGINAL" Sequence="101" Builds="DefaultBuild"/>
     <ROW Action="AI_DeleteCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="199" Builds="DefaultBuild"/>
