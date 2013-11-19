@@ -18,15 +18,14 @@ namespace ServiceControl.HeartbeatMonitoring
                 {
                     ActiveEndpoints = endpointStatus.Count(s => s.Active),
                     FailingEndpoints = endpointStatus.Count(s => !s.Active)
-                }).WithHeader("Cache-Control", "private, max-age=0, must-revalidate");
+                });
             };
 
             Get["/heartbeats"] = _ =>
             {
                 var endpointStatus = HeartbeatMonitor.HeartbeatStatuses;
 
-                return Negotiate.WithModel(endpointStatus)
-                    .WithHeader("Cache-Control", "private, max-age=0, must-revalidate");
+                return Negotiate.WithModel(endpointStatus);
             };
         }
     }

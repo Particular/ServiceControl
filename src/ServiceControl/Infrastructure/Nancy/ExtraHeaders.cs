@@ -9,7 +9,7 @@
             if (!ctx.Response.Headers.ContainsKey("Cache-Control"))
             {
                 ctx.Response
-                    .WithHeader("Cache-Control", "private, max-age=10, must-revalidate");
+                    .WithHeader("Cache-Control", "private, max-age=0");
             }
 
             ctx.Response

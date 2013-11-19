@@ -12,33 +12,6 @@
         {
             var endpoint = Bus.CurrentMessageContext.Headers[Headers.OriginatingEndpoint];
 
-            //if (message.Configuration.Any())
-            //{
-            //    Bus.InMemory.Raise(new EndpointConfigurationReceived
-            //    {
-            //        Endpoint = endpoint,
-            //        SettingsReceived = message.Configuration,
-            //    });
-
-            //}
-
-            //if (message.PerformanceData.Any())
-            //{
-            //    Bus.InMemory.Raise<EndpointPerformanceDataReceived>(e =>
-            //    {
-            //        e.Endpoint = endpoint;
-
-            //        foreach (var kvp in  message.PerformanceData)
-            //        {
-            //            e.Data.Add(kvp.Key, kvp.Value.Select(dp => new Contracts.Operations.DataPoint
-            //            {
-            //                Time = dp.Time,
-            //                Value = dp.Value
-            //            }).ToList());
-            //        }
-            //    });
-            //}
-
             Bus.InMemory.Raise(new EndpointHeartbeatReceived
             {
                 Endpoint = endpoint,
