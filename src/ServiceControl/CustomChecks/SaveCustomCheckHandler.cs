@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using EndpointPlugin.Messages.CustomChecks;
+    using Infrastructure;
     using NServiceBus;
     using Raven.Client;
     using ServiceBus.Management.MessageAuditing;
@@ -17,10 +18,13 @@
                 session.Advanced.UseOptimisticConcurrency = true;
 
                 var originatingEndpoint = EndpointDetails.OriginatingEndpoint(Bus.CurrentMessageContext.Headers);
-                var id = CustomCheck.MakeId(message.CustomCheckId, originatingEndpoint.Name, originatingEndpoint.Machine);
-                var customCheck = session.Load<CustomCheck>(id) ?? new CustomCheck();
+                var id = DeterministicGuid.MakeId(message.CustomCheckId, originatingEndpoint.Name,
+                    originatingEndpoint.Machine);
+                var customCheck = session.Load<CustomCheck>(id) ?? new CustomCheck
+                {
+                    Id = id,
+                };
 
-                customCheck.Id = id;
                 customCheck.CustomCheckId = message.CustomCheckId;
                 customCheck.Category = message.Category;
                 customCheck.Status = message.Result.HasFailed ? Status.Fail : Status.Pass;

@@ -1,14 +1,14 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
-    using System.Collections.Concurrent;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using Contracts.HeartbeatMonitoring;
     using NServiceBus;
+    using Operations.Heartbeats;
+    using Raven.Client;
 
-    public class HeartbeatMonitor
+    public class HeartbeatMonitor : IWantToRunWhenBusStartsAndStops
     {
         public HeartbeatMonitor(IBus bus)
         {
@@ -16,101 +16,98 @@
             GracePeriod = TimeSpan.FromSeconds(40);
         }
 
-        public TimeSpan GracePeriod { get; set; }
+        public IDocumentStore Store { get; set; }
 
-        public List<HeartbeatStatus> HeartbeatStatuses
-        {
-            get { return endpointInstancesBeingMonitored.Values.ToList(); }
-        }
+        public TimeSpan GracePeriod { get; set; }
 
         public void Start()
         {
-            timer = new Timer(RefreshHeartbeatsStatuses, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            timer = new Timer(Refresh, null, 0, -1);
         }
 
         public void Stop()
         {
-            timer.Dispose();
+            using (var manualResetEvent = new ManualResetEvent(false))
+            {
+                timer.Dispose(manualResetEvent);
+
+                manualResetEvent.WaitOne();
+            }
         }
 
-        public void RegisterHeartbeat(string endpoint, string machine, DateTime sentAt)
+        void Refresh(object _)
         {
-            var endpointInstanceId = endpoint + machine;
+            UpdateStatuses();
 
-            endpointInstancesBeingMonitored.AddOrUpdate(endpointInstanceId, 
-                s =>
-                {
-                    bus.Publish(new HeartbeatingEndpointDetected
-                    {
-                        Endpoint = endpoint,
-                        Machine = machine,
-                        DetectedAt = sentAt,
-                    });
+            try
+            {
+                timer.Change((int) GracePeriod.TotalMilliseconds, -1);
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
 
-                    return new HeartbeatStatus
-                    {
-                        Endpoint = endpoint,
-                        Machine = machine,
-                        LastSentAt = sentAt,
-                        Active = true
-                    };
-                },
-                (e, status) =>
+        void UpdateStatuses()
+        {
+            using (var session = Store.OpenSession())
+            {
+                RavenQueryStatistics stats;
+                var results = session.Query<Heartbeat>()
+                    .Statistics(out stats)
+                    .ToArray();
+
+                foreach (var result in results)
                 {
-                    if (status.LastSentAt < sentAt)
+                    var newStatus = IsActive(result.LastReportAt) ? Status.Beating : Status.Dead;
+
+                    if (result.ReportedStatus == newStatus)
                     {
-                        status.LastSentAt = sentAt;
+                        continue;
                     }
 
-                    return status;
-                });
-        }
-
-        public void RefreshHeartbeatsStatuses(object state)
-        {
-            foreach (var status in endpointInstancesBeingMonitored.Values)
-            {
-                var newStatus = IsActive(status);
-
-                if (status.Active == newStatus)
-                {
-                    continue;
-                }
-
-                status.Active = newStatus;
-
-                if (status.Active)
-                {
-                    bus.Publish(new EndpointHeartbeatRestored
+                    if (result.ReportedStatus == Status.New) // New endpoint heartbeat
                     {
-                        Endpoint = status.Endpoint,
-                        Machine = status.Machine,
-                        RestoredAt = status.LastSentAt
-                    });
-                }
-                else
-                {
-                    bus.Publish(new EndpointFailedToHeartbeat
+                        bus.Publish(new HeartbeatingEndpointDetected
+                        {
+                            Endpoint = result.OriginatingEndpoint.Name,
+                            Machine = result.OriginatingEndpoint.Machine,
+                            DetectedAt = result.LastReportAt,
+                        });
+                    }
+                    else if (newStatus == Status.Beating)
                     {
-                        Endpoint = status.Endpoint,
-                        Machine = status.Machine,
-                        LastReceivedAt = status.LastSentAt,
-                    });
+                        bus.Publish(new EndpointHeartbeatRestored
+                        {
+                            Endpoint = result.OriginatingEndpoint.Name,
+                            Machine = result.OriginatingEndpoint.Machine,
+                            RestoredAt = result.LastReportAt
+                        });
+                    }
+                    else
+                    {
+                        bus.Publish(new EndpointFailedToHeartbeat
+                        {
+                            Endpoint = result.OriginatingEndpoint.Name,
+                            Machine = result.OriginatingEndpoint.Machine,
+                            LastReceivedAt = result.LastReportAt,
+                        });
+                    }
+
+                    result.ReportedStatus = newStatus;
+                    session.SaveChanges();
                 }
             }
         }
 
-        bool IsActive(HeartbeatStatus status)
+        bool IsActive(DateTime lastReportedAt)
         {
-            var timeSinceLastHeartbeat = DateTime.UtcNow - status.LastSentAt;
+            var timeSinceLastHeartbeat = DateTime.UtcNow - lastReportedAt;
 
             return timeSinceLastHeartbeat < GracePeriod;
         }
 
         readonly IBus bus;
-
-        readonly ConcurrentDictionary<string, HeartbeatStatus> endpointInstancesBeingMonitored =
-            new ConcurrentDictionary<string, HeartbeatStatus>();
 
         Timer timer;
     }

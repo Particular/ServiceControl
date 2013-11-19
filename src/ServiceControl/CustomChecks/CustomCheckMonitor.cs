@@ -5,6 +5,7 @@
     using System.Collections.Generic;
     using Contracts.CustomChecks;
     using EndpointPlugin.Messages.CustomChecks;
+    using Infrastructure;
     using NServiceBus;
     using ServiceBus.Management.MessageAuditing;
 
@@ -24,7 +25,7 @@
         {
             var originatingEndpoint = EndpointDetails.OriginatingEndpoint(headers);
 
-            var key = CustomCheck.MakeId(result.CustomCheckId, originatingEndpoint.Name, originatingEndpoint.Machine);
+            var key = DeterministicGuid.MakeId(result.CustomCheckId, originatingEndpoint.Name, originatingEndpoint.Machine);
 
             var isRegistered = registeredCustomChecks.ContainsKey(key);
             if (isRegistered)
