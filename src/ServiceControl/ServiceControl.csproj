@@ -202,6 +202,7 @@
     <Compile Include="HeartbeatMonitoring\TotalEndpointsUpdated.cs" />
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
+    <Compile Include="Infrastructure\Nancy\UrlAclInstaller.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Facets.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Failures.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />

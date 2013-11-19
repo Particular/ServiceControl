@@ -18,12 +18,14 @@
     <ROW Property="ARPSYSTEMCOMPONENT" Value="1"/>
     <ROW Property="ARPURLUPDATEINFO" Value="http://particular.net/downloads"/>
     <ROW Property="AppLogoIcon" Value="applogoicon" MultiBuildValue="DefaultBuild:Operationslogo.png" Type="1" MsiKey="AppLogoIcon"/>
+    <ROW Property="ExtractFilesFirst" Value="1"/>
     <ROW Property="Manufacturer" Value="Particular Software Ltd."/>
     <ROW Property="PORT_VAL" Value="33333" Type="4"/>
     <ROW Property="ProductCode" Value="1033:{12BDB3E7-3A70-410A-A2C0-43037E33E3E6} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="ServiceControl [|ProductVersion]"/>
     <ROW Property="ProductVersion" Value="1.0.0" Type="32"/>
+    <ROW Property="REBOOTPROMPT" MultiBuildValue="DefaultBuild:Suppress"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
     <ROW Property="TRANSPORT_TYPE" Value="NServiceBus.Msmq, NServiceBus.Core" Type="4"/>
     <ROW Property="UpgradeCode" Value="{8F59B8C7-A3EB-4D19-9B88-0EA69FF1B26C}"/>
@@ -36,7 +38,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="AI_CustomARPName" ComponentId="{AF26B4EA-8C15-439E-92C1-70944943F779}" Directory_="APPDIR" Attributes="4" KeyPath="DisplayName" Options="1"/>
-    <ROW Component="AI_ExePath" ComponentId="{59801BAC-F25B-40AA-A4BD-86EBACC29DB4}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
+    <ROW Component="AI_ExePath" ComponentId="{39176FE9-3DC1-4B49-8344-9FE6BBC43DB9}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
     <ROW Component="AWS.Extensions.dll" ComponentId="{8AD2FCE7-0BB1-4BCC-B819-E736ADC161F4}" Directory_="APPDIR" Attributes="0" KeyPath="AWS.Extensions.dll"/>
     <ROW Component="AWSSDK.dll" ComponentId="{964D41C0-DD8F-4A15-9DD7-30362EF24AEC}" Directory_="APPDIR" Attributes="0" KeyPath="AWSSDK.dll"/>
     <ROW Component="Autofac.Integration.SignalR.dll" ComponentId="{C8C42535-C4D9-424A-8E33-52607B2801B5}" Directory_="APPDIR" Attributes="0" KeyPath="Autofac.Integration.SignalR.dll"/>
@@ -184,6 +186,9 @@
     <ROW File="System.Spatial.dll" Component_="System.Spatial.dll" FileName="System~1.dll|System.Spatial.dll" Attributes="0" SourcePath="Files\System.Spatial.dll" SelfReg="false" NextFile="System.Spatial.xml"/>
     <ROW File="System.Spatial.xml" Component_="Autofac.Integration.SignalR.xml" FileName="System~1.xml|System.Spatial.xml" Attributes="0" SourcePath="Files\System.Spatial.xml" SelfReg="false"/>
   </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
+    <ROW BootstrOptKey="GlobalOptions" GeneralOptions="qh" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" EulaPathLocId="*" IntroTextPathLocId="*"/>
+  </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
     <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" PackageFolder="Output Package" PackageFileName="ServiceControl " Languages="en" InstallationType="4" CabsLocation="1" PackageType="1" FilesInsideExe="true" ExeIconPath="res\Operations.ico" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\install" MsiCmdLine="/L*V [TempFolder]Particular.ServiceControl.Installer.log" ExtUI="true" UseLargeSchema="true" ExeName="ServiceControl"/>
     <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
@@ -222,6 +227,7 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiBinaryComponent">
     <ROW Name="ExternalUICleaner.dll" SourcePath="&lt;AI_CUSTACTS&gt;ExternalUICleaner.dll"/>
     <ROW Name="Operationslogo.png" SourcePath="res\Operations-logo.png"/>
+    <ROW Name="Particular.CustomActions.CA.dll_1" SourcePath="..\src\packages\Particular.CustomActions\lib\net40\Particular.CustomActions.CA.dll"/>
     <ROW Name="Prereq.dll" SourcePath="&lt;AI_CUSTACTS&gt;Prereq.dll"/>
     <ROW Name="aicustact.dll" SourcePath="&lt;AI_CUSTACTS&gt;aicustact.dll"/>
     <ROW Name="lzmaextractor.dll" SourcePath="&lt;AI_CUSTACTS&gt;lzmaextractor.dll"/>
@@ -421,6 +427,7 @@
     <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
     <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
     <ROW Action="DetectService" Type="1" Source="aicustact.dll" Target="DetectService" AdditionalSeq="AI_DATA_SETTER_1"/>
+    <ROW Action="InstallMsmq" Type="3073" Source="Particular.CustomActions.CA.dll_1" Target="InstallMsmq"/>
     <ROW Action="Launch_Url" Type="1090" Source="viewer.exe" Target="http://www.particular.net/Installation-completed?installer=ServiceControl&amp;version=[ProductVersion]" Options="1"/>
     <ROW Action="NServiceBus.Host.exe_Install" Type="3074" Source="viewer.exe" Target="/HideWindow &quot;[#NServiceBus.Host.exe]&quot; -install -serviceName=&quot;Particular.ServiceControl&quot; -displayName=&quot;Particular ServiceControl&quot; -description=&quot;Particular Software ServiceControl for NServiceBus (version [ProductVersion])&quot;" Options="1"/>
     <ROW Action="NServiceBus.Host.exe_Uninstall" Type="3074" Source="viewer.exe" Target="/HideWindow &quot;[#NServiceBus.Host.exe]&quot; -uninstall -serviceName=&quot;Particular.ServiceControl&quot;"/>
@@ -443,15 +450,6 @@
     <ROW Action="AI_GetArpIconPath" Sequence="51"/>
     <ROW Action="AI_RemoveExternalUIStub" Condition="(REMOVE=&quot;ALL&quot;) AND ((VersionNT &gt; 500) OR((VersionNT = 500) AND (ServicePackLevel &gt;= 4)))" Sequence="1501"/>
     <ROW Action="Launch_Url" Condition="( NOT Installed )" Sequence="6403"/>
-    <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Sequence="99" Builds="DefaultBuild"/>
-    <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Condition="AI_SETUPEXEPATH_ORIGINAL" Sequence="101" Builds="DefaultBuild"/>
-    <ROW Action="AI_DeleteCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="199" Builds="DefaultBuild"/>
-    <ROW Action="AI_DeleteRCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="198" Builds="DefaultBuild"/>
-    <ROW Action="AI_ExtractCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="197" Builds="DefaultBuild"/>
-    <ROW Action="AI_FindExeLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="196" Builds="DefaultBuild"/>
-    <ROW Action="AI_ExtractLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="1549" Builds="DefaultBuild"/>
-    <ROW Action="AI_DeleteRLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="1548" Builds="DefaultBuild"/>
-    <ROW Action="AI_DeleteLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="6599" Builds="DefaultBuild"/>
     <ROW Action="AI_ExtractFiles" Sequence="3998" Builds="DefaultBuild"/>
     <ROW Action="AI_DATA_SETTER" Sequence="3997"/>
     <ROW Action="AI_EstimateExtractFiles" Sequence="3999" Builds="DefaultBuild"/>
@@ -461,6 +459,16 @@
     <ROW Action="Stop_Service" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="201"/>
     <ROW Action="DetectService" Sequence="1602"/>
     <ROW Action="AI_DATA_SETTER_1" Sequence="1601"/>
+    <ROW Action="InstallMsmq" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) ) AND ( TRANSPORT_TYPE=&quot;NServiceBus.Msmq, NServiceBus.Core&quot; )" Sequence="3601"/>
+    <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Sequence="99" Builds="DefaultBuild"/>
+    <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Condition="AI_SETUPEXEPATH_ORIGINAL" Sequence="101" Builds="DefaultBuild"/>
+    <ROW Action="AI_DeleteCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="199" Builds="DefaultBuild"/>
+    <ROW Action="AI_DeleteRCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="198" Builds="DefaultBuild"/>
+    <ROW Action="AI_ExtractCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="197" Builds="DefaultBuild"/>
+    <ROW Action="AI_FindExeLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="196" Builds="DefaultBuild"/>
+    <ROW Action="AI_ExtractLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="1549" Builds="DefaultBuild"/>
+    <ROW Action="AI_DeleteRLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="1548" Builds="DefaultBuild"/>
+    <ROW Action="AI_DeleteLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="6599" Builds="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
     <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
