@@ -486,7 +486,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiLaunchConditionsComponent">
     <ROW Condition="(AI_DOTNET40_SEARCH = &quot;#1&quot;) OR (AI_DOTNET45_SEARCH &gt;= &quot;4.5&quot;)" Description="[ProductName] cannot be installed on systems with .NET Framework version lower than [AI_MINDOTNETVERSION]" DescriptionLocId="AI.LaunchCondition.DotNET" IsPredefined="true" Builds="DefaultBuild"/>
-    <ROW Condition="(NET_45 &gt;= &quot;4.5&quot;) OR (NET_451 = &quot;#378758&quot;) OR (NET_451 = &quot;#378675&quot;) OR (KB_2468871_CP = &quot;1&quot;) OR (KB_2468871_EX = &quot;1&quot;)" Description="To continue this installation you need to install Windows Update KB2468871 for .NET 4 Framework or a higher version of .NET Framerwork."/>
+    <ROW Condition="(NET_45 &gt;= &quot;4.5&quot;) OR (NET_451 = &quot;#378758&quot;) OR (NET_451 = &quot;#378675&quot;) OR (KB_2468871_CP = &quot;1&quot;) OR (KB_2468871_EX = &quot;1&quot;)" Description="To continue this installation you need to install Windows Update KB2468871 for .NET 4 Framework or a higher version of .NET Framework."/>
     <ROW Condition="VersionNT" Description="[ProductName] cannot be installed on [WindowsType9XDisplay]" DescriptionLocId="AI.LaunchCondition.No9X" IsPredefined="true" Builds="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRegLocatorComponent">
