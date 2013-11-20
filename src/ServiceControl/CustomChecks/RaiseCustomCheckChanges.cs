@@ -35,15 +35,12 @@
             {
                 var newTotal = session.Query<CustomCheck>().Count(c => c.Status == Status.Fail);
 
-                if (newTotal == total)
+                if (newTotal != total)
                 {
-                    return;
+                    bus.Publish(new TotalCustomCheckUpdated { Total = newTotal });
                 }
-
                 total = newTotal;
             }
-
-            bus.Publish(new TotalCustomCheckUpdated {Total = total});
 
             try
             {
