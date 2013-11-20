@@ -11,7 +11,7 @@
     {
         public CustomChecksModule()
         {
-            Get["/customchecks"] = parameters =>
+            Get["/customchecks"] = _ =>
             {
                 using (var session = Store.OpenSession())
                 {
@@ -28,6 +28,24 @@
                         .WithPagingLinksAndTotalCount(stats, Request)
                         .WithEtagAndLastModified(stats);
                 }
+            };
+
+            Delete["/customchecks/{id}"] = parameters =>
+            {
+                using (var session = Store.OpenSession())
+                {
+                    string id = parameters.id;
+
+                    var customCheck = session.Load<CustomCheck>(string.Format("customchecks/{0}", id));
+
+                    if (customCheck != null)
+                    {
+                        session.Delete(customCheck);
+                        session.SaveChanges();
+                    }
+                }
+
+                return HttpStatusCode.NoContent;
             };
         }
 
