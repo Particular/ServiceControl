@@ -214,6 +214,13 @@
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
     <Compile Include="Infrastructure\Subscriptions\AlwaysIncludeLocalEndpointStorage.cs" />
     <Compile Include="MessageAuditing\AuditMessageHandler.cs" />
+    <Compile Include="MessageAuditing\DictionaryExtensions.cs" />
+    <Compile Include="MessageAuditing\EndpointDetails.cs" />
+    <Compile Include="MessageAuditing\ExceptionDetails.cs" />
+    <Compile Include="MessageAuditing\FailureDetails.cs" />
+    <Compile Include="MessageAuditing\HistoryItem.cs" />
+    <Compile Include="MessageAuditing\MessageStatistics.cs" />
+    <Compile Include="MessageAuditing\SagaDetails.cs" />
     <Compile Include="MessageFailures\ErrorMessageCounterRegister.cs" />
     <Compile Include="MessageFailures\ErrorMessageHandler.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
