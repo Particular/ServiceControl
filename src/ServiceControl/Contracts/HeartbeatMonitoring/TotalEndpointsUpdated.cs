@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.HeartbeatMonitoring
+﻿namespace ServiceControl.Contracts.HeartbeatMonitoring
 {
     using NServiceBus;
 

@@ -3,8 +3,8 @@
     using System;
     using System.Linq;
     using System.Threading;
+    using Contracts.HeartbeatMonitoring;
     using NServiceBus;
-    using Operations.Heartbeats;
     using Raven.Client;
 
     public class RaiseHartbeatChanges : IWantToRunWhenBusStartsAndStops

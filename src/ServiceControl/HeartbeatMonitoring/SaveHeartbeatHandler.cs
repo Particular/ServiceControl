@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations.Heartbeats
+﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using EndpointPlugin.Messages.Heartbeats;
     using Infrastructure;

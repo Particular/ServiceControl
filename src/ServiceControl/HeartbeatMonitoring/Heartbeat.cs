@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations.Heartbeats
+﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
     using ServiceBus.Management.MessageAuditing;

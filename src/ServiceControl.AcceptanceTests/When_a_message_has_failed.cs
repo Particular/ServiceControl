@@ -8,7 +8,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceControl.Alerts;
+    using ServiceControl.EventLog;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
@@ -53,11 +53,11 @@
         {
             public string MessageId { get; set; }
             public Message Message { get; set; }
-            public List<Alert> Alerts { get; set; }
+            public List<EventLogItem> LogEntries { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
         }
 
-        bool AuditDataAvailable(MyContext context, MyContext c)
+        bool IsErrorMessageStored(MyContext context, MyContext c)
         {
             lock (context)
             {
@@ -94,7 +94,7 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given(bus => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
-                .Done(c => AuditDataAvailable(context, c))
+                .Done(c => IsErrorMessageStored(context, c))
                 .Run();
 
             // The message Ids may contain a \ if they are from older versions. 
@@ -108,7 +108,7 @@
         }
 
         [Test]
-        public void Should_raise_an_alert()
+        public void Should_add_an_event_log_item()
         {
             var context = new MyContext();
 
@@ -116,25 +116,25 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given(bus => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
-                .Done(AlertDataAvailable)
+                .Done(IsEventLogDataAvailable)
                 .Run();
 
-            Assert.AreEqual(1, context.Alerts.Count);
-            Assert.IsTrue(context.Alerts[0].Description.Contains("exception"), "For failed messages, the description should contain the exception information");
-            var containsFailedMessageId = context.Alerts[0].RelatedTo.Any(item => item.Contains("/failedMessageId/"));
+            Assert.AreEqual(1, context.LogEntries.Count);
+            Assert.IsTrue(context.LogEntries[0].Description.Contains("exception"), "For failed messages, the description should contain the exception information");
+            var containsFailedMessageId = context.LogEntries[0].RelatedTo.Any(item => item.Contains("/failedMessageId/"));
             Assert.IsTrue(containsFailedMessageId, "For failed message, the RelatedId must contain the api url to retrieve additional details about the failed message");
         }
 
 
-        bool AlertDataAvailable(MyContext c)
+        bool IsEventLogDataAvailable(MyContext c)
         {
-            var alerts = Get<Alert[]>("/api/alerts/");
-            if (alerts == null || alerts.Length == 0)
+            var logEntries = Get<EventLogItem[]>("/api/eventlogitems/");
+            if (logEntries == null || logEntries.Length == 0)
             {
-                System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(5000);
                 return false;
             }
-            c.Alerts = alerts.ToList();
+            c.LogEntries = logEntries.ToList();
             return true;
         }
     }
