@@ -15,7 +15,6 @@
                 messageToSend.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
                 Bus.SendLocal(messageToSend);
             }
-
         }
     }
 }

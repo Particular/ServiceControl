@@ -1,18 +1,20 @@
 ﻿namespace ServiceControl.CustomChecks
 {
+    using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using Contracts.CustomChecks;
-    using EndpointPlugin.Messages.CustomChecks;
+    using Infrastructure;
     using NServiceBus;
+    using Plugin.CustomChecks.Messages;
     using ServiceBus.Management.MessageAuditing;
 
     public class CustomCheckMonitor
     {
         readonly IBus bus;
 
-        readonly ConcurrentDictionary<string, ReportCustomCheckResult> registeredCustomChecks =
-            new ConcurrentDictionary<string, ReportCustomCheckResult>();
+        readonly ConcurrentDictionary<Guid, ReportCustomCheckResult> registeredCustomChecks =
+            new ConcurrentDictionary<Guid, ReportCustomCheckResult>();
 
         public CustomCheckMonitor(IBus bus)
         {
@@ -21,11 +23,15 @@
 
         public void RegisterResult(ReportCustomCheckResult result, IDictionary<string, string> headers)
         {
-            var isRegistered = registeredCustomChecks.ContainsKey(result.CustomCheckId);
+            var originatingEndpoint = EndpointDetails.OriginatingEndpoint(headers);
+
+            var key = DeterministicGuid.MakeId(result.CustomCheckId, originatingEndpoint.Name, originatingEndpoint.Machine);
+
+            var isRegistered = registeredCustomChecks.ContainsKey(key);
             if (isRegistered)
             {
                 // Raise an alert if there has been a change in status
-                if (registeredCustomChecks[result.CustomCheckId].Result.HasFailed == result.Result.HasFailed)
+                if (registeredCustomChecks[key].Result.HasFailed == result.Result.HasFailed)
                 {
                     return;
                 }
@@ -39,7 +45,7 @@
                     m.Category = result.Category;
                     m.FailedAt = result.ReportedAt;
                     m.FailureReason = result.Result.FailureReason;
-                    m.OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(headers);
+                    m.OriginatingEndpoint = originatingEndpoint;
                 });
             }
             else if (isRegistered) // We only publish successes if status has changed. 
@@ -49,11 +55,11 @@
                     m.CustomCheckId = result.CustomCheckId;
                     m.Category = result.Category;
                     m.SucceededAt = result.ReportedAt;
-                    m.OriginatingEndpoint = EndpointDetails.OriginatingEndpoint(headers);
+                    m.OriginatingEndpoint = originatingEndpoint;
                 });
             }
 
-            registeredCustomChecks[result.CustomCheckId] = result;
+            registeredCustomChecks[key] = result;
         }
     }
 }

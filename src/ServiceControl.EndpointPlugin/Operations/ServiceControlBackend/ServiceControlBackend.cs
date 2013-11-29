@@ -3,13 +3,13 @@
     using System;
     using System.Configuration;
     using System.IO;
-    using Messages.CustomChecks;
-    using Messages.Heartbeats;
     using NServiceBus;
     using NServiceBus.Config;
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
+    using Plugin.CustomChecks.Messages;
+    using Plugin.Heartbeats.Messages;
 
     public class ServiceControlBackend
     {

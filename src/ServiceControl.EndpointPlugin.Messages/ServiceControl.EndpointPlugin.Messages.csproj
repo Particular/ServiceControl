@@ -40,11 +40,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CustomChecks\CheckResult.cs" />
-    <Compile Include="CustomChecks\ICustomCheck.cs" />
-    <Compile Include="CustomChecks\IPeriodicCheck.cs" />
     <Compile Include="CustomChecks\ReportCustomCheckResult.cs" />
     <Compile Include="Heartbeats\EndpointHeartbeat.cs" />
-    <Compile Include="Heartbeats\IHeartbeatProvider.cs" />
     <Compile Include="Operations\Configuration\EndpointConfiguration.cs" />
     <Compile Include="Operations\PerformanceCounters\EndpointPerformance.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

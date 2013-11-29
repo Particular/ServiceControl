@@ -50,8 +50,7 @@
                     //    })
                     .WithModel(model)
                     .WithHeader("ETag", CurrentEtag)
-                    .WithHeader("Last-Modified", CurrentLastModified)
-                    .WithHeader("Cache-Control", "private, max-age=0, must-revalidate");
+                    .WithHeader("Last-Modified", CurrentLastModified);
             };
         }
 

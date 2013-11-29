@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.EndpointPlugin.CustomChecks
 {
     using System;
-    using Messages.CustomChecks;
     using NServiceBus;
     using Operations.ServiceControlBackend;
+    using Plugin.CustomChecks;
+    using Plugin.CustomChecks.Messages;
 
     public abstract class CustomCheck : ICustomCheck
     {

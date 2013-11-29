@@ -9,7 +9,7 @@
         public Messages_Failures()
         {
             Map = messages => from message in messages
-                where message.Status == MessageStatus.Failed
+                where message.Status == MessageStatus.Failed || message.Status == MessageStatus.RepeatedFailure
                 select new
                 {
                     message.ReceivingEndpoint.Name,

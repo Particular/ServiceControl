@@ -16,29 +16,38 @@
 
         public void Start()
         {
-            timer = new Timer(Run, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+            timer = new Timer(Run, null, 0, -1);
         }
 
         public void Stop()
         {
-            timer.Dispose();
+            using (var manualResetEvent = new ManualResetEvent(false))
+            {
+                timer.Dispose(manualResetEvent);
+
+                manualResetEvent.WaitOne();
+            }
         }
 
-        void Run(object stateInfo)
+        void Run(object _)
         {
             using (var session = store.OpenSession())
             {
                 var newTotal = session.Query<CustomCheck>().Count(c => c.Status == Status.Fail);
 
-                if (newTotal == total)
+                if (newTotal != total)
                 {
-                    return;
+                    bus.Publish(new TotalCustomCheckUpdated { Total = newTotal });
                 }
-
                 total = newTotal;
             }
 
-            bus.Publish(new TotalCustomCheckUpdated {Total = total});
+            try
+            {
+                timer.Change((int)TimeSpan.FromSeconds(10).TotalMilliseconds, -1);
+            }
+            catch (ObjectDisposedException)
+            { }
         }
 
         readonly IBus bus;

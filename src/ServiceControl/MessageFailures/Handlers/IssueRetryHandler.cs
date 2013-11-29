@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.MessageFailures.Handlers
 {
-    using System;
     using Infrastructure.RavenDB;
     using InternalMessages;
     using MessageAuditing;
@@ -19,8 +18,7 @@
 
             if (failedMessage == null)
             {
-                throw new InvalidOperationException(string.Format("Retry failed, message {0} could not be found",
-                    message.MessageId));
+                return;
             }
 
             var requestedAtHeader = message.GetHeader("RequestedAt");
