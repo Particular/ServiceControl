@@ -4,9 +4,9 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using Contracts.CustomChecks;
-    using EndpointPlugin.Messages.CustomChecks;
     using Infrastructure;
     using NServiceBus;
+    using Plugin.CustomChecks.Messages;
     using ServiceBus.Management.MessageAuditing;
 
     public class CustomCheckMonitor

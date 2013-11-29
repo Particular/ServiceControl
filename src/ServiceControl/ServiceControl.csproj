@@ -206,6 +206,7 @@
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\UrlAclInstaller.cs" />
+    <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Facets.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Failures.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
@@ -234,7 +235,6 @@
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
-    <Compile Include="HeartbeatMonitoring\RegisterHeartbeatMessage.cs" />
     <Compile Include="Infrastructure\Nancy\ExtraHeaders.cs" />
     <Compile Include="Infrastructure\Nancy\Helpers.cs" />
     <Compile Include="Infrastructure\Nancy\JsonNetBodyDeserializer.cs" />

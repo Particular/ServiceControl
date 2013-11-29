@@ -5,8 +5,8 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading;
-    using Messages.Operations.PerformanceCounters;
     using NServiceBus;
+    using Plugin.Operations.PerformanceCounters.Messages;
 
     class PerformanceCounterCapturer : IWantToRunWhenBusStartsAndStops, INeedInitialization
     {

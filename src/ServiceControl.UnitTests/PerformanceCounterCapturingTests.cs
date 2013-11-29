@@ -5,7 +5,7 @@
     using System.Linq;
     using EndpointPlugin.Operations.PerformanceCounters;
     using NUnit.Framework;
-    using EndpointPlugin.Messages.Operations.PerformanceCounters;
+    using Plugin.Operations.PerformanceCounters.Messages;
 
     [TestFixture]
     public class PerformanceCounterCapturingTests

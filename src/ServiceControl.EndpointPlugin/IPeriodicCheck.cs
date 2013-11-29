@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointPlugin.Messages.CustomChecks
+﻿namespace ServiceControl.Plugin.CustomChecks
 {
     using System;
 

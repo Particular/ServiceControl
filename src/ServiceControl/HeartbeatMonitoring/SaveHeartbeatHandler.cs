@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
-    using EndpointPlugin.Messages.Heartbeats;
     using Infrastructure;
     using NServiceBus;
+    using Plugin.Heartbeats.Messages;
     using Raven.Client;
     using ServiceBus.Management.MessageAuditing;
 

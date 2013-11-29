@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.CustomChecks
 {
-    using EndpointPlugin.Messages.CustomChecks;
     using Infrastructure;
     using NServiceBus;
+    using Plugin.CustomChecks.Messages;
     using Raven.Client;
     using ServiceBus.Management.MessageAuditing;
 

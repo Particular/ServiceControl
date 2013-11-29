@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.CustomChecks
 {
-    using EndpointPlugin.Messages.CustomChecks;
     using NServiceBus;
+    using Plugin.CustomChecks.Messages;
 
     class CustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {

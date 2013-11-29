@@ -4,10 +4,11 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Messages.CustomChecks;
     using NServiceBus;
     using NServiceBus.ObjectBuilder;
     using Operations.ServiceControlBackend;
+    using Plugin.CustomChecks;
+    using Plugin.CustomChecks.Messages;
 
     /// <summary>
     ///     This class will upon startup get the registered PeriodicCheck types
