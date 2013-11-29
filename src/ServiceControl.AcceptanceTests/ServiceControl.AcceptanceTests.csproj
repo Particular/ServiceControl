@@ -89,6 +89,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DebugSessions\When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
     <Compile Include="HeartbeatMonitoring\When_endpoints_heartbeats_are_received_in_a_timely_manner.cs" />
     <Compile Include="When_a_message_has_failed.cs" />
     <Compile Include="When_issuing_a_retry_for_a_failed_message.cs" />
@@ -117,6 +118,10 @@
     <ProjectReference Include="..\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj">
       <Project>{07393fa7-8577-42d7-8fe4-3c4d955a5a31}</Project>
       <Name>ServiceControl.EndpointPlugin</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Plugin.DebugSession\ServiceControl.Plugin.DebugSession.csproj">
+      <Project>{1600753b-62ac-4c27-a171-ec887718d06d}</Project>
+      <Name>ServiceControl.Plugin.DebugSession</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>

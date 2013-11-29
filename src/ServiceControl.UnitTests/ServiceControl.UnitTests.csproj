@@ -63,6 +63,7 @@
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_SearchTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_SortTests.cs" />
     <Compile Include="PerformanceCounterCapturingTests.cs" />
+    <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -76,6 +77,10 @@
     <ProjectReference Include="..\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj">
       <Project>{07393FA7-8577-42D7-8FE4-3C4D955A5A31}</Project>
       <Name>ServiceControl.EndpointPlugin</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Plugin.DebugSession\ServiceControl.Plugin.DebugSession.csproj">
+      <Project>{1600753b-62ac-4c27-a171-ec887718d06d}</Project>
+      <Name>ServiceControl.Plugin.DebugSession</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>
