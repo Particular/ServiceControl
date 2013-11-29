@@ -164,19 +164,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Alerts\Alert.cs" />
-    <Compile Include="Alerts\AlertApiModule.cs" />
-    <Compile Include="Alerts\CustomChecks\CustomChecksFailedHandler.cs" />
-    <Compile Include="Alerts\CustomChecks\CustomCheckSucceededHandler.cs" />
-    <Compile Include="Alerts\HeartbeatMonitoring\EndpointHeartbeatRestoredHandler.cs" />
-    <Compile Include="Alerts\MessageFailures\MessageFailedHandler.cs" />
-    <Compile Include="Alerts\Severity.cs" />
-    <Compile Include="Alerts\HeartbeatMonitoring\EndpointFailedHeartbeatHandler.cs" />
-    <Compile Include="Alerts\SlaViolations\EndpointSLABreachedHandler.cs" />
-    <Compile Include="Alerts\Category.cs" />
+    <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
+    <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
+    <Compile Include="EventLog\Definitions\EndpointFailedToHeartbeatDefinition.cs" />
+    <Compile Include="EventLog\Definitions\EndpointHeartbeatRestoredDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessageFailedDefinition.cs" />
+    <Compile Include="EventLog\EventLogApiModule.cs" />
+    <Compile Include="EventLog\EventLogMappingDefinition.cs" />
+    <Compile Include="EventLog\EventLogMappings.cs" />
+    <Compile Include="EventLog\GenericAuditHandler.cs" />
+    <Compile Include="EventLog\Severity.cs" />
     <Compile Include="BusinessMonitoring\ApiModule.cs" />
     <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
-    <Compile Include="Contracts\Alerts\AlertRaised.cs" />
     <Compile Include="Contracts\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="Contracts\CustomChecks\CustomCheckFailed.cs" />
@@ -195,14 +195,18 @@
     <Compile Include="CustomChecks\SaveCustomCheckHandler.cs" />
     <Compile Include="CustomChecks\Status.cs" />
     <Compile Include="CustomChecks\TotalCustomCheckUpdated.cs" />
+    <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
+    <Compile Include="EventLog\EventLogItem.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatMonitor.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatingEndpointDetected.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
     <Compile Include="HeartbeatMonitoring\RaiseHartbeatChanges.cs" />
-    <Compile Include="HeartbeatMonitoring\TotalEndpointsUpdated.cs" />
+    <Compile Include="Contracts\HeartbeatMonitoring\TotalEndpointsUpdated.cs" />
+    <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\UrlAclInstaller.cs" />
+    <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Facets.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Failures.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
@@ -230,8 +234,7 @@
     <Compile Include="MessageFailures\TotalErrorMessagesUpdated.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
-    <Compile Include="Operations\Heartbeats\Heartbeat.cs" />
-    <Compile Include="Operations\Heartbeats\RegisterHeartbeatMessage.cs" />
+    <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="Infrastructure\Nancy\ExtraHeaders.cs" />
     <Compile Include="Infrastructure\Nancy\Helpers.cs" />
     <Compile Include="Infrastructure\Nancy\JsonNetBodyDeserializer.cs" />
@@ -249,7 +252,6 @@
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandlerBase.cs" />
     <Compile Include="MessageFailures\Handlers\IssueRetryHandler.cs" />
-    <Compile Include="Operations\Heartbeats\DisableLocalHeartbeats.cs" />
     <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
     <Compile Include="Infrastructure\Installers\LogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
@@ -278,7 +280,6 @@
     <Compile Include="MessageFailures\ErrorMessagesModule.cs" />
     <Compile Include="MessageAuditing\MessageStatus.cs" />
     <Compile Include="Infrastructure\Satellites\ErrorImportSatellite.cs" />
-    <Compile Include="Operations\Heartbeats\SaveHeartbeatHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
   </ItemGroup>

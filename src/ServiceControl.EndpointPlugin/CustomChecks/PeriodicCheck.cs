@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.EndpointPlugin.CustomChecks
 {
     using System;
-    using Messages.CustomChecks;
+    using Plugin.CustomChecks;
 
     public abstract class PeriodicCheck : IPeriodicCheck
     {

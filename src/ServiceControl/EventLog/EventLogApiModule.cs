@@ -1,23 +1,23 @@
-﻿namespace ServiceControl.Alerts
+﻿namespace ServiceControl.EventLog
 {
     using System.Linq;
     using Nancy;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
- 
-    public class AlertApiModule : BaseModule
+
+    public class EventLogApiModule : BaseModule
     {
         public IDocumentStore Store { get; set; }
 
-        public AlertApiModule()
+        public EventLogApiModule()
         {
-            Get["/alerts"] = parameters =>
+            Get["/eventlogitems"] = parameters =>
             {
                 using (var session = Store.OpenSession())
                 {
                     RavenQueryStatistics stats;
-                    var results = session.Query<Alert>()
+                    var results = session.Query<EventLogItem>()
                         .Statistics(out stats)
                         .ToArray();
 

@@ -4,12 +4,13 @@
     using System.Configuration;
     using System.Linq;
     using System.Threading;
-    using Messages.Heartbeats;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
     using Operations.ServiceControlBackend;
+    using Plugin.Heartbeats;
+    using Plugin.Heartbeats.Messages;
 
     class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
     {

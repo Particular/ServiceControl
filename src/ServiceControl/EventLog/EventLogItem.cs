@@ -1,12 +1,9 @@
-﻿namespace ServiceControl.Alerts
+﻿namespace ServiceControl.EventLog
 {
     using System;
     using System.Collections.Generic;
 
-    /// <summary>
-    /// Domain object for Alerts. Later we can add behavior to clear alerts etc.
-    /// </summary>
-    public class Alert
+    public class EventLogItem
     {
         public string Id { get; set; }
         public string Description { get; set; }

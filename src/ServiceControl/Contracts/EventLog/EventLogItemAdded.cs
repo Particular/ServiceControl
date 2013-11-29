@@ -1,11 +1,11 @@
-﻿namespace ServiceControl.Contracts.Alerts
+﻿namespace ServiceControl.Contracts.EventLog
 {
     using System;
     using System.Collections.Generic;
     using NServiceBus;
-    using ServiceControl.Alerts;
+    using ServiceControl.EventLog;
 
-    public class AlertRaised : IEvent
+    public class EventLogItemAdded : IEvent
     {
         public string Id { get; set; }
         public string Description { get; set; }

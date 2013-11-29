@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointPlugin.Messages.Operations.PerformanceCounters
+﻿namespace ServiceControl.Plugin.Operations.PerformanceCounters.Messages
 {
     using System;
     using System.Collections.Generic;

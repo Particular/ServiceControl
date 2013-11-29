@@ -1,6 +1,5 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
-    using Operations.Heartbeats;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;

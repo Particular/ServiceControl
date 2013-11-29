@@ -47,6 +47,9 @@
     <Compile Include="CustomChecks\InitializeCustomChecks.cs" />
     <Compile Include="CustomChecks\PeriodicCheck.cs" />
     <Compile Include="CustomChecks\PeriodicCheckMonitor.cs" />
+    <Compile Include="ICustomCheck.cs" />
+    <Compile Include="IHeartbeatProvider.cs" />
+    <Compile Include="IPeriodicCheck.cs" />
     <Compile Include="Operations\PerformanceCounters\PerformanceCounterCapturer.cs" />
     <Compile Include="Operations\ServiceControlBackend\InitializeBackend.cs" />
     <Compile Include="Operations\ServiceControlBackend\ServiceControlBackend.cs" />

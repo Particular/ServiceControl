@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Alerts
+﻿namespace ServiceControl.EventLog
 {
     public enum Severity
     {

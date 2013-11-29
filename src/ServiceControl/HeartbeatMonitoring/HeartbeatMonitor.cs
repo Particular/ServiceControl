@@ -5,7 +5,6 @@
     using System.Threading;
     using Contracts.HeartbeatMonitoring;
     using NServiceBus;
-    using Operations.Heartbeats;
     using Raven.Client;
 
     public class HeartbeatMonitor : IWantToRunWhenBusStartsAndStops
