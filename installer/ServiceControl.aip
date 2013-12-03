@@ -427,7 +427,7 @@
     <ROW Action="AI_ResolveLocalizedCredentials" Sequence="52"/>
     <ROW Action="AI_GetArpIconPath" Sequence="51"/>
     <ROW Action="AI_RemoveExternalUIStub" Condition="(REMOVE=&quot;ALL&quot;) AND ((VersionNT &gt; 500) OR((VersionNT = 500) AND (ServicePackLevel &gt;= 4)))" Sequence="1501"/>
-    <ROW Action="Launch_Url" Condition="( NOT Installed )" Sequence="6403"/>
+    <ROW Action="Launch_Url" Condition="( NOT Installed ) AND ( UILevel &lt;&gt; &quot;2&quot; )" Sequence="6403"/>
     <ROW Action="AI_ExtractFiles" Sequence="3998" Builds="DefaultBuild"/>
     <ROW Action="AI_DATA_SETTER" Sequence="3997"/>
     <ROW Action="AI_EstimateExtractFiles" Sequence="3999" Builds="DefaultBuild"/>
