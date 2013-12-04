@@ -3,6 +3,7 @@
     using Infrastructure;
     using NServiceBus;
     using Plugin.Heartbeats.Messages;
+    using System.Diagnostics;
     using Raven.Client;
     using ServiceBus.Management.MessageAuditing;
 
@@ -24,6 +25,12 @@
                     Id = id,
                     ReportedStatus = Status.New,
                 };
+
+                if (heartbeat.LastReportAt > message.ExecutedAt)
+                {
+                    Trace.WriteLine("Discarding ancient heartbeat");
+                    return;
+                }
 
                 heartbeat.LastReportAt = message.ExecutedAt;
                 heartbeat.OriginatingEndpoint = originatingEndpoint;
