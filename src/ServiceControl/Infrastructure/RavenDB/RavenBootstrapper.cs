@@ -23,8 +23,7 @@
                 EnlistInDistributedTransactions = false
             };
 
-            NonAdminHttp.EnsureCanListenToWhenInNonAdminContext(Settings.Port);
-
+            
             documentStore.Configuration.Port = Settings.Port;
             documentStore.Configuration.HostName = Settings.Hostname;
             documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;

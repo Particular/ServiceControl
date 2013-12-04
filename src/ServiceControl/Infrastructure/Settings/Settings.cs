@@ -71,6 +71,14 @@
             }
         }
 
+        public static string StorageUrl
+        {
+            get
+            {  
+                return string.Format("http://{0}:{1}/storage/", Hostname, Port);
+            }
+        }
+
         public static Address AuditQueue
         {
             get

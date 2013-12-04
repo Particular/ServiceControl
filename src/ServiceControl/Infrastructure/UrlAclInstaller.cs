@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.Nancy
+﻿namespace ServiceControl.Infrastructure
 {
     using System;
     using System.Diagnostics;
@@ -32,27 +32,25 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
                 return;
             }
 
-            var uri = new Uri(Settings.ApiUrl);
+           
+            //api
+            RegisterUrlAcl(identity,  new Uri(Settings.ApiUrl));
 
+            //storage
+            RegisterUrlAcl(identity, new Uri(Settings.StorageUrl));
+        }
+
+        static void RegisterUrlAcl(string identity, Uri uri)
+        {
             if (!uri.Scheme.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
             {
                 return;
             }
-            try
-            {
-                StartNetshProcess(identity, uri);
-            }
-            catch (Exception exception)
-            {
-                var message = string.Format(
-@"Failed to grant to grant user '{0}' HttpListener permissions due to an Exception. Processing will continue.  
-To help diagnose the problem try running the following command from an admin console:
-netsh http add urlacl url={1} user=""{0}""", uri, identity);
-                logger.Warn(message, exception);
-            }
+
+            StartNetshProcess(identity, uri);
         }
 
-        static void StartNetshProcess(string identity, Uri uri,bool deleteExisting = true)
+        static void StartNetshProcess(string identity, Uri uri, bool deleteExisting = true)
         {
             var startInfo = GetProcessStartInfo(identity, uri);
 
@@ -68,7 +66,7 @@ netsh http add urlacl url={1} user=""{0}""", uri, identity);
 
             if (deleteExisting && error.Contains("Error: 183"))
             {
-                startInfo = GetProcessStartInfo(identity, uri,true);
+                startInfo = GetProcessStartInfo(identity, uri, true);
 
                 logger.Info(string.Format(@"Failed to grant to grant user '{0}' HttpListener permissions.  The error message from running the above command is: {1} Will try to delete the existing urlacl", identity, error));
 
@@ -90,7 +88,7 @@ The error message from running the above command is:
 {1}", identity, error, uri));
         }
 
-        static bool ExecuteNetshCommand(ProcessStartInfo startInfo,out string error)
+        static bool ExecuteNetshCommand(ProcessStartInfo startInfo, out string error)
         {
             error = null;
 
@@ -102,10 +100,10 @@ The error message from running the above command is:
                 {
                     return true;
                 }
-                
+
                 error = process.StandardOutput.ReadToEnd().Trim();
 
-                return false;                
+                return false;
             }
         }
 
