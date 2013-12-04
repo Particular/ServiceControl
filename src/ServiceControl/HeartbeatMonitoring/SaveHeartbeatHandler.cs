@@ -25,6 +25,11 @@
                     ReportedStatus = Status.New,
                 };
 
+                if (message.ExecutedAt > heartbeat.LastReportAt)
+                {
+                    return;
+                }
+
                 heartbeat.LastReportAt = message.ExecutedAt;
                 heartbeat.OriginatingEndpoint = originatingEndpoint;
 
