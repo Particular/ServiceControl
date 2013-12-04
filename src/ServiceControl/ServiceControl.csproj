@@ -229,6 +229,7 @@
     <Compile Include="MessageFailures\ErrorMessageHandler.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
+    <Compile Include="MessageFailures\FailedMessageSaga.cs" />
     <Compile Include="MessageFailures\InMemoryErrorMessagesCounterCache.cs" />
     <Compile Include="MessageFailures\SignalrErrorMessageHandler.cs" />
     <Compile Include="MessageFailures\TotalErrorMessagesUpdated.cs" />
