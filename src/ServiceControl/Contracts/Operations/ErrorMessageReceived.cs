@@ -2,16 +2,26 @@
 {
     using System.Collections.Generic;
     using NServiceBus;
+    using ServiceBus.Management.MessageAuditing;
 
     public class ErrorMessageReceived:IMessage
     {
-        public string Id { get; set; }
+        public string ErrorMessageId { get; set; }
+        public string MessageId { get; set; }
         public byte[] Body { get; set; }
-        public string ExceptionMessage { get; set; }
-        public string ExceptionSource { get; set; }
-        public string ExceptionStackTrace { get; set; }
-        public string ExceptionType { get; set; }
+
         public IDictionary<string, string> Headers { get; set; }
         public string ReplyToAddress { get; set; }
+
+
+        public FailureDetails FailureDetails { get; set; }
     }
+
+
+    public class Message2
+    {
+    }
+
+   
+
 }

@@ -216,6 +216,7 @@
     <Compile Include="Infrastructure\SignalR\Envelope.cs" />
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
     <Compile Include="Infrastructure\Subscriptions\AlwaysIncludeLocalEndpointStorage.cs" />
+    <Compile Include="Infrastructure\TransportMessageExtentions.cs" />
     <Compile Include="Infrastructure\UrlAclInstaller.cs" />
     <Compile Include="MessageAuditing\AuditMessageHandler.cs" />
     <Compile Include="MessageAuditing\DictionaryExtensions.cs" />
@@ -225,11 +226,12 @@
     <Compile Include="MessageAuditing\HistoryItem.cs" />
     <Compile Include="MessageAuditing\MessageStatistics.cs" />
     <Compile Include="MessageAuditing\SagaDetails.cs" />
+    <Compile Include="MessageFailures\Api\GetErrorById.cs" />
     <Compile Include="MessageFailures\ErrorMessageCounterRegister.cs" />
-    <Compile Include="MessageFailures\ErrorMessageHandler.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
-    <Compile Include="MessageFailures\FailedMessageSaga.cs" />
+    <Compile Include="MessageFailures\ErrorMessageReceivedHandler.cs" />
+    <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
     <Compile Include="MessageFailures\InMemoryErrorMessagesCounterCache.cs" />
     <Compile Include="MessageFailures\SignalrErrorMessageHandler.cs" />
     <Compile Include="MessageFailures\TotalErrorMessagesUpdated.cs" />
