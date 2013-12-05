@@ -13,7 +13,7 @@
 
         public class FailedMessageSagaData : ContainSagaData
         {
-            [Unique]
+            //[Unique]
             public string MessageId { get; set; }
             public int FailedCount { get; set; }
         }
