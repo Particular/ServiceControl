@@ -3,13 +3,16 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
@@ -33,6 +36,41 @@
             Assert.AreEqual("Simulated exception", context.FailedMessage.ProcessingAttempts.Single().FailureDetails.Exception.Message,
                 "Exception message should be captured");
 
+        }
+
+        [Test]
+        public void Should_be_listed_in_the_error_list()
+        {
+            var context = new MyContext();
+
+            var response = new List<FailedMessageView>();
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .Done(c => TryGetData("/api/errors",out response))
+                .Run();
+
+            var failure = response.Single();
+
+            // The message Ids may contain a \ if they are from older versions. 
+            Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");
+            Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
+            Assert.AreEqual(1, failure.NumberOfProcessingAttempts, "One attempt should be stored");
+        }
+
+        bool TryGetData(string url, out List<FailedMessageView> response)
+        {
+
+            response = Get<List<FailedMessageView>>(url);
+
+            if (response == null || !response.Any())
+            {
+                Thread.Sleep(1000);
+                return false;
+            }
+
+            return true;
         }
 
         [Test]

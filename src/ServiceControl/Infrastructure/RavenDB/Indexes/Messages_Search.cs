@@ -6,6 +6,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
     using MessageAuditing;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
+    using ServiceControl.Infrastructure.RavenDB.Indexes;
 
     public class Messages_Search : AbstractIndexCreationTask<Message, Messages_Search.Result>
     {

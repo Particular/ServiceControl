@@ -7,6 +7,7 @@ namespace ServiceBus.Management.MessageAuditing
     using Infrastructure.RavenDB.Indexes;
     using Nancy;
     using Raven.Client;
+    using ServiceControl.Contracts.Operations;
 
     public class MessagesModule : BaseModule
     {

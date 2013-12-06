@@ -33,32 +33,4 @@
 
     }
 
-    public class FaileMessageViewTransformer : AbstractTransformerCreationTask<FailedMessage>
-    {
-        public FaileMessageViewTransformer()
-        {
-            TransformResults = failures => from failure in failures
-                                           select new
-                                           {
-                                               failure.MessageId,
-                                               ErrorMessageId = failure.Id,
-                                               ExceptionMessage = failure.ProcessingAttempts.Last().FailureDetails.Exception.Message,
-                                               NumberOfProcessingAttempts = failure.ProcessingAttempts.Count(),
-                                               failure.Status
-                                           };
-        }
-    }
-
-
-    public class FailedMessageView : CommonResult
-    {
-        public string ErrorMessageId { get; set; }
-
-        public string ExceptionMessage { get; set; }
-
-        public string MessageId { get; set; }
-        public int NumberOfProcessingAttempts { get; set; }
-
-        public MessageStatus Status { get; set; }
-    }
 }

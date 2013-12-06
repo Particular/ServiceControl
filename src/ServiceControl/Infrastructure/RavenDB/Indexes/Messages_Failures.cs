@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Indexes
 {
     using System.Linq;
+    using Contracts.Operations;
     using Raven.Client.Indexes;
     using ServiceBus.Management.MessageAuditing;
 

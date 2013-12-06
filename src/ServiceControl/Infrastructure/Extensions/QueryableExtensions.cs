@@ -5,6 +5,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using System.Linq.Expressions;
     using RavenDB.Indexes;
     using global::Nancy;
+    using ServiceControl.Infrastructure.RavenDB.Indexes;
 
     public static class QueryableExtensions
     {

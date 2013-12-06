@@ -10,6 +10,7 @@
     using NServiceBus.Config;
     using NServiceBus.Features;
     using NUnit.Framework;
+    using ServiceControl.Contracts.Operations;
 
     public class When_issuing_a_retry_for_a_failed_message : AcceptanceTest
     {

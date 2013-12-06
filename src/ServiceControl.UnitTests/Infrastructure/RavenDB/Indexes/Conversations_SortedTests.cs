@@ -3,6 +3,7 @@ using System.Linq;
 using NUnit.Framework;
 using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
 using ServiceBus.Management.MessageAuditing;
+using ServiceControl.Contracts.Operations;
 
 [TestFixture]
 public class Conversations_SortedTests

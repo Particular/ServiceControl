@@ -5,6 +5,7 @@
     using Infrastructure.Nancy.Modules;
     using Infrastructure.RavenDB.Indexes;
     using Raven.Client;
+    using ServiceControl.Contracts.Operations;
 
     public class AuditMessagesModule : BaseModule
     {

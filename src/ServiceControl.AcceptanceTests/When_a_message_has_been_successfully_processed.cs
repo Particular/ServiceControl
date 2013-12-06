@@ -9,6 +9,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceControl.Contracts.Operations;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {

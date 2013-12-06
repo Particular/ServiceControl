@@ -3,6 +3,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
     using System.Linq;
     using MessageAuditing;
     using Raven.Client.Indexes;
+    using ServiceControl.Contracts.Operations;
 
     public class Messages_Ids : AbstractIndexCreationTask<Message, Messages_Ids.Result>
     {
