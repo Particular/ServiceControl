@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System;
+    using System.Linq;
     using Contracts.Operations;
     using NServiceBus;
     using Raven.Client;
@@ -18,19 +18,26 @@
                 var failure = session.Load<FailedMessage>(message.ErrorMessageId) ?? new FailedMessage
                 {
                     Id = message.ErrorMessageId,
-                    MessageId = message.MessageId,
-                    Status = MessageStatus.Failed
+                    Status = MessageStatus.Failed,
+                    MessageId = message.PhysicalMessage.MessageId
                 };
 
-                //todo check for duplicate using the timestamp
+                var timeOfFailure = message.FailureDetails.TimeOfFailure;
+
+                //check for duplicate
+                if (failure.ProcessingAttempts.Any(a => a.AttemptedAt == timeOfFailure))
+                {
+                    return;
+                }
 
                failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
                {
-                   AttemptedAt = DateTime.UtcNow, //todo
+                   AttemptedAt = timeOfFailure,
                    FailureDetails =message.FailureDetails,
-                   Message = new Message2(),//todo
+                   Message = message.PhysicalMessage
                });
 
+                //todo: sort the list in time order
 
                 session.Store(failure);
 

@@ -21,7 +21,7 @@
 
         public Message(ErrorMessageReceived message)
         {
-            Init(message.MessageId, message.Body, message.Headers);          
+            Init(message.PhysicalMessage.MessageId, message.PhysicalMessage.Body, message.PhysicalMessage.Headers);          
         }
 
         public Message(AuditMessageReceived message)

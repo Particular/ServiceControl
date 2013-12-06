@@ -3,15 +3,12 @@ namespace ServiceControl.CompositeViews
     using System;
     using System.Diagnostics;
     using System.Linq;
-    using Infrastructure.RavenDB.Indexes;
     using MessageFailures;
     using Nancy;
-    using Raven.Abstractions.Indexing;
     using Raven.Client;
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
     using ServiceBus.Management.MessageAuditing;
     using ServiceControl.Contracts.Operations;
 
@@ -63,29 +60,6 @@ namespace ServiceControl.CompositeViews
             //    }
             //};
 
-            //Get["/endpoints/{name}/messages"] = parameters =>
-            //{
-            //    using (var session = Store.OpenSession())
-            //    {
-            //        string endpoint = parameters.name;
-
-            //        RavenQueryStatistics stats;
-            //        var results = session.Query<MessagesView, MessagesViewIndex>()
-            //            .Statistics(out stats)
-            //            .IncludeSystemMessagesWhere(Request)
-            //            .Where(m => m.ReceivingEndpointName == endpoint)
-            //            .Sort(Request)
-            //            .OfType<Message>()
-            //            .Paging(Request)
-            //            .ToArray();
-
-            //        return Negotiate
-            //            .WithModelAppendedRestfulUrls(results, Request)
-            //            .WithPagingLinksAndTotalCount(stats, Request)
-            //            .WithEtagAndLastModified(stats);
-            //    }
-            //};
-
             Get["/messages"] = parameters =>
             {
                 using (var session = Store.OpenSession())
@@ -93,7 +67,7 @@ namespace ServiceControl.CompositeViews
                     RavenQueryStatistics stats;
                     var results = session.Query<MessagesView, MessagesViewIndex>()
                         .Statistics(out stats)
-                       // .Sort(Request)
+                        // .Sort(Request)
                         .Paging(Request)
                         .ToArray();
 
@@ -106,7 +80,27 @@ namespace ServiceControl.CompositeViews
                 }
             };
 
+            Get["/endpoints/{name}/messages"] = parameters =>
+            {
+                using (var session = Store.OpenSession())
+                {
+                    string endpoint = parameters.name;
 
+                    RavenQueryStatistics stats;
+                    var results = session.Query<MessagesView, MessagesViewIndex>()
+                        .Statistics(out stats)
+                        //.IncludeSystemMessagesWhere(Request)
+                        .Where(m => m.ReceivingEndpointName == endpoint)
+                        //.Sort(Request)
+                        .Paging(Request)
+                        .ToArray();
+
+                    return Negotiate
+                        .WithModel(results)
+                        .WithPagingLinksAndTotalCount(stats, Request)
+                        .WithEtagAndLastModified(stats);
+                }
+            };
 
             //Get["/messages/{id}"] = parameters =>
             //{
@@ -153,6 +147,8 @@ namespace ServiceControl.CompositeViews
         public MessageStatus Status { get; set; }
 
         public DateTime ProcessedAt { get; set; }
+
+        public string ReceivingEndpointName { get; set; }
     }
 
     public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesView>
@@ -163,7 +159,8 @@ namespace ServiceControl.CompositeViews
             {
                 MessageId = message.MessageId,
                 message.Status,
-                ProcessedAt = new DateTime(2013,12,6)
+                ProcessedAt = new DateTime(2013,12,6),
+                ReceivingEndpointName = message.ReceivingEndpoint.Name
             }));
 
 
@@ -171,7 +168,8 @@ namespace ServiceControl.CompositeViews
             {
                 MessageId =message.MessageId,
                 message.Status,
-                ProcessedAt = new DateTime(2013, 12, 7)
+                ProcessedAt = new DateTime(2013, 12, 7),
+                ReceivingEndpointName = message.ProcessingAttempts.Last().Message.ProcessingEndpoint.Name
             }));
 
             Reduce = results => from message in results
@@ -182,6 +180,7 @@ namespace ServiceControl.CompositeViews
                                         MessageId = g.Key,
                                         Status = g.OrderByDescending(m=>m.ProcessedAt).First().Status,
                                         ProcessedAt = g.OrderByDescending(m => m.ProcessedAt).First().ProcessedAt,
+                                        ReceivingEndpointName = g.OrderByDescending(m => m.ProcessedAt).First().ReceivingEndpointName,
                                     };
 
           

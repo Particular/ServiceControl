@@ -22,7 +22,7 @@
 
         public override void ConfigureHowToFindSaga()
         {
-            ConfigureMapping<ErrorMessageReceived>(m => m.MessageId)
+            ConfigureMapping<ErrorMessageReceived>(m => m.ErrorMessageId)
                 .ToSaga(s => s.ErrorMessageId);
         }
     }

@@ -14,10 +14,9 @@
 
         public string Id { get; set; }
 
-        public string MessageId { get; set; }
-
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
         public MessageStatus Status { get; set; }
+        public string MessageId { get; set; }
 
         public class ProcessingAttempt
         {

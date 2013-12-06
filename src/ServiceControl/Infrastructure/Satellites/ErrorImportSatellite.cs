@@ -22,10 +22,7 @@
             var errorMessageReceived = new ErrorMessageReceived
             {
                 ErrorMessageId = message.UniqueId(),
-                MessageId = message.Id,
-                Headers = message.Headers,
-                Body = message.Body,
-                ReplyToAddress = message.ReplyToAddress.ToString(),
+                PhysicalMessage = new Message2(message),
                 FailureDetails = new FailureDetails(message.Headers)                
             };
 

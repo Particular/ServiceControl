@@ -37,7 +37,7 @@
                 }
             };
 
-            Get["/endpoints/{name}/errors"] = parameters =>
+          Get["/endpoints/{name}/errors"] = parameters =>
           {
               using (var session = Store.OpenSession())
               {
@@ -71,13 +71,13 @@
         public FaileMessageViewTransformer()
         {
             TransformResults = failures => from failure in failures
-                                           select new
+                                           select new FailedMessageView
                                            {
-                                               failure.MessageId,
+                                               MessageId = failure.MessageId,
                                                ErrorMessageId = failure.Id,
                                                ExceptionMessage = failure.ProcessingAttempts.Last().FailureDetails.Exception.Message,
                                                NumberOfProcessingAttempts = failure.ProcessingAttempts.Count(),
-                                               failure.Status
+                                               Status = failure.Status
                                            };
         }
     }
