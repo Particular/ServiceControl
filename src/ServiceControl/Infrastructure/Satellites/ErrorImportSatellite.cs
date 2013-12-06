@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Infrastructure.Satellites
 {
+    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
@@ -8,7 +9,6 @@
     using NServiceBus.Transports;
     using ServiceBus.Management.Infrastructure.Settings;
     using Contracts.Operations;
-    using ServiceBus.Management.MessageAuditing;
 
     public class ErrorImportSatellite : ISatellite
     {
@@ -22,7 +22,7 @@
             var errorMessageReceived = new ErrorMessageReceived
             {
                 ErrorMessageId = message.UniqueId(),
-                PhysicalMessage = new Message2(message),
+                PhysicalMessage = new PhysicalMessage(message),
                 FailureDetails = new FailureDetails(message.Headers)                
             };
 

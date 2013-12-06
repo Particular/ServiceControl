@@ -2,8 +2,8 @@
 using System.Linq;
 using NUnit.Framework;
 using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
-using ServiceBus.Management.MessageAuditing;
 using ServiceControl.Contracts.Operations;
+using ServiceControl.MessageAuditing;
 
 [TestFixture]
 public class Messages_SortTests
@@ -21,7 +21,7 @@ public class Messages_SortTests
             using (var session = documentStore.OpenSession())
             {
                 var timeSent = DateTime.Now;
-                session.Store(new Message
+                session.Store(new AuditMessage
                     {
                         Id = "id",
                         MessageType = "MessageType",
@@ -35,7 +35,7 @@ public class Messages_SortTests
 
                 var results = session.Query<Messages_Sort.Result, Messages_Sort>()
                     .Customize(x => x.WaitForNonStaleResults())
-                    .OfType<Message>()
+                    .OfType<AuditMessage>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 var message = results.First();

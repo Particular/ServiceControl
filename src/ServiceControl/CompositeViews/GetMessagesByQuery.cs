@@ -22,7 +22,7 @@ namespace ServiceControl.CompositeViews
             //            .Statistics(out stats)
             //            .Search(s => s.Query, keyword)
             //            .Sort(Request)
-            //            .OfType<Message>()
+            //            .OfType<AuditMessage>()
             //            .Paging(Request)
             //            .ToArray();
 
@@ -45,7 +45,7 @@ namespace ServiceControl.CompositeViews
             //            .Search(s => s.Query, keyword)
             //            .Where(m => m.ReceivingEndpointName == name)
             //            .Sort(Request)
-            //            .OfType<Message>()
+            //            .OfType<AuditMessage>()
             //            .Paging(Request)
             //            .ToArray();
 

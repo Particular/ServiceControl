@@ -4,9 +4,9 @@
     using Infrastructure.Extensions;
     using Infrastructure.Nancy.Modules;
     using Infrastructure.RavenDB.Indexes;
-    using MessageAuditing;
     using Nancy;
     using Raven.Client;
+    using ServiceControl.MessageAuditing;
 
     public class ConversationsModule : BaseModule
     {
@@ -23,7 +23,7 @@
                         .Statistics(out stats)
                         .Where(m => m.ConversationId == conversationId)
                         .Sort(Request, defaultSortDirection: "asc")
-                        .OfType<Message>()
+                        .OfType<AuditMessage>()
                         .Paging(Request)
                         .ToArray();
 

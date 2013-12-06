@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using Contracts.Operations;
-    using ServiceBus.Management.MessageAuditing;
+    using MessageAuditing;
 
     public class FailedMessage
     {
@@ -20,7 +20,7 @@
 
         public class ProcessingAttempt
         {
-            public Message2 Message { get; set; }
+            public PhysicalMessage Message { get; set; }
             public FailureDetails FailureDetails { get; set; }
             public DateTime AttemptedAt { get; set; }
 

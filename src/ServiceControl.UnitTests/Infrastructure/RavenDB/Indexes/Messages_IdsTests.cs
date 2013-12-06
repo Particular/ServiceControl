@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using NUnit.Framework;
 using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
-using ServiceBus.Management.MessageAuditing;
+using ServiceControl.MessageAuditing;
 
 [TestFixture]
 public class Messages_IdsTests
@@ -18,7 +18,7 @@ public class Messages_IdsTests
 
             using (var session = documentStore.OpenSession())
             {
-                session.Store(new Message
+                session.Store(new AuditMessage
                     {
                         Id = "id",
                         ReceivingEndpoint = new EndpointDetails
@@ -30,7 +30,7 @@ public class Messages_IdsTests
 
                 var results = session.Query<Messages_Ids.Result, Messages_Ids>()
                     .Customize(x => x.WaitForNonStaleResults())
-                    .OfType<Message>()
+                    .OfType<AuditMessage>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 var message = results.First();

@@ -2,12 +2,12 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
 {
     using System;
     using System.Linq;
-    using MessageAuditing;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
     using ServiceControl.Infrastructure.RavenDB.Indexes;
+    using ServiceControl.MessageAuditing;
 
-    public class Messages_Sort : AbstractIndexCreationTask<Message, Messages_Sort.Result>
+    public class Messages_Sort : AbstractIndexCreationTask<AuditMessage, Messages_Sort.Result>
     {
         public Messages_Sort()
         {

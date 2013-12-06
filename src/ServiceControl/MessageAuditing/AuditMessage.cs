@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.MessageAuditing
+﻿namespace ServiceControl.MessageAuditing
 {
     using System;
     using System.Collections.Generic;
@@ -10,32 +10,31 @@
     using NServiceBus.Logging;
     using NServiceBus.Scheduling.Messages;
     using Raven.Imports.Newtonsoft.Json;
-    using ServiceControl.Contracts.Operations;
+    using Contracts.Operations;
     using JsonConvert = Newtonsoft.Json.JsonConvert;
 
-    public class Message
+    public class AuditMessage
     {
-        public Message()
+        public AuditMessage()
         {
         }
 
-        public Message(ErrorMessageReceived message)
+        public AuditMessage(AuditMessageReceived message)
         {
-            Init(message.PhysicalMessage.MessageId, message.PhysicalMessage.Body, message.PhysicalMessage.Headers);          
+            Init(message.AuditMessageId,message.PhysicalMessage);
         }
 
-        public Message(AuditMessageReceived message)
+        private void Init(string messageId, PhysicalMessage message)
         {
-            Init(message.Id, message.Body, message.Headers);
-        }
+            Id = messageId;
+            MessageId = message.MessageId;
+            Status = MessageStatus.Successful;
 
-        private void Init(string messageId, byte[] body, IDictionary<string, string> headers)
-        {
+            var headers = message.Headers;
+            var body = message.Body;
+
             ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(headers);
 
-            // 3.3.x version of MessageIds had a \ in it.
-            Id = string.Format("{0}-{1}", messageId.Replace(@"\", "-"), ReceivingEndpoint.Name);
-            MessageId = messageId;
 
             DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.CorrelationId, headers, s => CorrelationId = s);
             //TODO: Do we need to expose Recoverable in AuditMessageReceived? I don't see this in the headers
@@ -232,7 +231,7 @@
             
             if (body.Length > 0 && BodyRaw.Length != body.Length)
             {
-                throw new InvalidOperationException("Message bodies differ, message has been tampered with");
+                throw new InvalidOperationException("AuditMessage bodies differ, message has been tampered with");
             }
 
             ProcessedAt = processedAt;
@@ -304,7 +303,7 @@
 
         }
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(Message));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(AuditMessage));
 
         static readonly IList<string> KeysToRemoveWhenRetryingAMessage = new List<string>
         {
@@ -312,7 +311,7 @@
             "NServiceBus.FailedQ",
             "NServiceBus.TimeOfFailure",
             "NServiceBus.ExceptionInfo.ExceptionType",
-            "NServiceBus.ExceptionInfo.Message",
+            "NServiceBus.ExceptionInfo.AuditMessage",
             "NServiceBus.ExceptionInfo.Source",
             "NServiceBus.ExceptionInfo.StackTrace"
         };

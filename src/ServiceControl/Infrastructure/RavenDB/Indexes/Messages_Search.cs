@@ -3,12 +3,12 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
     using System;
     using System.Linq;
     using Lucene.Net.Analysis.Standard;
-    using MessageAuditing;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
     using ServiceControl.Infrastructure.RavenDB.Indexes;
+    using ServiceControl.MessageAuditing;
 
-    public class Messages_Search : AbstractIndexCreationTask<Message, Messages_Search.Result>
+    public class Messages_Search : AbstractIndexCreationTask<AuditMessage, Messages_Search.Result>
     {
         public Messages_Search()
         {

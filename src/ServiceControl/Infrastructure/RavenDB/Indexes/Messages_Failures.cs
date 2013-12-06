@@ -2,10 +2,10 @@
 {
     using System.Linq;
     using Contracts.Operations;
+    using MessageAuditing;
     using Raven.Client.Indexes;
-    using ServiceBus.Management.MessageAuditing;
 
-    public class Messages_Failures : AbstractIndexCreationTask<Message>
+    public class Messages_Failures : AbstractIndexCreationTask<AuditMessage>
     {
         public Messages_Failures()
         {

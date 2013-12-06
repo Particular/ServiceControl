@@ -16,7 +16,7 @@
             {
                 new Facet {Name = "Name", DisplayName="Endpoints"},
                 new Facet {Name = "Machine", DisplayName = "Machines"},
-                new Facet {Name = "MessageType", DisplayName = "Message Types"},
+                new Facet {Name = "MessageType", DisplayName = "AuditMessage Types"},
             };
 
             using (var s = Store.OpenSession())

@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Contracts.Operations
 {
     using System.Collections.Generic;
+    using MessageAuditing;
     using NServiceBus;
-    using ServiceBus.Management.MessageAuditing;
 
     public class ErrorMessageReceived : IMessage
     {
@@ -10,18 +10,18 @@
 
         public FailureDetails FailureDetails { get; set; }
 
-        public Message2 PhysicalMessage { get; set; }
+        public PhysicalMessage PhysicalMessage { get; set; }
     }
 
 
-    public class Message2
+    public class PhysicalMessage
     {
-        public Message2()
+        public PhysicalMessage()
         {
             
         }
 
-        public Message2(TransportMessage message)
+        public PhysicalMessage(TransportMessage message)
         {
             MessageId = message.Id;
             Headers = message.Headers;

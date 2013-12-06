@@ -5,11 +5,11 @@
     using System.Text;
     using System.Threading;
     using Contexts;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.MessageAuditing;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {
@@ -53,7 +53,7 @@
         {
             public string MessageId { get; set; }
 
-            public Message ReturnedMessage { get; set; }
+            public AuditMessage ReturnedMessage { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
@@ -75,7 +75,7 @@
                     return false;
                 }
 
-                c.ReturnedMessage = Get<Message>("/api/messages/" + context.MessageId + "-" +
+                c.ReturnedMessage = Get<AuditMessage>("/api/messages/" + context.MessageId + "-" +
                                  context.EndpointNameOfReceivingEndpoint);
 
                 if (c.ReturnedMessage == null)
@@ -120,8 +120,8 @@
             Assert.True(Encoding.UTF8.GetString(context.ReturnedMessage.BodyRaw).Contains("<MyMessage"),
                 "The raw body should be stored");
             Assert.AreEqual(typeof(MyMessage).FullName, context.ReturnedMessage.MessageType,
-                "Message type should be set to the fullname of the message type");
-            Assert.False(context.ReturnedMessage.IsSystemMessage, "Message should not be marked as a system message");
+                "AuditMessage type should be set to the fullname of the message type");
+            Assert.False(context.ReturnedMessage.IsSystemMessage, "AuditMessage should not be marked as a system message");
         }
 
 

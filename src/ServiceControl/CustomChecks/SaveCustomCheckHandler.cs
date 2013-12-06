@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using Infrastructure;
+    using MessageAuditing;
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
     using Raven.Client;
-    using ServiceBus.Management.MessageAuditing;
 
     class SaveCustomCheckHandler : IHandleMessages<ReportCustomCheckResult>
     {

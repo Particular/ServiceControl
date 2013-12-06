@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Contracts.CustomChecks
 {
     using System;
+    using MessageAuditing;
     using NServiceBus;
-    using ServiceBus.Management.MessageAuditing;
 
     public class CustomCheckSucceeded : IEvent
     {

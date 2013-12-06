@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.MessageAuditing
+namespace ServiceControl.MessageAuditing
 {
     using System.Collections.Generic;
     using NServiceBus;

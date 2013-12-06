@@ -1,11 +1,9 @@
 ﻿namespace ServiceControl.MessageAuditing
 {
-    using System;
     using Contracts.Operations;
     using NServiceBus;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
-    using ServiceBus.Management.MessageAuditing;
 
     class AuditMessageHandler : IHandleMessages<AuditMessageReceived>
     {
@@ -17,9 +15,8 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var auditMessage = new Message(message);
+                var auditMessage = new AuditMessage(message);
 
-                auditMessage.MarkAsSuccessful(message.Headers);
 
                 try
                 {
@@ -28,24 +25,10 @@
                 }
                 catch (ConcurrencyException)
                 {
-                    session.Advanced.Clear();
-                    UpdateExistingMessage(session, auditMessage.Id, message);
+                    //already stored
                 }
             }
         }
 
-        void UpdateExistingMessage(IDocumentSession session, string messageId, AuditMessageReceived message)
-        {
-            var auditMessage = session.Load<Message>(messageId);
-
-            if (auditMessage == null)
-            {
-                throw new InvalidOperationException("There should be a message in the store");
-            }
-
-            auditMessage.Update(message.Body, message.Headers);
-
-            session.SaveChanges();
-        }
     }
 }

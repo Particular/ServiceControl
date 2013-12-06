@@ -2,16 +2,16 @@ namespace ServiceControl.CompositeViews
 {
     using System;
     using System.Linq;
+    using MessageAuditing;
     using MessageFailures;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
-    using ServiceBus.Management.MessageAuditing;
 
     public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesView>
     {
         public MessagesViewIndex()
         {
-            AddMap<Message>(messages => messages.Select(message => new
+            AddMap<AuditMessage>(messages => messages.Select(message => new
             {
                 MessageId = message.MessageId,
                 message.Status,

@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using InternalMessages;
+    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.Transports;
     using ServiceBus.Management.Infrastructure.RavenDB;
-    using ServiceBus.Management.MessageAuditing;
 
     public class IssueRetryHandler : IHandleMessages<IssueRetry>
     {
@@ -14,7 +14,7 @@
 
         public void Handle(IssueRetry message)
         {
-            var failedMessage = RavenUnitOfWork.Session.Load<Message>(message.MessageId);
+            var failedMessage = RavenUnitOfWork.Session.Load<AuditMessage>(message.MessageId);
 
             if (failedMessage == null)
             {

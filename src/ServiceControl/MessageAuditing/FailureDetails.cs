@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.MessageAuditing
+namespace ServiceControl.MessageAuditing
 {
     using System;
     using System.Collections.Generic;
@@ -33,7 +33,7 @@ namespace ServiceBus.Management.MessageAuditing
             var exceptionDetails = new ExceptionDetails();
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.ExceptionType", headers,
                 s => exceptionDetails.ExceptionType = s);
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.Message", headers,
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.AuditMessage", headers,
                 s => exceptionDetails.Message = s);
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.Source", headers,
                 s => exceptionDetails.Source = s);

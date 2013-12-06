@@ -5,10 +5,10 @@
     using System.Text;
     using System.Threading;
     using Contexts;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceControl.MessageAuditing;
 
     public class When_an_endpoint_is_running_with_debug_sessions_enabled : AcceptanceTest
     {
@@ -75,7 +75,7 @@
         {
             public string MessageId { get; set; }
 
-            public Message ReturnedMessage { get; set; }
+            public AuditMessage ReturnedMessage { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
@@ -97,7 +97,7 @@
                     return false;
                 }
 
-                c.ReturnedMessage = Get<Message>("/api/messages/" + context.MessageId + "-" +
+                c.ReturnedMessage = Get<AuditMessage>("/api/messages/" + context.MessageId + "-" +
                                  context.EndpointNameOfReceivingEndpoint);
 
                 if (c.ReturnedMessage == null)

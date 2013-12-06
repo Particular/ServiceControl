@@ -1,10 +1,10 @@
-﻿namespace ServiceBus.Management.MessageAuditing
+﻿namespace ServiceControl.MessageAuditing
 {
     using System.Linq;
-    using Infrastructure.Extensions;
-    using Infrastructure.Nancy.Modules;
-    using Infrastructure.RavenDB.Indexes;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Extensions;
+    using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
     using ServiceControl.Contracts.Operations;
 
     public class AuditMessagesModule : BaseModule
@@ -21,7 +21,7 @@
                         .IncludeSystemMessagesWhere(Request)
                         .Where(m => m.Status == MessageStatus.Successful)
                         .Sort(Request)
-                        .OfType<Message>()
+                        .OfType<AuditMessage>()
                         .Paging(Request)
                         .ToArray();
                     
@@ -47,7 +47,7 @@
                                 m.ReceivingEndpointName == endpoint &&
                                 m.Status == MessageStatus.Successful)
                         .Sort(Request)
-                        .OfType<Message>()
+                        .OfType<AuditMessage>()
                         .Paging(Request)
                         .ToArray();
 

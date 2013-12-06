@@ -286,7 +286,7 @@
     <Compile Include="EndpointConfig.cs" />
     <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
-    <Compile Include="MessageAuditing\Message.cs" />
+    <Compile Include="MessageAuditing\AuditMessage.cs" />
     <Compile Include="MessageFailures\ErrorMessagesModule.cs" />
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
     <Compile Include="Infrastructure\Satellites\ErrorImportSatellite.cs" />

@@ -4,13 +4,13 @@
     using System.Linq;
     using System.Threading;
     using Contexts;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.MessageAuditing;
 
     public class When_issuing_a_retry_for_a_failed_message : AcceptanceTest
     {
@@ -54,7 +54,7 @@
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-            public Message Message { get; set; }
+            public AuditMessage Message { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
@@ -69,7 +69,7 @@
             }
 
             context.Message =
-                Get<Message>(String.Format("/api/messages/{0}-{1}", context.MessageId,
+                Get<AuditMessage>(String.Format("/api/messages/{0}-{1}", context.MessageId,
                     context.EndpointNameOfReceivingEndpoint));
 
             if (context.Message == null)

@@ -2,11 +2,11 @@
 {
     using System.Linq;
     using InternalMessages;
+    using MessageAuditing;
     using NServiceBus;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
-    using ServiceBus.Management.MessageAuditing;
 
     public abstract class IssueRetryAllHandlerBase
     {
@@ -33,7 +33,7 @@
                         var results = query
                             .Skip(skip)
                             .Take(1024)
-                            .OfType<Message>()
+                            .OfType<AuditMessage>()
                             .ToArray();
 
                         foreach (var result in results)

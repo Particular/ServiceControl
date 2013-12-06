@@ -5,15 +5,15 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using MessageAuditing;
     using Raven.Client;
     using global::Nancy;
     using global::Nancy.Helpers;
     using global::Nancy.Responses.Negotiation;
+    using ServiceControl.MessageAuditing;
 
     public static class NegotiatorExtensions
     {
-        public static Negotiator WithModelAppendedRestfulUrls(this Negotiator negotiator, IEnumerable<Message> messages,
+        public static Negotiator WithModelAppendedRestfulUrls(this Negotiator negotiator, IEnumerable<AuditMessage> messages,
             Request request)
         {
             var baseUrl = request.Url.SiteBase + request.Url.BasePath;

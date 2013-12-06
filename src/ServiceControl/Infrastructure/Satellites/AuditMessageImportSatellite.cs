@@ -3,6 +3,7 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
+    using ServiceControl;
     using ServiceControl.Contracts.Operations;
     using Settings;
 
@@ -14,9 +15,8 @@
         {
             Bus.InMemory.Raise<AuditMessageReceived>(m =>
             {
-                m.Id = message.Id;
-                m.Body = message.Body;
-                m.Headers = message.Headers;
+                m.AuditMessageId = message.UniqueId();
+                m.PhysicalMessage = new PhysicalMessage(message);
             });
             return true;
         }

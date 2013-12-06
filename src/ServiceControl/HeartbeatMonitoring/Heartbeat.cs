@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
-    using ServiceBus.Management.MessageAuditing;
+    using MessageAuditing;
 
     class Heartbeat
     {

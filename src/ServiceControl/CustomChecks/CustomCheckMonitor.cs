@@ -5,9 +5,9 @@
     using System.Collections.Generic;
     using Contracts.CustomChecks;
     using Infrastructure;
+    using MessageAuditing;
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
-    using ServiceBus.Management.MessageAuditing;
 
     public class CustomCheckMonitor
     {

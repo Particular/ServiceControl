@@ -1,20 +1,20 @@
 namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
 {
     using System.Linq;
-    using MessageAuditing;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
+    using ServiceControl.MessageAuditing;
 
     public class Endpoints_Distinct : AbstractMultiMapIndexCreationTask<Endpoints_Distinct.Result>
     {
         public Endpoints_Distinct()
         {
-            AddMap<Message>(messages => from message in messages
+            AddMap<AuditMessage>(messages => from message in messages
                 select new
                 {
                     Endpoint = message.OriginatingEndpoint
                 });
-            AddMap<Message>(messages => from message in messages
+            AddMap<AuditMessage>(messages => from message in messages
                 select new
                 {
                     Endpoint = message.ReceivingEndpoint
