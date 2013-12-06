@@ -15,9 +15,9 @@
             ExecuteQuery();
         }
 
-        protected override void AddWhere(IRavenQueryable<Messages_Ids.Result> query)
-        {
-            query.Where(r => r.ReceivingEndpointName == endpointName);
-        }
+        //protected override void AddWhere(IRavenQueryable<Messages_Ids.Result> query)
+        //{
+        //    query.Where(r => r.ReceivingEndpointName == endpointName);
+        //}
     }
 }

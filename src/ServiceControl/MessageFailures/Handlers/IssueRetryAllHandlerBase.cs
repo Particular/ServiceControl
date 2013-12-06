@@ -23,10 +23,8 @@
             {
                 using (var session = Store.OpenSession())
                 {
-                    var query = session.Query<Messages_Ids.Result, Messages_Ids>()
+                    var query = session.Query<FailedMessage>()
                         .Statistics(out stats);
-
-                    AddWhere(query);
 
                     do
                     {
@@ -50,8 +48,8 @@
             } while (skip < stats.TotalResults);
         }
 
-        protected virtual void AddWhere(IRavenQueryable<Messages_Ids.Result> query)
-        {
-        }
+        //protected virtual void AddWhere(IRavenQueryable<Messages_Ids.Result> query)
+        //{
+        //}
     }
 }

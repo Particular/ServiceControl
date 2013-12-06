@@ -26,7 +26,6 @@ public class Conversations_SortedTests
                     Id = "id",
                     MessageType = "MessageType",
                     TimeSent = now,
-                    Status = MessageStatus.Successful,
                     ConversationId = "ConversationId",
                     ProcessedAt = now,
                     OriginatingEndpoint = new EndpointDetails{Name = "foo"},
@@ -44,7 +43,6 @@ public class Conversations_SortedTests
                 Assert.AreEqual("MessageType", message.MessageType);
                 Assert.AreEqual(now, message.TimeSent);
                 Assert.AreEqual(now, message.ProcessedAt);
-                Assert.AreEqual(MessageStatus.Successful, message.Status);
                 Assert.IsTrue(message.Recoverable);
                 Assert.AreEqual("foo", message.OriginatingEndpoint.Name);
                 Assert.AreEqual("ConversationId", message.ConversationId);

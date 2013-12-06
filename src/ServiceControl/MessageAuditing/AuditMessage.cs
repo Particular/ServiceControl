@@ -28,7 +28,6 @@
         {
             Id = messageId;
             MessageId = message.MessageId;
-            Status = MessageStatus.Successful;
 
             var headers = message.Headers;
             var body = message.Body;
@@ -110,8 +109,6 @@
         public string CorrelationId { get; set; }
 
         public string ConversationId { get; set; }
-
-        public MessageStatus Status { get; set; }
 
         public EndpointDetails OriginatingEndpoint { get; set; }
 
@@ -205,7 +202,6 @@
                 ReplyToAddress = Address.Parse(ReplyToAddress)
             };
 
-            Status = MessageStatus.RetryIssued;
 
             History.Add(new HistoryItem
             {
@@ -216,60 +212,7 @@
             return rawMessage;
         }
 
-        public void Update(byte[] body, IDictionary<string,string> headers )
-        {
-            var processedAt = DateTime.MinValue;
-            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.ProcessingEnded, headers, (processEndedAt) =>
-            {
-                processedAt = DateTimeExtensions.ToUtcDateTime(processEndedAt);
-            });
-            
-            if (Status == MessageStatus.Successful && ProcessedAt > processedAt)
-            {
-                return; //don't overwrite since this message is older
-            }
-            
-            if (body.Length > 0 && BodyRaw.Length != body.Length)
-            {
-                throw new InvalidOperationException("AuditMessage bodies differ, message has been tampered with");
-            }
-
-            ProcessedAt = processedAt;
-
-            if (Status != MessageStatus.Successful)
-            {
-                DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.ProcessingEnded, headers, (processingEnded) =>
-                {
-                    FailureDetails.ResolvedAt = DateTimeExtensions.ToUtcDateTime(processingEnded);
-                });
-                
-                History.Add(new HistoryItem
-                {
-                    Action = "ErrorResolved",
-                    Time = FailureDetails.ResolvedAt
-                });
-            }
-
-            Status = MessageStatus.Successful;
-
-            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.OriginatingAddress, headers, (address) => ReplyToAddress = address);
-
-            Statistics = GetProcessingStatistics(headers);
-        }
-
-        public void MarkAsSuccessful(IDictionary<string,string> headers)
-        {
-            Status = MessageStatus.Successful;
-            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.ProcessingEnded, headers, (processingEnded) =>
-            {
-                ProcessedAt = DateTimeExtensions.ToUtcDateTime(processingEnded);
-                Statistics = GetProcessingStatistics(headers);
-            });
-
-            DictionaryExtensions.CheckIfKeyExists(NServiceBus.Headers.OriginatingAddress, headers, 
-                (originatingAddress) => ReplyToAddress = originatingAddress);
-        }
-
+      
         MessageStatistics GetProcessingStatistics(IDictionary<string,string> headers)
         {
             var messageStatistics = new MessageStatistics();

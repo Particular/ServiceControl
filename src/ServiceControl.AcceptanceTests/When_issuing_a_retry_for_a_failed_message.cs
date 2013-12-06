@@ -77,7 +77,7 @@
                 return false;
             }
 
-            return context.Message.Status == status;
+            return true;
         }
 
         [Test]

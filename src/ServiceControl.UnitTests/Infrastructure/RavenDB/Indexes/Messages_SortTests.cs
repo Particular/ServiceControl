@@ -26,7 +26,6 @@ public class Messages_SortTests
                         Id = "id",
                         MessageType = "MessageType",
                         TimeSent = timeSent,
-                        Status = MessageStatus.Successful,
                         ConversationId = "ConversationId",
                         IsSystemMessage = true,
                         ReceivingEndpoint = new EndpointDetails{Name = "EndpointName"},
@@ -42,7 +41,6 @@ public class Messages_SortTests
                 Assert.AreEqual("id", message.Id);
                 Assert.AreEqual("MessageType", message.MessageType);
                 Assert.AreEqual(timeSent, message.TimeSent);
-                Assert.AreEqual(MessageStatus.Successful, message.Status);
                 Assert.AreEqual("ConversationId", message.ConversationId);
                 Assert.IsTrue(message.IsSystemMessage);
             }

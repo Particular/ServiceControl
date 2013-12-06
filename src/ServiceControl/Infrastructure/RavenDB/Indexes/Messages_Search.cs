@@ -5,6 +5,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
     using Lucene.Net.Analysis.Standard;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure.RavenDB.Indexes;
     using ServiceControl.MessageAuditing;
 
@@ -18,7 +19,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
                     message.Id,
                     message.MessageType,
                     message.TimeSent,
-                    message.Status,
+                    Status = MessageStatus.Successful,
                     TimeOfFailure = message.FailureDetails != null ? message.FailureDetails.TimeOfFailure : DateTime.MinValue,
                     CriticalTime = message.Statistics != null ? message.Statistics.CriticalTime : TimeSpan.Zero,
                     ProcessingTime = message.Statistics != null ? message.Statistics.ProcessingTime : TimeSpan.Zero,

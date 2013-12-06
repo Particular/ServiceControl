@@ -2,6 +2,7 @@ namespace ServiceControl.CompositeViews
 {
     using System;
     using System.Linq;
+    using Contracts.Operations;
     using MessageAuditing;
     using MessageFailures;
     using Raven.Abstractions.Indexing;
@@ -14,7 +15,7 @@ namespace ServiceControl.CompositeViews
             AddMap<AuditMessage>(messages => messages.Select(message => new
             {
                 MessageId = message.MessageId,
-                message.Status,
+                Status = MessageStatus.Successful,
                 ProcessedAt = new DateTime(2013, 12, 6),
                 ReceivingEndpointName = message.ReceivingEndpoint.Name
             }));

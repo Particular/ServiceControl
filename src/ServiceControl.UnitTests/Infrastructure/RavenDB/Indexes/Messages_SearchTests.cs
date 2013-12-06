@@ -26,7 +26,6 @@ public class Messages_SearchTests
                         Id = "id",
                         MessageType = "MessageType",
                         TimeSent = timeSent,
-                        Status = MessageStatus.Successful,
                         ConversationId = "ConversationId",
                     });
                 session.SaveChanges();
@@ -40,7 +39,6 @@ public class Messages_SearchTests
                 Assert.AreEqual("id", message.Id);
                 Assert.AreEqual("MessageType", message.MessageType);
                 Assert.AreEqual(timeSent, message.TimeSent);
-                Assert.AreEqual(MessageStatus.Successful, message.Status);
                 Assert.AreEqual("ConversationId", message.ConversationId);
             }
 

@@ -4,6 +4,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
     using System.Linq;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure.RavenDB.Indexes;
     using ServiceControl.MessageAuditing;
 
@@ -17,7 +18,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
                     message.Id,
                     message.MessageType,
                     message.TimeSent,
-                    message.Status,
+                   Status = MessageStatus.Successful,
                     message.IsSystemMessage,
                     ReceivingEndpointName = message.ReceivingEndpoint.Name,
                     TimeOfFailure =

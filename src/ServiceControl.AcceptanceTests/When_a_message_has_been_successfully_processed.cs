@@ -106,7 +106,6 @@
             Assert.NotNull(context.ReturnedMessage, "No message was returned by the management api");
             Assert.AreEqual(context.MessageId, context.ReturnedMessage.MessageId,
                 "The returned message should match the processed one");
-            Assert.AreEqual(MessageStatus.Successful, context.ReturnedMessage.Status, "Status should be set to success");
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, context.ReturnedMessage.ReceivingEndpoint.Name,
                 "Receiving endpoint name should be parsed correctly");
             Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.ReceivingEndpoint.Machine,

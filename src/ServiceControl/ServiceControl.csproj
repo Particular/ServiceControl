@@ -210,7 +210,6 @@
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Facets.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Failures.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
     <Compile Include="Infrastructure\SignalR\GlobalEventHandler.cs" />
@@ -274,7 +273,6 @@
     <Compile Include="Infrastructure\RavenDB\Indexes\CommonResult.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Conversations_Sorted.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Endpoints_Distinct.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Ids.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Search.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Sort.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWork.cs" />
