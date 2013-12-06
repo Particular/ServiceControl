@@ -58,7 +58,5 @@
                 }
             };
         }
-
-        public IDocumentStore Store { get; set; }
     }
 }

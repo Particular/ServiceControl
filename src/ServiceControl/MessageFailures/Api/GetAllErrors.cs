@@ -2,10 +2,8 @@
 {
     using System.Linq;
     using Contracts.Operations;
-    using Infrastructure.RavenDB.Indexes;
     using Nancy;
     using Raven.Client;
-    using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
@@ -62,34 +60,5 @@
               }
           };
         }
-        public IDocumentStore Store { get; set; }
-
-    }
-
-    public class FaileMessageViewTransformer : AbstractTransformerCreationTask<FailedMessage>
-    {
-        public FaileMessageViewTransformer()
-        {
-            TransformResults = failures => from failure in failures
-                                           select new FailedMessageView
-                                           {
-                                               MessageId = failure.MessageId,
-                                               ErrorMessageId = failure.Id,
-                                               ExceptionMessage = failure.ProcessingAttempts.Last().FailureDetails.Exception.Message,
-                                               NumberOfProcessingAttempts = failure.ProcessingAttempts.Count(),
-                                               Status = failure.Status
-                                           };
-        }
-    }
-
-
-    public class FailedMessageView : CommonResult
-    {
-        public string ErrorMessageId { get; set; }
-
-        public string ExceptionMessage { get; set; }
-
-        public string MessageId { get; set; }
-        public int NumberOfProcessingAttempts { get; set; }
     }
 }

@@ -164,6 +164,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompositeViews\GetMessagesByQuery.cs" />
+    <Compile Include="CompositeViews\MessagesView.cs" />
+    <Compile Include="CompositeViews\MessagesViewIndex.cs" />
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
@@ -226,6 +229,8 @@
     <Compile Include="MessageAuditing\HistoryItem.cs" />
     <Compile Include="MessageAuditing\MessageStatistics.cs" />
     <Compile Include="MessageAuditing\SagaDetails.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
+    <Compile Include="MessageFailures\Api\FaileMessageViewTransformer.cs" />
     <Compile Include="MessageFailures\Api\GetAllErrors.cs" />
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
     <Compile Include="MessageFailures\ErrorMessageCounterRegister.cs" />

@@ -48,7 +48,5 @@
                 return HttpStatusCode.NoContent;
             };
         }
-
-        public IDocumentStore Store { get; set; }
     }
 }

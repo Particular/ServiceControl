@@ -27,7 +27,5 @@ namespace ServiceBus.Management.EndpointControl
                 }
             };
         }
-
-        public IDocumentStore Store { get; set; }
     }
 }

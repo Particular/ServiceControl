@@ -1,11 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System.Linq;
     using Nancy;
-    using Raven.Client;
-    using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
 
     public class GetErrorById : BaseModule
     {
@@ -29,7 +25,6 @@
                 }
             };
         }
-        public IDocumentStore Store { get; set; }
 
     }
 

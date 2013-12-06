@@ -8,8 +8,6 @@ namespace ServiceControl.HeartbeatMonitoring
 
     public class ApiModule : BaseModule
     {
-        public IDocumentStore Store { get; set; }
-
         public ApiModule()
         {
             Get["/heartbeats/stats"] = _ =>

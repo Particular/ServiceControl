@@ -72,8 +72,6 @@
             };
         }
 
-        public IDocumentStore Store { get; set; }
-
         public IBus Bus { get; set; }
     }
 
