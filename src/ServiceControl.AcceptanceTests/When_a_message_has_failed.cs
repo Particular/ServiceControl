@@ -51,7 +51,7 @@
                 .Done(c => TryGetData("/api/errors",out response))
                 .Run();
 
-            var failure = response.Single();
+            var failure = response.Single(r=>r.MessageId == context.MessageId);
 
             // The message Ids may contain a \ if they are from older versions. 
             Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");
@@ -59,10 +59,31 @@
             Assert.AreEqual(1, failure.NumberOfProcessingAttempts, "One attempt should be stored");
         }
 
-        bool TryGetData(string url, out List<FailedMessageView> response)
+
+        [Test]
+        public void Should_be_listed_in_the_messages_list()
+        {
+            var context = new MyContext();
+
+            var response = new List<FailedMessageView>();
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .Done(c => TryGetData("/api/messages", out response))
+                .Run();
+
+            var failure = response.Single(r => r.MessageId == context.MessageId);
+
+            // The message Ids may contain a \ if they are from older versions. 
+            Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");
+            Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
+        }
+
+        bool TryGetData<T>(string url, out List<T> response) where T:class 
         {
 
-            response = Get<List<FailedMessageView>>(url);
+            response = Get<List<T>>(url);
 
             if (response == null || !response.Any())
             {

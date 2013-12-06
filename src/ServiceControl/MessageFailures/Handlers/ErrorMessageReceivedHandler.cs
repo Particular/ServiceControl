@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.MessageFailures
+﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System;
     using Contracts.Operations;

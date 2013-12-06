@@ -1,9 +1,9 @@
-﻿namespace ServiceBus.Management.MessageFailures.Handlers
+﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using Infrastructure.RavenDB.Indexes;
     using InternalMessages;
     using NServiceBus;
     using Raven.Client.Linq;
+    using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
 
     public class IssueEndpointRetryAllHandler : IssueRetryAllHandlerBase, IHandleMessages<IssueEndpointRetryAll>
     {

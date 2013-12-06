@@ -262,7 +262,7 @@
     <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
     <Compile Include="EndpointControl\EndpointModule.cs" />
     <Compile Include="MessageFailures\InternalMessages\IssueRetry.cs" />
-    <Compile Include="MessageAuditing\MessagesModule.cs" />
+    <Compile Include="CompositeViews\GetMessages.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\RootModule.cs" />
     <Compile Include="Infrastructure\OWIN\OwinRunner.cs" />
     <Compile Include="Infrastructure\OWIN\Startup.cs" />

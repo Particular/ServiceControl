@@ -36,19 +36,27 @@
             sw.Start();
             Logger.Info("Index creation started");
 
-            IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore)
-                .ContinueWith(c =>
-                {
-                    sw.Stop();
-                    if (c.IsFaulted)
+            if (Settings.CreateIndexSync)
+            {
+                IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);    
+            }
+            else
+            {
+                IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore)
+                    .ContinueWith(c =>
                     {
-                        Logger.Error("Index creation failed", c.Exception);
-                    }
-                    else
-                    {
-                        Logger.InfoFormat("Index creation completed, total time: {0}", sw.Elapsed);
-                    }
-                });
+                        sw.Stop();
+                        if (c.IsFaulted)
+                        {
+                            Logger.Error("Index creation failed", c.Exception);
+                        }
+                        else
+                        {
+                            Logger.InfoFormat("Index creation completed, total time: {0}", sw.Elapsed);
+                        }
+                    });                
+            }
+
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);

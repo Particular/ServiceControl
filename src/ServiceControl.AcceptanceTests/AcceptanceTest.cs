@@ -101,6 +101,17 @@
                     new XAttribute("key", "ServiceControl/Port"), new XAttribute("value", port)));
             }
 
+            var syncIndexElement = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/CreateIndexSync""]");
+            if (syncIndexElement != null)
+            {
+                syncIndexElement.SetAttributeValue("value", true);
+            }
+            else
+            {
+                appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/CreateIndexSync"), new XAttribute("value", true)));
+            }
+            
+
             doc.Save(pathToAppConfig);
         }
 
@@ -170,7 +181,7 @@
             Console.Out.WriteLine(" - {0}", (int) response.StatusCode);
 
             //for now
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
             {
                 Thread.Sleep(1000);
                 return null;
