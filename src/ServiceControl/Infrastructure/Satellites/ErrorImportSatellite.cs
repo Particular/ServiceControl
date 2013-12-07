@@ -19,9 +19,9 @@
 
         public bool Handle(TransportMessage message)
         {
-            var errorMessageReceived = new ErrorMessageReceived
+            var errorMessageReceived = new FailedMessageDetected
             {
-                ErrorMessageId = message.UniqueId(),
+                FailedMessageId = message.UniqueId(),
                 PhysicalMessage = new PhysicalMessage(message),
                 FailureDetails = new FailureDetails(message.Headers)                
             };

@@ -188,7 +188,7 @@
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointHeartbeatRestored.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\Operations\AuditMessageReceived.cs" />
-    <Compile Include="Contracts\Operations\ErrorMessageReceived.cs" />
+    <Compile Include="Contracts\Operations\FailedMessageDetected.cs" />
     <Compile Include="CustomChecks\CustomCheck.cs" />
     <Compile Include="CustomChecks\CustomCheckMonitor.cs" />
     <Compile Include="CustomChecks\CustomCheckResultHandler.cs" />

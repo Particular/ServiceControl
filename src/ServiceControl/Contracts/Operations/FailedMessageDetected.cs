@@ -4,9 +4,9 @@
     using MessageAuditing;
     using NServiceBus;
 
-    public class ErrorMessageReceived : IMessage
+    public class FailedMessageDetected : IMessage
     {
-        public string ErrorMessageId { get; set; }
+        public string FailedMessageId { get; set; }
 
         public FailureDetails FailureDetails { get; set; }
 

@@ -5,19 +5,19 @@
     using NServiceBus;
     using Raven.Client;
 
-    class ErrorMessageReceivedHandler : IHandleMessages<ErrorMessageReceived>
+    class ErrorMessageReceivedHandler : IHandleMessages<FailedMessageDetected>
     {
         public IDocumentStore DocumentStore { get; set; }
  
-        public void Handle(ErrorMessageReceived message)
+        public void Handle(FailedMessageDetected message)
         {
             using (var session = DocumentStore.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var failure = session.Load<FailedMessage>(message.ErrorMessageId) ?? new FailedMessage
+                var failure = session.Load<FailedMessage>(message.FailedMessageId) ?? new FailedMessage
                 {
-                    Id = message.ErrorMessageId,
+                    Id = message.FailedMessageId,
                     Status = MessageStatus.Failed,
                     MessageId = message.PhysicalMessage.MessageId
                 };

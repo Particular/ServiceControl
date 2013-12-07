@@ -3,13 +3,13 @@
     using Contracts.Operations;
     using NServiceBus;
 
-    class SignalrErrorMessageHandler : IHandleMessages<ErrorMessageReceived>
+    class SignalrErrorMessageHandler : IHandleMessages<FailedMessageDetected>
     {
         public InMemoryErrorMessagesCounterCache InMemoryErrorMessagesCounterCache { get; set; }
 
         public IBus Bus { get; set; }
 
-        public void Handle(ErrorMessageReceived message)
+        public void Handle(FailedMessageDetected message)
         {
             var total = InMemoryErrorMessagesCounterCache.Increment();
 

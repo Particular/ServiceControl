@@ -12,21 +12,18 @@ namespace ServiceControl.MessageAuditing
 
         public FailureDetails(IDictionary<string,string> headers)
         {
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.FailedQ", headers, s => FailedInQueue = s);
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => TimeOfFailure = DateTimeExtensions.ToUtcDateTime(s));
             Exception = GetException(headers);
-            NumberOfTimesFailed = 1;
+
+            ProcessingEndpoint = EndpointDetails.ReceivingEndpoint(headers);
         }
 
-        public int NumberOfTimesFailed { get; set; }
-
-        public string FailedInQueue { get; set; }
+        
+        public EndpointDetails ProcessingEndpoint { get; set; }
 
         public DateTime TimeOfFailure { get; set; }
 
         public ExceptionDetails Exception { get; set; }
-
-        public DateTime ResolvedAt { get; set; }
 
         ExceptionDetails GetException(IDictionary<string,string> headers)
         {
@@ -42,21 +39,5 @@ namespace ServiceControl.MessageAuditing
             return exceptionDetails;
         }
 
-        public void RegisterException(IDictionary<string,string> headers)
-        {
-            NumberOfTimesFailed++;
-
-            var timeOfFailure = DateTime.MinValue;
-
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => timeOfFailure = DateTimeExtensions.ToUtcDateTime(s));
-
-            if (TimeOfFailure < timeOfFailure)
-            {
-                Exception = GetException(headers);
-                TimeOfFailure = timeOfFailure;
-            }
-
-            //todo -  add history
-        }
     }
 }
