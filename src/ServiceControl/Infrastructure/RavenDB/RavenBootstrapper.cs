@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.RavenDB
+﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System.Diagnostics;
     using System.IO;
@@ -7,8 +7,8 @@
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
-    using Raven.Database.Server;
-    using Settings;
+    using ServiceBus.Management.Infrastructure.RavenDB;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class RavenBootstrapper : INeedInitialization
     {

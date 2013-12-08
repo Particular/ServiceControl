@@ -5,6 +5,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
     using Raven.Client.Indexes;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageAuditing;
+    using ServiceControl.MessageFailures;
 
     public class Endpoints_Distinct : AbstractMultiMapIndexCreationTask<Endpoints_Distinct.Result>
     {
@@ -20,6 +21,12 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
                 {
                     Endpoint = message.ReceivingEndpoint
                 });
+
+            AddMap<FailedMessage>(messages => from message in messages
+                                             select new
+                                             {
+                                                 Endpoint = message.ProcessingAttempts.Last().Message.ProcessingEndpoint
+                                             });
 
             Reduce = results => from result in results
                 group result by result.Endpoint
