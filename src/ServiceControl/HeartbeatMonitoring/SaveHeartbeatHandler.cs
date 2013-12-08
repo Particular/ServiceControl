@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
+    using Contracts.Operations;
     using Infrastructure;
     using MessageAuditing;
     using NServiceBus;

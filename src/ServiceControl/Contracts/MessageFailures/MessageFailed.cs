@@ -2,6 +2,7 @@
 {
     using MessageAuditing;
     using NServiceBus;
+    using Operations;
 
     public class MessageFailed : IEvent
     {

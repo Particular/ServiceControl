@@ -168,6 +168,7 @@
     <Compile Include="CompositeViews\MessagesView.cs" />
     <Compile Include="CompositeViews\MessagesViewIndex.cs" />
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
+    <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointFailedToHeartbeatDefinition.cs" />
@@ -220,12 +221,11 @@
     <Compile Include="Infrastructure\Subscriptions\AlwaysIncludeLocalEndpointStorage.cs" />
     <Compile Include="Infrastructure\TransportMessageExtentions.cs" />
     <Compile Include="Infrastructure\UrlAclInstaller.cs" />
-    <Compile Include="MessageAuditing\AuditMessageHandler.cs" />
-    <Compile Include="MessageAuditing\DictionaryExtensions.cs" />
-    <Compile Include="MessageAuditing\EndpointDetails.cs" />
-    <Compile Include="MessageAuditing\ExceptionDetails.cs" />
-    <Compile Include="MessageAuditing\FailureDetails.cs" />
-    <Compile Include="MessageAuditing\HistoryItem.cs" />
+    <Compile Include="MessageAuditing\Handlers\AuditMessageHandler.cs" />
+    <Compile Include="Infrastructure\DictionaryExtensions.cs" />
+    <Compile Include="Contracts\Operations\EndpointDetails.cs" />
+    <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
+    <Compile Include="Contracts\Operations\FailureDetails.cs" />
     <Compile Include="MessageAuditing\MessageStatistics.cs" />
     <Compile Include="MessageAuditing\SagaDetails.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
@@ -279,7 +279,7 @@
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
     <Compile Include="Infrastructure\Satellites\AuditMessageImportSatellite.cs" />
-    <Compile Include="MessageAuditing\AuditMessagesModule.cs" />
+    <Compile Include="MessageAuditing\Api\AuditMessagesModule.cs" />
     <Compile Include="BusinessProcessTracking\ConversationsModule.cs" />
     <Compile Include="EndpointConfig.cs" />
     <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />

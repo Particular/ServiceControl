@@ -132,11 +132,6 @@
 
         public MessageIntentEnum MessageIntent { get; set; }
 
-        public ICollection<HistoryItem> History
-        {
-            get { return history ?? (history = new Collection<HistoryItem>()); }
-            set { history = value; }
-        }
 
         public bool IsSystemMessage { get; set; }
 
@@ -203,12 +198,7 @@
             };
 
 
-            History.Add(new HistoryItem
-            {
-                Action = "RetryIssued",
-                Time = requestedAt
-            });
-
+        
             return rawMessage;
         }
 
@@ -258,8 +248,5 @@
             "NServiceBus.ExceptionInfo.Source",
             "NServiceBus.ExceptionInfo.StackTrace"
         };
-
-        ICollection<HistoryItem> history;
-
     }
 }

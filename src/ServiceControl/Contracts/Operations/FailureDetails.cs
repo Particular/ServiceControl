@@ -1,7 +1,8 @@
-namespace ServiceControl.MessageAuditing
+namespace ServiceControl.Contracts.Operations
 {
     using System;
     using System.Collections.Generic;
+    using MessageAuditing;
     using NServiceBus;
 
     public class FailureDetails

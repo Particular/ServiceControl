@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
+    using Contracts.Operations;
     using MessageAuditing;
 
     class Heartbeat

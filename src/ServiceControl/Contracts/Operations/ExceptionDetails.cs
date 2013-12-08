@@ -1,4 +1,4 @@
-namespace ServiceControl.MessageAuditing
+namespace ServiceControl.Contracts.Operations
 {
     public class ExceptionDetails
     {

@@ -3,6 +3,7 @@
     using System;
     using MessageAuditing;
     using NServiceBus;
+    using Operations;
 
     public class CustomCheckFailed : IEvent
     {

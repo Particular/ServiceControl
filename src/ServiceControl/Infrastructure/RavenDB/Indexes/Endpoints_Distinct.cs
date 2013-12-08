@@ -3,6 +3,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
     using System.Linq;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageAuditing;
 
     public class Endpoints_Distinct : AbstractMultiMapIndexCreationTask<Endpoints_Distinct.Result>

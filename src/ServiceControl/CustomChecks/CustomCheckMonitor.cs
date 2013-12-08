@@ -4,6 +4,7 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using Contracts.CustomChecks;
+    using Contracts.Operations;
     using Infrastructure;
     using MessageAuditing;
     using NServiceBus;
