@@ -184,23 +184,7 @@
             }
         }
 
-        public TransportMessage IssueRetry(DateTime requestedAt)
-        {
-            var rawMessage = new TransportMessage(MessageId,
-                Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key))
-                    .ToDictionary(kv => kv.Key, kv => kv.Value))
-            {
-                Body = BodyRaw,
-                CorrelationId = CorrelationId,
-                Recoverable = Recoverable,
-                MessageIntent = MessageIntent,
-                ReplyToAddress = Address.Parse(ReplyToAddress)
-            };
-
-
-        
-            return rawMessage;
-        }
+       
 
       
         MessageStatistics GetProcessingStatistics(IDictionary<string,string> headers)
@@ -238,15 +222,6 @@
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(AuditMessage));
 
-        static readonly IList<string> KeysToRemoveWhenRetryingAMessage = new List<string>
-        {
-            NServiceBus.Headers.Retries,
-            "NServiceBus.FailedQ",
-            "NServiceBus.TimeOfFailure",
-            "NServiceBus.ExceptionInfo.ExceptionType",
-            "NServiceBus.ExceptionInfo.AuditMessage",
-            "NServiceBus.ExceptionInfo.Source",
-            "NServiceBus.ExceptionInfo.StackTrace"
-        };
+       
     }
 }

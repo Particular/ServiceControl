@@ -3,9 +3,9 @@
     using InternalMessages;
     using NServiceBus;
 
-    public class IssueRetryAllHandler : IssueRetryAllHandlerBase, IHandleMessages<IssueRetryAll>
+    public class IssueRetryAllHandler : IssueRetryAllHandlerBase, IHandleMessages<RequestRetryAll>
     {
-        public void Handle(IssueRetryAll message)
+        public void Handle(RequestRetryAll message)
         {
             ExecuteQuery();
         }

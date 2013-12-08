@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Contracts.Operations
 {
-    using MessageAuditing;
     using NServiceBus;
 
     public class FailedMessageDetected : IMessage

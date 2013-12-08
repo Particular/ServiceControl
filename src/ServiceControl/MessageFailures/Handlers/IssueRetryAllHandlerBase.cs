@@ -36,7 +36,7 @@
 
                         foreach (var result in results)
                         {
-                            var message = new IssueRetry {MessageId = result.Id};
+                            var message = new RequestRetry {FailedMessageId = result.Id};
                             message.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
                             Bus.SendLocal(message);
                         }

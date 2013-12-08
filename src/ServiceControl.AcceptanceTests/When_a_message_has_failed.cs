@@ -3,13 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
@@ -49,7 +47,7 @@
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => TryGetData("/api/errors",out response))
+                .Done(c => TryGetMany("/api/errors",out response))
                 .Run();
 
             var failure = response.Single(r=>r.MessageId == context.MessageId);
@@ -71,7 +69,7 @@
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => TryGetData("/api/messages", out response))
+                .Done(c => TryGetMany("/api/messages", out response))
                 .Run();
 
             var failure = response.Single(r => r.MessageId == context.MessageId);
@@ -81,19 +79,7 @@
             Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
         }
 
-        bool TryGetData<T>(string url, out List<T> response) where T:class 
-        {
-
-            response = Get<List<T>>(url);
-
-            if (response == null || !response.Any())
-            {
-                Thread.Sleep(1000);
-                return false;
-            }
-
-            return true;
-        }
+      
 
         [Test]
         public void Should_add_an_event_log_item()

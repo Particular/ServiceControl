@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
@@ -199,6 +200,33 @@
 
                 return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
             }
+        }
+
+        protected bool TryGet<T>(string url, out T response) where T : class
+        {
+
+            response = Get<T>(url);
+
+            if (response == null)
+            {
+                Thread.Sleep(1000);
+                return false;
+            }
+
+            return true;
+        }
+        protected bool TryGetMany<T>(string url, out List<T> response) where T : class
+        {
+
+            response = Get<List<T>>(url);
+
+            if (response == null || !response.Any())
+            {
+                Thread.Sleep(1000);
+                return false;
+            }
+
+            return true;
         }
 
         public void Post<T>(string url, T payload = null) where T : class

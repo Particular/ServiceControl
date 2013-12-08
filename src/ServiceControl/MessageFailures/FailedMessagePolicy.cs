@@ -5,14 +5,17 @@
     using System.Linq;
     using Contracts.MessageFailures;
     using Contracts.Operations;
+    using InternalMessages;
+    using NServiceBus;
     using NServiceBus.Saga;
 
     public class FailedMessagePolicy : Saga<FailedMessagePolicy.FailedMessagePolicyData>,
-        IAmStartedByMessages<FailedMessageDetected>
+        IAmStartedByMessages<FailedMessageDetected>,
+        IAmStartedByMessages<RequestRetry>
     {
         public void Handle(FailedMessageDetected message)
         {
-            Data.ErrorMessageId = message.FailedMessageId;
+            Data.FailedMessageId = message.FailedMessageId;
 
             var timeOfFailure = message.FailureDetails.TimeOfFailure;
 
@@ -21,7 +24,11 @@
                 return;
             }
 
-            Data.Attempts.Add(new FailedMessagePolicyData.Attempt{AttemptedAt = timeOfFailure });
+            Data.Attempts.Add(new FailedMessagePolicyData.Attempt
+            {
+                AttemptedAt = timeOfFailure,
+                AddressOfFailingEndpoint = message.FailureDetails.AddressOfFailingEndpoint
+            });
 
             if (Data.Attempts.Count > 0)
             {
@@ -42,26 +49,54 @@
 
         }
 
+
+        public void Handle(RequestRetry message)
+        {
+            Bus.SendLocal(new PerformRetry
+            {
+                FailedMessageId = Data.FailedMessageId,
+                TargetEndpointAddress = Data.Attempts.Last().AddressOfFailingEndpoint
+            });
+
+        }
+
         public class FailedMessagePolicyData : ContainSagaData
         {
             //[Unique] todo: re add this when we have fixed the raven incompat issue
-            public string ErrorMessageId { get; set; }
+            public FailedMessagePolicyData()
+            {
+                Attempts = new List<Attempt>();
+            }
+
+            public string FailedMessageId { get; set; }
 
             public List<Attempt> Attempts { get; set; }
+
 
             public class Attempt
             {
                 public DateTime AttemptedAt{ get; set; }
+                public Address AddressOfFailingEndpoint { get; set; }
             }
 
         }
-
+         public class ThrowOnNotFoundForNow:IHandleSagaNotFound
+         {
+             public void Handle(object message)
+             {
+                 throw new Exception("Lets retry for now");
+             }
+         }
 
         public override void ConfigureHowToFindSaga()
         {
             ConfigureMapping<FailedMessageDetected>(m => m.FailedMessageId)
-                .ToSaga(s => s.ErrorMessageId);
+                .ToSaga(s => s.FailedMessageId);
+
+            ConfigureMapping<RequestRetry>(m => m.FailedMessageId)
+               .ToSaga(s => s.FailedMessageId);
         }
+
     }
 
 

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.MessageAuditing
+﻿namespace ServiceControl.MessageAuditing.Handlers
 {
     using Contracts.Operations;
     using NServiceBus;

@@ -4,6 +4,7 @@ namespace ServiceControl.Contracts.Operations
     using System.Collections.Generic;
     using MessageAuditing;
     using NServiceBus;
+    using NServiceBus.Faults;
 
     public class FailureDetails
     {
@@ -16,11 +17,16 @@ namespace ServiceControl.Contracts.Operations
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => TimeOfFailure = DateTimeExtensions.ToUtcDateTime(s));
             Exception = GetException(headers);
 
+            AddressOfFailingEndpoint = Address.Parse(headers[FaultsHeaderKeys.FailedQ]);
+
             ProcessingEndpoint = EndpointDetails.ReceivingEndpoint(headers);
         }
 
         
         public EndpointDetails ProcessingEndpoint { get; set; }
+
+        public Address AddressOfFailingEndpoint { get; set; }
+
 
         public DateTime TimeOfFailure { get; set; }
 

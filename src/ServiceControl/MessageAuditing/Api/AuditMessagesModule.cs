@@ -1,11 +1,11 @@
-﻿namespace ServiceControl.MessageAuditing
+﻿namespace ServiceControl.MessageAuditing.Api
 {
     using System.Linq;
+    using Contracts.Operations;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
-    using ServiceControl.Contracts.Operations;
 
     public class AuditMessagesModule : BaseModule
     {

@@ -2,8 +2,7 @@
 {
     using NServiceBus;
 
-    public class IssueRetry : ICommand
+    public class RequestRetryAll : ICommand
     {
-        public string MessageId { get; set; }
     }
 }
