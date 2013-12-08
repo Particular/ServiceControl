@@ -11,7 +11,7 @@
 
     public class FailedMessagePolicy : Saga<FailedMessagePolicy.FailedMessagePolicyData>,
         IAmStartedByMessages<FailedMessageDetected>,
-        IAmStartedByMessages<RequestRetry>
+        IHandleMessages<RequestRetry>
     {
         public void Handle(FailedMessageDetected message)
         {
@@ -80,13 +80,7 @@
             }
 
         }
-         public class ThrowOnNotFoundForNow:IHandleSagaNotFound
-         {
-             public void Handle(object message)
-             {
-                 throw new Exception("Lets retry for now");
-             }
-         }
+    
 
         public override void ConfigureHowToFindSaga()
         {

@@ -280,7 +280,7 @@
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
     <Compile Include="Infrastructure\Satellites\AuditMessageImportSatellite.cs" />
     <Compile Include="MessageAuditing\Api\AuditMessagesModule.cs" />
-    <Compile Include="BusinessProcessTracking\ConversationsModule.cs" />
+    <Compile Include="CompositeViews\GetMessagesByConversation.cs" />
     <Compile Include="EndpointConfig.cs" />
     <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />

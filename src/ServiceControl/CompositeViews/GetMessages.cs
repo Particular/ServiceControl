@@ -22,12 +22,10 @@ namespace ServiceControl.CompositeViews
                         .Paging(Request)
                         .ToArray();
 
-
-                    Debug.WriteLine(results);
                     return Negotiate
-                        .WithModel(results)
-                        .WithPagingLinksAndTotalCount(stats, Request)
-                        .WithEtagAndLastModified(stats);
+                                        .WithModel(results)
+                                        .WithPagingLinksAndTotalCount(stats, Request)
+                                        .WithEtagAndLastModified(stats);
                 }
             };
 

@@ -3,14 +3,14 @@
     using System.Linq;
     using Infrastructure.Extensions;
     using Infrastructure.Nancy.Modules;
-    using Infrastructure.RavenDB.Indexes;
     using Nancy;
     using Raven.Client;
-    using ServiceControl.MessageAuditing;
+    using Raven.Client.Linq;
+    using ServiceControl.CompositeViews;
 
-    public class ConversationsModule : BaseModule
+    public class GetMessagesByConversation : BaseModule
     {
-        public ConversationsModule()
+        public GetMessagesByConversation()
         {
             Get["/conversations/{conversationid}"] = parameters =>
             {
@@ -19,11 +19,11 @@
                     string conversationId = parameters.conversationid;
 
                     RavenQueryStatistics stats;
-                    var results = session.Query<Conversations_Sorted.Result, Conversations_Sorted>()
+                    var results = session.Query<MessagesView, MessagesViewIndex>()
                         .Statistics(out stats)
+                        //.IncludeSystemMessagesWhere(Request)
                         .Where(m => m.ConversationId == conversationId)
-                        .Sort(Request, defaultSortDirection: "asc")
-                        .OfType<AuditMessage>()
+                        .Sort(Request)
                         .Paging(Request)
                         .ToArray();
 
@@ -33,7 +33,7 @@
                     }
 
                     return Negotiate
-                        .WithModelAppendedRestfulUrls(results, Request)
+                        .WithModel(results)
                         .WithPagingLinksAndTotalCount(stats, Request)
                         .WithEtagAndLastModified(stats);
                 }
