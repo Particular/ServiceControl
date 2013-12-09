@@ -1,6 +1,7 @@
 namespace ServiceControl.CompositeViews
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
     using Lucene.Net.Analysis.Standard;
@@ -23,13 +24,14 @@ namespace ServiceControl.CompositeViews
                 ReceivingEndpointName = message.ReceivingEndpoint.Name,
                 ConversationId = message.ConversationId,
                 TimeSent = message.TimeSent,
-                Query = new object[]
+                Headers = message.Headers,
+                Query =  new object[]
                     {
                         message.MessageType,
                         message.Body,
                         message.ReceivingEndpoint.Name,
                         message.ReceivingEndpoint.Machine,
-                        message.Headers.Select(kvp => String.Format("{0} {1}", kvp.Key, kvp.Value))
+                        message.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value))
                     }
             }));
 
@@ -44,12 +46,13 @@ namespace ServiceControl.CompositeViews
                 ReceivingEndpointName = message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Name,
                 ConversationId = message.ProcessingAttempts.Last().Message.ConversationId,
                 TimeSent = message.ProcessingAttempts.Last().Message.TimeSent,
+                Headers = message.ProcessingAttempts.Last().Message.Headers,
                 Query = new object[]
                     {
                         message.ProcessingAttempts.Last().Message.MessageType,
                         message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Name,
                         message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Machine,
-                        message.ProcessingAttempts.Last().Message.Headers.Select(kvp => String.Format("{0} {1}", kvp.Key, kvp.Value))
+                        message.ProcessingAttempts.Last().Message.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value))
                     }
             }));
 
@@ -66,6 +69,7 @@ namespace ServiceControl.CompositeViews
                                         ReceivingEndpointName = g.OrderByDescending(m => m.ProcessedAt).First().ReceivingEndpointName,
                                         ConversationId = g.OrderByDescending(m => m.ProcessedAt).First().ConversationId,
                                         TimeSent = g.OrderByDescending(m => m.ProcessedAt).First().TimeSent,
+                                        Headers = g.OrderByDescending(m => m.ProcessedAt).First().Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value)),
                                         Query = g.OrderByDescending(m => m.ProcessedAt).First().Query
                                     };
 

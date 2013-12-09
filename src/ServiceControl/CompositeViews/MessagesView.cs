@@ -1,6 +1,7 @@
 namespace ServiceControl.CompositeViews
 {
     using System;
+    using System.Collections.Generic;
     using Infrastructure.RavenDB.Indexes;
 
     public class MessagesView : CommonResult
@@ -9,6 +10,8 @@ namespace ServiceControl.CompositeViews
 
         public DateTime ProcessedAt { get; set; }
         public string ConversationId { get; set; }
+
+        public IEnumerable<KeyValuePair<string, string>> Headers { get; set; }
 
         public object Query { get; set; }
     }
