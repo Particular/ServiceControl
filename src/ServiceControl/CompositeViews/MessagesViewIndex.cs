@@ -33,9 +33,9 @@ namespace ServiceControl.CompositeViews
                 MessageType = message.ProcessingAttempts.Last().Message.MessageType,
                 message.Status,
                 ProcessedAt = message.ProcessingAttempts.Last().FailureDetails.TimeOfFailure,
-                ReceivingEndpointName = message.ProcessingAttempts.Last().Message.ProcessingEndpoint.Name,
+                ReceivingEndpointName = message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Name,
                 ConversationId = message.ProcessingAttempts.Last().Message.ConversationId,
-                TimeSent = message.ProcessingAttempts.Last().Message.TimeSent
+                TimeSent = message.ProcessingAttempts.Last().Message.TimeSent,
             }));
 
             Reduce = results => from message in results
@@ -55,7 +55,6 @@ namespace ServiceControl.CompositeViews
 
 
 
-            //Index(x => x.Query, FieldIndexing.Analyzed);
             Index(x => x.ReceivingEndpointName, FieldIndexing.Default);
             Index(x => x.CriticalTime, FieldIndexing.Default);
             Index(x => x.ProcessingTime, FieldIndexing.Default);

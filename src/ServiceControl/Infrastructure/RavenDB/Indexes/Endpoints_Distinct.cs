@@ -25,7 +25,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
             AddMap<FailedMessage>(messages => from message in messages
                                              select new
                                              {
-                                                 Endpoint = message.ProcessingAttempts.Last().Message.ProcessingEndpoint
+                                                 Endpoint = message.ProcessingAttempts.Last().Message.ReceivingEndpoint
                                              });
 
             Reduce = results => from result in results

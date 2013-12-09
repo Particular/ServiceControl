@@ -19,7 +19,7 @@
             Headers = message.Headers;
             Body = message.Body;
             ReplyToAddress = message.ReplyToAddress.ToString();
-            ProcessingEndpoint = EndpointDetails.ReceivingEndpoint(Headers);
+            ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(Headers);
             CorrelationId = message.CorrelationId;
             Recoverable = message.Recoverable;
             MessageIntent = message.MessageIntent;
@@ -70,7 +70,7 @@
 
         public bool IsSystemMessage { get; set; }
 
-        public EndpointDetails ProcessingEndpoint { get; set; }
+        public EndpointDetails ReceivingEndpoint { get; set; }
 
         public string MessageId { get; set; }
 

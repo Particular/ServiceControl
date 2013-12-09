@@ -57,7 +57,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackendCommunications\VersionCheckerTests.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Conversations_SortedTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_IdsTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Messages_SearchTests.cs" />

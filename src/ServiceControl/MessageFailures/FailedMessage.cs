@@ -17,6 +17,7 @@
         public MessageStatus Status { get; set; }
         public string MessageId { get; set; }
 
+
         public class ProcessingAttempt
         {
             public PhysicalMessage Message { get; set; }
