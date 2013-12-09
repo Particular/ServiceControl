@@ -62,12 +62,12 @@
 
         public class FailedMessagePolicyData : ContainSagaData
         {
-            //[Unique] todo: re add this when we have fixed the raven incompat issue
             public FailedMessagePolicyData()
             {
                 Attempts = new List<Attempt>();
             }
 
+            [Unique]
             public string FailedMessageId { get; set; }
 
             public List<Attempt> Attempts { get; set; }
@@ -75,12 +75,12 @@
 
             public class Attempt
             {
-                public DateTime AttemptedAt{ get; set; }
+                public DateTime AttemptedAt { get; set; }
                 public Address AddressOfFailingEndpoint { get; set; }
             }
 
         }
-    
+
 
         public override void ConfigureHowToFindSaga()
         {

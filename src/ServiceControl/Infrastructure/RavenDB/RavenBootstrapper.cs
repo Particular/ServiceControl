@@ -4,6 +4,7 @@
     using System.IO;
     using NServiceBus;
     using NServiceBus.Logging;
+    using NServiceBus.RavenDB;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
@@ -29,7 +30,7 @@
             documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
             documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
 
-            documentStore.Initialize();
+            Configure.Instance.RavenDBPersistence(documentStore);
 
             var sw = new Stopwatch();
 
@@ -60,7 +61,8 @@
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);
-            Configure.Instance.RavenPersistenceWithStore(documentStore);
+            //Configure.Instance.RavenPersistenceWithStore(documentStore);
+            
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
