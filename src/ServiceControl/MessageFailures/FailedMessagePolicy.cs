@@ -10,12 +10,12 @@
     using NServiceBus.Saga;
 
     public class FailedMessagePolicy : Saga<FailedMessagePolicy.FailedMessagePolicyData>,
-        IAmStartedByMessages<FailedMessageDetected>,
+        IAmStartedByMessages<ImportFailedMessage>,
         IHandleMessages<RequestRetry>
     {
-        public void Handle(FailedMessageDetected message)
+        public void Handle(ImportFailedMessage message)
         {
-            Data.FailedMessageId = message.FailedMessageId;
+            Data.FailedMessageId = message.UniqueMessageId;
 
             var timeOfFailure = message.FailureDetails.TimeOfFailure;
 
@@ -35,7 +35,7 @@
                 Bus.Publish<MessageFailedRepetedly>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
-                    m.FailedMessageId = message.FailedMessageId;
+                    m.FailedMessageId = message.UniqueMessageId;
                 });
             }
             else
@@ -43,7 +43,7 @@
                 Bus.Publish<MessageFailed>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
-                    m.FailedMessageId = message.FailedMessageId;
+                    m.FailedMessageId = message.UniqueMessageId;
                 });
             }
 
@@ -84,7 +84,7 @@
 
         public override void ConfigureHowToFindSaga()
         {
-            ConfigureMapping<FailedMessageDetected>(m => m.FailedMessageId)
+            ConfigureMapping<ImportFailedMessage>(m => m.UniqueMessageId)
                 .ToSaga(s => s.FailedMessageId);
 
             ConfigureMapping<RequestRetry>(m => m.FailedMessageId)

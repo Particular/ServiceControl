@@ -31,7 +31,7 @@
                         var results = query
                             .Skip(skip)
                             .Take(1024)
-                            .OfType<AuditMessage>()
+                            .OfType<ProcessedMessage>()
                             .ToArray();
 
                         foreach (var result in results)

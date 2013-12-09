@@ -11,12 +11,12 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
     {
         public Endpoints_Distinct()
         {
-            AddMap<AuditMessage>(messages => from message in messages
+            AddMap<ProcessedMessage>(messages => from message in messages
                 select new
                 {
-                    Endpoint = message.OriginatingEndpoint
+                    Endpoint = message.SendingEndpoint
                 });
-            AddMap<AuditMessage>(messages => from message in messages
+            AddMap<ProcessedMessage>(messages => from message in messages
                 select new
                 {
                     Endpoint = message.ReceivingEndpoint
@@ -25,7 +25,7 @@ namespace ServiceBus.Management.Infrastructure.RavenDB.Indexes
             AddMap<FailedMessage>(messages => from message in messages
                                              select new
                                              {
-                                                 Endpoint = message.ProcessingAttempts.Last().Message.ReceivingEndpoint
+                                                 Endpoint = message.ProcessingAttempts.Last().FailingEndpoint
                                              });
 
             Reduce = results => from result in results

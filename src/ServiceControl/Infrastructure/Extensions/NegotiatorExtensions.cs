@@ -13,14 +13,14 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
     public static class NegotiatorExtensions
     {
-        public static Negotiator WithModelAppendedRestfulUrls(this Negotiator negotiator, IEnumerable<AuditMessage> messages,
+        public static Negotiator WithModelAppendedRestfulUrls(this Negotiator negotiator, IEnumerable<ProcessedMessage> messages,
             Request request)
         {
             var baseUrl = request.Url.SiteBase + request.Url.BasePath;
 
             foreach (var message in messages)
             {
-                message.Url = baseUrl + "/messages/" + message.Id;
+                //message.Url = baseUrl + "/messages/" + message.Id;
             }
 
             return negotiator.WithModel(messages);

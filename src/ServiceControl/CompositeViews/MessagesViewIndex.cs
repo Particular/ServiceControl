@@ -14,24 +14,24 @@ namespace ServiceControl.CompositeViews
     {
         public MessagesViewIndex()
         {
-            AddMap<AuditMessage>(messages => messages.Select(message => new
+            AddMap<ProcessedMessage>(messages => messages.Select(message => new
             {
                 Id = message.Id,
-                MessageId = message.MessageId,
-                MessageType = message.MessageType,
+                MessageId = message.PhysicalMessage.MessageId,
+                MessageType = message.PhysicalMessage.MessageType,
                 Status = MessageStatus.Successful,
                 ProcessedAt = message.ProcessedAt,
                 ReceivingEndpointName = message.ReceivingEndpoint.Name,
-                ConversationId = message.ConversationId,
-                TimeSent = message.TimeSent,
-                Headers = message.Headers,
+                ConversationId = message.PhysicalMessage.ConversationId,
+                TimeSent = message.PhysicalMessage.TimeSent,
+                Headers = message.PhysicalMessage.Headers,
                 Query =  new object[]
                     {
-                        message.MessageType,
+                        message.PhysicalMessage.MessageType,
                         message.Body,
                         message.ReceivingEndpoint.Name,
                         message.ReceivingEndpoint.Machine,
-                        message.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value))
+                        message.PhysicalMessage.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value))
                     }
             }));
 
@@ -43,15 +43,15 @@ namespace ServiceControl.CompositeViews
                 MessageType = message.ProcessingAttempts.Last().Message.MessageType,
                 message.Status,
                 ProcessedAt = message.ProcessingAttempts.Last().FailureDetails.TimeOfFailure,
-                ReceivingEndpointName = message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Name,
+                ReceivingEndpointName = message.ProcessingAttempts.Last().FailingEndpoint.Name,
                 ConversationId = message.ProcessingAttempts.Last().Message.ConversationId,
                 TimeSent = message.ProcessingAttempts.Last().Message.TimeSent,
                 Headers = message.ProcessingAttempts.Last().Message.Headers,
                 Query = new object[]
                     {
                         message.ProcessingAttempts.Last().Message.MessageType,
-                        message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Name,
-                        message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Machine,
+                        message.ProcessingAttempts.Last().FailingEndpoint.Name,
+                        message.ProcessingAttempts.Last().FailingEndpoint.Machine,
                         message.ProcessingAttempts.Last().Message.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value))
                     }
             }));

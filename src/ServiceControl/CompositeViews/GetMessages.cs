@@ -2,6 +2,7 @@ namespace ServiceControl.CompositeViews
 {
     using System.Diagnostics;
     using System.Linq;
+    using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;

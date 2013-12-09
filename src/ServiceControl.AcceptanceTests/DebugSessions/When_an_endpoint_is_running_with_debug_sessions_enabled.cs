@@ -30,7 +30,7 @@
                 .Run(TimeSpan.FromSeconds(40));
 
             Assert.NotNull(context.ReturnedMessage, "No message was returned by the management api");
-            Assert.AreEqual(context.MessageId, context.ReturnedMessage.Headers.SingleOrDefault(kvp => kvp.Key == "ServiceControl.DebugSessionId").Value);
+            Assert.AreEqual(context.MessageId, context.ReturnedMessage.PhysicalMessage.Headers.SingleOrDefault(kvp => kvp.Key == "ServiceControl.DebugSessionId").Value);
 
         }
 
@@ -75,7 +75,7 @@
         {
             public string MessageId { get; set; }
 
-            public AuditMessage ReturnedMessage { get; set; }
+            public ProcessedMessage ReturnedMessage { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
@@ -97,7 +97,7 @@
                     return false;
                 }
 
-                c.ReturnedMessage = Get<AuditMessage>("/api/messages/" + context.MessageId + "-" +
+                c.ReturnedMessage = Get<ProcessedMessage>("/api/messages/" + context.MessageId + "-" +
                                  context.EndpointNameOfReceivingEndpoint);
 
                 if (c.ReturnedMessage == null)

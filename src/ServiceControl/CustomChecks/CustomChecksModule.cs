@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System.Linq;
+    using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
     using Raven.Client.Linq;

@@ -18,13 +18,10 @@ namespace ServiceControl.Contracts.Operations
             Exception = GetException(headers);
 
             AddressOfFailingEndpoint = Address.Parse(headers[FaultsHeaderKeys.FailedQ]);
-
-            ProcessingEndpoint = EndpointDetails.ReceivingEndpoint(headers);
         }
 
         
-        public EndpointDetails ProcessingEndpoint { get; set; }
-
+      
         public Address AddressOfFailingEndpoint { get; set; }
 
 
@@ -37,7 +34,7 @@ namespace ServiceControl.Contracts.Operations
             var exceptionDetails = new ExceptionDetails();
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.ExceptionType", headers,
                 s => exceptionDetails.ExceptionType = s);
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.AuditMessage", headers,
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.Message", headers,
                 s => exceptionDetails.Message = s);
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.Source", headers,
                 s => exceptionDetails.Source = s);

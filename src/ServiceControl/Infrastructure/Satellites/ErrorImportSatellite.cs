@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Infrastructure.Satellites
 {
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
@@ -19,16 +18,18 @@
 
         public bool Handle(TransportMessage message)
         {
-            var errorMessageReceived = new FailedMessageDetected
+            var errorMessageReceived = new ImportFailedMessage
             {
-                FailedMessageId = message.UniqueId(),
+                UniqueMessageId = message.UniqueId(),
                 PhysicalMessage = new PhysicalMessage(message),
-                FailureDetails = new FailureDetails(message.Headers)                
+                FailureDetails = new FailureDetails(message.Headers),
+                ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message.Headers),
+                SendingEndpoint = EndpointDetails.SendingEndpoint(message.Headers)
             };
 
             var sessionFactory = Builder.Build<RavenSessionFactory>();
 
-           
+
             try
             {
                 Bus.InMemory.Raise(errorMessageReceived);

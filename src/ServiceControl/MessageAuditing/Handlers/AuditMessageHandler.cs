@@ -5,17 +5,17 @@
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
 
-    class AuditMessageHandler : IHandleMessages<AuditMessageReceived>
+    class AuditMessageHandler : IHandleMessages<ImportSuccessfullyProcessedMessage>
     {
         public IDocumentStore Store { get; set; }
         
-        public void Handle(AuditMessageReceived message)
+        public void Handle(ImportSuccessfullyProcessedMessage message)
         {
             using (var session = Store.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var auditMessage = new AuditMessage(message);
+                var auditMessage = new ProcessedMessage(message);
 
 
                 try

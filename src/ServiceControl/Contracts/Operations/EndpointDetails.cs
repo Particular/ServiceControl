@@ -15,7 +15,7 @@ namespace ServiceControl.Contracts.Operations
 
         public string Machine { get; set; }
 
-        public static EndpointDetails OriginatingEndpoint(IDictionary<string,string> headers )
+        public static EndpointDetails SendingEndpoint(IDictionary<string,string> headers )
         {
             var endpointDetails = new EndpointDetails();
             DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingEndpoint, headers, s => endpointDetails.Name = s );

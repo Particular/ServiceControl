@@ -18,7 +18,7 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var originatingEndpoint = EndpointDetails.OriginatingEndpoint(Bus.CurrentMessageContext.Headers);
+                var originatingEndpoint = EndpointDetails.SendingEndpoint(Bus.CurrentMessageContext.Headers);
                 var id = DeterministicGuid.MakeId(originatingEndpoint.Name, originatingEndpoint.Machine);
                 var heartbeat = session.Load<Heartbeat>(id) ?? new Heartbeat
                 {

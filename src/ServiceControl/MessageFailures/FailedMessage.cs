@@ -22,6 +22,8 @@
         {
             public PhysicalMessage Message { get; set; }
             public FailureDetails FailureDetails { get; set; }
+
+            public EndpointDetails FailingEndpoint { get; set; }
             public DateTime AttemptedAt { get; set; }
 
         }

@@ -1,11 +1,10 @@
-﻿namespace ServiceBus.Management.Infrastructure.Satellites
+﻿namespace ServiceControl.Infrastructure.Satellites
 {
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
-    using ServiceControl;
-    using ServiceControl.Contracts.Operations;
-    using Settings;
+    using ServiceBus.Management.Infrastructure.Settings;
+    using Contracts.Operations;
 
     public class AuditMessageImportSatellite : ISatellite
     {
@@ -13,10 +12,12 @@
 
         public bool Handle(TransportMessage message)
         {
-            Bus.InMemory.Raise<AuditMessageReceived>(m =>
+            Bus.InMemory.Raise<ImportSuccessfullyProcessedMessage>(m =>
             {
-                m.AuditMessageId = message.UniqueId();
+                m.UniqueMessageId = message.UniqueId();
                 m.PhysicalMessage = new PhysicalMessage(message);
+                m.ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message.Headers);
+                m.SendingEndpoint = EndpointDetails.SendingEndpoint(message.Headers);
             });
             return true;
         }

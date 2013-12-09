@@ -7,6 +7,7 @@
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.CompositeViews;
+    using ServiceControl.Infrastructure.Extensions;
 
     public class GetMessagesByConversation : BaseModule
     {

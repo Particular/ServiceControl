@@ -1,32 +1,14 @@
-namespace ServiceBus.Management.Infrastructure.Extensions
+namespace ServiceControl.Infrastructure.Extensions
 {
     using System;
     using System.Linq;
     using System.Linq.Expressions;
-    using RavenDB.Indexes;
     using global::Nancy;
-    using ServiceControl.Infrastructure.RavenDB.Indexes;
+    using RavenDB.Indexes;
 
     public static class QueryableExtensions
     {
-        public static IQueryable<Messages_Sort.Result> IncludeSystemMessagesWhere(
-            this IQueryable<Messages_Sort.Result> source, Request request)
-        {
-            var includeSystemMessages = false;
-
-            if ((bool) request.Query.include_system_messages.HasValue)
-            {
-                includeSystemMessages = (bool) request.Query.include_system_messages;
-            }
-
-            if (!includeSystemMessages)
-            {
-                return source.Where(m => !m.IsSystemMessage);
-            }
-
-            return source;
-        }
-
+     
         public static IQueryable<TSource> Paging<TSource>(this IQueryable<TSource> source, Request request)
         {
             var maxResultsPerPage = 50;

@@ -2,6 +2,7 @@
 {
     using System.Linq;
     using Contracts.Operations;
+    using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;

@@ -18,7 +18,7 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var originatingEndpoint = EndpointDetails.OriginatingEndpoint(Bus.CurrentMessageContext.Headers);
+                var originatingEndpoint = EndpointDetails.SendingEndpoint(Bus.CurrentMessageContext.Headers);
                 var id = DeterministicGuid.MakeId(message.CustomCheckId, originatingEndpoint.Name,
                     originatingEndpoint.Machine);
                 var customCheck = session.Load<CustomCheck>(id) ?? new CustomCheck
