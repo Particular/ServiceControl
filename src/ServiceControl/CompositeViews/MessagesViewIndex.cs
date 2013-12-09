@@ -22,7 +22,12 @@ namespace ServiceControl.CompositeViews
                 ProcessedAt = message.ProcessedAt,
                 ReceivingEndpointName = message.ReceivingEndpoint.Name,
                 ConversationId = message.ConversationId,
-                TimeSent = message.TimeSent
+                TimeSent = message.TimeSent,
+                //Query = new object[]
+                //    {
+                //        message.MessageType,
+                //        //message.ReceivingEndpoint.Name
+                //    }
             }));
 
 
@@ -36,6 +41,11 @@ namespace ServiceControl.CompositeViews
                 ReceivingEndpointName = message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Name,
                 ConversationId = message.ProcessingAttempts.Last().Message.ConversationId,
                 TimeSent = message.ProcessingAttempts.Last().Message.TimeSent,
+                //Query = new object[]
+                //    {
+                //        message.ProcessingAttempts.Last().Message.MessageType,
+                //        //message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Name
+                //    }
             }));
 
             Reduce = results => from message in results
@@ -51,10 +61,11 @@ namespace ServiceControl.CompositeViews
                     ReceivingEndpointName = g.OrderByDescending(m => m.ProcessedAt).First().ReceivingEndpointName,
                     ConversationId = g.OrderByDescending(m => m.ProcessedAt).First().ConversationId,
                     TimeSent = g.OrderByDescending(m => m.ProcessedAt).First().TimeSent,
+                    //Query = g.OrderByDescending(m => m.ProcessedAt).First().Query
                 };
 
 
-
+            //Index(x => x.Query, FieldIndexing.Analyzed);
             Index(x => x.ReceivingEndpointName, FieldIndexing.Default);
             Index(x => x.CriticalTime, FieldIndexing.Default);
             Index(x => x.ProcessingTime, FieldIndexing.Default);

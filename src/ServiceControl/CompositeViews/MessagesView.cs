@@ -9,5 +9,7 @@ namespace ServiceControl.CompositeViews
 
         public DateTime ProcessedAt { get; set; }
         public string ConversationId { get; set; }
+
+        //public string Query { get; set; }
     }
 }
