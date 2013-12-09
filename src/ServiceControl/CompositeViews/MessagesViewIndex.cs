@@ -23,11 +23,14 @@ namespace ServiceControl.CompositeViews
                 ReceivingEndpointName = message.ReceivingEndpoint.Name,
                 ConversationId = message.ConversationId,
                 TimeSent = message.TimeSent,
-                //Query = new object[]
-                //    {
-                //        message.MessageType,
-                //        //message.ReceivingEndpoint.Name
-                //    }
+                Query = new object[]
+                    {
+                        message.MessageType,
+                        message.Body,
+                        message.ReceivingEndpoint.Name,
+                        message.ReceivingEndpoint.Machine,
+                        message.Headers.Select(kvp => String.Format("{0} {1}", kvp.Key, kvp.Value))
+                    }
             }));
 
 
@@ -41,31 +44,33 @@ namespace ServiceControl.CompositeViews
                 ReceivingEndpointName = message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Name,
                 ConversationId = message.ProcessingAttempts.Last().Message.ConversationId,
                 TimeSent = message.ProcessingAttempts.Last().Message.TimeSent,
-                //Query = new object[]
-                //    {
-                //        message.ProcessingAttempts.Last().Message.MessageType,
-                //        //message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Name
-                //    }
+                Query = new object[]
+                    {
+                        message.ProcessingAttempts.Last().Message.MessageType,
+                        message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Name,
+                        message.ProcessingAttempts.Last().Message.ReceivingEndpoint.Machine,
+                        message.ProcessingAttempts.Last().Message.Headers.Select(kvp => String.Format("{0} {1}", kvp.Key, kvp.Value))
+                    }
             }));
 
             Reduce = results => from message in results
-                group message by message.Id
-                into g
-                select new MessagesView
-                {
-                    Id = g.Key,
-                    MessageId =  g.OrderByDescending(m => m.ProcessedAt).First().MessageId,
-                    MessageType = g.OrderByDescending(m => m.ProcessedAt).First().MessageType,
-                    Status = g.OrderByDescending(m => m.ProcessedAt).First().Status,
-                    ProcessedAt = g.OrderByDescending(m => m.ProcessedAt).First().ProcessedAt,
-                    ReceivingEndpointName = g.OrderByDescending(m => m.ProcessedAt).First().ReceivingEndpointName,
-                    ConversationId = g.OrderByDescending(m => m.ProcessedAt).First().ConversationId,
-                    TimeSent = g.OrderByDescending(m => m.ProcessedAt).First().TimeSent,
-                    //Query = g.OrderByDescending(m => m.ProcessedAt).First().Query
-                };
+                                group message by message.Id
+                                    into g
+                                    select new MessagesView
+                                    {
+                                        Id = g.Key,
+                                        MessageId = g.OrderByDescending(m => m.ProcessedAt).First().MessageId,
+                                        MessageType = g.OrderByDescending(m => m.ProcessedAt).First().MessageType,
+                                        Status = g.OrderByDescending(m => m.ProcessedAt).First().Status,
+                                        ProcessedAt = g.OrderByDescending(m => m.ProcessedAt).First().ProcessedAt,
+                                        ReceivingEndpointName = g.OrderByDescending(m => m.ProcessedAt).First().ReceivingEndpointName,
+                                        ConversationId = g.OrderByDescending(m => m.ProcessedAt).First().ConversationId,
+                                        TimeSent = g.OrderByDescending(m => m.ProcessedAt).First().TimeSent,
+                                        Query = g.OrderByDescending(m => m.ProcessedAt).First().Query
+                                    };
 
 
-            //Index(x => x.Query, FieldIndexing.Analyzed);
+            Index(x => x.Query, FieldIndexing.Analyzed);
             Index(x => x.ReceivingEndpointName, FieldIndexing.Default);
             Index(x => x.CriticalTime, FieldIndexing.Default);
             Index(x => x.ProcessingTime, FieldIndexing.Default);
@@ -73,7 +78,7 @@ namespace ServiceControl.CompositeViews
             Sort(x => x.CriticalTime, SortOptions.Long);
             Sort(x => x.ProcessingTime, SortOptions.Long);
 
-            //Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
+            Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
         }
     }
 }

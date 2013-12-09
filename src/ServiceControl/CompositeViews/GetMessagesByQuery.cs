@@ -19,7 +19,7 @@ namespace ServiceControl.CompositeViews
                     RavenQueryStatistics stats;
                     var results = session.Query<MessagesView, MessagesViewIndex>()
                         .Statistics(out stats)
-                        //.Search(s => s.Query, keyword)
+                        .Search(s => s.Query, keyword)
                         .Sort(Request)
                         .Paging(Request)
                         .ToArray();
@@ -40,7 +40,7 @@ namespace ServiceControl.CompositeViews
                     RavenQueryStatistics stats;
                     var results = session.Query<MessagesView, MessagesViewIndex>()
                         .Statistics(out stats)
-                        //.Search(s => s.Query, keyword)
+                        .Search(s => s.Query, keyword)
                         .Where(m => m.ReceivingEndpointName == name)
                         .Sort(Request)
                         .Paging(Request)
