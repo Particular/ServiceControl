@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using Contexts;
@@ -9,6 +10,7 @@
     using NUnit.Framework;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageAuditing;
+    using ServiceControl.MessageFailures.Api;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {
@@ -17,6 +19,7 @@
         public void Should_be_imported_and_accessible_via_the_rest_api()
         {
             var context = new MyContext();
+            var response = new List<FailedMessageView>();
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -26,24 +29,16 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => AuditDataAvailable(context, c))
+                .Done(c => TryGetMany("/api/messages", out response))
                 .Run(TimeSpan.FromSeconds(40));
 
-            Assert.NotNull(context.ReturnedMessage, "No message was returned by the management api");
-            Assert.AreEqual(context.MessageId, context.ReturnedMessage.PhysicalMessage.MessageId,
+            var messageReturned = response.SingleOrDefault();
+
+            Assert.NotNull(messageReturned, "No message was returned by the management api");
+            Assert.AreEqual(context.MessageId, messageReturned.MessageId,
                 "The returned message should match the processed one");
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, context.ReturnedMessage.ReceivingEndpoint.Name,
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, messageReturned.ReceivingEndpointName,
                 "Receiving endpoint name should be parsed correctly");
-            Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.ReceivingEndpoint.Machine,
-                "Receiving machine should be parsed correctly");
-            Assert.AreEqual(context.EndpointNameOfSendingEndpoint, context.ReturnedMessage.SendingEndpoint.Name,
-                "Sending endpoint name should be parsed correctly");
-            Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.SendingEndpoint.Machine,
-                "Sending machine should be parsed correctly");
-            Assert.True(context.ReturnedMessage.Body.StartsWith("{\"Messages\":{"),
-                "The body should be converted to json");
-            //Assert.True(Encoding.UTF8.GetString(context.ReturnedMessage.BodyRaw).Contains("<MyMessage"),
-            //"The raw body should be stored");
             Assert.AreEqual(typeof(MyMessage).FullName, context.ReturnedMessage.MessageProperties["MessageType"].Value,
                 "AuditMessage type should be set to the fullname of the message type");
             Assert.False(((bool)context.ReturnedMessage.MessageProperties["IsSystemMessage"].Value), "AuditMessage should not be marked as a system message");
@@ -131,34 +126,5 @@
 
             public string EndpointNameOfSendingEndpoint { get; set; }
         }
-
-
-        bool AuditDataAvailable(MyContext context, MyContext c)
-        {
-            lock (context)
-            {
-                if (c.ReturnedMessage != null)
-                {
-                    return true;
-                }
-
-                if (c.MessageId == null)
-                {
-                    return false;
-                }
-
-                c.ReturnedMessage = Get<ProcessedMessage>("/api/messages/" + context.MessageId + "-" +
-                                 context.EndpointNameOfReceivingEndpoint);
-
-                if (c.ReturnedMessage == null)
-                {
-                    return false;
-                }
-
-                return true;
-            }
-        }
-
-     
     }
 }

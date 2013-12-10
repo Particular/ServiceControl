@@ -23,15 +23,16 @@
                 SendingEndpoint = EndpointDetails.SendingEndpoint(message.Headers)
             };
 
-            foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
-            {
-                enricher.Enrich(receivedMessage);
-            }
-
+         
             var sessionFactory = Builder.Build<RavenSessionFactory>();
 
             try
             {
+                foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
+                {
+                    enricher.Enrich(receivedMessage);
+                }
+
                 Bus.InMemory.Raise(receivedMessage);
 
                 sessionFactory.SaveChanges();

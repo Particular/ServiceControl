@@ -1,16 +1,10 @@
 ﻿namespace ServiceControl.Contracts.Operations
 {
-    using System;
     using System.Collections.Generic;
     using NServiceBus;
 
     public class PhysicalMessage
     {
-        public PhysicalMessage()
-        {
-            
-        }
-
         public PhysicalMessage(TransportMessage message)
         {
             MessageId = message.Id;
@@ -20,15 +14,6 @@
             CorrelationId = message.CorrelationId;
             Recoverable = message.Recoverable;
             MessageIntent = message.MessageIntent;
-
-            string timeSent;
-
-            if (message.Headers.TryGetValue(NServiceBus.Headers.TimeSent, out timeSent))
-            {
-                TimeSent = DateTimeExtensions.ToUtcDateTime(timeSent);
-            }
-
-         
         }
 
        
@@ -42,6 +27,5 @@
         public string CorrelationId { get; set; }
         public bool Recoverable { get; set; }
         public MessageIntentEnum MessageIntent { get; set; }
-        public DateTime TimeSent { get; set; }
     }
 }

@@ -231,7 +231,6 @@
     <Compile Include="Contracts\Operations\EndpointDetails.cs" />
     <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
     <Compile Include="Contracts\Operations\FailureDetails.cs" />
-    <Compile Include="MessageAuditing\MessageStatistics.cs" />
     <Compile Include="MessageAuditing\SagaDetails.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
     <Compile Include="MessageFailures\Api\FaileMessageViewTransformer.cs" />
@@ -291,8 +290,10 @@
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
     <Compile Include="Operations\ErrorImportSatellite.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
+    <Compile Include="Operations\MessageBodyStorage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
+    <Compile Include="Statistics\MessageStatisticsEnricher.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

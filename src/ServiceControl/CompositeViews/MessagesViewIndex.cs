@@ -16,18 +16,18 @@ namespace ServiceControl.CompositeViews
             AddMap<ProcessedMessage>(messages => messages.Select(message => new
             {
                 Id = message.Id,
-                MessageId = message.PhysicalMessage.MessageId,
-                MessageType = message.MessageProperties["MessageType"],
+                MessageId = message.MessageProperties["MessageId"].Value,
+                MessageType = message.MessageProperties["MessageType"].Value,
                 Status = MessageStatus.Successful,
                 ProcessedAt = message.ProcessedAt,
                 ReceivingEndpointName = message.ReceivingEndpoint.Name,
-                ConversationId = message.MessageProperties["ConversationId"],
-                TimeSent = message.PhysicalMessage.TimeSent,
+                ConversationId = message.MessageProperties["ConversationId"].Value,
+                TimeSent = message.MessageProperties["TimeSent"].Value,
                 Headers = message.PhysicalMessage.Headers,
                 Query =  new object[]
                     {
-                      message.MessageProperties["MessageType"],
-                        message.Body,
+                      message.MessageProperties["MessageType"].Value,
+                        //message.Body,
                         message.ReceivingEndpoint.Name,
                         message.ReceivingEndpoint.Machine,
                         message.PhysicalMessage.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value))
@@ -43,8 +43,8 @@ namespace ServiceControl.CompositeViews
                 message.Status,
                 ProcessedAt = message.ProcessingAttempts.Last().FailureDetails.TimeOfFailure,
                 ReceivingEndpointName = message.ProcessingAttempts.Last().FailingEndpoint.Name,
-                ConversationId = message.ProcessingAttempts.Last().MessageProperties["ConversationId"],
-                TimeSent = message.ProcessingAttempts.Last().Message.TimeSent,
+                ConversationId = message.ProcessingAttempts.Last().MessageProperties["ConversationId"].Value,
+                TimeSent = message.ProcessingAttempts.Last().MessageProperties["TimeSent"].Value,
                 Headers = message.ProcessingAttempts.Last().Message.Headers,
                 Query = new object[]
                     {

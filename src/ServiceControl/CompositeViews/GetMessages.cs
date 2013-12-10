@@ -1,6 +1,5 @@
 namespace ServiceControl.CompositeViews
 {
-    using System.Diagnostics;
     using System.Linq;
     using Infrastructure.Extensions;
     using Nancy;

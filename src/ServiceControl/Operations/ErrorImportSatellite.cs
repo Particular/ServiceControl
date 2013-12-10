@@ -1,9 +1,5 @@
 ﻿namespace ServiceControl.Operations
 {
-    using System;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Runtime.InteropServices;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -32,16 +28,15 @@
             };
 
 
-            foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
-            {
-                enricher.Enrich(errorMessageReceived);
-            }
-
             var sessionFactory = Builder.Build<RavenSessionFactory>();
-
 
             try
             {
+                foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
+                {
+                    enricher.Enrich(errorMessageReceived);
+                }
+
                 Bus.InMemory.Raise(errorMessageReceived);
 
                 Forwarder.Send(message, Settings.ErrorLogQueue);
