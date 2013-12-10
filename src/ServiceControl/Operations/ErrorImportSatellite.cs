@@ -1,5 +1,6 @@
-﻿namespace ServiceControl.Infrastructure.Satellites
+﻿namespace ServiceControl.Operations
 {
+    using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
@@ -7,7 +8,6 @@
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
     using ServiceBus.Management.Infrastructure.Settings;
-    using Contracts.Operations;
 
     public class ErrorImportSatellite : ISatellite
     {

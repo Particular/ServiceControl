@@ -1,10 +1,10 @@
-﻿namespace ServiceControl.Infrastructure.Satellites
+﻿namespace ServiceControl.Operations
 {
+    using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
     using ServiceBus.Management.Infrastructure.Settings;
-    using Contracts.Operations;
 
     public class AuditMessageImportSatellite : ISatellite
     {
