@@ -30,7 +30,7 @@
             documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
             documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
 
-            Configure.Instance.RavenDBPersistence(documentStore);
+            documentStore.Initialize();
 
             var sw = new Stopwatch();
 
@@ -61,7 +61,7 @@
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);
-            //Configure.Instance.RavenPersistenceWithStore(documentStore);
+            Configure.Instance.RavenDBPersistence(documentStore, false);
             
         }
 
