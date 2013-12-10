@@ -167,6 +167,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BusinessMonitoring\EnrichIncomingMessages.cs" />
     <Compile Include="CompositeViews\GetMessagesByQuery.cs" />
     <Compile Include="CompositeViews\MessagesView.cs" />
     <Compile Include="CompositeViews\MessagesViewIndex.cs" />
@@ -278,6 +279,7 @@
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWork.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
+    <Compile Include="MessageTypes\MessageTypeEnricher.cs" />
     <Compile Include="Operations\AuditMessageImportSatellite.cs" />
     <Compile Include="CompositeViews\GetMessagesByConversation.cs" />
     <Compile Include="EndpointConfig.cs" />
@@ -287,6 +289,7 @@
     <Compile Include="MessageFailures\Api\RetrySingleMessage.cs" />
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
     <Compile Include="Operations\ErrorImportSatellite.cs" />
+    <Compile Include="Operations\IEnrichImportedMessages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
   </ItemGroup>
@@ -307,6 +310,7 @@
       <Name>ServiceControl.EndpointPlugin.Messages</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

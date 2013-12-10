@@ -1,6 +1,5 @@
 namespace ServiceControl.CompositeViews
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
@@ -18,16 +17,16 @@ namespace ServiceControl.CompositeViews
             {
                 Id = message.Id,
                 MessageId = message.PhysicalMessage.MessageId,
-                MessageType = message.PhysicalMessage.MessageType,
+                MessageType = message.MessageProperties["MessageType"].Value,
                 Status = MessageStatus.Successful,
                 ProcessedAt = message.ProcessedAt,
                 ReceivingEndpointName = message.ReceivingEndpoint.Name,
-                ConversationId = message.PhysicalMessage.ConversationId,
+                ConversationId = message.MessageProperties["ConversationId"].Value,
                 TimeSent = message.PhysicalMessage.TimeSent,
                 Headers = message.PhysicalMessage.Headers,
                 Query =  new object[]
                     {
-                        message.PhysicalMessage.MessageType,
+                        message.MessageProperties["MessageType"].Value,
                         message.Body,
                         message.ReceivingEndpoint.Name,
                         message.ReceivingEndpoint.Machine,
@@ -40,16 +39,16 @@ namespace ServiceControl.CompositeViews
             {
                 Id = message.Id,
                 MessageId = message.MessageId,
-                MessageType = message.ProcessingAttempts.Last().Message.MessageType,
+                MessageType = message.ProcessingAttempts.Last().MessageProperties["MessageType"].Value,
                 message.Status,
                 ProcessedAt = message.ProcessingAttempts.Last().FailureDetails.TimeOfFailure,
                 ReceivingEndpointName = message.ProcessingAttempts.Last().FailingEndpoint.Name,
-                ConversationId = message.ProcessingAttempts.Last().Message.ConversationId,
+                ConversationId = message.ProcessingAttempts.Last().MessageProperties["ConversationId"].Value,
                 TimeSent = message.ProcessingAttempts.Last().Message.TimeSent,
                 Headers = message.ProcessingAttempts.Last().Message.Headers,
                 Query = new object[]
                     {
-                        message.ProcessingAttempts.Last().Message.MessageType,
+                        message.ProcessingAttempts.Last().MessageProperties["MessageType"].Value,
                         message.ProcessingAttempts.Last().FailingEndpoint.Name,
                         message.ProcessingAttempts.Last().FailingEndpoint.Machine,
                         message.ProcessingAttempts.Last().Message.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value))

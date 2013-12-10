@@ -21,6 +21,9 @@
         public class ProcessingAttempt
         {
             public PhysicalMessage Message { get; set; }
+
+            public Dictionary<string, MessageProperty> MessageProperties { get; set; }
+
             public FailureDetails FailureDetails { get; set; }
 
             public EndpointDetails FailingEndpoint { get; set; }

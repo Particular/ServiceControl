@@ -1,13 +1,12 @@
-﻿namespace ServiceBus.Management.BusinessProcessTracking
+﻿namespace ServiceControl.CompositeViews
 {
     using System.Linq;
     using Infrastructure.Extensions;
-    using Infrastructure.Nancy.Modules;
     using Nancy;
     using Raven.Client;
     using Raven.Client.Linq;
-    using ServiceControl.CompositeViews;
-    using ServiceControl.Infrastructure.Extensions;
+    using ServiceBus.Management.Infrastructure.Extensions;
+    using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class GetMessagesByConversation : BaseModule
     {

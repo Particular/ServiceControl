@@ -67,7 +67,7 @@
                 Attempts = new List<Attempt>();
             }
 
-            [Unique]
+            //[Unique]
             public string FailedMessageId { get; set; }
 
             public List<Attempt> Attempts { get; set; }

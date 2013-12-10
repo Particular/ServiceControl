@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System.Runtime.InteropServices;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -26,6 +27,12 @@
                 ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message.Headers),
                 SendingEndpoint = EndpointDetails.SendingEndpoint(message.Headers)
             };
+
+
+            foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
+            {
+                enricher.Enrich(errorMessageReceived);
+            }
 
             var sessionFactory = Builder.Build<RavenSessionFactory>();
 

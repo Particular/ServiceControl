@@ -2,7 +2,6 @@
 {
     using System;
     using System.Linq;
-    using System.Text;
     using System.Threading;
     using Contexts;
     using NServiceBus;
@@ -13,6 +12,79 @@
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {
+
+        [Test]
+        public void Should_be_imported_and_accessible_via_the_rest_api()
+        {
+            var context = new MyContext();
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
+                    bus.Send(new MyMessage());
+                }))
+                .WithEndpoint<Receiver>()
+                .Done(c => AuditDataAvailable(context, c))
+                .Run(TimeSpan.FromSeconds(40));
+
+            Assert.NotNull(context.ReturnedMessage, "No message was returned by the management api");
+            Assert.AreEqual(context.MessageId, context.ReturnedMessage.PhysicalMessage.MessageId,
+                "The returned message should match the processed one");
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, context.ReturnedMessage.ReceivingEndpoint.Name,
+                "Receiving endpoint name should be parsed correctly");
+            Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.ReceivingEndpoint.Machine,
+                "Receiving machine should be parsed correctly");
+            Assert.AreEqual(context.EndpointNameOfSendingEndpoint, context.ReturnedMessage.SendingEndpoint.Name,
+                "Sending endpoint name should be parsed correctly");
+            Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.SendingEndpoint.Machine,
+                "Sending machine should be parsed correctly");
+            Assert.True(context.ReturnedMessage.Body.StartsWith("{\"Messages\":{"),
+                "The body should be converted to json");
+            //Assert.True(Encoding.UTF8.GetString(context.ReturnedMessage.BodyRaw).Contains("<MyMessage"),
+            //"The raw body should be stored");
+            Assert.AreEqual(typeof(MyMessage).FullName, context.ReturnedMessage.MessageProperties["MessageType"].Value,
+                "AuditMessage type should be set to the fullname of the message type");
+            Assert.False(bool.Parse(context.ReturnedMessage.MessageProperties["IsSystemMessage"].Value), "AuditMessage should not be marked as a system message");
+        }
+
+
+        [Test]
+        public void Should_list_the_endpoint_in_the_list_of_known_endpoints()
+        {
+            var context = new MyContext();
+
+            var knownEndpoints = new EndpointDetails[0];
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
+                    bus.Send(new MyMessage());
+                }))
+                .WithEndpoint<Receiver>()
+                .Done(c =>
+                {
+
+                    knownEndpoints = Get<EndpointDetails[]>("/api/endpoints/");
+
+                    var done = knownEndpoints != null &&
+                               knownEndpoints.Any(e => e.Name == c.EndpointNameOfSendingEndpoint);
+
+                    if (!done)
+                    {
+                        Thread.Sleep(5000);
+                    }
+
+                    return done;
+                })
+                .Run(TimeSpan.FromSeconds(40));
+
+            Assert.IsTrue(knownEndpoints.Any(e => e.Name == context.EndpointNameOfSendingEndpoint));
+        }
+
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
@@ -87,76 +159,6 @@
             }
         }
 
-        [Test]
-        public void Should_be_imported_and_accessible_via_the_rest_api()
-        {
-            var context = new MyContext();
-
-            Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
-                    bus.Send(new MyMessage());
-                }))
-                .WithEndpoint<Receiver>()
-                .Done(c => AuditDataAvailable(context, c))
-                .Run(TimeSpan.FromSeconds(40));
-
-            Assert.NotNull(context.ReturnedMessage, "No message was returned by the management api");
-            Assert.AreEqual(context.MessageId, context.ReturnedMessage.PhysicalMessage.MessageId,
-                "The returned message should match the processed one");
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, context.ReturnedMessage.ReceivingEndpoint.Name,
-                "Receiving endpoint name should be parsed correctly");
-            Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.ReceivingEndpoint.Machine,
-                "Receiving machine should be parsed correctly");
-            Assert.AreEqual(context.EndpointNameOfSendingEndpoint, context.ReturnedMessage.SendingEndpoint.Name,
-                "Sending endpoint name should be parsed correctly");
-            Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.SendingEndpoint.Machine,
-                "Sending machine should be parsed correctly");
-            Assert.True(context.ReturnedMessage.Body.StartsWith("{\"Messages\":{"),
-                "The body should be converted to json");
-            //Assert.True(Encoding.UTF8.GetString(context.ReturnedMessage.BodyRaw).Contains("<MyMessage"),
-                //"The raw body should be stored");
-            Assert.AreEqual(typeof(MyMessage).FullName, context.ReturnedMessage.PhysicalMessage.MessageType,
-                "AuditMessage type should be set to the fullname of the message type");
-            Assert.False(context.ReturnedMessage.PhysicalMessage.IsSystemMessage, "AuditMessage should not be marked as a system message");
-        }
-
-
-        [Test]
-        public void Should_list_the_endpoint_in_the_list_of_known_endpoints()
-        {
-            var context = new MyContext();
-
-            var knownEndpoints = new EndpointDetails[0];
-
-            Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
-                    bus.Send(new MyMessage());
-                }))
-                .WithEndpoint<Receiver>()
-                .Done(c =>
-                {
-
-                    knownEndpoints = Get<EndpointDetails[]>("/api/endpoints/");
-
-                    var done = knownEndpoints != null &&
-                               knownEndpoints.Any(e => e.Name == c.EndpointNameOfSendingEndpoint);
-
-                    if (!done)
-                    {
-                        Thread.Sleep(5000);
-                    }
-
-                    return done;
-                })
-                .Run(TimeSpan.FromSeconds(40));
-
-            Assert.IsTrue(knownEndpoints.Any(e => e.Name == context.EndpointNameOfSendingEndpoint));
-        }
+     
     }
 }

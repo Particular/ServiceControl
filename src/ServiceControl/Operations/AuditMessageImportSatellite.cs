@@ -3,22 +3,45 @@
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
+    using NServiceBus.ObjectBuilder;
+    using NServiceBus.Persistence.Raven;
     using NServiceBus.Satellites;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class AuditMessageImportSatellite : ISatellite
     {
         public IBus Bus { get; set; }
+        public IBuilder Builder { get; set; }
 
         public bool Handle(TransportMessage message)
         {
-            Bus.InMemory.Raise<ImportSuccessfullyProcessedMessage>(m =>
+            var receivedMessage = new ImportSuccessfullyProcessedMessage
             {
-                m.UniqueMessageId = message.UniqueId();
-                m.PhysicalMessage = new PhysicalMessage(message);
-                m.ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message.Headers);
-                m.SendingEndpoint = EndpointDetails.SendingEndpoint(message.Headers);
-            });
+                UniqueMessageId = message.UniqueId(),
+                PhysicalMessage = new PhysicalMessage(message),
+                ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message.Headers),
+                SendingEndpoint = EndpointDetails.SendingEndpoint(message.Headers)
+            };
+
+            foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
+            {
+                enricher.Enrich(receivedMessage);
+            }
+
+            var sessionFactory = Builder.Build<RavenSessionFactory>();
+
+            try
+            {
+                Bus.InMemory.Raise(receivedMessage);
+
+                sessionFactory.SaveChanges();
+            }
+            finally
+            {
+                sessionFactory.ReleaseSession();
+            }
+          
+            
             return true;
         }
 

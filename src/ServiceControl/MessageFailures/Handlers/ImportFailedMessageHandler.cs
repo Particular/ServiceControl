@@ -35,7 +35,8 @@
                    AttemptedAt = timeOfFailure,
                    FailingEndpoint = message.ReceivingEndpoint,
                    FailureDetails =message.FailureDetails,
-                   Message = message.PhysicalMessage
+                   Message = message.PhysicalMessage,
+                   MessageProperties = message.Properties
                });
 
                 //todo: sort the list in time order

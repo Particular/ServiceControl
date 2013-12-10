@@ -24,6 +24,8 @@
 
             SendingEndpoint = message.SendingEndpoint;
 
+            MessageProperties = message.Properties;
+
             string processedAt;
 
             if (message.PhysicalMessage.Headers.TryGetValue(Headers.ProcessingEnded, out processedAt))
@@ -35,6 +37,8 @@
                 ProcessedAt = DateTime.UtcNow;//best guess    
             }
         }
+
+        public Dictionary<string, MessageProperty> MessageProperties { get; set; }
 
         public string Id { get; set; }
         public PhysicalMessage PhysicalMessage { get; set; }
@@ -120,7 +124,5 @@
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(ProcessedMessage));
-
-       
     }
 }
