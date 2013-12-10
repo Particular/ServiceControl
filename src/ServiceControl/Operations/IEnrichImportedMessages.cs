@@ -12,6 +12,7 @@ namespace ServiceControl.Operations
     interface IEnrichImportedMessages
     {
         void Enrich(ImportMessage message);
+
     }
 
     class ImportRegistration:INeedInitialization

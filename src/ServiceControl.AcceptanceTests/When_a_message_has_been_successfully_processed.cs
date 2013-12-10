@@ -46,7 +46,7 @@
             //"The raw body should be stored");
             Assert.AreEqual(typeof(MyMessage).FullName, context.ReturnedMessage.MessageProperties["MessageType"].Value,
                 "AuditMessage type should be set to the fullname of the message type");
-            Assert.False(bool.Parse(context.ReturnedMessage.MessageProperties["IsSystemMessage"].Value), "AuditMessage should not be marked as a system message");
+            Assert.False(((bool)context.ReturnedMessage.MessageProperties["IsSystemMessage"].Value), "AuditMessage should not be marked as a system message");
         }
 
 

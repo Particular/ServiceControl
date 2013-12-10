@@ -17,16 +17,16 @@ namespace ServiceControl.CompositeViews
             {
                 Id = message.Id,
                 MessageId = message.PhysicalMessage.MessageId,
-                MessageType = message.MessageProperties["MessageType"].Value,
+                MessageType = message.MessageProperties["MessageType"],
                 Status = MessageStatus.Successful,
                 ProcessedAt = message.ProcessedAt,
                 ReceivingEndpointName = message.ReceivingEndpoint.Name,
-                ConversationId = message.MessageProperties["ConversationId"].Value,
+                ConversationId = message.MessageProperties["ConversationId"],
                 TimeSent = message.PhysicalMessage.TimeSent,
                 Headers = message.PhysicalMessage.Headers,
                 Query =  new object[]
                     {
-                        message.MessageProperties["MessageType"].Value,
+                      message.MessageProperties["MessageType"],
                         message.Body,
                         message.ReceivingEndpoint.Name,
                         message.ReceivingEndpoint.Machine,
@@ -43,7 +43,7 @@ namespace ServiceControl.CompositeViews
                 message.Status,
                 ProcessedAt = message.ProcessingAttempts.Last().FailureDetails.TimeOfFailure,
                 ReceivingEndpointName = message.ProcessingAttempts.Last().FailingEndpoint.Name,
-                ConversationId = message.ProcessingAttempts.Last().MessageProperties["ConversationId"].Value,
+                ConversationId = message.ProcessingAttempts.Last().MessageProperties["ConversationId"],
                 TimeSent = message.ProcessingAttempts.Last().Message.TimeSent,
                 Headers = message.ProcessingAttempts.Last().Message.Headers,
                 Query = new object[]

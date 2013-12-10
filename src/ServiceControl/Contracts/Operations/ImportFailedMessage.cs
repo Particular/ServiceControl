@@ -27,11 +27,11 @@
 
     public class MessageProperty
     {
-        public string Value { get; set; }
+        public object Value { get; set; }
         public string Name { get; set; }
 
 
-        public MessageProperty(string name, string value)
+        public MessageProperty(string name, object value)
         {
             Value = value;
             Name = name;
