@@ -11,7 +11,8 @@
 
     public class FailedMessagePolicy : Saga<FailedMessagePolicy.FailedMessagePolicyData>,
         IAmStartedByMessages<ImportFailedMessage>,
-        IHandleMessages<RequestRetry>
+        IHandleMessages<RequestRetry>,
+        IHandleMessages<RegisterSuccesfulRetry>
     {
         public void Handle(ImportFailedMessage message)
         {
@@ -50,18 +51,40 @@
 
         public void Handle(RequestRetry message)
         {
-            if (Data.RetryInProgress)
+            if (Data.Attempts.Any(a => a.RetryInProgress))
             {
                 return;
             }
 
-            Data.RetryInProgress = true;
+            var attempt = Data.Attempts.Last();
+
+            var retryId = Guid.NewGuid();
+
+            attempt.RetryId = retryId;
+            attempt.RetryInProgress = true;
+
             Bus.SendLocal(new PerformRetry
             {
-                MessageId = Data.FailedMessageId,
-                TargetEndpointAddress = Data.Attempts.Last().AddressOfFailingEndpoint
+                FailedMessageId = Data.FailedMessageId,
+                TargetEndpointAddress = Data.Attempts.Last().AddressOfFailingEndpoint,
+                RetryId = retryId
             });
 
+        }
+
+        public void Handle(RegisterSuccesfulRetry message)
+        {
+            var attempt = Data.Attempts.SingleOrDefault(a => a.RetryId == message.RetryId);
+
+            if (attempt == null)
+            {
+                throw new ArgumentException("Retry id not found in the list of attempts");
+            }
+
+            attempt.RetryInProgress = false;
+            Data.Resolved = true;
+
+            Bus.Publish<MessageFailureResolvedByRetry>(m=>m.FailedMessageId = Data.FailedMessageId);
         }
 
         public class FailedMessagePolicyData : ContainSagaData
@@ -75,13 +98,14 @@
             public string FailedMessageId { get; set; }
 
             public List<Attempt> Attempts { get; set; }
-            public bool RetryInProgress { get; set; }
-
+            public bool Resolved { get; set; }
 
             public class Attempt
             {
                 public DateTime AttemptedAt { get; set; }
                 public Address AddressOfFailingEndpoint { get; set; }
+                public Guid RetryId { get; set; }
+                public bool RetryInProgress { get; set; }
             }
 
         }
@@ -94,9 +118,11 @@
 
             ConfigureMapping<RequestRetry>(m => m.FailedMessageId)
                .ToSaga(s => s.FailedMessageId);
+
+            ConfigureMapping<RegisterSuccesfulRetry>(m => m.FailedMessageId)
+            .ToSaga(s => s.FailedMessageId);
         }
 
+     
     }
-
-
 }

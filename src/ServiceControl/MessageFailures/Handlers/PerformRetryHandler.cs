@@ -16,11 +16,11 @@
 
         public void Handle(PerformRetry message)
         {
-            var failedMessage = RavenUnitOfWork.Session.Load<FailedMessage>(message.MessageId);
+            var failedMessage = RavenUnitOfWork.Session.Load<FailedMessage>(message.FailedMessageId);
 
             if (failedMessage == null)
             {
-                throw new ArgumentException("Can't find e failed message with id: " + message.MessageId);
+                throw new ArgumentException("Can't find e failed message with id: " + message.FailedMessageId);
             }
 
             var attempt = failedMessage.ProcessingAttempts.Last();
@@ -30,6 +30,7 @@
             var headersToRetryWith = originalHeaders.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key))
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
 
+            headersToRetryWith["ServiceControl.RetryId"] = message.RetryId.ToString();
 
             var transportMessage = new TransportMessage(failedMessage.Id, headersToRetryWith)
             {

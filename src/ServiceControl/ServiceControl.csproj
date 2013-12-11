@@ -242,7 +242,11 @@
     <Compile Include="MessageFailures\Handlers\ImportFailedMessageHandler.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
     <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
+    <Compile Include="MessageFailures\Handlers\ImportSuccessfullyProcessedMessageHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
+    <Compile Include="MessageFailures\InternalMessages\RegisterSuccesfulRetry.cs" />
     <Compile Include="MessageFailures\InMemoryErrorMessagesCounterCache.cs" />
+    <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
     <Compile Include="MessageFailures\SignalrErrorMessageHandler.cs" />
     <Compile Include="MessageFailures\TotalErrorMessagesUpdated.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
