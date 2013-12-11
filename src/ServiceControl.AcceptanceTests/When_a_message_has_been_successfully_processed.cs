@@ -8,9 +8,9 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceControl.CompositeViews;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageAuditing;
-    using ServiceControl.MessageFailures.Api;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {
@@ -19,7 +19,7 @@
         public void Should_be_imported_and_accessible_via_the_rest_api()
         {
             var context = new MyContext();
-            var response = new List<FailedMessageView>();
+            var response = new List<MessagesView>();
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -39,9 +39,9 @@
                 "The returned message should match the processed one");
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, messageReturned.ReceivingEndpointName,
                 "Receiving endpoint name should be parsed correctly");
-            Assert.AreEqual(typeof(MyMessage).FullName, context.ReturnedMessage.MessageProperties["MessageType"].Value,
+            Assert.AreEqual(typeof(MyMessage).FullName, messageReturned.MessageType,
                 "AuditMessage type should be set to the fullname of the message type");
-            Assert.False(((bool)context.ReturnedMessage.MessageProperties["IsSystemMessage"].Value), "AuditMessage should not be marked as a system message");
+            //Assert.False(((bool)context.ReturnedMessage.MessageMetadata["IsSystemMessage"].Value), "AuditMessage should not be marked as a system message");
         }
 
 
@@ -119,8 +119,6 @@
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-
-            public ProcessedMessage ReturnedMessage { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
 

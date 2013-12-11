@@ -16,26 +16,29 @@
 
         public void Handle(PerformRetry message)
         {
-            var failedMessage = RavenUnitOfWork.Session.Load<FailedMessage>(message.FailedMessageId);
+            var failedMessage = RavenUnitOfWork.Session.Load<FailedMessage>(message.MessageId);
 
             if (failedMessage == null)
             {
-                throw new ArgumentException("Can't find e failed message with id: " + message.FailedMessageId);
+                throw new ArgumentException("Can't find e failed message with id: " + message.MessageId);
             }
 
             var attempt = failedMessage.ProcessingAttempts.Last();
 
-            var headers = attempt.Message.Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key))
+            var originalHeaders = (Dictionary<string,string>)attempt.MessageMetadata["Headers"].Value;
+
+            var headersToRetryWith = originalHeaders.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key))
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
 
 
-            var transportMessage = new TransportMessage(failedMessage.MessageId,headers)
+            var transportMessage = new TransportMessage(failedMessage.Id, headersToRetryWith)
             {
-                Body = attempt.Message.Body,
-                CorrelationId = attempt.Message.CorrelationId,
-                Recoverable = attempt.Message.Recoverable,
-                MessageIntent = attempt.Message.MessageIntent,
-                ReplyToAddress = Address.Parse(attempt.Message.ReplyToAddress)
+                //todo
+                //Body = attempt.Message.Body,
+                //CorrelationId = attempt.Message.CorrelationId,
+                //Recoverable = attempt.Message.Recoverable,
+                //MessageIntent = attempt.Message.MessageIntent,
+                //ReplyToAddress = Address.Parse(attempt.Message.ReplyToAddress)
             };
 
             Forwarder.Send(transportMessage, message.TargetEndpointAddress);

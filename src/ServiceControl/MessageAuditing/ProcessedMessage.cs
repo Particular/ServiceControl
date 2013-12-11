@@ -7,10 +7,6 @@
 
     public class ProcessedMessage
     {
-        public ProcessedMessage()
-        {
-        }
-
         public ProcessedMessage(ImportSuccessfullyProcessedMessage message)
         {
 
@@ -20,7 +16,7 @@
 
             SendingEndpoint = message.SendingEndpoint;
 
-            MessageProperties = message.Properties;
+            MessageMetadata = message.Metadata;
 
             string processedAt;
 
@@ -34,10 +30,9 @@
             }
         }
 
-        public Dictionary<string, MessageProperty> MessageProperties { get; set; }
+        public Dictionary<string, MessageMetadata> MessageMetadata { get; set; }
 
         public string Id { get; set; }
-        public PhysicalMessage PhysicalMessage { get; set; }
 
         public DateTime ProcessedAt { get; set; }
 

@@ -20,7 +20,7 @@
                 Bus.SendLocal<RequestRetry>(m =>
                 {
                     m.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
-                    m.FailedMessageId = failedMessageId;
+                    m.MessageId = failedMessageId;
                 });
 
                 return HttpStatusCode.Accepted;

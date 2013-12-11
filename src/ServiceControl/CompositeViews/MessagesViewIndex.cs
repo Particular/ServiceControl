@@ -16,43 +16,30 @@ namespace ServiceControl.CompositeViews
             AddMap<ProcessedMessage>(messages => messages.Select(message => new
             {
                 Id = message.Id,
-                MessageId = message.MessageProperties["MessageId"].Value,
-                MessageType = message.MessageProperties["MessageType"].Value,
+                MessageId = message.MessageMetadata["MessageId"].Value,
+                MessageType = message.MessageMetadata["MessageType"].Value,
                 Status = MessageStatus.Successful,
                 ProcessedAt = message.ProcessedAt,
                 ReceivingEndpointName = message.ReceivingEndpoint.Name,
-                ConversationId = message.MessageProperties["ConversationId"].Value,
-                TimeSent = message.MessageProperties["TimeSent"].Value,
-                Headers = message.PhysicalMessage.Headers,
-                Query =  new object[]
-                    {
-                      message.MessageProperties["MessageType"].Value,
-                        //message.Body,
-                        message.ReceivingEndpoint.Name,
-                        message.ReceivingEndpoint.Machine,
-                        message.PhysicalMessage.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value))
-                    }
+                ConversationId = message.MessageMetadata["ConversationId"].Value,
+                TimeSent = message.MessageMetadata["TimeSent"].Value,
+                Headers = message.MessageMetadata["Headers"].Value,
+                Query = message.MessageMetadata.Values.SelectMany(m => m.SearchTokens).ToArray()
             }));
 
 
             AddMap<FailedMessage>(messages => messages.Select(message => new
             {
-                Id = message.Id,
-                MessageId = message.MessageId,
-                MessageType = message.ProcessingAttempts.Last().MessageProperties["MessageType"].Value,
+                Id = message.ProcessingAttempts.Last().UniqueMessageId,
+                MessageId = message.Id,
+                MessageType = message.ProcessingAttempts.Last().MessageMetadata["MessageType"].Value,
                 message.Status,
                 ProcessedAt = message.ProcessingAttempts.Last().FailureDetails.TimeOfFailure,
                 ReceivingEndpointName = message.ProcessingAttempts.Last().FailingEndpoint.Name,
-                ConversationId = message.ProcessingAttempts.Last().MessageProperties["ConversationId"].Value,
-                TimeSent = message.ProcessingAttempts.Last().MessageProperties["TimeSent"].Value,
-                Headers = message.ProcessingAttempts.Last().Message.Headers,
-                Query = new object[]
-                    {
-                        message.ProcessingAttempts.Last().MessageProperties["MessageType"].Value,
-                        message.ProcessingAttempts.Last().FailingEndpoint.Name,
-                        message.ProcessingAttempts.Last().FailingEndpoint.Machine,
-                        message.ProcessingAttempts.Last().Message.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value))
-                    }
+                ConversationId = message.ProcessingAttempts.Last().MessageMetadata["ConversationId"].Value,
+                TimeSent = message.ProcessingAttempts.Last().MessageMetadata["TimeSent"].Value,
+                Headers = message.ProcessingAttempts.Last().MessageMetadata["Headers"].Value,
+                Query = message.MostRecentAttempt.MessageMetadata.Values.SelectMany(m=>m.SearchTokens).ToArray()
             }));
 
             Reduce = results => from message in results

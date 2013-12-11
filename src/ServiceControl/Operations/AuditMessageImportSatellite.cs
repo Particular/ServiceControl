@@ -15,13 +15,7 @@
 
         public bool Handle(TransportMessage message)
         {
-            var receivedMessage = new ImportSuccessfullyProcessedMessage
-            {
-                UniqueMessageId = message.UniqueId(),
-                PhysicalMessage = new PhysicalMessage(message),
-                ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message.Headers),
-                SendingEndpoint = EndpointDetails.SendingEndpoint(message.Headers)
-            };
+            var receivedMessage = new ImportSuccessfullyProcessedMessage(message);
 
          
             var sessionFactory = Builder.Build<RavenSessionFactory>();

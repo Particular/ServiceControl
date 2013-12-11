@@ -28,7 +28,7 @@
                 .Run();
 
            // The message Ids may contain a \ if they are from older versions. 
-            Assert.AreEqual(context.MessageId, context.FailedMessage.MessageId.Replace(@"\", "-"),
+            Assert.AreEqual(context.MessageId, context.FailedMessage.Id.Replace(@"\", "-"),
                 "The returned message should match the processed one");
             Assert.AreEqual(MessageStatus.Failed, context.FailedMessage.Status, "Status should be set to failed");
             Assert.AreEqual(1, context.FailedMessage.ProcessingAttempts.Count(), "Failed count should be 1");
@@ -149,8 +149,7 @@
                     return false;
                 }
 
-                var message =
-                    Get<FailedMessage>("/api/errors/" + context.MessageId + "-" + context.EndpointNameOfReceivingEndpoint);
+                var message =Get<FailedMessage>("/api/errors/" + context.MessageId);
 
                 if (message == null)
                 {

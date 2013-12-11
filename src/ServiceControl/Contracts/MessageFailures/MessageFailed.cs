@@ -7,7 +7,7 @@
     {
         public EndpointDetails Endpoint { get; set; }
         public FailureDetails FailureDetails { get; set; }
-        public string FailedMessageId { get; set; }
+        public string MessageId { get; set; }
     }
 
 

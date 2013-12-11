@@ -12,7 +12,7 @@ namespace ServiceControl.EventLog.Definitions
             return m => new EventLogItem()
             {
                 Description = m.FailureDetails.Exception.Message,
-                RelatedTo = new List<string>() { string.Format("/message/{0}", m.FailedMessageId), string.Format("/endpoint/{0}", m.Endpoint.Name) },
+                RelatedTo = new List<string>() { string.Format("/message/{0}", m.MessageId), string.Format("/endpoint/{0}", m.Endpoint.Name) },
                 Severity = Severity.Error,
                 RaisedAt = m.FailureDetails.TimeOfFailure,
                 Category = "MessageFailures"

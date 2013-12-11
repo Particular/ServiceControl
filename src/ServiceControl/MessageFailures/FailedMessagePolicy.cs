@@ -15,7 +15,7 @@
     {
         public void Handle(ImportFailedMessage message)
         {
-            Data.FailedMessageId = message.UniqueMessageId;
+            Data.MessageId = message.MessageId;
 
             var timeOfFailure = message.FailureDetails.TimeOfFailure;
 
@@ -35,7 +35,7 @@
                 Bus.Publish<MessageFailedRepetedly>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
-                    m.FailedMessageId = message.UniqueMessageId;
+                    m.MessageId = message.MessageId;
                 });
             }
             else
@@ -43,18 +43,16 @@
                 Bus.Publish<MessageFailed>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
-                    m.FailedMessageId = message.UniqueMessageId;
+                    m.MessageId = message.MessageId;
                 });
             }
-
         }
-
 
         public void Handle(RequestRetry message)
         {
             Bus.SendLocal(new PerformRetry
             {
-                FailedMessageId = Data.FailedMessageId,
+                MessageId = Data.MessageId,
                 TargetEndpointAddress = Data.Attempts.Last().AddressOfFailingEndpoint
             });
 
@@ -68,7 +66,7 @@
             }
 
             [Unique]
-            public string FailedMessageId { get; set; }
+            public string MessageId { get; set; }
 
             public List<Attempt> Attempts { get; set; }
 
@@ -84,11 +82,11 @@
 
         public override void ConfigureHowToFindSaga()
         {
-            ConfigureMapping<ImportFailedMessage>(m => m.UniqueMessageId)
-                .ToSaga(s => s.FailedMessageId);
+            ConfigureMapping<ImportFailedMessage>(m => m.MessageId)
+                .ToSaga(s => s.MessageId);
 
-            ConfigureMapping<RequestRetry>(m => m.FailedMessageId)
-               .ToSaga(s => s.FailedMessageId);
+            ConfigureMapping<RequestRetry>(m => m.MessageId)
+               .ToSaga(s => s.MessageId);
         }
 
     }

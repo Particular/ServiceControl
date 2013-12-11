@@ -167,7 +167,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BusinessMonitoring\EnrichIncomingMessages.cs" />
+    <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
     <Compile Include="CompositeViews\GetMessagesByQuery.cs" />
     <Compile Include="CompositeViews\MessagesView.cs" />
     <Compile Include="CompositeViews\MessagesViewIndex.cs" />

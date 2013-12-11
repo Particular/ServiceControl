@@ -18,7 +18,7 @@
             if (message.PhysicalMessage.Headers.TryGetValue(Headers.TimeSent, out timeSentValue))
             {
                 timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
-                message.Add(new MessageProperty("TimeSent", timeSent));
+                message.Add(new MessageMetadata("TimeSent", timeSent));
 
             }
 
@@ -40,11 +40,11 @@
 
             if (processingEnded != DateTime.MinValue && timeSent != DateTime.MinValue)
             {
-                message.Add(new MessageProperty("CriticalTime", processingEnded - timeSent));
+                message.Add(new MessageMetadata("CriticalTime", processingEnded - timeSent));
             }
             if (processingEnded != DateTime.MinValue && processingStarted != DateTime.MinValue)
             {
-                message.Add(new MessageProperty("ProcessingTime", processingEnded - processingStarted));
+                message.Add(new MessageMetadata("ProcessingTime", processingEnded - processingStarted));
             }
 
             

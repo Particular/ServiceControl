@@ -18,14 +18,7 @@
 
         public bool Handle(TransportMessage message)
         {
-            var errorMessageReceived = new ImportFailedMessage
-            {
-                UniqueMessageId = message.UniqueId(),
-                PhysicalMessage = new PhysicalMessage(message),
-                FailureDetails = new FailureDetails(message.Headers),
-                ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message.Headers),
-                SendingEndpoint = EndpointDetails.SendingEndpoint(message.Headers)
-            };
+            var errorMessageReceived = new ImportFailedMessage(message);
 
 
             var sessionFactory = Builder.Build<RavenSessionFactory>();
