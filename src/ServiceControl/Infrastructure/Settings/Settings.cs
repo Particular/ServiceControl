@@ -181,6 +181,13 @@
             }
         }
 
+        public static bool CreateIndexSync {
+            get
+            {
+                return SettingsReader<bool>.Read("CreateIndexSync");       
+            } 
+        }
+
         static string SanitiseFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));

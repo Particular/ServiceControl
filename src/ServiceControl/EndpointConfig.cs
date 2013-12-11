@@ -26,6 +26,7 @@ namespace Particular.ServiceControl
 
             // Disable Auditing for the service control endpoint
             Configure.Features.Disable<Audit>();
+            Configure.Features.Enable<Sagas>();
 
             Configure.With()
                 .AutofacBuilder(Container)

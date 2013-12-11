@@ -1,12 +1,12 @@
-﻿namespace ServiceBus.Management.MessageFailures.Handlers
+﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System.Linq;
-    using Infrastructure.RavenDB.Indexes;
     using InternalMessages;
     using MessageAuditing;
     using NServiceBus;
     using Raven.Client;
     using Raven.Client.Linq;
+    using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
 
     public abstract class IssueRetryAllHandlerBase
     {
@@ -23,22 +23,20 @@
             {
                 using (var session = Store.OpenSession())
                 {
-                    var query = session.Query<Messages_Ids.Result, Messages_Ids>()
+                    var query = session.Query<FailedMessage>()
                         .Statistics(out stats);
-
-                    AddWhere(query);
 
                     do
                     {
                         var results = query
                             .Skip(skip)
                             .Take(1024)
-                            .OfType<Message>()
+                            .OfType<ProcessedMessage>()
                             .ToArray();
 
                         foreach (var result in results)
                         {
-                            var message = new IssueRetry {MessageId = result.Id};
+                            var message = new RequestRetry {FailedMessageId = result.Id};
                             message.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
                             Bus.SendLocal(message);
                         }
@@ -50,8 +48,8 @@
             } while (skip < stats.TotalResults);
         }
 
-        protected virtual void AddWhere(IRavenQueryable<Messages_Ids.Result> query)
-        {
-        }
+        //protected virtual void AddWhere(IRavenQueryable<Messages_Ids.Result> query)
+        //{
+        //}
     }
 }
