@@ -8,8 +8,6 @@
 
     public class EventLogApiModule : BaseModule
     {
-        public IDocumentStore Store { get; set; }
-
         public EventLogApiModule()
         {
             Get["/eventlogitems"] = parameters =>

@@ -2,6 +2,7 @@
 {
     using global::Nancy;
     using global::Nancy.Responses.Negotiation;
+    using Raven.Client;
 
     public abstract class BaseModule : NancyModule
     {
@@ -28,5 +29,8 @@
                 return negotiator;
             }
         }
+
+        public IDocumentStore Store { get; set; }
     }
+
 }

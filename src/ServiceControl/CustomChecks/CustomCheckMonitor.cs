@@ -4,10 +4,11 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using Contracts.CustomChecks;
+    using Contracts.Operations;
     using Infrastructure;
+    using MessageAuditing;
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
-    using ServiceBus.Management.MessageAuditing;
 
     public class CustomCheckMonitor
     {
@@ -23,7 +24,7 @@
 
         public void RegisterResult(ReportCustomCheckResult result, IDictionary<string, string> headers)
         {
-            var originatingEndpoint = EndpointDetails.OriginatingEndpoint(headers);
+            var originatingEndpoint = EndpointDetails.SendingEndpoint(headers);
 
             var key = DeterministicGuid.MakeId(result.CustomCheckId, originatingEndpoint.Name, originatingEndpoint.Machine);
 

@@ -2,13 +2,11 @@
 {
     using System;
     using System.Linq;
-    using System.Text;
-    using System.Threading;
     using Contexts;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceControl.CompositeViews;
 
     public class When_an_endpoint_is_running_with_debug_sessions_enabled : AcceptanceTest
     {
@@ -75,7 +73,7 @@
         {
             public string MessageId { get; set; }
 
-            public Message ReturnedMessage { get; set; }
+            public MessagesView ReturnedMessage { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
@@ -97,8 +95,7 @@
                     return false;
                 }
 
-                c.ReturnedMessage = Get<Message>("/api/messages/" + context.MessageId + "-" +
-                                 context.EndpointNameOfReceivingEndpoint);
+                c.ReturnedMessage = Get<MessagesView>("/api/messages/" + context.MessageId);
 
                 if (c.ReturnedMessage == null)
                 {

@@ -4,28 +4,109 @@
     using System.Collections.Generic;
     using System.Linq;
     using Contexts;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Features;
     using NUnit.Framework;
+    using ServiceControl.CompositeViews;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
+    using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
-        public class Sender : EndpointConfigurationBuilder
+
+        [Test]
+        public void Should_be_imported_and_accessible_via_the_rest_api()
         {
-            public Sender()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>()
-                    .AddMapping<MyMessage>(typeof(Receiver));
-            }
+            var context = new MyContext();
+
+            FailedMessage failedMessage = null;
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .Done(c => c.MessageId != null && TryGet("/api/errors/" + c.UniqueMessageId, out failedMessage))
+                .Run();
+
+           // The message Ids may contain a \ if they are from older versions. 
+            Assert.AreEqual(context.MessageId, failedMessage.MostRecentAttempt.MessageId,
+                "The returned message should match the processed one");
+            Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status, "Status should be set to unresolved");
+            Assert.AreEqual(1, failedMessage.ProcessingAttempts.Count(), "Failed count should be 1");
+            Assert.AreEqual("Simulated exception", failedMessage.ProcessingAttempts.Single().FailureDetails.Exception.Message,
+                "Exception message should be captured");
+
+        }
+
+        [Test]
+        public void Should_be_listed_in_the_error_list()
+        {
+            var context = new MyContext();
+
+            var response = new List<FailedMessageView>();
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .Done(c => TryGetMany("/api/errors",out response))
+                .Run();
+
+            var failure = response.Single(r=>r.MessageId == context.MessageId);
+
+            // The message Ids may contain a \ if they are from older versions. 
+            Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");
+            Assert.AreEqual(FailedMessageStatus.Unresolved, failure.Status, "Status of new messages should be failed");
+            Assert.AreEqual(1, failure.NumberOfProcessingAttempts, "One attempt should be stored");
+        }
+
+
+        [Test]
+        public void Should_be_listed_in_the_messages_list()
+        {
+            var context = new MyContext();
+
+            var response = new List<MessagesView>();
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .Done(c => TryGetMany("/api/messages", out response))
+                .Run();
+
+            var failure = response.Single(r => r.MessageId == context.MessageId);
+
+            // The message Ids may contain a \ if they are from older versions. 
+            Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");
+            Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
+        }
+
+      
+
+        [Test]
+        public void Should_add_an_event_log_item()
+        {
+            var context = new MyContext();
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                  .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>()
+                .Done(IsEventLogDataAvailable)
+                .Run();
+
+            Assert.AreEqual(1, context.LogEntries.Count);
+            Assert.IsTrue(context.LogEntries[0].Description.Contains("exception"), "For failed messages, the description should contain the exception information");
+            var containsFailedMessageId = context.LogEntries[0].RelatedTo.Any(item => item.Contains("/failedMessageId/"));
+            Assert.IsTrue(containsFailedMessageId, "For failed message, the RelatedId must contain the api url to retrieve additional details about the failed message");
         }
 
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
+                EndpointSetup<DefaultServerWithoutAudit>(c=>Configure.Features.Disable<SecondLevelRetries>())
                     .AuditTo(Address.Parse("audit"));
             }
 
@@ -52,79 +133,17 @@
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-            public Message Message { get; set; }
             public List<EventLogItem> LogEntries { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
-        }
 
-        bool IsErrorMessageStored(MyContext context, MyContext c)
-        {
-            lock (context)
+            public string UniqueMessageId
             {
-                if (c.Message != null)
+                get
                 {
-                    return true;
+                    return string.Format("{0}-{1}", MessageId.Replace(@"\", "-"), EndpointNameOfReceivingEndpoint);
                 }
-
-                if (c.MessageId == null)
-                {
-                    return false;
-                }
-
-                var message =
-                    Get<Message>("/api/messages/" + context.MessageId + "-" + context.EndpointNameOfReceivingEndpoint);
-
-                if (message == null)
-                {
-                    return false;
-                }
-
-                c.Message = message;
-
-                return true;
             }
         }
-
-        [Test]
-        public void Should_be_imported_and_accessible_via_the_rest_api()
-        {
-            var context = new MyContext();
-
-            Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<Sender>(b => b.Given(bus => bus.Send(new MyMessage())))
-                .WithEndpoint<Receiver>()
-                .Done(c => IsErrorMessageStored(context, c))
-                .Run();
-
-            // The message Ids may contain a \ if they are from older versions. 
-            Assert.AreEqual(context.MessageId, context.Message.MessageId.Replace(@"\","-"),
-                "The returned message should match the processed one");
-            Assert.AreEqual(MessageStatus.Failed, context.Message.Status, "Status should be set to failed");
-            Assert.AreEqual(1, context.Message.FailureDetails.NumberOfTimesFailed, "Failed count should be 1");
-            Assert.AreEqual("Simulated exception", context.Message.FailureDetails.Exception.Message,
-                "Exception message should be captured");
-
-        }
-
-        [Test]
-        public void Should_add_an_event_log_item()
-        {
-            var context = new MyContext();
-
-            Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<Sender>(b => b.Given(bus => bus.Send(new MyMessage())))
-                .WithEndpoint<Receiver>()
-                .Done(IsEventLogDataAvailable)
-                .Run();
-
-            Assert.AreEqual(1, context.LogEntries.Count);
-            Assert.IsTrue(context.LogEntries[0].Description.Contains("exception"), "For failed messages, the description should contain the exception information");
-            var containsFailedMessageId = context.LogEntries[0].RelatedTo.Any(item => item.Contains("/failedMessageId/"));
-            Assert.IsTrue(containsFailedMessageId, "For failed message, the RelatedId must contain the api url to retrieve additional details about the failed message");
-        }
-
 
         bool IsEventLogDataAvailable(MyContext c)
         {

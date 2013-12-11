@@ -1,17 +1,17 @@
-﻿namespace ServiceBus.Management.MessageFailures.Handlers
+﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using InternalMessages;
     using NServiceBus;
 
-    public class IssueRetriesHandler : IHandleMessages<IssueRetries>
+    public class IssueRetriesHandler : IHandleMessages<RequestRetries>
     {
         public IBus Bus { get; set; }
 
-        public void Handle(IssueRetries message)
+        public void Handle(RequestRetries message)
         {
             foreach (var messageId in message.MessageIds)
             {
-                var messageToSend = new IssueRetry { MessageId = messageId };
+                var messageToSend = new RequestRetry { FailedMessageId = messageId };
                 messageToSend.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
                 Bus.SendLocal(messageToSend);
             }
