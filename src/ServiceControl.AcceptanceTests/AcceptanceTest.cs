@@ -14,6 +14,7 @@
     using System.Threading;
     using System.Xml.Linq;
     using System.Xml.XPath;
+    using Infrastructure.Nancy;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -277,7 +278,14 @@
         static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
         {
             ContractResolver = new UnderscoreMappingResolver(),
-            Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}}
+            Formatting = Formatting.None,
+            NullValueHandling = NullValueHandling.Ignore,
+            Converters =
+            {
+                new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind},
+                new StringEnumConverter {CamelCaseText = true},
+
+            }
         };
 
         int port;

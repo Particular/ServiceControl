@@ -10,5 +10,8 @@
 
         public string MessageId { get; set; }
         public int NumberOfProcessingAttempts { get; set; }
+
+        public FailedMessageStatus Status { get; set; }
+
     }
 }

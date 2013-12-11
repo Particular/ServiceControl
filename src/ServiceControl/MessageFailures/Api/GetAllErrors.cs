@@ -22,10 +22,8 @@
                     var results = session.Query<FailedMessage>()
                         .TransformWith<FaileMessageViewTransformer, FailedMessageView>()
                         .Statistics(out stats)
-                        .Where(m =>
-                            m.Status != MessageStatus.Successful &&
-                            m.Status != MessageStatus.RetryIssued)
-                        .Sort(Request)
+                        .Where(m => m.Status == FailedMessageStatus.Unresolved)
+                        //.Sort(Request)
                         .Paging(Request)
                         .ToArray();
 
@@ -46,11 +44,8 @@
                     var results = session.Query<FailedMessage>()
                          .TransformWith<FaileMessageViewTransformer, FailedMessageView>()
                         .Statistics(out stats)
-                        .Where(m =>
-                            m.ReceivingEndpointName == endpoint &&
-                            m.Status != MessageStatus.Successful &&
-                            m.Status != MessageStatus.RetryIssued)
-                        .Sort(Request)
+                        .Where(m => m.ReceivingEndpointName == endpoint && m.Status == FailedMessageStatus.Unresolved)
+                        //.Sort(Request)
                         .Paging(Request)
                         .ToArray();
 

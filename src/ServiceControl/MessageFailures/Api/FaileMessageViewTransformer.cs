@@ -10,8 +10,8 @@
             TransformResults = failures => from failure in failures
                 select new FailedMessageView
                 {
-                    MessageId = failure.Id,
-                    ErrorMessageId = failure.ProcessingAttempts.Last().UniqueMessageId,
+                    ErrorMessageId = failure.Id,
+                    MessageId = failure.MostRecentAttempt.MessageMetadata["MessageId"].Value.ToString(),
                     ExceptionMessage = failure.ProcessingAttempts.Last().FailureDetails.Exception.Message,
                     NumberOfProcessingAttempts = failure.ProcessingAttempts.Count(),
                     Status = failure.Status

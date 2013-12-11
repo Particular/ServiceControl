@@ -5,7 +5,7 @@
 
     public static class TransportMessageExtentions
     {
-        public static string ProcessingEndpoint(this TransportMessage message)
+        public static string ProcessingEndpointName(this TransportMessage message)
         {
             string endpoint;
 
@@ -24,7 +24,7 @@
 
         public static string UniqueId(this TransportMessage message)
         {
-            return string.Format("{0}-{1}", message.Id.Replace(@"\", "-"), message.ProcessingEndpoint());
+            return string.Format("{0}-{1}", message.Id.Replace(@"\", "-"), message.ProcessingEndpointName());
         }
 
     }

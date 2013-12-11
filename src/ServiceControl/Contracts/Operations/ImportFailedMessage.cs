@@ -20,7 +20,7 @@
 
             //add basic message metadata
             Metadata.Add("MessageId",new MessageMetadata("MessageId",message.Id));
-            Metadata.Add("Headers", new MessageMetadata("Headers",message.Headers, message.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value)).ToArray()));
+            //Metadata.Add("Headers", new MessageMetadata("Headers",message.Headers, message.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value)).ToArray()));
         }
 
         public string UniqueMessageId { get; set; }
@@ -51,6 +51,21 @@
             SearchTokens = searchTokens;
             Value = value;
             Name = name;
+        }
+    }
+
+    public class MessageMetadataCollection:List<MessageMetadata>
+    {
+        public T Get<T>(string name)
+        {
+            var entry = this.SingleOrDefault(m => m.Name.ToLower() == name);
+
+            if (entry == null)
+            {
+                return default(T);
+            }
+
+            return (T)entry.Value;
         }
     }
 

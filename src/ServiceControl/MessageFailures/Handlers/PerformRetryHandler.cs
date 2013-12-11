@@ -25,7 +25,7 @@
 
             var attempt = failedMessage.ProcessingAttempts.Last();
 
-            var originalHeaders = (Dictionary<string,string>)attempt.MessageMetadata["Headers"].Value;
+            var originalHeaders = attempt.Headers;
 
             var headersToRetryWith = originalHeaders.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key))
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
@@ -33,13 +33,14 @@
 
             var transportMessage = new TransportMessage(failedMessage.Id, headersToRetryWith)
             {
-                //todo
-                //Body = attempt.Message.Body,
-                //CorrelationId = attempt.Message.CorrelationId,
-                //Recoverable = attempt.Message.Recoverable,
-                //MessageIntent = attempt.Message.MessageIntent,
-                //ReplyToAddress = Address.Parse(attempt.Message.ReplyToAddress)
+                Body = attempt.Body,
+                CorrelationId = attempt.CorrelationId,
+                Recoverable = attempt.Recoverable,
+                MessageIntent = attempt.MessageIntent,
+                ReplyToAddress = Address.Parse(attempt.ReplyToAddress)
             };
+
+            failedMessage.Status = FailedMessageStatus.RetryIssued;
 
             Forwarder.Send(transportMessage, message.TargetEndpointAddress);
         }

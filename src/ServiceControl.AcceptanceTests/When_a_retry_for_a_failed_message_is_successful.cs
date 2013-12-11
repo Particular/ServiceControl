@@ -25,37 +25,36 @@
                 .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c =>
                 {
-                  
-                    var failedMessageId = string.Format("{0}-{1}", c.MessageId,
-                        c.EndpointNameOfReceivingEndpoint);
-
-
-                    if (!TryGet("/api/errors/" + failedMessageId, out failure))
+                    if (c.MessageId == null)
                     {
                         return false;
                     }
 
-                    Console.Out.WriteLine("Status: " + failure.Status);
+                     if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure))
+                    {
+                        return false;
+                    }
 
+                     Console.Out.WriteLine(failure.Status);
                     if (c.RetryIssued)
                     {
                         Assert.AreNotEqual(MessageStatus.RepeatedFailure,failure.Status);
 
                         Thread.Sleep(1000); //todo: add support for a "default" delay when Done() returns false
-                        return failure.Status == MessageStatus.Successful;
+                        return failure.Status == FailedMessageStatus.Resolved;
                     }
                     else
                     {
                         c.RetryIssued = true;
 
-                        Post<object>(String.Format("/api/errors/{0}/retry", failedMessageId));
+                        Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId));
 
                         return false;
                     }
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(MessageStatus.Successful,failure.Status);
+            Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
             //todo check the audit component instead
             //var historyItems = context.Message.History.ToList();
             //Assert.AreEqual(historyItems.OrderBy(h => h.Time).First().Action, "RetryIssued",
@@ -85,6 +84,7 @@
 
                 public void Handle(MyMessage message)
                 {
+                    Console.Out.WriteLine("Handling message");
                     Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
                     Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\","-");
 
@@ -104,32 +104,18 @@
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-            public FailedMessage Message { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
             public bool RetryIssued { get; set; }
-        }
 
-        bool FailedMessageFound (MyContext context)
-        {
-            if (context.MessageId == null)
+            public string UniqueMessageId
             {
-                return false;
+                get
+                {
+                    return string.Format("{0}-{1}", MessageId.Replace(@"\", "-"), EndpointNameOfReceivingEndpoint);
+                }
             }
-
-            context.Message =
-                Get<FailedMessage>(String.Format("/api/errors/{0}-{1}", context.MessageId,
-                    context.EndpointNameOfReceivingEndpoint));
-
-            if (context.Message == null)
-            {
-                return false;
-            }
-
-            return true;
         }
-
- 
     }
 }

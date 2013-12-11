@@ -15,21 +15,22 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var messageId = message.PhysicalMessage.MessageId;
+                var messageId = message.UniqueMessageId;
 
                 var failure = session.Load<FailedMessage>(messageId) ?? new FailedMessage
                 {
                     Id = messageId,
-                    Status = MessageStatus.Failed
+                    Status = FailedMessageStatus.Unresolved
                 };
 
                 var timeOfFailure = message.FailureDetails.TimeOfFailure;
 
                 //check for duplicate
-                if (failure.ProcessingAttempts.Any(a =>a.UniqueMessageId == message.UniqueMessageId && a.AttemptedAt == timeOfFailure))
+                if (failure.ProcessingAttempts.Any(a =>a.AttemptedAt == timeOfFailure))
                 {
                     return;
                 }
+
 
                failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
                {
@@ -37,7 +38,13 @@
                    FailingEndpoint = message.ReceivingEndpoint,
                    FailureDetails =message.FailureDetails,
                    MessageMetadata = message.Metadata,
-                   UniqueMessageId = message.UniqueMessageId
+                   MessageId = message.PhysicalMessage.MessageId,
+                   Headers = message.PhysicalMessage.Headers,
+                   ReplyToAddress = message.PhysicalMessage.ReplyToAddress,
+                   Recoverable = message.PhysicalMessage.Recoverable,
+                   CorrelationId = message.PhysicalMessage.CorrelationId,
+                   MessageIntent = message.PhysicalMessage.MessageIntent,
+                   Body = message.PhysicalMessage.Body
                });
 
                 //todo: sort the list in time order

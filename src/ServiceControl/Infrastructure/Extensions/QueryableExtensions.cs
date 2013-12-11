@@ -3,6 +3,7 @@ namespace ServiceControl.Infrastructure.Extensions
     using System;
     using System.Linq;
     using System.Linq.Expressions;
+    using CompositeViews;
     using global::Nancy;
     using RavenDB.Indexes;
 
@@ -43,7 +44,7 @@ namespace ServiceControl.Infrastructure.Extensions
 
         public static IOrderedQueryable<TSource> Sort<TSource>(this IQueryable<TSource> source, Request request,
             Expression<Func<TSource, object>> defaultKeySelector = null, string defaultSortDirection = "desc")
-            where TSource : CommonResult
+            where TSource : MessagesView
         {
             var direction = defaultSortDirection;
 

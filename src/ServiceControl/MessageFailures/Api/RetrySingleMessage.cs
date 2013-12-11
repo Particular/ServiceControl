@@ -20,7 +20,7 @@
                 Bus.SendLocal<RequestRetry>(m =>
                 {
                     m.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
-                    m.MessageId = failedMessageId;
+                    m.FailedMessageId = failedMessageId;
                 });
 
                 return HttpStatusCode.Accepted;
@@ -30,7 +30,7 @@
             {
                 var ids = this.Bind<List<string>>();
 
-                var request = new InternalMessages.RequestRetries {MessageIds = ids};
+                var request = new RequestRetries {MessageIds = ids};
                 request.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
 
                 Bus.SendLocal(request);

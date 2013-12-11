@@ -20,7 +20,9 @@
 
             string processedAt;
 
-            if (message.PhysicalMessage.Headers.TryGetValue(Headers.ProcessingEnded, out processedAt))
+            Headers = message.PhysicalMessage.Headers;
+
+            if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out processedAt))
             {
                 ProcessedAt = DateTimeExtensions.ToUtcDateTime(processedAt);
             }
@@ -33,7 +35,8 @@
         public Dictionary<string, MessageMetadata> MessageMetadata { get; set; }
 
         public string Id { get; set; }
-
+        public Dictionary<string, string> Headers { get; set; }
+         
         public DateTime ProcessedAt { get; set; }
 
         public EndpointDetails SendingEndpoint { get; set; }

@@ -4,7 +4,7 @@
 
     public class RequestRetry : ICommand
     {
-        public string MessageId { get; set; }
+        public string FailedMessageId { get; set; }
     }
 
     public class PerformRetry : ICommand

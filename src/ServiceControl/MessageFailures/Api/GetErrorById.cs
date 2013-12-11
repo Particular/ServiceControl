@@ -10,11 +10,11 @@
         {
             Get["/errors/{id}"] = parameters =>
             {
-                string messageId = parameters.id;
+                string failedMessageId = parameters.id;
 
                 using (var session = Store.OpenSession())
                 {
-                    var message = session.Load<FailedMessage>(messageId);
+                    var message = session.Load<FailedMessage>(failedMessageId);
 
                     if (message == null)
                     {

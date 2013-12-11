@@ -8,6 +8,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
+    using ServiceControl.CompositeViews;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
@@ -21,18 +22,20 @@
         {
             var context = new MyContext();
 
+            FailedMessage failedMessage = null;
+
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => IsErrorMessageStored(context, c))
+                .Done(c => c.MessageId != null && TryGet("/api/errors/" + c.UniqueMessageId, out failedMessage))
                 .Run();
 
            // The message Ids may contain a \ if they are from older versions. 
-            Assert.AreEqual(context.MessageId, context.FailedMessage.Id.Replace(@"\", "-"),
+            Assert.AreEqual(context.MessageId, failedMessage.MostRecentAttempt.MessageId,
                 "The returned message should match the processed one");
-            Assert.AreEqual(MessageStatus.Failed, context.FailedMessage.Status, "Status should be set to failed");
-            Assert.AreEqual(1, context.FailedMessage.ProcessingAttempts.Count(), "Failed count should be 1");
-            Assert.AreEqual("Simulated exception", context.FailedMessage.ProcessingAttempts.Single().FailureDetails.Exception.Message,
+            Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status, "Status should be set to unresolved");
+            Assert.AreEqual(1, failedMessage.ProcessingAttempts.Count(), "Failed count should be 1");
+            Assert.AreEqual("Simulated exception", failedMessage.ProcessingAttempts.Single().FailureDetails.Exception.Message,
                 "Exception message should be captured");
 
         }
@@ -54,7 +57,7 @@
 
             // The message Ids may contain a \ if they are from older versions. 
             Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");
-            Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
+            Assert.AreEqual(FailedMessageStatus.Unresolved, failure.Status, "Status of new messages should be failed");
             Assert.AreEqual(1, failure.NumberOfProcessingAttempts, "One attempt should be stored");
         }
 
@@ -64,7 +67,7 @@
         {
             var context = new MyContext();
 
-            var response = new List<FailedMessageView>();
+            var response = new List<MessagesView>();
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -130,40 +133,17 @@
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-            public FailedMessage FailedMessage { get; set; }
             public List<EventLogItem> LogEntries { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
-        }
 
-        bool IsErrorMessageStored(MyContext context, MyContext c)
-        {
-            lock (context)
+            public string UniqueMessageId
             {
-                if (c.FailedMessage != null)
+                get
                 {
-                    return true;
+                    return string.Format("{0}-{1}", MessageId.Replace(@"\", "-"), EndpointNameOfReceivingEndpoint);
                 }
-
-                if (c.MessageId == null)
-                {
-                    return false;
-                }
-
-                var message =Get<FailedMessage>("/api/errors/" + context.MessageId);
-
-                if (message == null)
-                {
-                    return false;
-                }
-
-                c.FailedMessage = message;
-
-                return true;
             }
         }
-
-
-
 
         bool IsEventLogDataAvailable(MyContext c)
         {

@@ -15,7 +15,7 @@
     {
         public void Handle(ImportFailedMessage message)
         {
-            Data.MessageId = message.MessageId;
+            Data.FailedMessageId = message.UniqueMessageId;
 
             var timeOfFailure = message.FailureDetails.TimeOfFailure;
 
@@ -35,7 +35,7 @@
                 Bus.Publish<MessageFailedRepetedly>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
-                    m.MessageId = message.MessageId;
+                    m.FailedMessageId = Data.FailedMessageId;
                 });
             }
             else
@@ -43,16 +43,22 @@
                 Bus.Publish<MessageFailed>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
-                    m.MessageId = message.MessageId;
+                    m.FailedMessageId = Data.FailedMessageId;
                 });
             }
         }
 
         public void Handle(RequestRetry message)
         {
+            if (Data.RetryInProgress)
+            {
+                return;
+            }
+
+            Data.RetryInProgress = true;
             Bus.SendLocal(new PerformRetry
             {
-                MessageId = Data.MessageId,
+                MessageId = Data.FailedMessageId,
                 TargetEndpointAddress = Data.Attempts.Last().AddressOfFailingEndpoint
             });
 
@@ -66,9 +72,10 @@
             }
 
             [Unique]
-            public string MessageId { get; set; }
+            public string FailedMessageId { get; set; }
 
             public List<Attempt> Attempts { get; set; }
+            public bool RetryInProgress { get; set; }
 
 
             public class Attempt
@@ -82,11 +89,11 @@
 
         public override void ConfigureHowToFindSaga()
         {
-            ConfigureMapping<ImportFailedMessage>(m => m.MessageId)
-                .ToSaga(s => s.MessageId);
+            ConfigureMapping<ImportFailedMessage>(m => m.UniqueMessageId)
+                .ToSaga(s => s.FailedMessageId);
 
-            ConfigureMapping<RequestRetry>(m => m.MessageId)
-               .ToSaga(s => s.MessageId);
+            ConfigureMapping<RequestRetry>(m => m.FailedMessageId)
+               .ToSaga(s => s.FailedMessageId);
         }
 
     }

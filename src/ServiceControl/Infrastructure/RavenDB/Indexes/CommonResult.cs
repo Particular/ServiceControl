@@ -1,14 +1,12 @@
 namespace ServiceControl.Infrastructure.RavenDB.Indexes
 {
     using System;
-    using Contracts.Operations;
 
     public class CommonResult
     {
         public string Id { get; set; }
         public string ReceivingEndpointName { get; set; }
         public string MessageType { get; set; }
-        public MessageStatus Status { get; set; }
         public DateTime TimeSent { get; set; }
         public DateTime TimeOfFailure { get; set; }
         public TimeSpan CriticalTime { get; set; }

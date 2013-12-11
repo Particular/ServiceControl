@@ -1,5 +1,6 @@
 namespace ServiceControl.CompositeViews
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
@@ -23,22 +24,22 @@ namespace ServiceControl.CompositeViews
                 ReceivingEndpointName = message.ReceivingEndpoint.Name,
                 ConversationId = message.MessageMetadata["ConversationId"].Value,
                 TimeSent = message.MessageMetadata["TimeSent"].Value,
-                Headers = message.MessageMetadata["Headers"].Value,
+                Headers = message.Headers,
                 Query = message.MessageMetadata.Values.SelectMany(m => m.SearchTokens).ToArray()
             }));
 
 
             AddMap<FailedMessage>(messages => messages.Select(message => new
             {
-                Id = message.ProcessingAttempts.Last().UniqueMessageId,
-                MessageId = message.Id,
+                Id = message.Id,
+                MessageId = message.MostRecentAttempt.MessageMetadata["MessageId"].Value,
                 MessageType = message.ProcessingAttempts.Last().MessageMetadata["MessageType"].Value,
-                message.Status,
+                Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
                 ProcessedAt = message.ProcessingAttempts.Last().FailureDetails.TimeOfFailure,
                 ReceivingEndpointName = message.ProcessingAttempts.Last().FailingEndpoint.Name,
                 ConversationId = message.ProcessingAttempts.Last().MessageMetadata["ConversationId"].Value,
                 TimeSent = message.ProcessingAttempts.Last().MessageMetadata["TimeSent"].Value,
-                Headers = message.ProcessingAttempts.Last().MessageMetadata["Headers"].Value,
+                Headers = message.ProcessingAttempts.Last().Headers,
                 Query = message.MostRecentAttempt.MessageMetadata.Values.SelectMany(m=>m.SearchTokens).ToArray()
             }));
 
