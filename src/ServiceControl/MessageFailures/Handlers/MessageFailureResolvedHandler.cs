@@ -18,7 +18,7 @@
                 throw new ArgumentException("Can't find e failed message with id: " + message.FailedMessageId);
             }
 
-            if (message.GetType() == typeof(MessageFailureResolvedByArchiving))
+            if (message.GetType() == typeof(FailedMessageArchived))
             {
                 failedMessage.Status = FailedMessageStatus.Archived;
             }

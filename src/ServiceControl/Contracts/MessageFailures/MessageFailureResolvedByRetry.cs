@@ -11,7 +11,7 @@
     {
     }
 
-    public class MessageFailureResolvedByArchiving : MessageFailureResolved
+    public class FailedMessageArchived : MessageFailureResolved
     {
     }
 }

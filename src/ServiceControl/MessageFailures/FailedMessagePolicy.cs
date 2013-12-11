@@ -20,18 +20,19 @@
 
             var timeOfFailure = message.FailureDetails.TimeOfFailure;
 
-            if (Data.Attempts.Any(a => a.AttemptedAt == timeOfFailure))
+            if (Data.ProcessingAttempts.Any(a => a.AttemptedAt == timeOfFailure))
             {
                 return;
             }
 
-            Data.Attempts.Add(new FailedMessagePolicyData.Attempt
+            Data.ProcessingAttempts.Add(new FailedMessagePolicyData.FailedProcessingAttempt
             {
+                Id = Guid.NewGuid(),
                 AttemptedAt = timeOfFailure,
                 AddressOfFailingEndpoint = message.FailureDetails.AddressOfFailingEndpoint
             });
 
-            if (Data.Attempts.Count > 0)
+            if (Data.ProcessingAttempts.Count > 0)
             {
                 Bus.Publish<MessageFailedRepetedly>(m =>
                 {
@@ -51,22 +52,26 @@
 
         public void Handle(RequestRetry message)
         {
-            if (Data.Attempts.Any(a => a.RetryInProgress))
+            //do not allow retries if we have other retries in progress
+            if (Data.RetryAttempts.Any(a => !a.Completed))
             {
                 return;
             }
 
-            var attempt = Data.Attempts.Last();
+            var attemptToRetry = Data.ProcessingAttempts.Last();
 
             var retryId = Guid.NewGuid();
-
-            attempt.RetryId = retryId;
-            attempt.RetryInProgress = true;
-
+            
+            Data.RetryAttempts.Add(new FailedMessagePolicyData.RetryAttempt
+            {
+                Id = retryId,
+                FailedProcessingAttemptId = attemptToRetry.Id
+            });
+        
             Bus.SendLocal(new PerformRetry
             {
                 FailedMessageId = Data.FailedMessageId,
-                TargetEndpointAddress = Data.Attempts.Last().AddressOfFailingEndpoint,
+                TargetEndpointAddress = Data.ProcessingAttempts.Last().AddressOfFailingEndpoint,
                 RetryId = retryId
             });
 
@@ -74,14 +79,16 @@
 
         public void Handle(RegisterSuccesfulRetry message)
         {
-            var attempt = Data.Attempts.SingleOrDefault(a => a.RetryId == message.RetryId);
-
-            if (attempt == null)
+            if (Data.Resolved)
             {
-                throw new ArgumentException("Retry id not found in the list of attempts");
+                return;
             }
 
-            attempt.RetryInProgress = false;
+            var attempt = Data.RetryAttempts.Single(r => r.Id == message.RetryId);
+
+
+            attempt.Completed = true;
+
             Data.Resolved = true;
 
             Bus.Publish<MessageFailureResolvedByRetry>(m=>m.FailedMessageId = Data.FailedMessageId);
@@ -91,21 +98,31 @@
         {
             public FailedMessagePolicyData()
             {
-                Attempts = new List<Attempt>();
+                ProcessingAttempts = new List<FailedProcessingAttempt>();
+                RetryAttempts = new List<RetryAttempt>();
             }
 
             [Unique]
             public string FailedMessageId { get; set; }
 
-            public List<Attempt> Attempts { get; set; }
+            public List<FailedProcessingAttempt> ProcessingAttempts { get; set; }
+
+            public List<RetryAttempt> RetryAttempts { get; set; }
+
             public bool Resolved { get; set; }
 
-            public class Attempt
+            public class FailedProcessingAttempt
             {
                 public DateTime AttemptedAt { get; set; }
                 public Address AddressOfFailingEndpoint { get; set; }
-                public Guid RetryId { get; set; }
-                public bool RetryInProgress { get; set; }
+                public Guid Id { get; set; }
+            }
+
+            public class RetryAttempt
+            {
+                public Guid Id { get; set; }
+                public Guid FailedProcessingAttemptId { get; set; }
+                public bool Completed { get; set; }
             }
 
         }
