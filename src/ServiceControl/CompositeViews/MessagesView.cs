@@ -15,5 +15,6 @@ namespace ServiceControl.CompositeViews
         public string[] Query { get; set; }
 
         public MessageStatus Status { get; set; }
+        public string SendingEndpointName { get; set; }
     }
 }

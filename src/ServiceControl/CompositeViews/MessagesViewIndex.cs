@@ -20,6 +20,7 @@ namespace ServiceControl.CompositeViews
                 IsSystemMessage = message.MessageMetadata["IsSystemMessage"].Value,
                 Status = MessageStatus.Successful,
                 ProcessedAt = message.ProcessedAt,
+                SendingEndpointName = message.SendingEndpoint.Name,
                 ReceivingEndpointName = message.ReceivingEndpoint.Name,
                 ConversationId = message.MessageMetadata["ConversationId"].Value,
                 TimeSent = message.MessageMetadata["TimeSent"].Value,
@@ -35,6 +36,7 @@ namespace ServiceControl.CompositeViews
                 IsSystemMessage = message.MostRecentAttempt.MessageMetadata["IsSystemMessage"].Value,
                 Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
                 ProcessedAt = message.MostRecentAttempt.FailureDetails.TimeOfFailure,
+                SendingEndpointName = message.MostRecentAttempt.FailingEndpoint.Name,//todo
                 ReceivingEndpointName = message.MostRecentAttempt.FailingEndpoint.Name,
                 ConversationId = message.MostRecentAttempt.MessageMetadata["ConversationId"].Value,
                 TimeSent = message.MostRecentAttempt.MessageMetadata["TimeSent"].Value,
@@ -52,6 +54,7 @@ namespace ServiceControl.CompositeViews
                                         IsSystemMessage = g.OrderByDescending(m => m.ProcessedAt).First().IsSystemMessage,
                                         Status = g.OrderByDescending(m => m.ProcessedAt).First().Status,
                                         ProcessedAt = g.OrderByDescending(m => m.ProcessedAt).First().ProcessedAt,
+                                        SendingEndpointName = g.OrderByDescending(m => m.ProcessedAt).First().SendingEndpointName,
                                         ReceivingEndpointName = g.OrderByDescending(m => m.ProcessedAt).First().ReceivingEndpointName,
                                         ConversationId = g.OrderByDescending(m => m.ProcessedAt).First().ConversationId,
                                         TimeSent = g.OrderByDescending(m => m.ProcessedAt).First().TimeSent,
