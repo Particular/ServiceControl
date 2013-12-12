@@ -31,14 +31,19 @@
                 .Done(c => TryGetMany("/api/messages", out response))
                 .Run(TimeSpan.FromSeconds(40));
 
-            var messageReturned = response.SingleOrDefault();
+            var auditedMessage = response.SingleOrDefault();
 
-            Assert.NotNull(messageReturned, "No message was returned by the management api");
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, messageReturned.ReceivingEndpointName,
+            Assert.NotNull(auditedMessage, "No message was returned by the management api");
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpointName,
                 "Receiving endpoint name should be parsed correctly");
-            Assert.AreEqual(typeof(MyMessage).FullName, messageReturned.MessageType,
+            Assert.AreEqual(typeof(MyMessage).FullName, auditedMessage.MessageType,
                 "AuditMessage type should be set to the fullname of the message type");
-            //Assert.False(((bool)context.ReturnedMessage.MessageMetadata["IsSystemMessage"].Value), "AuditMessage should not be marked as a system message");
+            Assert.False(auditedMessage.IsSystemMessage, "AuditMessage should not be marked as a system message");
+
+            Assert.Greater(DateTime.UtcNow,auditedMessage.TimeSent, "Time sent should be correctly set");
+
+            Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
+            Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
         }
 
 

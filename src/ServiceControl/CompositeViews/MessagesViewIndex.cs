@@ -1,5 +1,6 @@
 namespace ServiceControl.CompositeViews
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
@@ -24,6 +25,8 @@ namespace ServiceControl.CompositeViews
                 ReceivingEndpointName = message.MessageMetadata["ReceivingEndpoint"].Value,
                 ConversationId = message.MessageMetadata["ConversationId"].Value,
                 TimeSent = message.MessageMetadata["TimeSent"].Value,
+                ProcessingTime = message.MessageMetadata["ProcessingTime"].Value,
+                CriticalTime = message.MessageMetadata["CriticalTime"].Value,
                 Headers = message.Headers,
                 Query = message.MessageMetadata.SelectMany(kvp => kvp.Value.SearchTokens).ToArray()
             }));
@@ -40,6 +43,8 @@ namespace ServiceControl.CompositeViews
                 ReceivingEndpointName = message.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"].Value,
                 ConversationId = message.MostRecentAttempt.MessageMetadata["ConversationId"].Value,
                 TimeSent = message.MostRecentAttempt.MessageMetadata["TimeSent"].Value,
+                ProcessingTime = TimeSpan.Zero,
+                CriticalTime = TimeSpan.Zero,
                 Headers = message.MostRecentAttempt.Headers,
                 Query = message.MostRecentAttempt.MessageMetadata.SelectMany(kvp => kvp.Value.SearchTokens).ToArray()
             }));
@@ -58,6 +63,8 @@ namespace ServiceControl.CompositeViews
                                         ReceivingEndpointName = g.OrderByDescending(m => m.ProcessedAt).First().ReceivingEndpointName,
                                         ConversationId = g.OrderByDescending(m => m.ProcessedAt).First().ConversationId,
                                         TimeSent = g.OrderByDescending(m => m.ProcessedAt).First().TimeSent,
+                                        ProcessingTime = g.OrderByDescending(m => m.ProcessedAt).First().ProcessingTime,
+                                        CriticalTime = g.OrderByDescending(m => m.ProcessedAt).First().CriticalTime,
                                         Headers = g.OrderByDescending(m => m.ProcessedAt).First().Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value)),
                                         Query = g.OrderByDescending(m => m.ProcessedAt).First().Query
                                     };
