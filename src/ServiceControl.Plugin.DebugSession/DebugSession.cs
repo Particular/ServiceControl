@@ -6,6 +6,8 @@
 
     public class DebugSession : Feature
     {
+        const string ServiceControlDebugSessionIdFileName = "ServiceControl.DebugSessionId.txt";
+
         public override bool ShouldBeEnabled()
         {
             return File.Exists(DebugSessionFilename);
@@ -22,13 +24,24 @@
                 .ConfigureProperty(p => p.SessionId, File.ReadAllText(DebugSessionFilename));
 
         }
-        
-        static string DebugSessionFilename = DetermineCorrectPathTo("ServiceControl.DebugSessionId.txt");
-
-        static string DetermineCorrectPathTo(string file)
+                
+        string DetermineCorrectPathTo(string file)
         {
             var binPath = Path.GetDirectoryName((new System.Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath);
             return binPath != null ? Path.Combine(binPath, file) : file;
+        }
+
+        string debugSessionFileName = null;
+        public string DebugSessionFilename
+        {
+            get
+            {
+                if (debugSessionFileName == null)
+                {
+                    debugSessionFileName = DetermineCorrectPathTo(ServiceControlDebugSessionIdFileName);
+                }
+                return debugSessionFileName;
+            }
         }
     }
 }
