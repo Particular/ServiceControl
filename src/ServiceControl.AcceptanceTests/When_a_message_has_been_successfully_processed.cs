@@ -43,7 +43,7 @@
 
 
         [Test]
-        public void Should_be_found_in_search()
+        public void Should_be_found_in_search_by_messagetype()
         {
             var context = new MyContext();
             var response = new List<MessagesView>();
@@ -63,6 +63,30 @@
                 .Run(TimeSpan.FromSeconds(40));
         }
 
+        [Test]
+        public void Should_be_found_in_search_by_messagebody()
+        {
+            var context = new MyContext
+            {
+                PropertyToSearchFor = Guid.NewGuid().ToString()
+            };
+
+            var response = new List<MessagesView>();
+
+             Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
+                    bus.Send(new MyMessage
+                    {
+                        PropertyToSearchFor = c.PropertyToSearchFor
+                    });
+                }))
+                .WithEndpoint<Receiver>()
+                .Done(c => TryGetMany("/api/messages/search/" + c.PropertyToSearchFor, out response))
+                .Run(TimeSpan.FromSeconds(40));
+        }
 
 
         [Test]
@@ -134,6 +158,7 @@
         [Serializable]
         public class MyMessage : ICommand
         {
+            public string PropertyToSearchFor { get; set; }
         }
 
         public class MyContext : ScenarioContext
@@ -143,6 +168,8 @@
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
             public string EndpointNameOfSendingEndpoint { get; set; }
+
+            public string PropertyToSearchFor { get; set; }
         }
     }
 }
