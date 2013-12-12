@@ -1,5 +1,6 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Nancy
 {
+    using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
@@ -21,7 +22,12 @@
                 ContractResolver = new UnderscoreMappingResolver(),
                 Formatting = Formatting.None,
                 NullValueHandling = NullValueHandling.Ignore,
-                Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}, {new StringEnumConverter{CamelCaseText = true}}}
+                Converters =
+                {
+                    new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}, 
+                    new StringEnumConverter{CamelCaseText = true},
+
+                }
             };
             serializer = JsonSerializer.Create(serializerSettings);
         }

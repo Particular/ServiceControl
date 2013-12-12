@@ -1,10 +1,11 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
+    using Contracts.Operations;
     using Infrastructure;
+    using MessageAuditing;
     using NServiceBus;
     using Plugin.Heartbeats.Messages;
     using Raven.Client;
-    using ServiceBus.Management.MessageAuditing;
 
     public class SaveHeartbeatHandler : IHandleMessages<EndpointHeartbeat>
     {
@@ -17,7 +18,7 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var originatingEndpoint = EndpointDetails.OriginatingEndpoint(Bus.CurrentMessageContext.Headers);
+                var originatingEndpoint = EndpointDetails.SendingEndpoint(Bus.CurrentMessageContext.Headers);
                 var id = DeterministicGuid.MakeId(originatingEndpoint.Name, originatingEndpoint.Machine);
                 var heartbeat = session.Load<Heartbeat>(id) ?? new Heartbeat
                 {

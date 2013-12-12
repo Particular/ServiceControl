@@ -1,5 +1,6 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
+    using Infrastructure.Extensions;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -8,8 +9,6 @@ namespace ServiceControl.HeartbeatMonitoring
 
     public class ApiModule : BaseModule
     {
-        public IDocumentStore Store { get; set; }
-
         public ApiModule()
         {
             Get["/heartbeats/stats"] = _ =>

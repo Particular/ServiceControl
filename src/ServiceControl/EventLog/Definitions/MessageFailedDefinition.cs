@@ -11,10 +11,10 @@ namespace ServiceControl.EventLog.Definitions
         {
             return m => new EventLogItem()
             {
-                Description = m.Reason,
-                RelatedTo = new List<string>() { string.Format("/failedMessageId/{0}", m.Id), string.Format("/endpoint/{0}/{1}", m.Endpoint, m.Machine) },
+                Description = m.FailureDetails.Exception.Message,
+                RelatedTo = new List<string>() { string.Format("/message/{0}", m.FailedMessageId), string.Format("/endpoint/{0}", m.Endpoint.Name) },
                 Severity = Severity.Error,
-                RaisedAt = m.FailedAt,
+                RaisedAt = m.FailureDetails.TimeOfFailure,
                 Category = "MessageFailures"
             };
         }

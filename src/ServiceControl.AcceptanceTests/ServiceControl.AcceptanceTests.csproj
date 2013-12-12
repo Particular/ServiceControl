@@ -85,14 +85,15 @@
     <Reference Include="System.Threading.Tasks">
       <HintPath>..\packages\Microsoft.Bcl\lib\net40\System.Threading.Tasks.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DebugSessions\When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
     <Compile Include="HeartbeatMonitoring\When_endpoints_heartbeats_are_received_in_a_timely_manner.cs" />
-    <Compile Include="When_a_message_has_failed.cs" />
-    <Compile Include="When_issuing_a_retry_for_a_failed_message.cs" />
+    <Compile Include="MessageFailures\When_a_message_has_failed.cs" />
+    <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_is_successful.cs" />
     <Compile Include="AcceptanceTest.cs" />
     <Compile Include="Contexts\ConfigureExtensions.cs" />
     <Compile Include="Contexts\DefaultServer.cs" />

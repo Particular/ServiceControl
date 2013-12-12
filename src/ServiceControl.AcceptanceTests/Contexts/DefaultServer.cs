@@ -5,7 +5,6 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using MessageAuditing;
     using NLog;
     using NLog.Config;
     using NLog.Targets;
@@ -15,6 +14,7 @@
     using NServiceBus.Features;
     using NServiceBus.Hosting.Helpers;
     using NServiceBus.Logging.Loggers.NLogAdapter;
+    using ServiceControl.MessageAuditing;
 
     public class DefaultServerWithoutAudit : DefaultServer
     {
@@ -102,7 +102,7 @@
         static IEnumerable<Type> GetTypesToUse(EndpointConfiguration endpointConfiguration)
         {
             var assemblies = new AssemblyScanner().GetScannableAssemblies().Assemblies
-                .Where(a => a != typeof(Message).Assembly).ToList();
+                .Where(a => a != typeof(ProcessedMessage).Assembly).ToList();
 
 
             var types = assemblies

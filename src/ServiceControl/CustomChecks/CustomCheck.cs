@@ -1,7 +1,8 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
-    using ServiceBus.Management.MessageAuditing;
+    using Contracts.Operations;
+    using MessageAuditing;
 
     class CustomCheck
     {

@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
@@ -13,6 +14,7 @@
     using System.Threading;
     using System.Xml.Linq;
     using System.Xml.XPath;
+    using Infrastructure.Nancy;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -101,6 +103,17 @@
                     new XAttribute("key", "ServiceControl/Port"), new XAttribute("value", port)));
             }
 
+            var syncIndexElement = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/CreateIndexSync""]");
+            if (syncIndexElement != null)
+            {
+                syncIndexElement.SetAttributeValue("value", true);
+            }
+            else
+            {
+                appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/CreateIndexSync"), new XAttribute("value", true)));
+            }
+            
+
             doc.Save(pathToAppConfig);
         }
 
@@ -170,7 +183,7 @@
             Console.Out.WriteLine(" - {0}", (int) response.StatusCode);
 
             //for now
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
             {
                 Thread.Sleep(1000);
                 return null;
@@ -188,6 +201,33 @@
 
                 return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
             }
+        }
+
+        protected bool TryGet<T>(string url, out T response) where T : class
+        {
+
+            response = Get<T>(url);
+
+            if (response == null)
+            {
+                Thread.Sleep(1000);
+                return false;
+            }
+
+            return true;
+        }
+        protected bool TryGetMany<T>(string url, out List<T> response) where T : class
+        {
+
+            response = Get<List<T>>(url);
+
+            if (response == null || !response.Any())
+            {
+                Thread.Sleep(1000);
+                return false;
+            }
+
+            return true;
         }
 
         public void Post<T>(string url, T payload = null) where T : class
@@ -238,7 +278,14 @@
         static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
         {
             ContractResolver = new UnderscoreMappingResolver(),
-            Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}}
+            Formatting = Formatting.None,
+            NullValueHandling = NullValueHandling.Ignore,
+            Converters =
+            {
+                new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind},
+                new StringEnumConverter {CamelCaseText = true},
+
+            }
         };
 
         int port;

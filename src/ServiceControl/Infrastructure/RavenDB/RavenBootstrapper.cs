@@ -1,14 +1,15 @@
-﻿namespace ServiceBus.Management.Infrastructure.RavenDB
+﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System.Diagnostics;
     using System.IO;
     using NServiceBus;
     using NServiceBus.Logging;
+    using NServiceBus.RavenDB;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
-    using Raven.Database.Server;
-    using Settings;
+    using ServiceBus.Management.Infrastructure.RavenDB;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class RavenBootstrapper : INeedInitialization
     {
@@ -36,23 +37,32 @@
             sw.Start();
             Logger.Info("Index creation started");
 
-            IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore)
-                .ContinueWith(c =>
-                {
-                    sw.Stop();
-                    if (c.IsFaulted)
+            if (Settings.CreateIndexSync)
+            {
+                IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);    
+            }
+            else
+            {
+                IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore)
+                    .ContinueWith(c =>
                     {
-                        Logger.Error("Index creation failed", c.Exception);
-                    }
-                    else
-                    {
-                        Logger.InfoFormat("Index creation completed, total time: {0}", sw.Elapsed);
-                    }
-                });
+                        sw.Stop();
+                        if (c.IsFaulted)
+                        {
+                            Logger.Error("Index creation failed", c.Exception);
+                        }
+                        else
+                        {
+                            Logger.InfoFormat("Index creation completed, total time: {0}", sw.Elapsed);
+                        }
+                    });                
+            }
+
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);
-            Configure.Instance.RavenPersistenceWithStore(documentStore);
+            Configure.Instance.RavenDBPersistence(documentStore, false);
+            
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
