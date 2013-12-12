@@ -1,16 +1,13 @@
 namespace ServiceControl.CompositeViews
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
     using Lucene.Net.Analysis.Standard;
     using MessageAuditing;
     using MessageFailures;
-    using Mono.CSharp;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
-    using Raven.Database.Linq.PrivateExtensions;
 
     public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesView>
     {
@@ -19,7 +16,6 @@ namespace ServiceControl.CompositeViews
             AddMap<ProcessedMessage>(messages => messages.Select(message => new
             {
                 Id = message.Id,
-                MessageId = message.MessageMetadata["MessageId"].Value,
                 MessageType = message.MessageMetadata["MessageType"].Value,
                 Status = MessageStatus.Successful,
                 ProcessedAt = message.ProcessedAt,
@@ -34,7 +30,6 @@ namespace ServiceControl.CompositeViews
             AddMap<FailedMessage>(messages => messages.Select(message => new
             {
                 Id = message.Id,
-                MessageId = message.MostRecentAttempt.MessageMetadata["MessageId"].Value,
                 MessageType = message.MostRecentAttempt.MessageMetadata["MessageType"].Value,
                 Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
                 ProcessedAt = message.MostRecentAttempt.FailureDetails.TimeOfFailure,
@@ -51,7 +46,6 @@ namespace ServiceControl.CompositeViews
                                     select new MessagesView
                                     {
                                         Id = g.Key,
-                                        MessageId = g.OrderByDescending(m => m.ProcessedAt).First().MessageId,
                                         MessageType = g.OrderByDescending(m => m.ProcessedAt).First().MessageType,
                                         Status = g.OrderByDescending(m => m.ProcessedAt).First().Status,
                                         ProcessedAt = g.OrderByDescending(m => m.ProcessedAt).First().ProcessedAt,

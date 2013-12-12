@@ -8,7 +8,7 @@
     using NServiceBus.Satellites;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class AuditMessageImportSatellite : ISatellite
+    public class AuditQueueImport : ISatellite
     {
         public IBus Bus { get; set; }
         public IBuilder Builder { get; set; }
@@ -61,6 +61,6 @@
 
       
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(AuditMessageImportSatellite));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(AuditQueueImport));
     }
 }

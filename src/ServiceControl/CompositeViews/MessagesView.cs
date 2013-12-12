@@ -7,8 +7,6 @@ namespace ServiceControl.CompositeViews
 
     public class MessagesView : CommonResult
     {
-        public string MessageId { get; set; }
-
         public DateTime ProcessedAt { get; set; }
         public string ConversationId { get; set; }
 

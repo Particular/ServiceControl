@@ -284,7 +284,7 @@
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
     <Compile Include="MessageTypes\MessageTypeEnricher.cs" />
-    <Compile Include="Operations\AuditMessageImportSatellite.cs" />
+    <Compile Include="Operations\AuditQueueImport.cs" />
     <Compile Include="CompositeViews\GetMessagesByConversation.cs" />
     <Compile Include="EndpointConfig.cs" />
     <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />
@@ -292,7 +292,7 @@
     <Compile Include="MessageAuditing\ProcessedMessage.cs" />
     <Compile Include="MessageFailures\Api\RetrySingleMessage.cs" />
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
-    <Compile Include="Operations\ErrorImportSatellite.cs" />
+    <Compile Include="Operations\ErrorQueueImport.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
     <Compile Include="Operations\MessageBodyStorage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

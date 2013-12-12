@@ -75,10 +75,8 @@
                 .Done(c => TryGetMany("/api/messages", out response))
                 .Run();
 
-            var failure = response.Single(r => r.MessageId == context.MessageId);
+            var failure = response.Single(r => r.Headers.SingleOrDefault(kvp=>kvp.Key==Headers.MessageId).Value == context.MessageId);
 
-            // The message Ids may contain a \ if they are from older versions. 
-            Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");
             Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
         }
 

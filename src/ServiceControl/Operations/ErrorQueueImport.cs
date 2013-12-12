@@ -9,7 +9,7 @@
     using NServiceBus.Transports;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class ErrorImportSatellite : ISatellite
+    public class ErrorQueueImport : ISatellite
     {
         public IBus Bus { get; set; }
         public ISendMessages Forwarder { get; set; }
@@ -63,6 +63,6 @@
             get { return InputAddress == Address.Undefined; }
         }
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorImportSatellite));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
     }
 }

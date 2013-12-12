@@ -34,8 +34,6 @@
             var messageReturned = response.SingleOrDefault();
 
             Assert.NotNull(messageReturned, "No message was returned by the management api");
-            Assert.AreEqual(context.MessageId, messageReturned.MessageId,
-                "The returned message should match the processed one");
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, messageReturned.ReceivingEndpointName,
                 "Receiving endpoint name should be parsed correctly");
             Assert.AreEqual(typeof(MyMessage).FullName, messageReturned.MessageType,
