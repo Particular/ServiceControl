@@ -25,22 +25,22 @@
 
         }
                 
-        private string DetermineCorrectPathTo(string file)
+        string DetermineCorrectPathTo(string file)
         {
             var binPath = Path.GetDirectoryName((new System.Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath);
             return binPath != null ? Path.Combine(binPath, file) : file;
         }
 
-        private string _debugSessionFileName = null;
+        string debugSessionFileName = null;
         public string DebugSessionFilename
         {
             get
             {
-                if (_debugSessionFileName == null)
+                if (debugSessionFileName == null)
                 {
-                    _debugSessionFileName = DetermineCorrectPathTo(ServiceControlDebugSessionIdFileName);
+                    debugSessionFileName = DetermineCorrectPathTo(ServiceControlDebugSessionIdFileName);
                 }
-                return _debugSessionFileName;
+                return debugSessionFileName;
             }
         }
     }
