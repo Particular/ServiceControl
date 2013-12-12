@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using InternalMessages;
     using Nancy;
     using Nancy.ModelBinding;
@@ -17,6 +18,11 @@
             {
                 var failedMessageId = parameters.MessageId;
 
+                if (string.IsNullOrEmpty(failedMessageId))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+
                 Bus.SendLocal<RequestRetry>(m =>
                 {
                     m.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
@@ -30,10 +36,17 @@
             {
                 var ids = this.Bind<List<string>>();
 
+                if (ids.Any(string.IsNullOrEmpty))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+
                 var requestedAt = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow);
 
                 foreach (var id in ids)
                 {
+                  
+
                     var request = new RequestRetry { FailedMessageId = id };
 
                     request.SetHeader("RequestedAt", requestedAt);
