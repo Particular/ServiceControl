@@ -20,6 +20,7 @@
 
             //add basic message metadata
             Metadata.Add("MessageId",new MessageMetadata("MessageId",message.Id));
+            Metadata.Add("MessageIntent", new MessageMetadata("MessageIntent",message.MessageIntent));
             Metadata.Add("HeadersForSearching", new MessageMetadata("HeadersForSearching", "Count: " + message.Headers.Count, 
                 message.Headers.Select(kvp => string.Format("{0} {1}", kvp.Key, kvp.Value)).ToArray()));
         }

@@ -4,6 +4,7 @@ namespace ServiceControl.CompositeViews
     using System.Collections.Generic;
     using Contracts.Operations;
     using Infrastructure.RavenDB.Indexes;
+    using NServiceBus;
 
     public class MessagesView : CommonResult
     {
@@ -16,5 +17,6 @@ namespace ServiceControl.CompositeViews
 
         public MessageStatus Status { get; set; }
         public string SendingEndpointName { get; set; }
+        public MessageIntentEnum MessageIntent { get; set; }
     }
 }
