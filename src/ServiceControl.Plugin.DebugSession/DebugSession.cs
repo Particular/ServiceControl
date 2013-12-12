@@ -1,6 +1,7 @@
 ﻿namespace NServiceBus.Features
 {
     using System.IO;
+    using System.Reflection;
     using ServiceControl.Plugin.DebugSession;
 
     public class DebugSession : Feature
@@ -21,8 +22,13 @@
                 .ConfigureProperty(p => p.SessionId, File.ReadAllText(DebugSessionFilename));
 
         }
+        
+        static string DebugSessionFilename = DetermineCorrectPathTo("ServiceControl.DebugSessionId.txt");
 
-
-        static string DebugSessionFilename = "ServiceControl.DebugSessionId.txt";
+        static string DetermineCorrectPathTo(string file)
+        {
+            var binPath = Path.GetDirectoryName((new System.Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath);
+            return binPath != null ? Path.Combine(binPath, file) : file;
+        }
     }
 }
