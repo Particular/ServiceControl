@@ -4,5 +4,6 @@
 
     public class RequestRetryAll : ICommand
     {
+        public string Endpoint { get; set; }
     }
 }

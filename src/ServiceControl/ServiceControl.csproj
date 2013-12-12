@@ -262,12 +262,8 @@
     <Compile Include="Infrastructure\Nancy\VersionExtension.cs" />
     <Compile Include="Infrastructure\Nancy\StringListBinder.cs" />
     <Compile Include="MessageFailures\InternalMessages\RequestEndpointRetryAll.cs" />
-    <Compile Include="MessageFailures\InternalMessages\RequestRetries.cs" />
     <Compile Include="MessageFailures\InternalMessages\RequestRetryAll.cs" />
-    <Compile Include="MessageFailures\Handlers\IssueEndpointRetryAllHandler.cs" />
-    <Compile Include="MessageFailures\Handlers\IssueRetriesHandler.cs" />
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
-    <Compile Include="MessageFailures\Handlers\IssueRetryAllHandlerBase.cs" />
     <Compile Include="MessageFailures\Handlers\PerformRetryHandler.cs" />
     <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
     <Compile Include="Infrastructure\Installers\LogQueueInstaller.cs" />
@@ -290,7 +286,7 @@
     <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
     <Compile Include="MessageAuditing\ProcessedMessage.cs" />
-    <Compile Include="MessageFailures\Api\RetrySingleMessage.cs" />
+    <Compile Include="MessageFailures\Api\RetryMessages.cs" />
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
     <Compile Include="Operations\ErrorQueueImport.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />

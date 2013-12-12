@@ -14,8 +14,10 @@
                     MessageId = failure.MostRecentAttempt.MessageMetadata["MessageId"].Value.ToString(),
                     ExceptionMessage = failure.ProcessingAttempts.Last().FailureDetails.Exception.Message,
                     NumberOfProcessingAttempts = failure.ProcessingAttempts.Count(),
-                    Status = failure.Status
+                    Status = failure.Status,
+                    ReceivingEndpointName = failure.MostRecentAttempt.FailingEndpoint.Name
                 };
         }
+
     }
 }

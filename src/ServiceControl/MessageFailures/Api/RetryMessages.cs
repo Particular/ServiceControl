@@ -8,9 +8,9 @@
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class RetrySingleMessage : BaseModule
+    public class RetryMessages : BaseModule
     {
-        public RetrySingleMessage()
+        public RetryMessages()
         {
 
             Post["/errors/{messageid}/retry"] = parameters =>
@@ -30,10 +30,18 @@
             {
                 var ids = this.Bind<List<string>>();
 
-                var request = new RequestRetries {MessageIds = ids};
-                request.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
+                var requestedAt = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow);
 
-                Bus.SendLocal(request);
+                foreach (var id in ids)
+                {
+                    var request = new RequestRetry { FailedMessageId = id };
+
+                    request.SetHeader("RequestedAt", requestedAt);
+
+                    Bus.SendLocal(request);    
+                }
+
+                
 
                 return HttpStatusCode.Accepted;
             };
@@ -50,7 +58,7 @@
 
             Post["/errors/{name}/retry/all"] = parameters =>
             {
-                var request = new RequestEndpointRetryAll {EndpointName = parameters.name};
+                var request = new RequestRetryAll { Endpoint = parameters.name };
                 request.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
 
                 Bus.SendLocal(request);
