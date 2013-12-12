@@ -86,18 +86,20 @@
         public void Should_add_an_event_log_item()
         {
             var context = new MyContext();
+            var response = new List<EventLogItem>();
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                  .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .WithEndpoint<Receiver>()
-                .Done(IsEventLogDataAvailable)
+                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .Done(c => TryGetMany("/api/eventlogitems/", out response))
                 .Run();
 
-            Assert.AreEqual(1, context.LogEntries.Count);
-            Assert.IsTrue(context.LogEntries[0].Description.Contains("exception"), "For failed messages, the description should contain the exception information");
-            var containsFailedMessageId = context.LogEntries[0].RelatedTo.Any(item => item.Contains("/failedMessageId/"));
-            Assert.IsTrue(containsFailedMessageId, "For failed message, the RelatedId must contain the api url to retrieve additional details about the failed message");
+            var entry = response.SingleOrDefault();
+
+            Assert.NotNull(entry);
+            Assert.IsTrue(entry.Description.Contains("exception"), "For failed messages, the description should contain the exception information");
+            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/message/" + context.UniqueMessageId), "Should contain the api url to retrieve additional details about the failed message");
+            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), "Should contain the api url to retrieve additional details about the endpoint where the message failed");
         }
 
         public class Receiver : EndpointConfigurationBuilder
@@ -131,7 +133,6 @@
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-            public List<EventLogItem> LogEntries { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
             public string UniqueMessageId
@@ -141,18 +142,6 @@
                     return string.Format("{0}-{1}", MessageId.Replace(@"\", "-"), EndpointNameOfReceivingEndpoint);
                 }
             }
-        }
-
-        bool IsEventLogDataAvailable(MyContext c)
-        {
-            var logEntries = Get<EventLogItem[]>("/api/eventlogitems/");
-            if (logEntries == null || logEntries.Length == 0)
-            {
-                System.Threading.Thread.Sleep(5000);
-                return false;
-            }
-            c.LogEntries = logEntries.ToList();
-            return true;
         }
     }
 }

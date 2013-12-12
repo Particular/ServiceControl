@@ -32,11 +32,12 @@
                 AddressOfFailingEndpoint = message.FailureDetails.AddressOfFailingEndpoint
             });
 
-            if (Data.ProcessingAttempts.Count > 0)
+            if (Data.ProcessingAttempts.Count > 1)
             {
                 Bus.Publish<MessageFailedRepetedly>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
+                    m.EndpointId = message.ReceivingEndpoint.Name;
                     m.FailedMessageId = Data.FailedMessageId;
                 });
             }
@@ -45,6 +46,7 @@
                 Bus.Publish<MessageFailed>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
+                    m.EndpointId = message.ReceivingEndpoint.Name;
                     m.FailedMessageId = Data.FailedMessageId;
                 });
             }
