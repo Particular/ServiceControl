@@ -78,6 +78,9 @@
             var failure = response.Single(r => r.Headers.SingleOrDefault(kvp=>kvp.Key==Headers.MessageId).Value == context.MessageId);
 
             Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.SendingEndpointName);
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.ReceivingEndpointName);
+
         }
 
       

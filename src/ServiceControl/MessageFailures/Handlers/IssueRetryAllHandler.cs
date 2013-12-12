@@ -1,8 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System;
     using System.Linq;
-    using Api;
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
