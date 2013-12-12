@@ -18,6 +18,7 @@ namespace ServiceControl.CompositeViews
                     RavenQueryStatistics stats;
                     var results = session.Query<MessagesView, MessagesViewIndex>()
                         .Statistics(out stats)
+                        .IncludeSystemMessagesWhere(Request)
                         .Sort(Request)
                         .Paging(Request)
                         .ToArray();
@@ -38,7 +39,7 @@ namespace ServiceControl.CompositeViews
                     RavenQueryStatistics stats;
                     var results = session.Query<MessagesView, MessagesViewIndex>()
                         .Statistics(out stats)
-                        //.IncludeSystemMessagesWhere(Request)
+                        .IncludeSystemMessagesWhere(Request)
                         .Where(m => m.ReceivingEndpointName == endpoint)
                         .Sort(Request)
                         .Paging(Request)

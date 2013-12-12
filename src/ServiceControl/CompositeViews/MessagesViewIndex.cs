@@ -17,6 +17,7 @@ namespace ServiceControl.CompositeViews
             {
                 Id = message.Id,
                 MessageType = message.MessageMetadata["MessageType"].Value,
+                IsSystemMessage = message.MessageMetadata["IsSystemMessage"].Value,
                 Status = MessageStatus.Successful,
                 ProcessedAt = message.ProcessedAt,
                 ReceivingEndpointName = message.ReceivingEndpoint.Name,
@@ -31,6 +32,7 @@ namespace ServiceControl.CompositeViews
             {
                 Id = message.Id,
                 MessageType = message.MostRecentAttempt.MessageMetadata["MessageType"].Value,
+                IsSystemMessage = message.MostRecentAttempt.MessageMetadata["IsSystemMessage"].Value,
                 Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
                 ProcessedAt = message.MostRecentAttempt.FailureDetails.TimeOfFailure,
                 ReceivingEndpointName = message.MostRecentAttempt.FailingEndpoint.Name,
@@ -47,6 +49,7 @@ namespace ServiceControl.CompositeViews
                                     {
                                         Id = g.Key,
                                         MessageType = g.OrderByDescending(m => m.ProcessedAt).First().MessageType,
+                                        IsSystemMessage = g.OrderByDescending(m => m.ProcessedAt).First().IsSystemMessage,
                                         Status = g.OrderByDescending(m => m.ProcessedAt).First().Status,
                                         ProcessedAt = g.OrderByDescending(m => m.ProcessedAt).First().ProcessedAt,
                                         ReceivingEndpointName = g.OrderByDescending(m => m.ProcessedAt).First().ReceivingEndpointName,

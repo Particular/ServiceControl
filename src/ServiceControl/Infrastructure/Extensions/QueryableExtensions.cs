@@ -9,6 +9,23 @@ namespace ServiceControl.Infrastructure.Extensions
 
     public static class QueryableExtensions
     {
+        public static IQueryable<MessagesView> IncludeSystemMessagesWhere(
+            this IQueryable<MessagesView> source, Request request)
+        {
+            var includeSystemMessages = false;
+
+            if ((bool)request.Query.include_system_messages.HasValue)
+            {
+                includeSystemMessages = (bool)request.Query.include_system_messages;
+            }
+
+            if (!includeSystemMessages)
+            {
+                return source.Where(m => !m.IsSystemMessage);
+            }
+
+            return source;
+        }
      
         public static IQueryable<TSource> Paging<TSource>(this IQueryable<TSource> source, Request request)
         {

@@ -11,5 +11,6 @@ namespace ServiceControl.Infrastructure.RavenDB.Indexes
         public DateTime TimeOfFailure { get; set; }
         public TimeSpan CriticalTime { get; set; }
         public TimeSpan ProcessingTime { get; set; }
+        public bool IsSystemMessage { get; set; }
     }
 }
