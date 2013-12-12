@@ -21,7 +21,10 @@
             {
                 var messageType = GetMessageType(enclosedMessageTypes);
                 message.Add(new MessageMetadata("IsSystemMessage", DetectSystemMessage(messageType).ToString()));
-                message.Add(new MessageMetadata("MessageType", messageType));
+                message.Add(new MessageMetadata("MessageType", messageType,new []
+                {
+                    messageType.Replace("."," ").Replace("+"," ")
+                }));
             }
         }
 

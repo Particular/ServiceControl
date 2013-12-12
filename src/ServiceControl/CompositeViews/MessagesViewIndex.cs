@@ -7,8 +7,10 @@ namespace ServiceControl.CompositeViews
     using Lucene.Net.Analysis.Standard;
     using MessageAuditing;
     using MessageFailures;
+    using Mono.CSharp;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
+    using Raven.Database.Linq.PrivateExtensions;
 
     public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesView>
     {
@@ -25,7 +27,7 @@ namespace ServiceControl.CompositeViews
                 ConversationId = message.MessageMetadata["ConversationId"].Value,
                 TimeSent = message.MessageMetadata["TimeSent"].Value,
                 Headers = message.Headers,
-                Query = message.MessageMetadata.Values.SelectMany(m => m.SearchTokens).ToArray()
+                Query = message.MessageMetadata.SelectMany(kvp => kvp.Value.SearchTokens).ToArray()
             }));
 
 
@@ -33,14 +35,14 @@ namespace ServiceControl.CompositeViews
             {
                 Id = message.Id,
                 MessageId = message.MostRecentAttempt.MessageMetadata["MessageId"].Value,
-                MessageType = message.ProcessingAttempts.Last().MessageMetadata["MessageType"].Value,
+                MessageType = message.MostRecentAttempt.MessageMetadata["MessageType"].Value,
                 Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
-                ProcessedAt = message.ProcessingAttempts.Last().FailureDetails.TimeOfFailure,
-                ReceivingEndpointName = message.ProcessingAttempts.Last().FailingEndpoint.Name,
-                ConversationId = message.ProcessingAttempts.Last().MessageMetadata["ConversationId"].Value,
-                TimeSent = message.ProcessingAttempts.Last().MessageMetadata["TimeSent"].Value,
-                Headers = message.ProcessingAttempts.Last().Headers,
-                Query = message.MostRecentAttempt.MessageMetadata.Values.SelectMany(m=>m.SearchTokens).ToArray()
+                ProcessedAt = message.MostRecentAttempt.FailureDetails.TimeOfFailure,
+                ReceivingEndpointName = message.MostRecentAttempt.FailingEndpoint.Name,
+                ConversationId = message.MostRecentAttempt.MessageMetadata["ConversationId"].Value,
+                TimeSent = message.MostRecentAttempt.MessageMetadata["TimeSent"].Value,
+                Headers = message.MostRecentAttempt.Headers,
+                Query = message.MostRecentAttempt.MessageMetadata.SelectMany(kvp => kvp.Value.SearchTokens).ToArray()
             }));
 
             Reduce = results => from message in results

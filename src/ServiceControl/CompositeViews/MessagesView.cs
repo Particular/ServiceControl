@@ -14,7 +14,7 @@ namespace ServiceControl.CompositeViews
 
         public IEnumerable<KeyValuePair<string, string>> Headers { get; set; }
 
-        public object Query { get; set; }
+        public string[] Query { get; set; }
 
         public MessageStatus Status { get; set; }
     }

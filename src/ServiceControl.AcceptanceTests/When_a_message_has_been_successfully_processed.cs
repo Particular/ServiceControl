@@ -10,7 +10,6 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews;
     using ServiceControl.Contracts.Operations;
-    using ServiceControl.MessageAuditing;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {
@@ -43,6 +42,29 @@
                 "AuditMessage type should be set to the fullname of the message type");
             //Assert.False(((bool)context.ReturnedMessage.MessageMetadata["IsSystemMessage"].Value), "AuditMessage should not be marked as a system message");
         }
+
+
+        [Test]
+        public void Should_be_found_in_search()
+        {
+            var context = new MyContext();
+            var response = new List<MessagesView>();
+
+            //search for the message type
+            var searchString = typeof(MyMessage).Name;
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
+                    bus.Send(new MyMessage());
+                }))
+                .WithEndpoint<Receiver>()
+                .Done(c => TryGetMany("/api/messages/search/" + searchString, out response))
+                .Run(TimeSpan.FromSeconds(40));
+        }
+
 
 
         [Test]
