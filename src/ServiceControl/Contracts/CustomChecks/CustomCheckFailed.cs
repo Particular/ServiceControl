@@ -1,8 +1,9 @@
 ﻿namespace ServiceControl.Contracts.CustomChecks
 {
     using System;
+    using MessageAuditing;
     using NServiceBus;
-    using ServiceBus.Management.MessageAuditing;
+    using Operations;
 
     public class CustomCheckFailed : IEvent
     {

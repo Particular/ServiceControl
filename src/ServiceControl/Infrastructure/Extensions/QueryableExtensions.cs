@@ -1,21 +1,22 @@
-namespace ServiceBus.Management.Infrastructure.Extensions
+namespace ServiceControl.Infrastructure.Extensions
 {
     using System;
     using System.Linq;
     using System.Linq.Expressions;
-    using RavenDB.Indexes;
+    using CompositeViews;
     using global::Nancy;
+    using RavenDB.Indexes;
 
     public static class QueryableExtensions
     {
-        public static IQueryable<Messages_Sort.Result> IncludeSystemMessagesWhere(
-            this IQueryable<Messages_Sort.Result> source, Request request)
+        public static IQueryable<MessagesView> IncludeSystemMessagesWhere(
+            this IQueryable<MessagesView> source, Request request)
         {
             var includeSystemMessages = false;
 
-            if ((bool) request.Query.include_system_messages.HasValue)
+            if ((bool)request.Query.include_system_messages.HasValue)
             {
-                includeSystemMessages = (bool) request.Query.include_system_messages;
+                includeSystemMessages = (bool)request.Query.include_system_messages;
             }
 
             if (!includeSystemMessages)
@@ -25,7 +26,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
             return source;
         }
-
+     
         public static IQueryable<TSource> Paging<TSource>(this IQueryable<TSource> source, Request request)
         {
             var maxResultsPerPage = 50;
@@ -60,7 +61,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
         public static IOrderedQueryable<TSource> Sort<TSource>(this IQueryable<TSource> source, Request request,
             Expression<Func<TSource, object>> defaultKeySelector = null, string defaultSortDirection = "desc")
-            where TSource : CommonResult
+            where TSource : MessagesView
         {
             var direction = defaultSortDirection;
 

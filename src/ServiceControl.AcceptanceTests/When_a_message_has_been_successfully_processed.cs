@@ -1,95 +1,24 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading;
     using Contexts;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceControl.CompositeViews;
+    using ServiceControl.Contracts.Operations;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {
-        public class Sender : EndpointConfigurationBuilder
-        {
-            public Sender()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>()
-                    .AddMapping<MyMessage>(typeof(Receiver));
-            }
-        }
-
-        public class Receiver : EndpointConfigurationBuilder
-        {
-            public Receiver()
-            {
-                EndpointSetup<DefaultServer>()
-                    .AuditTo(Address.Parse("audit"));
-            }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                public MyContext Context { get; set; }
-
-                public IBus Bus { get; set; }
-
-                public void Handle(MyMessage message)
-                {
-                    Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
-                }
-            }
-        }
-
-        [Serializable]
-        public class MyMessage : ICommand
-        {
-        }
-
-        public class MyContext : ScenarioContext
-        {
-            public string MessageId { get; set; }
-
-            public Message ReturnedMessage { get; set; }
-
-            public string EndpointNameOfReceivingEndpoint { get; set; }
-
-            public string EndpointNameOfSendingEndpoint { get; set; }
-        }
-
-
-        bool AuditDataAvailable(MyContext context, MyContext c)
-        {
-            lock (context)
-            {
-                if (c.ReturnedMessage != null)
-                {
-                    return true;
-                }
-
-                if (c.MessageId == null)
-                {
-                    return false;
-                }
-
-                c.ReturnedMessage = Get<Message>("/api/messages/" + context.MessageId + "-" +
-                                 context.EndpointNameOfReceivingEndpoint);
-
-                if (c.ReturnedMessage == null)
-                {
-                    return false;
-                }
-
-                return true;
-            }
-        }
 
         [Test]
         public void Should_be_imported_and_accessible_via_the_rest_api()
         {
             var context = new MyContext();
+            var response = new List<MessagesView>();
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -99,28 +28,70 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => AuditDataAvailable(context, c))
+                .Done(c => TryGetMany("/api/messages", out response))
                 .Run(TimeSpan.FromSeconds(40));
 
-            Assert.NotNull(context.ReturnedMessage, "No message was returned by the management api");
-            Assert.AreEqual(context.MessageId, context.ReturnedMessage.MessageId,
-                "The returned message should match the processed one");
-            Assert.AreEqual(MessageStatus.Successful, context.ReturnedMessage.Status, "Status should be set to success");
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, context.ReturnedMessage.ReceivingEndpoint.Name,
+            var auditedMessage = response.SingleOrDefault();
+
+            Assert.NotNull(auditedMessage, "No message was returned by the management api");
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpointName,
                 "Receiving endpoint name should be parsed correctly");
-            Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.ReceivingEndpoint.Machine,
-                "Receiving machine should be parsed correctly");
-            Assert.AreEqual(context.EndpointNameOfSendingEndpoint, context.ReturnedMessage.OriginatingEndpoint.Name,
-                "Sending endpoint name should be parsed correctly");
-            Assert.AreEqual(Environment.MachineName, context.ReturnedMessage.OriginatingEndpoint.Machine,
-                "Sending machine should be parsed correctly");
-            Assert.True(context.ReturnedMessage.Body.StartsWith("{\"Messages\":{"),
-                "The body should be converted to json");
-            Assert.True(Encoding.UTF8.GetString(context.ReturnedMessage.BodyRaw).Contains("<MyMessage"),
-                "The raw body should be stored");
-            Assert.AreEqual(typeof(MyMessage).FullName, context.ReturnedMessage.MessageType,
-                "Message type should be set to the fullname of the message type");
-            Assert.False(context.ReturnedMessage.IsSystemMessage, "Message should not be marked as a system message");
+            Assert.AreEqual(typeof(MyMessage).FullName, auditedMessage.MessageType,
+                "AuditMessage type should be set to the fullname of the message type");
+            Assert.False(auditedMessage.IsSystemMessage, "AuditMessage should not be marked as a system message");
+
+            Assert.Greater(DateTime.UtcNow,auditedMessage.TimeSent, "Time sent should be correctly set");
+
+            Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
+            Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
+            Assert.AreEqual(MessageIntentEnum.Send, auditedMessage.MessageIntent, "Message intent should be set");
+        }
+
+
+        [Test]
+        public void Should_be_found_in_search_by_messagetype()
+        {
+            var context = new MyContext();
+            var response = new List<MessagesView>();
+
+            //search for the message type
+            var searchString = typeof(MyMessage).Name;
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
+                    bus.Send(new MyMessage());
+                }))
+                .WithEndpoint<Receiver>()
+                .Done(c => TryGetMany("/api/messages/search/" + searchString, out response))
+                .Run(TimeSpan.FromSeconds(40));
+        }
+
+        [Test]
+        public void Should_be_found_in_search_by_messagebody()
+        {
+            var context = new MyContext
+            {
+                PropertyToSearchFor = Guid.NewGuid().ToString()
+            };
+
+            var response = new List<MessagesView>();
+
+             Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
+                    bus.Send(new MyMessage
+                    {
+                        PropertyToSearchFor = c.PropertyToSearchFor
+                    });
+                }))
+                .WithEndpoint<Receiver>()
+                .Done(c => TryGetMany("/api/messages/search/" + c.PropertyToSearchFor, out response))
+                .Run(TimeSpan.FromSeconds(40));
         }
 
 
@@ -157,6 +128,54 @@
                 .Run(TimeSpan.FromSeconds(40));
 
             Assert.IsTrue(knownEndpoints.Any(e => e.Name == context.EndpointNameOfSendingEndpoint));
+        }
+
+        public class Sender : EndpointConfigurationBuilder
+        {
+            public Sender()
+            {
+                EndpointSetup<DefaultServerWithoutAudit>()
+                    .AddMapping<MyMessage>(typeof(Receiver));
+            }
+        }
+
+        public class Receiver : EndpointConfigurationBuilder
+        {
+            public Receiver()
+            {
+                EndpointSetup<DefaultServer>()
+                    .AuditTo(Address.Parse("audit"));
+            }
+
+            public class MyMessageHandler : IHandleMessages<MyMessage>
+            {
+                public MyContext Context { get; set; }
+
+                public IBus Bus { get; set; }
+
+                public void Handle(MyMessage message)
+                {
+                    Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
+                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                }
+            }
+        }
+
+        [Serializable]
+        public class MyMessage : ICommand
+        {
+            public string PropertyToSearchFor { get; set; }
+        }
+
+        public class MyContext : ScenarioContext
+        {
+            public string MessageId { get; set; }
+
+            public string EndpointNameOfReceivingEndpoint { get; set; }
+
+            public string EndpointNameOfSendingEndpoint { get; set; }
+
+            public string PropertyToSearchFor { get; set; }
         }
     }
 }
