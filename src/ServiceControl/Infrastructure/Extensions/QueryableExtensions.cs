@@ -5,7 +5,6 @@ namespace ServiceControl.Infrastructure.Extensions
     using System.Linq.Expressions;
     using CompositeViews;
     using global::Nancy;
-    using RavenDB.Indexes;
 
     public static class QueryableExtensions
     {

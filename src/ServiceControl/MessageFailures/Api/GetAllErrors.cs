@@ -56,18 +56,17 @@
                 }
             };
 
-            //Get["/errors/facets"] = _ =>
-            //{
-            //    using (var session = Store.OpenSession())
-            //    {
-            //        var facetResults = session.Query<FailedMessageView>()
-            //         //.TransformWith<FaileMessageViewTransformer, FailedMessageView>()
-            //            .ToFacets("facets/messageFailureFacets")
-            //            .Results;
+            Get["/errors/summary"] = _ =>
+            {
+                using (var session = Store.OpenSession())
+                {
+                    var facetResults = session.Query<FailedMessage, FaileMessageFacetsIndex>()
+                        .ToFacets("facets/failedMessagesFacets")
+                        .Results;
 
-            //        return Negotiate.WithModel(facetResults);
-            //    }
-            //};
+                    return Negotiate.WithModel(facetResults);
+                }
+            };
         }
     }
 }

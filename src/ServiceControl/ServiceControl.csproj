@@ -216,7 +216,8 @@
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Facets.cs" />
+    <Compile Include="MessageFailures\Api\FaileMessageFacetsIndex.cs" />
+    <Compile Include="MessageFailures\Api\SetupFailedMessagesFacets.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
     <Compile Include="Infrastructure\SignalR\GlobalEventHandler.cs" />
@@ -274,7 +275,6 @@
     <Compile Include="Infrastructure\Nancy\Modules\RootModule.cs" />
     <Compile Include="Infrastructure\OWIN\OwinRunner.cs" />
     <Compile Include="Infrastructure\OWIN\Startup.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\CommonResult.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\Endpoints_Distinct.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWork.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
