@@ -32,6 +32,17 @@
                 AddressOfFailingEndpoint = message.FailureDetails.AddressOfFailingEndpoint
             });
 
+            string retryId;
+
+            if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.RetryId", out retryId))
+            {
+                var retryAttempt = Data.RetryAttempts.SingleOrDefault(r => r.Id == Guid.Parse(retryId));
+
+                retryAttempt.Completed = true;
+                retryAttempt.Failed = true;
+            }
+
+
             if (Data.ProcessingAttempts.Count > 1)
             {
                 Bus.Publish<MessageFailedRepetedly>(m =>
@@ -125,6 +136,7 @@
                 public Guid Id { get; set; }
                 public Guid FailedProcessingAttemptId { get; set; }
                 public bool Completed { get; set; }
+                public bool Failed { get; set; }
             }
 
         }

@@ -47,7 +47,7 @@
 
             try
             {
-                timer.Change((int)TimeSpan.FromSeconds(5).TotalMilliseconds, -1);
+                //timer.Change((int)TimeSpan.FromSeconds(5).TotalMilliseconds, -1);
             }
             catch (ObjectDisposedException)
             { }

@@ -220,7 +220,6 @@
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
     <Compile Include="Infrastructure\SignalR\GlobalEventHandler.cs" />
-    <Compile Include="Infrastructure\SignalR\BusExtensions.cs" />
     <Compile Include="Infrastructure\SignalR\MessageStreamerConnection.cs" />
     <Compile Include="Infrastructure\SignalR\Envelope.cs" />
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
