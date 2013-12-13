@@ -9,6 +9,7 @@
     using NServiceBus.Config;
     using NServiceBus.Features;
     using NUnit.Framework;
+    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
     public class When_a_retry_for_a_failed_message_is_successful : AcceptanceTest
@@ -41,12 +42,6 @@
                 .Run(TimeSpan.FromMinutes(2));
 
             Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
-            //todo check the audit component instead
-            //var historyItems = context.Message.History.ToList();
-            //Assert.AreEqual(historyItems.OrderBy(h => h.Time).First().Action, "RetryIssued",
-            //    "There should be an audit trail for retry attempts");
-            //Assert.AreEqual(historyItems.OrderBy(h => h.Time).Skip(1).First().Action, "ErrorResolved",
-            //    "There should be an audit trail for successful retries");
         }
 
      
@@ -220,7 +215,7 @@
             {
                 get
                 {
-                    return string.Format("{0}-{1}", MessageId.Replace(@"\", "-"), EndpointNameOfReceivingEndpoint);
+                    return DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
                 }
             }
         }

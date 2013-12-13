@@ -11,6 +11,7 @@
     using ServiceControl.CompositeViews;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
+    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
 
@@ -142,7 +143,7 @@
             {
                 get
                 {
-                    return string.Format("{0}-{1}", MessageId.Replace(@"\", "-"), EndpointNameOfReceivingEndpoint);
+                    return DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
                 }
             }
         }
