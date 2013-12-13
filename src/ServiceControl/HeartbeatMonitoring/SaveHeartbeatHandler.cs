@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using Contracts.Operations;
+    using EndpointPlugin.Messages.Heartbeats;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Plugin.Heartbeats.Messages;
     using Raven.Client;
 
     public class SaveHeartbeatHandler : IHandleMessages<EndpointHeartbeat>

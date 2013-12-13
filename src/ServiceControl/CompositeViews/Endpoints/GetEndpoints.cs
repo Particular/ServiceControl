@@ -1,15 +1,14 @@
-namespace ServiceBus.Management.EndpointControl
+namespace ServiceControl.CompositeViews.Endpoints
 {
     using System.Linq;
-    using Infrastructure.Extensions;
-    using Infrastructure.Nancy.Modules;
-    using Infrastructure.RavenDB.Indexes;
     using Nancy;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Extensions;
+    using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class EndpointModule : BaseModule
+    public class GetEndpoints : BaseModule
     {
-        public EndpointModule()
+        public GetEndpoints()
         {
             Get["/endpoints"] = parameters =>
             {
@@ -17,9 +16,8 @@ namespace ServiceBus.Management.EndpointControl
                 {
                     RavenQueryStatistics stats;
 
-                    var endpoints = session.Query<Endpoints_Distinct.Result, Endpoints_Distinct>()
+                    var endpoints = session.Query<EndpointsView, EndpointsViewIndex>()
                         .Statistics(out stats)
-                        .Select(r => r.Endpoint)
                         .ToArray();
 
                     return Negotiate.WithModel(endpoints)
@@ -27,5 +25,7 @@ namespace ServiceBus.Management.EndpointControl
                 }
             };
         }
+
+
     }
 }

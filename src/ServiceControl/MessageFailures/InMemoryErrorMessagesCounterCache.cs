@@ -2,8 +2,6 @@
 {
     using System.Threading;
     using Raven.Client;
-    using Raven.Client.Linq;
-    using ServiceBus.Management.Infrastructure.RavenDB.Indexes;
 
     class InMemoryErrorMessagesCounterCache
     {

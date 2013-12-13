@@ -4,6 +4,7 @@ namespace ServiceControl.Infrastructure.Extensions
     using System.Linq;
     using System.Linq.Expressions;
     using CompositeViews;
+    using CompositeViews.Messages;
     using global::Nancy;
 
     public static class QueryableExtensions

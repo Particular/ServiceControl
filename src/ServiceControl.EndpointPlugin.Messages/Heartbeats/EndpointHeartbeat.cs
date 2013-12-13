@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Plugin.Heartbeats.Messages
+﻿namespace ServiceControl.EndpointPlugin.Messages.Heartbeats
 {
     using System;
 

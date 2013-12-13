@@ -9,6 +9,8 @@
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.CompositeViews;
+    using ServiceControl.CompositeViews.Endpoints;
+    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
@@ -100,7 +102,7 @@
         {
             var context = new MyContext();
 
-            var knownEndpoints = new EndpointDetails[0];
+            List<EndpointsView> knownEndpoints = null;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -110,24 +112,13 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c =>
-                {
-
-                    knownEndpoints = Get<EndpointDetails[]>("/api/endpoints/");
-
-                    var done = knownEndpoints != null &&
-                               knownEndpoints.Any(e => e.Name == c.EndpointNameOfSendingEndpoint);
-
-                    if (!done)
-                    {
-                        Thread.Sleep(5000);
-                    }
-
-                    return done;
-                })
+                .Done(c => TryGetMany("/api/endpoints",out knownEndpoints))
                 .Run(TimeSpan.FromSeconds(40));
 
-            Assert.IsTrue(knownEndpoints.Any(e => e.Name == context.EndpointNameOfSendingEndpoint));
+            Assert.AreEqual(context.EndpointNameOfSendingEndpoint, knownEndpoints.Single(e=>e.Name == context.EndpointNameOfSendingEndpoint).Name);
+            Assert.AreEqual(Environment.MachineName, knownEndpoints.Single(e => e.Name == context.EndpointNameOfSendingEndpoint).Machines.Single());
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).Name);
+            Assert.AreEqual(Environment.MachineName, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).Machines.Single());
         }
 
         public class Sender : EndpointConfigurationBuilder

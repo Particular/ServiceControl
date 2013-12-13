@@ -1,8 +1,7 @@
 ﻿namespace ServiceControl.EndpointPlugin.Heartbeats
 {
-  
+    using Messages.Heartbeats;
     using Plugin.Heartbeats;
-    using Plugin.Heartbeats.Messages;
 
     abstract class HeartbeatInfoProvider : IHeartbeatInfoProvider
     {

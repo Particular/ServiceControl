@@ -168,13 +168,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
-    <Compile Include="CompositeViews\GetMessagesByQuery.cs" />
-    <Compile Include="CompositeViews\MessagesView.cs" />
-    <Compile Include="CompositeViews\MessagesViewIndex.cs" />
+    <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
+    <Compile Include="CompositeViews\Endpoints\EndpointsViewIndex.cs" />
+    <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
+    <Compile Include="CompositeViews\Messages\MessagesView.cs" />
+    <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
     <Compile Include="Contracts\Operations\MessageMetadata.cs" />
     <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
+    <Compile Include="EndpointControl\DetectNewEndpointsFromImportedMessages.cs" />
     <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
+    <Compile Include="Contracts\EndpointControl\NewEndpointDetected.cs" />
+    <Compile Include="Contracts\EndpointControl\NewMachineDetectedForEndpoint.cs" />
+    <Compile Include="EndpointControl\Handlers\RegisterEndpointHandler.cs" />
+    <Compile Include="EndpointControl\KnownEndpoint.cs" />
+    <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointFailedToHeartbeatDefinition.cs" />
@@ -269,19 +277,17 @@
     <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
     <Compile Include="Infrastructure\Installers\LogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
-    <Compile Include="EndpointControl\EndpointModule.cs" />
     <Compile Include="MessageFailures\InternalMessages\RequestRetry.cs" />
-    <Compile Include="CompositeViews\GetMessages.cs" />
+    <Compile Include="CompositeViews\Messages\GetMessages.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\RootModule.cs" />
     <Compile Include="Infrastructure\OWIN\OwinRunner.cs" />
     <Compile Include="Infrastructure\OWIN\Startup.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Endpoints_Distinct.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWork.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
     <Compile Include="MessageTypes\MessageTypeEnricher.cs" />
     <Compile Include="Operations\AuditQueueImport.cs" />
-    <Compile Include="CompositeViews\GetMessagesByConversation.cs" />
+    <Compile Include="CompositeViews\Messages\GetMessagesByConversation.cs" />
     <Compile Include="EndpointConfig.cs" />
     <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />

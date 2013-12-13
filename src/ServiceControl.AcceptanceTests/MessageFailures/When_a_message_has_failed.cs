@@ -9,6 +9,7 @@
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceControl.CompositeViews;
+    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
     using ServiceControl.Infrastructure;

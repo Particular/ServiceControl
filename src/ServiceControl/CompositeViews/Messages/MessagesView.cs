@@ -1,4 +1,4 @@
-namespace ServiceControl.CompositeViews
+namespace ServiceControl.CompositeViews.Messages
 {
     using System;
     using System.Collections.Generic;
