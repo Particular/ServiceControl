@@ -172,6 +172,7 @@
     <Compile Include="CompositeViews\MessagesView.cs" />
     <Compile Include="CompositeViews\MessagesViewIndex.cs" />
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
+    <Compile Include="Contracts\Operations\MessageMetadata.cs" />
     <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
     <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
