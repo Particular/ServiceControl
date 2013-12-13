@@ -57,8 +57,8 @@
                                 {
                                     continue;
                                 }
-
-                                if (((HttpWebResponse)webException.Response).StatusCode != HttpStatusCode.NotFound)
+                                var statusCode = ((HttpWebResponse) webException.Response).StatusCode;
+                                if (statusCode != HttpStatusCode.NotFound && statusCode != HttpStatusCode.ServiceUnavailable)
                                 {
                                     break;
                                 }
