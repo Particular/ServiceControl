@@ -2,8 +2,8 @@
 {
     using Contracts.Operations;
     using Infrastructure;
-    using MessageAuditing;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Plugin.Heartbeats.Messages;
     using Raven.Client;
 
@@ -26,8 +26,9 @@
                     ReportedStatus = Status.New,
                 };
 
-                if (message.ExecutedAt > heartbeat.LastReportAt)
+                if (message.ExecutedAt <= heartbeat.LastReportAt)
                 {
+                    Logger.InfoFormat("Out of sync heartbeat received for endpoint {0}",originatingEndpoint.Name);
                     return;
                 }
 
@@ -38,5 +39,7 @@
                 session.SaveChanges();
             }
         }
+
+        static ILog Logger = LogManager.GetLogger(typeof(SaveHeartbeatHandler));
     }
 }
