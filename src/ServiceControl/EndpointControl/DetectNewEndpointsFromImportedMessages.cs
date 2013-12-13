@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.EndpointControl
 {
+    using System;
     using System.Collections.Concurrent;
     using Contracts.Operations;
     using InternalMessages;
@@ -23,8 +24,8 @@
             {
                 Bus.SendLocal(new RegisterEndpoint
                 {
-                    Endpoint = endpointDetails
-
+                    Endpoint = endpointDetails,
+                    DetectedAt = DateTime.UtcNow
                 });
             }
 

@@ -13,7 +13,7 @@ namespace ServiceControl.EventLog.Definitions
             {
                 Description = m.FailureDetails.Exception.Message,
                 RelatedTo = new List<string>() { string.Format("/message/{0}", m.FailedMessageId), string.Format("/endpoint/{0}", m.EndpointId) },
-                Severity = Severity.Error,
+                Severity = m is MessageFailedRepetedly ? Severity.Error : Severity.Warning,
                 RaisedAt = m.FailureDetails.TimeOfFailure,
                 Category = "MessageFailures"
             };

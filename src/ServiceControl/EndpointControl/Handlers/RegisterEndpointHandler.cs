@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.EndpointControl.Handlers
 {
+    using System;
     using Contracts.EndpointControl;
     using InternalMessages;
     using NServiceBus;
@@ -19,31 +20,37 @@
 
                 var name = message.Endpoint.Name;
 
-                var knownEndpoint = session.Load<KnownEndpoint>(name) ??new KnownEndpoint{Id =name};
+                var knownEndpoint = session.Load<KnownEndpoint>(name) ?? new KnownEndpoint { Id = name };
+
+                var machine = message.Endpoint.Machine;
 
                 if (knownEndpoint.Name == null)
                 {
                     //new endpoint
                     Bus.Publish(new NewEndpointDetected
                     {
-                        Endpoint = name
+                        Endpoint = name,
+                        Machine = machine,
+                        DetectedAt = message.DetectedAt
                     });
                 }
                 knownEndpoint.Name = name;
 
-
-                var machine = message.Endpoint.Machine;
 
                 if (!knownEndpoint.Machines.Contains(machine))
                 {
                     //new machine found
                     knownEndpoint.Machines.Add(machine);
 
-                    Bus.Publish(new NewMachineDetectedForEndpoint
+                    if (knownEndpoint.Machines.Count > 1)
                     {
-                        Endpoint = name,
-                        Machine = machine
-                    });
+                        Bus.Publish(new NewMachineDetectedForEndpoint
+                        {
+                            Endpoint = name,
+                            Machine = machine,
+                            DetectedAt = message.DetectedAt
+                        });
+                    }
                 }
 
                 session.Store(knownEndpoint);

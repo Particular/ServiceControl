@@ -188,6 +188,8 @@
     <Compile Include="EventLog\Definitions\EndpointFailedToHeartbeatDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointHeartbeatRestoredDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\NewEndpointDetectedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\NewMachineDetectedForEndpointDefinition.cs" />
     <Compile Include="EventLog\EventLogApiModule.cs" />
     <Compile Include="EventLog\EventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogMappings.cs" />
