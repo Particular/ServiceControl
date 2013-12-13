@@ -19,9 +19,10 @@
 
                 var failure = session.Load<FailedMessage>(messageId) ?? new FailedMessage
                 {
-                    Id = messageId,
-                    Status = FailedMessageStatus.Unresolved
+                    Id = messageId
                 };
+
+                failure.Status = FailedMessageStatus.Unresolved;
 
                 var timeOfFailure = message.FailureDetails.TimeOfFailure;
 

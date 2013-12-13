@@ -8,14 +8,18 @@
         public FaileMessageViewTransformer()
         {
             TransformResults = failures => from failure in failures
-                select new FailedMessageView
+                select new
                 {
-                    ErrorMessageId = failure.Id,
+                    Id = failure.Id,
+                    MessageType = failure.MostRecentAttempt.MessageMetadata["MessageType"].Value,
+                    IsSystemMessage = failure.MostRecentAttempt.MessageMetadata["IsSystemMessage"].Value,
+                    SendingEndpoint = failure.MostRecentAttempt.MessageMetadata["SendingEndpoint"].Value,
+                    ReceivingEndpoint = failure.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"].Value,
+                    TimeSent = failure.MostRecentAttempt.MessageMetadata["TimeSent"].Value,
                     MessageId = failure.MostRecentAttempt.MessageMetadata["MessageId"].Value.ToString(),
-                    ExceptionMessage = failure.ProcessingAttempts.Last().FailureDetails.Exception.Message,
+                    Exception = failure.MostRecentAttempt.FailureDetails.Exception,
                     NumberOfProcessingAttempts = failure.ProcessingAttempts.Count(),
                     Status = failure.Status,
-                    ReceivingEndpointName = failure.MostRecentAttempt.FailingEndpoint.Name
                 };
         }
 

@@ -10,11 +10,11 @@
         {
             var sendingEndpoint = EndpointDetails.SendingEndpoint(message.PhysicalMessage.Headers);
 
-            message.Add(new MessageMetadata("SendingEndpoint", sendingEndpoint.Name));
+            message.Add(new MessageMetadata("SendingEndpoint", sendingEndpoint));
 
             var receivingEndpoint = EndpointDetails.ReceivingEndpoint(message.PhysicalMessage.Headers);
 
-            message.Add(new MessageMetadata("ReceivingEndpoint", receivingEndpoint.Name));
+            message.Add(new MessageMetadata("ReceivingEndpoint", receivingEndpoint));
         }
     }
 

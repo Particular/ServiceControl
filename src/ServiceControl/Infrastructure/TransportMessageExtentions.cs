@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl
 {
     using System;
+    using Infrastructure;
     using NServiceBus;
 
     public static class TransportMessageExtentions
@@ -24,7 +25,7 @@
 
         public static string UniqueId(this TransportMessage message)
         {
-            return string.Format("{0}-{1}", message.Id.Replace(@"\", "-"), message.ProcessingEndpointName());
+            return DeterministicGuid.MakeId(message.Id, message.ProcessingEndpointName()).ToString();
         }
 
     }
