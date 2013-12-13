@@ -1,11 +1,11 @@
-﻿namespace ServiceControl.Statistics
+﻿namespace ServiceControl.MessageAuditing
 {
     using System;
     using Contracts.Operations;
     using NServiceBus;
     using Operations;
 
-    public class MessageStatisticsEnricher : ImportEnricher
+    public class ProcessingStatisticsEnricher : ImportEnricher
     {
         public override void Enrich(ImportMessage message)
         {
