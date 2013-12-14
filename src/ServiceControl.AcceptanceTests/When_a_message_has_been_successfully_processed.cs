@@ -3,15 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Contracts.Operations;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {
@@ -86,6 +83,24 @@
                 }))
                 .WithEndpoint<Receiver>()
                 .Done(c => TryGetMany("/api/messages/search/" + c.MessageId, out response))
+                .Run(TimeSpan.FromSeconds(40));
+        }
+
+        [Test]
+        public void Should_be_found_in_search_by_messageid_for_the_specific_endpoint()
+        {
+            var context = new MyContext();
+            var response = new List<MessagesView>();
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
+                    bus.Send(new MyMessage());
+                }))
+                .WithEndpoint<Receiver>()
+                .Done(c => TryGetMany(string.Format("/api/endpoints/{0}/messages/search/{1}",c.EndpointNameOfReceivingEndpoint, c.MessageId), out response))
                 .Run(TimeSpan.FromSeconds(40));
         }
 
