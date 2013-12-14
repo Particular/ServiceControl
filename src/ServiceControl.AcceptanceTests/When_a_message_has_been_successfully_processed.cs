@@ -72,6 +72,24 @@
         }
 
         [Test]
+        public void Should_be_found_in_search_by_messageid()
+        {
+            var context = new MyContext();
+            var response = new List<MessagesView>();
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
+                    bus.Send(new MyMessage());
+                }))
+                .WithEndpoint<Receiver>()
+                .Done(c => TryGetMany("/api/messages/search/" + c.MessageId, out response))
+                .Run(TimeSpan.FromSeconds(40));
+        }
+
+        [Test]
         public void Should_be_found_in_search_by_messagebody()
         {
             var context = new MyContext
