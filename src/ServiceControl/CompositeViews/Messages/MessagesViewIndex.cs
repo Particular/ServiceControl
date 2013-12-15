@@ -16,7 +16,7 @@ namespace ServiceControl.CompositeViews.Messages
         {
             AddMap<ProcessedMessage>(messages => messages.Select(message => new
             {
-                Id = message.Id,
+                Id = message.UniqueMessageId,
                 MessageType = message.MessageMetadata["MessageType"].Value,
                 MessageIntent = message.MessageMetadata["MessageIntent"].Value,
                 IsSystemMessage = message.MessageMetadata["IsSystemMessage"].Value,

@@ -10,7 +10,8 @@
         public ProcessedMessage(ImportSuccessfullyProcessedMessage message)
         {
 
-            Id = message.UniqueMessageId;
+            Id = "ProcessedMessages/" + message.UniqueMessageId;
+            UniqueMessageId = message.UniqueMessageId;
             
             ReceivingEndpoint = message.ReceivingEndpoint;
 
@@ -31,6 +32,8 @@
                 ProcessedAt = DateTime.UtcNow;//best guess    
             }
         }
+
+        public string UniqueMessageId { get; set; }
 
         public Dictionary<string, MessageMetadata> MessageMetadata { get; set; }
 

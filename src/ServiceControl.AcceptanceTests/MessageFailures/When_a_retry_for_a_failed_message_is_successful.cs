@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using Contexts;
     using NServiceBus;
@@ -9,6 +10,8 @@
     using NServiceBus.Config;
     using NServiceBus.Features;
     using NUnit.Framework;
+    using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -32,6 +35,15 @@
                     }
                     if (failure.Status == FailedMessageStatus.Resolved)
                     {
+                        List<MessagesView> messages;
+
+                        if (!TryGetMany("/api/messages", out messages))
+                        {
+                            return false;
+                        }
+
+                        Assert.AreEqual(MessageStatus.Successful,messages.Single().Status,"The message should be marked as successful in the messages view");
+
                         return true;
                     }
 
