@@ -99,7 +99,7 @@
                 .Done(c => TryGetMany("/api/eventlogitems/", out response))
                 .Run();
 
-            var entry = response.SingleOrDefault();
+            var entry = response.SingleOrDefault(e => e.Category == "MessageFailures");
 
             Assert.NotNull(entry);
             Assert.IsTrue(entry.Description.Contains("exception"), "For failed messages, the description should contain the exception information");
