@@ -1,7 +1,6 @@
-﻿namespace ServiceControl.EndpointPlugin.CustomChecks
+﻿namespace ServiceControl.Plugin.CustomChecks.Internal
 {
     using NServiceBus;
-    using Plugin.CustomChecks;
 
     class InitializeCustomChecks : INeedInitialization
     {

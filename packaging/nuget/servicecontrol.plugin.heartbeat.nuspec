@@ -2,7 +2,7 @@
 <package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <id>ServiceControl.Plugin.Heartbeat</id>
-    <title>ServiceControl Plugin for DebugSessions</title>
+    <title>ServiceControl Plugin for Heartbeats</title>
     <version>4.0.0-alpha0</version>
     <authors>NServiceBus Ltd</authors>
     <owners>Udi Dahan, Andreas Ohlund, John Simons</owners>

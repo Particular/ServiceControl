@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-    <id>ServiceControl.EndpointPlugin</id>
-    <title>ServiceControl EndpointPlugin</title>
+    <id>ServiceControl.Plugin.CustomChecks</id>
+    <title>ServiceControl Plugin for CustomChecks</title>
     <version>4.0.0-alpha0</version>
     <authors>NServiceBus Ltd</authors>
     <owners>Udi Dahan, Andreas Ohlund, John Simons</owners>
@@ -18,7 +18,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\src\ServiceControl.EndpointPlugin\bin\Release\ServiceControl.EndpointPlugin*.dll" target="lib\net40" />
+    <file src="..\..\src\ServiceControl.Plugin.CustomChecks\bin\Release\ServiceControl.Plugin.CustomChecks*.dll" target="lib\net40" />
     <file src="tools\install.ps1" target="tools" />
   </files>
 </package>

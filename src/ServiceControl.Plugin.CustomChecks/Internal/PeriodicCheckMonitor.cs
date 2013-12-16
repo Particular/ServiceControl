@@ -1,14 +1,13 @@
-﻿namespace ServiceControl.EndpointPlugin.CustomChecks
+﻿namespace ServiceControl.Plugin.CustomChecks.Internal
 {
     using System;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using EndpointPlugin.Operations.ServiceControlBackend;
+    using Messages;
     using NServiceBus;
     using NServiceBus.ObjectBuilder;
-    using Operations.ServiceControlBackend;
-    using Plugin.CustomChecks;
-    using Plugin.CustomChecks.Messages;
 
     /// <summary>
     ///     This class will upon startup get the registered PeriodicCheck types
