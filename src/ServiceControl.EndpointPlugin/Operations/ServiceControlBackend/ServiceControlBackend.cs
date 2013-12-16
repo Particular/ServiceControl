@@ -2,6 +2,7 @@
 {
     using System;
     using System.Configuration;
+    using System.Diagnostics;
     using System.IO;
     using Messages.Heartbeats;
     using NServiceBus;
@@ -10,13 +11,14 @@
     using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
     using Plugin.CustomChecks.Messages;
+    using INeedInitialization = NServiceBus.INeedInitialization;
 
-    public class ServiceControlBackend
+    public class ServiceControlBackend : INeedInitialization
     {
         public ServiceControlBackend()
         {
             var messageMapper = new MessageMapper();
-            messageMapper.Initialize(new[] {typeof(EndpointHeartbeat), typeof(ReportCustomCheckResult)});
+            messageMapper.Initialize(new[] { typeof(EndpointHeartbeat), typeof(ReportCustomCheckResult) });
 
             serializer = new JsonMessageSerializer(messageMapper);
 
@@ -27,11 +29,11 @@
 
         public void Send(object messageToSend, TimeSpan timeToBeReceived)
         {
-            var message = new TransportMessage {TimeToBeReceived = timeToBeReceived};
+            var message = new TransportMessage { TimeToBeReceived = timeToBeReceived };
 
             using (var stream = new MemoryStream())
             {
-                serializer.Serialize(new[] {messageToSend}, stream);
+                serializer.Serialize(new[] { messageToSend }, stream);
                 message.Body = stream.ToArray();
             }
 
@@ -91,5 +93,38 @@
 
         readonly JsonMessageSerializer serializer;
         readonly Address serviceControlBackendAddress;
+
+        public void Init()
+        {
+            Configure.Component<ServiceControlBackend>(DependencyLifecycle.SingleInstance);
+        }
+
+        public class VersionChecker
+        {
+            static VersionChecker()
+            {
+                var fileVersion = FileVersionInfo.GetVersionInfo(typeof(IMessage).Assembly.Location);
+
+                CoreFileVersion = new Version(fileVersion.FileMajorPart, fileVersion.FileMinorPart,
+                    fileVersion.FileBuildPart);
+            }
+
+            public static Version CoreFileVersion { get; set; }
+
+            public static bool CoreVersionIsAtLeast(int major, int minor)
+            {
+                if (CoreFileVersion.Major > major)
+                {
+                    return true;
+                }
+
+                if (CoreFileVersion.Major < major)
+                {
+                    return false;
+                }
+
+                return CoreFileVersion.Minor >= minor;
+            }
+        }
     }
 }

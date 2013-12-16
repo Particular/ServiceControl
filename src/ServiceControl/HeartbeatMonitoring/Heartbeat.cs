@@ -5,7 +5,7 @@
 
     class Heartbeat
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; }
         public DateTime LastReportAt { get; set; }
         public EndpointDetails OriginatingEndpoint { get; set; }
 

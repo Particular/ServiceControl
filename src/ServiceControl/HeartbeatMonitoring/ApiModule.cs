@@ -32,7 +32,7 @@ namespace ServiceControl.HeartbeatMonitoring
                 {
                     string id = parameters.id;
 
-                    var heartbeat = session.Load<Heartbeat>(string.Format("heartbeats/{0}", id));
+                    var heartbeat = session.Load<Heartbeat>(id);
 
                     if (heartbeat != null)
                     {

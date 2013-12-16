@@ -42,22 +42,15 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="CustomChecks\CustomCheck.cs" />
     <Compile Include="CustomChecks\InitializeCustomChecks.cs" />
     <Compile Include="CustomChecks\PeriodicCheck.cs" />
     <Compile Include="CustomChecks\PeriodicCheckMonitor.cs" />
     <Compile Include="ICustomCheck.cs" />
-    <Compile Include="IHeartbeatProvider.cs" />
     <Compile Include="IPeriodicCheck.cs" />
-    <Compile Include="Operations\PerformanceCounters\PerformanceCounterCapturer.cs" />
-    <Compile Include="Operations\ServiceControlBackend\InitializeBackend.cs" />
     <Compile Include="Operations\ServiceControlBackend\ServiceControlBackend.cs" />
-    <Compile Include="Heartbeats\HeartbeatInfoProvider.cs" />
     <Compile Include="Heartbeats\Heartbeats.cs" />
-    <Compile Include="Operations\ServiceControlBackend\VersionChecker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BusinessMonitoring\EndpointSLAHeartbeatProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ripple.dependencies.config" />
