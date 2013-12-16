@@ -1,12 +1,12 @@
-﻿namespace ServiceControl.EndpointPlugin.Heartbeats
+﻿namespace ServiceControl.Plugin.Heartbeat
 {
     using System;
     using System.Configuration;
     using System.Threading;
-    using Messages.Heartbeats;
+    using EndpointPlugin.Operations.ServiceControlBackend;
+    using Messages;
     using NServiceBus;
     using NServiceBus.Features;
-    using Operations.ServiceControlBackend;
 
     class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
     {

@@ -167,6 +167,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\EndpointHeartbeat.cs">
+      <Link>HeartbeatMonitoring\InternalMessages\EndpointHeartbeat.cs</Link>
+    </Compile>
     <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsViewIndex.cs" />
@@ -321,8 +324,11 @@
       <Project>{d2d40b1e-9fb5-4a3e-b4cd-b04b0882690b}</Project>
       <Name>ServiceControl.EndpointPlugin.Messages</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj">
+      <Project>{07393fa7-8577-42d7-8fe4-3c4d955a5a31}</Project>
+      <Name>ServiceControl.EndpointPlugin</Name>
+    </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -42,14 +42,15 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\ServiceControl.Plugin.Shared\ServiceControlBackend.cs">
+      <Link>ServiceControlBackend.cs</Link>
+    </Compile>
     <Compile Include="CustomChecks\CustomCheck.cs" />
     <Compile Include="CustomChecks\InitializeCustomChecks.cs" />
     <Compile Include="CustomChecks\PeriodicCheck.cs" />
     <Compile Include="CustomChecks\PeriodicCheckMonitor.cs" />
     <Compile Include="ICustomCheck.cs" />
     <Compile Include="IPeriodicCheck.cs" />
-    <Compile Include="Operations\ServiceControlBackend\ServiceControlBackend.cs" />
-    <Compile Include="Heartbeats\Heartbeats.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

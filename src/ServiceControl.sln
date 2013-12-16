@@ -17,6 +17,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{F1EC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Plugin.DebugSession", "ServiceControl.Plugin.DebugSession\ServiceControl.Plugin.DebugSession.csproj", "{1600753B-62AC-4C27-A171-EC887718D06D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Plugin.Heartbeat", "ServiceControl.Plugin.Heartbeat\ServiceControl.Plugin.Heartbeat.csproj", "{842C0A62-348B-4E78-B9F1-EC931CDDD562}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{290D5F7D-AA5D-429F-A95D-DA820B2BB1B2}"
+	ProjectSection(SolutionItems) = preProject
+		ServiceControl.Plugin.Shared\ServiceControlBackend.cs = ServiceControl.Plugin.Shared\ServiceControlBackend.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messages", "Messages", "{37877FBD-610F-4AA5-8EAA-60E69F438869}"
+	ProjectSection(SolutionItems) = preProject
+		ServiceControl.Plugin.Shared\Messages\EndpointHeartbeat.cs = ServiceControl.Plugin.Shared\Messages\EndpointHeartbeat.cs
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,13 +59,20 @@ Global
 		{1600753B-62AC-4C27-A171-EC887718D06D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1600753B-62AC-4C27-A171-EC887718D06D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1600753B-62AC-4C27-A171-EC887718D06D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{842C0A62-348B-4E78-B9F1-EC931CDDD562}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{842C0A62-348B-4E78-B9F1-EC931CDDD562}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{842C0A62-348B-4E78-B9F1-EC931CDDD562}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{842C0A62-348B-4E78-B9F1-EC931CDDD562}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{1600753B-62AC-4C27-A171-EC887718D06D} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
-		{07393FA7-8577-42D7-8FE4-3C4D955A5A31} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
 		{D2D40B1E-9FB5-4A3E-B4CD-B04B0882690B} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
+		{07393FA7-8577-42D7-8FE4-3C4D955A5A31} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
+		{1600753B-62AC-4C27-A171-EC887718D06D} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
+		{842C0A62-348B-4E78-B9F1-EC931CDDD562} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
+		{290D5F7D-AA5D-429F-A95D-DA820B2BB1B2} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
+		{37877FBD-610F-4AA5-8EAA-60E69F438869} = {290D5F7D-AA5D-429F-A95D-DA820B2BB1B2}
 	EndGlobalSection
 EndGlobal

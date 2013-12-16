@@ -112,17 +112,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.EndpointPlugin.Messages\ServiceControl.EndpointPlugin.Messages.csproj">
-      <Project>{d2d40b1e-9fb5-4a3e-b4cd-b04b0882690b}</Project>
-      <Name>ServiceControl.EndpointPlugin.Messages</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.EndpointPlugin\ServiceControl.EndpointPlugin.csproj">
-      <Project>{07393fa7-8577-42d7-8fe4-3c4d955a5a31}</Project>
-      <Name>ServiceControl.EndpointPlugin</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Plugin.DebugSession\ServiceControl.Plugin.DebugSession.csproj">
       <Project>{1600753b-62ac-4c27-a171-ec887718d06d}</Project>
       <Name>ServiceControl.Plugin.DebugSession</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Plugin.Heartbeat\ServiceControl.Plugin.Heartbeat.csproj">
+      <Project>{842c0a62-348b-4e78-b9f1-ec931cddd562}</Project>
+      <Name>ServiceControl.Plugin.Heartbeat</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>

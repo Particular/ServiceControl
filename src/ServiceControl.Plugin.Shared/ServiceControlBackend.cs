@@ -4,23 +4,19 @@
     using System.Configuration;
     using System.Diagnostics;
     using System.IO;
-    using Messages.Heartbeats;
+    using System.Text;
     using NServiceBus;
     using NServiceBus.Config;
-    using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
+    using NServiceBus.Serializers.Binary;
     using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
-    using Plugin.CustomChecks.Messages;
     using INeedInitialization = NServiceBus.INeedInitialization;
 
-    public class ServiceControlBackend : INeedInitialization
+    class ServiceControlBackend : INeedInitialization
     {
         public ServiceControlBackend()
         {
-            var messageMapper = new MessageMapper();
-            messageMapper.Initialize(new[] { typeof(EndpointHeartbeat), typeof(ReportCustomCheckResult) });
-
-            serializer = new JsonMessageSerializer(messageMapper);
+            serializer = new JsonMessageSerializer(new SimpleMessageMapper());
 
             serviceControlBackendAddress = GetServiceControlAddress();
         }
@@ -29,13 +25,29 @@
 
         public void Send(object messageToSend, TimeSpan timeToBeReceived)
         {
-            var message = new TransportMessage { TimeToBeReceived = timeToBeReceived };
+            var message = new TransportMessage
+            {
+                TimeToBeReceived = timeToBeReceived
+            };
 
+
+            
             using (var stream = new MemoryStream())
             {
                 serializer.Serialize(new[] { messageToSend }, stream);
                 message.Body = stream.ToArray();
             }
+
+            //hack to remove the type info from the json
+            var bodyString = Encoding.UTF8.GetString(message.Body);
+
+            var toReplace = ", " + messageToSend.GetType().Assembly.GetName().Name;
+
+            bodyString = bodyString.Replace(toReplace, ", ServiceControl");
+
+            message.Body = Encoding.UTF8.GetBytes(bodyString);
+            // end hack
+            message.Headers[Headers.EnclosedMessageTypes] = messageToSend.GetType().FullName;
 
             MessageSender.Send(message, serviceControlBackendAddress);
         }
@@ -52,7 +64,6 @@
             {
                 return Address.Parse(queueName);
             }
-
 
             var errorAddress = ConfigureFaultsForwarder.ErrorQueue;
             if (errorAddress != null)

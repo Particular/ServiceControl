@@ -6,7 +6,7 @@
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
 
-    public class When_endpoints_heartbeats_are_received_in_a_timely_manner: AcceptanceTest
+    public class When_endpoints_heartbeats_are_received_in_a_timely_manner : AcceptanceTest
     {
         public class Endpoint1 : EndpointConfigurationBuilder
         {
@@ -41,20 +41,19 @@
                 .WithEndpoint<Endpoint2>()
                 .Done(c =>
                     {
-                        summary = Get<HeartbeatSummary>("/api/heartbeats/stats");
-
-                        if (summary == null)
+                        if (!TryGet("/api/heartbeats/stats",out summary))
                         {
-                            Thread.Sleep(2000);
                             return false;
                         }
+                        Assert.AreEqual(0, summary.NumberOfFailingEndpoints);
 
-                        if (summary.ActiveEndpoints < 2)
+                        //3 including service control
+                        if (summary.ActiveEndpoints < 3)
                         {
                             Thread.Sleep(2000);
                         }
 
-                        return summary.ActiveEndpoints == 2;
+                        return summary.ActiveEndpoints >= 3;
                     })
                 .Run(TimeSpan.FromMinutes(2));
 
