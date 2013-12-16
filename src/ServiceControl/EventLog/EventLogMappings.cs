@@ -2,11 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using NServiceBus;
 
     public class EventLogMappings : INeedInitialization
     {
-        Dictionary<Type, Func<IEvent, EventLogItem>> mappings = new Dictionary<Type, Func<IEvent, EventLogItem>>();
+        Dictionary<Type, Type> mappings = new Dictionary<Type, Type>();
 
         public bool HasMapping(IEvent message)
         {
@@ -15,7 +16,9 @@
 
         public EventLogItem ApplyMapping(IEvent @event)
         {
-            return mappings[@event.GetType()](@event);
+            var mapping = (IEventLogMappingDefinition)Activator.CreateInstance(mappings[@event.GetType()]);
+
+            return mapping.Apply(@event);
         }
 
         public void Init()
@@ -23,10 +26,18 @@
             var temp = new EventLogMappings();
 
             Configure.Instance.ForAllTypes<IEventLogMappingDefinition>(t =>
+            {
+                if (t.BaseType == null)
                 {
-                    var definition = (IEventLogMappingDefinition)(Activator.CreateInstance(t));
-                    temp.mappings.Add(definition.GetEventType(), definition.RetrieveMapping());
-                });
+                    return;
+                }
+
+                var args = t.BaseType.GetGenericArguments();
+                if (args.Count() == 1)
+                {
+                    temp.mappings.Add(args.Single(), t);
+                }
+            });
 
             Configure.Instance.Configurer.RegisterSingleton<EventLogMappings>(temp);
         }

@@ -16,7 +16,15 @@
 
         public void Handle(IEvent message)
         {
-            if (!EventLogMappings.HasMapping(message)) return;
+            //to prevent a infinite loop
+            if (message is EventLogItemAdded)
+            {
+                return;
+            }
+            if (!EventLogMappings.HasMapping(message))
+            {
+                return;
+            }
             var logItem = EventLogMappings.ApplyMapping(message);
 
             using (var session = DocumentStore.OpenSession())

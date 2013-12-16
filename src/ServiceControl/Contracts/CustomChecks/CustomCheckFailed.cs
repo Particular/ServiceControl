@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Contracts.CustomChecks
 {
     using System;
-    using MessageAuditing;
     using NServiceBus;
     using Operations;
 

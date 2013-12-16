@@ -1,22 +1,19 @@
-﻿
-namespace ServiceControl.EventLog.Definitions
+﻿namespace ServiceControl.EventLog.Definitions
 {
-    using System;
-    using System.Collections.Generic;
     using Contracts.MessageFailures;
 
     public class MessageFailedDefinition : EventLogMappingDefinition<MessageFailed>
     {
-        public override Func<MessageFailed, EventLogItem> GetMapping()
+        public MessageFailedDefinition()
         {
-            return m => new EventLogItem()
-            {
-                Description = m.FailureDetails.Exception.Message,
-                RelatedTo = new List<string>() { string.Format("/message/{0}", m.FailedMessageId), string.Format("/endpoint/{0}", m.EndpointId) },
-                Severity = m is MessageFailedRepetedly ? Severity.Error : Severity.Warning,
-                RaisedAt = m.FailureDetails.TimeOfFailure,
-                Category = "MessageFailures"
-            };
-        }
+            TreatAsError();
+
+            Description(m=>m.FailureDetails.Exception.Message);
+
+            RelatesToMessage(m => m.FailedMessageId);
+            RelatesToEndpoint(m => m.EndpointId);
+
+            RaisedAt(m => m.FailureDetails.TimeOfFailure);
+        }       
     }
 }
