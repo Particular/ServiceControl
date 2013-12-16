@@ -32,6 +32,7 @@ namespace Particular.ServiceControl
                 //.DefiningMessagesAs(t=>)
                 .AutofacBuilder(Container)
                 .UseTransport(Type.GetType(transportType))
+                .DisableTimeoutManager()
                 .UnicastBus();
 
             ConfigureLicense();
