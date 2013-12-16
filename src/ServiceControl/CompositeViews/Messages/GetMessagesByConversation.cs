@@ -4,7 +4,6 @@
     using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
@@ -21,7 +20,7 @@
                     RavenQueryStatistics stats;
                     var results = session.Query<MessagesView, MessagesViewIndex>()
                         .Statistics(out stats)
-                        //.IncludeSystemMessagesWhere(Request)
+                        .IncludeSystemMessagesWhere(Request)
                         .Where(m => m.ConversationId == conversationId)
                         .Sort(Request)
                         .Paging(Request)
