@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text;
     using Autofac;
+    using NServiceBus.Logging;
     using Particular.ServiceControl;
     using global::Nancy;
     using global::Nancy.Bootstrapper;
@@ -35,6 +37,31 @@
                 new PipelineItem<Action<NancyContext>>("Version", VersionExtension.Add));
             pipelines.AfterRequest.AddItemToEndOfPipeline(new PipelineItem<Action<NancyContext>>("Compression",
                 NancyCompressionExtension.CheckForCompression));
+
+            pipelines.OnError.AddItemToEndOfPipeline((c, ex) =>
+            {
+                var aggregateEx = ex as AggregateException;
+
+                //this is a workaround for the nlog issue https://github.com/Particular/NServiceBus/issues/1842 
+                if (aggregateEx != null)
+                {
+                    var builder = new StringBuilder();
+
+                    foreach (var innerEx in aggregateEx.InnerExceptions)
+                    {
+                        builder.AppendLine(innerEx.ToString());
+                    }
+
+                    Logger.Error("Http call failed: " + builder.ToString());
+                }
+                else
+                {
+                    Logger.Error("Http call failed", ex);
+                }
+               
+
+                return c.Response;
+            });
         }
 
         protected override ILifetimeScope GetApplicationContainer()
@@ -64,5 +91,7 @@
 
             return container.Resolve<INancyModule>();
         }
+
+        static ILog Logger = LogManager.GetLogger(typeof(NServiceBusContainerBootstrapper));
     }
 }
