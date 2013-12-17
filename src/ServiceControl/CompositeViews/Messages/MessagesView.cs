@@ -17,7 +17,7 @@ namespace ServiceControl.CompositeViews.Messages
         public TimeSpan ProcessingTime { get; set; }
         public bool IsSystemMessage { get; set; }
         public string ConversationId { get; set; }
-        public Dictionary<string, string> Headers { get; set; }
+        public IEnumerable<KeyValuePair<string, string>> Headers { get; set; }
         public string[] Query { get; set; }
         public MessageStatus Status { get; set; }
         public string SendingEndpointName { get; set; }

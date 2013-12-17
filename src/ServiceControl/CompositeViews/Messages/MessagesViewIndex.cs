@@ -1,6 +1,7 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
     using Lucene.Net.Analysis.Standard;
@@ -73,7 +74,7 @@ namespace ServiceControl.CompositeViews.Messages
                     TimeSent = d.TimeSent,
                     ProcessingTime = d.ProcessingTime,
                     CriticalTime = d.CriticalTime,
-                    Headers = d.Headers,
+                    Headers = d.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value)),
                     Query = d.Query,
                 };
 
