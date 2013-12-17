@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Threading;
     using Contexts;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;

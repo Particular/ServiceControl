@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Nancy
 {
-    using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;

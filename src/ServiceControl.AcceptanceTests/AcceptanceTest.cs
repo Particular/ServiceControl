@@ -14,7 +14,6 @@
     using System.Threading;
     using System.Xml.Linq;
     using System.Xml.XPath;
-    using Infrastructure.Nancy;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using NServiceBus.AcceptanceTesting.Customization;

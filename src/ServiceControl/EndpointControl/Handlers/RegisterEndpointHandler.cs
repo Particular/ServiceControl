@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.EndpointControl.Handlers
 {
-    using System;
     using Contracts.EndpointControl;
     using InternalMessages;
     using NServiceBus;
