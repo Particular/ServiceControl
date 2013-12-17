@@ -216,12 +216,13 @@
 
             return true;
         }
-        protected bool TryGetMany<T>(string url, out List<T> response) where T : class
+        protected bool TryGetMany<T>(string url, out List<T> response,Predicate<T> condition = null) where T : class
         {
+            condition = _ => true;
 
             response = Get<List<T>>(url);
 
-            if (response == null || !response.Any())
+            if (response == null || !response.Any(m=>condition(m)))
             {
                 Thread.Sleep(1000);
                 return false;

@@ -37,14 +37,8 @@
                     {
                         List<MessagesView> messages;
 
-                        if (!TryGetMany("/api/messages", out messages))
-                        {
-                            return false;
-                        }
-
-                        Assert.AreEqual(MessageStatus.Successful,messages.Single().Status,"The message should be marked as successful in the messages view");
-
-                        return true;
+                        return TryGetMany("/api/messages", out messages,
+                            m => m.Status == MessageStatus.Successful);
                     }
 
                     IssueRetry(c,()=>Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId)));
