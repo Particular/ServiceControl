@@ -16,6 +16,7 @@ namespace ServiceControl.CompositeViews.Messages
             AddMap<ProcessedMessage>(messages => messages.Select(message => new
             {
                 Id = message.UniqueMessageId,
+                MessageId = message.MessageMetadata["MessageId"].Value,
                 MessageType = message.MessageMetadata["MessageType"].Value,
                 MessageIntent = message.MessageMetadata["MessageIntent"].Value,
                 IsSystemMessage = message.MessageMetadata["IsSystemMessage"].Value,
@@ -35,6 +36,7 @@ namespace ServiceControl.CompositeViews.Messages
             AddMap<FailedMessage>(messages => messages.Select(message => new
             {
                 message.Id,
+                MessageId = message.MostRecentAttempt.MessageMetadata["MessageId"].Value,
                 MessageType = message.MostRecentAttempt.MessageMetadata["MessageType"].Value,
                 MessageIntent = message.MostRecentAttempt.MessageMetadata["MessageIntent"].Value,
                 IsSystemMessage = message.MostRecentAttempt.MessageMetadata["IsSystemMessage"].Value,
@@ -59,6 +61,7 @@ namespace ServiceControl.CompositeViews.Messages
                 select new MessagesView
                 {
                     Id = g.Key,
+                    MessageId = d.Id,
                     MessageType = d.MessageType,
                     MessageIntent = d.MessageIntent,
                     IsSystemMessage = d.IsSystemMessage,
@@ -75,6 +78,8 @@ namespace ServiceControl.CompositeViews.Messages
                 };
 
             Index(x => x.Query, FieldIndexing.Analyzed);
+            Index(x => x.MessageId, FieldIndexing.Default);
+            Index(x => x.MessageType, FieldIndexing.Default);
             Index(x => x.ReceivingEndpointName, FieldIndexing.Default);
             Index(x => x.CriticalTime, FieldIndexing.Default);
             Index(x => x.ProcessingTime, FieldIndexing.Default);

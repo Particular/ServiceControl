@@ -9,6 +9,7 @@ namespace ServiceControl.CompositeViews.Messages
     {
         public string Id { get; set; }
         public string ReceivingEndpointName { get; set; }
+        public string MessageId { get; set; }
         public string MessageType { get; set; }
         public DateTime TimeSent { get; set; }
         public DateTime ProcessedAt { get; set; }

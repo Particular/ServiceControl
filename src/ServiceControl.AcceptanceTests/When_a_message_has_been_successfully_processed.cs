@@ -27,7 +27,7 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => TryGetMany("/api/messages?include_system_messages=false", out response))
+                .Done(c => TryGetMany("/api/messages?include_system_messages=false&sort=id", out response))
                 .Run(TimeSpan.FromSeconds(40));
 
             var auditedMessage = response.SingleOrDefault();

@@ -97,7 +97,8 @@ namespace ServiceControl.Infrastructure.Extensions
             switch (sort)
             {
                 case "id":
-                    keySelector = m => m.Id;
+                case "message_id":
+                    keySelector = m => m.MessageId;
                     break;
 
                 case "message_type":
