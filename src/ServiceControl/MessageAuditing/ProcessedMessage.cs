@@ -45,7 +45,5 @@
         public EndpointDetails SendingEndpoint { get; set; }
 
         public EndpointDetails ReceivingEndpoint { get; set; }
-
-
     }
 }

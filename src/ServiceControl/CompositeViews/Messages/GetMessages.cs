@@ -24,9 +24,9 @@ namespace ServiceControl.CompositeViews.Messages
                         .ToArray();
 
                     return Negotiate
-                                        .WithModel(results)
-                                        .WithPagingLinksAndTotalCount(stats, Request)
-                                        .WithEtagAndLastModified(stats);
+                        .WithModel(results)
+                        .WithPagingLinksAndTotalCount(stats, Request)
+                        .WithEtagAndLastModified(stats);
                 }
             };
 

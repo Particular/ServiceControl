@@ -12,12 +12,11 @@ namespace ServiceControl.CompositeViews.Endpoints
         {
             AddMap<KnownEndpoint>(endpoints => endpoints.Select(endpoint => new
             {
-                Id = endpoint.Id,
-                Name = endpoint.Name,
-                Machines = endpoint.Machines,
+                endpoint.Id,
+                endpoint.Name,
+                endpoint.Machines,
                 IsEmittingHeartbeats = false
             }));
-
 
             AddMap<Heartbeat>(endpoints => endpoints.Select(endpoint => new
             {
@@ -37,23 +36,14 @@ namespace ServiceControl.CompositeViews.Endpoints
                                         Machines = g.Single(r => r.Machines != null).Machines,
                                         IsEmittingHeartbeats = g.Any(r=>r.IsEmittingHeartbeats),
                                     };
-
-
-           
         }
-
- 
     }
+
     public class EndpointsView
     {
-      
-
         public string Id { get; set; }
-
         public string Name { get; set; }
-
         public List<string> Machines { get; set; }
-
         public bool IsEmittingHeartbeats { get; set; }
     }
 

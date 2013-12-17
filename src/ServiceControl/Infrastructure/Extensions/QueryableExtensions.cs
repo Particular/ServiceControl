@@ -3,9 +3,8 @@ namespace ServiceControl.Infrastructure.Extensions
     using System;
     using System.Linq;
     using System.Linq.Expressions;
-    using CompositeViews;
     using CompositeViews.Messages;
-    using global::Nancy;
+    using Nancy;
 
     public static class QueryableExtensions
     {
@@ -77,7 +76,7 @@ namespace ServiceControl.Infrastructure.Extensions
 
             var sortOptions = new[]
             {
-                "time_of_failure", "id", "message_type",
+                "processed_at", "id", "message_type",
                 "time_sent", "critical_time", "processing_time",
                 "status"
             };
@@ -113,8 +112,8 @@ namespace ServiceControl.Infrastructure.Extensions
                     keySelector = m => m.ProcessingTime;
                     break;
 
-                case "time_of_failure":
-                    keySelector = m => m.TimeOfFailure;
+                case "processed_at":
+                    keySelector = m => m.ProcessedAt;
                     break;
 
                 case "status":
