@@ -1,14 +1,15 @@
-﻿namespace ServiceControl.EndpointControl
+﻿namespace ServiceControl.EndpointControl.Handlers
 {
     using System;
-    using System.Collections.Concurrent;
     using Contracts.Operations;
     using InternalMessages;
     using NServiceBus;
 
-    public class DetectNewEndpointsFromImportedMessages : IHandleMessages<ImportMessage>
+    class DetectNewEndpointsFromImportedMessages : IHandleMessages<ImportMessage>
     {
         public IBus Bus { get; set; }
+
+        public KnownEndpointsCache KnownEndpointsCache { get; set; }
         public void Handle(ImportMessage message)
         {
 
@@ -20,7 +21,7 @@
         {
             var id = endpointDetails.Name + endpointDetails.Machine;
 
-            if (knownEndpointsCache.TryAdd(id, endpointDetails))
+            if (KnownEndpointsCache.Endpoints.TryAdd(id, endpointDetails))
             {
                 Bus.SendLocal(new RegisterEndpoint
                 {
@@ -31,6 +32,6 @@
 
         }
 
-        static readonly ConcurrentDictionary<string, EndpointDetails> knownEndpointsCache = new ConcurrentDictionary<string, EndpointDetails>();
+        
     }
 }

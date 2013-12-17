@@ -182,10 +182,12 @@
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
     <Compile Include="Contracts\Operations\MessageMetadata.cs" />
     <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
-    <Compile Include="EndpointControl\DetectNewEndpointsFromImportedMessages.cs" />
+    <Compile Include="EndpointControl\Handlers\DetectNewEndpointsFromImportedMessages.cs" />
     <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
     <Compile Include="Contracts\EndpointControl\NewEndpointDetected.cs" />
     <Compile Include="Contracts\EndpointControl\NewMachineDetectedForEndpoint.cs" />
+    <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
+    <Compile Include="EndpointControl\Handlers\KnownEndpointsCache.cs" />
     <Compile Include="EndpointControl\Handlers\RegisterEndpointHandler.cs" />
     <Compile Include="EndpointControl\KnownEndpoint.cs" />
     <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />

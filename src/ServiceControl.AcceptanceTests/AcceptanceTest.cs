@@ -203,12 +203,13 @@
             }
         }
 
-        protected bool TryGet<T>(string url, out T response) where T : class
+        protected bool TryGet<T>(string url, out T response, Predicate<T> condition = null) where T : class
         {
+            condition = _ => true;
 
             response = Get<T>(url);
 
-            if (response == null)
+            if (response == null || !condition(response))
             {
                 Thread.Sleep(1000);
                 return false;
