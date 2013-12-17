@@ -145,7 +145,7 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => TryGetMany("/api/endpoints",out knownEndpoints))
+                .Done(c => TryGetMany("/api/endpoints", out knownEndpoints, m => m.Name == context.EndpointNameOfReceivingEndpoint))
                 .Run(TimeSpan.FromSeconds(40));
 
             Assert.AreEqual(context.EndpointNameOfSendingEndpoint, knownEndpoints.Single(e=>e.Name == context.EndpointNameOfSendingEndpoint).Name);
