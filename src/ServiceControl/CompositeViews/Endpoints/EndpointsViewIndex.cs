@@ -15,27 +15,26 @@ namespace ServiceControl.CompositeViews.Endpoints
                 endpoint.Id,
                 endpoint.Name,
                 endpoint.Machines,
-                IsEmittingHeartbeats = false
+                EndpointProperties = new Dictionary<string, string> { { "monitored", "true" } }
             }));
 
             AddMap<Heartbeat>(endpoints => endpoints.Select(endpoint => new
             {
                 Id = endpoint.OriginatingEndpoint.Name,
-                Name = (string)null,
-                Machines = (List<string>)null,
-                IsEmittingHeartbeats = true
+                Name = endpoint.OriginatingEndpoint.Name,
+                Machines = new List<string> { endpoint.OriginatingEndpoint.Machine },
+                EndpointProperties = new Dictionary<string, string> { { "emits_heartbeats", "true" } }
             }));
 
             Reduce = results => from message in results
                                 group message by message.Id
                                     into g
-                                    where g.Any(r=>r.Name != null)
                                     select new EndpointsView
                                     {
                                         Id = g.Key,
-                                        Name = g.Single(r => r.Name != null).Name,
-                                        Machines = g.Single(r => r.Machines != null).Machines,
-                                        IsEmittingHeartbeats = g.Any(r=>r.IsEmittingHeartbeats),
+                                        Name = g.First().Name,
+                                        Machines = g.SelectMany(r => r.Machines).Distinct().ToList(),
+                                        EndpointProperties = g.SelectMany(r => r.EndpointProperties).ToList()
                                     };
         }
     }
@@ -45,7 +44,7 @@ namespace ServiceControl.CompositeViews.Endpoints
         public string Id { get; set; }
         public string Name { get; set; }
         public List<string> Machines { get; set; }
-        public bool IsEmittingHeartbeats { get; set; }
+        public List<KeyValuePair<string, string>> EndpointProperties { get; set; }
     }
 
 }
