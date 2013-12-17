@@ -30,7 +30,7 @@
                     if (message.Endpoint != null)
                     {
                         query = session.Query<FailedMessage>()
-                            .Where(fm => fm.MostRecentAttempt.FailingEndpoint.Name == message.Endpoint)
+                            .Where(fm => fm.MostRecentAttempt.FailureDetails.AddressOfFailingEndpoint.Queue == message.Endpoint)
                             .Statistics(out stats);
                     }
 

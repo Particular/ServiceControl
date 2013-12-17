@@ -36,7 +36,6 @@
                failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
                {
                    AttemptedAt = timeOfFailure,
-                   FailingEndpoint = message.ReceivingEndpoint,
                    FailureDetails =message.FailureDetails,
                    MessageMetadata = message.Metadata,
                    MessageId = message.PhysicalMessage.MessageId,

@@ -29,7 +29,8 @@
             {
                 Id = Guid.NewGuid(),
                 AttemptedAt = timeOfFailure,
-                AddressOfFailingEndpoint = message.FailureDetails.AddressOfFailingEndpoint
+                AddressOfFailingEndpoint = message.FailureDetails.AddressOfFailingEndpoint,
+                FailingEndpoint = message.FailingEndpointId
             });
 
             string retryId;
@@ -48,7 +49,7 @@
                 Bus.Publish<MessageFailedRepetedly>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
-                    m.EndpointId = message.ReceivingEndpoint.Name;
+                    m.EndpointId = message.FailingEndpointId;
                     m.FailedMessageId = Data.FailedMessageId;
                 });
             }
@@ -57,7 +58,7 @@
                 Bus.Publish<MessageFailed>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
-                    m.EndpointId = message.ReceivingEndpoint.Name;
+                    m.EndpointId = message.FailingEndpointId;
                     m.FailedMessageId = Data.FailedMessageId;
                 });
             }
@@ -129,6 +130,7 @@
                 public DateTime AttemptedAt { get; set; }
                 public Address AddressOfFailingEndpoint { get; set; }
                 public Guid Id { get; set; }
+                public string FailingEndpoint { get; set; }
             }
 
             public class RetryAttempt

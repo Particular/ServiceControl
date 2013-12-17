@@ -12,10 +12,7 @@
             MessageId = message.Id;
             
             PhysicalMessage = new PhysicalMessage(message);
-
-            ReceivingEndpoint = EndpointDetails.ReceivingEndpoint(message.Headers);
-            SendingEndpoint = EndpointDetails.SendingEndpoint(message.Headers);
-
+        
             Metadata = new Dictionary<string, MessageMetadata>();
 
             //add basic message metadata
@@ -30,9 +27,6 @@
 
         public PhysicalMessage PhysicalMessage { get; set; }
 
-        public EndpointDetails SendingEndpoint { get; set; }
-
-        public EndpointDetails ReceivingEndpoint { get; set; }
         public Dictionary<string, MessageMetadata> Metadata { get; set; }
 
         public void Add(MessageMetadata metadata)
@@ -48,7 +42,10 @@
             : base(message)
         {
             FailureDetails = new FailureDetails(message.Headers);
+            FailingEndpointId = FailureDetails.AddressOfFailingEndpoint.Queue;
         }
+
+        public string FailingEndpointId { get; set; }
 
         public FailureDetails FailureDetails { get; set; }
 

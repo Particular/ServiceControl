@@ -13,10 +13,8 @@
             Id = "ProcessedMessages/" + message.UniqueMessageId;
             UniqueMessageId = message.UniqueMessageId;
             
-            ReceivingEndpoint = message.ReceivingEndpoint;
-
-            SendingEndpoint = message.SendingEndpoint;
-
+            
+            
             MessageMetadata = message.Metadata;
 
             string processedAt;
@@ -41,9 +39,5 @@
         public Dictionary<string, string> Headers { get; set; }
          
         public DateTime ProcessedAt { get; set; }
-
-        public EndpointDetails SendingEndpoint { get; set; }
-
-        public EndpointDetails ReceivingEndpoint { get; set; }
     }
 }
