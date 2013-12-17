@@ -113,7 +113,7 @@ The error message from running the above command is:
 
             if (!delete)
             {
-                arguments += string.Format(" user={0}", identity);
+                arguments += string.Format(" user=\"{0}\"", identity);
             }
 
             var startInfo = new ProcessStartInfo
