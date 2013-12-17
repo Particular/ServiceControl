@@ -20,7 +20,7 @@ namespace ServiceControl.CompositeViews.Endpoints
 
             AddMap<Heartbeat>(endpoints => endpoints.Select(endpoint => new
             {
-                Id = endpoint.OriginatingEndpoint,
+                Id = endpoint.OriginatingEndpoint.Name,
                 Name = (string)null,
                 Machines = (List<string>)null,
                 IsEmittingHeartbeats = true
@@ -29,6 +29,7 @@ namespace ServiceControl.CompositeViews.Endpoints
             Reduce = results => from message in results
                                 group message by message.Id
                                     into g
+                                    where g.Any(r=>r.Name != null)
                                     select new EndpointsView
                                     {
                                         Id = g.Key,
