@@ -23,8 +23,9 @@ namespace ServiceControl.CompositeViews.Messages
                 IsSystemMessage = message.MessageMetadata["IsSystemMessage"].Value,
                 Status = MessageStatus.Successful,
                 message.ProcessedAt,
-                SendingEndpointName = ((EndpointDetails) message.MessageMetadata["SendingEndpoint"].Value).Name,
-                ReceivingEndpointName = ((EndpointDetails) message.MessageMetadata["ReceivingEndpoint"].Value).Name,
+                SendingEndpoint = message.MessageMetadata["SendingEndpoint"].Value,
+                ReceivingEndpoint = message.MessageMetadata["ReceivingEndpoint"].Value,
+                ReceivingEndpointName = ((EndpointDetails)message.MessageMetadata["ReceivingEndpoint"].Value).Name,
                 ConversationId = message.MessageMetadata["ConversationId"].Value,
                 TimeSent = message.MessageMetadata["TimeSent"].Value,
                 ProcessingTime = message.MessageMetadata["ProcessingTime"].Value,
@@ -43,10 +44,9 @@ namespace ServiceControl.CompositeViews.Messages
                 IsSystemMessage = message.MostRecentAttempt.MessageMetadata["IsSystemMessage"].Value,
                 Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
                 ProcessedAt = message.MostRecentAttempt.FailureDetails.TimeOfFailure,
-                SendingEndpointName =
-                    ((EndpointDetails) message.MostRecentAttempt.MessageMetadata["SendingEndpoint"].Value).Name,
-                ReceivingEndpointName =
-                    ((EndpointDetails) message.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"].Value).Name,
+                SendingEndpoint = message.MostRecentAttempt.MessageMetadata["SendingEndpoint"].Value,
+                ReceivingEndpoint = message.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"].Value,
+                ReceivingEndpointName = ((EndpointDetails)message.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"].Value).Name,
                 ConversationId = message.MostRecentAttempt.MessageMetadata["ConversationId"].Value,
                 TimeSent = message.MostRecentAttempt.MessageMetadata["TimeSent"].Value,
                 ProcessingTime = (object) TimeSpan.Zero,
@@ -68,7 +68,8 @@ namespace ServiceControl.CompositeViews.Messages
                     IsSystemMessage = d.IsSystemMessage,
                     Status = d.Status,
                     ProcessedAt = d.ProcessedAt,
-                    SendingEndpointName = d.SendingEndpointName,
+                    SendingEndpoint = d.SendingEndpoint,
+                    ReceivingEndpoint = d.ReceivingEndpoint,
                     ReceivingEndpointName = d.ReceivingEndpointName,
                     ConversationId = d.ConversationId,
                     TimeSent = d.TimeSent,
@@ -79,9 +80,6 @@ namespace ServiceControl.CompositeViews.Messages
                 };
 
             Index(x => x.Query, FieldIndexing.Analyzed);
-            Index(x => x.MessageId, FieldIndexing.Default);
-            Index(x => x.MessageType, FieldIndexing.Default);
-            Index(x => x.ReceivingEndpointName, FieldIndexing.Default);
             Index(x => x.CriticalTime, FieldIndexing.Default);
             Index(x => x.ProcessingTime, FieldIndexing.Default);
             Index(x => x.ProcessedAt, FieldIndexing.Default);
