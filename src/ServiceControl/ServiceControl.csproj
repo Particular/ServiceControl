@@ -173,6 +173,15 @@
     <Compile Include="..\ServiceControl.Plugin.Shared\Messages\ReportCustomCheckResult.cs">
       <Link>CustomChecks\InternalMessages\ReportCustomCheckResult.cs</Link>
     </Compile>
+    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\SagaChangeInitiator.cs">
+      <Link>SagaAudit\Messages\SagaChangeInitiator.cs</Link>
+    </Compile>
+    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\SagaChangeOutput.cs">
+      <Link>SagaAudit\Messages\SagaChangeOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\SagaUpdatedMessage.cs">
+      <Link>SagaAudit\Messages\SagaUpdatedMessage.cs</Link>
+    </Compile>
     <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsViewIndex.cs" />
@@ -310,6 +319,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
+    <Compile Include="SagaAudit\SagaUpdatedHandler.cs" />
+    <Compile Include="SagaAudit\InitiatingMessage.cs" />
+    <Compile Include="SagaAudit\SagaHistory.cs" />
+    <Compile Include="SagaAudit\ResultingMessage.cs" />
+    <Compile Include="SagaAudit\SagaStateChange.cs" />
+    <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
+    <Compile Include="SagaAudit\SageMessageState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -322,7 +338,12 @@
   <ItemGroup>
     <EmbeddedResource Include="License.xml" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Plugin.SagaAudit\ServiceControl.Plugin.SagaAudit.csproj">
+      <Project>{97079A73-235E-4D52-A6DF-EBF3BF0F4971}</Project>
+      <Name>ServiceControl.Plugin.SagaAudit</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
