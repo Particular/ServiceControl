@@ -9,6 +9,33 @@
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
+    public class ArchiveMessages : BaseModule
+    {
+        public IBus Bus { get; set; }
+
+        public ArchiveMessages()
+        {
+
+            Post["/errors/{messageid}/archive"] = parameters =>
+            {
+                var failedMessageId = parameters.MessageId;
+
+                if (string.IsNullOrEmpty(failedMessageId))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+
+                Bus.SendLocal<ArchiveMessage>(m =>
+                {
+                    m.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
+                    m.FailedMessageId = failedMessageId;
+                });
+
+                return HttpStatusCode.Accepted;
+            };
+        }
+    }
+
     public class RetryMessages : BaseModule
     {
         public RetryMessages()
@@ -23,7 +50,7 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                Bus.SendLocal<RequestRetry>(m =>
+                Bus.SendLocal<RetryMessage>(m =>
                 {
                     m.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
                     m.FailedMessageId = failedMessageId;
@@ -47,7 +74,7 @@
                 {
                   
 
-                    var request = new RequestRetry { FailedMessageId = id };
+                    var request = new RetryMessage { FailedMessageId = id };
 
                     request.SetHeader("RequestedAt", requestedAt);
 

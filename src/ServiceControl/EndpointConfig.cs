@@ -29,7 +29,6 @@ namespace Particular.ServiceControl
             Configure.Features.Enable<Sagas>();
 
             Configure.With()
-                //.DefiningMessagesAs(t=>)
                 .AutofacBuilder(Container)
                 .UseTransport(Type.GetType(transportType))
                 .DisableTimeoutManager()
