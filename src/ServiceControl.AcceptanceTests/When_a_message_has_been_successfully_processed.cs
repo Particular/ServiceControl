@@ -3,6 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
+    using System.Text;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -18,6 +20,7 @@
         {
             var context = new MyContext();
             var response = new List<MessagesView>();
+            byte[] body = null;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -27,7 +30,24 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => TryGetMany("/api/messages?include_system_messages=false&sort=id", out response))
+                .Done(c =>
+                {
+                    if (!TryGetMany("/api/messages?include_system_messages=false&sort=id", out response,m => m.MessageId == c.MessageId))
+                    {
+                        return false;
+                    }
+
+                    var message = response.Single();
+           
+
+                    using (var client = new WebClient())
+                    {
+                        body = client.DownloadData(message.BodyUrl);
+                    }
+
+                    return true;
+
+                })
                 .Run(TimeSpan.FromSeconds(40));
 
             var auditedMessage = response.SingleOrDefault();
@@ -44,6 +64,11 @@
             Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
             Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
             Assert.AreEqual(MessageIntentEnum.Send, auditedMessage.MessageIntent, "Message intent should be set");
+            Assert.True(new Uri(auditedMessage.BodyUrl).IsAbsoluteUri,auditedMessage.BodyUrl);
+
+            var bodyAsString = Encoding.UTF8.GetString(body);
+
+            Assert.True(bodyAsString.Contains("MyMessage"), bodyAsString);
         }
 
 

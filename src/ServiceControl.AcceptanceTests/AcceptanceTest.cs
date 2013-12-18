@@ -156,7 +156,19 @@
 
         public T Get<T>(string url) where T : class
         {
-            var request = (HttpWebRequest) WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
+            HttpWebRequest request;
+
+
+            if (url.StartsWith("http://"))
+            {
+                request = (HttpWebRequest)WebRequest.Create(url);
+            }
+            else
+            {
+                request = (HttpWebRequest)WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
+            }
+            
+          
 
             request.Accept = "application/json";
 
@@ -198,7 +210,7 @@
             {
                 var serializer = JsonSerializer.Create(serializerSettings);
 
-                return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
+                return serializer.Deserialize<T>( new JsonTextReader(new StreamReader(stream)));
             }
         }
 

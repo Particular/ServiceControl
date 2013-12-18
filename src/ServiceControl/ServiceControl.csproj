@@ -305,10 +305,11 @@
     <Compile Include="MessageAuditing\ProcessedMessage.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
+    <Compile Include="Operations\BodyStorage\Api\GetBodyById.cs" />
+    <Compile Include="Operations\BodyStorage\RavenAttachmentsBodyStorage.cs" />
     <Compile Include="Operations\ErrorQueueImport.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
-    <Compile Include="Operations\MessageStorage\BodySearchEnricher.cs" />
-    <Compile Include="Operations\MessageStorage\MessageBodyStorage.cs" />
+    <Compile Include="Operations\BodyStorage\BodySearchEnricher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />

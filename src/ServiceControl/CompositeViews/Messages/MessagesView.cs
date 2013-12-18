@@ -23,5 +23,6 @@ namespace ServiceControl.CompositeViews.Messages
         public MessageStatus Status { get; set; }
         public MessageIntentEnum MessageIntent { get; set; }
         public string ReceivingEndpointName { get; set; }
+        public string BodyUrl { get; set; }
     }
 }
