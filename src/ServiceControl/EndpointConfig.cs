@@ -37,7 +37,7 @@ namespace Particular.ServiceControl
 
             ConfigureLicense();
 
-            var pluginType = Type.GetType("ServiceControl.EndpointPlugin.Heartbeats.Heartbeats, ServiceControl.EndpointPlugin", false);
+            var pluginType = Type.GetType("ServiceControl.Plugin.Heartbeat.Heartbeats, ServiceControl.Plugin.Heartbeat", false);
             if (pluginType != null)
             {
                 Feature.Disable(pluginType);
