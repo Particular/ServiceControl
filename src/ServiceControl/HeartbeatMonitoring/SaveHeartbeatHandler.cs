@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
+    using Contracts.HeartbeatMonitoring;
     using Contracts.Operations;
     using Infrastructure;
     using NServiceBus;
@@ -35,6 +36,27 @@
 
                 heartbeat.LastReportAt = message.ExecutedAt;
                 heartbeat.OriginatingEndpoint = originatingEndpoint;
+                
+                if (heartbeat.ReportedStatus == Status.New) // New endpoint heartbeat
+                {
+                    Bus.Publish(new HeartbeatingEndpointDetected
+                    {
+                        Endpoint = heartbeat.OriginatingEndpoint.Name,
+                        Machine = heartbeat.OriginatingEndpoint.Machine,
+                        DetectedAt = heartbeat.LastReportAt,
+                    });
+                }
+
+                if (heartbeat.ReportedStatus == Status.Dead) // Was prevo
+                {
+                    heartbeat.ReportedStatus = Status.Beating;
+                    Bus.Publish(new EndpointHeartbeatRestored
+                    {
+                        Endpoint = heartbeat.OriginatingEndpoint.Name,
+                        Machine = heartbeat.OriginatingEndpoint.Machine,
+                        RestoredAt = heartbeat.LastReportAt
+                    });
+                }
 
                 session.Store(heartbeat);
                 session.SaveChanges();

@@ -7,7 +7,10 @@
     using NServiceBus;
     using Raven.Client;
 
-    public class RaiseHeartbeatChanges : IWantToRunWhenBusStartsAndStops
+    public class RaiseHeartbeatChanges : IWantToRunWhenBusStartsAndStops, 
+        IHandleMessages<HeartbeatingEndpointDetected>,
+        IHandleMessages<EndpointFailedToHeartbeat>, 
+        IHandleMessages<EndpointHeartbeatRestored>
     {
         public IDocumentStore Store { get; set; }
 
@@ -18,42 +21,57 @@
 
         public void Start()
         {
-            timer = new Timer(Refresh, null, 0, -1);
+            // Get the Heartbeat stats when we first start. 
+            using (var session = Store.OpenSession())
+            {
+                numberOfEndpointsDead = session.Query<Heartbeat>().Count(c => c.ReportedStatus == Status.Dead);
+                numberOfEndpointsActive = session.Query<Heartbeat>().Count(c => c.ReportedStatus != Status.Dead);
+            }
         }
 
         public void Stop()
         {
-            using (var manualResetEvent = new ManualResetEvent(false))
-            {
-                timer.Dispose(manualResetEvent);
-
-                manualResetEvent.WaitOne();
-            }
         }
 
-        void Refresh(object _)
+
+        public void Handle(HeartbeatingEndpointDetected message)
         {
-            using (var session = Store.OpenSession())
+            Interlocked.Increment(ref numberOfEndpointsActive);
+            bus.Publish(new TotalEndpointsUpdated
             {
-                var numberOfEndpointsDead = session.Query<Heartbeat>().Count(c => c.ReportedStatus == Status.Dead);
-                var numberOfEndpointsActive = session.Query<Heartbeat>().Count(c => c.ReportedStatus != Status.Dead);
-
-                bus.Publish(new TotalEndpointsUpdated
-                {
-                    Active = numberOfEndpointsActive,
-                    Failing = numberOfEndpointsDead
-                });
-            }
-
-            try
-            {
-                //timer.Change((int)TimeSpan.FromSeconds(5).TotalMilliseconds, -1);
-            }
-            catch (ObjectDisposedException)
-            { }
+                Active = numberOfEndpointsActive,
+                Failing = numberOfEndpointsDead,
+                LastUpdatedAt = DateTime.UtcNow
+                
+            });
         }
 
-        Timer timer;
+        public void Handle(EndpointFailedToHeartbeat message)
+        {
+            Interlocked.Decrement(ref numberOfEndpointsActive);
+            Interlocked.Increment(ref numberOfEndpointsDead);
+            bus.Publish(new TotalEndpointsUpdated
+            {
+                Active = numberOfEndpointsActive,
+                Failing = numberOfEndpointsDead,
+                LastUpdatedAt = DateTime.UtcNow
+            });
+        }
+
+        public void Handle(EndpointHeartbeatRestored message)
+        {
+            Interlocked.Increment(ref numberOfEndpointsActive);
+            Interlocked.Decrement(ref numberOfEndpointsDead);
+            bus.Publish(new TotalEndpointsUpdated
+            {
+                Active = numberOfEndpointsActive,
+                Failing = numberOfEndpointsDead,
+                LastUpdatedAt = DateTime.UtcNow
+            });
+        }
+
+        static int numberOfEndpointsDead;
+        static int numberOfEndpointsActive;
         readonly IBus bus;
     }
 }
