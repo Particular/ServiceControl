@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using InternalMessages;
     using NServiceBus;
     using NServiceBus.Transports;
@@ -23,7 +24,7 @@
                 throw new ArgumentException("Can't find e failed message with id: " + message.FailedMessageId);
             }
 
-            var attempt = failedMessage.ProcessingAttempts.Last();
+            var attempt = failedMessage.MostRecentAttempt;
 
             var originalHeaders = attempt.Headers;
 
@@ -32,18 +33,23 @@
 
             headersToRetryWith["ServiceControl.RetryId"] = message.RetryId.ToString();
 
-            var transportMessage = new TransportMessage(failedMessage.Id, headersToRetryWith)
+            var bodyUrl = attempt.MessageMetadata["BodyUrl"].Value;
+
+            using (var client = new WebClient())
             {
-                Body = attempt.Body,
-                CorrelationId = attempt.CorrelationId,
-                Recoverable = attempt.Recoverable,
-                MessageIntent = attempt.MessageIntent,
-                ReplyToAddress = Address.Parse(attempt.ReplyToAddress)
-            };
+                var transportMessage = new TransportMessage(failedMessage.Id, headersToRetryWith)
+                {
+                    Body = client.DownloadData(bodyUrl.ToString()),
+                    CorrelationId = attempt.CorrelationId,
+                    Recoverable = attempt.Recoverable,
+                    MessageIntent = attempt.MessageIntent,
+                    ReplyToAddress = Address.Parse(attempt.ReplyToAddress)
+                };
+                
+                failedMessage.Status = FailedMessageStatus.RetryIssued;
 
-            failedMessage.Status = FailedMessageStatus.RetryIssued;
-
-            Forwarder.Send(transportMessage, message.TargetEndpointAddress);
+                Forwarder.Send(transportMessage, message.TargetEndpointAddress);
+            }
         }
 
         static readonly List<string> KeysToRemoveWhenRetryingAMessage = new List<string>

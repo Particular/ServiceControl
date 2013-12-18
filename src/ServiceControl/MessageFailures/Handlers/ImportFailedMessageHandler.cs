@@ -44,10 +44,7 @@
                    Recoverable = message.PhysicalMessage.Recoverable,
                    CorrelationId = message.PhysicalMessage.CorrelationId,
                    MessageIntent = message.PhysicalMessage.MessageIntent,
-                   Body = message.PhysicalMessage.Body
                });
-
-                //todo: sort the list in time order
 
                 session.Store(failure);
 

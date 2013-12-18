@@ -19,7 +19,6 @@
             {
                 timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
                 message.Add(new MessageMetadata("TimeSent", timeSent));
-
             }
 
 
