@@ -7,11 +7,11 @@
     using NServiceBus;
     using Raven.Client;
 
-    public class RaiseHartbeatChanges : IWantToRunWhenBusStartsAndStops
+    public class RaiseHeartbeatChanges : IWantToRunWhenBusStartsAndStops
     {
         public IDocumentStore Store { get; set; }
 
-        public RaiseHartbeatChanges(IBus bus)
+        public RaiseHeartbeatChanges(IBus bus)
         {
             this.bus = bus;
         }

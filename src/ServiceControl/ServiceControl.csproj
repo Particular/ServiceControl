@@ -229,7 +229,7 @@
     <Compile Include="HeartbeatMonitoring\HeartbeatMonitor.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatingEndpointDetected.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
-    <Compile Include="HeartbeatMonitoring\RaiseHartbeatChanges.cs" />
+    <Compile Include="HeartbeatMonitoring\RaiseHeartbeatChanges.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\TotalEndpointsUpdated.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
