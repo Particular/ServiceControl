@@ -36,7 +36,6 @@
                failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
                {
                    AttemptedAt = timeOfFailure,
-                   FailingEndpoint = message.ReceivingEndpoint,
                    FailureDetails =message.FailureDetails,
                    MessageMetadata = message.Metadata,
                    MessageId = message.PhysicalMessage.MessageId,
@@ -45,10 +44,7 @@
                    Recoverable = message.PhysicalMessage.Recoverable,
                    CorrelationId = message.PhysicalMessage.CorrelationId,
                    MessageIntent = message.PhysicalMessage.MessageIntent,
-                   Body = message.PhysicalMessage.Body
                });
-
-                //todo: sort the list in time order
 
                 session.Store(failure);
 

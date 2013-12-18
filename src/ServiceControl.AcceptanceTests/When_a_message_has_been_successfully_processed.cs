@@ -3,6 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
+    using System.Text;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -18,6 +20,7 @@
         {
             var context = new MyContext();
             var response = new List<MessagesView>();
+            byte[] body = null;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -27,13 +30,30 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => TryGetMany("/api/messages?include_system_messages=false", out response))
+                .Done(c =>
+                {
+                    if (!TryGetMany("/api/messages?include_system_messages=false&sort=id", out response,m => m.MessageId == c.MessageId))
+                    {
+                        return false;
+                    }
+
+                    var message = response.Single();
+           
+
+                    using (var client = new WebClient())
+                    {
+                        body = client.DownloadData(message.BodyUrl);
+                    }
+
+                    return true;
+
+                })
                 .Run(TimeSpan.FromSeconds(40));
 
             var auditedMessage = response.SingleOrDefault();
 
             Assert.NotNull(auditedMessage, "No message was returned by the management api");
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpointName,
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpoint.Name,
                 "Receiving endpoint name should be parsed correctly");
             Assert.AreEqual(typeof(MyMessage).FullName, auditedMessage.MessageType,
                 "AuditMessage type should be set to the fullname of the message type");
@@ -44,6 +64,11 @@
             Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
             Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
             Assert.AreEqual(MessageIntentEnum.Send, auditedMessage.MessageIntent, "Message intent should be set");
+            Assert.True(new Uri(auditedMessage.BodyUrl).IsAbsoluteUri,auditedMessage.BodyUrl);
+
+            var bodyAsString = Encoding.UTF8.GetString(body);
+
+            Assert.True(bodyAsString.Contains("MyMessage"), bodyAsString);
         }
 
 
@@ -145,11 +170,9 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => TryGetMany("/api/endpoints",out knownEndpoints))
+                .Done(c => TryGetMany("/api/endpoints", out knownEndpoints, m => m.Name == context.EndpointNameOfReceivingEndpoint))
                 .Run(TimeSpan.FromSeconds(40));
 
-            Assert.AreEqual(context.EndpointNameOfSendingEndpoint, knownEndpoints.Single(e=>e.Name == context.EndpointNameOfSendingEndpoint).Name);
-            Assert.AreEqual(Environment.MachineName, knownEndpoints.Single(e => e.Name == context.EndpointNameOfSendingEndpoint).Machines.Single());
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).Name);
             Assert.AreEqual(Environment.MachineName, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).Machines.Single());
         }

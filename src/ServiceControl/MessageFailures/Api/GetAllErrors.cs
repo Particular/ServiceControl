@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System.Linq;
-    using Contracts.Operations;
     using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;

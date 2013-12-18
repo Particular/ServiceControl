@@ -6,7 +6,6 @@
     using Contracts.CustomChecks;
     using Contracts.Operations;
     using Infrastructure;
-    using MessageAuditing;
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
 

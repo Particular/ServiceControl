@@ -14,7 +14,6 @@
     using System.Threading;
     using System.Xml.Linq;
     using System.Xml.XPath;
-    using Infrastructure.Nancy;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -157,7 +156,19 @@
 
         public T Get<T>(string url) where T : class
         {
-            var request = (HttpWebRequest) WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
+            HttpWebRequest request;
+
+
+            if (url.StartsWith("http://"))
+            {
+                request = (HttpWebRequest)WebRequest.Create(url);
+            }
+            else
+            {
+                request = (HttpWebRequest)WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
+            }
+            
+          
 
             request.Accept = "application/json";
 
@@ -199,16 +210,17 @@
             {
                 var serializer = JsonSerializer.Create(serializerSettings);
 
-                return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
+                return serializer.Deserialize<T>( new JsonTextReader(new StreamReader(stream)));
             }
         }
 
-        protected bool TryGet<T>(string url, out T response) where T : class
+        protected bool TryGet<T>(string url, out T response, Predicate<T> condition = null) where T : class
         {
+            condition = _ => true;
 
             response = Get<T>(url);
 
-            if (response == null)
+            if (response == null || !condition(response))
             {
                 Thread.Sleep(1000);
                 return false;
@@ -216,12 +228,13 @@
 
             return true;
         }
-        protected bool TryGetMany<T>(string url, out List<T> response) where T : class
+        protected bool TryGetMany<T>(string url, out List<T> response,Predicate<T> condition = null) where T : class
         {
+            condition = _ => true;
 
             response = Get<List<T>>(url);
 
-            if (response == null || !response.Any())
+            if (response == null || !response.Any(m=>condition(m)))
             {
                 Thread.Sleep(1000);
                 return false;

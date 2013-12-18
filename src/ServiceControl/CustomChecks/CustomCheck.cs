@@ -2,8 +2,7 @@
 {
     using System;
     using Contracts.Operations;
-    using MessageAuditing;
-
+    
     class CustomCheck
     {
         public Guid Id { get; set; }

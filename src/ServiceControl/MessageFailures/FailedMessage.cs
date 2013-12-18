@@ -32,7 +32,6 @@
 
             public FailureDetails FailureDetails { get; set; }
 
-            public EndpointDetails FailingEndpoint { get; set; }
             public DateTime AttemptedAt { get; set; }
             public string MessageId { get; set; }
             public Dictionary<string, string> Headers { get; set; }
@@ -40,7 +39,6 @@
             public bool Recoverable { get; set; }
             public string CorrelationId { get; set; }
             public MessageIntentEnum MessageIntent { get; set; }
-            public byte[] Body { get; set; }
         }
 
     }

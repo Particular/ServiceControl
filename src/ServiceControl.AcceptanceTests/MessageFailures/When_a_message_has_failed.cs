@@ -8,7 +8,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
@@ -80,8 +79,8 @@
             var failure = response.Single(r => r.Headers.SingleOrDefault(kvp=>kvp.Key==Headers.MessageId).Value == context.MessageId);
 
             Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.SendingEndpointName);
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.ReceivingEndpointName);
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.SendingEndpoint.Name);
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.ReceivingEndpoint.Name);
 
         }
 
@@ -96,12 +95,11 @@
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => TryGetMany("/api/eventlogitems/", out response))
+                .Done(c => TryGetMany("/api/eventlogitems/", out response, e => e.Category == "MessageFailures"))
                 .Run();
 
-            var entry = response.SingleOrDefault(e => e.Category == "MessageFailures");
+            var entry = response.Single(e => e.Category == "MessageFailures");
 
-            Assert.NotNull(entry);
             Assert.AreEqual(entry.Severity,entry.Severity, "Failures shoudl be treated as errors");
             Assert.IsTrue(entry.Description.Contains("exception"), "For failed messages, the description should contain the exception information");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/message/" + context.UniqueMessageId), "Should contain the api url to retrieve additional details about the failed message");
