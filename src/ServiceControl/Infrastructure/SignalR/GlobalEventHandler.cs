@@ -7,8 +7,6 @@
 
     public class GlobalEventHandler : IHandleMessages<IEvent>
     {
-        public IBus Bus { get; set; }
-
         public MessageMetadataRegistry MessageMetadataRegistry { get; set; }
 
         public void Handle(IEvent @event)
