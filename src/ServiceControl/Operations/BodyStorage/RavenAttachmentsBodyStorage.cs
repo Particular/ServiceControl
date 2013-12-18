@@ -31,7 +31,8 @@
             {
                 DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
                 {
-                    { "ContentType",contentType }
+                    { "ContentType",contentType },
+                    { "ContentLength", message.PhysicalMessage.Body.Length}
                 });                
             }
 

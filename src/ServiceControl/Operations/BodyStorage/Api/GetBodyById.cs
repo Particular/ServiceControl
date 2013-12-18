@@ -23,7 +23,8 @@
 
                 return new Response{ Contents = stream => attachment.Data().CopyTo(stream)}
                     .WithContentType(attachment.Metadata["ContentType"].Value<string>())
-                    .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'")); // cache "forever"
+                    .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'")) // cache "forever"
+                    .WithHeader("Content-Length", attachment.Metadata["ContentLength"].Value<string>()); // cache "forever"
             };
         }
 
