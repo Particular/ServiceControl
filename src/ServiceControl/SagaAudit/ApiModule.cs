@@ -16,9 +16,13 @@ namespace ServiceControl.SagaAudit
             {
                 using (var session = Store.OpenSession())
                 {
-                    string id = parameters.id;
-                    var sagaHistory = session.Load<SagaHistory>(id);
-                    var etag = session.Advanced.GetEtagFor(sagaHistory); ;
+                    Guid id = parameters.id;
+                    var sagaHistory = session.LoadEx<SagaHistory>(id);
+                    if (sagaHistory == null)
+                    {
+                        return HttpStatusCode.NotFound;
+                    }
+                    var etag = session.Advanced.GetEtagFor(sagaHistory);
                     var metadata = session.Advanced.GetMetadataFor(sagaHistory);
                     var lastModified = metadata.Value<DateTime>("Last-Modified");
                     return Negotiate
@@ -52,11 +56,7 @@ namespace ServiceControl.SagaAudit
                         session.Query<SagaHistory>()
                             .Statistics(out stats)
                             .Paging(Request)
-                            .Select(x => new SearchResultItem
-                                {
-                                    Id = x.Id, 
-                                    SagaId= x.SagaId, 
-                                })
+                            .AsProjection<SearchResultItem>()
                             .ToArray();
 
                     return Negotiate

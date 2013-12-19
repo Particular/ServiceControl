@@ -8,7 +8,7 @@ namespace ServiceControl.SagaAudit
         public string Destination { get; set; }
         public TimeSpan? RequestedTimeout { get; set; }
         public string ResultingMessageId { get; set; }
-        public string TimeSent { get; set; }
+        public DateTime TimeSent { get; set; }
         public string MessageType { get; set; }
     }
 }

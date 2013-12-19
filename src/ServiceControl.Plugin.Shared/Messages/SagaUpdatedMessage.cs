@@ -15,6 +15,7 @@
         public Guid SagaId { get; set; }
         public SagaChangeInitiator Initiator { get; set; }
         public List<SagaChangeOutput> ResultingMessages { get; set; }
+        //TODO:
         public string Endpoint { get; set; }
         public bool IsNew { get; set; }
         public DateTime StartTime { get; set; }

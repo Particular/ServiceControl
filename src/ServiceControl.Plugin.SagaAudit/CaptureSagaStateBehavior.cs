@@ -44,7 +44,7 @@
             var headers = context.LogicalMessage.Headers;
             var originatingMachine = headers[Headers.OriginatingMachine];
             var originatingEndpoint = headers[Headers.OriginatingEndpoint];
-            var timeSent = headers[Headers.TimeSent];
+            var timeSent = DateTimeExtensions.ToUtcDateTime(headers[Headers.TimeSent]);
 
             sagaAudit.Initiator = new SagaChangeInitiator
                 {

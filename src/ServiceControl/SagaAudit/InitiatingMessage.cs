@@ -1,5 +1,6 @@
 namespace ServiceControl.SagaAudit
 {
+    using System;
 
     public class InitiatingMessage
     {
@@ -7,7 +8,7 @@ namespace ServiceControl.SagaAudit
         public bool IsSagaTimeoutMessage { get; set; }
         public string OriginatingEndpoint { get; set; }
         public string OriginatingMachine { get; set; }
-        public string TimeSent { get; set; }
+        public DateTime TimeSent { get; set; }
         public string MessageType { get; set; }
     }
 }
