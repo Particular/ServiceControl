@@ -180,7 +180,6 @@
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
-    <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolved.cs" />
     <Compile Include="Contracts\Operations\MessageMetadata.cs" />
@@ -238,6 +237,7 @@
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
+    <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
     <Compile Include="MessageFailures\Api\FaileMessageFacetsIndex.cs" />
     <Compile Include="MessageFailures\Api\SetupFailedMessagesFacets.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
@@ -262,7 +262,7 @@
     <Compile Include="MessageFailures\ErrorMessageCounterRegister.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
-    <Compile Include="MessageFailures\Handlers\FailedMessageArchivedHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
     <Compile Include="MessageFailures\Handlers\ImportFailedMessageHandler.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
     <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
