@@ -1,7 +1,5 @@
 ﻿namespace ServiceControl.EndpointPlugin.SagaState
 {
-    using System;
-    using System.Collections.Generic;
     using System.IO;
     using Messages.SagaState;
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
