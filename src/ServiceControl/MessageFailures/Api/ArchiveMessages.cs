@@ -1,8 +1,11 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using InternalMessages;
     using Nancy;
+    using Nancy.ModelBinding;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
@@ -12,6 +15,28 @@
 
         public ArchiveMessages()
         {
+            Post["/errors/archive"] = _ =>
+            {
+                var ids = this.Bind<List<string>>();
+
+                if (ids.Any(string.IsNullOrEmpty))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+
+                var requestedAt = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow);
+
+                foreach (var id in ids)
+                {
+                    var request = new ArchiveMessage { FailedMessageId = id };
+
+                    request.SetHeader("RequestedAt", requestedAt);
+
+                    Bus.SendLocal(request); 
+                }
+
+                return HttpStatusCode.Accepted;
+            };
 
             Post["/errors/{messageid}/archive"] = parameters =>
             {

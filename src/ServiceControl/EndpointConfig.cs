@@ -31,7 +31,6 @@ namespace Particular.ServiceControl
             Configure.With()
                 .AutofacBuilder(Container)
                 .UseTransport(Type.GetType(transportType))
-                .DisableTimeoutManager()
                 .UnicastBus();
 
             ConfigureLicense();

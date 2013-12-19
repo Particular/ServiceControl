@@ -59,7 +59,7 @@
             {
                 using (var session = Store.OpenSession())
                 {
-                    var facetResults = session.Query<FailedMessage, FaileMessageFacetsIndex>()
+                    var facetResults = session.Query<FailedMessage, FailedMessageFacetsIndex>()
                         .ToFacets("facets/failedMessagesFacets")
                         .Results;
 

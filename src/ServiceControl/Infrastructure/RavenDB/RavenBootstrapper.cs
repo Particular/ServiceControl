@@ -23,7 +23,6 @@
                 UseEmbeddedHttpServer = true,
                 EnlistInDistributedTransactions = false
             };
-
             
             documentStore.Configuration.Port = Settings.Port;
             documentStore.Configuration.HostName = Settings.Hostname;
@@ -58,11 +57,9 @@
                     });                
             }
 
-
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);
             Configure.Instance.RavenDBPersistence(documentStore, false);
-            
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));

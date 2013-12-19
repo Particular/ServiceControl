@@ -45,16 +45,12 @@
 
                 foreach (var id in ids)
                 {
-                  
-
                     var request = new RetryMessage { FailedMessageId = id };
 
                     request.SetHeader("RequestedAt", requestedAt);
 
                     Bus.SendLocal(request);    
                 }
-
-                
 
                 return HttpStatusCode.Accepted;
             };
