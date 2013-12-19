@@ -2,8 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using NServiceBus;
 
-    public class SagaUpdatedMessage
+    public class SagaUpdatedMessage:IMessage
     {
         public SagaUpdatedMessage()
         {
