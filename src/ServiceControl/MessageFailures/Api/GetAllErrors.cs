@@ -19,7 +19,7 @@
                     RavenQueryStatistics stats;
 
                     var results = session.Query<FailedMessage>()
-                        .TransformWith<FaileMessageViewTransformer, FailedMessageView>()
+                        .TransformWith<FailedMessageViewTransformer, FailedMessageView>()
                         .Statistics(out stats)
                         .Where(m => m.Status == FailedMessageStatus.Unresolved)
                         //.Sort(Request)
@@ -41,7 +41,7 @@
 
                     RavenQueryStatistics stats;
                     var results = session.Query<FailedMessage>()
-                         .TransformWith<FaileMessageViewTransformer, FailedMessageView>()
+                         .TransformWith<FailedMessageViewTransformer, FailedMessageView>()
                         .Statistics(out stats)
                         .Where(m => m.ReceivingEndpointName == endpoint && m.Status == FailedMessageStatus.Unresolved)
                         //.Sort(Request)
@@ -59,7 +59,7 @@
             {
                 using (var session = Store.OpenSession())
                 {
-                    var facetResults = session.Query<FailedMessage, FaileMessageFacetsIndex>()
+                    var facetResults = session.Query<FailedMessage, FailedMessageFacetsIndex>()
                         .ToFacets("facets/failedMessagesFacets")
                         .Results;
 

@@ -1,14 +1,14 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using Contracts.MessageFailures;
+    using InternalMessages;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.RavenDB;
 
-    public class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>
+    public class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>
     {
         public RavenUnitOfWork RavenUnitOfWork { get; set; }
 
-        public void Handle(MessageFailureResolvedByRetry message)
+        public void Handle(ArchiveMessage message)
         {
             var failedMessage = RavenUnitOfWork.Session.Load<FailedMessage>(message.FailedMessageId);
 
@@ -17,7 +17,7 @@
                 return; //No point throwing
             }
 
-            failedMessage.Status = FailedMessageStatus.Resolved;    
+            failedMessage.Status = FailedMessageStatus.Archived;
         }
     }
 }

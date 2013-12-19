@@ -11,12 +11,9 @@
         public DateTime TimeSent { get; set; }
         public DateTime TimeOfFailure { get; set; }
         public bool IsSystemMessage { get; set; }
-
         public ExceptionDetails Exception { get; set; }
-
         public string MessageId { get; set; }
         public int NumberOfProcessingAttempts { get; set; }
-
         public FailedMessageStatus Status { get; set; }
         public EndpointDetails SendingEndpoint { get; set; }
         public EndpointDetails ReceivingEndpoint { get; set; }

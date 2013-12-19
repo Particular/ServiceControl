@@ -29,20 +29,12 @@ namespace Particular.ServiceControl
             Configure.Features.Enable<Sagas>();
 
             Configure.With()
-                //.DefiningMessagesAs(t=>)
                 .AutofacBuilder(Container)
                 .UseTransport(Type.GetType(transportType))
-                .DisableTimeoutManager()
                 .UnicastBus();
 
             ConfigureLicense();
 
-            var pluginType = Type.GetType("ServiceControl.Plugin.Heartbeat.Heartbeats, ServiceControl.Plugin.Heartbeat", false);
-            if (pluginType != null)
-            {
-                Feature.Disable(pluginType);
-            }
-            
             Feature.Disable<AutoSubscribe>();
             
             Configure.Serialization.Json();

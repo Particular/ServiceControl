@@ -11,8 +11,8 @@
 
     public class FailedMessagePolicy : Saga<FailedMessagePolicy.FailedMessagePolicyData>,
         IAmStartedByMessages<ImportFailedMessage>,
-        IHandleMessages<RequestRetry>,
-        IHandleMessages<RegisterSuccesfulRetry>
+        IHandleMessages<RetryMessage>,
+        IHandleMessages<RegisterSuccessfulRetry>
     {
         public void Handle(ImportFailedMessage message)
         {
@@ -37,16 +37,15 @@
 
             if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.RetryId", out retryId))
             {
-                var retryAttempt = Data.RetryAttempts.SingleOrDefault(r => r.Id == Guid.Parse(retryId));
+                var retryAttempt = Data.RetryAttempts.Single(r => r.Id == Guid.Parse(retryId));
 
                 retryAttempt.Completed = true;
                 retryAttempt.Failed = true;
             }
 
-
             if (Data.ProcessingAttempts.Count > 1)
             {
-                Bus.Publish<MessageFailedRepetedly>(m =>
+                Bus.Publish<MessageFailedRepeatedly>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
                     m.EndpointId = message.FailingEndpointId;
@@ -64,7 +63,7 @@
             }
         }
 
-        public void Handle(RequestRetry message)
+        public void Handle(RetryMessage message)
         {
             //do not allow retries if we have other retries in progress
             if (Data.RetryAttempts.Any(a => !a.Completed))
@@ -91,7 +90,7 @@
 
         }
 
-        public void Handle(RegisterSuccesfulRetry message)
+        public void Handle(RegisterSuccessfulRetry message)
         {
             if (Data.Resolved)
             {
@@ -149,13 +148,11 @@
             ConfigureMapping<ImportFailedMessage>(m => m.UniqueMessageId)
                 .ToSaga(s => s.FailedMessageId);
 
-            ConfigureMapping<RequestRetry>(m => m.FailedMessageId)
+            ConfigureMapping<RetryMessage>(m => m.FailedMessageId)
                .ToSaga(s => s.FailedMessageId);
 
-            ConfigureMapping<RegisterSuccesfulRetry>(m => m.FailedMessageId)
+            ConfigureMapping<RegisterSuccessfulRetry>(m => m.FailedMessageId)
             .ToSaga(s => s.FailedMessageId);
         }
-
-     
     }
 }

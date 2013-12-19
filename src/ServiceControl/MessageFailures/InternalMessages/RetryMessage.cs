@@ -3,7 +3,12 @@
     using System;
     using NServiceBus;
 
-    public class RequestRetry : ICommand
+    public class ArchiveMessage : ICommand
+    {
+        public string FailedMessageId { get; set; }
+    }
+
+    public class RetryMessage : ICommand
     {
         public string FailedMessageId { get; set; }
     }

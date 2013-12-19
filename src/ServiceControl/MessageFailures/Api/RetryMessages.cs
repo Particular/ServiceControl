@@ -23,7 +23,7 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                Bus.SendLocal<RequestRetry>(m =>
+                Bus.SendLocal<RetryMessage>(m =>
                 {
                     m.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
                     m.FailedMessageId = failedMessageId;
@@ -45,16 +45,12 @@
 
                 foreach (var id in ids)
                 {
-                  
-
-                    var request = new RequestRetry { FailedMessageId = id };
+                    var request = new RetryMessage { FailedMessageId = id };
 
                     request.SetHeader("RequestedAt", requestedAt);
 
                     Bus.SendLocal(request);    
                 }
-
-                
 
                 return HttpStatusCode.Accepted;
             };

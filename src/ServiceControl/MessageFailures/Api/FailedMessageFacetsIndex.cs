@@ -5,18 +5,21 @@
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 
-    public class FaileMessageFacetsIndex : AbstractIndexCreationTask<FailedMessage>
+    public class FailedMessageFacetsIndex : AbstractIndexCreationTask<FailedMessage>
     {
-        public FaileMessageFacetsIndex()
+        public FailedMessageFacetsIndex()
         {
             Map = failures => from failure in failures
+                where failure.Status == FailedMessageStatus.Unresolved
+                let t = ((EndpointDetails) failure.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"].Value)
                 select new
                 {
-                    ((EndpointDetails)failure.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"].Value).Name,
-                    ((EndpointDetails)failure.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"].Value).Machine,
+                    t.Name,
+                    t.Machine,
                     MessageType = failure.MostRecentAttempt.MessageMetadata["MessageType"].Value
                 };
-            Index("Name",FieldIndexing.NotAnalyzed); //to avoid lower casing
+
+            Index("Name", FieldIndexing.NotAnalyzed); //to avoid lower casing
             Index("Machine", FieldIndexing.NotAnalyzed); //to avoid lower casing
             Index("MessageType", FieldIndexing.NotAnalyzed); //to avoid lower casing
         }

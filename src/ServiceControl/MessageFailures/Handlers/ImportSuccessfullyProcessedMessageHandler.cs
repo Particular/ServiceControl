@@ -18,7 +18,7 @@
                 return;
             }
 
-            Bus.SendLocal(new RegisterSuccesfulRetry
+            Bus.SendLocal(new RegisterSuccessfulRetry
             {
                 FailedMessageId = message.UniqueMessageId,
                 RetryId = Guid.Parse(retryId)
