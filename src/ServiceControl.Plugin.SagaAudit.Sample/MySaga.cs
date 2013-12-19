@@ -1,33 +1,21 @@
-﻿using System.Threading;
-using NServiceBus;
-using NServiceBus.Logging;
+﻿using NServiceBus.Logging;
 using NServiceBus.Saga;
 
-public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MyMessage>
+public class MySaga : Saga<MySagaData>, IAmStartedByMessages<Message1>
 {
     static ILog logger = LogManager.GetLogger(typeof(MySaga));
 
 
     public override void ConfigureHowToFindSaga()
     {
-        ConfigureMapping<MyMessage>(m => m.SomeId)
+        ConfigureMapping<Message1>(m => m.SomeId)
             .ToSaga(s => s.SomeId);
     }
 
-    public void Handle(MyMessage message)
+    public void Handle(Message1 message)
     {
         logger.Info("Hello from MySaga");
-    }
-
-}
-public class MyHandler: IHandleMessages<MyMessage>
-{
-    static ILog logger = LogManager.GetLogger(typeof(MyHandler));
-
-    public void Handle(MyMessage message)
-    {
-        logger.Info("Hello from MyHandler");
-        Thread.Sleep(10000);
+        Bus.SendLocal(new Message2());
     }
 
 }

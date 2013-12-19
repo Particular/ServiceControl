@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.EndpointPlugin.SagaState
 {
     using System;
-    using System.Diagnostics;
     using System.Linq;
     using Messages.SagaState;
     using NServiceBus;
@@ -15,7 +14,6 @@
 
         public void Invoke(SendPhysicalMessageContext context, Action next)
         {
-            Debug.WriteLine("CaptureSagaResultingMessagesBehavior");
             AppendMessageToState(context);
             next();
         }

@@ -54,7 +54,9 @@
   <ItemGroup>
     <Compile Include="EndpointConfig.cs" />
     <Compile Include="MessageSender.cs" />
-    <Compile Include="MyMessage.cs" />
+    <Compile Include="MyHandler1.cs" />
+    <Compile Include="Message1.cs" />
+    <Compile Include="MyHandler2.cs" />
     <Compile Include="MySaga.cs" />
     <Compile Include="MySagaData.cs" />
   </ItemGroup>

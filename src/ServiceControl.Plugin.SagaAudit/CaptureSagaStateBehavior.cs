@@ -1,28 +1,30 @@
 ﻿namespace ServiceControl.EndpointPlugin.SagaState
 {
     using System;
-    using System.Diagnostics;
     using Messages.SagaState;
     using NServiceBus;
     using NServiceBus.Pipeline;
     using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Saga;
     using NServiceBus.Sagas;
+    using NServiceBus.Unicast.Messages;
     using Operations.ServiceControlBackend;
 
     // ReSharper disable CSharpWarnings::CS0618
     class CaptureSagaStateBehavior : IBehavior<HandlerInvocationContext>
     {
         public ServiceControlBackend ServiceControlBackend { get; set; }
-        DateTime startTime;
-        DateTime finishTime;
+        SagaUpdatedMessage sagaAudit;
 
         public void Invoke(HandlerInvocationContext context, Action next)
         {
-            Debug.WriteLine("CaptureSagaStateBehavior");
-            startTime = DateTime.UtcNow;
+            sagaAudit = new SagaUpdatedMessage
+                {
+                    StartTime = DateTime.UtcNow
+                };
+            context.ParentContext.ParentContext.Set(sagaAudit);
             next();
-            finishTime = DateTime.UtcNow;
+            sagaAudit.FinishTime = DateTime.UtcNow;
             var saga = context.MessageHandler.Instance as ISaga;
             if (saga != null)
             {
@@ -39,29 +41,34 @@
             }
             var activeSagaInstance = context.Get<ActiveSagaInstance>();
             var sagaStateString = Serializer.Serialize(saga.Entity);
-            var originatingMachine = context.LogicalMessage.Headers[Headers.OriginatingMachine];
-            var originatingEndpoint = context.LogicalMessage.Headers[Headers.OriginatingEndpoint];
-            var timeSent = context.LogicalMessage.Headers[Headers.TimeSent];
+            var headers = context.LogicalMessage.Headers;
+            var originatingMachine = headers[Headers.OriginatingMachine];
+            var originatingEndpoint = headers[Headers.OriginatingEndpoint];
+            var timeSent = headers[Headers.TimeSent];
 
-            var sagaAudit = new SagaUpdatedMessage
+            sagaAudit.Initiator = new SagaChangeInitiator
                 {
-                    SagaState = sagaStateString,
-                    StartTime = startTime,
-                    FinishTime = finishTime,
-                    SagaId = saga.Entity.Id,
-                    IsNew = activeSagaInstance.IsNew,
-                    Initiator = new SagaChangeInitiator
-                        {
-                            InitiatingMessageId = context.PhysicalMessage.Id,
-                            OriginatingMachine = originatingMachine,
-                            OriginatingEndpoint = originatingEndpoint,
-                            MessageType = context.LogicalMessage.GetType().Name,
-                            TimeSent = timeSent,
-                        },
+                    IsSagaTimeoutMessage = IsTimeoutMessage(context.LogicalMessage),
+                    InitiatingMessageId = context.PhysicalMessage.Id,
+                    OriginatingMachine = originatingMachine,
+                    OriginatingEndpoint = originatingEndpoint,
+                    MessageType = context.LogicalMessage.GetType().Name,
+                    TimeSent = timeSent,
                 };
-            context.ParentContext.ParentContext.Set(sagaAudit);
+            sagaAudit.IsNew = activeSagaInstance.IsNew;
+            sagaAudit.SagaId = saga.Entity.Id;
+            sagaAudit.SagaState = sagaStateString;
             ServiceControlBackend.Send(sagaAudit);
         }
 
+        static bool IsTimeoutMessage(LogicalMessage message)
+        {
+            string isTimeoutString;
+            if (message.Headers.TryGetValue(Headers.IsSagaTimeoutMessage, out isTimeoutString))
+            {
+                return isTimeoutString.ToLowerInvariant() == "true";
+            }
+            return false;
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace Server
 
         public void Start()
         {
-            Bus.SendLocal(new MyMessage
+            Bus.SendLocal(new Message1
                 {
                     SomeId = Guid.NewGuid()
                 });
