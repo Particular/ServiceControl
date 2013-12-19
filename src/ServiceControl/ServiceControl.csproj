@@ -320,8 +320,11 @@
     <Compile Include="MessageAuditing\ProcessedMessage.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
-    <Compile Include="Operations\BodyStorage\Api\GetBodyById.cs" />
-    <Compile Include="Operations\BodyStorage\RavenAttachmentsBodyStorage.cs" />
+    <Compile Include="Operations\BodyStorage\BodyStorageFeature.cs" />
+    <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
+    <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />
+    <Compile Include="Operations\BodyStorage\BodyStorageEnricher.cs" />
+    <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
     <Compile Include="Operations\ErrorQueueImport.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
     <Compile Include="Operations\BodyStorage\BodySearchEnricher.cs" />

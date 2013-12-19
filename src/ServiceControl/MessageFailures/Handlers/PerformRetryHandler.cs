@@ -2,11 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
-    using System.Net;
     using InternalMessages;
     using NServiceBus;
     using NServiceBus.Transports;
+    using Operations.BodyStorage;
     using ServiceBus.Management.Infrastructure.RavenDB;
 
     public class PerformRetryHandler : IHandleMessages<PerformRetry>
@@ -14,6 +15,8 @@
         public RavenUnitOfWork RavenUnitOfWork { get; set; }
 
         public ISendMessages Forwarder { get; set; }
+
+        public IBodyStorage BodyStorage { get; set; }
 
         public void Handle(PerformRetry message)
         {
@@ -33,22 +36,36 @@
 
             headersToRetryWith["ServiceControl.RetryId"] = message.RetryId.ToString();
 
-            var bodyUrl = attempt.MessageMetadata["BodyUrl"].Value;
 
-            using (var client = new WebClient())
+            using (var stream = BodyStorage.Fetch(failedMessage.Id))
             {
                 var transportMessage = new TransportMessage(failedMessage.Id, headersToRetryWith)
                 {
-                    Body = client.DownloadData(bodyUrl.ToString()),
+                    Body = ReadFully(stream),
                     CorrelationId = attempt.CorrelationId,
                     Recoverable = attempt.Recoverable,
                     MessageIntent = attempt.MessageIntent,
                     ReplyToAddress = Address.Parse(attempt.ReplyToAddress)
                 };
-                
+
                 failedMessage.Status = FailedMessageStatus.RetryIssued;
 
                 Forwarder.Send(transportMessage, message.TargetEndpointAddress);
+            }
+        }
+
+
+        static byte[] ReadFully(Stream input)
+        {
+            var buffer = new byte[16 * 1024];
+            using (var ms = new MemoryStream())
+            {
+                int read;
+                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    ms.Write(buffer, 0, read);
+                }
+                return ms.ToArray();
             }
         }
 

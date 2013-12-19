@@ -3,13 +3,12 @@
     using System.IO;
     using Contracts.Operations;
     using NServiceBus;
-    using Raven.Client;
-    using Raven.Json.Linq;
-    using ServiceBus.Management.Infrastructure.Settings;
 
-    public class RavenAttachmentsBodyStorage : ImportEnricher
+    public class BodyStorageEnricher : ImportEnricher
     {
-        public IDocumentStore DocumentStore { get; set; }
+   
+        public IBodyStorage BodyStorage { get; set; }
+
         public override void Enrich(ImportMessage message)
         {
          
@@ -25,18 +24,19 @@
                 contentType = "text/xml"; //default to xml for now
             }
 
+            var bodySize = message.PhysicalMessage.Body.Length;
+
             var bodyId = message.UniqueMessageId;
 
             using (var bodyStream = new MemoryStream(message.PhysicalMessage.Body))
             {
-                DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
-                {
-                    { "ContentType",contentType },
-                    { "ContentLength", message.PhysicalMessage.Body.Length}
-                });                
+                var bodyUrl = BodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
+                message.Add(new MessageMetadata("BodyUrl",bodyUrl));
+
             }
 
-            message.Add(new MessageMetadata("BodyUrl", string.Format("{0}messages/{1}/body",Settings.ApiUrl,bodyId)));
+            
+            message.Add(new MessageMetadata("BodySize", bodySize));
         }
     }
 }
