@@ -40,6 +40,7 @@
                 sagaStateChange.StartTime = message.StartTime;
                 sagaStateChange.StateAfterChange = message.SagaState;
                 sagaStateChange.Endpoint = message.Endpoint;
+                sagaStateChange.IsNew = message.IsNew;
                 sagaStateChange.InitiatingMessage = CreateInitiatingMessage(message.Initiator);
 
                 AddResultingMessages(message.ResultingMessages, sagaStateChange);
