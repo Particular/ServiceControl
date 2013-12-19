@@ -31,6 +31,7 @@ namespace ServiceControl.CompositeViews.Messages
                 ProcessingTime = message.MessageMetadata["ProcessingTime"].Value,
                 CriticalTime = message.MessageMetadata["CriticalTime"].Value,
                 message.Headers,
+                BodyUrl = message.MessageMetadata["BodyUrl"].Value,
                 Query = message.MessageMetadata.SelectMany(kvp => kvp.Value.SearchTokens).ToArray()
             }));
 
@@ -52,6 +53,7 @@ namespace ServiceControl.CompositeViews.Messages
                 ProcessingTime = (object) TimeSpan.Zero,
                 CriticalTime = (object) TimeSpan.Zero,
                 message.MostRecentAttempt.Headers,
+                BodyUrl = message.MostRecentAttempt.MessageMetadata["BodyUrl"].Value,
                 Query = message.MostRecentAttempt.MessageMetadata.SelectMany(kvp => kvp.Value.SearchTokens).ToArray()
             }));
 
@@ -76,6 +78,7 @@ namespace ServiceControl.CompositeViews.Messages
                     ProcessingTime = d.ProcessingTime,
                     CriticalTime = d.CriticalTime,
                     Headers = d.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value)),
+                    BodyUrl = d.BodyUrl,
                     Query = d.Query,
                 };
 

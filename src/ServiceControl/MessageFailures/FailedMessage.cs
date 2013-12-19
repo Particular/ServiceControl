@@ -37,7 +37,6 @@
             public bool Recoverable { get; set; }
             public string CorrelationId { get; set; }
             public MessageIntentEnum MessageIntent { get; set; }
-            public byte[] Body { get; set; }
         }
 
     }

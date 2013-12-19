@@ -54,47 +54,21 @@
                 RavenQueryStatistics stats;
                 var results = session.Query<Heartbeat>()
                     .Statistics(out stats)
-                    .ToArray();
+                  .ToArray();
 
                 foreach (var result in results)
                 {
-                    var newStatus = IsActive(result.LastReportAt) ? Status.Beating : Status.Dead;
-
-                    if (result.ReportedStatus == newStatus)
+                    if (result.ReportedStatus == Status.Beating && !IsActive(result.LastReportAt))
                     {
-                        continue;
-                    }
-
-                    if (result.ReportedStatus == Status.New) // New endpoint heartbeat
-                    {
-                        bus.Publish(new HeartbeatingEndpointDetected
-                        {
-                            Endpoint = result.OriginatingEndpoint.Name,
-                            Machine = result.OriginatingEndpoint.Machine,
-                            DetectedAt = result.LastReportAt,
-                        });
-                    }
-                    else if (newStatus == Status.Beating)
-                    {
-                        bus.Publish(new EndpointHeartbeatRestored
-                        {
-                            Endpoint = result.OriginatingEndpoint.Name,
-                            Machine = result.OriginatingEndpoint.Machine,
-                            RestoredAt = result.LastReportAt
-                        });
-                    }
-                    else
-                    {
+                        result.ReportedStatus = Status.Dead;
                         bus.Publish(new EndpointFailedToHeartbeat
                         {
                             Endpoint = result.OriginatingEndpoint.Name,
                             Machine = result.OriginatingEndpoint.Machine,
                             LastReceivedAt = result.LastReportAt,
                         });
+                        session.SaveChanges();
                     }
-
-                    result.ReportedStatus = newStatus;
-                    session.SaveChanges();
                 }
             }
         }
