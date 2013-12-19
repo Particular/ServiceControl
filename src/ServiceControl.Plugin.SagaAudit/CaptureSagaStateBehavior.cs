@@ -22,7 +22,7 @@
                 {
                     StartTime = DateTime.UtcNow
                 };
-            context.ParentContext.ParentContext.Set(sagaAudit);
+            context.Set(sagaAudit);
             next();
             sagaAudit.FinishTime = DateTime.UtcNow;
             var saga = context.MessageHandler.Instance as ISaga;
