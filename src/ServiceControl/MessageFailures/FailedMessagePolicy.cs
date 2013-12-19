@@ -45,7 +45,7 @@
 
             if (Data.ProcessingAttempts.Count > 1)
             {
-                Bus.Publish<MessageFailedRepetedly>(m =>
+                Bus.Publish<MessageFailedRepeatedly>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
                     m.EndpointId = message.FailingEndpointId;

@@ -9,9 +9,4 @@
         public FailureDetails FailureDetails { get; set; }
         public string FailedMessageId { get; set; }
     }
-
-
-    public class MessageFailedRepetedly : MessageFailed
-    {
-    }
 }
