@@ -1,10 +1,15 @@
-namespace ServiceControl.Operations.SagaState
+namespace ServiceControl.SagaAudit
 {
     using System;
     using System.Collections.Generic;
 
     public class SagaStateChange
     {
+        public SagaStateChange()
+        {
+            OutgoingMessages = new List<ResultingMessage>();
+        }
+
         public DateTime StartTime { get; set; }
         public DateTime FinishTime { get; set; }
         public SagaStateChangeStatus Status { get; set; }

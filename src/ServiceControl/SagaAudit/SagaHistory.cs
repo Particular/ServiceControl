@@ -1,4 +1,4 @@
-namespace ServiceControl.Operations.SagaState
+namespace ServiceControl.SagaAudit
 {
     using System;
     using System.Collections.Generic;

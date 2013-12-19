@@ -1,5 +1,5 @@
-﻿namespace ServiceControl.Operations.SagaState
-{
+﻿namespace ServiceControl.SagaAudit{
+
     using System.Collections.Generic;
     using System.Linq;
     using EndpointPlugin.Messages.SagaState;

@@ -24,6 +24,7 @@
                     AuditUrl = BaseUrl + "/audit/{?page,per_page,direction,sort}",
                     EndpointsAuditUrl = BaseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
                     EndpointsUrl = BaseUrl + "/endpoints",
+                    SagasUrl = BaseUrl + "/sagas",
                     ErrorsUrl = BaseUrl + "/errors/{?page,per_page,direction,sort}",
                     EndpointsErrorUrl = BaseUrl + "/endpoints/{name}/errors/{?page,per_page,direction,sort}",
                     MessageSearchUrl =
@@ -69,6 +70,7 @@
             public string EndpointsMessagesUrl { get; set; }
             public string Name { get; set; }
             public string Description { get; set; }
+            public string SagasUrl { get; set; }
         }
     }
 }

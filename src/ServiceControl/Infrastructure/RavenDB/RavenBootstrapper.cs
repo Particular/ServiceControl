@@ -57,8 +57,12 @@
                     });                
             }
 
+
+
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);
+
+
             Configure.Instance.RavenDBPersistence(documentStore, false);
         }
 
