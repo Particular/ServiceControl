@@ -5,6 +5,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using System.Globalization;
     using System.Linq;
     using System.Text;
+    using Raven.Abstractions.Data;
     using Raven.Client;
     using global::Nancy;
     using global::Nancy.Helpers;
@@ -123,9 +124,15 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
         public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, RavenQueryStatistics stats)
         {
-            var currentEtag = stats.IndexEtag.ToString();
+            var etag = stats.IndexEtag;
             var responseLastModified = stats.IndexTimestamp;
 
+            return WithEtagAndLastModified(negotiator, etag, responseLastModified);
+        }
+
+        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, Etag etag, DateTime responseLastModified)
+        {
+            var currentEtag = etag.ToString();
             return negotiator
                 .WithHeader("ETag", currentEtag)
                 .WithHeader("Last-Modified", responseLastModified.ToString("R"));

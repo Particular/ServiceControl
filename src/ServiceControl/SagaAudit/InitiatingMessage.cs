@@ -1,4 +1,4 @@
-namespace ServiceControl.Operations.SagaState
+namespace ServiceControl.SagaAudit
 {
 
     public class InitiatingMessage
@@ -7,8 +7,6 @@ namespace ServiceControl.Operations.SagaState
         public bool IsSagaTimeoutMessage { get; set; }
         public string OriginatingEndpoint { get; set; }
         public string OriginatingMachine { get; set; }
-        //public string ProcessingEnded { get; set; }
-        //public string ProcessingStarted { get; set; }
         public string TimeSent { get; set; }
         public string MessageType { get; set; }
     }

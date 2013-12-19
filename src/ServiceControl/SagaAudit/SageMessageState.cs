@@ -1,5 +1,5 @@
-namespace ServiceControl.Operations.SagaState
-{
+namespace ServiceControl.SagaAudit{
+
     public enum SageMessageState
     {
         Success
