@@ -71,6 +71,8 @@
             var bodyAsString = Encoding.UTF8.GetString(body);
 
             Assert.True(bodyAsString.Contains("MyMessage"), bodyAsString);
+
+            Assert.AreEqual(body.Length, auditedMessage.BodySize);
         }
 
 

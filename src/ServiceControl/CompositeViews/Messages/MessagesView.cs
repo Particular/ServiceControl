@@ -24,5 +24,6 @@ namespace ServiceControl.CompositeViews.Messages
         public MessageIntentEnum MessageIntent { get; set; }
         public string ReceivingEndpointName { get; set; }
         public string BodyUrl { get; set; }
+        public int BodySize { get; set; }
     }
 }
