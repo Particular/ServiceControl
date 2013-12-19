@@ -53,6 +53,8 @@
             var auditedMessage = response.SingleOrDefault();
 
             Assert.NotNull(auditedMessage, "No message was returned by the management api");
+
+            Assert.AreEqual(context.MessageId, auditedMessage.MessageId);
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpoint.Name,
                 "Receiving endpoint name should be parsed correctly");
             Assert.AreEqual(typeof(MyMessage).FullName, auditedMessage.MessageType,

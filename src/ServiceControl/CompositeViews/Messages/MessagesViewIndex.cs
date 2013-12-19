@@ -64,7 +64,7 @@ namespace ServiceControl.CompositeViews.Messages
                 select new MessagesView
                 {
                     Id = g.Key,
-                    MessageId = d.Id,
+                    MessageId = d.MessageId,
                     MessageType = d.MessageType,
                     MessageIntent = d.MessageIntent,
                     IsSystemMessage = d.IsSystemMessage,
