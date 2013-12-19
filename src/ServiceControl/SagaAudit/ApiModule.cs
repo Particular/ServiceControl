@@ -1,7 +1,6 @@
 namespace ServiceControl.SagaAudit
 {
     using System;
-    using System.Security.Cryptography.X509Certificates;
     using Infrastructure.Extensions;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;

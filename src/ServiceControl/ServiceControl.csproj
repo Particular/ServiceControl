@@ -342,12 +342,6 @@
   <ItemGroup>
     <EmbeddedResource Include="License.xml" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Plugin.SagaAudit\ServiceControl.Plugin.SagaAudit.csproj">
-      <Project>{97079A73-235E-4D52-A6DF-EBF3BF0F4971}</Project>
-      <Name>ServiceControl.Plugin.SagaAudit</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
