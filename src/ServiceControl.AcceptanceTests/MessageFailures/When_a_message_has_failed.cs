@@ -9,6 +9,7 @@
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
     using ServiceControl.Infrastructure;
@@ -76,7 +77,7 @@
                 .Done(c => TryGetMany("/api/messages", out response))
                 .Run();
 
-            var failure = response.Single(r => r.Headers.SingleOrDefault(kvp=>kvp.Key==Headers.MessageId).Value == context.MessageId);
+            var failure = response.Single(r => r.Headers.SingleOrDefault(kvp=>kvp.Key==Headers.MessageId).Value.ToString() == context.MessageId);
 
             Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.SendingEndpoint.Name);
@@ -90,15 +91,14 @@
         public void Should_add_an_event_log_item()
         {
             var context = new MyContext();
-            var response = new List<EventLogItem>();
+
+            EventLogItem entry = null;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => TryGetMany("/api/eventlogitems/", out response, e => e.Category == "MessageFailures"))
+                .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name))
                 .Run();
-
-            var entry = response.Single(e => e.Category == "MessageFailures");
 
             Assert.AreEqual(entry.Severity,entry.Severity, "Failures shoudl be treated as errors");
             Assert.IsTrue(entry.Description.Contains("exception"), "For failed messages, the description should contain the exception information");

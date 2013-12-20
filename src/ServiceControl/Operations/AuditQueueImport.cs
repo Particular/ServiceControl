@@ -5,13 +5,20 @@
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Persistence.Raven;
+    using NServiceBus.Pipeline;
     using NServiceBus.Satellites;
+    using NServiceBus.Unicast.Messages;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class AuditQueueImport : ISatellite
     {
-        public IBus Bus { get; set; }
         public IBuilder Builder { get; set; }
+
+#pragma warning disable 618
+        public PipelineExecutor PipelineExecutor { get; set; }
+        public LogicalMessageFactory LogicalMessageFactory { get; set; }
+
+#pragma warning restore 618
 
         public bool Handle(TransportMessage message)
         {
@@ -27,7 +34,9 @@
                     enricher.Enrich(receivedMessage);
                 }
 
-                Bus.InMemory.Raise(receivedMessage);
+                var logicalMessage = LogicalMessageFactory.Create(typeof(ImportSuccessfullyProcessedMessage),receivedMessage);
+
+                PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
 
                 sessionFactory.SaveChanges();
             }

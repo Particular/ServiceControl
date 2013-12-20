@@ -5,16 +5,23 @@
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Persistence.Raven;
+    using NServiceBus.Pipeline;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast.Messages;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class ErrorQueueImport : ISatellite
     {
-        public IBus Bus { get; set; }
         public ISendMessages Forwarder { get; set; }
 
         public IBuilder Builder { get; set; }
+
+#pragma warning disable 618
+        public PipelineExecutor PipelineExecutor { get; set; }
+        public LogicalMessageFactory LogicalMessageFactory { get; set; }
+
+#pragma warning restore 618
 
         public bool Handle(TransportMessage message)
         {
@@ -30,7 +37,11 @@
                     enricher.Enrich(errorMessageReceived);
                 }
 
-                Bus.InMemory.Raise(errorMessageReceived);
+
+
+                var logicalMessage = LogicalMessageFactory.Create(typeof(ImportFailedMessage), errorMessageReceived);
+
+                PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
 
                 Forwarder.Send(message, Settings.ErrorLogQueue);
 

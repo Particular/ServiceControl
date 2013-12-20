@@ -111,7 +111,7 @@
             {
                 appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/CreateIndexSync"), new XAttribute("value", true)));
             }
-            
+
 
             doc.Save(pathToAppConfig);
         }
@@ -167,8 +167,8 @@
             {
                 request = (HttpWebRequest)WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
             }
-            
-          
+
+
 
             request.Accept = "application/json";
 
@@ -191,7 +191,7 @@
                 return null;
             }
 
-            Console.Out.WriteLine(" - {0}", (int) response.StatusCode);
+            Console.Out.WriteLine(" - {0}", (int)response.StatusCode);
 
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
@@ -202,7 +202,7 @@
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                throw new InvalidOperationException(String.Format("Call failed: {0} - {1}", (int) response.StatusCode,
+                throw new InvalidOperationException(String.Format("Call failed: {0} - {1}", (int)response.StatusCode,
                     response.StatusDescription));
             }
 
@@ -210,13 +210,16 @@
             {
                 var serializer = JsonSerializer.Create(serializerSettings);
 
-                return serializer.Deserialize<T>( new JsonTextReader(new StreamReader(stream)));
+                return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
             }
         }
 
         protected bool TryGet<T>(string url, out T response, Predicate<T> condition = null) where T : class
         {
-            condition = _ => true;
+            if (condition == null)
+            {
+                condition = _ => true;
+            }
 
             response = Get<T>(url);
 
@@ -228,13 +231,16 @@
 
             return true;
         }
-        protected bool TryGetMany<T>(string url, out List<T> response,Predicate<T> condition = null) where T : class
+        protected bool TryGetMany<T>(string url, out List<T> response, Predicate<T> condition = null) where T : class
         {
-            condition = _ => true;
+            if (condition == null)
+            {
+                condition = _ => true;
+            }
 
             response = Get<List<T>>(url);
 
-            if (response == null || !response.Any(m=>condition(m)))
+            if (response == null || !response.Any(m => condition(m)))
             {
                 Thread.Sleep(1000);
                 return false;
@@ -243,9 +249,37 @@
             return true;
         }
 
+        protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null) where T : class
+        {
+            if (condition == null)
+            {
+                condition = _ => true;
+            }
+
+            var response = Get<List<T>>(url);
+
+            if (response != null)
+            {
+                item = response.SingleOrDefault(i => condition(i));
+            }
+            else
+            {
+                item = null;
+            }
+
+            if (item == null)
+            {
+                Thread.Sleep(1000);
+
+                return false;
+            }
+
+            return true;
+        }
+
         public void Post<T>(string url, T payload = null) where T : class
         {
-            var request = (HttpWebRequest) WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
+            var request = (HttpWebRequest)WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
 
             request.ContentType = "application/json";
             request.Method = "POST";
@@ -274,7 +308,7 @@
                 response = ex.Response as HttpWebResponse;
             }
 
-            Console.Out.WriteLine(" - {0}", (int) response.StatusCode);
+            Console.Out.WriteLine(" - {0}", (int)response.StatusCode);
 
             if (response.StatusCode != HttpStatusCode.OK && response.StatusCode != HttpStatusCode.Accepted)
             {
@@ -284,7 +318,7 @@
                     body = reader.ReadToEnd();
                 }
                 throw new InvalidOperationException(String.Format("Call failed: {0} - {1} - {2}",
-                    (int) response.StatusCode, response.StatusDescription, body));
+                    (int)response.StatusCode, response.StatusDescription, body));
             }
         }
 
