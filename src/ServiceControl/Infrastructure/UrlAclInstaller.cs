@@ -34,15 +34,15 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
 
            
             //api
-            RegisterUrlAcl(identity,  new Uri(Settings.ApiUrl));
+            RegisterUrlAcl(identity,  Settings.ApiUrl);
 
             //storage
-            RegisterUrlAcl(identity, new Uri(Settings.StorageUrl));
+            RegisterUrlAcl(identity, Settings.StorageUrl);
         }
 
-        static void RegisterUrlAcl(string identity, Uri uri)
+        static void RegisterUrlAcl(string identity, string uri)
         {
-            if (!uri.Scheme.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
+            if (!uri.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
             {
                 return;
             }
@@ -50,7 +50,7 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
             StartNetshProcess(identity, uri);
         }
 
-        static void StartNetshProcess(string identity, Uri uri, bool deleteExisting = true)
+        static void StartNetshProcess(string identity, string uri, bool deleteExisting = true)
         {
             var startInfo = GetProcessStartInfo(identity, uri);
 
@@ -107,7 +107,7 @@ The error message from running the above command is:
             }
         }
 
-        static ProcessStartInfo GetProcessStartInfo(string identity, Uri uri, bool delete = false)
+        static ProcessStartInfo GetProcessStartInfo(string identity, string uri, bool delete = false)
         {
             var arguments = string.Format(@"http {1} urlacl url={0}", uri, delete ? "delete" : "add");
 

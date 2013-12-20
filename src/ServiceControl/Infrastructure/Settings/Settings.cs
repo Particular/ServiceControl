@@ -163,7 +163,12 @@
             {
                 if (dbPath == null)
                 {
-                    var dbFolder = String.Format("{0}-{1}", Hostname, Port);
+                    var host = Hostname;
+                    if (host == "*")
+                    {
+                        host = "%";
+                    }
+                    var dbFolder = String.Format("{0}-{1}", host, Port);
 
                     if (!string.IsNullOrEmpty(VirtualDirectory))
                     {
