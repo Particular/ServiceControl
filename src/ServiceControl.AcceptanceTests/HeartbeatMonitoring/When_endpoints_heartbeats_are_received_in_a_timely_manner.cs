@@ -49,7 +49,7 @@
 
                         List<EndpointsView> endpoints;
 
-                        return TryGetMany("/api/endpoints", out endpoints, e => e.Name == "Endpoint1.Default");
+                        return TryGetMany("/api/endpoints", out endpoints, e => e.Name.Contains("Endpoint1") );
 
                     })
                 .Run(TimeSpan.FromMinutes(2));
