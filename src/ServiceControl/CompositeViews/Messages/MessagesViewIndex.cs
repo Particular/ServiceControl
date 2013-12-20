@@ -79,7 +79,9 @@ namespace ServiceControl.CompositeViews.Messages
                     TimeSent = d.TimeSent,
                     ProcessingTime = d.ProcessingTime,
                     CriticalTime = d.CriticalTime,
-                    Headers = d.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value)),
+                    //the reason the we need to use a KeyValuePair<string, object> is that raven seem to interpret the values and convert them
+                    // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
+                    Headers = d.Headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
                     BodyUrl = d.BodyUrl,
                     BodySize = d.BodySize,
                     Query = d.Query,
