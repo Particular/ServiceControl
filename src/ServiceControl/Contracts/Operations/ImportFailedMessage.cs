@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Contracts.Operations
 {
-    using System;
     using NServiceBus;
 
 

@@ -26,7 +26,7 @@ namespace ServiceControl.Contracts.Operations
                 return endpointDetails;
             }
 
-            Address address = Address.Undefined; 
+            var address = Address.Undefined; 
             DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingAddress, headers, s => address = Address.Parse(s));
 
             if (address != Address.Undefined)

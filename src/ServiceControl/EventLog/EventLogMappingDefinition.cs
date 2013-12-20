@@ -17,7 +17,7 @@
 
         public EventLogItem Apply(IEvent @event)
         {
-            T eventMessage = (T) @event;
+            var eventMessage = (T) @event;
 
             var item = new EventLogItem
             {

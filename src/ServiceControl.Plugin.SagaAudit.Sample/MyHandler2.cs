@@ -1,5 +1,4 @@
-﻿using System;
-using NServiceBus;
+﻿using NServiceBus;
 using NServiceBus.Logging;
 
 public class MyHandler2: IHandleMessages<Message2>

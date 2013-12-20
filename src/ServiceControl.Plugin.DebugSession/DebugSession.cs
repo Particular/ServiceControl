@@ -31,7 +31,7 @@
             return binPath != null ? Path.Combine(binPath, file) : file;
         }
 
-        string debugSessionFileName = null;
+        string debugSessionFileName;
         public string DebugSessionFilename
         {
             get
