@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Contracts.Operations
 {
+    using System;
     using NServiceBus;
 
 
@@ -15,6 +16,6 @@
         public string FailingEndpointId { get; set; }
 
         public FailureDetails FailureDetails { get; set; }
-
+        
     }
 }

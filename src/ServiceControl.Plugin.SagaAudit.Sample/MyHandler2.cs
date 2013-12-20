@@ -1,4 +1,5 @@
-﻿using NServiceBus;
+﻿using System;
+using NServiceBus;
 using NServiceBus.Logging;
 
 public class MyHandler2: IHandleMessages<Message2>
@@ -8,6 +9,7 @@ public class MyHandler2: IHandleMessages<Message2>
     public void Handle(Message2 message)
     {
         logger.Info("Hello from MyHandler2");
+       // throw new Exception();
     }
 
 }

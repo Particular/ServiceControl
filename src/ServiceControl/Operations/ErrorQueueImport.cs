@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;

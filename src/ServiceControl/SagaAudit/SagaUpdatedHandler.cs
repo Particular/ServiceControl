@@ -1,24 +1,22 @@
-﻿namespace ServiceControl.SagaAudit{
-
+﻿namespace ServiceControl.SagaAudit
+{
     using System.Collections.Generic;
     using System.Linq;
     using EndpointPlugin.Messages.SagaState;
-    using Infrastructure;
     using NServiceBus;
     using Raven.Client;
 
     public class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
     {
         public IDocumentStore Store { get; set; }
-        public IBus Bus { get; set; }
 
         public void Handle(SagaUpdatedMessage message)
         {
             using (var session = Store.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
-                var id = DeterministicGuid.MakeId(message.Endpoint, message.SagaId.ToString());
-                var sagaHistory = session.Load<SagaHistory>(id);
+                var id = SagaHistory.MakeId(message.Endpoint, message.SagaId);
+                var sagaHistory = session.LoadEx<SagaHistory>(id);
 
                 if (sagaHistory == null)
                 {
@@ -70,7 +68,10 @@
                 var resultingMessage = sagaStateChange.OutgoingMessages.FirstOrDefault(x => x.ResultingMessageId == toAdd.ResultingMessageId);
                 if (resultingMessage == null)
                 {
-                    resultingMessage = new ResultingMessage();
+                    resultingMessage = new ResultingMessage
+                        {
+                            ProcessingState = ProcessingState.Pending
+                        };
                     sagaStateChange.OutgoingMessages.Add(resultingMessage);
                 }
                 resultingMessage.MessageType = toAdd.MessageType;

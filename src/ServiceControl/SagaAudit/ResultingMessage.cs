@@ -10,5 +10,7 @@ namespace ServiceControl.SagaAudit
         public string ResultingMessageId { get; set; }
         public DateTime TimeSent { get; set; }
         public string MessageType { get; set; }
+        public DateTime? TimeProcessed { get; set; }
+        public ProcessingState? ProcessingState { get; set; }
     }
 }

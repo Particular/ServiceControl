@@ -33,6 +33,7 @@ namespace ServiceControl.SagaAudit
 
             Delete["/sagas/{id}"] = parameters =>
             {
+                //todo: should we store the saga id as deleted so if we get delayed message it can be ignored?
                 using (var session = Store.OpenSession())
                 {
                     var sagaHistory = session.Load<SagaHistory>(parameters.id);

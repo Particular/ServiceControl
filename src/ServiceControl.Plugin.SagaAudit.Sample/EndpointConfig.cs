@@ -4,12 +4,15 @@
     using NLog.Config;
     using NLog.Targets;
     using NServiceBus;
+    using NServiceBus.Features;
     using NServiceBus.Logging.Loggers.NLogAdapter;
 
     public class EndpointConfig: IConfigureThisEndpoint, AsA_Publisher, IWantCustomInitialization
     {
         public void Init()
         {
+            Configure.Features.Enable<Audit>();
+            Configure.Features.Disable<SecondLevelRetries>();
             ConfigureLogging();
             Configure.Serialization.Json();
             Configure.With().DefaultBuilder();
