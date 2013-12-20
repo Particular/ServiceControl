@@ -6,11 +6,6 @@ namespace ServiceControl.Contracts.Operations
 
     public class EndpointDetails
     {
-        public EndpointDetails()
-        {
-            
-        }
-
         public string Name { get; set; }
 
         public string Machine { get; set; }
