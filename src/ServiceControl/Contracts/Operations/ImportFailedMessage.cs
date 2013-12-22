@@ -15,6 +15,5 @@
         public string FailingEndpointId { get; set; }
 
         public FailureDetails FailureDetails { get; set; }
-        
     }
 }
