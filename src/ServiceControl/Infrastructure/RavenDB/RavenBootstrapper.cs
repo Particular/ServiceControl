@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
+    using System;
     using System.IO;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -22,7 +23,11 @@
                 UseEmbeddedHttpServer = true,
                 EnlistInDistributedTransactions = false
             };
-            
+
+            if (Settings.Schema.Equals("https", StringComparison.InvariantCultureIgnoreCase))
+            {
+                documentStore.Configuration.UseSsl = true;
+            }
             documentStore.Configuration.Port = Settings.Port;
             documentStore.Configuration.HostName = (Settings.Hostname == "*" || Settings.Hostname == "+") ? "localhost" : Settings.Hostname;
             documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;

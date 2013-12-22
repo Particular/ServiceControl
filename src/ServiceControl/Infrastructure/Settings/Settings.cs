@@ -21,6 +21,19 @@
             }
         }
 
+        public static string Schema
+        {
+            get
+            {
+                if (schema == null)
+                {
+                    schema = SettingsReader<string>.Read("Schema", "http");
+                }
+
+                return schema;
+            }
+        }
+
         public static string Hostname
         {
             get
@@ -58,14 +71,9 @@
                     vdir += "/";
                 }
 
-                vdir += "api";
+                vdir += "api/";
 
-                var url = string.Format("http://{0}:{1}/{2}", Hostname, Port, vdir);
-
-                if (!url.EndsWith("/"))
-                {
-                    url += "/";
-                }
+                var url = string.Format("{0}://{1}:{2}/{3}", Schema, Hostname, Port, vdir);
 
                 return url;
             }
@@ -74,8 +82,17 @@
         public static string StorageUrl
         {
             get
-            {  
-                return string.Format("http://{0}:{1}/storage/", Hostname, Port);
+            {
+                var vdir = VirtualDirectory;
+
+                if (!string.IsNullOrEmpty(vdir))
+                {
+                    vdir += "/";
+                }
+
+                vdir += "storage/";
+
+                return string.Format("{0}://{1}:{2}/{3}", Schema, Hostname, Port, vdir);
             }
         }
 
@@ -199,7 +216,7 @@
         }
 
         static int port;
-        static string hostname;
+        static string hostname, schema;
         static string virtualDirectory;
         static string dbPath;
         static Address auditQueue;
