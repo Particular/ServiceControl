@@ -56,8 +56,9 @@
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);
 
-
-            Configure.Instance.RavenDBPersistence(documentStore, false);
+            Configure.Instance.RavenDBStorage(documentStore, false)
+                .UseRavenDBSagaStorage()
+                .UseRavenDBTimeoutStorage();
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));

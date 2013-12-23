@@ -17,7 +17,7 @@ namespace ServiceControl.CompositeViews.Endpoints
                 endpoint.Machines,
                 EndpointProperties = new Dictionary<string, string> { { "monitored", "true" } }
             }));
-
+          
             AddMap<Heartbeat>(endpoints => endpoints.Select(endpoint => new
             {
                 Id = endpoint.OriginatingEndpoint.Name,
