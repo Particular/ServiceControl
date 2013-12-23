@@ -33,7 +33,7 @@ namespace ServiceControl.CompositeViews.Messages
                 message.Headers,
                 BodyUrl = message.MessageMetadata["BodyUrl"].Value,
                 BodySize = message.MessageMetadata["BodySize"].Value,
-                Query = message.MessageMetadata.SelectMany(kvp => kvp.Value.SearchTokens).ToArray()
+                Query = message.MessageMetadata.Select(kvp => kvp.Value.Value.ToString()).ToArray()
             }));
 
 
@@ -56,7 +56,7 @@ namespace ServiceControl.CompositeViews.Messages
                 message.MostRecentAttempt.Headers,
                 BodyUrl = message.MostRecentAttempt.MessageMetadata["BodyUrl"].Value,
                 BodySize = message.MostRecentAttempt.MessageMetadata["BodySize"].Value,
-                Query = message.MostRecentAttempt.MessageMetadata.SelectMany(kvp => kvp.Value.SearchTokens).ToArray()
+                Query = message.MostRecentAttempt.MessageMetadata.Select(kvp => kvp.Value.ToString()).ToArray()
             }));
 
             Reduce = results => from message in results

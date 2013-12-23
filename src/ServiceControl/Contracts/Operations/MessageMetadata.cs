@@ -2,13 +2,11 @@
 {
     public class MessageMetadata
     {
-        public string[] SearchTokens { get; set; }
         public object Value { get; set; }
         public string Name { get; set; }
 
-        public MessageMetadata(string name, object value,string[] searchTokens = null)
+        public MessageMetadata(string name, object value)
         {
-            SearchTokens = searchTokens;
             Value = value;
             Name = name;
         }

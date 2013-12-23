@@ -42,10 +42,7 @@
                 Logger.InfoFormat("Message '{0}' has a content length of {1} which is above the threshold, message body won't be searchable", message.UniqueMessageId, contentLength, MaxBodySizeToMakeSearchable);
                 return;
             }
-            message.Add(new MessageMetadata("MessageBodySearchString", null,new []
-            {
-                Encoding.UTF8.GetString(message.PhysicalMessage.Body)
-            }));
+            message.Add(new MessageMetadata("SearchableBody",Encoding.UTF8.GetString(message.PhysicalMessage.Body)));
 
         }
 
