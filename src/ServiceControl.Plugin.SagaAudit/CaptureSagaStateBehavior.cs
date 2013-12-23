@@ -1,14 +1,14 @@
-﻿namespace ServiceControl.EndpointPlugin.SagaState
+﻿namespace ServiceControl.Plugin.SagaAudit
 {
     using System;
-    using Messages.SagaState;
+    using EndpointPlugin.Messages.SagaState;
+    using EndpointPlugin.Operations.ServiceControlBackend;
     using NServiceBus;
     using NServiceBus.Pipeline;
     using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Saga;
     using NServiceBus.Sagas;
     using NServiceBus.Unicast.Messages;
-    using Operations.ServiceControlBackend;
 
     // ReSharper disable CSharpWarnings::CS0618
     class CaptureSagaStateBehavior : IBehavior<HandlerInvocationContext>
@@ -18,6 +18,14 @@
 
         public void Invoke(HandlerInvocationContext context, Action next)
         {
+            var saga = context.MessageHandler.Instance as ISaga;
+
+            if (saga == null)
+            {
+                next();
+                return;
+            }
+
             sagaAudit = new SagaUpdatedMessage
                 {
                     StartTime = DateTime.UtcNow
@@ -25,11 +33,7 @@
             context.Set(sagaAudit);
             next();
             sagaAudit.FinishTime = DateTime.UtcNow;
-            var saga = context.MessageHandler.Instance as ISaga;
-            if (saga != null)
-            {
-                AuditSaga(saga, context);
-            }
+            AuditSaga(saga, context);
         }
 
         void AuditSaga(ISaga saga, HandlerInvocationContext context)

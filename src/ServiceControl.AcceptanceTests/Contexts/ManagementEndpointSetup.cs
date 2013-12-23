@@ -16,6 +16,8 @@
             IConfigurationSource configSource)
         {
             var c = new EndpointConfig();
+
+            c.AssemblyFilter = "ServiceControl.Plugin.SagaAudit";
             c.Init();
 
             SetupLogging(endpointConfiguration);

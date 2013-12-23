@@ -49,20 +49,14 @@ namespace ServiceControl.SagaAudit
                 {
                     return;
                 }
-                var originatingEndpoint = headers[Headers.OriginatingEndpoint];
+               
+                var id = "sagahistory/" +  originatingSagaId;
 
-                var id = SagaHistory.MakeId(originatingEndpoint, originatingSagaId);
-
-                var sagaHistory = session.LoadEx<SagaHistory>(id);
-
-                if (sagaHistory == null)
+                var sagaHistory = session.Load<SagaHistory>(id) ?? new SagaHistory
                 {
-                    sagaHistory = new SagaHistory
-                        {
-                            Id = id,
-                            SagaId = originatingSagaId,
-                        };
-                }
+                    Id = id,
+                    SagaId = originatingSagaId,
+                };
 
                 var relatedTo = headers[Headers.RelatedTo];
                 var stateChange = sagaHistory.Changes.FirstOrDefault(x => x.InitiatingMessage.InitiatingMessageId == relatedTo);

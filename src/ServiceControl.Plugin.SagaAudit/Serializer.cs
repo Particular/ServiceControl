@@ -1,8 +1,7 @@
-﻿namespace ServiceControl.EndpointPlugin.SagaState
+﻿namespace ServiceControl.Plugin.SagaAudit
 {
     using System.IO;
-    using Messages.SagaState;
-    using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
+    using NServiceBus.Serializers.Binary;
     using NServiceBus.Serializers.Json;
 
     class Serializer
@@ -11,12 +10,7 @@
 
         static Serializer()
         {
-            var messageMapper = new MessageMapper();
-            messageMapper.Initialize(new[]
-                {
-                    typeof(SagaUpdatedMessage)
-                });
-            serializer = new JsonMessageSerializer(messageMapper);
+            serializer = new JsonMessageSerializer(new SimpleMessageMapper());
         }
 
         public static string Serialize(object sagaEntity)

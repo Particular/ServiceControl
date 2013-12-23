@@ -15,17 +15,13 @@
             using (var session = Store.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
-                var id = SagaHistory.MakeId(message.Endpoint, message.SagaId);
-                var sagaHistory = session.LoadEx<SagaHistory>(id);
-
-                if (sagaHistory == null)
+                var id = "sagahistory/" + message.SagaId;
+                
+                var sagaHistory = session.Load<SagaHistory>(id) ?? new SagaHistory
                 {
-                    sagaHistory = new SagaHistory
-                        {
-                            Id = id,
-                            SagaId = message.SagaId,
-                        };
-                }
+                    Id = id,
+                    SagaId = message.SagaId,
+                };
 
                 var sagaStateChange = sagaHistory.Changes.FirstOrDefault(x => x.InitiatingMessage.InitiatingMessageId == message.Initiator.InitiatingMessageId);
                 if (sagaStateChange == null)

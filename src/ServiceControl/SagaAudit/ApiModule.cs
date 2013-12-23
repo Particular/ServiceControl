@@ -17,7 +17,7 @@ namespace ServiceControl.SagaAudit
                 using (var session = Store.OpenSession())
                 {
                     Guid id = parameters.id;
-                    var sagaHistory = session.LoadEx<SagaHistory>(id);
+                    var sagaHistory = session.Load<SagaHistory>("sagahistory/" + id);
                     if (sagaHistory == null)
                     {
                         return HttpStatusCode.NotFound;
@@ -36,7 +36,7 @@ namespace ServiceControl.SagaAudit
                 //todo: should we store the saga id as deleted so if we get delayed message it can be ignored?
                 using (var session = Store.OpenSession())
                 {
-                    var sagaHistory = session.Load<SagaHistory>(parameters.id);
+                    var sagaHistory = session.Load<SagaHistory>("sagahistory/" + parameters.id);
 
                     if (sagaHistory != null)
                     {

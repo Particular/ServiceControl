@@ -1,6 +1,7 @@
 namespace Particular.ServiceControl
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
     using Autofac;
@@ -16,6 +17,8 @@ namespace Particular.ServiceControl
     {
         public static IContainer Container { get; set; }
 
+        public string AssemblyFilter { get; set; }
+
         public void Init()
         {
             ConfigureLogging();
@@ -28,15 +31,27 @@ namespace Particular.ServiceControl
             Configure.Features.Disable<Audit>();
             Configure.Features.Enable<Sagas>();
 
-            Configure.With()
-                .AutofacBuilder(Container)
-                .UseTransport(Type.GetType(transportType))
-                .UnicastBus();
+            Configure config = null;
+
+
+            if (string.IsNullOrEmpty(AssemblyFilter))
+            {
+                config = Configure.With();
+            }
+            else
+            {
+                config = Configure.With(AllAssemblies.Except(AssemblyFilter));
+            }
+            
+
+            config.AutofacBuilder(Container)
+                            .UseTransport(Type.GetType(transportType))
+                            .UnicastBus();
 
             ConfigureLicense();
 
             Feature.Disable<AutoSubscribe>();
-            
+
             Configure.Serialization.Json();
             Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
         }
@@ -80,7 +95,7 @@ namespace Particular.ServiceControl
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
             nlogConfig.AddTarget("console", consoleTarget);
-            NLogConfigurator.Configure(new object[] {fileTarget, consoleTarget}, "Info");
+            NLogConfigurator.Configure(new object[] { fileTarget, consoleTarget }, "Info");
             LogManager.Configuration = nlogConfig;
         }
     }

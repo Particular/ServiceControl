@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointPlugin.SagaState
+﻿namespace ServiceControl.Plugin.SagaAudit
 {
     using NServiceBus.Pipeline;
     using NServiceBus.Pipeline.Contexts;
