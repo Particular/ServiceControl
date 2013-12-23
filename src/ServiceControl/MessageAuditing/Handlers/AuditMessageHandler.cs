@@ -7,27 +7,12 @@
 
     class AuditMessageHandler : IHandleMessages<ImportSuccessfullyProcessedMessage>
     {
-        public IDocumentStore Store { get; set; }
-        
+        public IDocumentSession Session { get; set; }
+
         public void Handle(ImportSuccessfullyProcessedMessage message)
         {
-            using (var session = Store.OpenSession())
-            {
-                session.Advanced.UseOptimisticConcurrency = true;
-
-                var auditMessage = new ProcessedMessage(message);
-
-
-                try
-                {
-                    session.Store(auditMessage);
-                    session.SaveChanges();
-                }
-                catch (ConcurrencyException)
-                {
-                    //already stored
-                }
-            }
+            var auditMessage = new ProcessedMessage(message);
+            Session.Store(auditMessage);
         }
 
     }

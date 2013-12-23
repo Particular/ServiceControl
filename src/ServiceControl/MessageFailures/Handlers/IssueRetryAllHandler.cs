@@ -8,7 +8,7 @@
 
     public class IssueRetryAllHandler : IHandleMessages<RequestRetryAll>
     {
-        public IDocumentStore Store { get; set; }
+        public IDocumentSession Session { get; set; }
         public IBus Bus { get; set; }
 
         public void Handle(RequestRetryAll message)
@@ -17,42 +17,40 @@
             var skip = 0;
             var numberOfRequestsExecutedSoFar = 0;
 
-           
+
 
             do
             {
-                using (var session = Store.OpenSession())
+                IQueryable<FailedMessage> query = Session.Query<FailedMessage>()
+                    .Statistics(out stats);
+
+
+                if (message.Endpoint != null)
                 {
-                    IQueryable<FailedMessage> query = session.Query<FailedMessage>()
+                    query = Session.Query<FailedMessage>()
+                        .Where(fm => fm.MostRecentAttempt.FailureDetails.AddressOfFailingEndpoint.Queue == message.Endpoint)
                         .Statistics(out stats);
+                }
 
+                do
+                {
+                    var results = query
+                        .Skip(skip)
+                        .Take(1024)
+                        .ToArray();
 
-                    if (message.Endpoint != null)
+                    foreach (var result in results)
                     {
-                        query = session.Query<FailedMessage>()
-                            .Where(fm => fm.MostRecentAttempt.FailureDetails.AddressOfFailingEndpoint.Queue == message.Endpoint)
-                            .Statistics(out stats);
+                        var retryMessage = new RetryMessage { FailedMessageId = result.Id };
+                        message.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
+
+                        Bus.SendLocal(retryMessage);
                     }
 
-                    do
-                    {
-                        var results = query
-                            .Skip(skip)
-                            .Take(1024)
-                            .ToArray();
+                    skip += 1024;
+                } while (skip < stats.TotalResults &&
+                         ++numberOfRequestsExecutedSoFar < Session.Advanced.MaxNumberOfRequestsPerSession);
 
-                        foreach (var result in results)
-                        {
-                            var retryMessage = new RetryMessage { FailedMessageId = result.Id };
-                            message.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
-
-                            Bus.SendLocal(retryMessage);
-                        }
-
-                        skip += 1024;
-                    } while (skip < stats.TotalResults &&
-                             ++numberOfRequestsExecutedSoFar < session.Advanced.MaxNumberOfRequestsPerSession);
-                }
             } while (skip < stats.TotalResults);
         }
 

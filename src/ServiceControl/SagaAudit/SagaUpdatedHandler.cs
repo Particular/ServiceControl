@@ -8,40 +8,35 @@
 
     public class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
     {
-        public IDocumentStore Store { get; set; }
+        public IDocumentSession Session { get; set; }
 
         public void Handle(SagaUpdatedMessage message)
         {
-            using (var session = Store.OpenSession())
+            var id = "sagahistory/" + message.SagaId;
+
+            var sagaHistory = Session.Load<SagaHistory>(id) ?? new SagaHistory
             {
-                session.Advanced.UseOptimisticConcurrency = true;
-                var id = "sagahistory/" + message.SagaId;
-                
-                var sagaHistory = session.Load<SagaHistory>(id) ?? new SagaHistory
-                {
-                    Id = id,
-                    SagaId = message.SagaId,
-                };
+                Id = id,
+                SagaId = message.SagaId,
+            };
 
-                var sagaStateChange = sagaHistory.Changes.FirstOrDefault(x => x.InitiatingMessage.InitiatingMessageId == message.Initiator.InitiatingMessageId);
-                if (sagaStateChange == null)
-                {
-                    sagaStateChange = new SagaStateChange();
-                    sagaHistory.Changes.Add(sagaStateChange);
-                }
-
-                sagaStateChange.FinishTime = message.FinishTime;
-                sagaStateChange.StartTime = message.StartTime;
-                sagaStateChange.StateAfterChange = message.SagaState;
-                sagaStateChange.Endpoint = message.Endpoint;
-                sagaStateChange.IsNew = message.IsNew;
-                sagaStateChange.InitiatingMessage = CreateInitiatingMessage(message.Initiator);
-
-                AddResultingMessages(message.ResultingMessages, sagaStateChange);
-
-                session.Store(sagaHistory);
-                session.SaveChanges();
+            var sagaStateChange = sagaHistory.Changes.FirstOrDefault(x => x.InitiatingMessage.InitiatingMessageId == message.Initiator.InitiatingMessageId);
+            if (sagaStateChange == null)
+            {
+                sagaStateChange = new SagaStateChange();
+                sagaHistory.Changes.Add(sagaStateChange);
             }
+
+            sagaStateChange.FinishTime = message.FinishTime;
+            sagaStateChange.StartTime = message.StartTime;
+            sagaStateChange.StateAfterChange = message.SagaState;
+            sagaStateChange.Endpoint = message.Endpoint;
+            sagaStateChange.IsNew = message.IsNew;
+            sagaStateChange.InitiatingMessage = CreateInitiatingMessage(message.Initiator);
+
+            AddResultingMessages(message.ResultingMessages, sagaStateChange);
+
+            Session.Store(sagaHistory);
         }
 
         static InitiatingMessage CreateInitiatingMessage(SagaChangeInitiator initiator)

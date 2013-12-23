@@ -7,49 +7,43 @@
 
     class ImportFailedMessageHandler : IHandleMessages<ImportFailedMessage>
     {
-        public IDocumentStore DocumentStore { get; set; }
- 
+        public IDocumentSession Session { get; set; }
+
         public void Handle(ImportFailedMessage message)
         {
-            using (var session = DocumentStore.OpenSession())
+
+            var messageId = message.UniqueMessageId;
+
+            var failure = Session.Load<FailedMessage>(messageId) ?? new FailedMessage
             {
-                session.Advanced.UseOptimisticConcurrency = true;
+                Id = messageId
+            };
 
-                var messageId = message.UniqueMessageId;
+            failure.Status = FailedMessageStatus.Unresolved;
 
-                var failure = session.Load<FailedMessage>(messageId) ?? new FailedMessage
-                {
-                    Id = messageId
-                };
+            var timeOfFailure = message.FailureDetails.TimeOfFailure;
 
-                failure.Status = FailedMessageStatus.Unresolved;
-
-                var timeOfFailure = message.FailureDetails.TimeOfFailure;
-
-                //check for duplicate
-                if (failure.ProcessingAttempts.Any(a =>a.AttemptedAt == timeOfFailure))
-                {
-                    return;
-                }
-
-
-               failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
-               {
-                   AttemptedAt = timeOfFailure,
-                   FailureDetails =message.FailureDetails,
-                   MessageMetadata = message.Metadata,
-                   MessageId = message.PhysicalMessage.MessageId,
-                   Headers = message.PhysicalMessage.Headers,
-                   ReplyToAddress = message.PhysicalMessage.ReplyToAddress,
-                   Recoverable = message.PhysicalMessage.Recoverable,
-                   CorrelationId = message.PhysicalMessage.CorrelationId,
-                   MessageIntent = message.PhysicalMessage.MessageIntent,
-               });
-
-                session.Store(failure);
-
-                session.SaveChanges();
+            //check for duplicate
+            if (failure.ProcessingAttempts.Any(a => a.AttemptedAt == timeOfFailure))
+            {
+                return;
             }
+
+
+            failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
+            {
+                AttemptedAt = timeOfFailure,
+                FailureDetails = message.FailureDetails,
+                MessageMetadata = message.Metadata,
+                MessageId = message.PhysicalMessage.MessageId,
+                Headers = message.PhysicalMessage.Headers,
+                ReplyToAddress = message.PhysicalMessage.ReplyToAddress,
+                Recoverable = message.PhysicalMessage.Recoverable,
+                CorrelationId = message.PhysicalMessage.CorrelationId,
+                MessageIntent = message.PhysicalMessage.MessageIntent,
+            });
+
+            Session.Store(failure);
         }
     }
 }

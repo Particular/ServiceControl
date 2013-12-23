@@ -7,10 +7,9 @@ namespace ServiceControl.SagaAudit
     using NServiceBus;
     using Raven.Client;
 
-    public class MessageCorrelationHandler : IHandleMessages<ImportFailedMessage>,IHandleMessages<ImportSuccessfullyProcessedMessage>
+    public class MessageCorrelationHandler : IHandleMessages<ImportFailedMessage>, IHandleMessages<ImportSuccessfullyProcessedMessage>
     {
-        public IDocumentStore Store { get; set; }
-
+        public IDocumentSession Session { get; set; }
         public void Handle(ImportSuccessfullyProcessedMessage message)
         {
             var headers = message.PhysicalMessage.Headers;
@@ -40,55 +39,50 @@ namespace ServiceControl.SagaAudit
 
         void Handle(Dictionary<string, string> headers, Action<ResultingMessage> updateResultingMessage)
         {
-            using (var session = Store.OpenSession())
+
+            Guid originatingSagaId;
+            if (!IsSagaMessage(headers, out originatingSagaId))
             {
-                session.Advanced.UseOptimisticConcurrency = true;
-
-                Guid originatingSagaId;
-                if (!IsSagaMessage(headers, out originatingSagaId))
-                {
-                    return;
-                }
-               
-                var id = "sagahistory/" +  originatingSagaId;
-
-                var sagaHistory = session.Load<SagaHistory>(id) ?? new SagaHistory
-                {
-                    Id = id,
-                    SagaId = originatingSagaId,
-                };
-
-                var relatedTo = headers[Headers.RelatedTo];
-                var stateChange = sagaHistory.Changes.FirstOrDefault(x => x.InitiatingMessage.InitiatingMessageId == relatedTo);
-                if (stateChange == null)
-                {
-                    stateChange = new SagaStateChange
-                        {
-                            InitiatingMessage = new InitiatingMessage
-                                {
-                                    InitiatingMessageId = relatedTo
-                                }
-                        };
-                    sagaHistory.Changes.Add(stateChange);
-                }
-
-                var messageId = headers[Headers.MessageId];
-                var resultingMessage = stateChange.OutgoingMessages.FirstOrDefault(x => x.ResultingMessageId == messageId);
-                if (resultingMessage == null)
-                {
-                    resultingMessage = new ResultingMessage
-                        {
-                            ResultingMessageId = messageId,
-                            MessageType = headers[Headers.EnclosedMessageTypes],
-                            TimeSent = DateTimeExtensions.ToUtcDateTime(headers[Headers.TimeSent]),
-                        };
-                    stateChange.OutgoingMessages.Add(resultingMessage);
-                }
-
-                updateResultingMessage(resultingMessage);
-                session.Store(sagaHistory);
-                session.SaveChanges();
+                return;
             }
+
+            var id = "sagahistory/" + originatingSagaId;
+
+            var sagaHistory = Session.Load<SagaHistory>(id) ?? new SagaHistory
+            {
+                Id = id,
+                SagaId = originatingSagaId,
+            };
+
+            var relatedTo = headers[Headers.RelatedTo];
+            var stateChange = sagaHistory.Changes.FirstOrDefault(x => x.InitiatingMessage.InitiatingMessageId == relatedTo);
+            if (stateChange == null)
+            {
+                stateChange = new SagaStateChange
+                    {
+                        InitiatingMessage = new InitiatingMessage
+                            {
+                                InitiatingMessageId = relatedTo
+                            }
+                    };
+                sagaHistory.Changes.Add(stateChange);
+            }
+
+            var messageId = headers[Headers.MessageId];
+            var resultingMessage = stateChange.OutgoingMessages.FirstOrDefault(x => x.ResultingMessageId == messageId);
+            if (resultingMessage == null)
+            {
+                resultingMessage = new ResultingMessage
+                    {
+                        ResultingMessageId = messageId,
+                        MessageType = headers[Headers.EnclosedMessageTypes],
+                        TimeSent = DateTimeExtensions.ToUtcDateTime(headers[Headers.TimeSent]),
+                    };
+                stateChange.OutgoingMessages.Add(resultingMessage);
+            }
+
+            updateResultingMessage(resultingMessage);
+            Session.Store(sagaHistory);
         }
 
         static bool IsSagaMessage(Dictionary<string, string> headers, out Guid originatingSagaId)

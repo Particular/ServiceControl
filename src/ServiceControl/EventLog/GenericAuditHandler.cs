@@ -11,7 +11,7 @@
     public class GenericAuditHandler : IHandleMessages<IEvent>
     {
         public EventLogMappings EventLogMappings { get; set; }
-        public IDocumentStore DocumentStore { get; set; }
+        public IDocumentSession Session { get; set; }
         public IBus Bus { get; set; }
 
         public void Handle(IEvent message)
@@ -27,22 +27,18 @@
             }
             var logItem = EventLogMappings.ApplyMapping(message);
 
-            using (var session = DocumentStore.OpenSession())
-            {
-                session.Advanced.UseOptimisticConcurrency = true;
-                session.Store(logItem);
-                session.SaveChanges();
+            Session.Store(logItem);
 
-                Bus.Publish<EventLogItemAdded>(m =>
-                {
-                    m.RaisedAt = logItem.RaisedAt;
-                    m.Severity = logItem.Severity;
-                    m.Description = logItem.Description;
-                    m.Id = logItem.Id;
-                    m.Category = logItem.Category;
-                    m.RelatedTo = logItem.RelatedTo;
-                });
-            }
+            Bus.Publish<EventLogItemAdded>(m =>
+            {
+                m.RaisedAt = logItem.RaisedAt;
+                m.Severity = logItem.Severity;
+                m.Description = logItem.Description;
+                m.Id = logItem.Id;
+                m.Category = logItem.Category;
+                m.RelatedTo = logItem.RelatedTo;
+            });
+
         }
     }
 }
