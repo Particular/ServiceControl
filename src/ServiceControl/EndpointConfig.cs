@@ -61,8 +61,8 @@ namespace Particular.ServiceControl
             var fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = "${specialfolder:folder=ApplicationData}/Particular/ServiceControl/logs/logfile.txt",
-                ArchiveFileName = "${specialfolder:folder=ApplicationData}/Particular/ServiceControl/logs/log.{#}.txt",
+                FileName = Settings.LogPath + "/logfile.txt",
+                ArchiveFileName = Settings.LogPath + "/log.{#}.txt",
                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
                 MaxArchiveFiles = 14
             };

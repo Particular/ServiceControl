@@ -79,6 +79,20 @@
             }
         }
 
+        public static string LogPath
+        {
+            get
+            {
+                if (logPath == null)
+                {
+                    logPath = SettingsReader<string>.Read("LogPath",
+                        "${specialfolder:folder=ApplicationData}/Particular/ServiceControl/logs");
+                }
+
+                return logPath;
+            }
+        }
+
         public static string StorageUrl
         {
             get
@@ -216,7 +230,7 @@
         }
 
         static int port;
-        static string hostname, schema;
+        static string hostname, schema, logPath;
         static string virtualDirectory;
         static string dbPath;
         static Address auditQueue;
