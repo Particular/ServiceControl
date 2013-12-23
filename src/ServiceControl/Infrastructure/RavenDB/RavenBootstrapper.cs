@@ -8,7 +8,6 @@
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
-    using ServiceBus.Management.Infrastructure.RavenDB;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class RavenBootstrapper : INeedInitialization
@@ -54,7 +53,6 @@
             }
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
-            Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);
             Configure.Component(builder =>
             {
                 var session = builder.Build<IDocumentStore>().OpenSession();

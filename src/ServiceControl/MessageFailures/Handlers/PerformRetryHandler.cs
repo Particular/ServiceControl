@@ -6,13 +6,15 @@
     using System.Linq;
     using InternalMessages;
     using NServiceBus;
+    using NServiceBus.Persistence.Raven;
     using NServiceBus.Transports;
     using Operations.BodyStorage;
-    using ServiceBus.Management.Infrastructure.RavenDB;
+    using Raven.Client;
 
     public class PerformRetryHandler : IHandleMessages<PerformRetry>
     {
-        public RavenUnitOfWork RavenUnitOfWork { get; set; }
+        public IDocumentSession Session { get; set; }
+
 
         public ISendMessages Forwarder { get; set; }
 
@@ -20,7 +22,7 @@
 
         public void Handle(PerformRetry message)
         {
-            var failedMessage = RavenUnitOfWork.Session.Load<FailedMessage>(message.FailedMessageId);
+            var failedMessage = Session.Load<FailedMessage>(message.FailedMessageId);
 
             if (failedMessage == null)
             {

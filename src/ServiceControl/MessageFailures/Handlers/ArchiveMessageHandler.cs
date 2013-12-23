@@ -3,17 +3,18 @@
     using Contracts.MessageFailures;
     using InternalMessages;
     using NServiceBus;
-    using ServiceBus.Management.Infrastructure.RavenDB;
+    using NServiceBus.Persistence.Raven;
+    using Raven.Client;
 
     public class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>
     {
-        public RavenUnitOfWork RavenUnitOfWork { get; set; }
+        public IDocumentSession Session { get; set; }
 
         public IBus Bus { get; set; }
 
         public void Handle(ArchiveMessage message)
         {
-            var failedMessage = RavenUnitOfWork.Session.Load<FailedMessage>(message.FailedMessageId);
+            var failedMessage = Session.Load<FailedMessage>(message.FailedMessageId);
 
             if (failedMessage == null)
             {

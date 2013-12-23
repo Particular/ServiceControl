@@ -2,15 +2,15 @@
 {
     using Contracts.MessageFailures;
     using NServiceBus;
-    using ServiceBus.Management.Infrastructure.RavenDB;
+    using Raven.Client;
 
     public class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>
     {
-        public RavenUnitOfWork RavenUnitOfWork { get; set; }
+        public IDocumentSession Session { get; set; }
 
         public void Handle(MessageFailureResolvedByRetry message)
         {
-            var failedMessage = RavenUnitOfWork.Session.Load<FailedMessage>(message.FailedMessageId);
+            var failedMessage = Session.Load<FailedMessage>(message.FailedMessageId);
 
             if (failedMessage == null)
             {

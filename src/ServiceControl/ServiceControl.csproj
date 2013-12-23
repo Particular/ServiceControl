@@ -310,7 +310,6 @@
     <Compile Include="Infrastructure\Nancy\Modules\RootModule.cs" />
     <Compile Include="Infrastructure\OWIN\OwinRunner.cs" />
     <Compile Include="Infrastructure\OWIN\Startup.cs" />
-    <Compile Include="Infrastructure\RavenDB\RavenUnitOfWork.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
     <Compile Include="MessageTypes\MessageTypeEnricher.cs" />
