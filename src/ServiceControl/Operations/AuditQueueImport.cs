@@ -24,28 +24,15 @@
         {
             var receivedMessage = new ImportSuccessfullyProcessedMessage(message);
 
-         
-            var sessionFactory = Builder.Build<RavenSessionFactory>();
-
-            try
+            foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
             {
-                foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
-                {
-                    enricher.Enrich(receivedMessage);
-                }
-
-                var logicalMessage = LogicalMessageFactory.Create(typeof(ImportSuccessfullyProcessedMessage),receivedMessage);
-
-                PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
-
-                sessionFactory.SaveChanges();
+                enricher.Enrich(receivedMessage);
             }
-            finally
-            {
-                sessionFactory.ReleaseSession();
-            }
-          
-            
+
+            var logicalMessage = LogicalMessageFactory.Create(typeof(ImportSuccessfullyProcessedMessage), receivedMessage);
+
+            PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
+
             return true;
         }
 
@@ -68,7 +55,7 @@
             get { return InputAddress == Address.Undefined; }
         }
 
-      
+
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(AuditQueueImport));
     }

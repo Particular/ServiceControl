@@ -249,6 +249,7 @@
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
+    <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageFacetsIndex.cs" />
     <Compile Include="MessageFailures\Api\SetupFailedMessagesFacets.cs" />

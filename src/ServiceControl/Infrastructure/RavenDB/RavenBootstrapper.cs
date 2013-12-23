@@ -55,8 +55,17 @@
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);
+            Configure.Component(builder =>
+            {
+                var session = builder.Build<IDocumentStore>().OpenSession();
 
-            Configure.Instance.RavenDBStorage(documentStore, false)
+                session.Advanced.UseOptimisticConcurrency = true;
+
+                return session;
+            },DependencyLifecycle.InstancePerUnitOfWork);
+
+            Configure.Instance.RavenDBStorageWithSelfManagedSession(documentStore, false,
+                ()=>Configure.Instance.Builder.Build<IDocumentSession>())
                 .UseRavenDBSagaStorage()
                 .UseRavenDBTimeoutStorage();
         }

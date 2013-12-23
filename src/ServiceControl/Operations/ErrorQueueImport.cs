@@ -27,30 +27,16 @@
         {
             var errorMessageReceived = new ImportFailedMessage(message);
 
-
-            var sessionFactory = Builder.Build<RavenSessionFactory>();
-
-            try
+            foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
             {
-                foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
-                {
-                    enricher.Enrich(errorMessageReceived);
-                }
-
-
-
-                var logicalMessage = LogicalMessageFactory.Create(typeof(ImportFailedMessage), errorMessageReceived);
-
-                PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
-
-                Forwarder.Send(message, Settings.ErrorLogQueue);
-
-                sessionFactory.SaveChanges();
+                enricher.Enrich(errorMessageReceived);
             }
-            finally
-            {
-                sessionFactory.ReleaseSession();
-            }
+
+            var logicalMessage = LogicalMessageFactory.Create(typeof(ImportFailedMessage), errorMessageReceived);
+
+            PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
+
+            Forwarder.Send(message, Settings.ErrorLogQueue);
 
             return true;
         }
