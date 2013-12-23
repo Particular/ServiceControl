@@ -11,24 +11,26 @@ namespace ServiceControl.CompositeViews.Messages
     {
         public GetMessagesByQuery()
         {
+            Get["/messages/search"] = _ =>
+            {
+                string keyword = Request.Query.q;
+
+                return SearchByKeyword(keyword);
+            };
+
             Get["/messages/search/{keyword}"] = parameters =>
             {
                 string keyword = parameters.keyword;
 
-                using (var session = Store.OpenSession())
-                {
-                    RavenQueryStatistics stats;
-                    var results = session.Query<MessagesView, MessagesViewIndex>()
-                        .Statistics(out stats)
-                        .Search(s => s.Query, keyword)
-                        .Sort(Request)
-                        .Paging(Request)
-                        .ToArray();
+                return SearchByKeyword(keyword);
+            };
 
-                    return Negotiate.WithModel(results)
-                        .WithPagingLinksAndTotalCount(stats, Request)
-                        .WithEtagAndLastModified(stats);
-                }
+            Get["/endpoints/{name}/messages/search"] = parameters =>
+            {
+                string keyword = Request.Query.q;
+                string name = parameters.name;
+
+                return SearchByKeyword(keyword, name);
             };
 
             Get["/endpoints/{name}/messages/search/{keyword}"] = parameters =>
@@ -36,23 +38,45 @@ namespace ServiceControl.CompositeViews.Messages
                 string keyword = parameters.keyword;
                 string name = parameters.name;
 
-                using (var session = Store.OpenSession())
-                {
-                    RavenQueryStatistics stats;
-                    var results = session.Query<MessagesView, MessagesViewIndex>()
-                        .Statistics(out stats)
-                        .Search(s => s.Query, keyword)
-                        .Where(m => m.ReceivingEndpointName == name)
-                        .Sort(Request)
-                        .Paging(Request)
-                        .ToArray();
-
-                    return Negotiate.WithModel(results)
-                        .WithPagingLinksAndTotalCount(stats, Request)
-                        .WithEtagAndLastModified(stats);
-                }
+                return SearchByKeyword(keyword, name);
             };
         }
 
+        dynamic SearchByKeyword(string keyword, string name)
+        {
+            using (var session = Store.OpenSession())
+            {
+                RavenQueryStatistics stats;
+                var results = session.Query<MessagesView, MessagesViewIndex>()
+                    .Statistics(out stats)
+                    .Search(s => s.Query, keyword)
+                    .Where(m => m.ReceivingEndpointName == name)
+                    .Sort(Request)
+                    .Paging(Request)
+                    .ToArray();
+
+                return Negotiate.WithModel(results)
+                    .WithPagingLinksAndTotalCount(stats, Request)
+                    .WithEtagAndLastModified(stats);
+            }
+        }
+
+        dynamic SearchByKeyword(string keyword)
+        {
+            using (var session = Store.OpenSession())
+            {
+                RavenQueryStatistics stats;
+                var results = session.Query<MessagesView, MessagesViewIndex>()
+                    .Statistics(out stats)
+                    .Search(s => s.Query, keyword)
+                    .Sort(Request)
+                    .Paging(Request)
+                    .ToArray();
+
+                return Negotiate.WithModel(results)
+                    .WithPagingLinksAndTotalCount(stats, Request)
+                    .WithEtagAndLastModified(stats);
+            }
+        }
     }
 }
