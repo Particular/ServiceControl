@@ -1,4 +1,4 @@
-ServiceBus.Management
+ServiceControl
 =====================
 
 Management extension to ServiceBus
