@@ -66,11 +66,6 @@
                 }
 
                 throw new InvalidOperationException("No session available");
-                //session = builder.Build<IDocumentStore>().OpenSession();
-
-                //session.Advanced.UseOptimisticConcurrency = true;
-               
-                //return session;
             },DependencyLifecycle.InstancePerCall);
 
             Configure.Instance.RavenDBStorageWithSelfManagedSession(documentStore, false,
