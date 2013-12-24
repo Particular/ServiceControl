@@ -92,6 +92,7 @@
   <ItemGroup>
     <Compile Include="DebugSessions\When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
     <Compile Include="HeartbeatMonitoring\When_endpoints_heartbeats_are_received_in_a_timely_manner.cs" />
+    <Compile Include="MessageFailures\ErrorImportPerformanceTests.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_is_successful.cs" />
     <Compile Include="AcceptanceTest.cs" />
