@@ -4,7 +4,6 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
-    using NServiceBus.Persistence.Raven;
     using NServiceBus.Pipeline;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
@@ -27,15 +26,20 @@
         {
             var errorMessageReceived = new ImportFailedMessage(message);
 
-            foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
-            {
-                enricher.Enrich(errorMessageReceived);
-            }
-
             var logicalMessage = LogicalMessageFactory.Create(typeof(ImportFailedMessage), errorMessageReceived);
 
-            PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
-
+            using (var childBuilder = Builder.CreateChildBuilder())
+            {
+                PipelineExecutor.CurrentContext.Set(childBuilder);
+                
+                foreach (var enricher in childBuilder.BuildAll<IEnrichImportedMessages>())
+                {
+                    enricher.Enrich(errorMessageReceived);
+                }
+                
+                PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
+            }
+         
             Forwarder.Send(message, Settings.ErrorLogQueue);
 
             return true;

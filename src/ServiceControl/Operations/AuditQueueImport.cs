@@ -24,14 +24,19 @@
         {
             var receivedMessage = new ImportSuccessfullyProcessedMessage(message);
 
-            foreach (var enricher in Builder.BuildAll<IEnrichImportedMessages>())
+            using (var childBuilder = Builder.CreateChildBuilder())
             {
-                enricher.Enrich(receivedMessage);
+                PipelineExecutor.CurrentContext.Set(childBuilder);
+
+                foreach (var enricher in childBuilder.BuildAll<IEnrichImportedMessages>())
+                {
+                    enricher.Enrich(receivedMessage);
+                }
+
+                var logicalMessage = LogicalMessageFactory.Create(typeof(ImportSuccessfullyProcessedMessage), receivedMessage);
+
+                PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
             }
-
-            var logicalMessage = LogicalMessageFactory.Create(typeof(ImportSuccessfullyProcessedMessage), receivedMessage);
-
-            PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
 
             return true;
         }

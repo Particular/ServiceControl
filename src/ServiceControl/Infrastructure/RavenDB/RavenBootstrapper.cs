@@ -4,6 +4,7 @@
     using System.IO;
     using NServiceBus;
     using NServiceBus.Logging;
+    using NServiceBus.Pipeline;
     using NServiceBus.RavenDB;
     using Raven.Client;
     using Raven.Client.Embedded;
@@ -55,12 +56,22 @@
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component(builder =>
             {
-                var session = builder.Build<IDocumentStore>().OpenSession();
+                var context = builder.Build<PipelineExecutor>().CurrentContext;
 
-                session.Advanced.UseOptimisticConcurrency = true;
+                IDocumentSession session;
 
-                return session;
-            },DependencyLifecycle.InstancePerUnitOfWork);
+                if (context.TryGet(out session))
+                {
+                    return session;
+                }
+
+                throw new InvalidOperationException("No session available");
+                //session = builder.Build<IDocumentStore>().OpenSession();
+
+                //session.Advanced.UseOptimisticConcurrency = true;
+               
+                //return session;
+            },DependencyLifecycle.InstancePerCall);
 
             Configure.Instance.RavenDBStorageWithSelfManagedSession(documentStore, false,
                 ()=>Configure.Instance.Builder.Build<IDocumentSession>())

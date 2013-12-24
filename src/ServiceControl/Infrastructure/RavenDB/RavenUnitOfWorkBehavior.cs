@@ -11,10 +11,16 @@
 #pragma warning disable 618
     class RavenUnitOfWorkBehavior : IBehavior<ReceiveLogicalMessageContext>
     {
+        public IDocumentStore Store { get; set; }
+
         public void Invoke(ReceiveLogicalMessageContext context, Action next)
         {
-            using (var session = context.Builder.Build<IDocumentSession>())
+            using (var session = Store.OpenSession())
             {
+                session.Advanced.UseOptimisticConcurrency = true;
+                
+                context.Set(session);
+
                 next();
 
                 session.SaveChanges();
@@ -25,7 +31,7 @@
     {
        public override void Override(BehaviorList<ReceiveLogicalMessageContext> behaviorList)
        {
-           behaviorList.Add<RavenUnitOfWorkBehavior>();
+           behaviorList.InnerList.Insert(0,typeof(RavenUnitOfWorkBehavior));
        }
     }
 #pragma warning restore 618

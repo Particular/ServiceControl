@@ -3,13 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Infrastructure;
 
     public class ErrorImportPerformanceTests : AcceptanceTest
     {
@@ -33,12 +33,21 @@
                 {
                     List<MessagesView> messages;
 
-                    if (!TryGetMany("/api/messages", out messages))
+                    if (!TryGetMany("/api/messages?per_page=150", out messages))
                     {
                         return false;
                     }
-                    Console.Out.WriteLine("Messages found: " + messages.Count());
-                    return messages.Count() == 100;
+
+                    var numResults = messages.Count();
+
+                    if (numResults < 100)
+                    {
+                        Console.Out.WriteLine("Messages found: " + messages.Count());
+                  
+                        Thread.Sleep(2000);
+                    }
+
+                    return messages.Count() >= 100;
                 })
                 .Run();
 
