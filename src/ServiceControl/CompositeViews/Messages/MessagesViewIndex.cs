@@ -10,7 +10,12 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 
-    public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesView>
+    public class MessagesIndex
+    {
+        public string Id { get; set; }
+        public DateTime ProcessedAt { get; set; }
+    }
+    public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesIndex>
     {
         public MessagesViewIndex()
         {
@@ -23,79 +28,40 @@ namespace ServiceControl.CompositeViews.Messages
                 IsSystemMessage = message.MessageMetadata["IsSystemMessage"],
                 Status = MessageStatus.Successful,
                 message.ProcessedAt,
-                SendingEndpoint = message.MessageMetadata["SendingEndpoint"],
-                ReceivingEndpoint = message.MessageMetadata["ReceivingEndpoint"],
-                ReceivingEndpointName = ((EndpointDetails)message.MessageMetadata["ReceivingEndpoint"]).Name,
-                ConversationId = message.MessageMetadata["ConversationId"],
-                TimeSent = message.MessageMetadata["TimeSent"],
-                ProcessingTime = message.MessageMetadata["ProcessingTime"],
-                CriticalTime = message.MessageMetadata["CriticalTime"],
-                message.Headers,
-                BodyUrl = message.MessageMetadata["BodyUrl"],
-                BodySize = message.MessageMetadata["BodySize"],
-                Query = message.MessageMetadata.Select(kvp => kvp.Value.ToString()).ToArray()
+                _ = message.MessageMetadata.Select(x => CreateField("Query", x.Value))
             }));
 
 
             AddMap<FailedMessage>(messages => messages.Select(message => new
             {
-                message.Id,
+                message.UniqueMessageId,
                 MessageId = message.MostRecentAttempt.MessageMetadata["MessageId"],
                 MessageType = message.MostRecentAttempt.MessageMetadata["MessageType"],
                 MessageIntent = message.MostRecentAttempt.MessageMetadata["MessageIntent"],
                 IsSystemMessage = message.MostRecentAttempt.MessageMetadata["IsSystemMessage"],
                 Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
                 ProcessedAt = message.MostRecentAttempt.FailureDetails.TimeOfFailure,
-                SendingEndpoint = message.MostRecentAttempt.MessageMetadata["SendingEndpoint"],
-                ReceivingEndpoint = message.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"],
-                ReceivingEndpointName = ((EndpointDetails)message.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"]).Name,
-                ConversationId = message.MostRecentAttempt.MessageMetadata["ConversationId"],
-                TimeSent = message.MostRecentAttempt.MessageMetadata["TimeSent"],
-                ProcessingTime = (object) TimeSpan.Zero,
-                CriticalTime = (object) TimeSpan.Zero,
-                message.MostRecentAttempt.Headers,
-                BodyUrl = message.MostRecentAttempt.MessageMetadata["BodyUrl"],
-                BodySize = message.MostRecentAttempt.MessageMetadata["BodySize"],
-                Query = message.MostRecentAttempt.MessageMetadata.Select(kvp => kvp.Value.ToString()).ToArray()
+                _ = message.MostRecentAttempt.MessageMetadata.Select(x => CreateField("Query", x.Value))
             }));
 
-            Reduce = results => from message in results
-                group message by message.Id
-                into g
-                let d = g.OrderByDescending(m => m.ProcessedAt).FirstOrDefault()
-                select new MessagesView
-                {
-                    Id = g.Key,
-                    MessageId = d.MessageId,
-                    MessageType = d.MessageType,
-                    MessageIntent = d.MessageIntent,
-                    IsSystemMessage = d.IsSystemMessage,
-                    Status = d.Status,
-                    ProcessedAt = d.ProcessedAt,
-                    SendingEndpoint = d.SendingEndpoint,
-                    ReceivingEndpoint = d.ReceivingEndpoint,
-                    ReceivingEndpointName = d.ReceivingEndpointName,
-                    ConversationId = d.ConversationId,
-                    TimeSent = d.TimeSent,
-                    ProcessingTime = d.ProcessingTime,
-                    CriticalTime = d.CriticalTime,
-                    //the reason the we need to use a KeyValuePair<string, object> is that raven seem to interpret the values and convert them
-                    // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
-                    Headers = d.Headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
-                    BodyUrl = d.BodyUrl,
-                    BodySize = d.BodySize,
-                    Query = d.Query,
-                };
 
-            Index(x => x.Query, FieldIndexing.Analyzed);
-            Index(x => x.CriticalTime, FieldIndexing.Default);
-            Index(x => x.ProcessingTime, FieldIndexing.Default);
+            Index("Query", FieldIndexing.Analyzed);
             Index(x => x.ProcessedAt, FieldIndexing.Default);
 
-            Sort(x => x.CriticalTime, SortOptions.Long);
-            Sort(x => x.ProcessingTime, SortOptions.Long);
-
-            Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
+            Analyze("Query", typeof(StandardAnalyzer).AssemblyQualifiedName);
         }
     }
+
+    public class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesIndex>
+    {
+        public MessagesViewTransformer()
+        {
+            TransformResults = messages => from message in messages
+                                         select new
+                                         {
+                                             message.Id
+                                         };
+        }
+    }
+  
 }
