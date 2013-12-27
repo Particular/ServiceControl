@@ -12,11 +12,12 @@
         public void Handle(ImportFailedMessage message)
         {
 
-            var messageId = message.UniqueMessageId;
+            var messageId = "FailedMessages/" + message.UniqueMessageId;
 
             var failure = Session.Load<FailedMessage>(messageId) ?? new FailedMessage
             {
-                Id = messageId
+                Id = messageId,
+                UniqueMessageId = message.UniqueMessageId
             };
 
             failure.Status = FailedMessageStatus.Unresolved;

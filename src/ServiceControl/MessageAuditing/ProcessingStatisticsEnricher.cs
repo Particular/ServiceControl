@@ -37,15 +37,23 @@
                 processingEnded = DateTimeExtensions.ToUtcDateTime(processingEndedValue);
             }
 
+            var criticalTime = TimeSpan.MinValue;
+
             if (processingEnded != DateTime.MinValue && timeSent != DateTime.MinValue)
             {
-                message.Metadata.Add("CriticalTime", processingEnded - timeSent);
+                criticalTime = processingEnded - timeSent;
             }
+            
+            message.Add("CriticalTime",criticalTime);
+
+            var processingTime = TimeSpan.MinValue;
+
             if (processingEnded != DateTime.MinValue && processingStarted != DateTime.MinValue)
             {
-                message.Metadata.Add("ProcessingTime", processingEnded - processingStarted);
+                processingTime = processingEnded - processingStarted;
             }
 
+            message.Add("ProcessingTime",processingTime);
             
         }
     }

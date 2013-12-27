@@ -10,37 +10,48 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 
-    public class MessagesIndex
+    public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesViewIndex.Result>
     {
-        public string Id { get; set; }
-        public DateTime ProcessedAt { get; set; }
-    }
-    public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesIndex>
-    {
+        public class Result
+        {
+            public string Id { get; set; }
+            public DateTime ProcessedAt { get; set; }
+            public bool IsSystemMessage { get; set; }
+        }
+        public class MergedMessage
+        {
+            public string UniqueMessageId { get; set; }
+
+            public Dictionary<string, MessageMetadata> MessageMetadata { get; set; }
+            public FailedMessage.ProcessingAttempt MostRecentAttempt { get; set; }
+        }
+
         public MessagesViewIndex()
         {
             AddMap<ProcessedMessage>(messages => messages.Select(message => new
             {
-                Id = message.UniqueMessageId,
+                message.Id,
                 MessageId = message.MessageMetadata["MessageId"],
                 MessageType = message.MessageMetadata["MessageType"],
                 MessageIntent = message.MessageMetadata["MessageIntent"],
                 IsSystemMessage = message.MessageMetadata["IsSystemMessage"],
                 Status = MessageStatus.Successful,
                 message.ProcessedAt,
+                IsSystemMessage = message.MessageMetadata["IsSystemMessage"].Value,
                 _ = message.MessageMetadata.Select(x => CreateField("Query", x.Value))
             }));
 
 
             AddMap<FailedMessage>(messages => messages.Select(message => new
             {
-                message.UniqueMessageId,
+                message.Id,
                 MessageId = message.MostRecentAttempt.MessageMetadata["MessageId"],
                 MessageType = message.MostRecentAttempt.MessageMetadata["MessageType"],
                 MessageIntent = message.MostRecentAttempt.MessageMetadata["MessageIntent"],
                 IsSystemMessage = message.MostRecentAttempt.MessageMetadata["IsSystemMessage"],
                 Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
                 ProcessedAt = message.MostRecentAttempt.FailureDetails.TimeOfFailure,
+                IsSystemMessage = message.MostRecentAttempt.MessageMetadata["IsSystemMessage"].Value,
                 _ = message.MostRecentAttempt.MessageMetadata.Select(x => CreateField("Query", x.Value))
             }));
 
@@ -52,16 +63,27 @@ namespace ServiceControl.CompositeViews.Messages
         }
     }
 
-    public class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesIndex>
+    public class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewIndex.MergedMessage>
     {
         public MessagesViewTransformer()
         {
             TransformResults = messages => from message in messages
-                                         select new
-                                         {
-                                             message.Id
-                                         };
+                                           let metadata = message.MostRecentAttempt != null ? message.MostRecentAttempt.MessageMetadata : message.MessageMetadata
+                                           select new
+                                           {
+                                               Id = message.UniqueMessageId,
+                                               IsSystemMessage = metadata["IsSystemMessage"].Value,
+                                               MessageId = metadata["MessageId"].Value,
+                                               MessageType = metadata["MessageType"].Value,
+                                               MessageIntent = metadata["MessageIntent"].Value,
+                                               SendingEndpoint = metadata["SendingEndpoint"].Value,
+                                               ReceivingEndpoint = metadata["ReceivingEndpoint"].Value,
+                                               ProcessingTime = metadata["ProcessingTime"].Value,
+                                               CriticalTime =  metadata["CriticalTime"].Value,
+                                               BodyUrl = metadata["BodyUrl"].Value,
+                                               BodySize = metadata["BodySize"].Value,
+                                               Status = message.MostRecentAttempt != null ? MessageStatus.Failed : MessageStatus.Successful
+                                           };
         }
     }
-  
 }

@@ -5,11 +5,12 @@ namespace ServiceControl.Infrastructure.Extensions
     using System.Linq.Expressions;
     using CompositeViews.Messages;
     using Nancy;
+    using Raven.Client.Linq;
 
     public static class QueryableExtensions
     {
-        public static IQueryable<MessagesView> IncludeSystemMessagesWhere(
-            this IQueryable<MessagesView> source, Request request)
+        public static IRavenQueryable<MessagesViewIndex.Result> IncludeSystemMessagesWhere(
+            this IRavenQueryable<MessagesViewIndex.Result> source, Request request)
         {
             var includeSystemMessages = false;
 

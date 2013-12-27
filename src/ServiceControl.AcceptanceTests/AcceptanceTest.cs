@@ -260,7 +260,15 @@
 
             if (response != null)
             {
-                item = response.SingleOrDefault(i => condition(i));
+                var items = response.Where(i => condition(i)).ToList();
+
+                if (items.Count() > 1)
+                {
+                    throw new InvalidOperationException("More than one matching element found");
+                }
+
+                item = items.SingleOrDefault();
+
             }
             else
             {

@@ -20,7 +20,6 @@
                     RavenQueryStatistics stats;
                     var results = session.Query<MessagesView, MessagesViewIndex>()
                         .Statistics(out stats)
-                        .IncludeSystemMessagesWhere(Request)
                         .Where(m => m.ConversationId == conversationId)
                         .Sort(Request)
                         .Paging(Request)

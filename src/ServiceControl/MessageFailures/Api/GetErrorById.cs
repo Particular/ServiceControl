@@ -14,7 +14,7 @@
 
                 using (var session = Store.OpenSession())
                 {
-                    var message = session.Load<FailedMessage>(failedMessageId);
+                    var message = session.Load<FailedMessage>("FailedMessages/" + failedMessageId);
 
                     if (message == null)
                     {

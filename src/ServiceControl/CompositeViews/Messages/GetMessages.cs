@@ -16,10 +16,10 @@ namespace ServiceControl.CompositeViews.Messages
                 using (var session = Store.OpenSession())
                 {
                     //RavenQueryStatistics stats;
-                    var results = session.Query<MessagesIndex, MessagesViewIndex>()
-                        .TransformWith<MessagesViewTransformer,MessagesView>()
+                    var results = session.Query<MessagesViewIndex.Result, MessagesViewIndex>()
+                        .IncludeSystemMessagesWhere(Request)
+                        .TransformWith<MessagesViewTransformer, MessagesView>()
                         //.Statistics(out stats)
-                        //.IncludeSystemMessagesWhere(Request)
                         //.Sort(Request)
                         //.Paging(Request)
                         .ToArray();
@@ -40,7 +40,7 @@ namespace ServiceControl.CompositeViews.Messages
                     RavenQueryStatistics stats;
                     var results = session.Query<MessagesView, MessagesViewIndex>()
                         .Statistics(out stats)
-                        .IncludeSystemMessagesWhere(Request)
+                        //.IncludeSystemMessagesWhere(Request)
                         .Where(m => m.ReceivingEndpointName == endpoint)
                         .Sort(Request)
                         .Paging(Request)

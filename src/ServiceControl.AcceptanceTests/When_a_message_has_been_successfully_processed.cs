@@ -19,7 +19,7 @@
         public void Should_be_imported_and_accessible_via_the_rest_api()
         {
             var context = new MyContext();
-            var response = new List<MessagesView>();
+            MessagesView auditedMessage = null;
             byte[] body = null;
 
             Scenario.Define(context)
@@ -32,17 +32,14 @@
                 .WithEndpoint<Receiver>()
                 .Done(c =>
                 {
-                    if (!TryGetMany("/api/messages?include_system_messages=false&sort=id", out response,m => m.MessageId == c.MessageId))
+                    if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
                     {
                         return false;
                     }
 
-                    var message = response.Single();
-           
-
                     using (var client = new WebClient())
                     {
-                        body = client.DownloadData(message.BodyUrl);
+                        body = client.DownloadData(auditedMessage.BodyUrl);
                     }
 
                     return true;
@@ -50,10 +47,7 @@
                 })
                 .Run(TimeSpan.FromSeconds(40));
 
-            var auditedMessage = response.SingleOrDefault();
-
-            Assert.NotNull(auditedMessage, "No message was returned by the management api");
-
+       
             Assert.AreEqual(context.MessageId, auditedMessage.MessageId);
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpoint.Name,
                 "Receiving endpoint name should be parsed correctly");

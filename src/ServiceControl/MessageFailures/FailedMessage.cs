@@ -26,6 +26,8 @@
             } 
         }
 
+        public string UniqueMessageId { get; set; }
+
         public class ProcessingAttempt
         {
             public Dictionary<string, object> MessageMetadata { get; set; }
