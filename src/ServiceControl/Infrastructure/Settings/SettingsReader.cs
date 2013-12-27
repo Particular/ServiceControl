@@ -46,11 +46,43 @@
             var regPath = @"SOFTWARE\ParticularSoftware\" + subkey.Replace("/", "\\");
             try
             {
-                using (var registryKey = Registry.LocalMachine.OpenSubKey(regPath))
+                if (Environment.Is64BitOperatingSystem)
                 {
-                    if (registryKey != null)
+                    var rootKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+
+                    using (var registryKey = rootKey.OpenSubKey(regPath))
                     {
-                        return (T) registryKey.GetValue(name, defaultValue);
+                        if (registryKey != null)
+                        {
+                            var value = registryKey.GetValue(name);
+
+                            if (value != null)
+                            {
+                                return (T) value;
+                            }
+                        }
+                    }
+
+                    rootKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+
+                    using (var registryKey = rootKey.OpenSubKey(regPath))
+                    {
+                        if (registryKey != null)
+                        {
+                            return (T)registryKey.GetValue(name, defaultValue);
+                        }
+                    }
+                }
+                else
+                {
+                    var rootKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default);
+
+                    using (var registryKey = rootKey.OpenSubKey(regPath))
+                    {
+                        if (registryKey != null)
+                        {
+                            return (T)registryKey.GetValue(name, defaultValue);
+                        }
                     }
                 }
             }
