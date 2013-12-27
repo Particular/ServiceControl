@@ -1,12 +1,14 @@
 ﻿namespace ServiceControl.Plugin.CustomChecks.Internal
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using EndpointPlugin.Operations.ServiceControlBackend;
     using Messages;
     using NServiceBus;
+    using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
 
     /// <summary>
@@ -21,19 +23,38 @@
         public void Start()
         {
             var cancellationToken = tokenSource.Token;
-            Builder.BuildAll<IPeriodicCheck>().ToList()
-                .ForEach(p => Task.Factory.StartNew(() =>
+            periodicChecks = Builder.BuildAll<IPeriodicCheck>().ToList();
+
+            periodicChecks.ForEach(p => Task.Factory.StartNew(() =>
                 {
                     while (!cancellationToken.IsCancellationRequested)
                     {
-                        var result = p.PerformCheck();
-                        ReportToBackend(result, p.Id, p.Category, TimeSpan.FromTicks(p.Interval.Ticks*4));
+                        CheckResult result;
+                        try
+                        {
+                            result = p.PerformCheck();
+                        }
+                        catch (Exception ex)
+                        {
+                            var reason = String.Format("'{0}' implementation failed to run.", p.GetType());
+                            result = CheckResult.Failed(reason);
+                            Logger.Error(reason, ex);
+                        }
+
+                        try
+                        {
+                            ReportToBackend(result, p.Id, p.Category, TimeSpan.FromTicks(p.Interval.Ticks*4));
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error("Failed to report periodic check to ServiceControl.", ex);
+                        }
 
                         Thread.Sleep(p.Interval);
                     }
-                }, cancellationToken));
+                }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default));
 
-            Builder.BuildAll<ICustomCheck>();
+            customChecks = Builder.BuildAll<ICustomCheck>().ToList();
         }
 
         public void Stop()
@@ -55,6 +76,9 @@
             }, ttr);
         }
 
+        static readonly ILog Logger = LogManager.GetLogger(typeof(PeriodicCheckMonitor));
         readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
+        List<ICustomCheck> customChecks;
+        List<IPeriodicCheck> periodicChecks;
     }
 }

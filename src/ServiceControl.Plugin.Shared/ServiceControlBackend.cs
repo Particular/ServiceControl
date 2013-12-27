@@ -30,8 +30,6 @@
                 TimeToBeReceived = timeToBeReceived
             };
 
-
-            
             using (var stream = new MemoryStream())
             {
                 serializer.Serialize(new[] { messageToSend }, stream);
