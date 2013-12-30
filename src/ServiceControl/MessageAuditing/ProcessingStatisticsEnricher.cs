@@ -44,7 +44,7 @@
                 criticalTime = processingEnded - timeSent;
             }
             
-            message.Add("CriticalTime",criticalTime);
+            message.Metadata.Add("CriticalTime",criticalTime);
 
             var processingTime = TimeSpan.MinValue;
 
@@ -53,7 +53,7 @@
                 processingTime = processingEnded - processingStarted;
             }
 
-            message.Add("ProcessingTime",processingTime);
+            message.Metadata.Add("ProcessingTime",processingTime);
             
         }
     }

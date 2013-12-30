@@ -15,19 +15,18 @@ namespace ServiceControl.CompositeViews.Messages
             {
                 using (var session = Store.OpenSession())
                 {
-                    //RavenQueryStatistics stats;
-                    var results = session.Query<MessagesViewIndex.Result, MessagesViewIndex>()
+                    RavenQueryStatistics stats;
+                    var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                         .IncludeSystemMessagesWhere(Request)
                         .TransformWith<MessagesViewTransformer, MessagesView>()
-                        //.Statistics(out stats)
-                        //.Sort(Request)
-                        //.Paging(Request)
+                        .Statistics(out stats)
+                        .Sort(Request)
+                        .Paging(Request)
                         .ToArray();
 
-                    return Negotiate
-                        .WithModel(results);
-                    //.WithPagingLinksAndTotalCount(stats, Request)
-                    //.WithEtagAndLastModified(stats);
+                    return Negotiate.WithModel(results)
+                                    .WithPagingLinksAndTotalCount(stats, Request)
+                                    .WithEtagAndLastModified(stats);
                 }
             };
 

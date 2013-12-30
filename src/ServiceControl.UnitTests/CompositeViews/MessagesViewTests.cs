@@ -31,18 +31,18 @@
                         Id = "1",
                     };
 
-                    processedMessage.MessageMetadata["IsSystemMessage"] = new MessageMetadata("IsSystemMessage", true);
+                    processedMessage.MessageMetadata["IsSystemMessage"] = true;
                     session.Store(processedMessage);
                     var processedMessage2 = new ProcessedMessage
                     {
                         Id = "2",
                     };
 
-                    processedMessage2.MessageMetadata["IsSystemMessage"] = new MessageMetadata("IsSystemMessage", false);
+                    processedMessage2.MessageMetadata["IsSystemMessage"] = false;
                     session.Store(processedMessage2);
                     session.SaveChanges();
 
-                    var results = session.Query<MessagesViewIndex.Result, MessagesViewIndex>()
+                    var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                         .Customize(x => x.WaitForNonStaleResults())
                         .Where(x => !x.IsSystemMessage)
                        .OfType<ProcessedMessage>()

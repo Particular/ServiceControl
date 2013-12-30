@@ -9,8 +9,8 @@ namespace ServiceControl.Infrastructure.Extensions
 
     public static class QueryableExtensions
     {
-        public static IRavenQueryable<MessagesViewIndex.Result> IncludeSystemMessagesWhere(
-            this IRavenQueryable<MessagesViewIndex.Result> source, Request request)
+        public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> IncludeSystemMessagesWhere(
+            this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, Request request)
         {
             var includeSystemMessages = false;
 

@@ -9,7 +9,7 @@
     {
         public ProcessedMessage()
         {
-           MessageMetadata = new Dictionary<string, MessageMetadata>();
+           MessageMetadata = new Dictionary<string, object>();
         }
         public ProcessedMessage(ImportSuccessfullyProcessedMessage message)
         {
