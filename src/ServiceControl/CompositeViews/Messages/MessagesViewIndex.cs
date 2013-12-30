@@ -34,6 +34,8 @@ namespace ServiceControl.CompositeViews.Messages
         {
             public string UniqueMessageId { get; set; }
 
+            public DateTime ProcessedAt { get; set; }
+
             public Dictionary<string, string> Headers { get; set; }
 
             public Dictionary<string, object> MessageMetadata { get; set; }
@@ -50,8 +52,11 @@ namespace ServiceControl.CompositeViews.Messages
                 MessageIntent = message.MessageMetadata["MessageIntent"],
                 IsSystemMessage = message.MessageMetadata["IsSystemMessage"],
                 Status = MessageStatus.Successful,
+                TimeSent = message.MessageMetadata["TimeSent"],
                 message.ProcessedAt,
-                Query = message.MessageMetadata.Select(kvp=>kvp.Value.ToString())
+                CriticalTime = message.MessageMetadata["CriticalTime"],
+                ProcessingTime = message.MessageMetadata["ProcessingTime"],
+                Query = message.MessageMetadata.Select(kvp => kvp.Value.ToString())
             }));
 
 
@@ -63,13 +68,21 @@ namespace ServiceControl.CompositeViews.Messages
                 MessageIntent = message.MostRecentAttempt.MessageMetadata["MessageIntent"],
                 IsSystemMessage = message.MostRecentAttempt.MessageMetadata["IsSystemMessage"],
                 Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
+                TimeSent = message.MostRecentAttempt.MessageMetadata["TimeSent"],
                 ProcessedAt = message.MostRecentAttempt.FailureDetails.TimeOfFailure,
+                CriticalTime = TimeSpan.Zero,
+                ProcessingTime = TimeSpan.Zero,
                 Query = message.MostRecentAttempt.MessageMetadata.Select(kvp => kvp.Value.ToString())
             }));
 
 
             Index(x=>x.Query, FieldIndexing.Analyzed);
+            Index(x => x.CriticalTime, FieldIndexing.Default);
+            Index(x => x.ProcessingTime, FieldIndexing.Default);
             Index(x => x.ProcessedAt, FieldIndexing.Default);
+
+            Sort(x => x.CriticalTime, SortOptions.Long);
+            Sort(x => x.ProcessingTime, SortOptions.Long);
 
             Analyze(x=>x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
         }
@@ -91,11 +104,13 @@ namespace ServiceControl.CompositeViews.Messages
                                                MessageIntent = metadata["MessageIntent"],
                                                SendingEndpoint = metadata["SendingEndpoint"],
                                                ReceivingEndpoint = metadata["ReceivingEndpoint"],
+                                               TimeSent = (DateTime)metadata["TimeSent"],
+                                               ProcessedAt = message.MostRecentAttempt != null ? message.MostRecentAttempt.FailureDetails.TimeOfFailure : message.ProcessedAt,
                                                ProcessingTime = metadata["ProcessingTime"],
                                                CriticalTime =  metadata["CriticalTime"],
                                                BodyUrl = metadata["BodyUrl"],
                                                BodySize = metadata["BodySize"],
-                                               //the reason the we need to use a KeyValuePair<string, object> is that raven seem to interpret the values and convert them
+                                               //the reason the we need to use a KeyValuePair<string, object> is that raven seems to interpret the values and convert them
                                                // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
                                                Headers = headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
                                                Status = message.MostRecentAttempt != null ? MessageStatus.Failed : MessageStatus.Successful

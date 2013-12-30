@@ -37,7 +37,7 @@
                 processingEnded = DateTimeExtensions.ToUtcDateTime(processingEndedValue);
             }
 
-            var criticalTime = TimeSpan.MinValue;
+            var criticalTime = TimeSpan.Zero;
 
             if (processingEnded != DateTime.MinValue && timeSent != DateTime.MinValue)
             {
@@ -46,7 +46,7 @@
             
             message.Metadata.Add("CriticalTime",criticalTime);
 
-            var processingTime = TimeSpan.MinValue;
+            var processingTime = TimeSpan.Zero;
 
             if (processingEnded != DateTime.MinValue && processingStarted != DateTime.MinValue)
             {
