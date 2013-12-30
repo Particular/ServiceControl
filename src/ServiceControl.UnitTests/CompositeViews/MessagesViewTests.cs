@@ -87,6 +87,36 @@
                   .First();
             Assert.AreEqual("2", firstByCriticalTimeDesc.Id);
         }
+        [Test]
+        public void Order_by_time_sent()
+        {
+            session.Store(new ProcessedMessage
+            {
+                Id = "1",
+                MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(20) } }
+            });
+
+            session.Store(new ProcessedMessage
+            {
+                Id = "2",
+                MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(10) } }
+            });
+            session.SaveChanges();
+
+            var firstByTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                .OrderBy(x => x.TimeSent)
+                .Customize(x => x.WaitForNonStaleResults())
+                .OfType<ProcessedMessage>()
+                .First();
+            Assert.AreEqual("2", firstByTimeSent.Id);
+
+            var firstByTimeSentDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                  .OrderByDescending(x => x.CriticalTime)
+                  .Customize(x => x.WaitForNonStaleResults())
+                  .OfType<ProcessedMessage>()
+                  .First();
+            Assert.AreEqual("1", firstByTimeSentDesc.Id);
+        }
 
 
         [TearDown]
