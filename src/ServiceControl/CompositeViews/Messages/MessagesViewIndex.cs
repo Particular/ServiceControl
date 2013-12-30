@@ -14,13 +14,27 @@ namespace ServiceControl.CompositeViews.Messages
     {
         public class SortAndFilterOptions
         {
-            public string Id { get; set; }
+            public string MessageId { get; set; }
             public DateTime ProcessedAt { get; set; }
+            public DateTime TimeSent { get; set; }
             public bool IsSystemMessage { get; set; }
+            public string MessageType { get; set; }
+
+            public TimeSpan CriticalTime { get; set; }
+
+            public TimeSpan ProcessingTime { get; set; }
+
+
+            public MessageStatus Status { get; set; }
+            public string ReceivingEndpointName { get; set; }
+            public string ConversationId { get; set; }
+            public string[] Query { get; set; }
         }
         public class Result
         {
             public string UniqueMessageId { get; set; }
+
+            public Dictionary<string, string> Headers { get; set; }
 
             public Dictionary<string, object> MessageMetadata { get; set; }
             public FailedMessage.ProcessingAttempt MostRecentAttempt { get; set; }
@@ -30,34 +44,34 @@ namespace ServiceControl.CompositeViews.Messages
         {
             AddMap<ProcessedMessage>(messages => messages.Select(message => new
             {
-                message.UniqueMessageId,
                 MessageId = message.MessageMetadata["MessageId"],
+                ConversationId = message.MessageMetadata["ConversationId"],
                 MessageType = message.MessageMetadata["MessageType"],
                 MessageIntent = message.MessageMetadata["MessageIntent"],
                 IsSystemMessage = message.MessageMetadata["IsSystemMessage"],
                 Status = MessageStatus.Successful,
                 message.ProcessedAt,
-                _ = message.MessageMetadata.Select(x => CreateField("Query", x.Value))
+                Query = message.MessageMetadata.Select(kvp=>kvp.Value.ToString())
             }));
 
 
             AddMap<FailedMessage>(messages => messages.Select(message => new
             {
-                message.UniqueMessageId,
                 MessageId = message.MostRecentAttempt.MessageMetadata["MessageId"],
+                ConversationId = message.MostRecentAttempt.MessageMetadata["ConversationId"],
                 MessageType = message.MostRecentAttempt.MessageMetadata["MessageType"],
                 MessageIntent = message.MostRecentAttempt.MessageMetadata["MessageIntent"],
                 IsSystemMessage = message.MostRecentAttempt.MessageMetadata["IsSystemMessage"],
                 Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
                 ProcessedAt = message.MostRecentAttempt.FailureDetails.TimeOfFailure,
-                _ = message.MostRecentAttempt.MessageMetadata.Select(x => CreateField("Query", x.Value))
+                Query = message.MostRecentAttempt.MessageMetadata.Select(kvp => kvp.Value.ToString())
             }));
 
 
-            Index("Query", FieldIndexing.Analyzed);
+            Index(x=>x.Query, FieldIndexing.Analyzed);
             Index(x => x.ProcessedAt, FieldIndexing.Default);
 
-            Analyze("Query", typeof(StandardAnalyzer).AssemblyQualifiedName);
+            Analyze(x=>x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
         }
     }
 
@@ -67,6 +81,7 @@ namespace ServiceControl.CompositeViews.Messages
         {
             TransformResults = messages => from message in messages
                                            let metadata = message.MostRecentAttempt != null ? message.MostRecentAttempt.MessageMetadata : message.MessageMetadata
+                                           let headers = message.MostRecentAttempt != null ? message.MostRecentAttempt.Headers : message.Headers
                                            select new
                                            {
                                                Id = message.UniqueMessageId,
@@ -80,6 +95,9 @@ namespace ServiceControl.CompositeViews.Messages
                                                CriticalTime =  metadata["CriticalTime"],
                                                BodyUrl = metadata["BodyUrl"],
                                                BodySize = metadata["BodySize"],
+                                               //the reason the we need to use a KeyValuePair<string, object> is that raven seem to interpret the values and convert them
+                                               // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
+                                               Headers = headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
                                                Status = message.MostRecentAttempt != null ? MessageStatus.Failed : MessageStatus.Successful
                                            };
         }

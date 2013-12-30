@@ -4,6 +4,7 @@
     using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
+    using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 

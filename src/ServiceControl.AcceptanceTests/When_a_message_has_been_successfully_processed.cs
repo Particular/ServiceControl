@@ -67,6 +67,8 @@
             Assert.True(bodyAsString.Contains("MyMessage"), bodyAsString);
 
             Assert.AreEqual(body.Length, auditedMessage.BodySize);
+
+            Assert.True(auditedMessage.Headers.Any(kvp=>kvp.Key == Headers.MessageId));
         }
 
 

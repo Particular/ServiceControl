@@ -27,7 +27,7 @@ namespace ServiceControl.Infrastructure.Extensions
             return source;
         }
      
-        public static IQueryable<TSource> Paging<TSource>(this IQueryable<TSource> source, Request request)
+        public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, Request request)
         {
             var maxResultsPerPage = 50;
 
@@ -55,13 +55,13 @@ namespace ServiceControl.Infrastructure.Extensions
 
             var skipResults = (page - 1)*maxResultsPerPage;
 
-            return source.Skip(skipResults)
+            return (IRavenQueryable<TSource>)source.Skip(skipResults)
                 .Take(maxResultsPerPage);
         }
 
-        public static IOrderedQueryable<TSource> Sort<TSource>(this IQueryable<TSource> source, Request request,
+        public static IRavenQueryable<TSource> Sort<TSource>(this IRavenQueryable<TSource> source, Request request,
             Expression<Func<TSource, object>> defaultKeySelector = null, string defaultSortDirection = "desc")
-            where TSource : MessagesView
+            where TSource : MessagesViewIndex.SortAndFilterOptions
         {
             var direction = defaultSortDirection;
 
