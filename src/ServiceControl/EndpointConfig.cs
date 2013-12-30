@@ -1,7 +1,6 @@
 namespace Particular.ServiceControl
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
     using Autofac;

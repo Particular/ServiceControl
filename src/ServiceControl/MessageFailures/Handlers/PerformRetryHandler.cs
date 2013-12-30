@@ -6,7 +6,6 @@
     using System.Linq;
     using InternalMessages;
     using NServiceBus;
-    using NServiceBus.Persistence.Raven;
     using NServiceBus.Transports;
     using Operations.BodyStorage;
     using Raven.Client;

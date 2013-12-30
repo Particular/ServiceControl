@@ -11,8 +11,8 @@
         {
             if (message.PhysicalMessage.Headers.ContainsKey(NServiceBus.Headers.ControlMessageHeader))
             {
-                message.Add(new MessageMetadata("IsSystemMessage", "true"));
-                message.Add(new MessageMetadata("MessageType", "SystemMessage"));
+                message.Metadata.Add("IsSystemMessage", "true");
+                message.Metadata.Add("MessageType", "SystemMessage");
             }
 
             string enclosedMessageTypes;
@@ -20,9 +20,9 @@
             if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.EnclosedMessageTypes, out enclosedMessageTypes))
             {
                 var messageType = GetMessageType(enclosedMessageTypes);
-                message.Add(new MessageMetadata("IsSystemMessage", DetectSystemMessage(messageType).ToString()));
-                message.Add(new MessageMetadata("MessageType", messageType));
-                message.Add(new MessageMetadata("SearchableMessageType", messageType.Replace("."," ").Replace("+"," ")));
+                message.Metadata.Add("IsSystemMessage", DetectSystemMessage(messageType).ToString());
+                message.Metadata.Add("MessageType", messageType);
+                message.Metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
             }
         }
 

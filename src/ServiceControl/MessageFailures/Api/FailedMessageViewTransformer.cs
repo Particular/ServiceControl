@@ -12,12 +12,12 @@
                 select new
                 {
                     failure.Id,
-                    MessageType = rec.MessageMetadata["MessageType"].Value,
-                    IsSystemMessage = rec.MessageMetadata["IsSystemMessage"].Value,
-                    SendingEndpoint = rec.MessageMetadata["SendingEndpoint"].Value,
-                    ReceivingEndpoint = rec.MessageMetadata["ReceivingEndpoint"].Value,
-                    TimeSent = rec.MessageMetadata["TimeSent"].Value,
-                    MessageId = rec.MessageMetadata["MessageId"].Value.ToString(),
+                    MessageType = rec.MessageMetadata["MessageType"],
+                    IsSystemMessage = rec.MessageMetadata["IsSystemMessage"],
+                    SendingEndpoint = rec.MessageMetadata["SendingEndpoint"],
+                    ReceivingEndpoint = rec.MessageMetadata["ReceivingEndpoint"],
+                    TimeSent = rec.MessageMetadata["TimeSent"],
+                    MessageId = rec.MessageMetadata["MessageId"].ToString(),
                     rec.FailureDetails.Exception,
                     NumberOfProcessingAttempts = failure.ProcessingAttempts.Count(),
                     failure.Status,

@@ -28,7 +28,7 @@
 
         public class ProcessingAttempt
         {
-            public Dictionary<string,MessageMetadata> MessageMetadata { get; set; }
+            public Dictionary<string, object> MessageMetadata { get; set; }
             public FailureDetails FailureDetails { get; set; }
             public DateTime AttemptedAt { get; set; }
             public string MessageId { get; set; }

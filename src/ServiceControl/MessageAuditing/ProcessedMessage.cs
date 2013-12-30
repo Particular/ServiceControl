@@ -30,7 +30,7 @@
 
         public string UniqueMessageId { get; set; }
 
-        public Dictionary<string, MessageMetadata> MessageMetadata { get; set; }
+        public Dictionary<string, object> MessageMetadata { get; set; }
 
         public Dictionary<string, string> Headers { get; set; }
          

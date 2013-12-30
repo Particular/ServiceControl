@@ -194,7 +194,6 @@
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolved.cs" />
     <Compile Include="Contracts\Operations\ImportMessage.cs" />
-    <Compile Include="Contracts\Operations\MessageMetadata.cs" />
     <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
     <Compile Include="EndpointControl\Handlers\DetectNewEndpointsFromImportedMessages.cs" />
     <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
