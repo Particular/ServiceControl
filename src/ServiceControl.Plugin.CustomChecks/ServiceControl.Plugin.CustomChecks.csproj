@@ -50,6 +50,7 @@
     </Compile>
     <Compile Include="CustomCheck.cs" />
     <Compile Include="Internal\InitializeCustomChecks.cs" />
+    <Compile Include="Internal\TimerBasedPeriodicCheck.cs" />
     <Compile Include="PeriodicCheck.cs" />
     <Compile Include="Internal\PeriodicCheckMonitor.cs" />
     <Compile Include="Internal\ICustomCheck.cs" />
