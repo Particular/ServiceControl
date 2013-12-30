@@ -13,7 +13,6 @@
     {
         public RetryMessages()
         {
-
             Post["/errors/{messageid}/retry"] = parameters =>
             {
                 var failedMessageId = parameters.MessageId;

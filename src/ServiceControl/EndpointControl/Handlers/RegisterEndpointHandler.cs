@@ -13,7 +13,6 @@
 
         public void Handle(RegisterEndpoint message)
         {
-
             var name = message.Endpoint.Name;
 
             var knownEndpoint = Session.Load<KnownEndpoint>(name) ?? new KnownEndpoint { Id = name };
@@ -31,7 +30,6 @@
                 });
             }
             knownEndpoint.Name = name;
-
 
             if (!knownEndpoint.Machines.Contains(machine))
             {
