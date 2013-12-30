@@ -2,7 +2,6 @@
 {
     using Contracts.Operations;
     using NServiceBus;
-    using Raven.Abstractions.Exceptions;
     using Raven.Client;
 
     class AuditMessageHandler : IHandleMessages<ImportSuccessfullyProcessedMessage>

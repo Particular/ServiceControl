@@ -13,13 +13,14 @@
             
             PhysicalMessage = new PhysicalMessage(message);
         
-            Metadata = new Dictionary<string, MessageMetadata>();
+            Metadata = new Dictionary<string, object>
+            {
+                {"MessageId", message.Id},
+                {"MessageIntent", message.MessageIntent},
+                {"HeadersForSearching", message.Headers.Select(kvp => kvp.Value).ToArray()}
+            };
 
             //add basic message metadata
-            Metadata.Add("MessageId",new MessageMetadata("MessageId",message.Id));
-            Metadata.Add("MessageIntent", new MessageMetadata("MessageIntent",message.MessageIntent));
-            Metadata.Add("HeadersForSearching", new MessageMetadata("HeadersForSearching", 
-                message.Headers.Select(kvp => kvp.Value).ToArray()));
         }
 
         public string UniqueMessageId { get; set; }
@@ -27,11 +28,6 @@
 
         public PhysicalMessage PhysicalMessage { get; set; }
 
-        public Dictionary<string, MessageMetadata> Metadata { get; set; }
-
-        public void Add(MessageMetadata metadata)
-        {
-            Metadata[metadata.Name] = metadata;
-        }
+        public Dictionary<string, object> Metadata { get; set; }
     }
 }

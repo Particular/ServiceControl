@@ -24,8 +24,8 @@
             }
 
 
-            message.Add(new MessageMetadata("ContentLength", contentLength));
-            message.Add(new MessageMetadata("ContentType", contentType));
+            message.Metadata.Add("ContentLength", contentLength);
+            message.Metadata.Add("ContentType", contentType);
 
             if (contentLength == 0)
             {
@@ -42,7 +42,7 @@
                 Logger.InfoFormat("Message '{0}' has a content length of {1} which is above the threshold, message body won't be searchable", message.UniqueMessageId, contentLength, MaxBodySizeToMakeSearchable);
                 return;
             }
-            message.Add(new MessageMetadata("SearchableBody",Encoding.UTF8.GetString(message.PhysicalMessage.Body)));
+            message.Metadata.Add("SearchableBody",Encoding.UTF8.GetString(message.PhysicalMessage.Body));
 
         }
 

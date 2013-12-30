@@ -4,7 +4,6 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
-    using NServiceBus.Persistence.Raven;
     using NServiceBus.Pipeline;
     using NServiceBus.Satellites;
     using NServiceBus.Unicast.Messages;

@@ -31,12 +31,11 @@
             using (var bodyStream = new MemoryStream(message.PhysicalMessage.Body))
             {
                 var bodyUrl = BodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
-                message.Add(new MessageMetadata("BodyUrl",bodyUrl));
+                message.Metadata.Add("BodyUrl",bodyUrl);
 
             }
 
-            
-            message.Add(new MessageMetadata("BodySize", bodySize));
+            message.Metadata.Add("BodySize", bodySize);
         }
     }
 }

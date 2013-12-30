@@ -3,7 +3,6 @@
     using Contracts.MessageFailures;
     using InternalMessages;
     using NServiceBus;
-    using NServiceBus.Persistence.Raven;
     using Raven.Client;
 
     public class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>

@@ -4,7 +4,6 @@
 
     public class KnownEndpoint
     {
-
         public KnownEndpoint()
         {
             Machines = new List<string>();

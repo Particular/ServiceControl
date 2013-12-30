@@ -11,14 +11,14 @@
 
             if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.ConversationId, out conversationId))
             {
-                message.Add(new MessageMetadata("ConversationId", conversationId));
+                message.Metadata.Add("ConversationId", conversationId);
             }
 
             string relatedToId;
 
             if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.RelatedTo, out relatedToId))
             {
-                message.Add(new MessageMetadata("RelatedToId", relatedToId));
+                message.Metadata.Add("RelatedToId", relatedToId);
             }
         }
     }
