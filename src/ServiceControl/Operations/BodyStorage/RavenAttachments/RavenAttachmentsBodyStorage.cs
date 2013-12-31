@@ -4,7 +4,6 @@
     using System.IO;
     using Raven.Client;
     using Raven.Json.Linq;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     public class RavenAttachmentsBodyStorage : IBodyStorage
     {

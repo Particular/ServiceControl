@@ -1,8 +1,8 @@
 namespace ServiceControl.CompositeViews.Endpoints
 {
-    using System.Linq;
+    using System.Collections.Generic;
     using Nancy;
-    using Raven.Client;
+    using Raven.Abstractions.Data;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
@@ -14,13 +14,20 @@ namespace ServiceControl.CompositeViews.Endpoints
             {
                 using (var session = Store.OpenSession())
                 {
-                    RavenQueryStatistics stats;
+                    QueryHeaderInformation stats;
 
-                    var endpoints = session.Query<EndpointsView, EndpointsViewIndex>()
-                        .Statistics(out stats)
-                        .ToArray();
+                    var query = session.Query<EndpointsView, EndpointsViewIndex>();
+                    var results = new List<EndpointsView>();
+                    
+                    using (var ie = session.Advanced.Stream(query, out stats))
+                    {
+                        while (ie.MoveNext())
+                        {
+                            results.Add(ie.Current.Document);
+                        }
+                    }
 
-                    return Negotiate.WithModel(endpoints)
+                    return Negotiate.WithModel(results)
                         .WithEtagAndLastModified(stats);
                 }
             };

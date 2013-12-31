@@ -122,6 +122,14 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             links.Add(String.Format("<{0}>; rel=\"{1}\"", url, rel));
         }
 
+        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, QueryHeaderInformation stats)
+        {
+            var etag = stats.IndexEtag;
+            var responseLastModified = stats.IndexTimestamp;
+
+            return WithEtagAndLastModified(negotiator, etag, responseLastModified);
+        }
+
         public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, RavenQueryStatistics stats)
         {
             var etag = stats.IndexEtag;
