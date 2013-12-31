@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Text;
     using Contexts;
     using NServiceBus;
@@ -37,10 +36,7 @@
                         return false;
                     }
 
-                    using (var client = new WebClient())
-                    {
-                        body = client.DownloadData(auditedMessage.BodyUrl);
-                    }
+                    body = DownloadData(auditedMessage.BodyUrl);
 
                     return true;
 
@@ -61,7 +57,7 @@
             Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
             Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
             Assert.AreEqual(MessageIntentEnum.Send, auditedMessage.MessageIntent, "Message intent should be set");
-            Assert.True(new Uri(auditedMessage.BodyUrl).IsAbsoluteUri,auditedMessage.BodyUrl);
+            Assert.False(new Uri(auditedMessage.BodyUrl).IsAbsoluteUri, auditedMessage.BodyUrl);
 
             var bodyAsString = Encoding.UTF8.GetString(body);
 
@@ -71,7 +67,6 @@
 
             Assert.True(auditedMessage.Headers.Any(kvp=>kvp.Key == Headers.MessageId));
         }
-
 
         [Test]
         public void Should_be_found_in_search_by_messagetype()

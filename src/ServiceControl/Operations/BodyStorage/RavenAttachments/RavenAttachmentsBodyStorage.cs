@@ -18,7 +18,7 @@
                     { "ContentLength",bodySize}
                 });
 
-            return string.Format("{0}messages/{1}/body", Settings.ApiUrl, bodyId);
+            return string.Format("/messages/{0}/body", bodyId);
         }
 
         public Stream Fetch(string bodyId)

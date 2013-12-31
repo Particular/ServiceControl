@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
+    using System;
     using Contracts.MessageFailures;
     using NServiceBus;
     using Raven.Client;
@@ -10,7 +11,7 @@
 
         public void Handle(MessageFailureResolvedByRetry message)
         {
-            var failedMessage = Session.Load<FailedMessage>(message.FailedMessageId);
+            var failedMessage = Session.Load<FailedMessage>(new Guid(message.FailedMessageId));
 
             if (failedMessage == null)
             {

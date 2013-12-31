@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
+    using System;
     using Contracts.MessageFailures;
     using InternalMessages;
     using NServiceBus;
@@ -13,7 +14,7 @@
 
         public void Handle(ArchiveMessage message)
         {
-            var failedMessage = Session.Load<FailedMessage>(message.FailedMessageId);
+            var failedMessage = Session.Load<FailedMessage>(new Guid(message.FailedMessageId));
 
             if (failedMessage == null)
             {

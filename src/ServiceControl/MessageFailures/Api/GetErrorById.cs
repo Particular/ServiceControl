@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
+    using System;
     using Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class GetErrorById : BaseModule
     {
-
         public GetErrorById()
         {
             Get["/errors/{id}"] = parameters =>
@@ -14,7 +14,7 @@
 
                 using (var session = Store.OpenSession())
                 {
-                    var message = session.Load<FailedMessage>("FailedMessages/" + failedMessageId);
+                    var message = session.Load<FailedMessage>(new Guid(failedMessageId));
 
                     if (message == null)
                     {

@@ -11,7 +11,7 @@
                 let rec = failure.MostRecentAttempt
                 select new
                 {
-                    failure.Id,
+                    Id = failure.UniqueMessageId,
                     MessageType = rec.MessageMetadata["MessageType"],
                     IsSystemMessage = rec.MessageMetadata["IsSystemMessage"],
                     SendingEndpoint = rec.MessageMetadata["SendingEndpoint"],

@@ -11,7 +11,6 @@
 
         public void Handle(ImportFailedMessage message)
         {
-
             var messageId = "FailedMessages/" + message.UniqueMessageId;
 
             var failure = Session.Load<FailedMessage>(messageId) ?? new FailedMessage

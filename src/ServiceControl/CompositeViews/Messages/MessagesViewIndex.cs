@@ -71,7 +71,6 @@ namespace ServiceControl.CompositeViews.Messages
                 Query = message.MostRecentAttempt.MessageMetadata.Select(kvp => kvp.Value.ToString())
             }));
 
-
             Index(x => x.Query, FieldIndexing.Analyzed);
             Index(x => x.CriticalTime, FieldIndexing.Default);
             Index(x => x.ProcessingTime, FieldIndexing.Default);

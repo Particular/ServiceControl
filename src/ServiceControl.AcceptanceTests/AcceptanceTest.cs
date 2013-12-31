@@ -249,6 +249,14 @@
             return true;
         }
 
+        protected byte[] DownloadData(string url)
+        {
+            using (var client = new WebClient())
+            {
+                return client.DownloadData(string.Format("http://localhost:{0}{1}", port, url));
+            }
+        }
+
         protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null) where T : class
         {
             if (condition == null)
