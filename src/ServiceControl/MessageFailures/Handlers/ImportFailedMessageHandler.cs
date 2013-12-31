@@ -30,7 +30,6 @@
                 return;
             }
 
-
             failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
             {
                 AttemptedAt = timeOfFailure,

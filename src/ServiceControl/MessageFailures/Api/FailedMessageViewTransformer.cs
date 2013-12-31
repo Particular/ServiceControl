@@ -17,7 +17,7 @@
                     SendingEndpoint = rec.MessageMetadata["SendingEndpoint"],
                     ReceivingEndpoint = rec.MessageMetadata["ReceivingEndpoint"],
                     TimeSent = rec.MessageMetadata["TimeSent"],
-                    MessageId = rec.MessageMetadata["MessageId"].ToString(),
+                    MessageId = rec.MessageMetadata["MessageId"],
                     rec.FailureDetails.Exception,
                     NumberOfProcessingAttempts = failure.ProcessingAttempts.Count(),
                     failure.Status,

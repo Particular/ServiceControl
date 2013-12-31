@@ -4,13 +4,11 @@
     using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class GetAllErrors : BaseModule
     {
-
         public GetAllErrors()
         {
             Get["/errors"] = _ =>
@@ -19,14 +17,16 @@
                 {
                     RavenQueryStatistics stats;
 
-                    var results = session.Query<FailedMessage>()
-                        .TransformWith<FailedMessageViewTransformer, FailedMessageView>()
+                    var results = session.Advanced
+                        .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .Statistics(out stats)
-                        .Where(m => m.Status == FailedMessageStatus.Unresolved)
-                        //.Sort(Request)
+                        .FilterByStatusWhere(Request)
+                        .Sort(Request)
                         .Paging(Request)
+                        .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                        .SelectFields<FailedMessageView>()
                         .ToArray();
-
+                        
                     return Negotiate
                         .WithModel(results)
                         .WithPagingLinksAndTotalCount(stats, Request)
@@ -41,14 +41,18 @@
                     string endpoint = parameters.name;
 
                     RavenQueryStatistics stats;
-                    var results = session.Query<FailedMessage>()
-                         .TransformWith<FailedMessageViewTransformer, FailedMessageView>()
+                    var results = session.Advanced
+                        .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .Statistics(out stats)
-                        .Where(m => m.ReceivingEndpointName == endpoint && m.Status == FailedMessageStatus.Unresolved)
-                        //.Sort(Request)
+                        .FilterByStatusWhere(Request)
+                        .AndAlso()
+                        .WhereEquals("ReceivingEndpointName", endpoint)
+                        .Sort(Request)
                         .Paging(Request)
+                        .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                        .SelectFields<FailedMessageView>()
                         .ToArray();
-
+                    
                     return Negotiate
                         .WithModel(results)
                         .WithPagingLinksAndTotalCount(stats, Request)
