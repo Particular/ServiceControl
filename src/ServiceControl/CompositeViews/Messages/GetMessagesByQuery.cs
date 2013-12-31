@@ -1,7 +1,6 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System.Linq;
-    using Amazon.DynamoDB.Model;
     using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
@@ -51,7 +50,7 @@ namespace ServiceControl.CompositeViews.Messages
                 RavenQueryStatistics stats;
                 var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out stats)
-                    .Search(x=>x.Query,keyword)
+                    .Search(x => x.Query, keyword)
                     .Where(m => m.ReceivingEndpointName == name)
                     .Sort(Request)
                     .Paging(Request)

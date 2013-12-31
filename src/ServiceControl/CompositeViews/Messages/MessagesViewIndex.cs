@@ -19,25 +19,19 @@ namespace ServiceControl.CompositeViews.Messages
             public DateTime TimeSent { get; set; }
             public bool IsSystemMessage { get; set; }
             public string MessageType { get; set; }
-
             public TimeSpan CriticalTime { get; set; }
-
             public TimeSpan ProcessingTime { get; set; }
-
-
             public MessageStatus Status { get; set; }
             public string ReceivingEndpointName { get; set; }
             public string ConversationId { get; set; }
             public string[] Query { get; set; }
         }
+
         public class Result
         {
             public string UniqueMessageId { get; set; }
-
             public DateTime ProcessedAt { get; set; }
-
             public Dictionary<string, string> Headers { get; set; }
-
             public Dictionary<string, object> MessageMetadata { get; set; }
             public FailedMessage.ProcessingAttempt MostRecentAttempt { get; set; }
         }
@@ -54,6 +48,7 @@ namespace ServiceControl.CompositeViews.Messages
                 Status = MessageStatus.Successful,
                 TimeSent = message.MessageMetadata["TimeSent"],
                 message.ProcessedAt,
+                ReceivingEndpointName = ((EndpointDetails)message.MessageMetadata["ReceivingEndpoint"]).Name,
                 CriticalTime = message.MessageMetadata["CriticalTime"],
                 ProcessingTime = message.MessageMetadata["ProcessingTime"],
                 Query = message.MessageMetadata.Select(kvp => kvp.Value.ToString())
@@ -70,13 +65,14 @@ namespace ServiceControl.CompositeViews.Messages
                 Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
                 TimeSent = message.MostRecentAttempt.MessageMetadata["TimeSent"],
                 ProcessedAt = message.MostRecentAttempt.FailureDetails.TimeOfFailure,
+                ReceivingEndpointName = ((EndpointDetails)message.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"]).Name,
                 CriticalTime = TimeSpan.Zero,
                 ProcessingTime = TimeSpan.Zero,
                 Query = message.MostRecentAttempt.MessageMetadata.Select(kvp => kvp.Value.ToString())
             }));
 
 
-            Index(x=>x.Query, FieldIndexing.Analyzed);
+            Index(x => x.Query, FieldIndexing.Analyzed);
             Index(x => x.CriticalTime, FieldIndexing.Default);
             Index(x => x.ProcessingTime, FieldIndexing.Default);
             Index(x => x.ProcessedAt, FieldIndexing.Default);
@@ -84,7 +80,7 @@ namespace ServiceControl.CompositeViews.Messages
             Sort(x => x.CriticalTime, SortOptions.Long);
             Sort(x => x.ProcessingTime, SortOptions.Long);
 
-            Analyze(x=>x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
+            Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
         }
     }
 
