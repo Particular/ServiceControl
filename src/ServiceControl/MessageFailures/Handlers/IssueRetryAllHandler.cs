@@ -13,48 +13,25 @@
 
         public void Handle(RequestRetryAll message)
         {
-            RavenQueryStatistics stats;
-            var skip = 0;
-            var numberOfRequestsExecutedSoFar = 0;
+            IQueryable<FailedMessage> query = Session.Query<FailedMessage>();
 
-
-
-            do
+            if (message.Endpoint != null)
             {
-                IQueryable<FailedMessage> query = Session.Query<FailedMessage>()
-                    .Statistics(out stats);
+                query = Session.Query<FailedMessage>()
+                    .Where(
+                        fm => fm.MostRecentAttempt.FailureDetails.AddressOfFailingEndpoint.Queue == message.Endpoint);
+            }
 
-
-                if (message.Endpoint != null)
+            using (var ie = Session.Advanced.Stream(query))
+            {
+                while (ie.MoveNext())
                 {
-                    query = Session.Query<FailedMessage>()
-                        .Where(fm => fm.MostRecentAttempt.FailureDetails.AddressOfFailingEndpoint.Queue == message.Endpoint)
-                        .Statistics(out stats);
+                    var retryMessage = new RetryMessage {FailedMessageId = ie.Current.Document.Id};
+                    message.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
+
+                    Bus.SendLocal(retryMessage);
                 }
-
-                do
-                {
-                    var results = query
-                        .Skip(skip)
-                        .Take(1024)
-                        .ToArray();
-
-                    foreach (var result in results)
-                    {
-                        var retryMessage = new RetryMessage { FailedMessageId = result.Id };
-                        message.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
-
-                        Bus.SendLocal(retryMessage);
-                    }
-
-                    skip += 1024;
-                } while (skip < stats.TotalResults &&
-                         ++numberOfRequestsExecutedSoFar < Session.Advanced.MaxNumberOfRequestsPerSession);
-
-            } while (skip < stats.TotalResults);
+            }
         }
-
-
-
     }
 }
