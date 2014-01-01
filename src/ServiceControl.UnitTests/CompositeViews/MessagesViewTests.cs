@@ -101,6 +101,11 @@
                 Id = "2",
                 MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(10) } }
             });
+            session.Store(new ProcessedMessage
+            {
+                Id = "3",
+                MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddDays(-1) } }
+            });
             session.SaveChanges();
 
             var firstByTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
@@ -108,7 +113,7 @@
                 .Customize(x => x.WaitForNonStaleResults())
                 .OfType<ProcessedMessage>()
                 .First();
-            Assert.AreEqual("2", firstByTimeSent.Id);
+            Assert.AreEqual("3", firstByTimeSent.Id);
 
             var firstByTimeSentDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                   .OrderByDescending(x => x.CriticalTime)
