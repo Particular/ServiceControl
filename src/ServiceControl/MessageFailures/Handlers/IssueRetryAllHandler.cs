@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System.Linq;
+    using Api;
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
@@ -13,16 +14,14 @@
 
         public void Handle(RequestRetryAll message)
         {
-            IQueryable<FailedMessage> query = Session.Query<FailedMessage>();
-
+            var query = Session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>();
+            
             if (message.Endpoint != null)
             {
-                query = Session.Query<FailedMessage>()
-                    .Where(
-                        fm => fm.MostRecentAttempt.FailureDetails.AddressOfFailingEndpoint.Queue == message.Endpoint);
+                query = query.Where(fm => fm.ReceivingEndpointName == message.Endpoint);
             }
 
-            using (var ie = Session.Advanced.Stream(query))
+            using (var ie = Session.Advanced.Stream(query.OfType<FailedMessage>()))
             {
                 while (ie.MoveNext())
                 {
