@@ -253,7 +253,14 @@
         {
             using (var client = new WebClient())
             {
-                return client.DownloadData(string.Format("http://localhost:{0}{1}", port, url));
+                var urlToMessageBody = url;
+                if (!url.StartsWith("http"))
+                {
+                    urlToMessageBody = string.Format("http://localhost:{0}/api{1}", port, url);
+                }
+                
+
+                return client.DownloadData(urlToMessageBody);
             }
         }
 

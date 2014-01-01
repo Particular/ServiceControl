@@ -57,8 +57,7 @@
             Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
             Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
             Assert.AreEqual(MessageIntentEnum.Send, auditedMessage.MessageIntent, "Message intent should be set");
-            Assert.False(new Uri(auditedMessage.BodyUrl).IsAbsoluteUri, auditedMessage.BodyUrl);
-
+            
             var bodyAsString = Encoding.UTF8.GetString(body);
 
             Assert.True(bodyAsString.Contains("MyMessage"), bodyAsString);
