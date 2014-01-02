@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System.Linq;
+    using Api;
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
@@ -13,48 +14,23 @@
 
         public void Handle(RequestRetryAll message)
         {
-            RavenQueryStatistics stats;
-            var skip = 0;
-            var numberOfRequestsExecutedSoFar = 0;
-
-
-
-            do
+            var query = Session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>();
+            
+            if (message.Endpoint != null)
             {
-                IQueryable<FailedMessage> query = Session.Query<FailedMessage>()
-                    .Statistics(out stats);
+                query = query.Where(fm => fm.ReceivingEndpointName == message.Endpoint);
+            }
 
-
-                if (message.Endpoint != null)
+            using (var ie = Session.Advanced.Stream(query.OfType<FailedMessage>()))
+            {
+                while (ie.MoveNext())
                 {
-                    query = Session.Query<FailedMessage>()
-                        .Where(fm => fm.MostRecentAttempt.FailureDetails.AddressOfFailingEndpoint.Queue == message.Endpoint)
-                        .Statistics(out stats);
+                    var retryMessage = new RetryMessage {FailedMessageId = ie.Current.Document.UniqueMessageId};
+                    message.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
+
+                    Bus.SendLocal(retryMessage);
                 }
-
-                do
-                {
-                    var results = query
-                        .Skip(skip)
-                        .Take(1024)
-                        .ToArray();
-
-                    foreach (var result in results)
-                    {
-                        var retryMessage = new RetryMessage { FailedMessageId = result.Id };
-                        message.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
-
-                        Bus.SendLocal(retryMessage);
-                    }
-
-                    skip += 1024;
-                } while (skip < stats.TotalResults &&
-                         ++numberOfRequestsExecutedSoFar < Session.Advanced.MaxNumberOfRequestsPerSession);
-
-            } while (skip < stats.TotalResults);
+            }
         }
-
-
-
     }
 }

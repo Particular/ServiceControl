@@ -4,7 +4,6 @@
     using System.IO;
     using Raven.Client;
     using Raven.Json.Linq;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     public class RavenAttachmentsBodyStorage : IBodyStorage
     {
@@ -18,7 +17,7 @@
                     { "ContentLength",bodySize}
                 });
 
-            return string.Format("{0}messages/{1}/body", Settings.ApiUrl, bodyId);
+            return string.Format("/messages/{0}/body", bodyId);
         }
 
         public Stream Fetch(string bodyId)

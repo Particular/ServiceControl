@@ -4,6 +4,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
+    using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
@@ -47,12 +48,13 @@ namespace ServiceControl.CompositeViews.Messages
             using (var session = Store.OpenSession())
             {
                 RavenQueryStatistics stats;
-                var results = session.Query<MessagesView, MessagesViewIndex>()
+                var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out stats)
-                    .Search(s => s.Query, keyword)
+                    .Search(x => x.Query, keyword)
                     .Where(m => m.ReceivingEndpointName == name)
                     .Sort(Request)
                     .Paging(Request)
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToArray();
 
                 return Negotiate.WithModel(results)
@@ -66,11 +68,12 @@ namespace ServiceControl.CompositeViews.Messages
             using (var session = Store.OpenSession())
             {
                 RavenQueryStatistics stats;
-                var results = session.Query<MessagesView, MessagesViewIndex>()
+                var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out stats)
-                    .Search(s => s.Query, keyword)
+                    .Search(x => x.Query, keyword)
                     .Sort(Request)
                     .Paging(Request)
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToArray();
 
                 return Negotiate.WithModel(results)

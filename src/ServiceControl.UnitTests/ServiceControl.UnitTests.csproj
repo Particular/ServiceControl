@@ -56,6 +56,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

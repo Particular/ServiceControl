@@ -30,8 +30,7 @@ namespace Particular.ServiceControl
             Configure.Features.Disable<Audit>();
             Configure.Features.Enable<Sagas>();
 
-            Configure config = null;
-
+            Configure config;
 
             if (string.IsNullOrEmpty(AssemblyFilter))
             {
@@ -50,6 +49,7 @@ namespace Particular.ServiceControl
             ConfigureLicense();
 
             Feature.Disable<AutoSubscribe>();
+            Feature.Disable<SecondLevelRetries>();
 
             Configure.Serialization.Json();
             Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());

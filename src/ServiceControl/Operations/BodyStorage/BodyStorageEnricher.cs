@@ -31,8 +31,7 @@
             using (var bodyStream = new MemoryStream(message.PhysicalMessage.Body))
             {
                 var bodyUrl = BodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
-                message.Metadata.Add("BodyUrl",bodyUrl);
-
+                message.Metadata.Add("BodyUrl", bodyUrl);
             }
 
             message.Metadata.Add("BodySize", bodySize);

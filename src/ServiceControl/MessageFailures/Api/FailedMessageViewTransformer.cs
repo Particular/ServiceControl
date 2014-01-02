@@ -11,13 +11,13 @@
                 let rec = failure.MostRecentAttempt
                 select new
                 {
-                    failure.Id,
+                    Id = failure.UniqueMessageId,
                     MessageType = rec.MessageMetadata["MessageType"],
                     IsSystemMessage = rec.MessageMetadata["IsSystemMessage"],
                     SendingEndpoint = rec.MessageMetadata["SendingEndpoint"],
                     ReceivingEndpoint = rec.MessageMetadata["ReceivingEndpoint"],
                     TimeSent = rec.MessageMetadata["TimeSent"],
-                    MessageId = rec.MessageMetadata["MessageId"].ToString(),
+                    MessageId = rec.MessageMetadata["MessageId"],
                     rec.FailureDetails.Exception,
                     NumberOfProcessingAttempts = failure.ProcessingAttempts.Count(),
                     failure.Status,
