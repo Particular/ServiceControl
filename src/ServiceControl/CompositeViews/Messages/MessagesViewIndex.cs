@@ -93,22 +93,24 @@ namespace ServiceControl.CompositeViews.Messages
                                            select new
                                            {
                                                Id = message.UniqueMessageId,
-                                               IsSystemMessage = metadata["IsSystemMessage"],
                                                MessageId = metadata["MessageId"],
                                                MessageType = metadata["MessageType"],
-                                               MessageIntent = metadata["MessageIntent"],
                                                SendingEndpoint = metadata["SendingEndpoint"],
                                                ReceivingEndpoint = metadata["ReceivingEndpoint"],
                                                TimeSent = (DateTime)metadata["TimeSent"],
                                                ProcessedAt = message.ProcessingAttempts != null ? message.ProcessingAttempts.Last().FailureDetails.TimeOfFailure : message.ProcessedAt,
+                                               CriticalTime = metadata["CriticalTime"],
                                                ProcessingTime = metadata["ProcessingTime"],
-                                               CriticalTime =  metadata["CriticalTime"],
-                                               BodyUrl = metadata["BodyUrl"],
-                                               BodySize = metadata["BodySize"],
+                                               IsSystemMessage = metadata["IsSystemMessage"],
+                                               ConversationId = metadata["ConversationId"],
                                                //the reason the we need to use a KeyValuePair<string, object> is that raven seems to interpret the values and convert them
                                                // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
                                                Headers = headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
-                                               Status = message.ProcessingAttempts != null ? MessageStatus.Failed : MessageStatus.Successful
+                                               Status = message.ProcessingAttempts != null ? MessageStatus.Failed : MessageStatus.Successful,
+                                               MessageIntent = metadata["MessageIntent"],
+                                               BodyUrl = metadata["BodyUrl"],
+                                               BodySize = metadata["BodySize"],
+                                               
                                            };
         }
     }
