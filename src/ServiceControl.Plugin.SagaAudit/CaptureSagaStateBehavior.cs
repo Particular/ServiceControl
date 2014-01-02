@@ -61,6 +61,7 @@
                 };
             sagaAudit.IsNew = activeSagaInstance.IsNew;
             sagaAudit.SagaId = saga.Entity.Id;
+            sagaAudit.SagaType = saga.GetType().FullName;
             sagaAudit.SagaState = sagaStateString;
             ServiceControlBackend.Send(sagaAudit);
         }

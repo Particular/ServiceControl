@@ -32,6 +32,8 @@
                 .Run(TimeSpan.FromSeconds(40));
 
             Assert.NotNull(sagaHistory);
+
+            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName,sagaHistory.SagaType);
         }
 
         public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
@@ -42,7 +44,7 @@
                     .AuditTo(Address.Parse("audit"));
             }
 
-            class MySaga:Saga<MySagaData>,IAmStartedByMessages<MessageInitatingSaga>
+            public class MySaga:Saga<MySagaData>,IAmStartedByMessages<MessageInitatingSaga>
             {
                 public MyContext Context { get; set; }
                 public void Handle(MessageInitatingSaga message)
@@ -51,7 +53,7 @@
                 }
             }
 
-            class MySagaData : ContainSagaData
+            public class MySagaData : ContainSagaData
             {
             }
         }

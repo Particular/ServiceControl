@@ -12,12 +12,11 @@
 
         public void Handle(SagaUpdatedMessage message)
         {
-            var id = "sagahistory/" + message.SagaId;
 
-            var sagaHistory = Session.Load<SagaHistory>(id) ?? new SagaHistory
+            var sagaHistory = Session.Load<SagaHistory>(message.SagaId) ?? new SagaHistory
             {
-                Id = id,
-                SagaId = message.SagaId,
+                Id = message.SagaId,
+                SagaType = message.SagaType
             };
 
             var sagaStateChange = sagaHistory.Changes.FirstOrDefault(x => x.InitiatingMessage.InitiatingMessageId == message.Initiator.InitiatingMessageId);
