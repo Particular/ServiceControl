@@ -63,6 +63,7 @@
     <Compile Include="CaptureSagaResultingMessagesBehavior.cs" />
     <Compile Include="CaptureSagaStateBehavior.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SagaAudit.cs" />
     <Compile Include="SagaStateAuditingOverride.cs" />
     <Compile Include="Serializer.cs" />
   </ItemGroup>
