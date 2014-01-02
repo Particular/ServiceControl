@@ -11,12 +11,12 @@
         {
             Map = failures => from failure in failures
                 where failure.Status == FailedMessageStatus.Unresolved
-                let t = ((EndpointDetails) failure.MostRecentAttempt.MessageMetadata["ReceivingEndpoint"])
+                              let t = ((EndpointDetails)failure.ProcessingAttempts.Last().MessageMetadata["ReceivingEndpoint"])
                 select new
                 {
                     t.Name,
                     t.Machine,
-                    MessageType = failure.MostRecentAttempt.MessageMetadata["MessageType"]
+                    MessageType = failure.ProcessingAttempts.Last().MessageMetadata["MessageType"]
                 };
 
             Index("Name", FieldIndexing.NotAnalyzed); //to avoid lower casing

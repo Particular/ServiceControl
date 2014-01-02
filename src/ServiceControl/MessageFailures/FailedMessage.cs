@@ -2,10 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using Contracts.Operations;
     using NServiceBus;
-    using Raven.Imports.Newtonsoft.Json;
 
     public class FailedMessage
     {
@@ -19,15 +17,6 @@
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
         
         public FailedMessageStatus Status { get; set; }
-
-        [JsonIgnore]
-        public ProcessingAttempt MostRecentAttempt 
-        {
-            get
-            {
-                return ProcessingAttempts.LastOrDefault();
-            } 
-        }
 
         public string UniqueMessageId { get; set; }
 

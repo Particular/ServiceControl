@@ -20,7 +20,7 @@ namespace ServiceControl.MessageFailures.Api
         public FailedMessageViewIndex()
         {
             Map = messages => from message in messages
-                              let metadata = message.MostRecentAttempt.MessageMetadata
+                              let metadata = message.ProcessingAttempts.Last().MessageMetadata
            select new
             {
                 MessageId = metadata["MessageId"],

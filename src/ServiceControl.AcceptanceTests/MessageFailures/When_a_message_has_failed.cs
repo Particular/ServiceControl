@@ -35,7 +35,7 @@
             Assert.AreEqual(context.UniqueMessageId, failedMessage.UniqueMessageId);
          
            // The message Ids may contain a \ if they are from older versions. 
-            Assert.AreEqual(context.MessageId, failedMessage.MostRecentAttempt.MessageId,
+            Assert.AreEqual(context.MessageId, failedMessage.ProcessingAttempts.Last().MessageId,
                 "The returned message should match the processed one");
             Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status, "Status should be set to unresolved");
             Assert.AreEqual(1, failedMessage.ProcessingAttempts.Count(), "Failed count should be 1");
@@ -49,15 +49,15 @@
         {
             var context = new MyContext();
 
-            var response = new List<FailedMessageView>();
+            FailedMessageView failure = null;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => TryGetMany("/api/errors",out response))
+                .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
 
-            var failure = response.Single(r=>r.MessageId == context.MessageId);
+          
 
             // The message Ids may contain a \ if they are from older versions. 
             Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");

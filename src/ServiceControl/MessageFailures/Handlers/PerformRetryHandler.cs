@@ -28,7 +28,7 @@
                 throw new ArgumentException("Can't find the failed message with id: " + message.FailedMessageId);
             }
 
-            var attempt = failedMessage.MostRecentAttempt;
+            var attempt = failedMessage.ProcessingAttempts.Last();
 
             var originalHeaders = attempt.Headers;
 

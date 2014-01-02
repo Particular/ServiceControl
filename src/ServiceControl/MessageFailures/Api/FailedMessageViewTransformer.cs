@@ -8,7 +8,7 @@
         public FailedMessageViewTransformer()
         {
             TransformResults = failures => from failure in failures
-                let rec = failure.MostRecentAttempt
+                let rec = failure.ProcessingAttempts.Last()
                 select new
                 {
                     Id = failure.UniqueMessageId,
