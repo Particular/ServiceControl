@@ -3,7 +3,10 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Contracts.Operations;
     using MessageAuditing;
+    using MessageFailures;
+    using NServiceBus.Unicast.Messages;
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Client.Linq;
@@ -40,22 +43,6 @@
             Assert.AreNotEqual("1", results.Single().Id);
         }
 
-        [SetUp]
-        public void SetUp()
-        {
-            documentStore = InMemoryStoreBuilder.GetInMemoryStore();
-            documentStore.Initialize();
-
-            var customIndex = new MessagesViewIndex();
-            customIndex.Execute(documentStore);
-
-            var transformer = new MessagesViewTransformer();
-
-            transformer.Execute(documentStore);
-
-            session = documentStore.OpenSession();
-
-        }
 
         [Test]
         public void Order_by_critical_time()
@@ -123,6 +110,47 @@
             Assert.AreEqual("1", firstByTimeSentDesc.Id);
         }
 
+        [Test]
+        public void Correct_status_for_repeated_errors()
+        {
+            session.Store(new FailedMessage
+            {
+                Id = "1",
+                ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                {
+                    new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today},
+                    new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today}
+                }
+            });
+
+         
+            session.SaveChanges();
+
+            var message = session.Query<FailedMessage>()
+                .TransformWith<MessagesViewTransformer,MessagesView>()
+                 .Customize(x => x.WaitForNonStaleResults())
+                .Single();
+
+            Assert.AreEqual(MessageStatus.RepeatedFailure, message.Status);
+        }
+
+
+        [SetUp]
+        public void SetUp()
+        {
+            documentStore = InMemoryStoreBuilder.GetInMemoryStore();
+            documentStore.Initialize();
+
+            var customIndex = new MessagesViewIndex();
+            customIndex.Execute(documentStore);
+
+            var transformer = new MessagesViewTransformer();
+
+            transformer.Execute(documentStore);
+
+            session = documentStore.OpenSession();
+
+        }
 
         [TearDown]
         public void TearDown()

@@ -64,7 +64,7 @@ namespace ServiceControl.CompositeViews.Messages
                 IsSystemMessage = message.ProcessingAttempts.Last().MessageMetadata["IsSystemMessage"],
                 Status = message.ProcessingAttempts.Count() == 1 ? MessageStatus.Failed : MessageStatus.RepeatedFailure,
                 TimeSent = (DateTime)message.ProcessingAttempts.Last().MessageMetadata["TimeSent"],
-                ProcessedAt = message.ProcessingAttempts.Last().FailureDetails.TimeOfFailure,
+                ProcessedAt = message.ProcessingAttempts.Last().AttemptedAt,
                 ReceivingEndpointName = ((EndpointDetails)message.ProcessingAttempts.Last().MessageMetadata["ReceivingEndpoint"]).Name,
                 CriticalTime = TimeSpan.Zero,
                 ProcessingTime = TimeSpan.Zero,
@@ -80,38 +80,6 @@ namespace ServiceControl.CompositeViews.Messages
             Sort(x => x.ProcessingTime, SortOptions.Long);
 
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
-        }
-    }
-
-    public class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewIndex.Result>
-    {
-        public MessagesViewTransformer()
-        {
-            TransformResults = messages => from message in messages
-                                           let metadata = message.ProcessingAttempts != null ? message.ProcessingAttempts.Last().MessageMetadata : message.MessageMetadata
-                                           let headers = message.ProcessingAttempts != null ? message.ProcessingAttempts.Last().Headers : message.Headers
-                                           select new
-                                           {
-                                               Id = message.UniqueMessageId,
-                                               MessageId = metadata["MessageId"],
-                                               MessageType = metadata["MessageType"],
-                                               SendingEndpoint = metadata["SendingEndpoint"],
-                                               ReceivingEndpoint = metadata["ReceivingEndpoint"],
-                                               TimeSent = (DateTime)metadata["TimeSent"],
-                                               ProcessedAt = message.ProcessingAttempts != null ? message.ProcessingAttempts.Last().FailureDetails.TimeOfFailure : message.ProcessedAt,
-                                               CriticalTime = metadata["CriticalTime"],
-                                               ProcessingTime = metadata["ProcessingTime"],
-                                               IsSystemMessage = metadata["IsSystemMessage"],
-                                               ConversationId = metadata["ConversationId"],
-                                               //the reason the we need to use a KeyValuePair<string, object> is that raven seems to interpret the values and convert them
-                                               // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
-                                               Headers = headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
-                                               Status = message.ProcessingAttempts != null ? MessageStatus.Failed : MessageStatus.Successful,
-                                               MessageIntent = metadata["MessageIntent"],
-                                               BodyUrl = metadata["BodyUrl"],
-                                               BodySize = metadata["BodySize"],
-                                               
-                                           };
         }
     }
 }
