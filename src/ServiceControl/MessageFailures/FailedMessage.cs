@@ -5,6 +5,7 @@
     using System.Linq;
     using Contracts.Operations;
     using NServiceBus;
+    using Raven.Imports.Newtonsoft.Json;
 
     public class FailedMessage
     {
@@ -19,6 +20,7 @@
         
         public FailedMessageStatus Status { get; set; }
 
+        [JsonIgnore]
         public ProcessingAttempt MostRecentAttempt 
         {
             get
