@@ -26,7 +26,7 @@ namespace ServiceControl.MessageFailures.Api
                 MessageId = metadata["MessageId"],
                 MessageType = metadata["MessageType"], 
                 message.Status,
-                TimeSent = metadata["TimeSent"],
+                TimeSent = (DateTime)metadata["TimeSent"],
                 ReceivingEndpointName = ((EndpointDetails)metadata["ReceivingEndpoint"]).Name,
             };
         }
