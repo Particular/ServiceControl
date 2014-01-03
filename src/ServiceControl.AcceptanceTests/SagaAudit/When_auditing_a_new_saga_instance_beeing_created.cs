@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.SagaAudit
 {
     using System;
+    using System.Linq;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -33,7 +34,12 @@
 
             Assert.NotNull(sagaHistory);
 
+            Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
             Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName,sagaHistory.SagaType);
+
+            var change = sagaHistory.Changes.Single();
+
+            Assert.AreEqual(typeof(MessageInitatingSaga).FullName, change.InitiatingMessage.MessageType);
         }
 
         public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder

@@ -56,7 +56,7 @@
                     InitiatingMessageId = context.PhysicalMessage.Id,
                     OriginatingMachine = originatingMachine,
                     OriginatingEndpoint = originatingEndpoint,
-                    MessageType = context.LogicalMessage.GetType().Name,
+                    MessageType = context.LogicalMessage.MessageType.FullName,
                     TimeSent = timeSent,
                 };
             sagaAudit.IsNew = activeSagaInstance.IsNew;

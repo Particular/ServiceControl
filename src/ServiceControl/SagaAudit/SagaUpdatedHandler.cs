@@ -16,10 +16,11 @@
             var sagaHistory = Session.Load<SagaHistory>(message.SagaId) ?? new SagaHistory
             {
                 Id = message.SagaId,
+                SagaId = message.SagaId,
                 SagaType = message.SagaType
             };
 
-            var sagaStateChange = sagaHistory.Changes.FirstOrDefault(x => x.InitiatingMessage.InitiatingMessageId == message.Initiator.InitiatingMessageId);
+            var sagaStateChange = sagaHistory.Changes.FirstOrDefault(x => x.InitiatingMessage.MessageId == message.Initiator.InitiatingMessageId);
             if (sagaStateChange == null)
             {
                 sagaStateChange = new SagaStateChange();
@@ -42,7 +43,7 @@
         {
             return new InitiatingMessage
                 {
-                    InitiatingMessageId = initiator.InitiatingMessageId,
+                    MessageId = initiator.InitiatingMessageId,
                     IsSagaTimeoutMessage = initiator.IsSagaTimeoutMessage,
                     OriginatingEndpoint = initiator.OriginatingEndpoint,
                     OriginatingMachine = initiator.OriginatingMachine,
@@ -55,19 +56,17 @@
         {
             foreach (var toAdd in sagaChangeResultingMessages)
             {
-                var resultingMessage = sagaStateChange.OutgoingMessages.FirstOrDefault(x => x.ResultingMessageId == toAdd.ResultingMessageId);
+                var resultingMessage = sagaStateChange.OutgoingMessages.FirstOrDefault(x => x.MessageId == toAdd.ResultingMessageId);
                 if (resultingMessage == null)
                 {
-                    resultingMessage = new ResultingMessage
-                        {
-                            ProcessingState = ProcessingState.Pending
-                        };
+                    resultingMessage = new ResultingMessage();
                     sagaStateChange.OutgoingMessages.Add(resultingMessage);
                 }
                 resultingMessage.MessageType = toAdd.MessageType;
-                resultingMessage.ResultingMessageId = toAdd.ResultingMessageId;
+                resultingMessage.MessageId = toAdd.ResultingMessageId;
                 resultingMessage.TimeSent = toAdd.TimeSent;
                 resultingMessage.DeliveryDelay = toAdd.DeliveryDelay;
+                resultingMessage.DeliverAt = toAdd.DeliveryAt;
                 resultingMessage.Destination = toAdd.Destination;
             }
         }
