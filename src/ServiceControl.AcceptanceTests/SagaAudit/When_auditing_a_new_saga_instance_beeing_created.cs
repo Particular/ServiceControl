@@ -38,7 +38,8 @@
             Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName,sagaHistory.SagaType);
 
             var change = sagaHistory.Changes.Single();
-
+            
+            Assert.AreEqual(SagaStateChangeStatus.New, change.Status);
             Assert.AreEqual(typeof(MessageInitatingSaga).FullName, change.InitiatingMessage.MessageType);
         }
 

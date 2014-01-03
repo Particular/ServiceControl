@@ -18,6 +18,7 @@
         //TODO:
         public string Endpoint { get; set; }
         public bool IsNew { get; set; }
+        public bool IsCompleted { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime FinishTime { get; set; }
         public string SagaType { get; set; }

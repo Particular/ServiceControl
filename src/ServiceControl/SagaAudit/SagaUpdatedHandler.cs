@@ -31,10 +31,26 @@
             sagaStateChange.StartTime = message.StartTime;
             sagaStateChange.StateAfterChange = message.SagaState;
             sagaStateChange.Endpoint = message.Endpoint;
-            sagaStateChange.IsNew = message.IsNew;
+
+            if (message.IsNew)
+            {
+                sagaStateChange.Status = SagaStateChangeStatus.New;    
+            }
+            else
+            {
+                sagaStateChange.Status = SagaStateChangeStatus.Updated;    
+            }
+
+            if (message.IsCompleted)
+            {
+                sagaStateChange.Status = SagaStateChangeStatus.Completed;
+            }
+
             sagaStateChange.InitiatingMessage = CreateInitiatingMessage(message.Initiator);
 
             AddResultingMessages(message.ResultingMessages, sagaStateChange);
+
+
 
             Session.Store(sagaHistory);
         }

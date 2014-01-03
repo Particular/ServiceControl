@@ -60,6 +60,7 @@
                     TimeSent = timeSent,
                 };
             sagaAudit.IsNew = activeSagaInstance.IsNew;
+            sagaAudit.IsCompleted = saga.Completed;
             sagaAudit.SagaId = saga.Entity.Id;
             sagaAudit.SagaType = saga.GetType().FullName;
             sagaAudit.SagaState = sagaStateString;
