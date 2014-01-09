@@ -65,6 +65,10 @@
 
         public void Handle(RetryMessage message)
         {
+            if (Data.Resolved)
+            {
+                return;
+            }
             //do not allow retries if we have other retries in progress
             if (Data.RetryAttempts.Any(a => !a.Completed))
             {
@@ -74,13 +78,13 @@
             var attemptToRetry = Data.ProcessingAttempts.Last();
 
             var retryId = Guid.NewGuid();
-            
+
             Data.RetryAttempts.Add(new FailedMessagePolicyData.RetryAttempt
             {
                 Id = retryId,
                 FailedProcessingAttemptId = attemptToRetry.Id
             });
-        
+
             Bus.SendLocal(new PerformRetry
             {
                 FailedMessageId = Data.FailedMessageId,
@@ -104,7 +108,7 @@
 
             Data.Resolved = true;
 
-            Bus.Publish<MessageFailureResolvedByRetry>(m=>m.FailedMessageId = Data.FailedMessageId);
+            Bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = Data.FailedMessageId);
         }
 
         public class FailedMessagePolicyData : ContainSagaData
