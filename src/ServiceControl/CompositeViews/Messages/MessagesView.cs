@@ -19,10 +19,8 @@ namespace ServiceControl.CompositeViews.Messages
         public bool IsSystemMessage { get; set; }
         public string ConversationId { get; set; }
         public IEnumerable<KeyValuePair<string, object>> Headers { get; set; }
-        public string[] Query { get; set; }
         public MessageStatus Status { get; set; }
         public MessageIntentEnum MessageIntent { get; set; }
-        public string ReceivingEndpointName { get; set; }
         public string BodyUrl { get; set; }
         public int BodySize { get; set; }
     }

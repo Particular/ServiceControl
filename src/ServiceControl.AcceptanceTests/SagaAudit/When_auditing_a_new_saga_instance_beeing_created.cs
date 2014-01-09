@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.SagaAudit
 {
     using System;
+    using System.Linq;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -32,6 +33,14 @@
                 .Run(TimeSpan.FromSeconds(40));
 
             Assert.NotNull(sagaHistory);
+
+            Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
+            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName,sagaHistory.SagaType);
+
+            var change = sagaHistory.Changes.Single();
+            
+            Assert.AreEqual(SagaStateChangeStatus.New, change.Status);
+            Assert.AreEqual(typeof(MessageInitatingSaga).FullName, change.InitiatingMessage.MessageType);
         }
 
         public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
@@ -42,7 +51,7 @@
                     .AuditTo(Address.Parse("audit"));
             }
 
-            class MySaga:Saga<MySagaData>,IAmStartedByMessages<MessageInitatingSaga>
+            public class MySaga:Saga<MySagaData>,IAmStartedByMessages<MessageInitatingSaga>
             {
                 public MyContext Context { get; set; }
                 public void Handle(MessageInitatingSaga message)
@@ -51,7 +60,7 @@
                 }
             }
 
-            class MySagaData : ContainSagaData
+            public class MySagaData : ContainSagaData
             {
             }
         }

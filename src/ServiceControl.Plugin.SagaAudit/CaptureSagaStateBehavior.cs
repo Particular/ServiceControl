@@ -56,11 +56,13 @@
                     InitiatingMessageId = context.PhysicalMessage.Id,
                     OriginatingMachine = originatingMachine,
                     OriginatingEndpoint = originatingEndpoint,
-                    MessageType = context.LogicalMessage.GetType().Name,
+                    MessageType = context.LogicalMessage.MessageType.FullName,
                     TimeSent = timeSent,
                 };
             sagaAudit.IsNew = activeSagaInstance.IsNew;
+            sagaAudit.IsCompleted = saga.Completed;
             sagaAudit.SagaId = saga.Entity.Id;
+            sagaAudit.SagaType = saga.GetType().FullName;
             sagaAudit.SagaState = sagaStateString;
             ServiceControlBackend.Send(sagaAudit);
         }

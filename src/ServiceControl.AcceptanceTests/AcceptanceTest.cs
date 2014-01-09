@@ -249,6 +249,21 @@
             return true;
         }
 
+        protected byte[] DownloadData(string url)
+        {
+            using (var client = new WebClient())
+            {
+                var urlToMessageBody = url;
+                if (!url.StartsWith("http"))
+                {
+                    urlToMessageBody = string.Format("http://localhost:{0}/api{1}", port, url);
+                }
+                
+
+                return client.DownloadData(urlToMessageBody);
+            }
+        }
+
         protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null) where T : class
         {
             if (condition == null)
@@ -260,7 +275,15 @@
 
             if (response != null)
             {
-                item = response.SingleOrDefault(i => condition(i));
+                var items = response.Where(i => condition(i)).ToList();
+
+                if (items.Count() > 1)
+                {
+                    throw new InvalidOperationException("More than one matching element found");
+                }
+
+                item = items.SingleOrDefault();
+
             }
             else
             {

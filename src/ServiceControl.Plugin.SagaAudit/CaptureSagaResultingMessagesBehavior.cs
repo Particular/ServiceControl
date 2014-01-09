@@ -41,8 +41,8 @@
                     ResultingMessageId = context.MessageToSend.Id,
                     TimeSent = DateTimeExtensions.ToUtcDateTime(context.MessageToSend.Headers[Headers.TimeSent]),
                     MessageType = logicalMessage.MessageType.ToString(),
-                    RequestedTimeout = context.SendOptions.DelayDeliveryWith,
-                    DeliveryDelay = context.SendOptions.DeliverAt,
+                    DeliveryDelay = context.SendOptions.DelayDeliveryWith,
+                    DeliveryAt = context.SendOptions.DeliverAt,
                     Destination = context.SendOptions.Destination.ToString()
                 };
             sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);

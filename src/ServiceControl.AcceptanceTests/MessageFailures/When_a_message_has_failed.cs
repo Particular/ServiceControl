@@ -32,8 +32,10 @@
                 .Done(c => c.MessageId != null && TryGet("/api/errors/" + c.UniqueMessageId, out failedMessage))
                 .Run();
 
+            Assert.AreEqual(context.UniqueMessageId, failedMessage.UniqueMessageId);
+         
            // The message Ids may contain a \ if they are from older versions. 
-            Assert.AreEqual(context.MessageId, failedMessage.MostRecentAttempt.MessageId,
+            Assert.AreEqual(context.MessageId, failedMessage.ProcessingAttempts.Last().MessageId,
                 "The returned message should match the processed one");
             Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status, "Status should be set to unresolved");
             Assert.AreEqual(1, failedMessage.ProcessingAttempts.Count(), "Failed count should be 1");
@@ -47,15 +49,15 @@
         {
             var context = new MyContext();
 
-            var response = new List<FailedMessageView>();
+            FailedMessageView failure = null;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => TryGetMany("/api/errors",out response))
+                .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
 
-            var failure = response.Single(r=>r.MessageId == context.MessageId);
+          
 
             // The message Ids may contain a \ if they are from older versions. 
             Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");
@@ -69,16 +71,16 @@
         {
             var context = new MyContext();
 
-            var response = new List<MessagesView>();
+            var failure = new MessagesView();
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => TryGetMany("/api/messages", out response))
+                .Done(c => TryGetSingle("/api/messages", out failure,m=>m.MessageId == c.MessageId))
                 .Run();
 
-            var failure = response.Single(r => r.Headers.SingleOrDefault(kvp=>kvp.Key==Headers.MessageId).Value.ToString() == context.MessageId);
-
+            Assert.AreEqual(context.UniqueMessageId, failure.Id, "The unique id should be returned");
+            
             Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.SendingEndpoint.Name);
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.ReceivingEndpoint.Name);

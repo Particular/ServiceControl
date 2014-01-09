@@ -3,6 +3,7 @@ namespace ServiceControl.SagaAudit
     using System;
     using Infrastructure.Extensions;
     using Raven.Client;
+    using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using Nancy;
@@ -17,7 +18,7 @@ namespace ServiceControl.SagaAudit
                 using (var session = Store.OpenSession())
                 {
                     Guid id = parameters.id;
-                    var sagaHistory = session.Load<SagaHistory>("sagahistory/" + id);
+                    var sagaHistory = session.Load<SagaHistory>(id);
                     if (sagaHistory == null)
                     {
                         return HttpStatusCode.NotFound;
@@ -36,7 +37,9 @@ namespace ServiceControl.SagaAudit
                 //todo: should we store the saga id as deleted so if we get delayed message it can be ignored?
                 using (var session = Store.OpenSession())
                 {
-                    var sagaHistory = session.Load<SagaHistory>("sagahistory/" + parameters.id);
+                    Guid id = parameters.id;
+
+                    var sagaHistory = session.Load<SagaHistory>(id);
 
                     if (sagaHistory != null)
                     {
@@ -57,7 +60,7 @@ namespace ServiceControl.SagaAudit
                         session.Query<SagaHistory>()
                             .Statistics(out stats)
                             .Paging(Request)
-                            .AsProjection<SearchResultItem>()
+                            .TransformWith<SagaListView, SagaListView.Result>()
                             .ToArray();
 
                     return Negotiate
@@ -66,19 +69,31 @@ namespace ServiceControl.SagaAudit
                         .WithEtagAndLastModified(stats);
                 }
             };
-            
+
         }
 
-        public class SearchResultItem
+        public class SagaListView : AbstractTransformerCreationTask<SagaHistory>
         {
-            public Guid Id;
-
-            public string Uri
+            public class Result
             {
-                get { return "api/sagas/" + Id; }
-            }
+                public Guid Id;
 
-            public Guid SagaId;
+                public string Uri;
+
+                public string SagaType;
+            }
+            public SagaListView()
+            {
+                TransformResults = sagas => from saga in sagas
+                                               select new Result
+                                               {
+                                                   Id = saga.SagaId,
+                                                   SagaType = saga.SagaType,
+                                                   Uri = "api/sagas/" + saga.SagaId
+                                               };
+            }
         }
+
+
     }
 }

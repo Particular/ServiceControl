@@ -4,6 +4,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
+    using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
@@ -16,17 +17,17 @@ namespace ServiceControl.CompositeViews.Messages
                 using (var session = Store.OpenSession())
                 {
                     RavenQueryStatistics stats;
-                    var results = session.Query<MessagesView, MessagesViewIndex>()
-                        .Statistics(out stats)
+                    var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                         .IncludeSystemMessagesWhere(Request)
+                        .Statistics(out stats)
                         .Sort(Request)
                         .Paging(Request)
+                        .TransformWith<MessagesViewTransformer, MessagesView>()
                         .ToArray();
 
-                    return Negotiate
-                        .WithModel(results)
-                        .WithPagingLinksAndTotalCount(stats, Request)
-                        .WithEtagAndLastModified(stats);
+                    return Negotiate.WithModel(results)
+                                    .WithPagingLinksAndTotalCount(stats, Request)
+                                    .WithEtagAndLastModified(stats);
                 }
             };
 
@@ -37,12 +38,13 @@ namespace ServiceControl.CompositeViews.Messages
                     string endpoint = parameters.name;
 
                     RavenQueryStatistics stats;
-                    var results = session.Query<MessagesView, MessagesViewIndex>()
-                        .Statistics(out stats)
+                    var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                         .IncludeSystemMessagesWhere(Request)
                         .Where(m => m.ReceivingEndpointName == endpoint)
+                        .Statistics(out stats)
                         .Sort(Request)
                         .Paging(Request)
+                        .TransformWith<MessagesViewTransformer, MessagesView>()
                         .ToArray();
 
                     return Negotiate

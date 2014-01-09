@@ -189,6 +189,7 @@
     <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
+    <Compile Include="CompositeViews\Messages\MessagesViewTransformer.cs" />
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
@@ -251,6 +252,7 @@
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageFacetsIndex.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageViewIndex.cs" />
     <Compile Include="MessageFailures\Api\SetupFailedMessagesFacets.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
@@ -332,8 +334,6 @@
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
-    <Compile Include="SagaAudit\LoadByTypeExtension.cs" />
-    <Compile Include="SagaAudit\MessageCorrelationHandler.cs" />
     <Compile Include="SagaAudit\ProcessingState.cs" />
     <Compile Include="SagaAudit\SagaUpdatedHandler.cs" />
     <Compile Include="SagaAudit\InitiatingMessage.cs" />

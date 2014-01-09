@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using Contracts.Operations;
     using NServiceBus;
 
@@ -16,15 +15,10 @@
         public string Id { get; set; }
 
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
+        
         public FailedMessageStatus Status { get; set; }
 
-        public ProcessingAttempt MostRecentAttempt 
-        {
-            get
-            {
-                return ProcessingAttempts.LastOrDefault();
-            } 
-        }
+        public string UniqueMessageId { get; set; }
 
         public class ProcessingAttempt
         {
@@ -38,7 +32,6 @@
             public string CorrelationId { get; set; }
             public MessageIntentEnum MessageIntent { get; set; }
         }
-
     }
 
     public enum FailedMessageStatus

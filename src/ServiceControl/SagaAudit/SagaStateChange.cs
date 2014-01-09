@@ -17,6 +17,5 @@ namespace ServiceControl.SagaAudit
         public InitiatingMessage InitiatingMessage { get; set; }
         public List<ResultingMessage> OutgoingMessages { get; set; }
         public string Endpoint { get; set; }
-        public bool IsNew { get; set; }
     }
 }

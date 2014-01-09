@@ -7,6 +7,10 @@
 
     public class ProcessedMessage
     {
+        public ProcessedMessage()
+        {
+           MessageMetadata = new Dictionary<string, object>();
+        }
         public ProcessedMessage(ImportSuccessfullyProcessedMessage message)
         {
 

@@ -11,10 +11,11 @@
     public class When_an_endpoint_is_running_with_debug_sessions_enabled : AcceptanceTest
     {
 
-        [Test,Explicit("Until we can fixed the missing file raven issue")]
+        [Test, Explicit("Until we can fixed the missing file raven issue")]
         public void Debug_session_id_should_be_present_in_header()
         {
             var context = new MyContext();
+            MessagesView message = null;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -24,11 +25,11 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => AuditDataAvailable(context, c))
+                .Done(c => TryGetSingle("/api/messages", out message))
                 .Run(TimeSpan.FromSeconds(40));
 
-            Assert.NotNull(context.ReturnedMessage, "No message was returned by the management api");
-            Assert.AreEqual(context.MessageId, context.ReturnedMessage.Headers.SingleOrDefault(kvp => kvp.Key == "ServiceControl.DebugSessionId").Value);
+            Assert.NotNull(message, "No message was returned by the management api");
+            Assert.AreEqual(context.MessageId, message.Headers.SingleOrDefault(kvp => kvp.Key == "ServiceControl.DebugSessionId").Value);
 
         }
 
@@ -73,41 +74,12 @@
         {
             public string MessageId { get; set; }
 
-            public MessagesView ReturnedMessage { get; set; }
-
+    
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
             public string EndpointNameOfSendingEndpoint { get; set; }
         }
 
 
-        bool AuditDataAvailable(MyContext context, MyContext c)
-        {
-            lock (context)
-            {
-                if (c.ReturnedMessage != null)
-                {
-                    return true;
-                }
-
-                if (c.MessageId == null)
-                {
-                    return false;
-                }
-
-                c.ReturnedMessage = Get<MessagesView>("/api/messages/" + context.MessageId);
-
-                if (c.ReturnedMessage == null)
-                {
-                    return false;
-                }
-
-                return true;
-            }
-        }
-
-       
-
-       
     }
 }

@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Text;
     using Contexts;
     using NServiceBus;
@@ -19,7 +18,7 @@
         public void Should_be_imported_and_accessible_via_the_rest_api()
         {
             var context = new MyContext();
-            var response = new List<MessagesView>();
+            MessagesView auditedMessage = null;
             byte[] body = null;
 
             Scenario.Define(context)
@@ -32,28 +31,19 @@
                 .WithEndpoint<Receiver>()
                 .Done(c =>
                 {
-                    if (!TryGetMany("/api/messages?include_system_messages=false&sort=id", out response,m => m.MessageId == c.MessageId))
+                    if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
                     {
                         return false;
                     }
 
-                    var message = response.Single();
-           
-
-                    using (var client = new WebClient())
-                    {
-                        body = client.DownloadData(message.BodyUrl);
-                    }
+                    body = DownloadData(auditedMessage.BodyUrl);
 
                     return true;
 
                 })
                 .Run(TimeSpan.FromSeconds(40));
 
-            var auditedMessage = response.SingleOrDefault();
-
-            Assert.NotNull(auditedMessage, "No message was returned by the management api");
-
+       
             Assert.AreEqual(context.MessageId, auditedMessage.MessageId);
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpoint.Name,
                 "Receiving endpoint name should be parsed correctly");
@@ -61,20 +51,24 @@
                 "AuditMessage type should be set to the fullname of the message type");
             Assert.False(auditedMessage.IsSystemMessage, "AuditMessage should not be marked as a system message");
 
-            Assert.Greater(DateTime.UtcNow,auditedMessage.TimeSent, "Time sent should be correctly set");
+
+            Assert.NotNull(auditedMessage.ConversationId);
+
+            Assert.AreNotEqual(DateTime.MinValue,auditedMessage.TimeSent, "Time sent should be correctly set");
+            Assert.AreNotEqual(DateTime.MinValue, auditedMessage.ProcessedAt, "Processed At should be correctly set");
 
             Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
             Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
             Assert.AreEqual(MessageIntentEnum.Send, auditedMessage.MessageIntent, "Message intent should be set");
-            Assert.True(new Uri(auditedMessage.BodyUrl).IsAbsoluteUri,auditedMessage.BodyUrl);
-
+            
             var bodyAsString = Encoding.UTF8.GetString(body);
 
             Assert.True(bodyAsString.Contains("MyMessage"), bodyAsString);
 
             Assert.AreEqual(body.Length, auditedMessage.BodySize);
-        }
 
+            Assert.True(auditedMessage.Headers.Any(kvp=>kvp.Key == Headers.MessageId));
+        }
 
         [Test]
         public void Should_be_found_in_search_by_messagetype()

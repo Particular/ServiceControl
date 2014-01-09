@@ -21,14 +21,14 @@
 
         public void Handle(PerformRetry message)
         {
-            var failedMessage = Session.Load<FailedMessage>(message.FailedMessageId);
+            var failedMessage = Session.Load<FailedMessage>(new Guid(message.FailedMessageId));
 
             if (failedMessage == null)
             {
-                throw new ArgumentException("Can't find e failed message with id: " + message.FailedMessageId);
+                throw new ArgumentException("Can't find the failed message with id: " + message.FailedMessageId);
             }
 
-            var attempt = failedMessage.MostRecentAttempt;
+            var attempt = failedMessage.ProcessingAttempts.Last();
 
             var originalHeaders = attempt.Headers;
 
@@ -38,7 +38,7 @@
             headersToRetryWith["ServiceControl.RetryId"] = message.RetryId.ToString();
 
 
-            using (var stream = BodyStorage.Fetch(failedMessage.Id))
+            using (var stream = BodyStorage.Fetch(message.FailedMessageId))
             {
                 var transportMessage = new TransportMessage(failedMessage.Id, headersToRetryWith)
                 {

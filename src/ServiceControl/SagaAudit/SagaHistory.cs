@@ -2,7 +2,6 @@ namespace ServiceControl.SagaAudit
 {
     using System;
     using System.Collections.Generic;
-    using Infrastructure;
 
     public class SagaHistory
     {
@@ -11,14 +10,9 @@ namespace ServiceControl.SagaAudit
             Changes = new List<SagaStateChange>();
         }
 
-        public string Id { get; set; }
-        public string Type { get; set; }
-        public List<SagaStateChange> Changes { get; set; }
+        public Guid Id { get; set; }
         public Guid SagaId { get; set; }
-
-        public static Guid MakeId(string endPointName, Guid sagaId)
-        {
-            return DeterministicGuid.MakeId(endPointName, sagaId.ToString());
-        }
+        public string SagaType { get; set; }
+        public List<SagaStateChange> Changes { get; set; }
     }
 }

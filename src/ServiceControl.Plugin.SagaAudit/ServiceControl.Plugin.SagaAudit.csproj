@@ -63,18 +63,14 @@
     <Compile Include="CaptureSagaResultingMessagesBehavior.cs" />
     <Compile Include="CaptureSagaStateBehavior.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SagaAudit.cs" />
     <Compile Include="SagaStateAuditingOverride.cs" />
     <Compile Include="Serializer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ripple.dependencies.config" />
   </ItemGroup>
+  <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
+  <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
