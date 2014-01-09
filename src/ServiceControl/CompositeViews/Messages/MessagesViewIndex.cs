@@ -55,7 +55,8 @@ namespace ServiceControl.CompositeViews.Messages
             }));
 
 
-            AddMap<FailedMessage>(messages => messages.Select(message => new
+            AddMap<FailedMessage>(messages => messages.Where(fm => fm.Status != FailedMessageStatus.Resolved)
+                .Select(message => new
             {
                 MessageId = message.ProcessingAttempts.Last().MessageMetadata["MessageId"],
                 ConversationId = message.ProcessingAttempts.Last().MessageMetadata["ConversationId"],
@@ -66,8 +67,8 @@ namespace ServiceControl.CompositeViews.Messages
                 TimeSent = (DateTime)message.ProcessingAttempts.Last().MessageMetadata["TimeSent"],
                 ProcessedAt = message.ProcessingAttempts.Last().AttemptedAt,
                 ReceivingEndpointName = ((EndpointDetails)message.ProcessingAttempts.Last().MessageMetadata["ReceivingEndpoint"]).Name,
-                CriticalTime = TimeSpan.Zero,
-                ProcessingTime = TimeSpan.Zero,
+                CriticalTime = (object) TimeSpan.Zero,
+                ProcessingTime = (object) TimeSpan.Zero,
                 Query = message.ProcessingAttempts.Last().MessageMetadata.Select(kvp => kvp.Value.ToString())
             }));
 
