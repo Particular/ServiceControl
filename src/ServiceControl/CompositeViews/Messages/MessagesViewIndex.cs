@@ -21,6 +21,7 @@ namespace ServiceControl.CompositeViews.Messages
             public string MessageType { get; set; }
             public TimeSpan CriticalTime { get; set; }
             public TimeSpan ProcessingTime { get; set; }
+            public TimeSpan DeliveryTime { get; set; }
             public MessageStatus Status { get; set; }
             public string ReceivingEndpointName { get; set; }
             public string ConversationId { get; set; }
@@ -51,6 +52,7 @@ namespace ServiceControl.CompositeViews.Messages
                 ReceivingEndpointName = ((EndpointDetails)message.MessageMetadata["ReceivingEndpoint"]).Name,
                 CriticalTime = message.MessageMetadata["CriticalTime"],
                 ProcessingTime = message.MessageMetadata["ProcessingTime"],
+                DeliveryTime = message.MessageMetadata["DeliveryTime"],
                 Query = message.MessageMetadata.Select(kvp => kvp.Value.ToString())
             }));
 
@@ -69,6 +71,7 @@ namespace ServiceControl.CompositeViews.Messages
                 ReceivingEndpointName = ((EndpointDetails)message.ProcessingAttempts.Last().MessageMetadata["ReceivingEndpoint"]).Name,
                 CriticalTime = (object) TimeSpan.Zero,
                 ProcessingTime = (object) TimeSpan.Zero,
+                DeliveryTime = (object) TimeSpan.Zero,
                 Query = message.ProcessingAttempts.Last().MessageMetadata.Select(kvp => kvp.Value.ToString())
             }));
 
@@ -76,9 +79,11 @@ namespace ServiceControl.CompositeViews.Messages
             Index(x => x.CriticalTime, FieldIndexing.Default);
             Index(x => x.ProcessingTime, FieldIndexing.Default);
             Index(x => x.ProcessedAt, FieldIndexing.Default);
+            Index(x => x.DeliveryTime, FieldIndexing.Default);
 
             Sort(x => x.CriticalTime, SortOptions.Long);
             Sort(x => x.ProcessingTime, SortOptions.Long);
+            Sort(x => x.DeliveryTime, SortOptions.Long);
 
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
         }

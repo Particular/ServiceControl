@@ -186,7 +186,7 @@ namespace ServiceControl.Infrastructure.Extensions
             var sortOptions = new[]
             {
                 "processed_at", "id", "message_type",
-                "time_sent", "critical_time", "processing_time",
+                "time_sent", "critical_time", "delivery_time", "processing_time",
                 "status", "message_id"
             };
 
@@ -216,6 +216,10 @@ namespace ServiceControl.Infrastructure.Extensions
 
                 case "critical_time":
                     keySelector = m => m.CriticalTime;
+                    break;
+                    
+                case "delivery_time":
+                    keySelector = m => m.DeliveryTime;
                     break;
 
                 case "processing_time":

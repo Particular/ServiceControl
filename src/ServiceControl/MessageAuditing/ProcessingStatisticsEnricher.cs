@@ -21,14 +21,12 @@
                 message.Metadata.Add("TimeSent", timeSent);
             }
 
-
             string processingStartedValue;
 
             if (message.PhysicalMessage.Headers.TryGetValue(Headers.ProcessingStarted, out processingStartedValue))
             {
                 processingStarted = DateTimeExtensions.ToUtcDateTime(processingStartedValue);
             }
-
 
             string processingEndedValue;
 
@@ -43,8 +41,8 @@
             {
                 criticalTime = processingEnded - timeSent;
             }
-            
-            message.Metadata.Add("CriticalTime",criticalTime);
+
+            message.Metadata.Add("CriticalTime", criticalTime);
 
             var processingTime = TimeSpan.Zero;
 
@@ -53,8 +51,16 @@
                 processingTime = processingEnded - processingStarted;
             }
 
-            message.Metadata.Add("ProcessingTime",processingTime);
-            
+            message.Metadata.Add("ProcessingTime", processingTime);
+
+            var deliveryTime = TimeSpan.Zero;
+
+            if (processingStarted != DateTime.MinValue && timeSent != DateTime.MinValue)
+            {
+                deliveryTime = processingStarted - timeSent;
+            }
+
+            message.Metadata.Add("DeliveryTime", deliveryTime);
         }
     }
 }

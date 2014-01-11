@@ -24,6 +24,7 @@ namespace ServiceControl.CompositeViews.Messages
                     ProcessedAt = message.ProcessingAttempts != null ? message.ProcessingAttempts.Last().AttemptedAt : message.ProcessedAt,
                     CriticalTime = (TimeSpan)metadata["CriticalTime"],
                     ProcessingTime = (TimeSpan)metadata["ProcessingTime"],
+                    DeliveryTime = (TimeSpan)metadata["DeliveryTime"],
                     IsSystemMessage = (bool)metadata["IsSystemMessage"],
                     ConversationId = metadata["ConversationId"],
                     //the reason the we need to use a KeyValuePair<string, object> is that raven seems to interpret the values and convert them

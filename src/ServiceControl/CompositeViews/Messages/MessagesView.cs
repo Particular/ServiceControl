@@ -16,6 +16,7 @@ namespace ServiceControl.CompositeViews.Messages
         public DateTime ProcessedAt { get; set; }
         public TimeSpan CriticalTime { get; set; }
         public TimeSpan ProcessingTime { get; set; }
+        public TimeSpan DeliveryTime { get; set; }
         public bool IsSystemMessage { get; set; }
         public string ConversationId { get; set; }
         public IEnumerable<KeyValuePair<string, object>> Headers { get; set; }
