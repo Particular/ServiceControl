@@ -38,9 +38,9 @@
                         return false;
                     }
 
-                    var numResults = messages.Count();
+                    var resultCount = messages.Count();
 
-                    if (numResults < 100)
+                    if (resultCount < 100)
                     {
                         Console.Out.WriteLine("Messages found: " + messages.Count());
                   

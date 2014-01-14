@@ -9,7 +9,7 @@
     using NUnit.Framework;
     using ServiceControl.SagaAudit;
 
-    public class When_auditing_a_new_saga_instance_beeing_created : AcceptanceTest
+    public class When_auditing_a_new_saga_instance_being_created : AcceptanceTest
     {
 
         [Test]
@@ -20,7 +20,7 @@
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitatingSaga())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(c =>
                 {
                     if (c.SagaId == Guid.Empty)
@@ -40,7 +40,7 @@
             var change = sagaHistory.Changes.Single();
             
             Assert.AreEqual(SagaStateChangeStatus.New, change.Status);
-            Assert.AreEqual(typeof(MessageInitatingSaga).FullName, change.InitiatingMessage.MessageType);
+            Assert.AreEqual(typeof(MessageInitiatingSaga).FullName, change.InitiatingMessage.MessageType);
         }
 
         public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
@@ -51,10 +51,10 @@
                     .AuditTo(Address.Parse("audit"));
             }
 
-            public class MySaga:Saga<MySagaData>,IAmStartedByMessages<MessageInitatingSaga>
+            public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
                 public MyContext Context { get; set; }
-                public void Handle(MessageInitatingSaga message)
+                public void Handle(MessageInitiatingSaga message)
                 {
                     Context.SagaId = Data.Id;
                 }
@@ -66,7 +66,7 @@
         }
 
         [Serializable]
-        public class MessageInitatingSaga : ICommand
+        public class MessageInitiatingSaga : ICommand
         {
         }
 

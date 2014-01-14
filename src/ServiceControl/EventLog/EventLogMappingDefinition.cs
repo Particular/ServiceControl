@@ -27,7 +27,7 @@
                 Description =descriptionFunc(eventMessage),
                 Severity = severityFunc(eventMessage),
                 EventType = typeof(T).Name,
-                RelatedTo = releatedToLinks.Select(f=>f(eventMessage)).ToList()
+                RelatedTo = relatedToLinks.Select(f => f(eventMessage)).ToList()
             };
 
 
@@ -46,23 +46,23 @@
 
         protected void RelatesToMessage(Func<T, string> relatedTo)
         {
-            releatedToLinks.Add(m=> string.Format("/message/{0}",relatedTo(m)));
+            relatedToLinks.Add(m => string.Format("/message/{0}", relatedTo(m)));
         }
 
 
         protected void RelatesToEndpoint(Func<T, string> relatedTo)
         {
-            releatedToLinks.Add(m => string.Format("/endpoint/{0}", relatedTo(m)));
+            relatedToLinks.Add(m => string.Format("/endpoint/{0}", relatedTo(m)));
         }
 
         protected void RelatesToMachine(Func<T, string> relatedTo)
         {
-            releatedToLinks.Add(m => string.Format("/machine/{0}", relatedTo(m)));
+            relatedToLinks.Add(m => string.Format("/machine/{0}", relatedTo(m)));
         }
 
         protected void RelatesToCustomCheck(Func<T, string> relatedTo)
         {
-            releatedToLinks.Add(m => string.Format("/customcheck/{0}", relatedTo(m)));
+            relatedToLinks.Add(m => string.Format("/customcheck/{0}", relatedTo(m)));
         }
 
         protected void TreatAsError()
@@ -80,7 +80,7 @@
             severityFunc = severity;
         }
 
-        List<Func<T, string>> releatedToLinks = new List<Func<T,string>>();
+        List<Func<T, string>> relatedToLinks = new List<Func<T,string>>();
         Func<T, string> descriptionFunc = m =>  m.ToString();
         Func<T, Severity> severityFunc = arg => EventLog.Severity.Info;
 

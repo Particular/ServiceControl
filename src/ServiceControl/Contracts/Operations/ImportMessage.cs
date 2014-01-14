@@ -17,7 +17,7 @@
             {
                 {"MessageId", message.Id},
                 {"MessageIntent", message.MessageIntent},
-                {"HeadersForSearching", message.Headers.Select(kvp => kvp.Value).ToArray()}
+                {"HeadersForSearching", message.Headers.Select(_ => _.Value).ToArray()}
             };
 
             //add basic message metadata

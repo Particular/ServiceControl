@@ -41,9 +41,9 @@
         ///     The value associated with <paramref name="name" />, with any embedded environment variables left unexpanded, or
         ///     <paramref name="defaultValue" /> if <paramref name="name" /> is not found.
         /// </returns>
-        public static T Read(string subkey, string name, T defaultValue = default(T))
+        public static T Read(string subKey, string name, T defaultValue = default(T))
         {
-            var regPath = @"SOFTWARE\ParticularSoftware\" + subkey.Replace("/", "\\");
+            var regPath = @"SOFTWARE\ParticularSoftware\" + subKey.Replace("/", "\\");
             try
             {
                 if (Environment.Is64BitOperatingSystem)

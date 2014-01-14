@@ -29,7 +29,7 @@
                 .Run(TimeSpan.FromSeconds(40));
 
             Assert.NotNull(message, "No message was returned by the management api");
-            Assert.AreEqual(context.MessageId, message.Headers.SingleOrDefault(kvp => kvp.Key == "ServiceControl.DebugSessionId").Value);
+            Assert.AreEqual(context.MessageId, message.Headers.SingleOrDefault(_ => _.Key == "ServiceControl.DebugSessionId").Value);
 
         }
 

@@ -48,7 +48,7 @@
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpoint.Name,
                 "Receiving endpoint name should be parsed correctly");
             Assert.AreEqual(typeof(MyMessage).FullName, auditedMessage.MessageType,
-                "AuditMessage type should be set to the fullname of the message type");
+                "AuditMessage type should be set to the FullName of the message type");
             Assert.False(auditedMessage.IsSystemMessage, "AuditMessage should not be marked as a system message");
 
 
@@ -67,11 +67,11 @@
 
             Assert.AreEqual(body.Length, auditedMessage.BodySize);
 
-            Assert.True(auditedMessage.Headers.Any(kvp=>kvp.Key == Headers.MessageId));
+            Assert.True(auditedMessage.Headers.Any(_=>_.Key == Headers.MessageId));
         }
 
         [Test]
-        public void Should_be_found_in_search_by_messagetype()
+        public void Should_be_found_in_search_by_messageType()
         {
             var context = new MyContext();
             var response = new List<MessagesView>();
@@ -92,7 +92,7 @@
         }
 
         [Test]
-        public void Should_be_found_in_search_by_messageid()
+        public void Should_be_found_in_search_by_messageId()
         {
             var context = new MyContext();
             var response = new List<MessagesView>();
@@ -110,7 +110,7 @@
         }
 
         [Test]
-        public void Should_be_found_in_search_by_messageid_for_the_specific_endpoint()
+        public void Should_be_found_in_search_by_messageId_for_the_specific_endpoint()
         {
             var context = new MyContext();
             var response = new List<MessagesView>();
@@ -128,7 +128,7 @@
         }
 
         [Test]
-        public void Should_be_found_in_search_by_messagebody()
+        public void Should_be_found_in_search_by_messageBody()
         {
             var context = new MyContext
             {

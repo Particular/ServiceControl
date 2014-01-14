@@ -22,9 +22,9 @@
 
         static Task MakeEmptyTask()
         {
-            var tcs = new TaskCompletionSource<object>();
-            tcs.SetResult(null);
-            return tcs.Task;
+            var completionSource = new TaskCompletionSource<object>();
+            completionSource.SetResult(null);
+            return completionSource.Task;
         }
 
         protected override Task OnReceived(IRequest request, string connectionId, string data)

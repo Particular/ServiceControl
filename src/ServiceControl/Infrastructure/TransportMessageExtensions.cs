@@ -4,7 +4,7 @@
     using Infrastructure;
     using NServiceBus;
 
-    public static class TransportMessageExtentions
+    public static class TransportMessageExtensions
     {
         public static string ProcessingEndpointName(this TransportMessage message)
         {

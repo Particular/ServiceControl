@@ -53,7 +53,7 @@ namespace ServiceControl.CompositeViews.Messages
                 CriticalTime = message.MessageMetadata["CriticalTime"],
                 ProcessingTime = message.MessageMetadata["ProcessingTime"],
                 DeliveryTime = message.MessageMetadata["DeliveryTime"],
-                Query = message.MessageMetadata.Select(kvp => kvp.Value.ToString())
+                Query = message.MessageMetadata.Select(_=> _.Value.ToString())
             }));
 
 
@@ -72,7 +72,7 @@ namespace ServiceControl.CompositeViews.Messages
                 CriticalTime = (object) TimeSpan.Zero,
                 ProcessingTime = (object) TimeSpan.Zero,
                 DeliveryTime = (object) TimeSpan.Zero,
-                Query = message.ProcessingAttempts.Last().MessageMetadata.Select(kvp => kvp.Value.ToString())
+                Query = message.ProcessingAttempts.Last().MessageMetadata.Select(_ => _.Value.ToString())
             }));
 
             Index(x => x.Query, FieldIndexing.Analyzed);

@@ -64,18 +64,16 @@
         {
             get
             {
-                var vdir = VirtualDirectory;
+                var suffix = VirtualDirectory;
 
-                if (!string.IsNullOrEmpty(vdir))
+                if (!string.IsNullOrEmpty(suffix))
                 {
-                    vdir += "/";
+                    suffix += "/";
                 }
 
-                vdir += "api/";
+                suffix += "api/";
 
-                var url = string.Format("{0}://{1}:{2}/{3}", Schema, Hostname, Port, vdir);
-
-                return url;
+                return string.Format("{0}://{1}:{2}/{3}", Schema, Hostname, Port, suffix);
             }
         }
 
@@ -85,8 +83,7 @@
             {
                 if (logPath == null)
                 {
-                    logPath = SettingsReader<string>.Read("LogPath",
-                        "${specialfolder:folder=ApplicationData}/Particular/ServiceControl/logs");
+                    return SettingsReader<string>.Read("LogPath", "${specialfolder:folder=ApplicationData}/Particular/ServiceControl/logs");
                 }
 
                 return logPath;
@@ -97,16 +94,16 @@
         {
             get
             {
-                var vdir = VirtualDirectory;
+                var suffix = VirtualDirectory;
 
-                if (!string.IsNullOrEmpty(vdir))
+                if (!string.IsNullOrEmpty(suffix))
                 {
-                    vdir += "/";
+                    suffix += "/";
                 }
 
-                vdir += "storage/";
+                suffix += "storage/";
 
-                return string.Format("{0}://{1}:{2}/{3}", Schema, Hostname, Port, vdir);
+                return string.Format("{0}://{1}:{2}/{3}", Schema, Hostname, Port, suffix);
             }
         }
 
