@@ -34,7 +34,8 @@ namespace ServiceControl.CompositeViews.Messages
                     MessageIntent = metadata["MessageIntent"],
                     BodyUrl = metadata["BodyUrl"],
                     BodySize = (int)metadata["BodySize"],
-                    SagasInvoked = metadata["SagasInvoked"]                           
+                    InvokedSagas = metadata["InvokedSagas"],
+                    OriginatesFromSaga = metadata["OriginatesFromSaga"]   
                 };
         }
     }

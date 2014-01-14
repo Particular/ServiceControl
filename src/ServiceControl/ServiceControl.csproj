@@ -333,7 +333,7 @@
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
-    <Compile Include="SagaAudit\InvokedSagasEnricher.cs" />
+    <Compile Include="SagaAudit\SagaRelationshipsEnricher.cs" />
     <Compile Include="SagaAudit\ProcessingState.cs" />
     <Compile Include="SagaAudit\SagaInfo.cs" />
     <Compile Include="SagaAudit\SagaUpdatedHandler.cs" />

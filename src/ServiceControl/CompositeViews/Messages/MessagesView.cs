@@ -25,8 +25,8 @@ namespace ServiceControl.CompositeViews.Messages
         public MessageIntentEnum MessageIntent { get; set; }
         public string BodyUrl { get; set; }
         public int BodySize { get; set; }
-        public List<SagaInfo> SagasInvoked { get; set; }
-
+        public List<SagaInfo> InvokedSagas { get; set; }
+        public SagaInfo OriginatesFromSaga { get; set; }
     }
 
 }

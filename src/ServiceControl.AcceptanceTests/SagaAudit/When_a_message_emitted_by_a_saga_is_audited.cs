@@ -9,11 +9,11 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
   
-    public class When_a_message_hitting_a_saga_is_audited : AcceptanceTest
+    public class When_a_message_emitted_by_a_saga_is_audited : AcceptanceTest
     {
 
         [Test]
-        public void Saga_info_should_be_available_through_the_http_api()
+        public void Info_on_emitted_saga_should_be_available_through_the_http_api()
         {
             var context = new MyContext();
             MessagesView auditedMessage = null;
@@ -22,22 +22,14 @@
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitatingSaga())))
-                .Done(c =>
-                {
-                    if (c.SagaId == Guid.Empty)
-                    {
-                        return false;
-                    }
-
-                    return TryGetSingle("/api/messages", out auditedMessage,m => m.MessageId == c.MessageId);
-                })
+                .Done(c => TryGetSingle("/api/messages", out auditedMessage,m => m.MessageId == c.MessageId))
                 .Run(TimeSpan.FromSeconds(40));
 
         
-            Assert.NotNull(auditedMessage);
+            Assert.NotNull(auditedMessage.OriginatesFromSaga);
 
-            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, auditedMessage.InvokedSagas.Single().SagaType);
-            Assert.AreEqual(context.SagaId, auditedMessage.InvokedSagas.Single().SagaId);
+            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, auditedMessage.OriginatesFromSaga.SagaType);
+            Assert.AreEqual(context.SagaId, auditedMessage.OriginatesFromSaga.SagaId);
 
         }
 
@@ -57,17 +49,34 @@
                 public void Handle(MessageInitatingSaga message)
                 {
                     Context.SagaId = Data.Id;
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+
+                    Bus.SendLocal(new MessageSentBySaga());
                 }
             }
 
             public class MySagaData : ContainSagaData
             {
             }
+
+            class MessageSentBySagaHandler : IHandleMessages<MessageSentBySaga>
+            {
+                public MyContext Context { get; set; }
+
+                public IBus Bus { get; set; }
+                public void Handle(MessageSentBySaga message)
+                {
+                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                }
+            }
         }
 
         [Serializable]
         public class MessageInitatingSaga : ICommand
+        {
+        }
+
+        [Serializable]
+        public class MessageSentBySaga : ICommand
         {
         }
 
