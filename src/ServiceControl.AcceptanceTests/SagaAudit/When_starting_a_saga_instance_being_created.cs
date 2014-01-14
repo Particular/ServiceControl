@@ -20,19 +20,19 @@
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new StartSagaMessage())))
                 .Done(c => c.InitiatingMessageReceived  && TryGet("/api/sagas/" + c.SagaId, out sagaHistory))
                 .Run(TimeSpan.FromSeconds(5));
 
             Assert.NotNull(sagaHistory);
 
             Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
-            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName,sagaHistory.SagaType);
+            Assert.AreEqual(typeof(MySaga).FullName,sagaHistory.SagaType);
 
             var change = sagaHistory.Changes.Single();
             
             Assert.AreEqual(SagaStateChangeStatus.New, change.Status);
-            Assert.AreEqual(typeof(MessageInitiatingSaga).FullName, change.InitiatingMessage.MessageType);
+            Assert.AreEqual(typeof(StartSagaMessage).FullName, change.InitiatingMessage.MessageType);
         }
 
         public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
@@ -43,23 +43,25 @@
                     .AuditTo(Address.Parse("audit"));
             }
 
-            public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
-            {
-                public MyContext Context { get; set; }
-                public void Handle(MessageInitiatingSaga message)
-                {
-                    Context.SagaId = Data.Id;
-                    Context.InitiatingMessageReceived = true;
-                }
-            }
+        }
 
-            public class MySagaData : ContainSagaData
+        public class MySaga : Saga<MySagaData>,
+            IAmStartedByMessages<StartSagaMessage>
+        {
+            public MyContext Context { get; set; }
+
+            public void Handle(StartSagaMessage message)
             {
+                Context.SagaId = Data.Id;
+                Context.InitiatingMessageReceived = true;
             }
         }
 
-        [Serializable]
-        public class MessageInitiatingSaga : ICommand
+        public class MySagaData : ContainSagaData
+        {
+        }
+
+        public class StartSagaMessage : ICommand
         {
         }
 

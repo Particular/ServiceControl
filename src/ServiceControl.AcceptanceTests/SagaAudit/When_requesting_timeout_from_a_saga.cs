@@ -20,14 +20,14 @@
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new StartSagaMessage())))
                 .Done(c => c.ReceivedTimeoutMessage && TryGet("/api/sagas/" + c.SagaId, out sagaHistory))
-                .Run(TimeSpan.FromSeconds(5));
+                .Run();
 
             Assert.NotNull(sagaHistory);
 
             Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
-            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, sagaHistory.SagaType);
+            Assert.AreEqual(typeof(MySaga).FullName, sagaHistory.SagaType);
 
             var updateChange = sagaHistory.Changes.Single(x => x.Status == SagaStateChangeStatus.Updated);
             Assert.AreEqual(typeof(TimeoutMessage).FullName, updateChange.InitiatingMessage.MessageType);
@@ -41,34 +41,34 @@
                     .AuditTo(Address.Parse("audit"));
             }
 
-            public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>,
-                IHandleTimeouts<TimeoutMessage>
+        }
+        public class MySaga : Saga<MySagaData>,
+            IAmStartedByMessages<StartSagaMessage>,
+            IHandleTimeouts<TimeoutMessage>
+        {
+            public MyContext Context { get; set; }
+
+            public void Handle(StartSagaMessage message)
             {
-                public MyContext Context { get; set; }
-
-                public void Handle(MessageInitiatingSaga message)
-                {
-                    Context.SagaId = Data.Id;
-                    RequestTimeout<TimeoutMessage>(TimeSpan.FromMilliseconds(10));
-                }
-
-                public void Timeout(TimeoutMessage state)
-                {
-                    Context.ReceivedTimeoutMessage = true;
-                }
+                Context.SagaId = Data.Id;
+                RequestTimeout<TimeoutMessage>(TimeSpan.FromMilliseconds(10));
             }
 
-            public class MySagaData : ContainSagaData
+            public void Timeout(TimeoutMessage state)
             {
+                Context.ReceivedTimeoutMessage = true;
             }
+        }
+
+        public class MySagaData : ContainSagaData
+        {
         }
 
         public class TimeoutMessage
         {
         }
 
-        [Serializable]
-        public class MessageInitiatingSaga : ICommand
+        public class StartSagaMessage : ICommand
         {
         }
 
