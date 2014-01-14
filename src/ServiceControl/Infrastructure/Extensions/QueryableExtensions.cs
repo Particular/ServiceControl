@@ -45,8 +45,8 @@ namespace ServiceControl.Infrastructure.Extensions
 
         public static IDocumentQuery<TSource> Sort<TSource>(this IDocumentQuery<TSource> source, Request request)
         {
-            string direction = "desc";
-            bool descending = true;
+            var direction = "desc";
+            var descending = true;
 
             if (request.Query.direction.HasValue)
             {

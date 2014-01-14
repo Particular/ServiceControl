@@ -6,7 +6,6 @@
     using Contracts.Operations;
     using MessageAuditing;
     using MessageFailures;
-    using NServiceBus.Unicast.Messages;
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Client.Linq;

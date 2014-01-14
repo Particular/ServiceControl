@@ -16,7 +16,7 @@
 
         public override bool ShouldBeEnabled()
         {
-            return Feature.IsEnabled<Sagas>();
+            return IsEnabled<Sagas>();
         }
     }
 }

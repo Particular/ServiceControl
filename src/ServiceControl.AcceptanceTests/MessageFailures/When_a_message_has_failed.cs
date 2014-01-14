@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using Contexts;
     using NServiceBus;
