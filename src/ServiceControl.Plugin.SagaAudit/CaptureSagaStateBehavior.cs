@@ -38,11 +38,13 @@
 
         void AuditSaga(ISaga saga, HandlerInvocationContext context)
         {
-            //only support physical messages for now
-            if (context.PhysicalMessage == null)
+            string messageId;
+
+            if (!context.LogicalMessage.Headers.TryGetValue(Headers.MessageId, out messageId))
             {
                 return;
             }
+
             var activeSagaInstance = context.Get<ActiveSagaInstance>();
             var sagaStateString = Serializer.Serialize(saga.Entity);
             var headers = context.LogicalMessage.Headers;
@@ -53,7 +55,7 @@
             sagaAudit.Initiator = new SagaChangeInitiator
                 {
                     IsSagaTimeoutMessage = IsTimeoutMessage(context.LogicalMessage),
-                    InitiatingMessageId = context.PhysicalMessage.Id,
+                    InitiatingMessageId = messageId,
                     OriginatingMachine = originatingMachine,
                     OriginatingEndpoint = originatingEndpoint,
                     MessageType = context.LogicalMessage.MessageType.FullName,

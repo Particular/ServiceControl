@@ -268,7 +268,6 @@
     <Compile Include="Contracts\Operations\EndpointDetails.cs" />
     <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
     <Compile Include="Contracts\Operations\FailureDetails.cs" />
-    <Compile Include="MessageAuditing\SagaDetails.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewTransformer.cs" />
     <Compile Include="MessageFailures\Api\GetAllErrors.cs" />
@@ -334,7 +333,9 @@
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
+    <Compile Include="SagaAudit\InvokedSagasEnricher.cs" />
     <Compile Include="SagaAudit\ProcessingState.cs" />
+    <Compile Include="SagaAudit\SagaInfo.cs" />
     <Compile Include="SagaAudit\SagaUpdatedHandler.cs" />
     <Compile Include="SagaAudit\InitiatingMessage.cs" />
     <Compile Include="SagaAudit\SagaHistory.cs" />
