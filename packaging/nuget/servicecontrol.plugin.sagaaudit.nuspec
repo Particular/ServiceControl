@@ -18,7 +18,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\src\ServiceControl.Plugin.CustomChecks\bin\Release\ServiceControl.Plugin.SagaAudit*.dll" target="lib\net40" />
+    <file src="..\..\src\ServiceControl.Plugin.SagaAudit\bin\Release\ServiceControl.Plugin.SagaAudit.*" target="lib\net40" />
     <file src="tools\install.ps1" target="tools" />
   </files>
 </package>
