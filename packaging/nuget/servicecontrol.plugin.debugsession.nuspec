@@ -18,7 +18,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\src\ServiceControl.Plugin.DebugSession\bin\Release\ServiceControl.Plugin.DebugSession*.dll" target="lib\net40" />
+    <file src="..\..\src\ServiceControl.Plugin.DebugSession\bin\Release\ServiceControl.Plugin.DebugSession.*" target="lib\net40" />
     <file src="tools\install.ps1" target="tools" />
   </files>
 </package>

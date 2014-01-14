@@ -18,7 +18,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\src\ServiceControl.Plugin.Heartbeat\bin\Release\ServiceControl.Plugin.Heartbeat*.dll" target="lib\net40" />
+    <file src="..\..\src\ServiceControl.Plugin.Heartbeat\bin\Release\ServiceControl.Plugin.Heartbeat.*" target="lib\net40" />
     <file src="tools\install.ps1" target="tools" />
   </files>
 </package>
