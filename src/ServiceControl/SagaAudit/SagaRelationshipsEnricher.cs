@@ -22,6 +22,7 @@
 
                 message.Metadata.Add("InvokedSagas", sagas);
             }
+            else
             {
                 string sagaId;
 
