@@ -101,7 +101,9 @@
     <Compile Include="Contexts\ManagementEndpoint.cs" />
     <Compile Include="Contexts\ManagementEndpointSetup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SagaAudit\When_auditing_a_new_saga_instance_beeing_created.cs" />
+    <Compile Include="SagaAudit\When_starting_a_saga_instance_being_created.cs" />
+    <Compile Include="SagaAudit\When_requesting_timeout_from_a_saga.cs" />
+    <Compile Include="SagaAudit\When_publishing_from_a_saga.cs" />
     <Compile Include="When_a_message_has_been_successfully_processed.cs" />
     <Compile Include="When_signalr_receives_a_message.cs" />
   </ItemGroup>

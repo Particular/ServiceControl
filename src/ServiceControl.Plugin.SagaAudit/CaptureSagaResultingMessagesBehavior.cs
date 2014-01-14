@@ -43,9 +43,19 @@
                     MessageType = logicalMessage.MessageType.ToString(),
                     DeliveryDelay = context.SendOptions.DelayDeliveryWith,
                     DeliveryAt = context.SendOptions.DeliverAt,
-                    Destination = context.SendOptions.Destination.ToString()
+                    Destination = GetDestination(context)
                 };
             sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);
+        }
+
+        static string GetDestination(SendPhysicalMessageContext context)
+        {
+            // Destination can be null for publish events
+            if (context.SendOptions.Destination != null)
+            {
+                return context.SendOptions.Destination.ToString();
+            }
+            return null;
         }
     }
 }
