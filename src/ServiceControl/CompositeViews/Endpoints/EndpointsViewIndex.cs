@@ -21,7 +21,7 @@ namespace ServiceControl.CompositeViews.Endpoints
             AddMap<Heartbeat>(endpoints => endpoints.Select(endpoint => new
             {
                 Id = endpoint.OriginatingEndpoint.Name,
-                Name = endpoint.OriginatingEndpoint.Name,
+                endpoint.OriginatingEndpoint.Name,
                 Machines = new List<string> { endpoint.OriginatingEndpoint.Machine },
                 EndpointProperties = new Dictionary<string, string> { { "emits_heartbeats", "true" } }
             }));

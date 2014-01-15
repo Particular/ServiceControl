@@ -18,12 +18,18 @@
 
             var originatingEndpoint = EndpointDetails.SendingEndpoint(Bus.CurrentMessageContext.Headers);
             var id = string.Format("heartbeats/{0}", DeterministicGuid.MakeId(originatingEndpoint.Name, originatingEndpoint.Machine));
+            var heartbeat = Session.Load<Heartbeat>(id);
+            var isNew = false;
 
-            var heartbeat = Session.Load<Heartbeat>(id) ?? new Heartbeat
+            if (heartbeat == null)
             {
-                Id = id,
-                ReportedStatus = Status.New,
-            };
+                isNew = true;
+                heartbeat = new Heartbeat
+                {
+                    Id = id,
+                    ReportedStatus = Status.Beating,
+                };
+            }
 
             if (message.ExecutedAt <= heartbeat.LastReportAt)
             {
@@ -34,7 +40,7 @@
             heartbeat.LastReportAt = message.ExecutedAt;
             heartbeat.OriginatingEndpoint = originatingEndpoint;
 
-            if (heartbeat.ReportedStatus == Status.New) // New endpoint heartbeat
+            if (isNew) // New endpoint heartbeat
             {
                 Bus.Publish(new HeartbeatingEndpointDetected
                 {
@@ -44,7 +50,7 @@
                 });
             }
 
-            if (heartbeat.ReportedStatus == Status.Dead) // Was prevo
+            if (heartbeat.ReportedStatus == Status.Dead)
             {
                 heartbeat.ReportedStatus = Status.Beating;
                 Bus.Publish(new EndpointHeartbeatRestored
@@ -56,7 +62,6 @@
             }
 
             Session.Store(heartbeat);
-
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(SaveHeartbeatHandler));
