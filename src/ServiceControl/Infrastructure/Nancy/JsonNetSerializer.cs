@@ -1,10 +1,13 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Nancy
 {
+    using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
+    using System.Net;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using Raven.Client.Linq;
     using ServiceControl.Infrastructure.SignalR;
     using global::Nancy;
     using global::Nancy.IO;
@@ -71,7 +74,24 @@
         {
             using (var writer = new JsonTextWriter(new StreamWriter(new UnclosableStreamWrapper(outputStream))))
             {
-                serializer.Serialize(writer, model);
+                try
+                {
+                    serializer.Serialize(writer, model);
+
+                }
+                catch (IOException ex)
+                {
+                    var innerException = ex.InnerException as HttpListenerException;
+                    if (innerException != null)
+                    {
+                        if (innerException.ErrorCode == 1229) // An operation was attempted on a nonexistent network connection, this error happens when the client has dropped the connection so it is safe to ignore
+                        {
+                            return;
+                        }
+                    }
+
+                    throw;
+                }
             }
         }
 
