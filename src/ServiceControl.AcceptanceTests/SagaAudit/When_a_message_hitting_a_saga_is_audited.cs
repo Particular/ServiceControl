@@ -21,7 +21,7 @@
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitatingSaga())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(c =>
                 {
                     if (c.SagaId == Guid.Empty)
@@ -49,12 +49,12 @@
                     .AuditTo(Address.Parse("audit"));
             }
 
-            public class MySaga:Saga<MySagaData>,IAmStartedByMessages<MessageInitatingSaga>
+            public class MySaga:Saga<MySagaData>,IAmStartedByMessages<MessageInitiatingSaga>
             {
                 public MyContext Context { get; set; }
 
                 
-                public void Handle(MessageInitatingSaga message)
+                public void Handle(MessageInitiatingSaga message)
                 {
                     Context.SagaId = Data.Id;
                     Context.MessageId = Bus.CurrentMessageContext.Id;
@@ -67,7 +67,7 @@
         }
 
         [Serializable]
-        public class MessageInitatingSaga : ICommand
+        public class MessageInitiatingSaga : ICommand
         {
         }
 

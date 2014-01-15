@@ -272,7 +272,6 @@
     <Compile Include="MessageFailures\Api\FailedMessageViewTransformer.cs" />
     <Compile Include="MessageFailures\Api\GetAllErrors.cs" />
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
-    <Compile Include="MessageFailures\ErrorMessageCounterRegister.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
     <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
@@ -282,10 +281,7 @@
     <Compile Include="MessageFailures\Handlers\ImportSuccessfullyProcessedMessageHandler.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
-    <Compile Include="MessageFailures\InMemoryErrorMessagesCounterCache.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
-    <Compile Include="MessageFailures\SignalrErrorMessageHandler.cs" />
-    <Compile Include="MessageFailures\TotalErrorMessagesUpdated.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />

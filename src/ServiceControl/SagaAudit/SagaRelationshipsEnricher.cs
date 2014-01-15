@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
-    using NServiceBus.Scheduling.Messages;
     using Operations;
 
     public class SagaRelationshipsEnricher : ImportEnricher

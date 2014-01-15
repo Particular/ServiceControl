@@ -1,13 +1,11 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Nancy
 {
-    using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
     using System.Net;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
-    using Raven.Client.Linq;
     using ServiceControl.Infrastructure.SignalR;
     using global::Nancy;
     using global::Nancy.IO;

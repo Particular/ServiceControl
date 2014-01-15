@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.SagaAudit
 {
     using System;
-    using System.Linq;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -21,7 +20,7 @@
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitatingSaga())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(c => TryGetSingle("/api/messages", out auditedMessage,m => m.MessageId == c.MessageId))
                 .Run(TimeSpan.FromSeconds(40));
 
@@ -41,12 +40,12 @@
                     .AuditTo(Address.Parse("audit"));
             }
 
-            public class MySaga:Saga<MySagaData>,IAmStartedByMessages<MessageInitatingSaga>
+            public class MySaga:Saga<MySagaData>,IAmStartedByMessages<MessageInitiatingSaga>
             {
                 public MyContext Context { get; set; }
 
                 
-                public void Handle(MessageInitatingSaga message)
+                public void Handle(MessageInitiatingSaga message)
                 {
                     Context.SagaId = Data.Id;
 
@@ -71,7 +70,7 @@
         }
 
         [Serializable]
-        public class MessageInitatingSaga : ICommand
+        public class MessageInitiatingSaga : ICommand
         {
         }
 
