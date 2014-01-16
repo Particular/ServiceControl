@@ -13,7 +13,7 @@
 
             string sagasInvokedHeader;
 
-            if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.InvokedSagas, out sagasInvokedHeader))
+            if (message.PhysicalMessage.Headers.TryGetValue("NServiceBus.InvokedSagas", out sagasInvokedHeader))
             {
                 var sagas = sagasInvokedHeader.Split(';')
                     .Select(saga => new SagaInfo { SagaType = saga.Split(':')[0], SagaId = Guid.Parse(saga.Split(':')[1]) })
