@@ -111,7 +111,7 @@
       <HintPath>..\packages\Nancy.Bootstrappers.Autofac\lib\net40\Nancy.Bootstrappers.Autofac.dll</HintPath>
     </Reference>
     <Reference Include="Nancy.Owin">
-      <HintPath>..\packages\Nancy.Owin\lib\net45\Nancy.Owin.dll</HintPath>
+      <HintPath>..\packages\Nancy.Owin\lib\net40\Nancy.Owin.dll</HintPath>
     </Reference>
     <Reference Include="NetTopologySuite">
       <HintPath>..\packages\RavenDB.Database\lib\net45\NetTopologySuite.dll</HintPath>
