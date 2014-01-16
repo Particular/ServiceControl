@@ -83,7 +83,7 @@
             {
                 if (logPath == null)
                 {
-                    return SettingsReader<string>.Read("LogPath", "${specialfolder:folder=ApplicationData}/Particular/ServiceControl/logs");
+                    logPath = SettingsReader<string>.Read("LogPath", "${specialfolder:folder=ApplicationData}/Particular/ServiceControl/logs");
                 }
 
                 return logPath;
@@ -185,6 +185,38 @@
             }
         }
 
+        public static Address AuditLogQueue
+        {
+            get
+            {
+                if (auditLogQueue == null)
+                {
+                    var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
+
+                    if (value != null)
+                    {
+                        auditLogQueue = Address.Parse(value);
+                    }
+                    else
+                    {
+                        Logger.Info("No settings found for audit log queue to import, default name will be used");
+
+                        auditLogQueue = AuditQueue.SubScope("log");
+                    }
+                }
+
+                return auditLogQueue;
+            }
+        }
+
+        public static bool ForwardAuditMessages
+        {
+            get
+            {
+                return forwardAuditMessages;
+            }
+        }
+
         public static string DbPath
         {
             get
@@ -230,8 +262,9 @@
         static string hostname, schema, logPath;
         static string virtualDirectory;
         static string dbPath;
+        static readonly bool forwardAuditMessages = SettingsReader<bool>.Read("ForwardAuditMessages");
         static Address auditQueue;
-        static Address errorLogQueue;
+        static Address errorLogQueue, auditLogQueue;
         static Address errorQueue;
         static readonly ILog Logger = LogManager.GetLogger(typeof(Settings));
     }

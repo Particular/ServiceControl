@@ -247,6 +247,7 @@
     <Compile Include="Contracts\HeartbeatMonitoring\TotalEndpointsUpdated.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
+    <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />

@@ -6,12 +6,15 @@
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Pipeline;
     using NServiceBus.Satellites;
+    using NServiceBus.Transports;
     using NServiceBus.Unicast.Messages;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class AuditQueueImport : ISatellite
     {
         public IBuilder Builder { get; set; }
+
+        public ISendMessages Forwarder { get; set; }
 
 #pragma warning disable 618
         public PipelineExecutor PipelineExecutor { get; set; }
@@ -35,6 +38,11 @@
                 var logicalMessage = LogicalMessageFactory.Create(typeof(ImportSuccessfullyProcessedMessage), receivedMessage);
 
                 PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
+            }
+
+            if (Settings.ForwardAuditMessages)
+            {
+                Forwarder.Send(message, Settings.AuditLogQueue);
             }
 
             return true;
