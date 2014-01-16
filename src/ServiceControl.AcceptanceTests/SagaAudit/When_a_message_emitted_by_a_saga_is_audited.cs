@@ -21,10 +21,9 @@
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
-                .Done(c => TryGetSingle("/api/messages", out auditedMessage,m => m.MessageId == c.MessageId))
+                .Done(c => TryGetSingle("/api/messages", out auditedMessage, m => m.MessageId == c.MessageId))
                 .Run(TimeSpan.FromSeconds(40));
 
-        
             Assert.NotNull(auditedMessage.OriginatesFromSaga);
 
             Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, auditedMessage.OriginatesFromSaga.SagaType);

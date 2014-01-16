@@ -32,6 +32,12 @@
                 };
             context.Set(sagaAudit);
             next();
+
+            if (saga.Entity == null)
+            {
+                return; // Message was not handled by the saga
+            }
+
             sagaAudit.FinishTime = DateTime.UtcNow;
             AuditSaga(saga, context);
         }

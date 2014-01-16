@@ -29,7 +29,7 @@
                         return false;
                     }
 
-                    return TryGetSingle("/api/messages", out auditedMessage,m => m.MessageId == c.MessageId);
+                    return TryGetSingle("/api/messages", out auditedMessage, m => m.MessageId == c.MessageId);
                 })
                 .Run(TimeSpan.FromSeconds(40));
 
