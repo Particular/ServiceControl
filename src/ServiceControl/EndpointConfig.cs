@@ -4,6 +4,7 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.Reflection;
     using Autofac;
+    using global::ServiceControl.Operations;
     using NLog;
     using NLog.Config;
     using NLog.Targets;
@@ -16,13 +17,13 @@ namespace Particular.ServiceControl
     {
         public static IContainer Container { get; set; }
 
-        public string AssemblyFilter { get; set; }
-
         public void Init()
         {
             ConfigureLogging();
 
-            Container = new ContainerBuilder().Build();
+            var containerBuilder = new ContainerBuilder();
+            containerBuilder.RegisterType<ImportErrorHandler>().SingleInstance();
+            Container = containerBuilder.Build();
 
             var transportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
 
@@ -30,16 +31,7 @@ namespace Particular.ServiceControl
             Configure.Features.Disable<Audit>();
             Configure.Features.Enable<Sagas>();
 
-            Configure config;
-
-            if (string.IsNullOrEmpty(AssemblyFilter))
-            {
-                config = Configure.With();
-            }
-            else
-            {
-                config = Configure.With(AllAssemblies.Except(AssemblyFilter));
-            }
+            var config = Configure.With(GetType().Assembly);;
             
 
             config.AutofacBuilder(Container)

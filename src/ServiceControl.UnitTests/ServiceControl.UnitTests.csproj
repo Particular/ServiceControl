@@ -11,7 +11,6 @@
     <AssemblyName>ServiceControl.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -61,8 +60,8 @@
   <ItemGroup>
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
+    <Compile Include="Operations\DebugSessionTests.cs" />
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ripple.dependencies.config" />

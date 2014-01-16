@@ -324,8 +324,10 @@
     <Compile Include="Operations\BodyStorage\BodyStorageEnricher.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
     <Compile Include="Operations\ErrorQueueImport.cs" />
+    <Compile Include="Operations\ExceptionExtensions.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
     <Compile Include="Operations\BodyStorage\BodySearchEnricher.cs" />
+    <Compile Include="Operations\ImportErrorHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
