@@ -33,8 +33,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="netDumbster">
-      <HintPath>..\packages\netDumbster.1.4.0.0-beta1\lib\net40\netDumbster.dll</HintPath>
+    <Reference Include="netDumbster, Version=1.4.0.0, Culture=neutral, PublicKeyToken=4a1d8c974aa1bd1c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\netDumbster\lib\net40\netDumbster.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus">
       <HintPath>..\packages\NServiceBus.Interfaces\lib\net40\NServiceBus.dll</HintPath>
@@ -68,8 +69,9 @@
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="ripple.dependencies.config" />
+    <None Include="ripple.dependencies.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Plugin.DebugSession\ServiceControl.Plugin.DebugSession.csproj">
