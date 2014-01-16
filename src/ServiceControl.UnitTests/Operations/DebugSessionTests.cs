@@ -17,7 +17,10 @@
         {
             var logPath = Path.Combine(Path.GetTempPath(), "ImportErrorHandlerTests");
             Settings.LogPath = logPath;
-            Directory.Delete(logPath, true);
+            if (Directory.Exists(logPath))
+            {
+                Directory.Delete(logPath, true);
+            }
             using (var ravenStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 ravenStore.Initialize();
