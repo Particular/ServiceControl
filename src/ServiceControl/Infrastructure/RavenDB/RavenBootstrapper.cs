@@ -20,7 +20,7 @@
             var documentStore = new EmbeddableDocumentStore
             {
                 DataDirectory = Settings.DbPath,
-                UseEmbeddedHttpServer = true,
+                UseEmbeddedHttpServer = Settings.ExposeRavenDB,
                 EnlistInDistributedTransactions = false
             };
 

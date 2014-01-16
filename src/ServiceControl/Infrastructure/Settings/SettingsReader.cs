@@ -58,7 +58,7 @@
 
                             if (value != null)
                             {
-                                return (T) value;
+                                return (T)Convert.ChangeType(value, typeof(T));
                             }
                         }
                     }
@@ -69,7 +69,7 @@
                     {
                         if (registryKey != null)
                         {
-                            return (T)registryKey.GetValue(name, defaultValue);
+                            return (T)Convert.ChangeType(registryKey.GetValue(name, defaultValue), typeof(T));
                         }
                     }
                 }
@@ -81,7 +81,7 @@
                     {
                         if (registryKey != null)
                         {
-                            return (T)registryKey.GetValue(name, defaultValue);
+                            return (T)Convert.ChangeType(registryKey.GetValue(name, defaultValue), typeof(T));
                         }
                     }
                 }

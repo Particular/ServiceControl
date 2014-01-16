@@ -217,6 +217,14 @@
             }
         }
 
+        public static bool ExposeRavenDB
+        {
+            get
+            {
+                return exposeRavenDB;
+            }
+        }
+
         public static string DbPath
         {
             get
@@ -263,6 +271,7 @@
         static string virtualDirectory;
         static string dbPath;
         static readonly bool forwardAuditMessages = SettingsReader<bool>.Read("ForwardAuditMessages");
+        static readonly bool exposeRavenDB = SettingsReader<bool>.Read("ExposeRavenDB");
         static Address auditQueue;
         static Address errorLogQueue, auditLogQueue;
         static Address errorQueue;
