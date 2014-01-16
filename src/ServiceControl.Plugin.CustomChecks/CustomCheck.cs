@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Plugin.CustomChecks
 {
     using System;
+    using System.Collections.Generic;
     using EndpointPlugin.Operations.ServiceControlBackend;
     using Internal;
     using NServiceBus;
@@ -8,6 +9,18 @@
 
     public abstract class CustomCheck : ICustomCheck
     {
+        static string hostId;
+
+        static CustomCheck()
+        {
+            string hostId;
+            Dictionary<string, string> hostProperties;
+
+            HostInformationRetriever.TryToRetrieveHostInfo(out hostId, out hostProperties);
+
+            CustomCheck.hostId = hostId;
+        }
+
         protected CustomCheck(string id, string category)
         {
             this.category = category;
@@ -39,6 +52,7 @@
         {
             Configure.Instance.Builder.Build<ServiceControlBackend>().Send(new ReportCustomCheckResult
             {
+                HostId = hostId,
                 CustomCheckId = id,
                 Category = category,
                 Result = result,

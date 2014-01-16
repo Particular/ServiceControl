@@ -50,6 +50,8 @@
       <Link>ServiceControlBackend.cs</Link>
     </Compile>
     <Compile Include="Heartbeats.cs" />
+    <Compile Include="HostInformation.cs" />
+    <Compile Include="HostInformationRetriever.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

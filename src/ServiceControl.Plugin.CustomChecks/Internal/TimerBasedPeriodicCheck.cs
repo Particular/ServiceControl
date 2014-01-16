@@ -1,6 +1,7 @@
 namespace ServiceControl.Plugin.CustomChecks.Internal
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using EndpointPlugin.Operations.ServiceControlBackend;
     using Messages;
@@ -8,6 +9,18 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
 
     internal class TimerBasedPeriodicCheck : IDisposable
     {
+        static string hostId;
+
+        static TimerBasedPeriodicCheck()
+        {
+            string hostId;
+            Dictionary<string, string> hostProperties;
+
+            HostInformationRetriever.TryToRetrieveHostInfo(out hostId, out hostProperties);
+
+            TimerBasedPeriodicCheck.hostId = hostId;
+        }
+
         public TimerBasedPeriodicCheck(IPeriodicCheck periodicCheck, ServiceControlBackend serviceControlBackend)
         {
             this.periodicCheck = periodicCheck;
@@ -30,6 +43,7 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
         {
             serviceControlBackend.Send(new ReportCustomCheckResult
             {
+                HostId = hostId,
                 CustomCheckId = customCheckId,
                 Category = category,
                 Result = result,

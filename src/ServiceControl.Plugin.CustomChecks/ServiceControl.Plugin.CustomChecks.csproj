@@ -42,6 +42,9 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\ServiceControl.Plugin.Heartbeat\HostInformationRetriever.cs">
+      <Link>HostInformationRetriever.cs</Link>
+    </Compile>
     <Compile Include="..\ServiceControl.Plugin.Shared\Messages\ReportCustomCheckResult.cs">
       <Link>Messages\ReportCustomCheckResult.cs</Link>
     </Compile>

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Plugin.Heartbeat
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.Threading;
     using EndpointPlugin.Operations.ServiceControlBackend;
@@ -31,7 +32,20 @@
                 heartbeatInterval = TimeSpan.Parse(interval);
             }
 
-            heartbeatTimer = new Timer(ExecuteHeartbeat, null, TimeSpan.Zero, heartbeatInterval);
+            string hostId;
+            Dictionary<string, string> hostProperties;
+
+            if(HostInformationRetriever.TryToRetrieveHostInfo(out hostId, out hostProperties))
+            {
+                SendHostInformationIfAvailable(hostId, hostProperties);
+            }
+
+            heartbeatTimer = new Timer(ExecuteHeartbeat, hostId, TimeSpan.Zero, heartbeatInterval);
+        }
+
+        void SendHostInformationIfAvailable(string hostId, Dictionary<string, string> hostProperties)
+        {
+            ServiceControlBackend.Send(new HostInformation {HostId = hostId, Properties = hostProperties});
         }
 
         public void Stop()
@@ -54,11 +68,13 @@
             }
         }
 
-        void ExecuteHeartbeat(object state)
+        void ExecuteHeartbeat(object hostId)
         {
             var heartBeat = new EndpointHeartbeat
             {
-                ExecutedAt = DateTime.UtcNow
+                ExecutedAt = DateTime.UtcNow,
+                Endpoint = Configure.EndpointName,
+                HostId = hostId.ToString(),
             };
 
             ServiceControlBackend.Send(heartBeat, TimeSpan.FromTicks(heartbeatInterval.Ticks*4));
