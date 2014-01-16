@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Net.Mail;
     using NServiceBus;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -10,7 +11,7 @@
     {
         public string ErrorLogDirectory;
         public string AuditLogDirectory;
-
+        public Func<SmtpClient> GetSmtpClient = () => new SmtpClient(); 
         public ImportErrorHandler()
         {
             AuditLogDirectory = Path.Combine(Settings.LogPath, @"FailedImports\Audit");
@@ -28,9 +29,7 @@
                     Id = message.Id,
                     Message = message,
                 };
-            Session.Store(failedAuditImport);
-            var filePath = Path.Combine(AuditLogDirectory, message.Id + ".txt");
-            File.WriteAllText(filePath, exception.ToFriendlyString());
+            Handle(message, exception, failedAuditImport, AuditLogDirectory);
         }
 
         public void HandleError(TransportMessage message, Exception exception)
@@ -40,9 +39,34 @@
                     Id = message.Id,
                     Message = message,
                 };
-            Session.Store(failedErrorImport);
-            var filePath = Path.Combine(ErrorLogDirectory, message.Id + ".txt");
+            Handle(message, exception, failedErrorImport, ErrorLogDirectory);
+        }
+
+        void Handle(TransportMessage message, Exception exception, object failure, string logDirectory)
+        {
+            Session.Store(failure);
+            var filePath = Path.Combine(logDirectory, message.Id + ".txt");
             File.WriteAllText(filePath, exception.ToFriendlyString());
+            SendEmail("A message import has failed. A log file has been written to " + filePath);
+        }
+
+        void SendEmail(string message)
+        {
+            if (Settings.Email == null)
+            {
+                return;
+            }
+            using (var mail = new MailMessage())
+            {
+                mail.From = new MailAddress(Settings.Email);
+                mail.To.Add(new MailAddress(Settings.Email));
+                mail.Subject = "An error occurred in ServiceControl";
+                mail.Body = message;
+                using (var client = GetSmtpClient())
+                {
+                    client.Send(mail);
+                }
+            }
         }
     }
 

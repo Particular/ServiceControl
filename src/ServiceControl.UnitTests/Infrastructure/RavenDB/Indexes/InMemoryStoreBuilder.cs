@@ -4,13 +4,16 @@ public class InMemoryStoreBuilder
 {
     public static EmbeddableDocumentStore GetInMemoryStore()
     {
-        return new EmbeddableDocumentStore
-        {
-            Configuration =
+        var store = new EmbeddableDocumentStore
             {
-                RunInUnreliableYetFastModeThatIsNotSuitableForProduction = true,
-                RunInMemory = true
-            }
-        };
+                Configuration =
+                    {
+                        RunInUnreliableYetFastModeThatIsNotSuitableForProduction = true,
+                        RunInMemory = true
+                    }
+            };
+
+        store.Initialize();
+        return store;
     }
 }

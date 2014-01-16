@@ -33,6 +33,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="netDumbster">
+      <HintPath>..\packages\netDumbster.1.4.0.0-beta1\lib\net40\netDumbster.dll</HintPath>
+    </Reference>
     <Reference Include="NServiceBus">
       <HintPath>..\packages\NServiceBus.Interfaces\lib\net40\NServiceBus.dll</HintPath>
     </Reference>
@@ -60,10 +63,12 @@
   <ItemGroup>
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
-    <Compile Include="Operations\DebugSessionTests.cs" />
+    <Compile Include="Operations\ImportErrorHandlerTests.cs" />
+    <Compile Include="Operations\NetDumpsterExtensions.cs" />
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="ripple.dependencies.config" />
   </ItemGroup>
   <ItemGroup>

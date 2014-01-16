@@ -138,7 +138,6 @@
         public void SetUp()
         {
             documentStore = InMemoryStoreBuilder.GetInMemoryStore();
-            documentStore.Initialize();
 
             var customIndex = new MessagesViewIndex();
             customIndex.Execute(documentStore);
