@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -13,16 +14,30 @@
     public class ErrorQueueImport : ISatellite
     {
         public ISendMessages Forwarder { get; set; }
-
+        public ImportErrorHandler ImportErrorHandler { get; set; }
         public IBuilder Builder { get; set; }
 
 #pragma warning disable 618
         public PipelineExecutor PipelineExecutor { get; set; }
         public LogicalMessageFactory LogicalMessageFactory { get; set; }
-
 #pragma warning restore 618
 
         public bool Handle(TransportMessage message)
+        {
+            try
+            {
+                InnerHandle(message);
+            }
+            catch (Exception exception)
+            {
+                Logger.Error("Failed to import", exception);
+                ImportErrorHandler.HandleError(message, exception);
+            }
+
+            return true;
+        }
+
+        void InnerHandle(TransportMessage message)
         {
             var errorMessageReceived = new ImportFailedMessage(message);
 
@@ -31,18 +46,16 @@
             using (var childBuilder = Builder.CreateChildBuilder())
             {
                 PipelineExecutor.CurrentContext.Set(childBuilder);
-                
+
                 foreach (var enricher in childBuilder.BuildAll<IEnrichImportedMessages>())
                 {
                     enricher.Enrich(errorMessageReceived);
                 }
-                
+
                 PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
             }
-         
-            Forwarder.Send(message, Settings.ErrorLogQueue);
 
-            return true;
+            Forwarder.Send(message, Settings.ErrorLogQueue);
         }
 
         public void Start()
@@ -64,6 +77,6 @@
             get { return InputAddress == Address.Undefined; }
         }
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
+        static ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
     }
 }

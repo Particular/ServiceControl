@@ -327,7 +327,10 @@
     <Compile Include="Operations\ExceptionExtensions.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
     <Compile Include="Operations\BodyStorage\BodySearchEnricher.cs" />
+    <Compile Include="Operations\ImportEnricher.cs" />
     <Compile Include="Operations\ImportErrorHandler.cs" />
+    <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
+    <Compile Include="Operations\ImportRegistration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />

@@ -11,7 +11,9 @@
     {
         public string ErrorLogDirectory;
         public string AuditLogDirectory;
+        public ImportFailureCircuitBreaker ImportFailureCircuitBreaker { get; set; }
         public Func<SmtpClient> GetSmtpClient = () => new SmtpClient(); 
+    
         public ImportErrorHandler()
         {
             AuditLogDirectory = Path.Combine(Settings.LogPath, @"FailedImports\Audit");
@@ -48,6 +50,7 @@
             var filePath = Path.Combine(logDirectory, message.Id + ".txt");
             File.WriteAllText(filePath, exception.ToFriendlyString());
             SendEmail("A message import has failed. A log file has been written to " + filePath);
+            ImportFailureCircuitBreaker.Increment(exception);
         }
 
         void SendEmail(string message)

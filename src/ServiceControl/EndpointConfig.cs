@@ -23,6 +23,7 @@ namespace Particular.ServiceControl
 
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterType<ImportErrorHandler>().SingleInstance();
+            containerBuilder.RegisterType<ImportFailureCircuitBreaker>().SingleInstance();
             Container = containerBuilder.Build();
 
             var transportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
@@ -49,14 +50,10 @@ namespace Particular.ServiceControl
 
         static void ConfigureLicense()
         {
-            using (
-                var licenseStream =
-                    Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.License.xml"))
+            using (var licenseStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.License.xml"))
+            using (var sr = new StreamReader(licenseStream))
             {
-                using (var sr = new StreamReader(licenseStream))
-                {
-                    Configure.Instance.License(sr.ReadToEnd());
-                }
+                Configure.Instance.License(sr.ReadToEnd());
             }
         }
 

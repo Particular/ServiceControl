@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -13,7 +14,7 @@
     public class AuditQueueImport : ISatellite
     {
         public IBuilder Builder { get; set; }
-
+        public ImportErrorHandler ImportErrorHandler { get; set; }
         public ISendMessages Forwarder { get; set; }
 
 #pragma warning disable 618
@@ -23,6 +24,20 @@
 #pragma warning restore 618
 
         public bool Handle(TransportMessage message)
+        {
+            try
+            {
+                InnerHandle(message);
+            }
+            catch (Exception exception)
+            {
+                Logger.Error("Failed to import",exception);
+                ImportErrorHandler.HandleAudit(message, exception);
+            }
+            return true;
+        }
+
+        void InnerHandle(TransportMessage message)
         {
             var receivedMessage = new ImportSuccessfullyProcessedMessage(message);
 
@@ -44,8 +59,6 @@
             {
                 Forwarder.Send(message, Settings.AuditLogQueue);
             }
-
-            return true;
         }
 
         public void Start()
@@ -69,6 +82,6 @@
 
 
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(AuditQueueImport));
+        static ILog Logger = LogManager.GetLogger(typeof(AuditQueueImport));
     }
 }
