@@ -14,7 +14,7 @@
     [TestFixture]
     public class ImportErrorHandlerTests
     {
-        [Test]
+        [Test,Ignore]
         public void Integration()
         {
             var logPath = Path.Combine(Path.GetTempPath(), "ImportErrorHandlerTests");
