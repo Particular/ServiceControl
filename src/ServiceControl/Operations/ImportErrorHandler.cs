@@ -46,11 +46,17 @@
 
         void Handle(TransportMessage message, Exception exception, object failure, string logDirectory)
         {
-            Session.Store(failure);
-            var filePath = Path.Combine(logDirectory, message.Id + ".txt");
-            File.WriteAllText(filePath, exception.ToFriendlyString());
-            SendEmail("A message import has failed. A log file has been written to " + filePath);
-            ImportFailureCircuitBreaker.Increment(exception);
+            try
+            {
+                Session.Store(failure);
+                var filePath = Path.Combine(logDirectory, message.Id + ".txt");
+                File.WriteAllText(filePath, exception.ToFriendlyString());
+                SendEmail("A message import has failed. A log file has been written to " + filePath);
+            }
+            finally
+            {
+                ImportFailureCircuitBreaker.Increment(exception);
+            }
         }
 
         void SendEmail(string message)
