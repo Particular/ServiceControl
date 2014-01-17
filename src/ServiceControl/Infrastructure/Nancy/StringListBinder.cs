@@ -59,10 +59,10 @@
                 }
                 else
                 {
-                    var ienumerable =
+                    var implementingIEnumerableType =
                         modelType.GetInterfaces().Where(i => i.IsGenericType()).FirstOrDefault(
                             i => i.GetGenericTypeDefinition() == typeof (IEnumerable<>));
-                    genericType = ienumerable == null ? null : ienumerable.GetGenericArguments().FirstOrDefault();
+                    genericType = implementingIEnumerableType == null ? null : implementingIEnumerableType.GetGenericArguments().FirstOrDefault();
                 }
 
                 if (genericType == null)
@@ -76,9 +76,7 @@
 
             var bodyDeserializedModel = DeserializeRequestBody(bindingContext);
 
-            var list = (instance as IEnumerable<string>) ?? bodyDeserializedModel;
-
-            return list;
+            return (instance as IEnumerable<string>) ?? bodyDeserializedModel;
         }
 
         private BindingContext CreateBindingContext(NancyContext context, Type modelType, object instance,

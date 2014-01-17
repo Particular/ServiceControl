@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ServiceControl</RootNamespace>
     <AssemblyName>ServiceControl</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,6 +21,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Autofac">
@@ -37,43 +41,40 @@
       <HintPath>..\packages\Autofac.SignalR\lib\net40\Autofac.Integration.SignalR.dll</HintPath>
     </Reference>
     <Reference Include="AWS.Extensions">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\AWS.Extensions.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\AWS.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="AWSSDK">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\AWSSDK.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\AWSSDK.dll</HintPath>
     </Reference>
     <Reference Include="Esent.Interop">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\Esent.Interop.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\Esent.Interop.dll</HintPath>
     </Reference>
     <Reference Include="GeoAPI">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\GeoAPI.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\GeoAPI.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.NRefactory">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\ICSharpCode.NRefactory.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\ICSharpCode.NRefactory.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.NRefactory.CSharp">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\ICSharpCode.NRefactory.CSharp.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\ICSharpCode.NRefactory.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\packages\SharpZipLib\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
     <Reference Include="Jint.Raven">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\Jint.Raven.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\Jint.Raven.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\Lucene.Net.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net.Contrib.Spatial.NTS">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\Lucene.Net.Contrib.Spatial.NTS.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\Lucene.Net.Contrib.Spatial.NTS.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Core\lib\net40\Microsoft.AspNet.SignalR.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Owin">
-      <HintPath>..\packages\Microsoft.AspNet.SignalR.Owin\lib\net40\Microsoft.AspNet.SignalR.Owin.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CompilerServices.AsyncTargetingPack.Net4">
-      <HintPath>..\packages\Microsoft.CompilerServices.AsyncTargetingPack\lib\net40\Microsoft.CompilerServices.AsyncTargetingPack.Net4.dll</HintPath>
+      <HintPath>..\packages\Microsoft.AspNet.SignalR.Owin\lib\net45\Microsoft.AspNet.SignalR.Owin.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm">
@@ -83,16 +84,16 @@
       <HintPath>..\packages\Microsoft.Data.OData\lib\net40\Microsoft.Data.OData.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Owin">
-      <HintPath>..\packages\Microsoft.Owin\lib\net40\Microsoft.Owin.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Owin\lib\net45\Microsoft.Owin.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Owin.Diagnostics">
       <HintPath>..\packages\Microsoft.Owin.Diagnostics\lib\net40\Microsoft.Owin.Diagnostics.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Owin.Host.HttpListener">
-      <HintPath>..\packages\Microsoft.Owin.Host.HttpListener\lib\net40\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Owin.Host.HttpListener\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Owin.Hosting">
-      <HintPath>..\packages\Microsoft.Owin.Hosting\lib\net40\Microsoft.Owin.Hosting.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Owin.Hosting\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Configuration">
       <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager\lib\net35-full\Microsoft.WindowsAzure.Configuration.dll</HintPath>
@@ -101,7 +102,7 @@
       <HintPath>..\packages\WindowsAzure.Storage\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\Mono.Cecil.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\Mono.Cecil.dll</HintPath>
     </Reference>
     <Reference Include="Nancy">
       <HintPath>..\packages\Nancy\lib\net40\Nancy.dll</HintPath>
@@ -113,13 +114,13 @@
       <HintPath>..\packages\Nancy.Owin\lib\net40\Nancy.Owin.dll</HintPath>
     </Reference>
     <Reference Include="NetTopologySuite">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\NetTopologySuite.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\NetTopologySuite.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NLog">
-      <HintPath>..\packages\NLog\lib\net40\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus">
       <HintPath>..\packages\NServiceBus.Interfaces\lib\net40\NServiceBus.dll</HintPath>
@@ -133,26 +134,29 @@
     <Reference Include="NServiceBus.ObjectBuilder.Autofac">
       <HintPath>..\packages\NServiceBus.Autofac\lib\net40\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="NServiceBus.RavenDB">
+      <HintPath>..\packages\NServiceBus.RavenDB\lib\net40\NServiceBus.RavenDB.dll</HintPath>
+    </Reference>
     <Reference Include="Owin">
       <HintPath>..\packages\Owin\lib\net40\Owin.dll</HintPath>
     </Reference>
     <Reference Include="PowerCollections">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\PowerCollections.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\PowerCollections.dll</HintPath>
     </Reference>
     <Reference Include="Raven.Abstractions">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\Raven.Abstractions.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\Raven.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Raven.Client.Embedded">
-      <HintPath>..\packages\RavenDB.Embedded\lib\net40\Raven.Client.Embedded.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Embedded\lib\net45\Raven.Client.Embedded.dll</HintPath>
     </Reference>
     <Reference Include="Raven.Client.Lightweight">
-      <HintPath>..\packages\RavenDB.Client\lib\net40\Raven.Client.Lightweight.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Client\lib\net45\Raven.Client.Lightweight.dll</HintPath>
     </Reference>
     <Reference Include="Raven.Database">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\Raven.Database.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\Raven.Database.dll</HintPath>
     </Reference>
     <Reference Include="Spatial4n.Core.NTS">
-      <HintPath>..\packages\RavenDB.Database\lib\net40\Spatial4n.Core.NTS.dll</HintPath>
+      <HintPath>..\packages\RavenDB.Database\lib\net45\Spatial4n.Core.NTS.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -164,12 +168,51 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\EndpointHeartbeat.cs">
+      <Link>HeartbeatMonitoring\InternalMessages\EndpointHeartbeat.cs</Link>
+    </Compile>
+    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\ReportCustomCheckResult.cs">
+      <Link>CustomChecks\InternalMessages\ReportCustomCheckResult.cs</Link>
+    </Compile>
+    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\SagaChangeInitiator.cs">
+      <Link>SagaAudit\Messages\SagaChangeInitiator.cs</Link>
+    </Compile>
+    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\SagaChangeOutput.cs">
+      <Link>SagaAudit\Messages\SagaChangeOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\SagaUpdatedMessage.cs">
+      <Link>SagaAudit\Messages\SagaUpdatedMessage.cs</Link>
+    </Compile>
+    <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
+    <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
+    <Compile Include="CompositeViews\Endpoints\EndpointsViewIndex.cs" />
+    <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
+    <Compile Include="CompositeViews\Messages\MessagesView.cs" />
+    <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
+    <Compile Include="CompositeViews\Messages\MessagesViewTransformer.cs" />
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
+    <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
+    <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
+    <Compile Include="Contracts\MessageFailures\MessageFailureResolved.cs" />
+    <Compile Include="Contracts\Operations\ImportMessage.cs" />
+    <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
+    <Compile Include="EndpointControl\Handlers\DetectNewEndpointsFromImportedMessages.cs" />
+    <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
+    <Compile Include="Contracts\EndpointControl\NewEndpointDetected.cs" />
+    <Compile Include="Contracts\EndpointControl\NewMachineDetectedForEndpoint.cs" />
+    <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
+    <Compile Include="EndpointControl\Handlers\KnownEndpointsCache.cs" />
+    <Compile Include="EndpointControl\Handlers\RegisterEndpointHandler.cs" />
+    <Compile Include="EndpointControl\KnownEndpoint.cs" />
+    <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointFailedToHeartbeatDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointHeartbeatRestoredDefinition.cs" />
+    <Compile Include="EventLog\Definitions\HeartbeatingEndpointDetectedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\NewEndpointDetectedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\NewMachineDetectedForEndpointDefinition.cs" />
     <Compile Include="EventLog\EventLogApiModule.cs" />
     <Compile Include="EventLog\EventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogMappings.cs" />
@@ -184,8 +227,8 @@
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointFailedToHeartbeat.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointHeartbeatRestored.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
-    <Compile Include="Contracts\Operations\AuditMessageReceived.cs" />
-    <Compile Include="Contracts\Operations\ErrorMessageReceived.cs" />
+    <Compile Include="Contracts\Operations\ImportSuccessfullyProcessedMessage.cs" />
+    <Compile Include="Contracts\Operations\ImportFailedMessage.cs" />
     <Compile Include="CustomChecks\CustomCheck.cs" />
     <Compile Include="CustomChecks\CustomCheckMonitor.cs" />
     <Compile Include="CustomChecks\CustomCheckResultHandler.cs" />
@@ -200,38 +243,46 @@
     <Compile Include="HeartbeatMonitoring\HeartbeatMonitor.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatingEndpointDetected.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
-    <Compile Include="HeartbeatMonitoring\RaiseHartbeatChanges.cs" />
+    <Compile Include="HeartbeatMonitoring\RaiseHeartbeatChanges.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\TotalEndpointsUpdated.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
+    <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
-    <Compile Include="Infrastructure\Nancy\UrlAclInstaller.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Facets.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Failures.cs" />
+    <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
+    <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageFacetsIndex.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageViewIndex.cs" />
+    <Compile Include="MessageFailures\Api\SetupFailedMessagesFacets.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
     <Compile Include="Infrastructure\SignalR\GlobalEventHandler.cs" />
-    <Compile Include="Infrastructure\SignalR\BusExtensions.cs" />
     <Compile Include="Infrastructure\SignalR\MessageStreamerConnection.cs" />
     <Compile Include="Infrastructure\SignalR\Envelope.cs" />
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
     <Compile Include="Infrastructure\Subscriptions\AlwaysIncludeLocalEndpointStorage.cs" />
-    <Compile Include="MessageAuditing\AuditMessageHandler.cs" />
-    <Compile Include="MessageAuditing\DictionaryExtensions.cs" />
-    <Compile Include="MessageAuditing\EndpointDetails.cs" />
-    <Compile Include="MessageAuditing\ExceptionDetails.cs" />
-    <Compile Include="MessageAuditing\FailureDetails.cs" />
-    <Compile Include="MessageAuditing\HistoryItem.cs" />
-    <Compile Include="MessageAuditing\MessageStatistics.cs" />
-    <Compile Include="MessageAuditing\SagaDetails.cs" />
-    <Compile Include="MessageFailures\ErrorMessageCounterRegister.cs" />
-    <Compile Include="MessageFailures\ErrorMessageHandler.cs" />
+    <Compile Include="Infrastructure\TransportMessageExtensions.cs" />
+    <Compile Include="Infrastructure\UrlAclInstaller.cs" />
+    <Compile Include="MessageAuditing\Handlers\AuditMessageHandler.cs" />
+    <Compile Include="Infrastructure\DictionaryExtensions.cs" />
+    <Compile Include="Contracts\Operations\EndpointDetails.cs" />
+    <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
+    <Compile Include="Contracts\Operations\FailureDetails.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageViewTransformer.cs" />
+    <Compile Include="MessageFailures\Api\GetAllErrors.cs" />
+    <Compile Include="MessageFailures\Api\GetErrorById.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
-    <Compile Include="MessageFailures\InMemoryErrorMessagesCounterCache.cs" />
-    <Compile Include="MessageFailures\SignalrErrorMessageHandler.cs" />
-    <Compile Include="MessageFailures\TotalErrorMessagesUpdated.cs" />
+    <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\ImportFailedMessageHandler.cs" />
+    <Compile Include="MessageFailures\FailedMessage.cs" />
+    <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
+    <Compile Include="MessageFailures\Handlers\ImportSuccessfullyProcessedMessageHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
+    <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
+    <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
@@ -244,44 +295,56 @@
     <Compile Include="Infrastructure\Nancy\NServiceBusContainerBootstrapper.cs" />
     <Compile Include="Infrastructure\Nancy\VersionExtension.cs" />
     <Compile Include="Infrastructure\Nancy\StringListBinder.cs" />
-    <Compile Include="MessageFailures\InternalMessages\IssueEndpointRetryAll.cs" />
-    <Compile Include="MessageFailures\InternalMessages\IssueRetries.cs" />
-    <Compile Include="MessageFailures\InternalMessages\IssueRetryAll.cs" />
-    <Compile Include="MessageFailures\Handlers\IssueEndpointRetryAllHandler.cs" />
-    <Compile Include="MessageFailures\Handlers\IssueRetriesHandler.cs" />
+    <Compile Include="MessageFailures\InternalMessages\RequestEndpointRetryAll.cs" />
+    <Compile Include="MessageFailures\InternalMessages\RequestRetryAll.cs" />
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
-    <Compile Include="MessageFailures\Handlers\IssueRetryAllHandlerBase.cs" />
-    <Compile Include="MessageFailures\Handlers\IssueRetryHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\PerformRetryHandler.cs" />
     <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
     <Compile Include="Infrastructure\Installers\LogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
-    <Compile Include="EndpointControl\EndpointModule.cs" />
-    <Compile Include="MessageFailures\InternalMessages\IssueRetry.cs" />
-    <Compile Include="MessageAuditing\MessagesModule.cs" />
+    <Compile Include="MessageFailures\InternalMessages\RetryMessage.cs" />
+    <Compile Include="CompositeViews\Messages\GetMessages.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\RootModule.cs" />
     <Compile Include="Infrastructure\OWIN\OwinRunner.cs" />
     <Compile Include="Infrastructure\OWIN\Startup.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\CommonResult.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Conversations_Sorted.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Endpoints_Distinct.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Ids.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Search.cs" />
-    <Compile Include="Infrastructure\RavenDB\Indexes\Messages_Sort.cs" />
-    <Compile Include="Infrastructure\RavenDB\RavenUnitOfWork.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
-    <Compile Include="Infrastructure\Satellites\AuditMessageImportSatellite.cs" />
-    <Compile Include="MessageAuditing\AuditMessagesModule.cs" />
-    <Compile Include="BusinessProcessTracking\ConversationsModule.cs" />
+    <Compile Include="MessageTypes\MessageTypeEnricher.cs" />
+    <Compile Include="Operations\AuditQueueImport.cs" />
+    <Compile Include="CompositeViews\Messages\GetMessagesByConversation.cs" />
     <Compile Include="EndpointConfig.cs" />
     <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
-    <Compile Include="MessageAuditing\Message.cs" />
-    <Compile Include="MessageFailures\ErrorMessagesModule.cs" />
-    <Compile Include="MessageAuditing\MessageStatus.cs" />
-    <Compile Include="Infrastructure\Satellites\ErrorImportSatellite.cs" />
+    <Compile Include="MessageAuditing\ProcessedMessage.cs" />
+    <Compile Include="MessageFailures\Api\RetryMessages.cs" />
+    <Compile Include="Contracts\Operations\MessageStatus.cs" />
+    <Compile Include="Operations\BodyStorage\BodyStorageFeature.cs" />
+    <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
+    <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />
+    <Compile Include="Operations\BodyStorage\BodyStorageEnricher.cs" />
+    <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
+    <Compile Include="Operations\ErrorQueueImport.cs" />
+    <Compile Include="Operations\ExceptionExtensions.cs" />
+    <Compile Include="Operations\IEnrichImportedMessages.cs" />
+    <Compile Include="Operations\BodyStorage\BodySearchEnricher.cs" />
+    <Compile Include="Operations\ImportEnricher.cs" />
+    <Compile Include="Operations\ImportErrorHandler.cs" />
+    <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
+    <Compile Include="Operations\ImportRegistration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
+    <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
+    <Compile Include="SagaAudit\ApiModule.cs" />
+    <Compile Include="SagaAudit\SagaRelationshipsEnricher.cs" />
+    <Compile Include="SagaAudit\ProcessingState.cs" />
+    <Compile Include="SagaAudit\SagaInfo.cs" />
+    <Compile Include="SagaAudit\SagaUpdatedHandler.cs" />
+    <Compile Include="SagaAudit\InitiatingMessage.cs" />
+    <Compile Include="SagaAudit\SagaHistory.cs" />
+    <Compile Include="SagaAudit\ResultingMessage.cs" />
+    <Compile Include="SagaAudit\SagaStateChange.cs" />
+    <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
+    <Compile Include="SagaAudit\SageMessageState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -293,12 +356,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="License.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.EndpointPlugin.Messages\ServiceControl.EndpointPlugin.Messages.csproj">
-      <Project>{d2d40b1e-9fb5-4a3e-b4cd-b04b0882690b}</Project>
-      <Name>ServiceControl.EndpointPlugin.Messages</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />

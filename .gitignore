@@ -33,3 +33,4 @@ logs
 /installer/Setup/ManagementAPI-cache
 /installer/Setup/Output Package
 nugets
+*.jtconfig

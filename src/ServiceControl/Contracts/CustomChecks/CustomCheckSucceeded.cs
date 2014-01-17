@@ -2,7 +2,7 @@
 {
     using System;
     using NServiceBus;
-    using ServiceBus.Management.MessageAuditing;
+    using Operations;
 
     public class CustomCheckSucceeded : IEvent
     {

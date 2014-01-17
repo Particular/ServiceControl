@@ -41,16 +41,48 @@
         ///     The value associated with <paramref name="name" />, with any embedded environment variables left unexpanded, or
         ///     <paramref name="defaultValue" /> if <paramref name="name" /> is not found.
         /// </returns>
-        public static T Read(string subkey, string name, T defaultValue = default(T))
+        public static T Read(string subKey, string name, T defaultValue = default(T))
         {
-            var regPath = @"SOFTWARE\ParticularSoftware\" + subkey.Replace("/", "\\");
+            var regPath = @"SOFTWARE\ParticularSoftware\" + subKey.Replace("/", "\\");
             try
             {
-                using (var registryKey = Registry.LocalMachine.OpenSubKey(regPath))
+                if (Environment.Is64BitOperatingSystem)
                 {
-                    if (registryKey != null)
+                    var rootKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+
+                    using (var registryKey = rootKey.OpenSubKey(regPath))
                     {
-                        return (T) registryKey.GetValue(name, defaultValue);
+                        if (registryKey != null)
+                        {
+                            var value = registryKey.GetValue(name);
+
+                            if (value != null)
+                            {
+                                return (T)Convert.ChangeType(value, typeof(T));
+                            }
+                        }
+                    }
+
+                    rootKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+
+                    using (var registryKey = rootKey.OpenSubKey(regPath))
+                    {
+                        if (registryKey != null)
+                        {
+                            return (T)Convert.ChangeType(registryKey.GetValue(name, defaultValue), typeof(T));
+                        }
+                    }
+                }
+                else
+                {
+                    var rootKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default);
+
+                    using (var registryKey = rootKey.OpenSubKey(regPath))
+                    {
+                        if (registryKey != null)
+                        {
+                            return (T)Convert.ChangeType(registryKey.GetValue(name, defaultValue), typeof(T));
+                        }
                     }
                 }
             }

@@ -4,15 +4,15 @@
 
     public static class ExtraHeaders
     {
-        public static void Add(NancyContext ctx)
+        public static void Add(NancyContext context)
         {
-            if (!ctx.Response.Headers.ContainsKey("Cache-Control"))
+            if (!context.Response.Headers.ContainsKey("Cache-Control"))
             {
-                ctx.Response
+                context.Response
                     .WithHeader("Cache-Control", "private, max-age=0");
             }
 
-            ctx.Response
+            context.Response
                 .WithHeader("Access-Control-Expose-Headers",
                     "ETag, Last-Modified, Link, Total-Count, X-Particular-Version")
                 .WithHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")

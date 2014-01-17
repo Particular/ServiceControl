@@ -1,5 +1,6 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
+    using Infrastructure.Extensions;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -8,8 +9,6 @@ namespace ServiceControl.HeartbeatMonitoring
 
     public class ApiModule : BaseModule
     {
-        public IDocumentStore Store { get; set; }
-
         public ApiModule()
         {
             Get["/heartbeats/stats"] = _ =>
@@ -33,7 +32,7 @@ namespace ServiceControl.HeartbeatMonitoring
                 {
                     string id = parameters.id;
 
-                    var heartbeat = session.Load<Heartbeat>(string.Format("heartbeats/{0}", id));
+                    var heartbeat = session.Load<Heartbeat>(id);
 
                     if (heartbeat != null)
                     {

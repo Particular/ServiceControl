@@ -1,40 +1,89 @@
 ﻿namespace ServiceControl.EventLog
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using NServiceBus;
 
-    public abstract class EventLogMappingDefinition<T> : IEventLogMappingDefinition where T: IEvent
+    public abstract class EventLogMappingDefinition<T> : IEventLogMappingDefinition where T : IEvent
     {
-        public Type GetEventType()
+        public virtual string Category
         {
-            return typeof(T);
+            get
+            {
+                return typeof(T).Namespace.Split('.').Last();
+            }
         }
 
-        public virtual string Category()
+        public EventLogItem Apply(IEvent @event)
         {
-            return typeof(T).Namespace;
+            var eventMessage = (T) @event;
+
+            var item = new EventLogItem
+            {
+                Id = string.Format("EventLogItem/{0}/{1}/{2}", Category, typeof(T).Name, Headers.GetMessageHeader(@event, Headers.MessageId)),
+                Category = Category,
+                RaisedAt = raisedAtFunc(eventMessage),
+                Description =descriptionFunc(eventMessage),
+                Severity = severityFunc(eventMessage),
+                EventType = typeof(T).Name,
+                RelatedTo = relatedToLinks.Select(f => f(eventMessage)).ToList()
+            };
+
+
+            return item;
+        }
+
+        protected void Description(Func<T, string> description)
+        {
+            descriptionFunc = description;
+        }
+
+        protected void RaisedAt(Func<T, DateTime> raisedAt)
+        {
+            raisedAtFunc = raisedAt;
+        }
+
+        protected void RelatesToMessage(Func<T, string> relatedTo)
+        {
+            relatedToLinks.Add(m => string.Format("/message/{0}", relatedTo(m)));
         }
 
 
-        public Func<IEvent, EventLogItem> RetrieveMapping()
+        protected void RelatesToEndpoint(Func<T, string> relatedTo)
         {
-            return m => GetMapping()((T)m);
-
+            relatedToLinks.Add(m => string.Format("/endpoint/{0}", relatedTo(m)));
         }
 
-        public virtual Func<T, EventLogItem> GetMapping()
+        protected void RelatesToMachine(Func<T, string> relatedTo)
         {
-            return m => new EventLogItem() {Id = GetId(m), Description = GetDescription()};
+            relatedToLinks.Add(m => string.Format("/machine/{0}", relatedTo(m)));
         }
 
-        public virtual string GetDescription()
+        protected void RelatesToCustomCheck(Func<T, string> relatedTo)
         {
-            return GetType().Name.Replace("Definition", "");
+            relatedToLinks.Add(m => string.Format("/customcheck/{0}", relatedTo(m)));
         }
 
-        public virtual string GetId(IEvent message)
+        protected void TreatAsError()
         {
-            return string.Format("EventLogItem/{0}",Headers.GetMessageHeader(message, Headers.MessageId));
+            Severity(EventLog.Severity.Error);
         }
+
+        protected void Severity(Severity severityToUse)
+        {
+            Severity(m => severityToUse);
+        }
+
+        protected void Severity(Func<T,Severity> severity)
+        {
+            severityFunc = severity;
+        }
+
+        List<Func<T, string>> relatedToLinks = new List<Func<T,string>>();
+        Func<T, string> descriptionFunc = m =>  m.ToString();
+        Func<T, Severity> severityFunc = arg => EventLog.Severity.Info;
+
+        Func<T, DateTime> raisedAtFunc = arg => DateTime.UtcNow;
     }
 }

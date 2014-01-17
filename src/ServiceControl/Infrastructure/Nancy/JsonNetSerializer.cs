@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
+    using System.Net;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using ServiceControl.Infrastructure.SignalR;
@@ -21,7 +22,12 @@
                 ContractResolver = new UnderscoreMappingResolver(),
                 Formatting = Formatting.None,
                 NullValueHandling = NullValueHandling.Ignore,
-                Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}, {new StringEnumConverter{CamelCaseText = true}}}
+                Converters =
+                {
+                    new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}, 
+                    new StringEnumConverter{CamelCaseText = true},
+
+                }
             };
             serializer = JsonSerializer.Create(serializerSettings);
         }
@@ -66,7 +72,24 @@
         {
             using (var writer = new JsonTextWriter(new StreamWriter(new UnclosableStreamWrapper(outputStream))))
             {
-                serializer.Serialize(writer, model);
+                try
+                {
+                    serializer.Serialize(writer, model);
+
+                }
+                catch (IOException ex)
+                {
+                    var innerException = ex.InnerException as HttpListenerException;
+                    if (innerException != null)
+                    {
+                        if (innerException.ErrorCode == 1229) // An operation was attempted on a nonexistent network connection, this error happens when the client has dropped the connection so it is safe to ignore
+                        {
+                            return;
+                        }
+                    }
+
+                    throw;
+                }
             }
         }
 

@@ -1,14 +1,15 @@
-﻿namespace ServiceBus.Management.Infrastructure.RavenDB
+﻿namespace ServiceControl.Infrastructure.RavenDB
 {
-    using System.Diagnostics;
+    using System;
     using System.IO;
     using NServiceBus;
     using NServiceBus.Logging;
+    using NServiceBus.Pipeline;
+    using NServiceBus.RavenDB;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
-    using Raven.Database.Server;
-    using Settings;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class RavenBootstrapper : INeedInitialization
     {
@@ -19,41 +20,58 @@
             var documentStore = new EmbeddableDocumentStore
             {
                 DataDirectory = Settings.DbPath,
-                UseEmbeddedHttpServer = true,
+                UseEmbeddedHttpServer = Settings.ExposeRavenDB,
                 EnlistInDistributedTransactions = false
             };
 
-            NonAdminHttp.EnsureCanListenToWhenInNonAdminContext(Settings.Port);
-
+            if (Settings.Schema.Equals("https", StringComparison.InvariantCultureIgnoreCase))
+            {
+                documentStore.Configuration.UseSsl = true;
+            }
             documentStore.Configuration.Port = Settings.Port;
-            documentStore.Configuration.HostName = Settings.Hostname;
+            documentStore.Configuration.HostName = (Settings.Hostname == "*" || Settings.Hostname == "+") ? "localhost" : Settings.Hostname;
             documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
             documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
 
             documentStore.Initialize();
 
-            var sw = new Stopwatch();
-
-            sw.Start();
             Logger.Info("Index creation started");
 
-            IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore)
-                .ContinueWith(c =>
-                {
-                    sw.Stop();
-                    if (c.IsFaulted)
+            if (Settings.CreateIndexSync)
+            {
+                IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);    
+            }
+            else
+            {
+                IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore)
+                    .ContinueWith(c =>
                     {
-                        Logger.Error("Index creation failed", c.Exception);
-                    }
-                    else
-                    {
-                        Logger.InfoFormat("Index creation completed, total time: {0}", sw.Elapsed);
-                    }
-                });
+                        if (c.IsFaulted)
+                        {
+                            Logger.Error("Index creation failed", c.Exception);
+                        }
+                    });                
+            }
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
-            Configure.Component<RavenUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork);
-            Configure.Instance.RavenPersistenceWithStore(documentStore);
+            Configure.Component(builder =>
+            {
+                var context = builder.Build<PipelineExecutor>().CurrentContext;
+
+                IDocumentSession session;
+
+                if (context.TryGet(out session))
+                {
+                    return session;
+                }
+
+                throw new InvalidOperationException("No session available");
+            },DependencyLifecycle.InstancePerCall);
+
+            Configure.Instance.RavenDBStorageWithSelfManagedSession(documentStore, false,
+                ()=>Configure.Instance.Builder.Build<IDocumentSession>())
+                .UseRavenDBSagaStorage()
+                .UseRavenDBTimeoutStorage();
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));

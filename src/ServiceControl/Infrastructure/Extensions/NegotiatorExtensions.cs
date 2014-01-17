@@ -5,22 +5,23 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using MessageAuditing;
+    using Raven.Abstractions.Data;
     using Raven.Client;
     using global::Nancy;
     using global::Nancy.Helpers;
     using global::Nancy.Responses.Negotiation;
+    using ServiceControl.MessageAuditing;
 
     public static class NegotiatorExtensions
     {
-        public static Negotiator WithModelAppendedRestfulUrls(this Negotiator negotiator, IEnumerable<Message> messages,
+        public static Negotiator WithModelAppendedRestfulUrls(this Negotiator negotiator, IEnumerable<ProcessedMessage> messages,
             Request request)
         {
             var baseUrl = request.Url.SiteBase + request.Url.BasePath;
 
             foreach (var message in messages)
             {
-                message.Url = baseUrl + "/messages/" + message.Id;
+                //message.Url = baseUrl + "/messages/" + message.Id;
             }
 
             return negotiator.WithModel(messages);
@@ -121,11 +122,25 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             links.Add(String.Format("<{0}>; rel=\"{1}\"", url, rel));
         }
 
-        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, RavenQueryStatistics stats)
+        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, QueryHeaderInformation stats)
         {
-            var currentEtag = stats.IndexEtag.ToString();
+            var etag = stats.IndexEtag;
             var responseLastModified = stats.IndexTimestamp;
 
+            return WithEtagAndLastModified(negotiator, etag, responseLastModified);
+        }
+
+        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, RavenQueryStatistics stats)
+        {
+            var etag = stats.IndexEtag;
+            var responseLastModified = stats.IndexTimestamp;
+
+            return WithEtagAndLastModified(negotiator, etag, responseLastModified);
+        }
+
+        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, Etag etag, DateTime responseLastModified)
+        {
+            var currentEtag = etag.ToString();
             return negotiator
                 .WithHeader("ETag", currentEtag)
                 .WithHeader("Last-Modified", responseLastModified.ToString("R"));

@@ -7,10 +7,10 @@
 
     public static class NotModifiedStatusExtension
     {
-        public static void Check(NancyContext ctx)
+        public static void Check(NancyContext context)
         {
-            var requestHeaders = ctx.Request.Headers;
-            var responseHeaders = ctx.Response.Headers;
+            var requestHeaders = context.Request.Headers;
+            var responseHeaders = context.Response.Headers;
             string currentEtag = null;
             string currentLastModified = null;
             var send304 = false;
@@ -39,16 +39,16 @@
 
             if (send304)
             {
-                ctx.Response = new Response {StatusCode = HttpStatusCode.NotModified};
+                context.Response = new Response {StatusCode = HttpStatusCode.NotModified};
 
                 if (currentEtag != null)
                 {
-                    ctx.Response
+                    context.Response
                         .WithHeader("ETag", currentEtag);
                 }
                 if (currentLastModified != null)
                 {
-                    ctx.Response.
+                    context.Response.
                         WithHeader("Last-Modified", currentLastModified);
                 }
             }

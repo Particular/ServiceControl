@@ -1,13 +1,36 @@
-﻿namespace ServiceBus.Management.MessageFailures.Handlers
+﻿namespace ServiceControl.MessageFailures.Handlers
 {
+    using System.Linq;
+    using Api;
     using InternalMessages;
     using NServiceBus;
+    using Raven.Client;
+    using Raven.Client.Linq;
 
-    public class IssueRetryAllHandler : IssueRetryAllHandlerBase, IHandleMessages<IssueRetryAll>
+    public class IssueRetryAllHandler : IHandleMessages<RequestRetryAll>
     {
-        public void Handle(IssueRetryAll message)
+        public IDocumentSession Session { get; set; }
+        public IBus Bus { get; set; }
+
+        public void Handle(RequestRetryAll message)
         {
-            ExecuteQuery();
+            var query = Session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>();
+            
+            if (message.Endpoint != null)
+            {
+                query = query.Where(fm => fm.ReceivingEndpointName == message.Endpoint);
+            }
+
+            using (var ie = Session.Advanced.Stream(query.OfType<FailedMessage>()))
+            {
+                while (ie.MoveNext())
+                {
+                    var retryMessage = new RetryMessage {FailedMessageId = ie.Current.Document.UniqueMessageId};
+                    message.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
+
+                    Bus.SendLocal(retryMessage);
+                }
+            }
         }
     }
 }

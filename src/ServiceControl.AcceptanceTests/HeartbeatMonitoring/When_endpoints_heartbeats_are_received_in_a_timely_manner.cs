@@ -1,12 +1,13 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.HeartbeatMonitoring
 {
     using System;
-    using System.Threading;
+    using System.Collections.Generic;
     using Contexts;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceControl.CompositeViews.Endpoints;
 
-    public class When_endpoints_heartbeats_are_received_in_a_timely_manner: AcceptanceTest
+    public class When_endpoints_heartbeats_are_received_in_a_timely_manner : AcceptanceTest
     {
         public class Endpoint1 : EndpointConfigurationBuilder
         {
@@ -41,20 +42,15 @@
                 .WithEndpoint<Endpoint2>()
                 .Done(c =>
                     {
-                        summary = Get<HeartbeatSummary>("/api/heartbeats/stats");
-
-                        if (summary == null)
+                        if (!TryGet("/api/heartbeats/stats", out summary, m=> m.ActiveEndpoints >= 3))
                         {
-                            Thread.Sleep(2000);
                             return false;
                         }
 
-                        if (summary.ActiveEndpoints < 2)
-                        {
-                            Thread.Sleep(2000);
-                        }
+                        List<EndpointsView> endpoints;
 
-                        return summary.ActiveEndpoints == 2;
+                        return TryGetMany("/api/endpoints", out endpoints, e => e.Name.Contains("Endpoint1") );
+
                     })
                 .Run(TimeSpan.FromMinutes(2));
 

@@ -4,6 +4,7 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.Reflection;
     using Autofac;
+    using global::ServiceControl.Operations;
     using NLog;
     using NLog.Config;
     using NLog.Targets;
@@ -20,42 +21,39 @@ namespace Particular.ServiceControl
         {
             ConfigureLogging();
 
-            Container = new ContainerBuilder().Build();
+            var containerBuilder = new ContainerBuilder();
+            containerBuilder.RegisterType<ImportErrorHandler>().SingleInstance();
+            containerBuilder.RegisterType<ImportFailureCircuitBreaker>().SingleInstance();
+            Container = containerBuilder.Build();
 
             var transportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
 
             // Disable Auditing for the service control endpoint
             Configure.Features.Disable<Audit>();
+            Configure.Features.Enable<Sagas>();
 
-            Configure.With()
-                .AutofacBuilder(Container)
-                .UseTransport(Type.GetType(transportType))
-                .UnicastBus();
+            var config = Configure.With(GetType().Assembly);;
+            
+
+            config.AutofacBuilder(Container)
+                            .UseTransport(Type.GetType(transportType))
+                            .UnicastBus();
 
             ConfigureLicense();
 
-            var pluginType = Type.GetType("ServiceControl.EndpointPlugin.Heartbeats.Heartbeats, ServiceControl.EndpointPlugin", false);
-            if (pluginType != null)
-            {
-                Feature.Disable(pluginType);
-            }
-            
             Feature.Disable<AutoSubscribe>();
-            
+            Feature.Disable<SecondLevelRetries>();
+
             Configure.Serialization.Json();
             Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
         }
 
         static void ConfigureLicense()
         {
-            using (
-                var licenseStream =
-                    Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.License.xml"))
+            using (var licenseStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.License.xml"))
+            using (var sr = new StreamReader(licenseStream))
             {
-                using (var sr = new StreamReader(licenseStream))
-                {
-                    Configure.Instance.License(sr.ReadToEnd());
-                }
+                Configure.Instance.License(sr.ReadToEnd());
             }
         }
 
@@ -66,8 +64,8 @@ namespace Particular.ServiceControl
             var fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = "${specialfolder:folder=ApplicationData}/Particular/ServiceControl/logs/logfile.txt",
-                ArchiveFileName = "${specialfolder:folder=ApplicationData}/Particular/ServiceControl/logs/log.{#}.txt",
+                FileName = Settings.LogPath + "/logfile.txt",
+                ArchiveFileName = Settings.LogPath + "/log.{#}.txt",
                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
                 MaxArchiveFiles = 14
             };
@@ -85,7 +83,7 @@ namespace Particular.ServiceControl
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
             nlogConfig.AddTarget("console", consoleTarget);
-            NLogConfigurator.Configure(new object[] {fileTarget, consoleTarget}, "Info");
+            NLogConfigurator.Configure(new object[] { fileTarget, consoleTarget }, "Info");
             LogManager.Configuration = nlogConfig;
         }
     }

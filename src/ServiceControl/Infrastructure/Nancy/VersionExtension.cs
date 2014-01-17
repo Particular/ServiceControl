@@ -10,9 +10,9 @@
             FileVersion = GetFileVersion();
         }
 
-        public static void Add(NancyContext ctx)
+        public static void Add(NancyContext context)
         {
-            ctx.Response
+            context.Response
                 .WithHeader("X-Particular-Version", FileVersion);
         }
 
