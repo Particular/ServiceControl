@@ -3,12 +3,9 @@
     using System;
     using System.IO;
     using NServiceBus;
-    using NServiceBus.Config;
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
     using NServiceBus.RavenDB;
-    using NServiceBus.Unicast.Subscriptions;
-    using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
@@ -81,15 +78,4 @@
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
     }
-
-    class PrepopulateSubscriptionStorage:IWantToRunWhenConfigurationIsComplete
-    {
-        public ISubscriptionStorage SubscriptionStorage { get; set; }    
-        public void Run()
-        {
-            Configure.Instance.ForAllTypes<IEvent>(eventType => SubscriptionStorage.Subscribe(Address.Local, new[] { new MessageType(eventType)}));
-        }
-    }
-
-
 }
