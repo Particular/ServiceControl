@@ -14,7 +14,7 @@
     public class AuditQueueImport : ISatellite
     {
         public IBuilder Builder { get; set; }
-        public ImportErrorHandler ImportErrorHandler { get; set; }
+        //public ImportErrorHandler ImportErrorHandler { get; set; }
         public ISendMessages Forwarder { get; set; }
 
 #pragma warning disable 618
@@ -25,15 +25,15 @@
 
         public bool Handle(TransportMessage message)
         {
-            try
-            {
+            //try
+            //{
                 InnerHandle(message);
-            }
-            catch (Exception exception)
-            {
-                Logger.Error("Failed to import",exception);
-                ImportErrorHandler.HandleAudit(message, exception);
-            }
+            //}
+            //catch (Exception exception)
+            //{
+            //    Logger.Error("Failed to import",exception);
+            //    ImportErrorHandler.HandleAudit(message, exception);
+            //}
             return true;
         }
 
