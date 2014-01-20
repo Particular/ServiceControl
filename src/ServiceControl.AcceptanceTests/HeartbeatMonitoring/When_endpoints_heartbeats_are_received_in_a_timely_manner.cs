@@ -42,7 +42,7 @@
                 .WithEndpoint<Endpoint2>()
                 .Done(c =>
                     {
-                        if (!TryGet("/api/heartbeats/stats", out summary, m=> m.ActiveEndpoints >= 3))
+                        if (!TryGet("/api/heartbeats/stats", out summary, m=> m.ActiveEndpoints >= 2))
                         {
                             return false;
                         }
