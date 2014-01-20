@@ -190,16 +190,31 @@
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewTransformer.cs" />
+    <Compile Include="Contracts\BusinessMonitoring\EndpointSLABreached.cs" />
+    <Compile Include="Contracts\CustomChecks\CustomCheckFailed.cs" />
+    <Compile Include="Contracts\CustomChecks\CustomCheckSucceeded.cs" />
+    <Compile Include="Contracts\EndpointControl\NewEndpointDetected.cs" />
+    <Compile Include="Contracts\EndpointControl\NewMachineDetectedForEndpoint.cs" />
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
+    <Compile Include="Contracts\HeartbeatMonitoring\EndpointFailedToHeartbeat.cs" />
+    <Compile Include="Contracts\HeartbeatMonitoring\EndpointHeartbeatRestored.cs" />
+    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatingEndpointDetected.cs" />
+    <Compile Include="Contracts\HeartbeatMonitoring\TotalEndpointsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolved.cs" />
+    <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
+    <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
+    <Compile Include="Contracts\Operations\EndpointDetails.cs" />
+    <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
+    <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
+    <Compile Include="Contracts\Operations\ImportFailedMessage.cs" />
     <Compile Include="Contracts\Operations\ImportMessage.cs" />
+    <Compile Include="Contracts\Operations\ImportSuccessfullyProcessedMessage.cs" />
+    <Compile Include="Contracts\Operations\MessageStatus.cs" />
     <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
     <Compile Include="EndpointControl\Handlers\DetectNewEndpointsFromImportedMessages.cs" />
     <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
-    <Compile Include="Contracts\EndpointControl\NewEndpointDetected.cs" />
-    <Compile Include="Contracts\EndpointControl\NewMachineDetectedForEndpoint.cs" />
     <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
     <Compile Include="EndpointControl\Handlers\KnownEndpointsCache.cs" />
     <Compile Include="EndpointControl\Handlers\RegisterEndpointHandler.cs" />
@@ -220,15 +235,7 @@
     <Compile Include="EventLog\Severity.cs" />
     <Compile Include="BusinessMonitoring\ApiModule.cs" />
     <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
-    <Compile Include="Contracts\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
-    <Compile Include="Contracts\CustomChecks\CustomCheckFailed.cs" />
-    <Compile Include="Contracts\CustomChecks\CustomCheckSucceeded.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\EndpointFailedToHeartbeat.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\EndpointHeartbeatRestored.cs" />
-    <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
-    <Compile Include="Contracts\Operations\ImportSuccessfullyProcessedMessage.cs" />
-    <Compile Include="Contracts\Operations\ImportFailedMessage.cs" />
     <Compile Include="CustomChecks\CustomCheck.cs" />
     <Compile Include="CustomChecks\CustomCheckMonitor.cs" />
     <Compile Include="CustomChecks\CustomCheckResultHandler.cs" />
@@ -241,10 +248,8 @@
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogItem.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatMonitor.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatingEndpointDetected.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
     <Compile Include="HeartbeatMonitoring\RaiseHeartbeatChanges.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\TotalEndpointsUpdated.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
     <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
@@ -267,15 +272,11 @@
     <Compile Include="Infrastructure\UrlAclInstaller.cs" />
     <Compile Include="MessageAuditing\Handlers\AuditMessageHandler.cs" />
     <Compile Include="Infrastructure\DictionaryExtensions.cs" />
-    <Compile Include="Contracts\Operations\EndpointDetails.cs" />
-    <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
-    <Compile Include="Contracts\Operations\FailureDetails.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewTransformer.cs" />
     <Compile Include="MessageFailures\Api\GetAllErrors.cs" />
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
-    <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
     <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
     <Compile Include="MessageFailures\Handlers\ImportFailedMessageHandler.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
@@ -283,9 +284,6 @@
     <Compile Include="MessageFailures\Handlers\ImportSuccessfullyProcessedMessageHandler.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
-    <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
-    <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
-    <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="Infrastructure\Nancy\ExtraHeaders.cs" />
     <Compile Include="Infrastructure\Nancy\Helpers.cs" />
@@ -318,7 +316,6 @@
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
     <Compile Include="MessageAuditing\ProcessedMessage.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
-    <Compile Include="Contracts\Operations\MessageStatus.cs" />
     <Compile Include="Operations\BodyStorage\BodyStorageFeature.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
     <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />
@@ -359,6 +356,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="License.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Contracts\ServiceControl.Contracts.csproj">
+      <Project>{bcaa370c-58ca-46a7-a034-6cab61c004e1}</Project>
+      <Name>ServiceControl.Contracts</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />

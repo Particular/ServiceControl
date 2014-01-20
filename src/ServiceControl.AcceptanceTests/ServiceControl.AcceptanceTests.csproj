@@ -122,6 +122,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Contracts\ServiceControl.Contracts.csproj">
+      <Project>{bcaa370c-58ca-46a7-a034-6cab61c004e1}</Project>
+      <Name>ServiceControl.Contracts</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Plugin.DebugSession\ServiceControl.Plugin.DebugSession.csproj">
       <Project>{1600753b-62ac-4c27-a171-ec887718d06d}</Project>
       <Name>ServiceControl.Plugin.DebugSession</Name>

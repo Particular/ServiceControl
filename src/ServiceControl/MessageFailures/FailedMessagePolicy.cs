@@ -29,7 +29,7 @@
             {
                 Id = Guid.NewGuid(),
                 AttemptedAt = timeOfFailure,
-                AddressOfFailingEndpoint = message.FailureDetails.AddressOfFailingEndpoint,
+                AddressOfFailingEndpoint = Address.Parse(message.FailureDetails.AddressOfFailingEndpoint),
                 FailingEndpoint = message.FailingEndpointId
             });
 
