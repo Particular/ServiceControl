@@ -31,7 +31,7 @@ namespace Particular.ServiceControl
             Configure.Features.Disable<Audit>();
             Configure.Features.Enable<Sagas>();
 
-            var config = Configure.With(new Assembly[] { GetType().Assembly, typeof(MessageFailed).Assembly });
+            var config = Configure.With(new[] { GetType().Assembly, typeof(MessageFailed).Assembly });
             
 
             config.AutofacBuilder(Container)

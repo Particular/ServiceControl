@@ -267,7 +267,6 @@
     <Compile Include="Infrastructure\SignalR\MessageStreamerConnection.cs" />
     <Compile Include="Infrastructure\SignalR\Envelope.cs" />
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
-    <Compile Include="Infrastructure\Subscriptions\AlwaysIncludeLocalEndpointStorage.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensions.cs" />
     <Compile Include="Infrastructure\UrlAclInstaller.cs" />
     <Compile Include="MessageAuditing\Handlers\AuditMessageHandler.cs" />
