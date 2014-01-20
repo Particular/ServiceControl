@@ -9,7 +9,7 @@
     using NUnit.Framework;
     using ServiceControl.SagaAudit;
 
-    public class When_starting_a_saga_instance_being_created : AcceptanceTest
+    public class When_a_saga_instance_is_being_created : AcceptanceTest
     {
 
         [Test]
@@ -22,7 +22,7 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new StartSagaMessage())))
                 .Done(c => c.InitiatingMessageReceived  && TryGet("/api/sagas/" + c.SagaId, out sagaHistory))
-                .Run(TimeSpan.FromSeconds(5));
+                .Run();
 
             Assert.NotNull(sagaHistory);
 
