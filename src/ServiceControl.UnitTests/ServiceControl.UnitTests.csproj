@@ -64,7 +64,6 @@
   <ItemGroup>
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
-    <Compile Include="Operations\ImportErrorHandlerTests.cs" />
     <Compile Include="Operations\NetDumbsterExtensions.cs" />
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
   </ItemGroup>

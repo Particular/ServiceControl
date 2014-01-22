@@ -14,7 +14,7 @@
     public class ErrorQueueImport : ISatellite
     {
         public ISendMessages Forwarder { get; set; }
-        //public ImportErrorHandler ImportErrorHandler { get; set; }
+        public ImportErrorHandler ImportErrorHandler { get; set; }
         public IBuilder Builder { get; set; }
 
 #pragma warning disable 618
@@ -24,15 +24,15 @@
 
         public bool Handle(TransportMessage message)
         {
-            //try
-            //{
+            try
+            {
                 InnerHandle(message);
-            //}
-            //catch (Exception exception)
-            //{
-            //    Logger.Error("Failed to import", exception);
-            //    ImportErrorHandler.HandleError(message, exception);
-            //}
+            }
+            catch (Exception exception)
+            {
+                Logger.Error("Failed to import", exception);
+                ImportErrorHandler.HandleError(message, exception);
+            }
 
             return true;
         }
