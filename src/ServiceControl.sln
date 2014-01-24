@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl", "ServiceControl\ServiceControl.csproj", "{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}"
@@ -32,8 +34,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Plugin.SagaAudit", "ServiceControl.Plugin.SagaAudit\ServiceControl.Plugin.SagaAudit.csproj", "{97079A73-235E-4D52-A6DF-EBF3BF0F4971}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Plugin.SagaAudit.Sample", "ServiceControl.Plugin.SagaAudit.Sample\ServiceControl.Plugin.SagaAudit.Sample.csproj", "{E661AC36-B063-46C0-8BB6-8488AC68727F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Plugin.SagaAudit.Tests", "ServiceControl.Plugin.SagaAudit.Tests\ServiceControl.Plugin.SagaAudit.Tests.csproj", "{48E5F910-F7F4-4A96-9FEC-C5A7CBD1A11E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -73,10 +73,6 @@ Global
 		{E661AC36-B063-46C0-8BB6-8488AC68727F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E661AC36-B063-46C0-8BB6-8488AC68727F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E661AC36-B063-46C0-8BB6-8488AC68727F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{48E5F910-F7F4-4A96-9FEC-C5A7CBD1A11E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{48E5F910-F7F4-4A96-9FEC-C5A7CBD1A11E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{48E5F910-F7F4-4A96-9FEC-C5A7CBD1A11E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{48E5F910-F7F4-4A96-9FEC-C5A7CBD1A11E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -88,7 +84,6 @@ Global
 		{6526946E-5299-441A-9EC7-C85306FB5F51} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
 		{97079A73-235E-4D52-A6DF-EBF3BF0F4971} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
 		{E661AC36-B063-46C0-8BB6-8488AC68727F} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
-		{48E5F910-F7F4-4A96-9FEC-C5A7CBD1A11E} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
 		{37877FBD-610F-4AA5-8EAA-60E69F438869} = {290D5F7D-AA5D-429F-A95D-DA820B2BB1B2}
 	EndGlobalSection
 EndGlobal
