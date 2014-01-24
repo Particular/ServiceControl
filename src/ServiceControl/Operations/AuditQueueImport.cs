@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
+    using System.IO;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -9,12 +10,13 @@
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
     using NServiceBus.Unicast.Messages;
+    using NServiceBus.Unicast.Transport;
+    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class AuditQueueImport : ISatellite
+    public class AuditQueueImport : IAdvancedSatellite, IDisposable
     {
         public IBuilder Builder { get; set; }
-        public ImportErrorHandler ImportErrorHandler { get; set; }
         public ISendMessages Forwarder { get; set; }
 
 #pragma warning disable 618
@@ -25,15 +27,8 @@
 
         public bool Handle(TransportMessage message)
         {
-            try
-            {
-                InnerHandle(message);
-            }
-            catch (Exception exception)
-            {
-                Logger.Error("Failed to import", exception);
-                ImportErrorHandler.HandleAudit(message, exception);
-            }
+            InnerHandle(message);
+
             return true;
         }
 
@@ -50,7 +45,8 @@
                     enricher.Enrich(receivedMessage);
                 }
 
-                var logicalMessage = LogicalMessageFactory.Create(typeof(ImportSuccessfullyProcessedMessage), receivedMessage);
+                var logicalMessage = LogicalMessageFactory.Create(typeof(ImportSuccessfullyProcessedMessage),
+                    receivedMessage);
 
                 PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
             }
@@ -80,8 +76,27 @@
             get { return InputAddress == Address.Undefined; }
         }
 
+        public Action<TransportReceiver> GetReceiverCustomization()
+        {
+            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(Builder.Build<IDocumentStore>(),
+                Path.Combine(Settings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
+                {
+                    Message = tm,
+                });
 
+            return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
+        }
 
-        static ILog Logger = LogManager.GetLogger(typeof(AuditQueueImport));
+        public void Dispose()
+        {
+            if (satelliteImportFailuresHandler != null)
+            {
+                satelliteImportFailuresHandler.Dispose();
+            }
+        }
+
+        SatelliteImportFailuresHandler satelliteImportFailuresHandler;
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(AuditQueueImport));
     }
 }

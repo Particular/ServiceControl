@@ -326,10 +326,12 @@
     <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
     <Compile Include="Operations\ErrorQueueImport.cs" />
     <Compile Include="Operations\ExceptionExtensions.cs" />
+    <Compile Include="Operations\FailedAuditImport.cs" />
+    <Compile Include="Operations\FailedErrorImport.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
     <Compile Include="Operations\BodyStorage\BodySearchEnricher.cs" />
     <Compile Include="Operations\ImportEnricher.cs" />
-    <Compile Include="Operations\ImportErrorHandler.cs" />
+    <Compile Include="Operations\SatelliteImportFailuresHandler.cs" />
     <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
     <Compile Include="Operations\ImportRegistration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

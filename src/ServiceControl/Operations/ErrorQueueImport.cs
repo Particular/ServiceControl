@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
+    using System.IO;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -9,12 +10,13 @@
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
     using NServiceBus.Unicast.Messages;
+    using NServiceBus.Unicast.Transport;
+    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class ErrorQueueImport : ISatellite
+    public class ErrorQueueImport : IAdvancedSatellite, IDisposable
     {
         public ISendMessages Forwarder { get; set; }
-        public ImportErrorHandler ImportErrorHandler { get; set; }
         public IBuilder Builder { get; set; }
 
 #pragma warning disable 618
@@ -24,15 +26,7 @@
 
         public bool Handle(TransportMessage message)
         {
-            try
-            {
-                InnerHandle(message);
-            }
-            catch (Exception exception)
-            {
-                Logger.Error("Failed to import", exception);
-                ImportErrorHandler.HandleError(message, exception);
-            }
+            InnerHandle(message);
 
             return true;
         }
@@ -77,6 +71,27 @@
             get { return InputAddress == Address.Undefined; }
         }
 
-        static ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
+        public Action<TransportReceiver> GetReceiverCustomization()
+        {
+            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(Builder.Build<IDocumentStore>(),
+                Path.Combine(Settings.LogPath, @"FailedImports\Error"), tm => new FailedErrorImport
+                {
+                    Message = tm,
+                });
+
+            return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
+        }
+
+        public void Dispose()
+        {
+            if (satelliteImportFailuresHandler != null)
+            {
+                satelliteImportFailuresHandler.Dispose();
+            }
+        }
+
+        SatelliteImportFailuresHandler satelliteImportFailuresHandler;
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
     }
 }
