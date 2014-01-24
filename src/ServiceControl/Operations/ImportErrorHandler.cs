@@ -22,7 +22,7 @@
             Directory.CreateDirectory(ErrorLogDirectory);
         }
 
-        public IDocumentSession Session { get; set; }
+        public IDocumentStore Store { get; set; }
 
         public void HandleAudit(TransportMessage message, Exception exception)
         {
@@ -48,7 +48,12 @@
         {
             try
             {
-                Session.Store(failure);
+                using (var session = Store.OpenSession())
+                {
+                    session.Store(failure);
+                    session.SaveChanges();
+                }
+
                 var filePath = Path.Combine(logDirectory, message.Id + ".txt");
                 File.WriteAllText(filePath, exception.ToFriendlyString());
                 WriteEvent("A message import has failed. A log file has been written to " + filePath);
