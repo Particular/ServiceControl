@@ -4,7 +4,6 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.Reflection;
     using Autofac;
-    using global::ServiceControl.Operations;
     using NLog;
     using NLog.Config;
     using NLog.Targets;
@@ -22,8 +21,6 @@ namespace Particular.ServiceControl
             ConfigureLogging();
 
             var containerBuilder = new ContainerBuilder();
-            containerBuilder.RegisterType<ImportErrorHandler>().SingleInstance();
-            containerBuilder.RegisterType<ImportFailureCircuitBreaker>().SingleInstance();
             
             Container = containerBuilder.Build();
 

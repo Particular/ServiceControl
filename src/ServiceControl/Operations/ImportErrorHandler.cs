@@ -8,6 +8,15 @@
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
+    class Registrations : INeedInitialization
+    {
+        public void Init()
+        {
+            Configure.Instance.Configurer.ConfigureComponent<ImportErrorHandler>(DependencyLifecycle.SingleInstance);
+            Configure.Instance.Configurer.ConfigureComponent<ImportFailureCircuitBreaker>(DependencyLifecycle.SingleInstance);
+        }
+    }
+
     public class ImportErrorHandler
     {
         public string ErrorLogDirectory;
