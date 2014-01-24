@@ -4,6 +4,7 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.Reflection;
     using Autofac;
+    using global::ServiceControl.Operations;
     using NLog;
     using NLog.Config;
     using NLog.Targets;
@@ -21,8 +22,9 @@ namespace Particular.ServiceControl
             ConfigureLogging();
 
             var containerBuilder = new ContainerBuilder();
-            //containerBuilder.RegisterType<ImportErrorHandler>().SingleInstance();
-            //containerBuilder.RegisterType<ImportFailureCircuitBreaker>().SingleInstance();
+            containerBuilder.RegisterType<ImportErrorHandler>().SingleInstance();
+            containerBuilder.RegisterType<ImportFailureCircuitBreaker>().SingleInstance();
+            
             Container = containerBuilder.Build();
 
             var transportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
@@ -63,8 +65,8 @@ namespace Particular.ServiceControl
             var fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = Settings.LogPath + "/logfile.txt",
-                ArchiveFileName = Settings.LogPath + "/log.{#}.txt",
+                FileName = Path.Combine(Settings.LogPath, "logfile.txt"),
+                ArchiveFileName = Path.Combine(Settings.LogPath, "log.{#}.txt"),
                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
                 MaxArchiveFiles = 14
             };
