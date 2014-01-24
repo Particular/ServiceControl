@@ -15,7 +15,6 @@
             ErrorLogQueue = GetErrorLogQueue();
             AuditLogQueue = GetAuditLogQueue();
             DbPath = GetDbPath();
-            Email = GetEmail();
         }
 
         public static int Port= SettingsReader<int>.Read("Port", 33333);
@@ -28,7 +27,6 @@
         public static Address ErrorLogQueue;
         public static Address ErrorQueue;
         public static Address AuditQueue;
-        public static string Email;
         public static bool ForwardAuditMessages= SettingsReader<bool>.Read("ForwardAuditMessages");
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync"); 
         public static Address AuditLogQueue;
@@ -91,19 +89,6 @@
             }
             return Address.Parse(value);
         }
-
-
-        static string GetEmail()
-        {
-            var email = SettingsReader<string>.Read("ServiceControl", "Email", null);
-
-            if (email == null)
-            {
-                Logger.Warn("No settings found for Email, if this is not intentional please set add ServiceControl/Email to your appSettings");
-            }
-            return email;
-        }
-
 
         static Address GetErrorQueue()
         {
