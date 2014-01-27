@@ -1,7 +1,7 @@
 namespace ServiceControl.Contracts.Operations
 {
     using System.Collections.Generic;
-    using MessageAuditing;
+    using Infrastructure;
     using NServiceBus;
 
     public class EndpointDetails

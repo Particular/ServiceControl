@@ -4,6 +4,7 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.Reflection;
     using Autofac;
+    using global::ServiceControl.Contracts.MessageFailures;
     using NLog;
     using NLog.Config;
     using NLog.Targets;
@@ -30,7 +31,7 @@ namespace Particular.ServiceControl
             Configure.Features.Disable<Audit>();
             Configure.Features.Enable<Sagas>();
 
-            var config = Configure.With(GetType().Assembly);;
+            var config = Configure.With(new[] { GetType().Assembly, typeof(MessageFailed).Assembly });
             
 
             config.AutofacBuilder(Container)

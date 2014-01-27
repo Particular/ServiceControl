@@ -10,6 +10,7 @@
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
+    using INeedInitialization = NServiceBus.INeedInitialization;
 
     public class RavenBootstrapper : INeedInitialization
     {
@@ -71,6 +72,7 @@
             Configure.Instance.RavenDBStorageWithSelfManagedSession(documentStore, false,
                 ()=>Configure.Instance.Builder.Build<IDocumentSession>())
                 .UseRavenDBSagaStorage()
+                .UseRavenDBSubscriptionStorage()
                 .UseRavenDBTimeoutStorage();
         }
 
