@@ -109,6 +109,28 @@
                 .Run(TimeSpan.FromSeconds(40));
         }
 
+
+        [Test]
+        public void Should_be_found_in_search_by_debug_session_id()
+        {
+            var context = new MyContext();
+            var response = new List<MessagesView>();
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    var messsage = new MyMessage();
+
+                    Headers.SetMessageHeader(messsage, "ServiceControl.DebugSessionId", "DANCO-WIN8@Application1@2014-01-26T11:33:51"); 
+         
+                    bus.Send(messsage);
+                }))
+                .WithEndpoint<Receiver>()
+                .Done(c => c.MessageId != null && TryGetMany("/api/messages/search/DANCO-WIN8@Application1@2014-01-26T11:33:51", out response))
+                .Run(TimeSpan.FromSeconds(40));
+        }
+
         [Test]
         public void Should_be_found_in_search_by_messageId_for_the_specific_endpoint()
         {

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Contracts.Operations
 {
     using System.Collections.Generic;
-    using System.Linq;
     using NServiceBus;
 
     public class ImportMessage : IMessage
@@ -17,7 +16,7 @@
             {
                 {"MessageId", message.Id},
                 {"MessageIntent", message.MessageIntent},
-                {"HeadersForSearching", message.Headers.Select(_ => _.Value).ToArray()}
+                {"HeadersForSearching", string.Join(" ",message.Headers.Values)}
             };
 
             //add basic message metadata
