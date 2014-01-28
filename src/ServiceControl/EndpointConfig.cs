@@ -21,8 +21,7 @@ namespace Particular.ServiceControl
             ConfigureLogging();
 
             var containerBuilder = new ContainerBuilder();
-            //containerBuilder.RegisterType<ImportErrorHandler>().SingleInstance();
-            //containerBuilder.RegisterType<ImportFailureCircuitBreaker>().SingleInstance();
+
             Container = containerBuilder.Build();
 
             var transportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
@@ -31,12 +30,11 @@ namespace Particular.ServiceControl
             Configure.Features.Disable<Audit>();
             Configure.Features.Enable<Sagas>();
 
-            var config = Configure.With(GetType().Assembly);;
-            
-
-            config.AutofacBuilder(Container)
-                            .UseTransport(Type.GetType(transportType))
-                            .UnicastBus();
+            Configure
+                .With(AllAssemblies.Except("ServiceControl.Plugin"))
+                .AutofacBuilder(Container)
+                .UseTransport(Type.GetType(transportType))
+                .UnicastBus();
 
             ConfigureLicense();
 
