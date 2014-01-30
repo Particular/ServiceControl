@@ -57,7 +57,9 @@
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component(builder =>
             {
+#pragma warning disable 618
                 var context = builder.Build<PipelineExecutor>().CurrentContext;
+#pragma warning restore 618
 
                 IDocumentSession session;
 
