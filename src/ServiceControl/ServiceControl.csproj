@@ -254,7 +254,6 @@
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
     <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
-    <Compile Include="Infrastructure\Installers\HttpListenerInstaller.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
     <Compile Include="Infrastructure\RavenDB\PrepopulateSubscriptionStorage.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
@@ -269,7 +268,7 @@
     <Compile Include="Infrastructure\SignalR\Envelope.cs" />
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensions.cs" />
-    <Compile Include="Infrastructure\UrlAclInstaller.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAclInstaller.cs" />
     <Compile Include="MessageAuditing\Handlers\AuditMessageHandler.cs" />
     <Compile Include="Infrastructure\DictionaryExtensions.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />

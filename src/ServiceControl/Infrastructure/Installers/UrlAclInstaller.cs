@@ -1,53 +1,27 @@
-﻿namespace ServiceControl.Infrastructure
+﻿namespace ServiceBus.Management.Infrastructure.Installers
 {
     using System;
     using System.Diagnostics;
     using System.IO;
-    using System.Security.Principal;
     using NServiceBus.Installation;
     using NServiceBus.Installation.Environments;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Settings;
 
-    class UrlAclInstaller : INeedToInstallSomething<Windows>
+    public class UrlAclInstaller : INeedToInstallSomething<Windows>
     {
-        static readonly ILog logger = LogManager.GetLogger(typeof(UrlAclInstaller));
-
         public void Install(string identity)
         {
             if (Environment.OSVersion.Version.Major <= 5)
             {
-                logger.InfoFormat(
-@"Did not attempt to grant user '{0}' HttpListener permissions since you are running an old OS. Processing will continue. 
+                Logger.InfoFormat(
+                    @"Did not attempt to grant user '{0}' HttpListener permissions since you are running an old OS. Processing will continue. 
 To manually perform this action run the following command for each url from an admin console:
 httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a D:(A;;GX;;;""{0}"")", identity);
                 return;
             }
-            if (!ElevateChecker.IsCurrentUserElevated())
-            {
-                logger.InfoFormat(
-@"Did not attempt to grant user '{0}' HttpListener permissions since process is not running with elevate privileges. Processing will continue. 
-To manually perform this action run the following command for each url from an admin console:
-netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} user=""{0}""", identity);
-                return;
-            }
 
-           
-            //api
-            RegisterUrlAcl(identity,  Settings.ApiUrl);
-
-            //storage
-            RegisterUrlAcl(identity, Settings.StorageUrl);
-        }
-
-        static void RegisterUrlAcl(string identity, string uri)
-        {
-            if (!uri.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return;
-            }
-
-            StartNetshProcess(identity, uri);
+            StartNetshProcess(identity, Settings.ApiUrl);
         }
 
         static void StartNetshProcess(string identity, string uri, bool deleteExisting = true)
@@ -58,29 +32,30 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
 
             if (ExecuteNetshCommand(startInfo, out error))
             {
-                logger.InfoFormat("Granted user '{0}' HttpListener permissions for {1}.", identity, uri);
+                Logger.InfoFormat("Granted user '{0}' HttpListener permissions for {1}.", identity, uri);
 
                 return;
             }
-
 
             if (deleteExisting && error.Contains("Error: 183"))
             {
                 startInfo = GetProcessStartInfo(identity, uri, true);
 
-                logger.Info(string.Format(@"Failed to grant to grant user '{0}' HttpListener permissions.  The error message from running the above command is: {1} Will try to delete the existing urlacl", identity, error));
-
+                Logger.Info(
+                    string.Format(
+                        @"Failed to grant to grant user '{0}' HttpListener permissions.  The error message from running the above command is: {1} Will try to delete the existing urlacl",
+                        identity, error));
 
                 if (ExecuteNetshCommand(startInfo, out error))
                 {
-                    logger.InfoFormat("Deleted user '{0}' HttpListener permissions for {1}.", identity, uri);
+                    Logger.InfoFormat("Deleted user '{0}' HttpListener permissions for {1}.", identity, uri);
                     StartNetshProcess(identity, uri, false);
                     return;
                 }
             }
 
             throw new Exception(string.Format(
-    @"Failed to grant to grant user '{0}' HttpListener permissions.
+                @"Failed to grant to grant user '{0}' HttpListener permissions.
 Try running the following command from an admin console:
 netsh http add urlacl url={2} user=""{0}""
 
@@ -128,22 +103,7 @@ The error message from running the above command is:
             };
             return startInfo;
         }
-    }
 
-    static class ElevateChecker
-    {
-
-        public static bool IsCurrentUserElevated()
-        {
-            using (var windowsIdentity = WindowsIdentity.GetCurrent())
-            {
-                if (windowsIdentity == null)
-                {
-                    return false;
-                }
-                var windowsPrincipal = new WindowsPrincipal(windowsIdentity);
-                return windowsPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
-            }
-        }
+        static readonly ILog Logger = LogManager.GetLogger(typeof(UrlAclInstaller));
     }
 }
