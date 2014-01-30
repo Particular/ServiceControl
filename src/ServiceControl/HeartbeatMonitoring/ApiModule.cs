@@ -1,5 +1,6 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
+    using System;
     using Infrastructure.Extensions;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
@@ -13,24 +14,20 @@ namespace ServiceControl.HeartbeatMonitoring
         {
             Get["/heartbeats/stats"] = _ =>
             {
-                using (var session = Store.OpenSession())
-                {
-                    var numberOfEndpointsDead = session.Query<Heartbeat>().Count(c => c.ReportedStatus == Status.Dead);
-                    var numberOfEndpointsActive = session.Query<Heartbeat>().Count(c => c.ReportedStatus != Status.Dead);
+                var stats = HeartbeatsStats.Retrieve(Store);
 
-                    return Negotiate.WithModel(new
-                    {
-                        ActiveEndpoints = numberOfEndpointsActive,
-                        FailingEndpoints = numberOfEndpointsDead
-                    });
-                }
+                return Negotiate.WithModel(new
+                {
+                    ActiveEndpoints = stats.Item2,
+                    FailingEndpoints = stats.Item1
+                });
             };
 
             Delete["/heartbeats/{id}"] = parameters =>
             {
                 using (var session = Store.OpenSession())
                 {
-                    string id = parameters.id;
+                    Guid id = parameters.id;
 
                     var heartbeat = session.Load<Heartbeat>(id);
 

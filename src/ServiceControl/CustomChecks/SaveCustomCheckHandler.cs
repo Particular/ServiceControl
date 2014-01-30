@@ -13,7 +13,6 @@
 
         public void Handle(ReportCustomCheckResult message)
         {
-
             var originatingEndpoint = EndpointDetails.SendingEndpoint(Bus.CurrentMessageContext.Headers);
             var id = DeterministicGuid.MakeId(message.CustomCheckId, originatingEndpoint.Name,
                 originatingEndpoint.Machine);

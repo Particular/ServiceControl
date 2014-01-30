@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
-    using System.Linq;
     using System.Threading;
     using Contracts.HeartbeatMonitoring;
     using NServiceBus;
@@ -21,12 +20,10 @@
 
         public void Start()
         {
-            // Get the Heartbeat stats when we first start. 
-            using (var session = Store.OpenSession())
-            {
-                numberOfEndpointsDead = session.Query<Heartbeat>().Count(c => c.ReportedStatus == Status.Dead);
-                numberOfEndpointsActive = session.Query<Heartbeat>().Count(c => c.ReportedStatus != Status.Dead);
-            }
+            var stats = HeartbeatsStats.Retrieve(Store);
+
+            numberOfEndpointsDead = stats.Item1;
+            numberOfEndpointsActive = stats.Item2;
         }
 
         public void Stop()

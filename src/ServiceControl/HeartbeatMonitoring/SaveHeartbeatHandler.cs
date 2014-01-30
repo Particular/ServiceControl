@@ -15,9 +15,8 @@
 
         public void Handle(EndpointHeartbeat message)
         {
-
             var originatingEndpoint = EndpointDetails.SendingEndpoint(Bus.CurrentMessageContext.Headers);
-            var id = string.Format("heartbeats/{0}", DeterministicGuid.MakeId(originatingEndpoint.Name, originatingEndpoint.Machine));
+            var id = DeterministicGuid.MakeId(originatingEndpoint.Name, originatingEndpoint.Machine);
             var heartbeat = Session.Load<Heartbeat>(id);
             var isNew = false;
 

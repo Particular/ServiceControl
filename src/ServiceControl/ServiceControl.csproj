@@ -248,6 +248,7 @@
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogItem.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatMonitor.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatsStats.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
     <Compile Include="HeartbeatMonitoring\RaiseHeartbeatChanges.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />

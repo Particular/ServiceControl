@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.CustomChecks
 {
+    using System;
     using System.Linq;
     using Infrastructure.Extensions;
     using Nancy;
@@ -35,9 +36,9 @@
             {
                 using (var session = Store.OpenSession())
                 {
-                    string id = parameters.id;
+                    Guid id = parameters.id;
 
-                    var customCheck = session.Load<CustomCheck>(string.Format("customchecks/{0}", id));
+                    var customCheck = session.Load<CustomCheck>(id);
 
                     if (customCheck != null)
                     {
