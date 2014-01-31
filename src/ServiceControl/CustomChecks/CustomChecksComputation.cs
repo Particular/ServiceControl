@@ -7,6 +7,11 @@
 
     public class CustomChecksComputation : INeedInitialization
     {
+        public CustomChecksComputation()
+        {
+            // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
+        }
+
         public CustomChecksComputation(IDocumentStore store)
         {
             using (var session = store.OpenSession())

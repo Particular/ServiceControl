@@ -9,6 +9,11 @@ namespace ServiceControl.MessageFailures
     {
         int unresolvedFailures;
 
+        public MessageFailuresComputation()
+        {
+            // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
+        }
+
         public MessageFailuresComputation(IDocumentStore store)
         {
             using (var session = store.OpenSession())

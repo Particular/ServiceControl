@@ -10,9 +10,9 @@
         public IBus Bus { get; set; }
 
         public KnownEndpointsCache KnownEndpointsCache { get; set; }
+        
         public void Handle(ImportMessage message)
         {
-
             TryAddEndpoint(EndpointDetails.SendingEndpoint(message.PhysicalMessage.Headers));
             TryAddEndpoint(EndpointDetails.ReceivingEndpoint(message.PhysicalMessage.Headers));
         }

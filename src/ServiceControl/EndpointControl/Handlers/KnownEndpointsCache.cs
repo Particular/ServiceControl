@@ -4,21 +4,19 @@ namespace ServiceControl.EndpointControl.Handlers
     using Contracts.Operations;
     using NServiceBus;
 
-    class KnownEndpointsCache:INeedInitialization
+    internal class KnownEndpointsCache : INeedInitialization
     {
-        public ConcurrentDictionary<string, EndpointDetails> Endpoints 
+        public ConcurrentDictionary<string, EndpointDetails> Endpoints
         {
-            get
-            {
-                return cache;
-            } 
+            get { return cache; }
         }
-
-        readonly ConcurrentDictionary<string, EndpointDetails> cache = new ConcurrentDictionary<string, EndpointDetails>();
 
         public void Init()
         {
             Configure.Component<KnownEndpointsCache>(DependencyLifecycle.SingleInstance);
         }
+
+        readonly ConcurrentDictionary<string, EndpointDetails> cache =
+            new ConcurrentDictionary<string, EndpointDetails>();
     }
 }

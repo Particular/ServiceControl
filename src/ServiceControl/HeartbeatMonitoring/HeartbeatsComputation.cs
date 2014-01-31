@@ -6,6 +6,11 @@ namespace ServiceControl.HeartbeatMonitoring
 
     public class HeartbeatsComputation : INeedInitialization
     {
+        public HeartbeatsComputation()
+        {
+            // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
+        }
+
         public HeartbeatsComputation(IDocumentStore store)
         {
             this.store = store;

@@ -11,6 +11,11 @@
 
     public class CustomCheckMonitor : INeedInitialization
     {
+        public CustomCheckMonitor()
+        {
+            // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
+        }
+
         public CustomCheckMonitor(IBus bus)
         {
             this.bus = bus;
