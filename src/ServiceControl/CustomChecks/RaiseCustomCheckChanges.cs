@@ -1,58 +1,22 @@
 ﻿namespace ServiceControl.CustomChecks
 {
-    using System;
-    using System.Linq;
-    using System.Threading;
+    using Contracts.CustomChecks;
     using NServiceBus;
-    using Raven.Client;
 
-    public class RaiseCustomCheckChanges : IWantToRunWhenBusStartsAndStops
+    public class RaiseCustomCheckChanges : IHandleMessages<CustomCheckFailed>, IHandleMessages<CustomCheckSucceeded>
     {
-        public RaiseCustomCheckChanges(IBus bus, IDocumentStore store)
+        public CustomChecksComputation CustomChecksComputation { get; set; }
+
+        public void Handle(CustomCheckFailed message)
         {
-            this.bus = bus;
-            this.store = store;
+            bus.Publish(new CustomChecksUpdated {Failed = CustomChecksComputation.CustomCheckFailed()});
         }
 
-        public void Start()
+        public void Handle(CustomCheckSucceeded message)
         {
-            timer = new Timer(Run, null, 0, -1);
-        }
-
-        public void Stop()
-        {
-            using (var manualResetEvent = new ManualResetEvent(false))
-            {
-                timer.Dispose(manualResetEvent);
-
-                manualResetEvent.WaitOne();
-            }
-        }
-
-        void Run(object _)
-        {
-            using (var session = store.OpenSession())
-            {
-                var newTotal = session.Query<CustomCheck>().Count(c => c.Status == Status.Fail);
-
-                if (newTotal != total)
-                {
-                    bus.Publish(new TotalCustomCheckUpdated { Total = newTotal });
-                }
-                total = newTotal;
-            }
-
-            try
-            {
-                timer.Change((int)TimeSpan.FromSeconds(10).TotalMilliseconds, -1);
-            }
-            catch (ObjectDisposedException)
-            { }
+            bus.Publish(new CustomChecksUpdated {Failed = CustomChecksComputation.CustomCheckSucceeded()});
         }
 
         readonly IBus bus;
-        readonly IDocumentStore store;
-        Timer timer;
-        int total;
     }
 }

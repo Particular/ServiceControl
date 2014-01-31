@@ -21,7 +21,6 @@
             {
                 return new CheckResult();
             }
-
         }
 
         public static CheckResult Failed(string reason)

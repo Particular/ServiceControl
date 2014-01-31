@@ -9,57 +9,69 @@
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
 
-    public class CustomCheckMonitor
+    public class CustomCheckMonitor : INeedInitialization
     {
-        readonly IBus bus;
-
-        readonly ConcurrentDictionary<Guid, ReportCustomCheckResult> registeredCustomChecks =
-            new ConcurrentDictionary<Guid, ReportCustomCheckResult>();
-
         public CustomCheckMonitor(IBus bus)
         {
             this.bus = bus;
         }
 
-        public void RegisterResult(ReportCustomCheckResult result, IDictionary<string, string> headers)
+        public void Init()
+        {
+            Configure.Component<CustomCheckMonitor>(DependencyLifecycle.SingleInstance);
+        }
+
+        public void RegisterResult(ReportCustomCheckResult message, IDictionary<string, string> headers)
         {
             var originatingEndpoint = EndpointDetails.SendingEndpoint(headers);
+            var key = DeterministicGuid.MakeId(message.CustomCheckId, originatingEndpoint.Name, originatingEndpoint.Machine);
+            var publish = false;
 
-            var key = DeterministicGuid.MakeId(result.CustomCheckId, originatingEndpoint.Name, originatingEndpoint.Machine);
-
-            var isRegistered = registeredCustomChecks.ContainsKey(key);
-            if (isRegistered)
-            {
-                // Raise an alert if there has been a change in status
-                if (registeredCustomChecks[key].Result.HasFailed == result.Result.HasFailed)
+            registeredCustomChecks.AddOrUpdate(key,
+                k => message,
+                (k, existingValue) =>
                 {
-                    return;
-                }
+                    if (existingValue.Result.HasFailed == message.Result.HasFailed)
+                    {
+                        return existingValue;
+                    }
+
+                    publish = true;
+                    
+                    return message;
+                });
+
+            if (!publish)
+            {
+                return;
             }
 
-            if (result.Result.HasFailed)
+            if (message.Result.HasFailed)
             {
                 bus.Publish<CustomCheckFailed>(m =>
                 {
-                    m.CustomCheckId = result.CustomCheckId;
-                    m.Category = result.Category;
-                    m.FailedAt = result.ReportedAt;
-                    m.FailureReason = result.Result.FailureReason;
+                    m.CustomCheckId = message.CustomCheckId;
+                    m.Category = message.Category;
+                    m.FailedAt = message.ReportedAt;
+                    m.FailureReason = message.Result.FailureReason;
                     m.OriginatingEndpoint = originatingEndpoint;
                 });
             }
-            else if (isRegistered) // We only publish successes if status has changed. 
+            else
             {
                 bus.Publish<CustomCheckSucceeded>(m =>
                 {
-                    m.CustomCheckId = result.CustomCheckId;
-                    m.Category = result.Category;
-                    m.SucceededAt = result.ReportedAt;
+                    m.CustomCheckId = message.CustomCheckId;
+                    m.Category = message.Category;
+                    m.SucceededAt = message.ReportedAt;
                     m.OriginatingEndpoint = originatingEndpoint;
                 });
             }
-
-            registeredCustomChecks[key] = result;
         }
+
+        readonly IBus bus;
+
+        readonly ConcurrentDictionary<Guid, ReportCustomCheckResult> registeredCustomChecks =
+            new ConcurrentDictionary<Guid, ReportCustomCheckResult>();
     }
 }

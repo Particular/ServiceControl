@@ -213,6 +213,7 @@
     <Compile Include="Contracts\Operations\ImportSuccessfullyProcessedMessage.cs" />
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
     <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
+    <Compile Include="CustomChecks\CustomChecksComputation.cs" />
     <Compile Include="EndpointControl\Handlers\DetectNewEndpointsFromImportedMessages.cs" />
     <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
     <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
@@ -241,10 +242,9 @@
     <Compile Include="CustomChecks\CustomCheckResultHandler.cs" />
     <Compile Include="CustomChecks\CustomChecksModule.cs" />
     <Compile Include="CustomChecks\RaiseCustomCheckChanges.cs" />
-    <Compile Include="CustomChecks\RegisterCustomCheckMonitor.cs" />
     <Compile Include="CustomChecks\SaveCustomCheckHandler.cs" />
     <Compile Include="CustomChecks\Status.cs" />
-    <Compile Include="CustomChecks\TotalCustomCheckUpdated.cs" />
+    <Compile Include="CustomChecks\CustomChecksUpdated.cs" />
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogItem.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatMonitor.cs" />

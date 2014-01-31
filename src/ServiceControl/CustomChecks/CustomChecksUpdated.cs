@@ -2,9 +2,9 @@
 {
     using NServiceBus;
 
-    class TotalCustomCheckUpdated : IEvent
+    class CustomChecksUpdated : IEvent
     {
-        public int Total
+        public int Failed
         {
             get; set;
         }
