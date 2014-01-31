@@ -20,8 +20,8 @@ namespace ServiceControl.HeartbeatMonitoring
 
                 return Negotiate.WithModel(new
                 {
-                    ActiveEndpoints = heartbeatsStats.Active,
-                    FailingEndpoints = heartbeatsStats.Dead
+                    heartbeatsStats.Active,
+                    Failing = heartbeatsStats.Dead
                 });
             };
 
