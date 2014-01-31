@@ -204,6 +204,7 @@
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
+    <Compile Include="Contracts\MessageFailures\MessageFailuresUpdated.cs" />
     <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointDetails.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
@@ -283,6 +284,7 @@
     <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
     <Compile Include="MessageFailures\Handlers\ImportSuccessfullyProcessedMessageHandler.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\RaiseMessageFailuresChanges.cs" />
     <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="Infrastructure\Nancy\ExtraHeaders.cs" />
@@ -294,7 +296,6 @@
     <Compile Include="Infrastructure\Nancy\NServiceBusContainerBootstrapper.cs" />
     <Compile Include="Infrastructure\Nancy\VersionExtension.cs" />
     <Compile Include="Infrastructure\Nancy\StringListBinder.cs" />
-    <Compile Include="MessageFailures\InternalMessages\RequestEndpointRetryAll.cs" />
     <Compile Include="MessageFailures\InternalMessages\RequestRetryAll.cs" />
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
     <Compile Include="MessageFailures\Handlers\PerformRetryHandler.cs" />
@@ -308,6 +309,7 @@
     <Compile Include="Infrastructure\OWIN\Startup.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
+    <Compile Include="MessageFailures\MessageFailuresComputation.cs" />
     <Compile Include="MessageTypes\MessageTypeEnricher.cs" />
     <Compile Include="Operations\AuditQueueImport.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByConversation.cs" />
