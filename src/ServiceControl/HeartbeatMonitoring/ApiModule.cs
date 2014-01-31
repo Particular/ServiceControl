@@ -10,16 +10,18 @@ namespace ServiceControl.HeartbeatMonitoring
 
     public class ApiModule : BaseModule
     {
+        public HeartbeatsComputation HeartbeatsComputation { get; set; }
+
         public ApiModule()
         {
             Get["/heartbeats/stats"] = _ =>
             {
-                var stats = HeartbeatsStats.Retrieve(Store);
+                var heartbeatsStats = HeartbeatsComputation.Current;
 
                 return Negotiate.WithModel(new
                 {
-                    ActiveEndpoints = stats.Item2,
-                    FailingEndpoints = stats.Item1
+                    ActiveEndpoints = heartbeatsStats.Active,
+                    FailingEndpoints = heartbeatsStats.Dead
                 });
             };
 

@@ -3,7 +3,7 @@
     using System;
     using NServiceBus;
 
-    class TotalEndpointsUpdated : IEvent
+    class HeartbeatsUpdated : IEvent
     {
         public int Active { get; set; }
         public int Failing { get; set; }

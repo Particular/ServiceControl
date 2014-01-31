@@ -199,7 +199,7 @@
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointFailedToHeartbeat.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointHeartbeatRestored.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatingEndpointDetected.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\TotalEndpointsUpdated.cs" />
+    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolved.cs" />
@@ -248,7 +248,7 @@
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogItem.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatMonitor.cs" />
-    <Compile Include="HeartbeatMonitoring\HeartbeatsStats.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatsComputation.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
     <Compile Include="HeartbeatMonitoring\RaiseHeartbeatChanges.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
