@@ -12,7 +12,6 @@
 
         public void Handle(SagaUpdatedMessage message)
         {
-
             var sagaHistory = Session.Load<SagaHistory>(message.SagaId) ?? new SagaHistory
             {
                 Id = message.SagaId,
@@ -49,8 +48,6 @@
             sagaStateChange.InitiatingMessage = CreateInitiatingMessage(message.Initiator);
 
             AddResultingMessages(message.ResultingMessages, sagaStateChange);
-
-
 
             Session.Store(sagaHistory);
         }

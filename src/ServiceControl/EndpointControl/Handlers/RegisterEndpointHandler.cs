@@ -13,10 +13,8 @@
 
         public void Handle(RegisterEndpoint message)
         {
-            var name = message.Endpoint.Name;
-
-            var knownEndpoint = Session.Load<KnownEndpoint>(name) ?? new KnownEndpoint { Id = name };
-
+            var id = "KnownEndpoints/" + message.Endpoint.Name;
+            var knownEndpoint = Session.Load<KnownEndpoint>(id) ?? new KnownEndpoint { Id = id };
             var machine = message.Endpoint.Machine;
 
             if (knownEndpoint.Name == null)
@@ -24,12 +22,13 @@
                 //new endpoint
                 Bus.Publish(new NewEndpointDetected
                 {
-                    Endpoint = name,
+                    Endpoint = message.Endpoint.Name,
                     Machine = machine,
                     DetectedAt = message.DetectedAt
                 });
             }
-            knownEndpoint.Name = name;
+
+            knownEndpoint.Name = message.Endpoint.Name;
 
             if (!knownEndpoint.Machines.Contains(machine))
             {
@@ -40,7 +39,7 @@
                 {
                     Bus.Publish(new NewMachineDetectedForEndpoint
                     {
-                        Endpoint = name,
+                        Endpoint = message.Endpoint.Name,
                         Machine = machine,
                         DetectedAt = message.DetectedAt
                     });

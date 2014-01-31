@@ -12,7 +12,7 @@ namespace ServiceControl.CompositeViews.Endpoints
         {
             AddMap<KnownEndpoint>(endpoints => endpoints.Select(endpoint => new
             {
-                endpoint.Id,
+                Id = endpoint.Name,
                 endpoint.Name,
                 endpoint.Machines,
                 EndpointProperties = new Dictionary<string, string> { { "monitored", "true" } }
