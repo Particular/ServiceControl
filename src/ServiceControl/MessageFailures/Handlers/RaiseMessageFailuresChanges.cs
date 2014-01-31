@@ -15,12 +15,12 @@ namespace ServiceControl.MessageFailures.Handlers
 
         public void Handle(MessageFailureResolved message)
         {
-            bus.Publish(new MessageFailuresUpdated{Total = MessageFailuresComputation.MessageResolved()});
+            bus.Publish(new MessageFailuresUpdated {Total = MessageFailuresComputation.MessageResolved()});
         }
 
         public void Handle(MessageFailed message)
         {
-            bus.Publish(new MessageFailuresUpdated { Total = MessageFailuresComputation.MessageFailed() });
+            bus.Publish(new MessageFailuresUpdated {Total = MessageFailuresComputation.MessageFailed()});
         }
     }
 }

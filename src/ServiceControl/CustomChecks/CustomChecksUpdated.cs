@@ -1,12 +1,16 @@
 ﻿namespace ServiceControl.CustomChecks
 {
+    using System;
     using NServiceBus;
 
-    class CustomChecksUpdated : IEvent
+    internal class CustomChecksUpdated : IEvent
     {
-        public int Failed
+        public CustomChecksUpdated()
         {
-            get; set;
+            RaisedAt = DateTime.UtcNow;
         }
+
+        public int Failed { get; set; }
+        public DateTime RaisedAt { get; set; }
     }
 }

@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
-    using System;
     using Contracts.HeartbeatMonitoring;
     using NServiceBus;
 
@@ -37,7 +36,6 @@
             {
                 Active = stats.Active,
                 Failing = stats.Dead,
-                LastUpdatedAt = DateTime.UtcNow
             });
         }
 
