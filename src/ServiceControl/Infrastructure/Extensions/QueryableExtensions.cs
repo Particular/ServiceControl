@@ -1,8 +1,10 @@
 namespace ServiceControl.Infrastructure.Extensions
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Linq.Expressions;
+    using System.Text;
     using CompositeViews.Messages;
     using MessageFailures.Api;
     using Nancy;
@@ -111,7 +113,41 @@ namespace ServiceControl.Infrastructure.Extensions
 
             if (status != null)
             {
-                source.Where(string.Format("Status: ({0})", status.Replace(",", " OR ")));
+                var filters = status.Replace(" ", String.Empty).Split(',');
+                var excludes = new List<string>();
+                var includes = new List<string>();
+
+                foreach (var filter in filters)
+                {
+                    if (filter.StartsWith("-"))
+                    {
+                        excludes.Add("\"" + filter.Substring(1) + "\"");
+                        continue;
+                    }
+
+                    includes.Add("\"" + filter + "\"");
+                }
+
+                if (includes.Count == 0)
+                {
+                    includes.Add("*");
+                }
+
+                var sb = new StringBuilder();
+
+                sb.Append("((");
+                sb.Append(String.Join(" OR ", includes.ToArray()));
+                sb.Append(")");
+
+                if (excludes.Count > 0)
+                {
+                    sb.Append(" AND NOT (");
+                    sb.Append(String.Join(" OR ", excludes.ToArray()));
+                    sb.Append(")");
+                }
+                sb.Append(")");
+
+                source.Where(string.Format("Status: {0}", sb));
             }
 
             return source;
