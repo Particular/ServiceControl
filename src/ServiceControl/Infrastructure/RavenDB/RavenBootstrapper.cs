@@ -30,7 +30,9 @@
                 documentStore.Configuration.UseSsl = true;
             }
             documentStore.Configuration.Port = Settings.Port;
-            documentStore.Configuration.HostName = (Settings.Hostname == "*" || Settings.Hostname == "+") ? "localhost" : Settings.Hostname;
+            documentStore.Configuration.HostName = (Settings.Hostname == "*" || Settings.Hostname == "+")
+                ? "localhost"
+                : Settings.Hostname;
             documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
             documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
 
@@ -40,7 +42,7 @@
 
             if (Settings.CreateIndexSync)
             {
-                IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);    
+                IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
             }
             else
             {
@@ -51,7 +53,7 @@
                         {
                             Logger.Error("Index creation failed", c.Exception);
                         }
-                    });                
+                    });
             }
 
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
@@ -69,10 +71,10 @@
                 }
 
                 throw new InvalidOperationException("No session available");
-            },DependencyLifecycle.InstancePerCall);
+            }, DependencyLifecycle.InstancePerCall);
 
             Configure.Instance.RavenDBStorageWithSelfManagedSession(documentStore, false,
-                ()=>Configure.Instance.Builder.Build<IDocumentSession>())
+                () => Configure.Instance.Builder.Build<IDocumentSession>())
                 .UseRavenDBSagaStorage()
                 .UseRavenDBSubscriptionStorage()
                 .UseRavenDBTimeoutStorage();

@@ -11,6 +11,7 @@
         public void Handle(ImportSuccessfullyProcessedMessage message)
         {
             var auditMessage = new ProcessedMessage(message);
+
             Session.Store(auditMessage);
         }
 

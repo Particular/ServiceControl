@@ -5,48 +5,60 @@
     using NServiceBus;
     using Raven.Client;
 
-    public class RegisterEndpointHandler : IHandleMessages<RegisterEndpoint>
+    internal class RegisterEndpointHandler : IHandleMessages<RegisterEndpoint>
     {
-        public IDocumentSession Session { get; set; }
-
+        public IDocumentStore Store { get; set; }
+        public KnownEndpointsCache EndpointsCache { get; set; }
         public IBus Bus { get; set; }
 
         public void Handle(RegisterEndpoint message)
         {
-            var id = "KnownEndpoints/" + message.Endpoint.Name;
-            var knownEndpoint = Session.Load<KnownEndpoint>(id) ?? new KnownEndpoint { Id = id };
             var machine = message.Endpoint.Machine;
+            var endpointName = message.Endpoint.Name;
 
-            if (knownEndpoint.Name == null)
+            //Injecting store in this class because we want to know about ConcurrencyExceptions do that EndpointsCache.MarkAsProcessed is not called if the save fails.
+
+            using (var session = Store.OpenSession()) 
             {
-                //new endpoint
-                Bus.Publish(new NewEndpointDetected
+                session.Advanced.UseOptimisticConcurrency = true;
+                var id = "KnownEndpoints/" + endpointName;
+
+                var knownEndpoint = session.Load<KnownEndpoint>(id) ?? new KnownEndpoint {Id = id};
+
+                if (knownEndpoint.Name == null)
                 {
-                    Endpoint = message.Endpoint.Name,
-                    Machine = machine,
-                    DetectedAt = message.DetectedAt
-                });
-            }
-
-            knownEndpoint.Name = message.Endpoint.Name;
-
-            if (!knownEndpoint.Machines.Contains(machine))
-            {
-                //new machine found
-                knownEndpoint.Machines.Add(machine);
-
-                if (knownEndpoint.Machines.Count > 1)
-                {
-                    Bus.Publish(new NewMachineDetectedForEndpoint
+                    //new endpoint
+                    Bus.Publish(new NewEndpointDetected
                     {
-                        Endpoint = message.Endpoint.Name,
+                        Endpoint = endpointName,
                         Machine = machine,
                         DetectedAt = message.DetectedAt
                     });
                 }
+
+                knownEndpoint.Name = endpointName;
+
+                if (!knownEndpoint.Machines.Contains(machine))
+                {
+                    //new machine found
+                    knownEndpoint.Machines.Add(machine);
+
+                    if (knownEndpoint.Machines.Count > 1)
+                    {
+                        Bus.Publish(new NewMachineDetectedForEndpoint
+                        {
+                            Endpoint = endpointName,
+                            Machine = machine,
+                            DetectedAt = message.DetectedAt
+                        });
+                    }
+                }
+
+                session.Store(knownEndpoint);
+                session.SaveChanges();
             }
 
-            Session.Store(knownEndpoint);
+            EndpointsCache.MarkAsProcessed(endpointName + machine);
         }
     }
 }

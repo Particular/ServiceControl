@@ -21,7 +21,7 @@
         {
             var id = endpointDetails.Name + endpointDetails.Machine;
 
-            if (KnownEndpointsCache.Endpoints.TryAdd(id, endpointDetails))
+            if (KnownEndpointsCache.TryAdd(id))
             {
                 Bus.SendLocal(new RegisterEndpoint
                 {
@@ -29,9 +29,6 @@
                     DetectedAt = DateTime.UtcNow
                 });
             }
-
         }
-
-        
     }
 }
