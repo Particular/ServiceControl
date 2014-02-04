@@ -13,7 +13,6 @@
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {
-
         [Test]
         public void Should_be_imported_and_accessible_via_the_rest_api()
         {
