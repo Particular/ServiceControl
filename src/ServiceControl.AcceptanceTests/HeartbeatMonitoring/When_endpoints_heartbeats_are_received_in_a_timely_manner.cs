@@ -42,7 +42,7 @@
                 .WithEndpoint<Endpoint2>()
                 .Done(c =>
                     {
-                        if (!TryGet("/api/heartbeats/stats", out summary, m=> m.ActiveEndpoints >= 2))
+                        if (!TryGet("/api/heartbeats/stats", out summary, m => m.Active >= 2))
                         {
                             return false;
                         }
@@ -55,13 +55,13 @@
                 .Run(TimeSpan.FromMinutes(2));
 
 
-            Assert.AreEqual(0, summary.NumberOfFailingEndpoints);
+            Assert.AreEqual(0, summary.Failing);
         }
 
         public class HeartbeatSummary
         {
-            public int ActiveEndpoints { get; set; }
-            public int NumberOfFailingEndpoints { get; set; }
+            public int Active { get; set; }
+            public int Failing { get; set; }
         }
     }
 }

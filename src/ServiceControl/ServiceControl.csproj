@@ -185,7 +185,7 @@
     </Compile>
     <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
-    <Compile Include="CompositeViews\Endpoints\EndpointsViewIndex.cs" />
+    <Compile Include="CompositeViews\Endpoints\KnownEndpointIndex.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
@@ -194,7 +194,6 @@
     <Compile Include="Contracts\CustomChecks\CustomCheckFailed.cs" />
     <Compile Include="Contracts\CustomChecks\CustomCheckSucceeded.cs" />
     <Compile Include="Contracts\EndpointControl\NewEndpointDetected.cs" />
-    <Compile Include="Contracts\EndpointControl\NewMachineDetectedForEndpoint.cs" />
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointFailedToHeartbeat.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointHeartbeatRestored.cs" />
@@ -229,7 +228,6 @@
     <Compile Include="EventLog\Definitions\HeartbeatingEndpointDetectedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\NewEndpointDetectedDefinition.cs" />
-    <Compile Include="EventLog\Definitions\NewMachineDetectedForEndpointDefinition.cs" />
     <Compile Include="EventLog\EventLogApiModule.cs" />
     <Compile Include="EventLog\EventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogMappings.cs" />

@@ -3,15 +3,16 @@
     using System;
     using Contracts.Operations;
 
-    class Heartbeat
+    public class Heartbeat
     {
         public Guid Id { get; set; }
         public DateTime LastReportAt { get; set; }
         public EndpointDetails OriginatingEndpoint { get; set; }
         public Status ReportedStatus { get; set; }
+        public string KnownEndpointId { get; set; }
     }
 
-    enum Status
+    public enum Status
     {
         Beating,
         Dead

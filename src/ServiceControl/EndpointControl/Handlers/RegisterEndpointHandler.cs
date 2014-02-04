@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.EndpointControl.Handlers
 {
     using Contracts.EndpointControl;
+    using Infrastructure;
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
@@ -15,17 +16,17 @@
         {
             var machine = message.Endpoint.Machine;
             var endpointName = message.Endpoint.Name;
+            var id = DeterministicGuid.MakeId(endpointName, machine);
 
-            //Injecting store in this class because we want to know about ConcurrencyExceptions do that EndpointsCache.MarkAsProcessed is not called if the save fails.
+            //Injecting store in this class because we want to know about ConcurrencyExceptions so that EndpointsCache.MarkAsProcessed is not called if the save fails.
 
             using (var session = Store.OpenSession()) 
             {
                 session.Advanced.UseOptimisticConcurrency = true;
-                var id = "KnownEndpoints/" + endpointName;
 
-                var knownEndpoint = session.Load<KnownEndpoint>(id) ?? new KnownEndpoint {Id = id};
+                var knownEndpoint = session.Load<KnownEndpoint>(id);
 
-                if (knownEndpoint.Name == null)
+                if (knownEndpoint == null)
                 {
                     //new endpoint
                     Bus.Publish(new NewEndpointDetected
@@ -34,28 +35,17 @@
                         Machine = machine,
                         DetectedAt = message.DetectedAt
                     });
-                }
 
-                knownEndpoint.Name = endpointName;
-
-                if (!knownEndpoint.Machines.Contains(machine))
-                {
-                    //new machine found
-                    knownEndpoint.Machines.Add(machine);
-
-                    if (knownEndpoint.Machines.Count > 1)
+                    knownEndpoint = new KnownEndpoint
                     {
-                        Bus.Publish(new NewMachineDetectedForEndpoint
-                        {
-                            Endpoint = endpointName,
-                            Machine = machine,
-                            DetectedAt = message.DetectedAt
-                        });
-                    }
-                }
+                        Id = id,
+                        Name = endpointName, 
+                        HostDisplayName = machine
+                    };
 
-                session.Store(knownEndpoint);
-                session.SaveChanges();
+                    session.Store(knownEndpoint);
+                    session.SaveChanges();
+                }
             }
 
             EndpointsCache.MarkAsProcessed(endpointName + machine);

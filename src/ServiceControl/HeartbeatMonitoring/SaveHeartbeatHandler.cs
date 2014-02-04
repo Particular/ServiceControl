@@ -27,6 +27,7 @@
                 {
                     Id = id,
                     ReportedStatus = Status.Beating,
+                    KnownEndpointId = "KnownEndpoints/" + id,
                 };
             }
 

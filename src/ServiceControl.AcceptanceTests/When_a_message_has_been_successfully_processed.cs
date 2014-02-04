@@ -189,11 +189,11 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => TryGetMany("/api/endpoints", out knownEndpoints, m => m.Name == context.EndpointNameOfReceivingEndpoint && m.Machines.Any()))
+                .Done(c => TryGetMany("/api/endpoints", out knownEndpoints, m => m.Name == context.EndpointNameOfReceivingEndpoint))
                 .Run(TimeSpan.FromSeconds(40));
 
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).Name);
-            Assert.AreEqual(Environment.MachineName, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).Machines.Single());
+            Assert.AreEqual(Environment.MachineName, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);
         }
 
         public class Sender : EndpointConfigurationBuilder
