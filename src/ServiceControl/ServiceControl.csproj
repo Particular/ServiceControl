@@ -230,9 +230,11 @@
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointFailedToHeartbeatDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointHeartbeatRestoredDefinition.cs" />
+    <Compile Include="EventLog\Definitions\FailedMessageArchivedDefinition.cs" />
     <Compile Include="EventLog\Definitions\HeartbeatingEndpointDetectedDefinition.cs" />
     <Compile Include="EventLog\Definitions\KnownEndpointUpdatedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessageFailureResolvedByRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\NewEndpointDetectedDefinition.cs" />
     <Compile Include="EventLog\EventLogApiModule.cs" />
     <Compile Include="EventLog\EventLogMappingDefinition.cs" />

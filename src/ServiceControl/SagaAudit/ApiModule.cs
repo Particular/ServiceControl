@@ -32,25 +32,6 @@ namespace ServiceControl.SagaAudit
                 }
             };
 
-            Delete["/sagas/{id}"] = parameters =>
-            {
-                //todo: should we store the saga id as deleted so if we get delayed message it can be ignored?
-                using (var session = Store.OpenSession())
-                {
-                    Guid id = parameters.id;
-
-                    var sagaHistory = session.Load<SagaHistory>(id);
-
-                    if (sagaHistory != null)
-                    {
-                        session.Delete(sagaHistory);
-                        session.SaveChanges();
-                    }
-                }
-
-                return HttpStatusCode.NoContent;
-            };
-
             Get["/sagas"] = _ =>
             {
                 using (var session = Store.OpenSession())
