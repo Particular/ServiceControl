@@ -2,6 +2,7 @@
 {
     using Contracts.HeartbeatMonitoring;
 
+
     public class EndpointHeartbeatRestoredDefinition : EventLogMappingDefinition<EndpointHeartbeatRestored>
     {
         public EndpointHeartbeatRestoredDefinition()

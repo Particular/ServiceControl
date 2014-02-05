@@ -5,15 +5,29 @@ namespace ServiceControl.CompositeViews.Endpoints
     using EndpointControl;
     using HeartbeatMonitoring;
     using Nancy;
+    using Nancy.ModelBinding;
+    using NServiceBus;
     using Raven.Abstractions.Data;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class GetEndpoints : BaseModule
     {
+        public IBus Bus { get; set; }
+
         public GetEndpoints()
         {
-            Get["/endpoints"] = parameters =>
+            Patch["/endpoints/{id}"] = parameters =>
+            {
+                var data = this.Bind<KnownEndpointUpdate>();
+                data.KnownEndpointId = (Guid) parameters.id;
+
+                Bus.SendLocal(data);
+
+                return HttpStatusCode.Accepted;
+            };
+
+            Get["/endpoints"] = _ =>
             {
                 using (var session = Store.OpenSession())
                 {
@@ -30,6 +44,7 @@ namespace ServiceControl.CompositeViews.Endpoints
                             var knownEndpoint = ie.Current.Document;
                             var view = new EndpointsView
                             {
+                                Id = knownEndpoint.Id,
                                 Name = knownEndpoint.Name,
                                 HostDisplayName = knownEndpoint.HostDisplayName,
                                 MonitorHeartbeat = knownEndpoint.MonitorHeartbeat,
@@ -62,19 +77,5 @@ namespace ServiceControl.CompositeViews.Endpoints
                 }
             };
         }
-    }
-
-    public class EndpointsView
-    {
-        public string Name { get; set; }
-        public string HostDisplayName { get; set; }
-        public bool MonitorHeartbeat { get; set; }
-        public HeartbeatInformation HeartbeatInformation { get; set; }
-    }
-
-    public class HeartbeatInformation
-    {
-        public DateTime LastReportAt { get; set; }
-        public Status ReportedStatus { get; set; }
     }
 }

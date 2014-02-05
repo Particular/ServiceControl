@@ -2,6 +2,7 @@
 {
     using Contracts.HeartbeatMonitoring;
     using Contracts.Operations;
+    using EndpointControl;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -17,7 +18,22 @@
         {
             var originatingEndpoint = EndpointDetails.SendingEndpoint(Bus.CurrentMessageContext.Headers);
             var id = DeterministicGuid.MakeId(originatingEndpoint.Name, originatingEndpoint.Machine);
-            var heartbeat = Session.Load<Heartbeat>(id);
+            Heartbeat heartbeat = null;
+            KnownEndpoint knownEndpoint = null;
+
+            Session.Advanced.Lazily.Load<Heartbeat>(id, doc => heartbeat = doc);
+            Session.Advanced.Lazily.Load<KnownEndpoint>(id, doc => knownEndpoint = doc);
+
+            Session.Advanced.Eagerly.ExecuteAllPendingLazyOperations();
+
+            if (knownEndpoint != null)
+            {
+                if (!knownEndpoint.MonitorHeartbeat)
+                {
+                    return;
+                }
+            }
+
             var isNew = false;
 
             if (heartbeat == null)

@@ -1,12 +1,14 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using Contracts.HeartbeatMonitoring;
+    using EndpointControl;
     using NServiceBus;
 
     public class RaiseHeartbeatChanges :
         IHandleMessages<HeartbeatingEndpointDetected>,
         IHandleMessages<EndpointFailedToHeartbeat>,
-        IHandleMessages<EndpointHeartbeatRestored>
+        IHandleMessages<EndpointHeartbeatRestored>,
+        IHandleMessages<KnownEndpointUpdated>
     {
         public RaiseHeartbeatChanges(IBus bus)
         {
@@ -28,6 +30,11 @@
         public void Handle(HeartbeatingEndpointDetected message)
         {
             PublishUpdate(HeartbeatsComputation.NewHeartbeatingEndpointDetected());
+        }
+
+        public void Handle(KnownEndpointUpdated message)
+        {
+            PublishUpdate(HeartbeatsComputation.Reset());
         }
 
         void PublishUpdate(HeartbeatsComputation.HeartbeatsStats stats)

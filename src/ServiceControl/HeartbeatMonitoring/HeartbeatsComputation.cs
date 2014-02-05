@@ -1,6 +1,7 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
     using System.Linq;
+    using EndpointControl;
     using NServiceBus;
     using Raven.Client;
 
@@ -57,27 +58,41 @@ namespace ServiceControl.HeartbeatMonitoring
             }
         }
 
+        public HeartbeatsStats Reset()
+        {
+            lock (locker)
+            {
+                Initialise();
+                return new HeartbeatsStats(numberOfEndpointsActive, numberOfEndpointsDead);
+            }
+        }
+
         void Initialise()
         {
             using (var session = store.OpenSession())
             {
+                var total = 0;
                 RavenQueryStatistics stats1, stats2;
 
                 // Workaround to do Lazily Count, see https://groups.google.com/d/msg/ravendb/ptgTQbrPfzI/w9QJ0wdYkc4J
                 // Raven v3 should support this natively, see http://issues.hibernatingrhinos.com/issue/RavenDB-1310
 
-                session.Query<Heartbeat>()
+                session.Query<KnownEndpoint>()
+                    .Customize(c => c.WaitForNonStaleResultsAsOfLastWrite())
                     .Statistics(out stats1)
-                    .Where(c => c.ReportedStatus == Status.Dead)
+                    .Where(endpoint => endpoint.MonitorHeartbeat)
                     .Take(0)
-                    .Lazily(heartbeats => numberOfEndpointsDead = stats1.TotalResults);
+                    .Lazily(heartbeats => total = stats1.TotalResults);
                 session.Query<Heartbeat>()
+                    .Customize(c => c.WaitForNonStaleResultsAsOfLastWrite())
                     .Statistics(out stats2)
-                    .Where(c => c.ReportedStatus == Status.Beating)
+                    .Where(heartbeat => heartbeat.ReportedStatus == Status.Beating)
                     .Take(0)
                     .Lazily(heartbeats => numberOfEndpointsActive = stats2.TotalResults);
 
                 session.Advanced.Eagerly.ExecuteAllPendingLazyOperations();
+
+                numberOfEndpointsDead = total - numberOfEndpointsActive;
             }
         }
 

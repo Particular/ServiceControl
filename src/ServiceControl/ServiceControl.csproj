@@ -184,8 +184,12 @@
       <Link>SagaAudit\Messages\SagaUpdatedMessage.cs</Link>
     </Compile>
     <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
+    <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
+    <Compile Include="CompositeViews\Endpoints\HeartbeatInformation.cs" />
     <Compile Include="CompositeViews\Endpoints\KnownEndpointIndex.cs" />
+    <Compile Include="CompositeViews\Endpoints\KnownEndpointUpdate.cs" />
+    <Compile Include="CompositeViews\Endpoints\KnownEndpointUpdateHandler.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
@@ -221,11 +225,13 @@
     <Compile Include="EndpointControl\Handlers\RegisterEndpointHandler.cs" />
     <Compile Include="EndpointControl\KnownEndpoint.cs" />
     <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />
+    <Compile Include="EndpointControl\KnownEndpointUpdated.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointFailedToHeartbeatDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointHeartbeatRestoredDefinition.cs" />
     <Compile Include="EventLog\Definitions\HeartbeatingEndpointDetectedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\KnownEndpointUpdatedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\NewEndpointDetectedDefinition.cs" />
     <Compile Include="EventLog\EventLogApiModule.cs" />
