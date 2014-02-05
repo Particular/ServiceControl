@@ -10,7 +10,7 @@
     {
         public EventLogApiModule()
         {
-            Get["/eventlogitems"] = parameters =>
+            Get["/eventlogitems"] = _ =>
             {
                 using (var session = Store.OpenSession())
                 {
