@@ -57,7 +57,7 @@
 
         readonly string category;
         readonly string id;
-        static readonly string hostId;
+        static readonly Guid hostId;
 
     }
 }

@@ -4,7 +4,7 @@
 
     public class ReportCustomCheckResult
     {
-        public string HostId { get; set; }
+        public Guid HostId { get; set; }
         public string CustomCheckId { get; set; }
         public string Category { get; set; }
         public CheckResult Result { get; set; }

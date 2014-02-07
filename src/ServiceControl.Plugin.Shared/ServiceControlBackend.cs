@@ -12,7 +12,7 @@
     using NServiceBus.Transports;
     using INeedInitialization = NServiceBus.INeedInitialization;
 
-    class ServiceControlBackend : INeedInitialization
+    public class ServiceControlBackend : INeedInitialization
     {
         public ServiceControlBackend()
         {

@@ -5,22 +5,31 @@ namespace ServiceControl.Plugin
     using System.Diagnostics;
     using System.Security.Cryptography;
     using System.Text;
+    using NServiceBus;
+    using NServiceBus.Unicast;
 
     static class HostInformationRetriever
     {
         public static HostInformation RetrieveHostInfo()
         {
-            //since Hostinfo is available in the core since v4.4 we need to use reflaction here
+            //since Hostinfo is available in the core since v4.4 we need to use reflection here
             var hostInformationType = Type.GetType("NServiceBus.Hosting.HostInformation, NServiceBus.Core", false);
             if (hostInformationType == null)
             {
                 return GenerateHostinfoForPreV44Endpoints();
             }
 
+            var bus = Configure.Instance.Builder.Build<UnicastBus>();
+
+            var property = typeof(UnicastBus).GetProperty("HostInformation", hostInformationType);
+
+            object hostInfo = property.GetValue(bus, null);
+
             return new HostInformation
             {
-                HostId = (string)hostInformationType.GetProperty("HostId").GetValue(null, null),
-                Properties = (Dictionary<string, string>)hostInformationType.GetProperty("Properties").GetValue(null, null)
+                HostId = (Guid)hostInformationType.GetProperty("HostId").GetValue(hostInfo, null),
+                DisplayName = (string)hostInformationType.GetProperty("DisplayName").GetValue(hostInfo, null),
+                Properties = (Dictionary<string, string>)hostInformationType.GetProperty("Properties").GetValue(hostInfo, null)
             };
         }
 
@@ -34,7 +43,7 @@ namespace ServiceControl.Plugin
 
             return new HostInformation
             {
-                HostId = hostId.ToString(),
+                HostId = hostId,
                 DisplayName = String.Format("{0}", fullPathToStartingExe),
                 Properties = new Dictionary<string, string>
                 {
@@ -72,7 +81,7 @@ namespace ServiceControl.Plugin
 
     class HostInformation
     {
-        public string HostId { get; set; }
+        public Guid HostId { get; set; }
         public Dictionary<string, string> Properties { get; set; }
         public string DisplayName { get; set; }
     }

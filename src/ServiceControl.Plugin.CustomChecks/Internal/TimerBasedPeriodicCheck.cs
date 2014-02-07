@@ -6,15 +6,13 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
     using Messages;
     using NServiceBus.Logging;
 
-    internal class TimerBasedPeriodicCheck : IDisposable
+    public class TimerBasedPeriodicCheck : IDisposable
     {
-        static string hostId;
-
         static TimerBasedPeriodicCheck()
         {
             var hostInfo =  HostInformationRetriever.RetrieveHostInfo();
 
-            TimerBasedPeriodicCheck.hostId = hostInfo.HostId;
+            hostId = hostInfo.HostId;
         }
 
         public TimerBasedPeriodicCheck(IPeriodicCheck periodicCheck, ServiceControlBackend serviceControlBackend)
@@ -76,5 +74,7 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
         readonly IPeriodicCheck periodicCheck;
         readonly ServiceControlBackend serviceControlBackend;
         readonly Timer timer;
+        static readonly Guid hostId;
+
     }
 }

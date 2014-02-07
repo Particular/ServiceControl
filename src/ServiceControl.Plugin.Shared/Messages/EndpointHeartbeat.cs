@@ -5,14 +5,14 @@
 
     class EndpointHeartbeat
     {
-        public string HostId { get; set; }
+        public Guid HostId { get; set; }
         public string Endpoint { get; set; }
         public DateTime ExecutedAt { get; set; }
     }
 
     class RegisterEndpointStartup
     {
-        public string HostId { get; set; }
+        public Guid HostId { get; set; }
         public string Endpoint { get; set; }
         public DateTime StartedAt { get; set; }
         public Dictionary<string, string> HostProperties { get; set; }

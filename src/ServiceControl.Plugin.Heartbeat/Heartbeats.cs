@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Plugin.Heartbeat
 {
     using System;
-    using System.Collections.Generic;
     using System.Configuration;
     using System.Threading;
     using EndpointPlugin.Operations.ServiceControlBackend;
@@ -12,6 +11,7 @@
     class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
     {
         public ServiceControlBackend ServiceControlBackend { get; set; }
+
 
         public override bool IsEnabledByDefault
         {
@@ -80,7 +80,7 @@
             {
                 ExecutedAt = DateTime.UtcNow,
                 Endpoint = Configure.EndpointName,
-                HostId = hostId.ToString(),
+                HostId = (Guid)hostId
             };
 
             ServiceControlBackend.Send(heartBeat, TimeSpan.FromTicks(heartbeatInterval.Ticks * 4));
