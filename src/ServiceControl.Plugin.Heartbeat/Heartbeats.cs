@@ -32,20 +32,26 @@
                 heartbeatInterval = TimeSpan.Parse(interval);
             }
 
-            string hostId;
-            Dictionary<string, string> hostProperties;
+            
+            var hostInfo = HostInformationRetriever.RetrieveHostInfo();
 
-            if(HostInformationRetriever.TryToRetrieveHostInfo(out hostId, out hostProperties))
-            {
-                SendHostInformationIfAvailable(hostId, hostProperties);
-            }
 
-            heartbeatTimer = new Timer(ExecuteHeartbeat, hostId, TimeSpan.Zero, heartbeatInterval);
+            SendStartupMessageToBackend(hostInfo);
+
+
+            heartbeatTimer = new Timer(ExecuteHeartbeat, hostInfo.HostId, TimeSpan.Zero, heartbeatInterval);
         }
 
-        void SendHostInformationIfAvailable(string hostId, Dictionary<string, string> hostProperties)
+        void SendStartupMessageToBackend(HostInformation hostInfo)
         {
-            ServiceControlBackend.Send(new HostInformation {HostId = hostId, Properties = hostProperties});
+            ServiceControlBackend.Send(new RegisterEndpointStartup
+            {
+                HostId = hostInfo.HostId, 
+                Endpoint = Configure.EndpointName,
+                HostDisplayName = hostInfo.DisplayName,
+                HostProperties = hostInfo.Properties,
+                StartedAt = DateTime.UtcNow
+            });
         }
 
         public void Stop()
@@ -77,7 +83,7 @@
                 HostId = hostId.ToString(),
             };
 
-            ServiceControlBackend.Send(heartBeat, TimeSpan.FromTicks(heartbeatInterval.Ticks*4));
+            ServiceControlBackend.Send(heartBeat, TimeSpan.FromTicks(heartbeatInterval.Ticks * 4));
         }
 
         Timer heartbeatTimer;

@@ -1,7 +1,6 @@
 namespace ServiceControl.Plugin.CustomChecks.Internal
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading;
     using EndpointPlugin.Operations.ServiceControlBackend;
     using Messages;
@@ -13,12 +12,9 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
 
         static TimerBasedPeriodicCheck()
         {
-            string hostId;
-            Dictionary<string, string> hostProperties;
+            var hostInfo =  HostInformationRetriever.RetrieveHostInfo();
 
-            HostInformationRetriever.TryToRetrieveHostInfo(out hostId, out hostProperties);
-
-            TimerBasedPeriodicCheck.hostId = hostId;
+            TimerBasedPeriodicCheck.hostId = hostInfo.HostId;
         }
 
         public TimerBasedPeriodicCheck(IPeriodicCheck periodicCheck, ServiceControlBackend serviceControlBackend)

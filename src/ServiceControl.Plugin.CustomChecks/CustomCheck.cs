@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Plugin.CustomChecks
 {
     using System;
-    using System.Collections.Generic;
     using EndpointPlugin.Operations.ServiceControlBackend;
     using Internal;
     using NServiceBus;
@@ -9,16 +8,12 @@
 
     public abstract class CustomCheck : ICustomCheck
     {
-        static string hostId;
 
         static CustomCheck()
         {
-            string hostId;
-            Dictionary<string, string> hostProperties;
+            var hostInfo = HostInformationRetriever.RetrieveHostInfo();
 
-            HostInformationRetriever.TryToRetrieveHostInfo(out hostId, out hostProperties);
-
-            CustomCheck.hostId = hostId;
+            hostId = hostInfo.HostId;
         }
 
         protected CustomCheck(string id, string category)
@@ -62,5 +57,7 @@
 
         readonly string category;
         readonly string id;
+        static readonly string hostId;
+
     }
 }
