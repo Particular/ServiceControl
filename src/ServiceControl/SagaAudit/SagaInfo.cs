@@ -6,5 +6,6 @@
     {
         public string SagaType { get; set; }
         public Guid SagaId { get; set; }
+        public string ChangeStatus { get; set; }
     }
 }
