@@ -102,7 +102,7 @@
             Assert.AreEqual("3", firstByTimeSent.Id);
 
             var firstByTimeSentDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                  .OrderByDescending(x => x.CriticalTime)
+                  .OrderByDescending(x => x.TimeSent)
                   .Customize(x => x.WaitForNonStaleResults())
                   .OfType<ProcessedMessage>()
                   .First();
