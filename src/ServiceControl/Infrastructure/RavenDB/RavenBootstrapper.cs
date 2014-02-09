@@ -36,6 +36,8 @@
             documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
             documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
 
+            documentStore.Conventions.SaveEnumsAsIntegers = true;
+
             documentStore.Initialize();
 
             Logger.Info("Index creation started");
