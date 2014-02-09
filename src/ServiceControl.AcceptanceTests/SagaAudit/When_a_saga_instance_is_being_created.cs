@@ -30,7 +30,7 @@
             Assert.AreEqual(typeof(MySaga).FullName,sagaHistory.SagaType);
 
             var change = sagaHistory.Changes.Single();
-            
+
             Assert.AreEqual(SagaStateChangeStatus.New, change.Status);
             Assert.AreEqual(typeof(StartSagaMessage).FullName, change.InitiatingMessage.MessageType);
         }
