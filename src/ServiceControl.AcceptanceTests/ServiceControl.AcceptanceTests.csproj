@@ -106,6 +106,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SagaAudit\When_a_message_emitted_by_a_saga_is_audited.cs" />
     <Compile Include="SagaAudit\When_a_message_hitting_a_saga_is_not_a_start_message.cs" />
+    <Compile Include="SagaAudit\When_a_message_hitting_multiple_sagas_is_audited.cs" />
+    <Compile Include="SagaAudit\When_a_message_that_is_handled_by_a_saga.cs" />
     <Compile Include="SagaAudit\When_a_saga_instance_is_being_created.cs" />
     <Compile Include="SagaAudit\When_requesting_timeout_from_a_saga.cs" />
     <Compile Include="SagaAudit\When_publishing_from_a_saga.cs" />
