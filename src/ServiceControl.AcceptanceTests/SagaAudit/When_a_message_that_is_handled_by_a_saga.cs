@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Runtime.Remoting.Messaging;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
