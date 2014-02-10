@@ -22,8 +22,11 @@
             {
                 DataDirectory = Settings.DbPath,
                 UseEmbeddedHttpServer = Settings.ExposeRavenDB,
-                EnlistInDistributedTransactions = false
+                EnlistInDistributedTransactions = false,
             };
+
+            documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "DocumentExpiration"); // Enable the expiration bundle
+            documentStore.Configuration.Settings.Add("Raven/Expiration/DeleteFrequencySeconds", "86400"); // Run the deletion operation every 24 hours
 
             if (Settings.Schema.Equals("https", StringComparison.InvariantCultureIgnoreCase))
             {
