@@ -9,7 +9,6 @@
     using MessageFailures;
     using NUnit.Framework;
     using Raven.Client;
-    using Raven.Client.Embedded;
     using Raven.Client.Linq;
     using ServiceControl.CompositeViews.Messages;
 
@@ -95,16 +94,16 @@
             });
             session.SaveChanges();
 
+            WaitForIndexing(documentStore);
+
             var firstByTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                 .OrderBy(x => x.TimeSent)
-                .Customize(x => x.WaitForNonStaleResults())
                 .OfType<ProcessedMessage>()
                 .First();
             Assert.AreEqual("3", firstByTimeSent.Id);
 
             var firstByTimeSentDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                   .OrderByDescending(x => x.TimeSent)
-                  .Customize(x => x.WaitForNonStaleResults())
                   .OfType<ProcessedMessage>()
                   .First();
             Assert.AreEqual("1", firstByTimeSentDesc.Id);
