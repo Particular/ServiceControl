@@ -4,15 +4,17 @@
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
+    using Infrastructure.RavenDB;
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
     using Raven.Client;
+    using Raven.Client.Embedded;
     using Raven.Client.Linq;
     using ServiceControl.CompositeViews.Messages;
 
     [TestFixture]
-    public class MessagesViewTests
+    public class MessagesViewTests : TestWithRavenDB
     {
         [Test]
         public void Filter_out_system_messages()
@@ -42,34 +44,33 @@
             Assert.AreNotEqual("1", results.Single().Id);
         }
 
-
         [Test]
         public void Order_by_critical_time()
         {
             session.Store(new ProcessedMessage
             {
                 Id = "1",
-                MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(10) } }
+                MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(10).Ticks } }
             });
 
             session.Store(new ProcessedMessage
             {
                 Id = "2",
-                MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(20) } }
+                MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(20).Ticks } }
             });
             session.SaveChanges();
 
+            WaitForIndexing(documentStore);
+
             var firstByCriticalTime = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                .OrderBy(x => x.CriticalTime)
-                .Customize(x => x.WaitForNonStaleResults())
-                .OfType<ProcessedMessage>()
-                .First();
+                  .OrderBy(x => x.CriticalTime)
+                  .AsProjection<ProcessedMessage>()
+                  .First();
             Assert.AreEqual("1", firstByCriticalTime.Id);
            
             var firstByCriticalTimeDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                   .OrderByDescending(x => x.CriticalTime)
-                  .Customize(x => x.WaitForNonStaleResults())
-                  .OfType<ProcessedMessage>()
+                  .AsProjection<ProcessedMessage>()
                   .First();
             Assert.AreEqual("2", firstByCriticalTimeDesc.Id);
         }
