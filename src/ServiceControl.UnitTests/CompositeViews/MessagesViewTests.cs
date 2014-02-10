@@ -7,6 +7,7 @@
     using Infrastructure.RavenDB;
     using MessageAuditing;
     using MessageFailures;
+    using NServiceBus.Unicast.Messages;
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Client.Linq;
@@ -63,18 +64,27 @@
                 Id = "3",
                 MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
             });
+
+            session.Store(new FailedMessage
+            {
+                Id = "4",
+                Status = FailedMessageStatus.Unresolved,
+                ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>{{new FailedMessage.ProcessingAttempt{MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }}}},
+            });
             session.SaveChanges();
 
             WaitForIndexing(documentStore);
 
             var firstByCriticalTime = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                   .OrderBy(x => x.CriticalTime)
+                  .Where(x => x.CriticalTime != null)
                   .AsProjection<ProcessedMessage>()
                   .First();
             Assert.AreEqual("1", firstByCriticalTime.Id);
            
             var firstByCriticalTimeDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                   .OrderByDescending(x => x.CriticalTime)
+                  .Where(x => x.CriticalTime != null)
                   .AsProjection<ProcessedMessage>()
                   .First();
             Assert.AreEqual("2", firstByCriticalTimeDesc.Id);
