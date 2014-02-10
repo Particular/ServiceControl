@@ -42,6 +42,10 @@
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit\lib\nunit.framework.dll</HintPath>
     </Reference>
+    <Reference Include="Raven.Abstractions, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\RavenDB.Client\lib\net45\Raven.Abstractions.dll</HintPath>
+    </Reference>
     <Reference Include="Raven.Client.Embedded, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
       <HintPath>..\packages\RavenDB.Embedded\lib\net45\Raven.Client.Embedded.dll</HintPath>
     </Reference>
@@ -57,6 +61,7 @@
   <ItemGroup>
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
+    <Compile Include="Infrastructure\RavenDB\TestWithRavenDB.cs" />
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
   </ItemGroup>
   <ItemGroup>
