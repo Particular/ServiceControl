@@ -49,13 +49,19 @@
             session.Store(new ProcessedMessage
             {
                 Id = "1",
-                MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(10).Ticks } }
+                MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(10) } }
             });
 
             session.Store(new ProcessedMessage
             {
                 Id = "2",
-                MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(20).Ticks } }
+                MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(20) } }
+            });
+
+            session.Store(new ProcessedMessage
+            {
+                Id = "3",
+                MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
             });
             session.SaveChanges();
 

@@ -42,7 +42,7 @@
                 criticalTime = processingEnded - timeSent;
             }
 
-            message.Metadata.Add("CriticalTime", criticalTime.Ticks);
+            message.Metadata.Add("CriticalTime", criticalTime);
 
             var processingTime = TimeSpan.Zero;
 
@@ -51,7 +51,7 @@
                 processingTime = processingEnded - processingStarted;
             }
 
-            message.Metadata.Add("ProcessingTime", processingTime.Ticks);
+            message.Metadata.Add("ProcessingTime", processingTime);
 
             var deliveryTime = TimeSpan.Zero;
 
@@ -60,7 +60,7 @@
                 deliveryTime = processingStarted - timeSent;
             }
 
-            message.Metadata.Add("DeliveryTime", deliveryTime.Ticks);
+            message.Metadata.Add("DeliveryTime", deliveryTime);
         }
     }
 }
