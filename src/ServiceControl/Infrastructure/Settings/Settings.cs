@@ -147,6 +147,9 @@
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;
 
+        public static int ExpirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", 60 * 60 * 24); // default is every 24h
+        public static int HoursToKeepMessagesBeforeExpiring = SettingsReader<int>.Read("HoursToKeepMessagesBeforeExpiring", 24 * 5); // default is 5 days
+
         static readonly ILog Logger = LogManager.GetLogger(typeof(Settings));
     }
 }

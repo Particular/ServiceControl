@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System;
+    using System.Globalization;
     using System.IO;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -26,7 +27,7 @@
             };
 
             documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "DocumentExpiration"); // Enable the expiration bundle
-            documentStore.Configuration.Settings.Add("Raven/Expiration/DeleteFrequencySeconds", "86400"); // Run the deletion operation every 24 hours
+            documentStore.Configuration.Settings.Add("Raven/Expiration/DeleteFrequencySeconds", Settings.ExpirationProcessTimerInSeconds.ToString(CultureInfo.InvariantCulture)); // Run the deletion operation every 24 hours
 
             if (Settings.Schema.Equals("https", StringComparison.InvariantCultureIgnoreCase))
             {
