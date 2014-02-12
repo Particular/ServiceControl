@@ -2,7 +2,6 @@
 {
     using System;
     using System.ComponentModel.Composition.Hosting;
-    using System.Globalization;
     using System.IO;
     using NServiceBus;
     using NServiceBus.Logging;
