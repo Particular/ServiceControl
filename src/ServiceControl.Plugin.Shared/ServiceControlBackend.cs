@@ -107,33 +107,33 @@
         {
             Configure.Component<ServiceControlBackend>(DependencyLifecycle.SingleInstance);
         }
+    }
 
-        public class VersionChecker
+    class VersionChecker
+    {
+        static VersionChecker()
         {
-            static VersionChecker()
-            {
-                var fileVersion = FileVersionInfo.GetVersionInfo(typeof(IMessage).Assembly.Location);
+            var fileVersion = FileVersionInfo.GetVersionInfo(typeof(IMessage).Assembly.Location);
 
-                CoreFileVersion = new Version(fileVersion.FileMajorPart, fileVersion.FileMinorPart,
-                    fileVersion.FileBuildPart);
+            CoreFileVersion = new Version(fileVersion.FileMajorPart, fileVersion.FileMinorPart,
+                fileVersion.FileBuildPart);
+        }
+
+        public static Version CoreFileVersion { get; set; }
+
+        public static bool CoreVersionIsAtLeast(int major, int minor)
+        {
+            if (CoreFileVersion.Major > major)
+            {
+                return true;
             }
 
-            public static Version CoreFileVersion { get; set; }
-
-            public static bool CoreVersionIsAtLeast(int major, int minor)
+            if (CoreFileVersion.Major < major)
             {
-                if (CoreFileVersion.Major > major)
-                {
-                    return true;
-                }
-
-                if (CoreFileVersion.Major < major)
-                {
-                    return false;
-                }
-
-                return CoreFileVersion.Minor >= minor;
+                return false;
             }
+
+            return CoreFileVersion.Minor >= minor;
         }
     }
 }

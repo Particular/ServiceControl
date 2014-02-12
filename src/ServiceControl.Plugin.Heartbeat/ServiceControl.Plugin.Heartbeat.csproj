@@ -49,6 +49,7 @@
     <Compile Include="..\ServiceControl.Plugin.Shared\ServiceControlBackend.cs">
       <Link>ServiceControlBackend.cs</Link>
     </Compile>
+    <Compile Include="EnrichPreV44MessagesWithHostDetailsMutator.cs" />
     <Compile Include="Heartbeats.cs" />
     <Compile Include="HostInformationRetriever.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

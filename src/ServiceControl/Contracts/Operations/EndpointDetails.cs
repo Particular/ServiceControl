@@ -1,12 +1,17 @@
 namespace ServiceControl.Contracts.Operations
 {
+    using System;
     using System.Collections.Generic;
     using Infrastructure;
+    using Mono.CSharp;
     using NServiceBus;
 
     public class EndpointDetails
     {
         public string Name { get; set; }
+
+
+        public Guid HostId { get; set; }
 
         public string Machine { get; set; }
 
@@ -37,6 +42,22 @@ namespace ServiceControl.Contracts.Operations
         public static EndpointDetails ReceivingEndpoint(IDictionary<string,string> headers)
         {
             var endpoint = new EndpointDetails();
+
+
+            string hostIdHeader;
+
+            if (headers.TryGetValue(Headers.HostId, out hostIdHeader))
+            {
+                endpoint.HostId = Guid.Parse(hostIdHeader);
+            }
+
+            string hostDisplayNameHeader;
+
+            if (headers.TryGetValue(Headers.HostDisplayName, out hostDisplayNameHeader))
+            {
+                endpoint.Host = hostDisplayNameHeader;
+            }
+
             DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingEndpoint, headers, s => endpoint.Name = s);
             DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingMachine, headers, s => endpoint.Machine = s);
 
@@ -61,7 +82,11 @@ namespace ServiceControl.Contracts.Operations
                 endpoint.Machine = address.Machine;
             }
 
+          
+
             return endpoint;
         }
+
+        public string Host { get; set; }
     }
 }
