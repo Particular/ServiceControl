@@ -53,7 +53,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                 var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
                 var expiryThresholdAsStr = currentExpiryThresholdTime.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture);
                 logger.Debug("Trying to find expired documents to delete");                
-                var query = "Status:3 AND ProcessedAt:[* TO " + expiryThresholdAsStr + "]"; // MessageStatus.Successful more than Settings.HoursToKeepMessagesBeforeExpiring hours old
+                var query = "(Status:3 OR Status:4) AND ProcessedAt:[* TO " + expiryThresholdAsStr + "]"; // MessageStatus.Successful more than Settings.HoursToKeepMessagesBeforeExpiring hours old
 
                 var list = new List<string>();
                 int start = 0;
