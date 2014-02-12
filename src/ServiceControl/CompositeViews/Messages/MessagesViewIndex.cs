@@ -50,18 +50,16 @@ namespace ServiceControl.CompositeViews.Messages
             AddMap<FailedMessage>(messages => from message in messages
                 where message.Status != FailedMessageStatus.Resolved
                 let last = message.ProcessingAttempts.Last()
-                let status =
-                    message.Status == FailedMessageStatus.Archived
-                        ? MessageStatus.ArchivedFailure
-                        : message.ProcessingAttempts.Count == 1
-                            ? MessageStatus.Failed
-                            : MessageStatus.RepeatedFailure
                 select new
                 {
                     MessageId = (object) last.MessageId,
                     MessageType = last.MessageMetadata["MessageType"], 
                     IsSystemMessage = last.MessageMetadata["IsSystemMessage"],
-                    Status = status,
+                    Status = message.Status == FailedMessageStatus.Archived
+                        ? MessageStatus.ArchivedFailure
+                        : message.ProcessingAttempts.Count == 1
+                            ? MessageStatus.Failed
+                            : MessageStatus.RepeatedFailure,
                     TimeSent = (DateTime) last.MessageMetadata["TimeSent"],
                     ProcessedAt = last.AttemptedAt,
                     ReceivingEndpointName = ((EndpointDetails) last.MessageMetadata["ReceivingEndpoint"]).Name,
