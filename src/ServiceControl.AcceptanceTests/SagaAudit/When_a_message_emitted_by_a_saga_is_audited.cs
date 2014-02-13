@@ -28,7 +28,6 @@
 
             Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, auditedMessage.OriginatesFromSaga.SagaType);
             Assert.AreEqual(context.SagaId, auditedMessage.OriginatesFromSaga.SagaId);
-
         }
 
         public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder

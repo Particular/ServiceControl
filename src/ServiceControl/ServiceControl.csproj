@@ -218,6 +218,8 @@
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
     <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
     <Compile Include="CustomChecks\CustomChecksComputation.cs" />
+    <Compile Include="CustomChecks\DeleteCustomCheck.cs" />
+    <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
     <Compile Include="EndpointControl\Handlers\DetectNewEndpointsFromImportedMessages.cs" />
     <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
     <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
@@ -226,6 +228,7 @@
     <Compile Include="EndpointControl\KnownEndpoint.cs" />
     <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />
     <Compile Include="EndpointControl\KnownEndpointUpdated.cs" />
+    <Compile Include="EventLog\Definitions\CustomCheckDeletedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointFailedToHeartbeatDefinition.cs" />

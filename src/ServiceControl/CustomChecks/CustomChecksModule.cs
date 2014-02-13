@@ -4,6 +4,7 @@
     using System.Linq;
     using Infrastructure.Extensions;
     using Nancy;
+    using NServiceBus;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
@@ -11,6 +12,8 @@
 
     public class CustomChecksModule : BaseModule
     {
+        public IBus Bus { get; set; }
+
         public CustomChecksModule()
         {
             Get["/customchecks"] = _ =>
@@ -31,23 +34,14 @@
                         .WithEtagAndLastModified(stats);
                 }
             };
-
+            
             Delete["/customchecks/{id}"] = parameters =>
             {
-                using (var session = Store.OpenSession())
-                {
-                    Guid id = parameters.id;
+                Guid id = parameters.id;
 
-                    var customCheck = session.Load<CustomCheck>(id);
+                Bus.SendLocal(new DeleteCustomCheck{Id = id});
 
-                    if (customCheck != null)
-                    {
-                        session.Delete(customCheck);
-                        session.SaveChanges();
-                    }
-                }
-
-                return HttpStatusCode.NoContent;
+                return HttpStatusCode.Accepted;
             };
         }
     }
