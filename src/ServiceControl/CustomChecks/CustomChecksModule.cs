@@ -21,12 +21,14 @@
                 using (var session = Store.OpenSession())
                 {
                     RavenQueryStatistics stats;
-                    var results =
+                    var query =
                         session.Query<CustomCheck>()
-                            .Statistics(out stats)
-                            .Where(c => c.Status == Status.Fail)
-                            .Paging(Request)
-                            .ToArray();
+                            .Statistics(out stats);
+
+                    query = AddStatusFilter(query);
+
+                    var results = query.Paging(Request)
+                        .ToArray();
 
                     return Negotiate
                         .WithModel(results)
@@ -43,6 +45,32 @@
 
                 return HttpStatusCode.Accepted;
             };
+        }
+
+        IRavenQueryable<CustomCheck> AddStatusFilter(IRavenQueryable<CustomCheck> query)
+        {
+            string status = null;
+
+            if ((bool) Request.Query.status.HasValue)
+            {
+                status = (string) Request.Query.status;
+            }
+
+            if (status == null)
+            {
+                return query;
+            }
+
+            if (status == "fail")
+            {
+                query = query.Where(c => c.Status == Status.Fail);
+            }
+
+            if (status == "pass")
+            {
+                query = query.Where(c => c.Status == Status.Pass);
+            }
+            return query;
         }
     }
 }
