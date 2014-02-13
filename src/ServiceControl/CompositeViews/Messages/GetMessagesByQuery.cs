@@ -59,7 +59,8 @@ namespace ServiceControl.CompositeViews.Messages
 
                 return Negotiate.WithModel(results)
                     .WithPagingLinksAndTotalCount(stats, Request)
-                    .WithEtagAndLastModified(stats);
+                    .WithEtagAndLastModified(stats)
+                    .WithRavenQueryStats(stats);
             }
         }
 
@@ -78,7 +79,8 @@ namespace ServiceControl.CompositeViews.Messages
 
                 return Negotiate.WithModel(results)
                     .WithPagingLinksAndTotalCount(stats, Request)
-                    .WithEtagAndLastModified(stats);
+                    .WithEtagAndLastModified(stats)
+                    .WithRavenQueryStats(stats);
             }
         }
     }
