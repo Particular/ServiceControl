@@ -1,7 +1,6 @@
-﻿using System;
-
-namespace ServiceControl.Infrastructure.RavenDB.Expiration
+﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
+    using System;
     using System.ComponentModel.Composition;
     using Raven.Abstractions;
     using Raven.Abstractions.Data;

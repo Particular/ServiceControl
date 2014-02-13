@@ -12,7 +12,7 @@
         {
             var auditMessage = new ProcessedMessage(message);
 
-            Session.Store(auditMessage); // TODO bulks
+            Session.Store(auditMessage);
         }
 
     }
