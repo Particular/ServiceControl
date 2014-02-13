@@ -56,10 +56,12 @@
       <HintPath>..\packages\RavenDB.Database\lib\net45\Raven.Database.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
+    <Compile Include="Expiration\CustomExpirationBundleTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\TestWithRavenDB.cs" />
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
@@ -79,6 +81,7 @@
       <Name>ServiceControl</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />

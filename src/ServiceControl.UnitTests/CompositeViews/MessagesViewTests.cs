@@ -7,6 +7,7 @@
     using Infrastructure.RavenDB;
     using MessageAuditing;
     using MessageFailures;
+    using NServiceBus;
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Client.Linq;
@@ -152,9 +153,9 @@
                     Id = "1",
                     ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
                     {
-                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today},
-                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today}
-                    }
+                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"}}},
+                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"}} }
+                    },
                 });
          
                 session.SaveChanges();
