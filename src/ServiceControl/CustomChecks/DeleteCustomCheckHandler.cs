@@ -5,18 +5,13 @@
 
     class DeleteCustomCheckHandler : IHandleMessages<DeleteCustomCheck>
     {
-        public IDocumentSession Session { get; set; }
+        public IDocumentStore Store { get; set; }
 
         public IBus Bus { get; set; }
 
         public void Handle(DeleteCustomCheck message)
         {
-            var customCheck = Session.Load<CustomCheck>(message.Id);
-
-            if (customCheck != null)
-            {
-                Session.Delete(customCheck);
-            }
+            Store.DatabaseCommands.Delete(Store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null);
 
             Bus.Publish(new CustomCheckDeleted {Id = message.Id});
         }

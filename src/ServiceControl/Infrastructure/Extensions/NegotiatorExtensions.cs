@@ -145,5 +145,12 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 .WithHeader("ETag", currentEtag)
                 .WithHeader("Last-Modified", responseLastModified.ToString("R"));
         }
+
+        public static Negotiator WithRavenQueryStats(this Negotiator negotiator, RavenQueryStatistics stats)
+        {
+            return negotiator
+                .WithHeader("QueryTimeMs", stats.DurationMilliseconds.ToString(CultureInfo.InvariantCulture))
+                .WithHeader("IsStale", stats.IsStale.ToString());
+        }
     }
 }

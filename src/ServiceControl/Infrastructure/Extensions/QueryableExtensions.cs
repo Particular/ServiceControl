@@ -6,6 +6,7 @@ namespace ServiceControl.Infrastructure.Extensions
     using System.Linq.Expressions;
     using System.Text;
     using CompositeViews.Messages;
+    using MessageFailures;
     using MessageFailures.Api;
     using Nancy;
     using Raven.Client;
@@ -111,44 +112,56 @@ namespace ServiceControl.Infrastructure.Extensions
                 status = (string)request.Query.status;
             }
 
-            if (status != null)
+            if (status == null)
             {
-                var filters = status.Replace(" ", String.Empty).Split(',');
-                var excludes = new List<string>();
-                var includes = new List<string>();
-
-                foreach (var filter in filters)
-                {
-                    if (filter.StartsWith("-"))
-                    {
-                        excludes.Add("\"" + filter.Substring(1) + "\"");
-                        continue;
-                    }
-
-                    includes.Add("\"" + filter + "\"");
-                }
-
-                if (includes.Count == 0)
-                {
-                    includes.Add("*");
-                }
-
-                var sb = new StringBuilder();
-
-                sb.Append("((");
-                sb.Append(String.Join(" OR ", includes.ToArray()));
-                sb.Append(")");
-
-                if (excludes.Count > 0)
-                {
-                    sb.Append(" AND NOT (");
-                    sb.Append(String.Join(" OR ", excludes.ToArray()));
-                    sb.Append(")");
-                }
-                sb.Append(")");
-
-                source.Where(string.Format("Status: {0}", sb));
+                return source;
             }
+
+            var filters = status.Replace(" ", String.Empty).Split(',');
+            var excludes = new List<int>();
+            var includes = new List<int>();
+
+            foreach (var filter in filters)
+            {
+                FailedMessageStatus failedMessageStatus;
+
+                if (filter.StartsWith("-"))
+                {
+                    if (Enum.TryParse(filter.Substring(1), true, out failedMessageStatus))
+                    {
+                        excludes.Add((int)failedMessageStatus);
+                    }
+                    continue;
+                }
+
+                if (Enum.TryParse(filter, true, out failedMessageStatus))
+                {
+                    includes.Add((int)failedMessageStatus);
+                }
+            }
+
+            var sb = new StringBuilder();
+
+            sb.Append("((");
+            if (includes.Count == 0)
+            {
+                sb.Append("*");
+            }
+            else
+            {
+                sb.Append(String.Join(" OR ", includes.ToArray()));
+            }
+            sb.Append(")");
+
+            if (excludes.Count > 0)
+            {
+                sb.Append(" AND NOT (");
+                sb.Append(String.Join(" OR ", excludes.ToArray()));
+                sb.Append(")");
+            }
+            sb.Append(")");
+
+            source.Where(string.Format("Status: {0}", sb));
 
             return source;
         }

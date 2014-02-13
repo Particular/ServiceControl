@@ -1,6 +1,7 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
     using System.Linq;
+    using CompositeViews.Endpoints;
     using EndpointControl;
     using NServiceBus;
     using Raven.Client;
@@ -77,7 +78,7 @@ namespace ServiceControl.HeartbeatMonitoring
                 // Workaround to do Lazily Count, see https://groups.google.com/d/msg/ravendb/ptgTQbrPfzI/w9QJ0wdYkc4J
                 // Raven v3 should support this natively, see http://issues.hibernatingrhinos.com/issue/RavenDB-1310
 
-                session.Query<KnownEndpoint>()
+                session.Query<KnownEndpoint, KnownEndpointIndex>()
                     .Customize(c => c.WaitForNonStaleResultsAsOfLastWrite())
                     .Statistics(out stats1)
                     .Where(endpoint => endpoint.MonitorHeartbeat)

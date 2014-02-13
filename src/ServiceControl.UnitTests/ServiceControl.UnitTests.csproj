@@ -63,6 +63,7 @@
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Expiration\CustomExpirationBundleTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
+    <Compile Include="Infrastructure\RavenDB\TestWithRavenDB.cs" />
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
   </ItemGroup>
   <ItemGroup>
