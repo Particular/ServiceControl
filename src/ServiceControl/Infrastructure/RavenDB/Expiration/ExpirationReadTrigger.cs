@@ -12,8 +12,6 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
     [ExportMetadata("Bundle", "customDocumentExpiration")]
     public class ExpirationReadTrigger : AbstractReadTrigger
     {
-        const string RavenExpirationDate = "Raven-Expiration-Date";
-
         public override ReadVetoResult AllowRead(string key, RavenJObject metadata, ReadOperation operation,
                                                  TransactionInformation transactionInformation)
         {
