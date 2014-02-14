@@ -23,7 +23,6 @@
                 contentType = "application/xml"; //default to xml for now
             }
 
-
             message.Metadata.Add("ContentLength", contentLength);
             message.Metadata.Add("ContentType", contentType);
 
@@ -42,11 +41,11 @@
                 Logger.InfoFormat("Message '{0}' has a content length of {1} which is above the threshold, message body won't be searchable", message.UniqueMessageId, contentLength, MaxBodySizeToMakeSearchable);
                 return;
             }
-            message.Metadata.Add("SearchableBody",Encoding.UTF8.GetString(message.PhysicalMessage.Body));
 
+            message.Metadata.Add("SearchableBody", Encoding.UTF8.GetString(message.PhysicalMessage.Body));
         }
 
-        static int MaxBodySizeToMakeSearchable = 1024 * 500; //500 kb
-        static ILog Logger = LogManager.GetLogger(typeof(BodySearchEnricher));
+        const int MaxBodySizeToMakeSearchable = 1024*500; //500 kb
+        static readonly ILog Logger = LogManager.GetLogger(typeof(BodySearchEnricher));
     }
 }
