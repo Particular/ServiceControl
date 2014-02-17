@@ -21,6 +21,11 @@ namespace ServiceControl.Operations
 
         public void MessageProcessed()
         {
+            if (!enabled)
+            {
+                return;
+            }
+
             successRateCounter.Increment();
         }
 

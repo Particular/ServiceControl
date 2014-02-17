@@ -4,11 +4,11 @@
     using Contracts.Operations;
     using NServiceBus;
 
-    public class BodyStorageEnricher// : ImportEnricher
+    public class BodyStorageEnricher : ImportEnricher
     {
         public IBodyStorage BodyStorage { get; set; }
 
-        public void Enrich(ImportMessage message)
+        public override void Enrich(ImportMessage message)
         {
             if (message.PhysicalMessage.Body == null || message.PhysicalMessage.Body.Length == 0)
             {
@@ -22,17 +22,36 @@
                 contentType = "text/xml"; //default to xml for now
             }
 
+            message.Metadata.Add("ContentType", contentType);
+
             var bodySize = message.PhysicalMessage.Body.Length;
 
             var bodyId = message.MessageId;
 
-            using (var bodyStream = new MemoryStream(message.PhysicalMessage.Body))
+
+            if (message is ImportFailedMessage)
             {
-                var bodyUrl = BodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
+                using (var bodyStream = new MemoryStream(message.PhysicalMessage.Body))
+                {
+                    var bodyUrl = BodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
+                    message.Metadata.Add("BodyUrl", bodyUrl);
+                }                
+            }
+            else
+            {
+                var bodyUrl = string.Format("/messages/{0}/embeddedbody", bodyId);
                 message.Metadata.Add("BodyUrl", bodyUrl);
+
+                if (!contentType.Contains("binary") && bodySize <= MaxBodySizeToStore)
+                {
+                    message.Metadata.Add("Body", System.Text.Encoding.UTF8.GetString(message.PhysicalMessage.Body));    
+                }
             }
 
             message.Metadata.Add("BodySize", bodySize);
         }
+
+        const int MaxBodySizeToStore = 1024 * 100; //100 kb
+
     }
 }
