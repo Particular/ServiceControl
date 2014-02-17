@@ -4,11 +4,11 @@
     using Contracts.Operations;
     using NServiceBus;
 
-    public class BodyStorageEnricher : ImportEnricher
+    public class BodyStorageEnricher// : ImportEnricher
     {
         public IBodyStorage BodyStorage { get; set; }
 
-        public override void Enrich(ImportMessage message)
+        public void Enrich(ImportMessage message)
         {
             if (message.PhysicalMessage.Body == null || message.PhysicalMessage.Body.Length == 0)
             {

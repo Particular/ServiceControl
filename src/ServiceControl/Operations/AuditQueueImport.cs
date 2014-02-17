@@ -7,14 +7,14 @@
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Pipeline;
-    using NServiceBus.Satellites;
+    //using NServiceBus.Satellites;
     using NServiceBus.Transports;
     using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class AuditQueueImport : IAdvancedSatellite, IDisposable
+    public class AuditQueueImport// : IAdvancedSatellite, IDisposable
     {
         public IBuilder Builder { get; set; }
         public ISendMessages Forwarder { get; set; }

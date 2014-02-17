@@ -17,7 +17,7 @@
                 return;
             }
 
-            Configure.Component<RavenAttachmentsBodyStorage>(DependencyLifecycle.InstancePerCall);
+            Configure.Component<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
         }
     }
 }

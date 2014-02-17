@@ -7,7 +7,7 @@ namespace ServiceControl.Operations
         public void Init()
         {
             Configure.Instance.ForAllTypes<IEnrichImportedMessages>(
-                t => Configure.Component(t, DependencyLifecycle.InstancePerCall));
+                t => Configure.Component(t, DependencyLifecycle.SingleInstance));
         
         }
     }

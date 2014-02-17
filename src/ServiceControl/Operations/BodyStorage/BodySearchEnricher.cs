@@ -5,9 +5,9 @@
     using NServiceBus;
     using NServiceBus.Logging;
 
-    public class BodySearchEnricher : ImportEnricher
+    public class BodySearchEnricher// : ImportEnricher
     {
-        public override void Enrich(ImportMessage message)
+        public void Enrich(ImportMessage message)
         {
             var contentLength = 0;
 
@@ -45,7 +45,7 @@
             message.Metadata.Add("SearchableBody", Encoding.UTF8.GetString(message.PhysicalMessage.Body));
         }
 
-        const int MaxBodySizeToMakeSearchable = 1024*500; //500 kb
+        const int MaxBodySizeToMakeSearchable = 1024*100; //100 kb
         static readonly ILog Logger = LogManager.GetLogger(typeof(BodySearchEnricher));
     }
 }

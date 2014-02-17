@@ -34,7 +34,6 @@
             }
         }
 
-
         public static string StorageUrl
         {
             get

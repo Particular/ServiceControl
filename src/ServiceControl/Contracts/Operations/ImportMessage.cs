@@ -23,6 +23,7 @@
         }
 
         public string UniqueMessageId { get; set; }
+
         public string MessageId { get; set; }
 
         public PhysicalMessage PhysicalMessage { get; set; }
