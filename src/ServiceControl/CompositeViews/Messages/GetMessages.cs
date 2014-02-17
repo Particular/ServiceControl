@@ -52,9 +52,9 @@ namespace ServiceControl.CompositeViews.Messages
                 {
                     var messages =
                         session.Advanced.LuceneQuery<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                            .Where(string.Format("UniqueMessageId: ({0})", String.Join(" OR ", idsList)))
+                            .Where(string.Format("MessageId: ({0})", String.Join(" OR ", idsList)))
                             .SetResultTransformer(new MessagesBodyTransformer().TransformerName)
-                            .SelectFields<MessagesBodyTransformer.Result>()
+                            .SelectFields<MessagesBodyTransformer.Result>().Select(t => t.BodyString)
                             .ToArray();
 
                     return Negotiate.WithModel(messages);
