@@ -12,6 +12,7 @@
     using Raven.Abstractions.Logging;
     using Raven.Database;
     using Raven.Database.Data;
+    using Raven.Database.Extensions;
     using Raven.Database.Plugins;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -61,10 +62,10 @@
                     const int pageSize = 1024;
 
                     QueryResultWithIncludes queryResult;
-                    //using (var cts = new CancellationTokenSource())
+                    using (var cts = new CancellationTokenSource())
                     using (Database.DisableAllTriggersForCurrentThread())
                     {
-                        //cts.TimeoutAfter(TimeSpan.FromMinutes(5));
+                        cts.TimeoutAfter(TimeSpan.FromMinutes(5));
                         queryResult = Database.Query(indexName, new IndexQuery
                         {
                             Start = start,
@@ -72,7 +73,7 @@
                             Cutoff = currentTime,
                             Query = query,
                             FieldsToFetch = new[] { "__document_id" }
-                        }/* , cts.Token TODO latest RavenDB requires this */);
+                        } , cts.Token);
                     }
 
                     if (queryResult.Results.Count == 0)

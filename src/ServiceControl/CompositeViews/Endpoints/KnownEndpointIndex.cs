@@ -15,6 +15,8 @@ namespace ServiceControl.CompositeViews.Endpoints
                                   HostDisplayName = message.HostDisplayName,
                                   MonitorHeartbeat = message.MonitorHeartbeat,
                               };
+
+            DisableInMemoryIndexing = true;
         }
     }
 

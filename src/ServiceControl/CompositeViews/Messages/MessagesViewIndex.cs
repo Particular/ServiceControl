@@ -73,6 +73,8 @@ namespace ServiceControl.CompositeViews.Messages
             Index(x => x.Query, FieldIndexing.Analyzed);
             
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
+
+            DisableInMemoryIndexing = true;
         }
     }
 }
