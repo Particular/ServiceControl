@@ -43,7 +43,7 @@
 
                 if (!contentType.Contains("binary") && bodySize <= MaxBodySizeToStore)
                 {
-                    message.Metadata.Add("Body", message.PhysicalMessage.Body);    
+                    message.Metadata.Add("Body", System.Text.Encoding.UTF8.GetString(message.PhysicalMessage.Body));    
                 }
             }
 

@@ -8,6 +8,7 @@ namespace ServiceControl.Operations
     using System.Threading.Tasks;
     using Contracts.Operations;
     using MessageAuditing;
+    using MessageFailures.InternalMessages;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
@@ -23,6 +24,8 @@ namespace ServiceControl.Operations
             this.store = store;
             this.builder = builder;
         }
+
+        public IBus Bus { get; set; }
 
         public void Start()
         {
@@ -67,6 +70,22 @@ namespace ServiceControl.Operations
             queue.Dispose();
         }
 
+        void SendRegisterSuccessfulRetryIfNeeded(ImportSuccessfullyProcessedMessage message)
+        {
+            string retryId;
+
+            if (!message.PhysicalMessage.Headers.TryGetValue("ServiceControl.RetryId", out retryId))
+            {
+                return;
+            }
+
+            Bus.SendLocal(new RegisterSuccessfulRetry
+            {
+                FailedMessageId = message.UniqueMessageId,
+                RetryId = Guid.Parse(retryId)
+            });
+        }
+
         void Run(object obj)
         {
             var cancellationToken = (CancellationToken) obj;
@@ -108,6 +127,8 @@ namespace ServiceControl.Operations
                             {
                                 enricher.Enrich(importSuccessfullyProcessedMessage);
                             }
+
+                            SendRegisterSuccessfulRetryIfNeeded(importSuccessfullyProcessedMessage);
 
                             var auditMessage = new ProcessedMessage(importSuccessfullyProcessedMessage);
                             bulkInsert.Store(auditMessage);

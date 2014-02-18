@@ -24,7 +24,7 @@
                     using (var session = Store.OpenSession())
                     {
                         var message = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                            .TransformWith<MessagesBodyTransformer2, MessagesBodyTransformer2.Result>()
+                            .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
                             .FirstOrDefault(f => f.MessageId == messageId);
 
                         if (message == null)
@@ -36,8 +36,8 @@
                         {
                             return HttpStatusCode.NotFound;
                         }
-
-                        contents = stream => stream.Write(message.Body, 0, message.Body.Length);
+                        var data = System.Text.Encoding.UTF8.GetBytes(message.Body);
+                        contents = stream => stream.Write(data, 0, message.Body.Length);
                         contentType = message.ContentType;
                         bodySize = message.BodySize;
                     }
