@@ -28,7 +28,6 @@
 
             var bodyId = message.MessageId;
 
-
             if (message is ImportFailedMessage)
             {
                 using (var bodyStream = new MemoryStream(message.PhysicalMessage.Body))
@@ -39,12 +38,12 @@
             }
             else
             {
-                var bodyUrl = string.Format("/messages/{0}/embeddedbody", bodyId);
+                var bodyUrl = string.Format("/messages/{0}/body", bodyId);
                 message.Metadata.Add("BodyUrl", bodyUrl);
 
                 if (!contentType.Contains("binary") && bodySize <= MaxBodySizeToStore)
                 {
-                    message.Metadata.Add("Body", System.Text.Encoding.UTF8.GetString(message.PhysicalMessage.Body));    
+                    message.Metadata.Add("Body", message.PhysicalMessage.Body);    
                 }
             }
 

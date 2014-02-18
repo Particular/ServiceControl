@@ -6,6 +6,32 @@ namespace ServiceControl.CompositeViews.Messages
     using Contracts.Operations;
     using MessageFailures;
     using Raven.Client.Indexes;
+    public class MessagesBodyTransformer2 : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
+    {
+        public class Result
+        {
+            public string MessageId { get; set; }
+            public byte[] Body { get; set; }
+            public string ContentType { get; set; }
+            public string BodySize { get; set; }
+        }
+
+        public MessagesBodyTransformer2()
+        {
+            TransformResults = messages => from message in messages
+                let metadata =
+                    message.ProcessingAttempts != null
+                        ? message.ProcessingAttempts.Last().MessageMetadata
+                        : message.MessageMetadata
+                select new
+                {
+                    MessageId = metadata["MessageId"],
+                    Body = metadata["Body"],
+                    BodySize = metadata["BodySize"],
+                    ContentType = metadata["ContentType"],
+                };
+        }
+    }
 
     public class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
     {
