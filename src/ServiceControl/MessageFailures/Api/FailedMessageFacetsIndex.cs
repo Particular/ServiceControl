@@ -22,6 +22,8 @@
             Index("Name", FieldIndexing.NotAnalyzed); //to avoid lower casing
             Index("Machine", FieldIndexing.NotAnalyzed); //to avoid lower casing
             Index("MessageType", FieldIndexing.NotAnalyzed); //to avoid lower casing
+
+            DisableInMemoryIndexing = true;
         }
     }
 }
