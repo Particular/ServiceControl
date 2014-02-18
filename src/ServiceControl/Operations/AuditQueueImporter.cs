@@ -12,23 +12,33 @@ namespace ServiceControl.Operations
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
+    using NServiceBus.Transports;
     using NServiceBus.Transports.Msmq;
+    using NServiceBus.Unicast;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
     internal class AuditQueueImporter : IWantToRunWhenBusStartsAndStops
     {
-        public AuditQueueImporter(IDocumentStore store, IBuilder builder)
+        public AuditQueueImporter(IDocumentStore store, IBuilder builder, IDequeueMessages receiver)
         {
             this.store = store;
             this.builder = builder;
+            enabled = receiver is MsmqDequeueStrategy;
         }
 
         public IBus Bus { get; set; }
 
+        public UnicastBus UnicastBus { get; set; }
+
         public void Start()
         {
+            if (!enabled)
+            {
+                return;
+            }
+
             performanceCounters.Initialize();
 
             queue = new MessageQueue(MsmqUtilities.GetFullPath(Settings.AuditQueue), QueueAccessMode.Receive);
@@ -51,7 +61,9 @@ namespace ServiceControl.Operations
 
             var token = tokenSource.Token;
 
-            for (var i = 0; i < 20; i++)
+            Logger.InfoFormat("MSMQ Audit import is now started, feeding audit messages from: {0}", Settings.AuditQueue);
+
+            for (var i = 0; i < UnicastBus.Transport.MaximumConcurrencyLevel; i++)
             {
                 runningTasks.Add(Task.Factory.StartNew(Run, token, token, TaskCreationOptions.LongRunning,
                     TaskScheduler.Default));
@@ -60,6 +72,11 @@ namespace ServiceControl.Operations
 
         public void Stop()
         {
+            if (!enabled)
+            {
+                return;
+            }
+
             tokenSource.Cancel();
 
             Task.WaitAll(runningTasks.ToArray());
@@ -166,5 +183,6 @@ namespace ServiceControl.Operations
         readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
         List<IEnrichImportedMessages> enrichers;
         MessageQueue queue;
+        bool enabled;
     }
 }
