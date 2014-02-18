@@ -84,7 +84,7 @@ namespace ServiceControl.HeartbeatMonitoring
                     .Where(endpoint => endpoint.MonitorHeartbeat)
                     .Take(0)
                     .Lazily(heartbeats => total = stats1.TotalResults);
-                session.Query<Heartbeat>()
+                session.Query<Heartbeat, HeartbeatsIndex>()
                     .Customize(c => c.WaitForNonStaleResultsAsOfLastWrite())
                     .Statistics(out stats2)
                     .Where(heartbeat => heartbeat.ReportedStatus == Status.Beating)
