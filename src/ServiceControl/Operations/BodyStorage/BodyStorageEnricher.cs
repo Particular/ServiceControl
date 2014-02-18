@@ -12,6 +12,7 @@
         {
             if (message.PhysicalMessage.Body == null || message.PhysicalMessage.Body.Length == 0)
             {
+                message.Metadata.Add("ContentLength", 0);
                 return;
             }
 
@@ -40,17 +41,16 @@
             {
                 var bodyUrl = string.Format("/messages/{0}/body", bodyId);
                 message.Metadata.Add("BodyUrl", bodyUrl);
-
-                if (!contentType.Contains("binary") && bodySize <= MaxBodySizeToStore)
-                {
-                    message.Metadata.Add("Body", System.Text.Encoding.UTF8.GetString(message.PhysicalMessage.Body));    
-                }
             }
 
-            message.Metadata.Add("BodySize", bodySize);
+            if (!contentType.Contains("binary") && bodySize <= MaxBodySizeToStore)
+            {
+                message.Metadata.Add("Body", System.Text.Encoding.UTF8.GetString(message.PhysicalMessage.Body));
+            }
+
+            message.Metadata.Add("ContentLength", bodySize);
         }
 
         const int MaxBodySizeToStore = 1024 * 100; //100 kb
-
     }
 }

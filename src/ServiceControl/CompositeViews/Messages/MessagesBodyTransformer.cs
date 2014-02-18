@@ -10,7 +10,7 @@ namespace ServiceControl.CompositeViews.Messages
             public string MessageId { get; set; }
             public string Body { get; set; }
             public string ContentType { get; set; }
-            public string BodySize { get; set; }
+            public int BodySize { get; set; }
         }
 
         public MessagesBodyTransformer()
@@ -24,7 +24,7 @@ namespace ServiceControl.CompositeViews.Messages
                 {
                     MessageId = metadata["MessageId"],
                     Body = metadata["Body"],
-                    BodySize = metadata["BodySize"],
+                    BodySize = (int)metadata["ContentLength"],
                     ContentType = metadata["ContentType"],
                 };
         }

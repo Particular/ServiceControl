@@ -16,7 +16,8 @@
             {
                 string messageId = parameters.id;
                 Action<Stream> contents;
-                string contentType, bodySize;
+                string contentType;
+                int bodySize;
                 var attachment = Store.DatabaseCommands.GetAttachment("messagebodies/" + messageId);
 
                 if (attachment == null)
@@ -46,13 +47,13 @@
                 {
                     contents = stream => attachment.Data().CopyTo(stream);
                     contentType = attachment.Metadata["ContentType"].Value<string>();
-                    bodySize = attachment.Metadata["ContentLength"].Value<string>();
+                    bodySize = attachment.Metadata["ContentLength"].Value<int>();
                 }
 
                 return new Response { Contents = contents }
                     .WithContentType(contentType)
                     .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R")) 
-                    .WithHeader("Content-Length", bodySize)
+                    .WithHeader("Content-Length", bodySize.ToString())
                     .WithStatusCode(HttpStatusCode.OK);
             };
         }

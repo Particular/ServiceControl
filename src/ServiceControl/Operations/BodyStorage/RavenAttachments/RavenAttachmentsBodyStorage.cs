@@ -12,10 +12,10 @@
         public string Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
             DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
-                {
-                    { "ContentType",contentType },
-                    { "ContentLength",bodySize}
-                });
+            {
+                {"ContentType", contentType},
+                {"ContentLength", bodySize}
+            });
 
             return string.Format("/messages/{0}/body", bodyId);
         }
