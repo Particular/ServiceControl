@@ -1,6 +1,5 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using System;
     using System.Linq;
     using Infrastructure.Extensions;
     using Nancy;
@@ -29,35 +28,6 @@ namespace ServiceControl.CompositeViews.Messages
                     return Negotiate.WithModel(results)
                                     .WithPagingLinksAndTotalCount(stats, Request)
                                     .WithEtagAndLastModified(stats);
-                }
-            };
-
-            Get["/messagebody"] = parameters =>
-            {
-                string ids = null;
-
-                if ((bool)Request.Query.id.HasValue)
-                {
-                    ids = (string)Request.Query.id;
-                }
-
-                if (ids == null)
-                {
-                    return HttpStatusCode.BadRequest;
-                }
-
-                var idsList = ids.Replace(" ", String.Empty).Split(',');
-
-                using (var session = Store.OpenSession())
-                {
-                    var messages =
-                        session.Advanced.LuceneQuery<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                            .Where(string.Format("MessageId: ({0})", String.Join(" OR ", idsList)))
-                            .SetResultTransformer(new MessagesBodyTransformer().TransformerName)
-                            .SelectFields<MessagesBodyTransformer.Result>().Select(t => t.BodyString)
-                            .ToArray();
-
-                    return Negotiate.WithModel(messages);
                 }
             };
 

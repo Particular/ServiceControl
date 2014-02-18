@@ -13,7 +13,6 @@ namespace ServiceControl.CompositeViews.Messages
     {
         public class SortAndFilterOptions
         {
-            public string UniqueMessageId { get; set; }
             public string MessageId { get; set; }
             public string MessageType { get; set; }
             public bool IsSystemMessage { get; set; }
@@ -34,7 +33,6 @@ namespace ServiceControl.CompositeViews.Messages
                 let resolved = LoadDocument<FailedMessage>("FailedMessages/" + message.UniqueMessageId)
                 select new SortAndFilterOptions
                 {
-                    UniqueMessageId = message.UniqueMessageId,
                     MessageId = (string) message.MessageMetadata["MessageId"],
                     MessageType = (string) message.MessageMetadata["MessageType"],
                     IsSystemMessage = (bool) message.MessageMetadata["IsSystemMessage"],
@@ -54,7 +52,6 @@ namespace ServiceControl.CompositeViews.Messages
                 let last = message.ProcessingAttempts.Last()
                 select new
                 {
-                    UniqueMessageId = message.UniqueMessageId,
                     MessageId = (object) last.MessageId,
                     MessageType = last.MessageMetadata["MessageType"], 
                     IsSystemMessage = last.MessageMetadata["IsSystemMessage"],

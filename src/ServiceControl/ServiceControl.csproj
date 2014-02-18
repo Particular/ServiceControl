@@ -191,7 +191,6 @@
     <Compile Include="CompositeViews\Endpoints\KnownEndpointUpdate.cs" />
     <Compile Include="CompositeViews\Endpoints\KnownEndpointUpdateHandler.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
-    <Compile Include="CompositeViews\Messages\MessagesBodyTransformer.cs" />
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewTransformer.cs" />

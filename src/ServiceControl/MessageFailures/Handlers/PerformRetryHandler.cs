@@ -14,7 +14,6 @@
     {
         public IDocumentSession Session { get; set; }
 
-
         public ISendMessages Forwarder { get; set; }
 
         public IBodyStorage BodyStorage { get; set; }
@@ -37,8 +36,7 @@
 
             headersToRetryWith["ServiceControl.RetryId"] = message.RetryId.ToString();
 
-
-            using (var stream = BodyStorage.Fetch(message.FailedMessageId))
+            using (var stream = BodyStorage.Fetch(attempt.MessageId))
             {
                 var transportMessage = new TransportMessage(failedMessage.Id, headersToRetryWith)
                 {

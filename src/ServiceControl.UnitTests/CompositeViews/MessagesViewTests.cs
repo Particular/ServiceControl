@@ -7,7 +7,6 @@
     using Infrastructure.RavenDB;
     using MessageAuditing;
     using MessageFailures;
-    using NServiceBus;
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Client.Linq;

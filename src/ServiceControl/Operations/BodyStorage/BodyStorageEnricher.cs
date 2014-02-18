@@ -6,12 +6,10 @@
 
     public class BodyStorageEnricher : ImportEnricher
     {
-   
         public IBodyStorage BodyStorage { get; set; }
 
         public override void Enrich(ImportMessage message)
         {
-         
             if (message.PhysicalMessage.Body == null || message.PhysicalMessage.Body.Length == 0)
             {
                 return;
@@ -26,7 +24,7 @@
 
             var bodySize = message.PhysicalMessage.Body.Length;
 
-            var bodyId = message.UniqueMessageId;
+            var bodyId = message.MessageId;
 
             using (var bodyStream = new MemoryStream(message.PhysicalMessage.Body))
             {
