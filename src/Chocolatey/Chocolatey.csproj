@@ -13,18 +13,18 @@
   </PropertyGroup>
   <Target Name="Clean">
     <ItemGroup>
-      <FilesToDelete Include="$(SolutionDir)ChocolateyBuild\**\*.*" />
+      <FilesToDelete Include="$(ProjectDir)Build\**\*.*" />
     </ItemGroup>
     <Delete Files="@(FilesToDelete)" />
   </Target>
-  <Target Name="Build" DependsOnTargets="ChocolateyBuild" />
-  <Target Name="ReBuild" DependsOnTargets="ChocolateyBuild" />
+  <Target Name="Build" DependsOnTargets="Build" />
+  <Target Name="ReBuild" DependsOnTargets="Build" />
   <UsingTask TaskName="PepitaPackage.CreatePackageTask" AssemblyFile="$(SolutionDir)..\buildsupport\PepitaPackage.dll" />
-  <Target Name="ChocolateyBuild" DependsOnTargets="Clean">
-    <MakeDir Directories="$(SolutionDir)ChocolateyBuild" />
-    <Copy SourceFiles="$(ProjectDir)ServiceControl.install.nuspec" DestinationFolder="$(SolutionDir)ChocolateyBuild" />
-    <Copy SourceFiles="$(ProjectDir)chocolateyInstall.ps1" DestinationFolder="$(SolutionDir)ChocolateyBuild\Tools" />
-    <PepitaPackage.CreatePackageTask NuGetBuildDirectory="$(SolutionDir)ChocolateyBuild" MetadataAssembly="$(SolutionDir)ServiceControl\bin\$(ConfigurationName)\ServiceControl.dll" />
+  <Target Name="Build" DependsOnTargets="Clean">
+    <MakeDir Directories="$(ProjectDir)Build" />
+    <Copy SourceFiles="$(ProjectDir)ServiceControl.install.nuspec" DestinationFolder="$(ProjectDir)Build" />
+    <Copy SourceFiles="$(ProjectDir)chocolateyInstall.ps1" DestinationFolder="$(ProjectDir)Build\Tools" />
+    <PepitaPackage.CreatePackageTask NuGetBuildDirectory="$(ProjectDir)Build" MetadataAssembly="$(SolutionDir)ServiceControl\bin\$(ConfigurationName)\ServiceControl.dll" />
   </Target>
   <ItemGroup>
     <None Include="chocolateyInstall.ps1" />
