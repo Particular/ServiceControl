@@ -7,6 +7,8 @@ namespace ServiceControl.Operations
     using System.Threading;
     using System.Threading.Tasks;
     using Contracts.Operations;
+    using EndpointControl.Handlers;
+    using EndpointControl.InternalMessages;
     using MessageAuditing;
     using MessageFailures.InternalMessages;
     using NServiceBus;
@@ -28,6 +30,7 @@ namespace ServiceControl.Operations
         }
 
         public IBus Bus { get; set; }
+        public KnownEndpointsCache KnownEndpointsCache { get; set; }
 
         public void Start()
         {
@@ -127,6 +130,26 @@ namespace ServiceControl.Operations
             });
         }
 
+        void RegisterNewEndpointIfNeeded(ImportMessage message)
+        {
+            TryAddEndpoint(EndpointDetails.SendingEndpoint(message.PhysicalMessage.Headers));
+            TryAddEndpoint(EndpointDetails.ReceivingEndpoint(message.PhysicalMessage.Headers));
+        }
+
+        void TryAddEndpoint(EndpointDetails endpointDetails)
+        {
+            var id = endpointDetails.Name + endpointDetails.Machine;
+
+            if (KnownEndpointsCache.TryAdd(id))
+            {
+                Bus.SendLocal(new RegisterEndpoint
+                {
+                    Endpoint = endpointDetails,
+                    DetectedAt = DateTime.UtcNow
+                });
+            }
+        }
+
         void Run()
         {
             try
@@ -174,6 +197,7 @@ namespace ServiceControl.Operations
                                 }
 
                                 SendRegisterSuccessfulRetryIfNeeded(importSuccessfullyProcessedMessage);
+                                RegisterNewEndpointIfNeeded(importSuccessfullyProcessedMessage);
 
                                 var auditMessage = new ProcessedMessage(importSuccessfullyProcessedMessage);
                                 bulkInsert.Store(auditMessage);
