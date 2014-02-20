@@ -14,7 +14,6 @@
 
         public ProcessedMessage(ImportSuccessfullyProcessedMessage message)
         {
-            Id = "ProcessedMessages/" + message.UniqueMessageId;
             UniqueMessageId = message.UniqueMessageId;            
             MessageMetadata = message.Metadata;
             Headers = message.PhysicalMessage.Headers;
