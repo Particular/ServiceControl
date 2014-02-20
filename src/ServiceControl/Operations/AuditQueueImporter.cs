@@ -158,15 +158,17 @@ namespace ServiceControl.Operations
 
                 do
                 {
-                    using (var msmqTransaction = new MessageQueueTransaction())
+                    Parallel.For(0, 20, (o, p) =>
                     {
-                        msmqTransaction.Begin();
-                        using (
-                            var bulkInsert =
-                                store.BulkInsert(options:
-                                    new BulkInsertOptions {CheckForUpdates = true})
-                            )
+                        using (var msmqTransaction = new MessageQueueTransaction())
                         {
+                            msmqTransaction.Begin();
+                            using (
+                                var bulkInsert =
+                                    store.BulkInsert(options:
+                                        new BulkInsertOptions {CheckForUpdates = true})
+                                )
+                            {
                             for (var idx = 0; idx < BatchSize; idx++)
                             {
                                 Message message;
@@ -203,10 +205,13 @@ namespace ServiceControl.Operations
                                 bulkInsert.Store(auditMessage);
                                 performanceCounters.MessageProcessed();
                             }
-                        }
+                            }
 
-                        msmqTransaction.Commit();
-                    }
+                            msmqTransaction.Commit();
+                        }
+                    });
+                    
+              
                 } while (moreMessages && !stopping);
             }
             finally
