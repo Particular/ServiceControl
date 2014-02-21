@@ -76,6 +76,9 @@
     <Reference Include="Microsoft.AspNet.SignalR.Owin">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Owin\lib\net45\Microsoft.AspNet.SignalR.Owin.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CompilerServices.AsyncTargetingPack.Net45">
+      <HintPath>..\packages\Microsoft.CompilerServices.AsyncTargetingPack\lib\net45\Microsoft.CompilerServices.AsyncTargetingPack.Net45.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm">
       <HintPath>..\packages\Microsoft.Data.Edm\lib\net40\Microsoft.Data.Edm.dll</HintPath>

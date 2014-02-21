@@ -16,6 +16,7 @@ namespace ServiceControl.Operations
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Transports;
     using NServiceBus.Transports.Msmq;
+    using NServiceBus.Unicast;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -31,6 +32,7 @@ namespace ServiceControl.Operations
 
         public IBus Bus { get; set; }
         public KnownEndpointsCache KnownEndpointsCache { get; set; }
+        public UnicastBus UnicastBus { get; set; }
 
         public void Start()
         {
@@ -41,7 +43,43 @@ namespace ServiceControl.Operations
 
             performanceCounters.Initialize();
 
-            queue = new MessageQueue(MsmqUtilities.GetFullPath(Settings.AuditQueue), QueueAccessMode.Receive);
+            queuePeeker = new MessageQueue(MsmqUtilities.GetFullPath(Settings.AuditQueue), QueueAccessMode.Peek);
+            queuePeeker.MessageReadPropertyFilter.ClearAll();
+            queuePeeker.PeekCompleted += QueueOnPeekCompleted;
+
+            enrichers = builder.BuildAll<IEnrichImportedMessages>().ToList();
+
+            Logger.InfoFormat("MSMQ Audit import is now started, feeding audit messages from: {0}", Settings.AuditQueue);
+
+            countDownEvent.Idle += OnIdle;
+
+            Logger.Debug("Ready to BeginPeek");
+            queuePeeker.BeginPeek();
+        }
+
+        public void Stop()
+        {
+            if (!enabled)
+            {
+                return;
+            }
+
+            stopping = true;
+
+            queuePeeker.PeekCompleted -= QueueOnPeekCompleted;
+
+            stopResetEvent.Wait();
+
+            performanceCounters.Dispose();
+
+            queuePeeker.Dispose();
+
+            stopResetEvent.Dispose();
+        }
+
+        static MessageQueue CreateReceiver()
+        {
+            var queue = new MessageQueue(MsmqUtilities.GetFullPath(Settings.AuditQueue), QueueAccessMode.Receive);
 
             var messageReadPropertyFilter = new MessagePropertyFilter
             {
@@ -57,61 +95,47 @@ namespace ServiceControl.Operations
 
             queue.MessageReadPropertyFilter = messageReadPropertyFilter;
 
-            enrichers = builder.BuildAll<IEnrichImportedMessages>().ToList();
-
-            Logger.InfoFormat("MSMQ Audit import is now started, feeding audit messages from: {0}", Settings.AuditQueue);
-
-            queue.PeekCompleted += QueueOnPeekCompleted;
-
-            CallPeekWithExceptionHandling(() => queue.BeginPeek());
+            return queue;
         }
 
-        public void Stop()
+        void OnIdle(object sender, EventArgs eventArgs)
         {
-            if (!enabled)
+            stopResetEvent.Set();
+
+            if (stopping)
             {
                 return;
             }
 
-            stopping = true;
-
-            queue.PeekCompleted -= QueueOnPeekCompleted;
-
-            stopResetEvent.WaitOne();
-
-            performanceCounters.Dispose();
-
-            queue.Dispose();
-
-            runResetEvent.Dispose();
-            stopResetEvent.Dispose();
+            Logger.Debug("Ready to BeginPeek again");
+            queuePeeker.BeginPeek();
         }
 
         void QueueOnPeekCompleted(object sender, PeekCompletedEventArgs args)
         {
             stopResetEvent.Reset();
 
-            CallPeekWithExceptionHandling(() => queue.EndPeek(args.AsyncResult));
+            queuePeeker.EndPeek(args.AsyncResult);
 
-            Task.Factory.StartNew(Run, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-
-            runResetEvent.WaitOne();
-
-            CallPeekWithExceptionHandling(() => queue.BeginPeek());
-
-            stopResetEvent.Set();
+            TryStartNewBatchImporter();
         }
 
-        void CallPeekWithExceptionHandling(Action action)
+        bool TryStartNewBatchImporter()
         {
-            try
+            lock (lockObj)
             {
-                action();
+                if (countDownEvent.CurrentCount > UnicastBus.Transport.MaximumConcurrencyLevel)
+                {
+                    return false;
+                }
+
+                countDownEvent.Add();
             }
-            catch (MessageQueueException messageQueueException)
-            {
-                Logger.Fatal("Failed to peek", messageQueueException);
-            }
+
+            Task.Factory.StartNew(BatchImporter, CancellationToken.None, TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
+
+            return true;
         }
 
         void SendRegisterSuccessfulRetryIfNeeded(ImportSuccessfullyProcessedMessage message)
@@ -150,16 +174,30 @@ namespace ServiceControl.Operations
             }
         }
 
-        void Run()
+        void BatchImporter()
         {
             try
             {
-                var moreMessages = true;
+                Logger.Debug("Batch job started");
 
-                do
+                var moreMessages = 0;
+
+                using (var queueReceiver = CreateReceiver())
                 {
-                    Parallel.For(0, 20, (o, p) =>
+                    do
                     {
+                        if (moreMessages > RampUpConcurrencyMagicNumber)
+                        {
+                            if (TryStartNewBatchImporter())
+                            {
+                                Logger.Debug("We have too many messages, starting another batch importer");
+
+                                moreMessages = 0; //Reset to 0 so we only ramp up once per BatchImporter
+                            }
+                        }
+
+                        moreMessages++;
+
                         using (var msmqTransaction = new MessageQueueTransaction())
                         {
                             msmqTransaction.Begin();
@@ -169,57 +207,56 @@ namespace ServiceControl.Operations
                                         new BulkInsertOptions {CheckForUpdates = true})
                                 )
                             {
-                            for (var idx = 0; idx < BatchSize; idx++)
-                            {
-                                Message message;
+                                for (var idx = 0; idx < BatchSize; idx++)
+                                {
+                                    Message message;
 
-                                try
-                                {
-                                    message = queue.Receive(receiveTimeout, msmqTransaction);
-                                    performanceCounters.MessageDequeued();
-                                }
-                                catch (MessageQueueException mqe)
-                                {
-                                    if (mqe.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
+                                    try
                                     {
-                                        moreMessages = false;
-                                        break;
+                                        message = queueReceiver.Receive(receiveTimeout, msmqTransaction);
+                                        performanceCounters.MessageDequeued();
+                                    }
+                                    catch (MessageQueueException mqe)
+                                    {
+                                        if (mqe.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
+                                        {
+                                            moreMessages = 0;
+                                            break;
+                                        }
+
+                                        throw; //TODO: What to do here?
                                     }
 
-                                    throw; //TODO: What to do here?
+                                    var transportMessage = ConvertMessage(message);
+                                    var importSuccessfullyProcessedMessage =
+                                        new ImportSuccessfullyProcessedMessage(transportMessage);
+
+                                    foreach (var enricher in enrichers)
+                                    {
+                                        enricher.Enrich(importSuccessfullyProcessedMessage);
+                                    }
+
+                                    SendRegisterSuccessfulRetryIfNeeded(importSuccessfullyProcessedMessage);
+                                    RegisterNewEndpointIfNeeded(importSuccessfullyProcessedMessage);
+
+                                    var auditMessage = new ProcessedMessage(importSuccessfullyProcessedMessage);
+                                    bulkInsert.Store(auditMessage);
+                                    performanceCounters.MessageProcessed();
                                 }
-
-                                var transportMessage = ConvertMessage(message);
-                                var importSuccessfullyProcessedMessage =
-                                    new ImportSuccessfullyProcessedMessage(transportMessage);
-
-                                foreach (var enricher in enrichers)
-                                {
-                                    enricher.Enrich(importSuccessfullyProcessedMessage);
-                                }
-
-                                SendRegisterSuccessfulRetryIfNeeded(importSuccessfullyProcessedMessage);
-                                RegisterNewEndpointIfNeeded(importSuccessfullyProcessedMessage);
-
-                                var auditMessage = new ProcessedMessage(importSuccessfullyProcessedMessage);
-                                bulkInsert.Store(auditMessage);
-                                performanceCounters.MessageProcessed();
-                            }
                             }
 
                             msmqTransaction.Commit();
                         }
-                    });
-                    
-              
-                } while (moreMessages && !stopping);
+                    } while (moreMessages > 0 && !stopping);
+                }
+
+                Logger.Debug("Stopping batch importer");
             }
             finally
             {
-                runResetEvent.Set();
+                countDownEvent.Decrement();
             }
         }
-
 
         static TransportMessage ConvertMessage(Message message)
         {
@@ -235,18 +272,47 @@ namespace ServiceControl.Operations
             }
         }
 
+        const int RampUpConcurrencyMagicNumber = 5; //How many batches before we ramp up?
         const int BatchSize = 100;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(AuditQueueImporter));
+
         readonly IBuilder builder;
+        readonly CountDownEvent countDownEvent = new CountDownEvent();
         readonly bool enabled;
+        readonly object lockObj = new object();
         readonly MsmqAuditImporterPerformanceCounters performanceCounters = new MsmqAuditImporterPerformanceCounters();
         readonly TimeSpan receiveTimeout = TimeSpan.FromSeconds(1);
-        readonly AutoResetEvent runResetEvent = new AutoResetEvent(false);
-        readonly ManualResetEvent stopResetEvent = new ManualResetEvent(true);
+        readonly ManualResetEventSlim stopResetEvent = new ManualResetEventSlim(true);
         readonly IDocumentStore store;
+
         List<IEnrichImportedMessages> enrichers;
-        MessageQueue queue;
+        MessageQueue queuePeeker;
         volatile bool stopping;
+
+        class CountDownEvent
+        {
+            public int CurrentCount
+            {
+                get { return counter; }
+            }
+
+            public event EventHandler Idle;
+
+            public void Add()
+            {
+                Interlocked.Increment(ref counter);
+            }
+
+            public void Decrement()
+            {
+                if (Interlocked.Decrement(ref counter) == 0)
+                {
+                    Idle(this, EventArgs.Empty);
+                }
+            }
+
+            volatile int counter;
+        }
     }
 }
