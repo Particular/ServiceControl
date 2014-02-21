@@ -10,12 +10,24 @@
     {
         public void Start()
         {
-            webApp = WebApp.Start<Startup>(Settings.ApiUrl);
-            Logger.InfoFormat("Api is now accepting requests on {0}", Settings.ApiUrl);
+            try
+            {
+                webApp = WebApp.Start<Startup>(Settings.ApiUrl);
+                Logger.InfoFormat("Api is now accepting requests on {0}", Settings.ApiUrl);
+            }
+            catch (Exception ex)
+            {
+                Console.Out.WriteLine(ex);
+            }
         }
 
         public void Stop()
         {
+            if (webApp == null)
+            {
+                return;
+            }
+
             webApp.Dispose();
             Logger.InfoFormat("Api is now stopped");
         }

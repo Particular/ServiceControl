@@ -11,10 +11,9 @@
         {
            MessageMetadata = new Dictionary<string, object>();
         }
+
         public ProcessedMessage(ImportSuccessfullyProcessedMessage message)
         {
-
-            Id = "ProcessedMessages/" + message.UniqueMessageId;
             UniqueMessageId = message.UniqueMessageId;            
             MessageMetadata = message.Metadata;
             Headers = message.PhysicalMessage.Headers;
@@ -30,6 +29,7 @@
                 ProcessedAt = DateTime.UtcNow;//best guess    
             }
         }
+
         public string Id { get; set; }
 
         public string UniqueMessageId { get; set; }
