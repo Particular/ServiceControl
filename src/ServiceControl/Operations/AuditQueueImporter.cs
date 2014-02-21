@@ -115,8 +115,6 @@ namespace ServiceControl.Operations
         {
             stopResetEvent.Reset();
 
-            queuePeeker.EndPeek(args.AsyncResult);
-
             TryStartNewBatchImporter();
         }
 
