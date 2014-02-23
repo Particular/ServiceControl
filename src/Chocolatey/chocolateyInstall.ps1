@@ -1,1 +1,1 @@
-﻿Install-ChocolateyPackage 'ServiceControl.install' 'exe' '' 'https://github.com/Particular/ServiceControl/releases/download/1.0.0-Beta6/Particular.ServiceControl-1.0.0-Beta6.exe'
+﻿Install-ChocolateyPackage 'ServiceControl.install' 'exe' '' 'https://github.com/Particular/ServiceControl/releases/download/VERSION/Particular.ServiceControl-VERSION.exe'

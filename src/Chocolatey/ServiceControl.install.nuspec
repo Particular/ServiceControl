@@ -4,12 +4,12 @@
     <id>ServiceControl.install</id>
     <version>$version$</version>
     <title>ServiceControl.install (Install)</title>
-    <authors>$authors$</authors>
-    <owners>$authors$</owners>
+    <authors>Particular Software</authors>
+    <owners>Particular Software</owners>
     <projectUrl>http://particular.net/servicecontrol</projectUrl>
     <iconUrl>http://particular.net/icons/servicecontrol.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>$description$</description>
+    <description>Management extension to NServiceBus</description>
     <summary></summary>
     <tags>nservicebus particular chocolatey servicecontrol</tags>
     <dependencies>
