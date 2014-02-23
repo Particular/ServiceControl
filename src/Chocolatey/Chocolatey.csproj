@@ -11,6 +11,15 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ConfigurationName>Release</ConfigurationName>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="chocolateyInstall.ps1" />
+    <None Include="ServiceControl.install.nuspec">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="readme.txt" />
+  </ItemGroup>
   <Target Name="Build" DependsOnTargets="Build" />
   <Target Name="ReBuild" DependsOnTargets="Build" />
   <UsingTask 
@@ -32,7 +41,7 @@
     <Delete Files="@(FilesToDelete)" />
     <MakeDir Directories="$(ProjectDir)Build" />
     <Copy 
-      SourceFiles="$(ProjectDir)ServiceControl.install.nuspec" 
+      SourceFiles="$(ProjectDir)$(SolutionName).install.nuspec" 
       DestinationFolder="$(ProjectDir)Build" />
     <Copy 
       SourceFiles="$(ProjectDir)chocolateyInstall.ps1" 
@@ -43,13 +52,4 @@
     <FileUpdate Files="@(InstallFile)" Regex="VERSION" ReplacementText="$(SemVer)" />
     <CreatePackageTask NuGetBuildDirectory="$(ProjectDir)Build" Version="$(SemVer)" TargetDir="$(SolutionDir)..\nugets" />
   </Target>
-  <ItemGroup>
-    <None Include="chocolateyInstall.ps1" />
-    <None Include="ServiceControl.install.nuspec">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="readme.txt" />
-  </ItemGroup>
 </Project>
