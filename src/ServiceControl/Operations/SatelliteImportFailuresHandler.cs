@@ -34,6 +34,22 @@
             Handle(e, messageBuilder(message), logPath);
         }
 
+        public void FailedToReceive(Exception exception)
+        {
+            try
+            {
+                var id = Guid.NewGuid();
+
+                var filePath = Path.Combine(logPath, id + ".txt");
+                File.WriteAllText(filePath, exception.ToFriendlyString());
+                WriteEvent("A message import has failed. A log file has been written to " + filePath);
+            }
+            finally
+            {
+                failureCircuitBreaker.Increment(exception);
+            }
+        }
+
         public void Init(Address address)
         {
         }

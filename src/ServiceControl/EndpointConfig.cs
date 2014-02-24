@@ -33,7 +33,6 @@ namespace Particular.ServiceControl
 
             var config = Configure.With(new[] { GetType().Assembly, typeof(MessageFailed).Assembly });
             
-
             config.AutofacBuilder(Container)
                             .UseTransport(Type.GetType(transportType))
                             .UnicastBus();

@@ -76,6 +76,9 @@
     <Reference Include="Microsoft.AspNet.SignalR.Owin">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Owin\lib\net45\Microsoft.AspNet.SignalR.Owin.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CompilerServices.AsyncTargetingPack.Net45">
+      <HintPath>..\packages\Microsoft.CompilerServices.AsyncTargetingPack\lib\net45\Microsoft.CompilerServices.AsyncTargetingPack.Net45.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm">
       <HintPath>..\packages\Microsoft.Data.Edm\lib\net40\Microsoft.Data.Edm.dll</HintPath>
@@ -162,6 +165,7 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Messaging" />
     <Reference Include="System.Spatial">
       <HintPath>..\packages\System.Spatial\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
@@ -191,6 +195,7 @@
     <Compile Include="CompositeViews\Endpoints\KnownEndpointUpdate.cs" />
     <Compile Include="CompositeViews\Endpoints\KnownEndpointUpdateHandler.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
+    <Compile Include="CompositeViews\Messages\MessagesBodyTransformer.cs" />
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewTransformer.cs" />
@@ -329,6 +334,7 @@
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
     <Compile Include="MessageAuditing\ProcessedMessage.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
+    <Compile Include="Operations\AuditQueueImporter.cs" />
     <Compile Include="Operations\BodyStorage\BodyStorageFeature.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
     <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />
@@ -339,8 +345,8 @@
     <Compile Include="Operations\FailedAuditImport.cs" />
     <Compile Include="Operations\FailedErrorImport.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
-    <Compile Include="Operations\BodyStorage\BodySearchEnricher.cs" />
     <Compile Include="Operations\ImportEnricher.cs" />
+    <Compile Include="Operations\MsmqAuditImporterPerformanceCounters.cs" />
     <Compile Include="Operations\SatelliteImportFailuresHandler.cs" />
     <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
     <Compile Include="Operations\ImportRegistration.cs" />

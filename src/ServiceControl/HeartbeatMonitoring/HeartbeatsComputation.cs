@@ -1,5 +1,6 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
+    using System;
     using System.Linq;
     using CompositeViews.Endpoints;
     using EndpointControl;
@@ -16,7 +17,7 @@ namespace ServiceControl.HeartbeatMonitoring
         public HeartbeatsComputation(IDocumentStore store)
         {
             this.store = store;
-            Initialise();
+            Initialise(false);
         }
 
         public HeartbeatsStats Current
@@ -63,29 +64,37 @@ namespace ServiceControl.HeartbeatMonitoring
         {
             lock (locker)
             {
-                Initialise();
+                Initialise(true);
                 return new HeartbeatsStats(numberOfEndpointsActive, numberOfEndpointsDead);
             }
         }
 
-        void Initialise()
+        void Initialise(bool waitForNonStale)
         {
+            Action<IDocumentQueryCustomization> customization = c => { };
+
+            if (waitForNonStale)
+            {
+                customization = c => c.WaitForNonStaleResultsAsOfLastWrite(TimeSpan.FromSeconds(50));
+            }
+
             using (var session = store.OpenSession())
             {
                 var total = 0;
-                RavenQueryStatistics stats1, stats2;
 
                 // Workaround to do Lazily Count, see https://groups.google.com/d/msg/ravendb/ptgTQbrPfzI/w9QJ0wdYkc4J
                 // Raven v3 should support this natively, see http://issues.hibernatingrhinos.com/issue/RavenDB-1310
 
+                RavenQueryStatistics stats1;
                 session.Query<KnownEndpoint, KnownEndpointIndex>()
-                    .Customize(c => c.WaitForNonStaleResultsAsOfLastWrite())
+                    .Customize(customization)
                     .Statistics(out stats1)
                     .Where(endpoint => endpoint.MonitorHeartbeat)
                     .Take(0)
                     .Lazily(heartbeats => total = stats1.TotalResults);
+                RavenQueryStatistics stats2;
                 session.Query<Heartbeat, HeartbeatsIndex>()
-                    .Customize(c => c.WaitForNonStaleResultsAsOfLastWrite())
+                    .Customize(customization)
                     .Statistics(out stats2)
                     .Where(heartbeat => heartbeat.ReportedStatus == Status.Beating)
                     .Take(0)

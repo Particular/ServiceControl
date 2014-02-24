@@ -258,7 +258,8 @@
                 {
                     urlToMessageBody = string.Format("http://localhost:{0}/api{1}", port, url);
                 }
-                
+
+                Console.Out.Write(urlToMessageBody);
 
                 return client.DownloadData(urlToMessageBody);
             }
