@@ -13,6 +13,8 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="chocolateyInstall.ps1" />
+    <None Include="elevatedUninstall.ps1" />
+    <None Include="chocolateyUninstall.ps1" />
     <None Include="ServiceControl.install.nuspec">
       <SubType>Designer</SubType>
     </None>
@@ -28,6 +30,7 @@
   <Target Name="Build">
     <GetVersion SolutionDirectory="$(SolutionDir)">
       <Output TaskParameter="SemVer" PropertyName="SemVer" />
+      <Output TaskParameter="MajorMinorPatch" PropertyName="MajorMinorPatch" />
     </GetVersion>
     <ItemGroup>
       <FilesToDelete Include="$(ProjectDir)Build\**\*.*" />
@@ -36,10 +39,13 @@
     <MakeDir Directories="$(ProjectDir)Build" />
     <Copy SourceFiles="$(ProjectDir)$(SolutionName).install.nuspec" DestinationFolder="$(ProjectDir)Build" />
     <Copy SourceFiles="$(ProjectDir)chocolateyInstall.ps1" DestinationFolder="$(ProjectDir)Build\Tools" />
+    <Copy SourceFiles="$(ProjectDir)chocolateyUninstall.ps1" DestinationFolder="$(ProjectDir)Build\Tools" />
+    <Copy SourceFiles="$(ProjectDir)elevatedUninstall.ps1" DestinationFolder="$(ProjectDir)Build\Tools" />
     <ItemGroup>
-      <InstallFile Include="$(ProjectDir)Build\Tools\chocolateyInstall.ps1" />
+      <InstallFile Include="$(ProjectDir)Build\Tools\*.ps1" />
     </ItemGroup>
-    <FileUpdate Files="@(InstallFile)" Regex="VERSION" ReplacementText="$(SemVer)" />
+    <FileUpdate Files="@(InstallFile)" Regex="SemVer" ReplacementText="$(SemVer)" />
+    <FileUpdate Files="@(InstallFile)" Regex="MajorMinorPatch" ReplacementText="$(MajorMinorPatch)" />
     <CreatePackageTask NuGetBuildDirectory="$(ProjectDir)Build" Version="$(SemVer)" TargetDir="$(SolutionDir)..\nugets" />
   </Target>
 </Project>
