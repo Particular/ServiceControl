@@ -2,6 +2,7 @@ namespace ServiceControl.Operations
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Messaging;
     using System.Threading;
@@ -23,11 +24,19 @@ namespace ServiceControl.Operations
 
     internal class AuditQueueImporter : IWantToRunWhenBusStartsAndStops
     {
+        SatelliteImportFailuresHandler importFailuresHandler;
+
         public AuditQueueImporter(IDocumentStore store, IBuilder builder, IDequeueMessages receiver)
         {
             this.store = store;
             this.builder = builder;
             enabled = receiver is MsmqDequeueStrategy;
+
+            importFailuresHandler = new SatelliteImportFailuresHandler(store,
+                Path.Combine(Settings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
+                {
+                    Message = tm,
+                });
         }
 
         public IBus Bus { get; set; }
@@ -130,8 +139,16 @@ namespace ServiceControl.Operations
                 countDownEvent.Add();
             }
 
-            Task.Factory.StartNew(BatchImporter, CancellationToken.None, TaskCreationOptions.LongRunning,
-                TaskScheduler.Default);
+            Task.Factory
+                .StartNew(BatchImporter, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+                .ContinueWith(task =>
+                {
+                    task.Exception.Handle(ex =>
+                    {
+                        Logger.Error("Error processing message.", ex);
+                        return true;
+                    });
+                }, TaskContinuationOptions.OnlyOnFaulted); ;
 
             return true;
         }
@@ -222,24 +239,34 @@ namespace ServiceControl.Operations
                                             break;
                                         }
 
-                                        throw; //TODO: What to do here?
+                                        importFailuresHandler.FailedToReceive(mqe);
+                                        throw;
                                     }
 
                                     var transportMessage = ConvertMessage(message);
-                                    var importSuccessfullyProcessedMessage =
-                                        new ImportSuccessfullyProcessedMessage(transportMessage);
 
-                                    foreach (var enricher in enrichers)
+                                    try
                                     {
-                                        enricher.Enrich(importSuccessfullyProcessedMessage);
+                                        var importSuccessfullyProcessedMessage =
+                                            new ImportSuccessfullyProcessedMessage(transportMessage);
+
+                                        foreach (var enricher in enrichers)
+                                        {
+                                            enricher.Enrich(importSuccessfullyProcessedMessage);
+                                        }
+
+                                        SendRegisterSuccessfulRetryIfNeeded(importSuccessfullyProcessedMessage);
+                                        RegisterNewEndpointIfNeeded(importSuccessfullyProcessedMessage);
+
+                                        var auditMessage = new ProcessedMessage(importSuccessfullyProcessedMessage);
+                                        bulkInsert.Store(auditMessage);
+                                        performanceCounters.MessageProcessed();
                                     }
-
-                                    SendRegisterSuccessfulRetryIfNeeded(importSuccessfullyProcessedMessage);
-                                    RegisterNewEndpointIfNeeded(importSuccessfullyProcessedMessage);
-
-                                    var auditMessage = new ProcessedMessage(importSuccessfullyProcessedMessage);
-                                    bulkInsert.Store(auditMessage);
-                                    performanceCounters.MessageProcessed();
+                                    catch (Exception ex)
+                                    {
+                                        importFailuresHandler.ProcessingAlwaysFailsForMessage(transportMessage, ex);
+                                        throw;
+                                    }
                                 }
                             }
 
@@ -256,7 +283,7 @@ namespace ServiceControl.Operations
             }
         }
 
-        static TransportMessage ConvertMessage(Message message)
+        TransportMessage ConvertMessage(Message message)
         {
             try
             {
@@ -264,9 +291,8 @@ namespace ServiceControl.Operations
             }
             catch (Exception ex)
             {
-                Logger.Error("Error in converting message to TransportMessage.", ex);
-
-                return new TransportMessage(Guid.Empty.ToString(), null);
+                importFailuresHandler.FailedToReceive(ex);
+                throw;
             }
         }
 
