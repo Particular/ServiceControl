@@ -22,15 +22,9 @@
   </ItemGroup>
   <Target Name="Build" DependsOnTargets="Build" />
   <Target Name="ReBuild" DependsOnTargets="Build" />
-  <UsingTask 
-    TaskName="GitFlowVersionTask.GetVersion" 
-    AssemblyFile="$(SolutionDir)..\buildsupport\GitFlowVersion\GitFlowVersionTask.dll" />
-  <UsingTask 
-    TaskName="PepitaPackage.CreatePackageTask" 
-    AssemblyFile="$(SolutionDir)..\buildsupport\PepitaPackage.dll" />
-  <UsingTask
-    TaskName="MSBuild.Community.Tasks.FileUpdate" 
-    AssemblyFile="$(SolutionDir)..\buildsupport\MSBuild.Community.Tasks.dll" />
+  <UsingTask TaskName="GitFlowVersionTask.GetVersion" AssemblyFile="$(SolutionDir)..\buildsupport\GitFlowVersion\GitFlowVersionTask.dll" />
+  <UsingTask TaskName="PepitaPackage.CreatePackageTask" AssemblyFile="$(SolutionDir)..\buildsupport\PepitaPackage.dll" />
+  <UsingTask TaskName="MSBuild.Community.Tasks.FileUpdate" AssemblyFile="$(SolutionDir)..\buildsupport\MSBuild.Community.Tasks.dll" />
   <Target Name="Build">
     <GetVersion SolutionDirectory="$(SolutionDir)">
       <Output TaskParameter="SemVer" PropertyName="SemVer" />
@@ -40,12 +34,8 @@
     </ItemGroup>
     <Delete Files="@(FilesToDelete)" />
     <MakeDir Directories="$(ProjectDir)Build" />
-    <Copy 
-      SourceFiles="$(ProjectDir)$(SolutionName).install.nuspec" 
-      DestinationFolder="$(ProjectDir)Build" />
-    <Copy 
-      SourceFiles="$(ProjectDir)chocolateyInstall.ps1" 
-      DestinationFolder="$(ProjectDir)Build\Tools" />
+    <Copy SourceFiles="$(ProjectDir)$(SolutionName).install.nuspec" DestinationFolder="$(ProjectDir)Build" />
+    <Copy SourceFiles="$(ProjectDir)chocolateyInstall.ps1" DestinationFolder="$(ProjectDir)Build\Tools" />
     <ItemGroup>
       <InstallFile Include="$(ProjectDir)Build\Tools\chocolateyInstall.ps1" />
     </ItemGroup>
