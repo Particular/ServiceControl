@@ -14,6 +14,8 @@
     <tags>nservicebus particular chocolatey servicecontrol</tags>
     <dependencies>
       <dependency id="DotNet4.5" version="4.5.20120822"  />
+      <dependency id="nservicebus.dtc.install"  />
+      <dependency id="nservicebus.msmq.install"  />
     </dependencies>
   </metadata>
 </package>
