@@ -106,11 +106,6 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiComboBoxComponent">
     <ROW Property="TRANSPORT_TYPE" Order="1" Value="MSMQ" Text="MSMQ"/>
-    <ROW Property="TRANSPORT_TYPE" Order="2" Value="SQLServer" Text="SQL Server"/>
-    <ROW Property="TRANSPORT_TYPE" Order="3" Value="ActiveMQ" Text="ActiveMQ"/>
-    <ROW Property="TRANSPORT_TYPE" Order="4" Value="RabbitMQ" Text="RabbitMQ"/>
-    <ROW Property="TRANSPORT_TYPE" Order="5" Value="WindowsAzureQueue" Text="Windows Azure Queue"/>
-    <ROW Property="TRANSPORT_TYPE" Order="6" Value="WindowsAzureServiceBus" Text="Windows Azure Service Bus"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiControlComponent">
     <ROW Dialog_="AdminBrowseDlg" Control="DirectoryCombo" Type="DirectoryCombo" X="68" Y="131" Width="209" Height="16" Attributes="393227" Property="TARGETDIR" Order="800" MsiKey="AdminBrowseDlg#DirectoryCombo"/>
