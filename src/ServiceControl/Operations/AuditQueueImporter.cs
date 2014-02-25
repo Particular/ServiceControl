@@ -325,12 +325,16 @@ namespace ServiceControl.Operations
 
             public void Add()
             {
+#pragma warning disable 420
                 Interlocked.Increment(ref counter);
+#pragma warning restore 420
             }
 
             public void Decrement()
             {
+#pragma warning disable 420
                 if (Interlocked.Decrement(ref counter) == 0)
+#pragma warning restore 420
                 {
                     Idle(this, EventArgs.Empty);
                 }
