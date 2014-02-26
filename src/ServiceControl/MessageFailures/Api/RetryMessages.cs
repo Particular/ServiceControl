@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using InternalMessages;
@@ -24,7 +23,6 @@
 
                 Bus.SendLocal<RetryMessage>(m =>
                 {
-                    m.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
                     m.FailedMessageId = failedMessageId;
                 });
 
@@ -40,13 +38,9 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                var requestedAt = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow);
-
                 foreach (var id in ids)
                 {
                     var request = new RetryMessage { FailedMessageId = id };
-
-                    request.SetHeader("RequestedAt", requestedAt);
 
                     Bus.SendLocal(request);    
                 }
@@ -57,7 +51,6 @@
             Post["/errors/retry/all"] = _ =>
             {
                 var request = new RequestRetryAll();
-                request.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
 
                 Bus.SendLocal(request);
 
@@ -67,7 +60,6 @@
             Post["/errors/{name}/retry/all"] = parameters =>
             {
                 var request = new RequestRetryAll { Endpoint = parameters.name };
-                request.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
 
                 Bus.SendLocal(request);
 

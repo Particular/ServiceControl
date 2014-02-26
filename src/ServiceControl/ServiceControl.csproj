@@ -301,6 +301,8 @@
     <Compile Include="MessageFailures\Handlers\ImportSuccessfullyProcessedMessageHandler.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\Handlers\RaiseMessageFailuresChanges.cs" />
+    <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />
+    <Compile Include="MessageFailures\InternalMessages\PerformRetry.cs" />
     <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="Infrastructure\Nancy\ExtraHeaders.cs" />
