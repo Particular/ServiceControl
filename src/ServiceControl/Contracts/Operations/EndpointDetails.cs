@@ -46,8 +46,6 @@ namespace ServiceControl.Contracts.Operations
             }
 
             var address = Address.Undefined;
-            // TODO: do we need the below for the originating address!?
-            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingAddress, headers, s => address = Address.Parse(s));
             //use the failed q to determine the receiving endpoint
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.FailedQ", headers, s => address = Address.Parse(s));
             
