@@ -73,7 +73,39 @@
             sagaAudit.SagaId = saga.Entity.Id;
             sagaAudit.SagaType = saga.GetType().FullName;
             sagaAudit.SagaState = sagaStateString;
+
+            AssignSagaStateChangeCausedByMessage(context);
+
             ServiceControlBackend.Send(sagaAudit);
+        }
+
+        void AssignSagaStateChangeCausedByMessage(BehaviorContext context)
+        {
+            var physicalMessage = context.Get<TransportMessage>(ReceivePhysicalMessageContext.IncomingPhysicalMessageKey);
+            string sagaStateChange;
+
+            if (!physicalMessage.Headers.TryGetValue("ServiceControl.SagaStateChange", out sagaStateChange))
+            {
+                sagaStateChange = String.Empty;
+            }
+
+            var statechange = "Updated";
+            if (sagaAudit.IsNew)
+            {
+                statechange = "New";
+            }
+            if (sagaAudit.IsCompleted)
+            {
+                statechange = "Completed";
+            }
+
+            if (!String.IsNullOrEmpty(sagaStateChange))
+            {
+                sagaStateChange += ";";
+            }
+            sagaStateChange += String.Format("{0}:{1}", sagaAudit.SagaId, statechange);
+
+            physicalMessage.Headers["ServiceControl.SagaStateChange"] = sagaStateChange;
         }
 
         static bool IsTimeoutMessage(LogicalMessage message)

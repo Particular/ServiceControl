@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl", "ServiceControl\ServiceControl.csproj", "{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}"
@@ -42,6 +40,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.IntegrationDemo", "ServiceControl.IntegrationDemo\ServiceControl.IntegrationDemo.csproj", "{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Heartbeats.Sample", "ServiceControl.Heartbeats.Sample\ServiceControl.Heartbeats.Sample.csproj", "{33DF70EF-9434-49A2-93ED-2387020CE388}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chocolatey", "Chocolatey\Chocolatey.csproj", "{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,6 +92,10 @@ Global
 		{33DF70EF-9434-49A2-93ED-2387020CE388}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33DF70EF-9434-49A2-93ED-2387020CE388}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33DF70EF-9434-49A2-93ED-2387020CE388}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

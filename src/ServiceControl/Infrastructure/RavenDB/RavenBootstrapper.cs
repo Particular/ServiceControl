@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System;
+    using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -22,8 +23,11 @@
             {
                 DataDirectory = Settings.DbPath,
                 UseEmbeddedHttpServer = Settings.ExposeRavenDB,
-                EnlistInDistributedTransactions = false
+                EnlistInDistributedTransactions = false,
             };
+
+            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
+            documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration"); // Enable the expiration bundle
 
             if (Settings.Schema.Equals("https", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -35,6 +39,8 @@
                 : Settings.Hostname;
             documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
             documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
+
+            documentStore.Conventions.SaveEnumsAsIntegers = true;
 
             documentStore.Initialize();
 

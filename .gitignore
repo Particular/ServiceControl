@@ -34,3 +34,4 @@ logs
 /installer/Setup/Output Package
 nugets
 *.jtconfig
+src/Chocolatey/Build/*

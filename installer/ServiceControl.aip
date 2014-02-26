@@ -7,7 +7,7 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="AI_EXTERNALUIUNINSTALLERNAME" MultiBuildValue="DefaultBuild:aiui"/>
     <ROW Property="AI_FINDEXE_TITLE" Value="Select the installation package for [|ProductName]" ValueLocId="AI.Property.FindExeTitle"/>
-    <ROW Property="AI_MINDOTNETVERSION" MultiBuildValue="DefaultBuild:4.0" ValueLocId="-"/>
+    <ROW Property="AI_MINDOTNETVERSION" MultiBuildValue="DefaultBuild:4.5" ValueLocId="-"/>
     <ROW Property="AI_PRODUCTNAME_ARP" Value="Particular Software ServiceControl"/>
     <ROW Property="AI_UNINSTALLER" Value="msiexec.exe"/>
     <ROW Property="ALLUSERS" Value="1"/>
@@ -19,6 +19,7 @@
     <ROW Property="ARPURLUPDATEINFO" Value="http://particular.net/downloads"/>
     <ROW Property="AppLogoIcon" Value="applogoicon" MultiBuildValue="DefaultBuild:Operationslogo.png" Type="1" MsiKey="AppLogoIcon"/>
     <ROW Property="ExtractFilesFirst" Value="1"/>
+    <ROW Property="InstanceId" Value="#0"/>
     <ROW Property="Manufacturer" Value="Particular Software Ltd."/>
     <ROW Property="PORT_VAL" Value="33333" Type="4"/>
     <ROW Property="ProductCode" Value="1033:{12BDB3E7-3A70-410A-A2C0-43037E33E3E6} " Type="16"/>
@@ -27,10 +28,14 @@
     <ROW Property="ProductVersion" Value="1.0.0" Type="32"/>
     <ROW Property="REBOOTPROMPT" MultiBuildValue="DefaultBuild:Suppress"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
-    <ROW Property="TRANSPORT_TYPE" Value="NServiceBus.Msmq, NServiceBus.Core" Type="4"/>
+    <ROW Property="TRANSPORT_TYPE" Value="MSMQ" Type="4"/>
     <ROW Property="UpgradeCode" Value="{8F59B8C7-A3EB-4D19-9B88-0EA69FF1B26C}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
     <ROW Property="WindowsType9XDisplay" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT" MultiBuildValue="DefaultBuild:Windows 2000, Windows 2000 Service Pack 1, Windows 2000 Service Pack 2, Windows 2000 Service Pack 3, Windows 2000 Service Pack 4, Windows XP x86, Windows XP x86 Service Pack 1, Windows XP x86 Service Pack 2, Windows XP x86 Service Pack 3, Windows Server 2003 x86, Windows Server 2003 x86 Service Pack 1, Windows Server 2003 x86 Service Pack 2, Windows Vista x86, Windows Vista x86 Service Pack 1, Windows 7 x86" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT64" MultiBuildValue="DefaultBuild:Windows XP x64, Windows XP x64 Service Pack 1, Windows XP x64 Service Pack 2, Windows Server 2003 x64, Windows Server 2003 x64 Service Pack 1, Windows Server 2003 x64 Service Pack 2, Windows Vista x64, Windows Vista x64 Service Pack 1, Windows 7 x64, Windows Server 2008 R2 x64" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT64Display" MultiBuildValue="DefaultBuild:Windows XP x64, Windows Server 2003 x64, Windows Vista x64, Windows Vista x64 Service Pack 1, Windows 7 x64, Windows Server 2008 R2 x64" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNTDisplay" MultiBuildValue="DefaultBuild:Windows 2000, Windows XP x86, Windows Server 2003 x86, Windows Vista x86, Windows Vista x86 Service Pack 1, Windows 7 x86" ValueLocId="-"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
     <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1"/>
@@ -39,122 +44,18 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="AI_CustomARPName" ComponentId="{AF26B4EA-8C15-439E-92C1-70944943F779}" Directory_="APPDIR" Attributes="4" KeyPath="DisplayName" Options="1"/>
     <ROW Component="AI_ExePath" ComponentId="{39176FE9-3DC1-4B49-8344-9FE6BBC43DB9}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
-    <ROW Component="AWS.Extensions.dll" ComponentId="{8AD2FCE7-0BB1-4BCC-B819-E736ADC161F4}" Directory_="APPDIR" Attributes="0" KeyPath="AWS.Extensions.dll"/>
-    <ROW Component="AWSSDK.dll" ComponentId="{964D41C0-DD8F-4A15-9DD7-30362EF24AEC}" Directory_="APPDIR" Attributes="0" KeyPath="AWSSDK.dll"/>
-    <ROW Component="Autofac.Integration.SignalR.dll" ComponentId="{C8C42535-C4D9-424A-8E33-52607B2801B5}" Directory_="APPDIR" Attributes="0" KeyPath="Autofac.Integration.SignalR.dll"/>
-    <ROW Component="Autofac.Integration.SignalR.xml" ComponentId="{838C20CA-D593-4A69-827E-51FCB9930879}" Directory_="APPDIR" Attributes="0" KeyPath="ServiceControl.dll.config" Type="0"/>
-    <ROW Component="Autofac.dll" ComponentId="{94552154-8ABF-408F-A624-82FF2422FCC3}" Directory_="APPDIR" Attributes="0" KeyPath="Autofac.dll"/>
-    <ROW Component="Esent.Interop.dll" ComponentId="{1828505B-3D66-4444-BD0F-24D0E9FA7392}" Directory_="APPDIR" Attributes="0" KeyPath="Esent.Interop.dll"/>
-    <ROW Component="GeoAPI.dll" ComponentId="{BBFD32AE-1D9A-460A-A6BC-565F75366A7E}" Directory_="APPDIR" Attributes="0" KeyPath="GeoAPI.dll"/>
-    <ROW Component="ICSharpCode.NRefactory.CSharp.dll" ComponentId="{3AA2DDC1-40DB-45E0-B558-8C6C26715117}" Directory_="APPDIR" Attributes="0" KeyPath="ICSharpCode.NRefactory.CSharp.dll"/>
-    <ROW Component="ICSharpCode.NRefactory.dll" ComponentId="{8593CA06-9F7A-4533-B923-043590389DC2}" Directory_="APPDIR" Attributes="0" KeyPath="ICSharpCode.NRefactory.dll"/>
-    <ROW Component="ICSharpCode.SharpZipLib.dll" ComponentId="{5B61AD83-C279-436F-AC87-2B5205402487}" Directory_="APPDIR" Attributes="0" KeyPath="ICSharpCode.SharpZipLib.dll"/>
     <ROW Component="InstanceDescription" ComponentId="{F785A481-7F6B-46C6-8BE2-E09968944ED7}" Directory_="APPDIR" Attributes="260" KeyPath="InstanceDescription"/>
     <ROW Component="InstanceName" ComponentId="{A827F43A-BAAC-4926-A337-0F9BF5427BAF}" Directory_="APPDIR" Attributes="260" KeyPath="InstanceName"/>
-    <ROW Component="Jint.Raven.dll" ComponentId="{EE4E49FC-42C9-42EB-B8E8-3A98C4450C87}" Directory_="APPDIR" Attributes="0" KeyPath="Jint.Raven.dll"/>
-    <ROW Component="Lucene.Net.Contrib.Spatial.NTS.dll" ComponentId="{07997106-4162-430B-9A14-AE195D3BADF2}" Directory_="APPDIR" Attributes="0" KeyPath="Lucene.Net.Contrib.Spatial.NTS.dll"/>
-    <ROW Component="Lucene.Net.dll" ComponentId="{F27482EC-A71B-4313-BC56-916AF4687EB0}" Directory_="APPDIR" Attributes="0" KeyPath="Lucene.Net.dll"/>
-    <ROW Component="Microsoft.AspNet.SignalR.Core.dll" ComponentId="{CDBE2A90-BFCD-4024-84A1-605BF6F478D8}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.AspNet.SignalR.Core.dll"/>
-    <ROW Component="Microsoft.AspNet.SignalR.Owin.dll" ComponentId="{A1C4C36A-D17C-4A5C-AD86-ECA480B6FA3B}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.AspNet.SignalR.Owin.dll"/>
-    <ROW Component="Microsoft.CompilerServices.AsyncTargetin" ComponentId="{D1F14941-09CC-48CE-81D7-B90274CA3BDB}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.CompilerServices.AsyncTargetingPack.Net4.dll"/>
-    <ROW Component="Microsoft.Data.Edm.dll" ComponentId="{D5095CD4-B281-47D8-9285-DC40913076AA}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Data.Edm.dll"/>
-    <ROW Component="Microsoft.Data.OData.dll" ComponentId="{5D5DE45E-7CCF-44F9-8CB3-B0D5C6122F57}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Data.OData.dll"/>
-    <ROW Component="Microsoft.Owin.Diagnostics.dll" ComponentId="{04DFEAF2-BA7B-45B2-A8AA-297F544BFCBC}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Owin.Diagnostics.dll"/>
-    <ROW Component="Microsoft.Owin.Host.HttpListener.dll" ComponentId="{B21A41D2-374B-4411-9B32-4D0D283146F8}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Owin.Host.HttpListener.dll"/>
-    <ROW Component="Microsoft.Owin.Hosting.dll" ComponentId="{BD231786-13AC-435D-A794-635780909149}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Owin.Hosting.dll"/>
-    <ROW Component="Microsoft.Owin.dll" ComponentId="{B1A7CF76-5C89-47D9-8F9E-69A8BF9B9985}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Owin.dll"/>
-    <ROW Component="Microsoft.WindowsAzure.Configuration.dll" ComponentId="{EC720B56-6F57-4390-86CA-3512E2AE3AA2}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.WindowsAzure.Configuration.dll"/>
-    <ROW Component="Microsoft.WindowsAzure.Storage.dll" ComponentId="{1A6884DE-5FBF-4E19-A7D3-8DBC1991AB9E}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.WindowsAzure.Storage.dll"/>
-    <ROW Component="Mono.Cecil.dll" ComponentId="{81D6E818-8C94-4623-B9A1-9B949C73D5E6}" Directory_="APPDIR" Attributes="0" KeyPath="Mono.Cecil.dll"/>
-    <ROW Component="NLog.dll" ComponentId="{74168E3C-E4EC-49ED-830A-D4C455158939}" Directory_="APPDIR" Attributes="0" KeyPath="NLog.dll"/>
-    <ROW Component="NServiceBus.Core.dll" ComponentId="{CBAA86B8-93AD-43DF-92AE-F379A89732B6}" Directory_="APPDIR" Attributes="0" KeyPath="NServiceBus.Core.dll"/>
     <ROW Component="NServiceBus.Host.exe" ComponentId="{9E531DAB-075B-4CEE-AB88-09B4438F2E54}" Directory_="APPDIR" Attributes="0" KeyPath="NServiceBus.Host.exe"/>
-    <ROW Component="NServiceBus.ObjectBuilder.Autofac.dll" ComponentId="{6AC65123-FC3E-4967-B9A5-04D0D5CF8693}" Directory_="APPDIR" Attributes="0" KeyPath="NServiceBus.ObjectBuilder.Autofac.dll"/>
-    <ROW Component="NServiceBus.dll" ComponentId="{AD37829D-FD31-4018-B427-748FE71CD143}" Directory_="APPDIR" Attributes="0" KeyPath="NServiceBus.dll"/>
-    <ROW Component="Nancy.Bootstrappers.Autofac.dll" ComponentId="{3278A1D9-0E77-4839-8561-2CC354A811FD}" Directory_="APPDIR" Attributes="0" KeyPath="Nancy.Bootstrappers.Autofac.dll"/>
-    <ROW Component="Nancy.Owin.dll" ComponentId="{04ADB317-560D-46A4-8B21-E3F0CD061007}" Directory_="APPDIR" Attributes="0" KeyPath="Nancy.Owin.dll"/>
-    <ROW Component="Nancy.dll" ComponentId="{D00D5B43-6A5A-4547-8A46-3E4073680020}" Directory_="APPDIR" Attributes="0" KeyPath="Nancy.dll"/>
-    <ROW Component="NetTopologySuite.dll" ComponentId="{C7011470-9126-4E6F-BE94-CF4DEFE34F52}" Directory_="APPDIR" Attributes="0" KeyPath="NetTopologySuite.dll"/>
-    <ROW Component="Newtonsoft.Json.dll" ComponentId="{235622F1-867A-4E24-8D37-956FE88A1B3F}" Directory_="APPDIR" Attributes="0" KeyPath="Newtonsoft.Json.dll"/>
-    <ROW Component="Owin.dll" ComponentId="{050A9D97-E1A0-4246-B78C-83E3DDF08475}" Directory_="APPDIR" Attributes="0" KeyPath="Owin.dll"/>
     <ROW Component="Port" ComponentId="{C088BA38-E0D6-42EA-BBA7-44B27431C16F}" Directory_="APPDIR" Attributes="260" KeyPath="Port"/>
-    <ROW Component="PowerCollections.dll" ComponentId="{4DAA16AD-15FC-4E7C-83F9-BAE115FDD5E8}" Directory_="APPDIR" Attributes="0" KeyPath="PowerCollections.dll"/>
     <ROW Component="ProductInformation" ComponentId="{2951F750-F690-40DB-97F6-C5B2486033ED}" Directory_="APPDIR" Attributes="260" KeyPath="Version"/>
-    <ROW Component="Raven.Abstractions.dll" ComponentId="{1E1FD1DD-0C02-4AE7-8F53-B51B6E739DC9}" Directory_="APPDIR" Attributes="0" KeyPath="Raven.Abstractions.dll"/>
-    <ROW Component="Raven.Client.Embedded.dll" ComponentId="{A07C0014-3FBD-4170-9AEF-0A5B3469E0BA}" Directory_="APPDIR" Attributes="0" KeyPath="Raven.Client.Embedded.dll"/>
-    <ROW Component="Raven.Client.Lightweight.dll" ComponentId="{F93ADABA-6F81-4A94-B764-B5FF514FF349}" Directory_="APPDIR" Attributes="0" KeyPath="Raven.Client.Lightweight.dll"/>
-    <ROW Component="Raven.Database.dll" ComponentId="{032DB49D-CAAF-458B-873B-27B0AF2EC9F0}" Directory_="APPDIR" Attributes="0" KeyPath="Raven.Database.dll"/>
-    <ROW Component="ServiceControl.EndpointPlugin.Messages.d" ComponentId="{87E470BA-E16D-43DA-A591-E34787808B94}" Directory_="APPDIR" Attributes="0" KeyPath="ServiceControl.EndpointPlugin.Messages.dll"/>
-    <ROW Component="ServiceControl.dll" ComponentId="{B32D2CEC-284D-49C4-A1DC-DA2863C39D5D}" Directory_="APPDIR" Attributes="0" KeyPath="ServiceControl.dll"/>
-    <ROW Component="Spatial4n.Core.NTS.dll" ComponentId="{06EB261D-B3BB-42BB-B4D7-90ECAC3A0F99}" Directory_="APPDIR" Attributes="0" KeyPath="Spatial4n.Core.NTS.dll"/>
-    <ROW Component="System.Spatial.dll" ComponentId="{2713DA51-20F8-4909-A336-F9EE812052C6}" Directory_="APPDIR" Attributes="0" KeyPath="System.Spatial.dll"/>
-    <ROW Component="TransportType" ComponentId="{A9BCAEE6-1554-4603-BDD3-46777ED49001}" Directory_="APPDIR" Attributes="260" KeyPath="TransportType"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="MainFeature" Title="ServiceControl for NServiceBus" Description="ServiceControl for NServiceBus provides auditing and analysis features for NServiceBus." Display="1" Level="1" Directory_="APPDIR" Attributes="16" Components="AI_CustomARPName AI_ExePath AWS.Extensions.dll AWSSDK.dll Autofac.Integration.SignalR.dll Autofac.Integration.SignalR.xml Autofac.dll Esent.Interop.dll GeoAPI.dll ICSharpCode.NRefactory.CSharp.dll ICSharpCode.NRefactory.dll ICSharpCode.SharpZipLib.dll InstanceDescription InstanceName Jint.Raven.dll Lucene.Net.Contrib.Spatial.NTS.dll Lucene.Net.dll Microsoft.AspNet.SignalR.Core.dll Microsoft.AspNet.SignalR.Owin.dll Microsoft.CompilerServices.AsyncTargetin Microsoft.Data.Edm.dll Microsoft.Data.OData.dll Microsoft.Owin.Diagnostics.dll Microsoft.Owin.Host.HttpListener.dll Microsoft.Owin.Hosting.dll Microsoft.Owin.dll Microsoft.WindowsAzure.Configuration.dll Microsoft.WindowsAzure.Storage.dll Mono.Cecil.dll NLog.dll NServiceBus.Core.dll NServiceBus.Host.exe NServiceBus.ObjectBuilder.Autofac.dll NServiceBus.dll Nancy.Bootstrappers.Autofac.dll Nancy.Owin.dll Nancy.dll NetTopologySuite.dll Newtonsoft.Json.dll Owin.dll Port PowerCollections.dll ProductInformation Raven.Abstractions.dll Raven.Client.Embedded.dll Raven.Client.Lightweight.dll Raven.Database.dll ServiceControl.EndpointPlugin.Messages.d ServiceControl.dll Spatial4n.Core.NTS.dll System.Spatial.dll TransportType"/>
+    <ROW Feature="MainFeature" Title="ServiceControl for NServiceBus" Description="ServiceControl for NServiceBus provides auditing and analysis features for NServiceBus." Display="1" Level="1" Directory_="APPDIR" Attributes="16" Components="AI_CustomARPName AI_ExePath InstanceDescription InstanceName NServiceBus.Host.exe Port ProductInformation"/>
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="AWS.Extensions.dll" Component_="AWS.Extensions.dll" FileName="AWSExt~1.dll|AWS.Extensions.dll" Attributes="0" SourcePath="Files\AWS.Extensions.dll" SelfReg="false" NextFile="AWSSDK.dll"/>
-    <ROW File="AWSSDK.dll" Component_="AWSSDK.dll" FileName="AWSSDK.dll" Attributes="0" SourcePath="Files\AWSSDK.dll" SelfReg="false" NextFile="Esent.Interop.dll"/>
-    <ROW File="Autofac.Integration.SignalR.dll" Component_="Autofac.Integration.SignalR.dll" FileName="Autofa~1.dll|Autofac.Integration.SignalR.dll" Attributes="0" SourcePath="Files\Autofac.Integration.SignalR.dll" SelfReg="false" NextFile="AWS.Extensions.dll"/>
-    <ROW File="Autofac.dll" Component_="Autofac.dll" FileName="Autofac.dll" Attributes="0" SourcePath="Files\Autofac.dll" SelfReg="false" NextFile="Autofac.Integration.SignalR.dll"/>
-    <ROW File="Esent.Interop.dll" Component_="Esent.Interop.dll" FileName="EsentI~1.dll|Esent.Interop.dll" Attributes="0" SourcePath="Files\Esent.Interop.dll" SelfReg="false" NextFile="Esent.Interop.pdb"/>
-    <ROW File="Esent.Interop.pdb" Component_="Esent.Interop.dll" FileName="EsentI~1.pdb|Esent.Interop.pdb" Attributes="0" SourcePath="Files\Esent.Interop.pdb" SelfReg="false" NextFile="GeoAPI.dll"/>
-    <ROW File="GeoAPI.dll" Component_="GeoAPI.dll" FileName="GeoAPI.dll" Attributes="0" SourcePath="Files\GeoAPI.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.CSharp.dll"/>
-    <ROW File="ICSharpCode.NRefactory.CSharp.dll" Component_="ICSharpCode.NRefactory.CSharp.dll" FileName="ICShar~1.dll|ICSharpCode.NRefactory.CSharp.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.CSharp.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.dll"/>
-    <ROW File="ICSharpCode.NRefactory.dll" Component_="ICSharpCode.NRefactory.dll" FileName="ICShar~2.dll|ICSharpCode.NRefactory.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.dll" SelfReg="false" NextFile="ICSharpCode.SharpZipLib.dll"/>
-    <ROW File="ICSharpCode.SharpZipLib.dll" Component_="ICSharpCode.SharpZipLib.dll" FileName="ICShar~3.dll|ICSharpCode.SharpZipLib.dll" Attributes="0" SourcePath="Files\ICSharpCode.SharpZipLib.dll" SelfReg="false" NextFile="Jint.Raven.dll"/>
-    <ROW File="Jint.Raven.dll" Component_="Jint.Raven.dll" FileName="JintRa~1.dll|Jint.Raven.dll" Attributes="0" SourcePath="Files\Jint.Raven.dll" SelfReg="false" NextFile="Jint.Raven.pdb"/>
-    <ROW File="Jint.Raven.pdb" Component_="Jint.Raven.dll" FileName="JintRa~1.pdb|Jint.Raven.pdb" Attributes="0" SourcePath="Files\Jint.Raven.pdb" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.dll"/>
-    <ROW File="Lucene.Net.Contrib.Spatial.NTS.dll" Component_="Lucene.Net.Contrib.Spatial.NTS.dll" FileName="Lucene~1.dll|Lucene.Net.Contrib.Spatial.NTS.dll" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.dll" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.pdb"/>
-    <ROW File="Lucene.Net.Contrib.Spatial.NTS.pdb" Component_="Lucene.Net.Contrib.Spatial.NTS.dll" FileName="Lucene~1.pdb|Lucene.Net.Contrib.Spatial.NTS.pdb" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.pdb" SelfReg="false" NextFile="Lucene.Net.dll"/>
-    <ROW File="Lucene.Net.dll" Component_="Lucene.Net.dll" FileName="Lucene~2.dll|Lucene.Net.dll" Attributes="0" SourcePath="Files\Lucene.Net.dll" SelfReg="false" NextFile="Lucene.Net.pdb"/>
-    <ROW File="Lucene.Net.pdb" Component_="Lucene.Net.dll" FileName="Lucene~2.pdb|Lucene.Net.pdb" Attributes="0" SourcePath="Files\Lucene.Net.pdb" SelfReg="false" NextFile="Microsoft.AspNet.SignalR.Core.dll"/>
-    <ROW File="Microsoft.AspNet.SignalR.Core.dll" Component_="Microsoft.AspNet.SignalR.Core.dll" FileName="Micros~1.dll|Microsoft.AspNet.SignalR.Core.dll" Attributes="0" SourcePath="Files\Microsoft.AspNet.SignalR.Core.dll" SelfReg="false" NextFile="Microsoft.AspNet.SignalR.Owin.dll"/>
-    <ROW File="Microsoft.AspNet.SignalR.Owin.dll" Component_="Microsoft.AspNet.SignalR.Owin.dll" FileName="Micros~2.dll|Microsoft.AspNet.SignalR.Owin.dll" Attributes="0" SourcePath="Files\Microsoft.AspNet.SignalR.Owin.dll" SelfReg="false" NextFile="Microsoft.CompilerServices.AsyncTargetingPack.Net4.dll"/>
-    <ROW File="Microsoft.CompilerServices.AsyncTargetingPack.Net4.dll" Component_="Microsoft.CompilerServices.AsyncTargetin" FileName="Micros~3.dll|Microsoft.CompilerServices.AsyncTargetingPack.Net4.dll" Attributes="0" SourcePath="Files\Microsoft.CompilerServices.AsyncTargetingPack.Net4.dll" SelfReg="false" NextFile="Microsoft.Data.Edm.dll"/>
-    <ROW File="Microsoft.Data.Edm.dll" Component_="Microsoft.Data.Edm.dll" FileName="Micros~4.dll|Microsoft.Data.Edm.dll" Attributes="0" SourcePath="Files\Microsoft.Data.Edm.dll" SelfReg="false" NextFile="Microsoft.Data.OData.dll"/>
-    <ROW File="Microsoft.Data.OData.dll" Component_="Microsoft.Data.OData.dll" FileName="Micros~5.dll|Microsoft.Data.OData.dll" Attributes="0" SourcePath="Files\Microsoft.Data.OData.dll" SelfReg="false" NextFile="Microsoft.Owin.Diagnostics.dll"/>
-    <ROW File="Microsoft.Owin.Diagnostics.dll" Component_="Microsoft.Owin.Diagnostics.dll" FileName="Micros~6.dll|Microsoft.Owin.Diagnostics.dll" Attributes="0" SourcePath="Files\Microsoft.Owin.Diagnostics.dll" SelfReg="false" NextFile="Microsoft.Owin.dll"/>
-    <ROW File="Microsoft.Owin.Host.HttpListener.dll" Component_="Microsoft.Owin.Host.HttpListener.dll" FileName="Micros~8.dll|Microsoft.Owin.Host.HttpListener.dll" Attributes="0" SourcePath="Files\Microsoft.Owin.Host.HttpListener.dll" SelfReg="false" NextFile="Microsoft.Owin.Hosting.dll"/>
-    <ROW File="Microsoft.Owin.Hosting.dll" Component_="Microsoft.Owin.Hosting.dll" FileName="Micros~9.dll|Microsoft.Owin.Hosting.dll" Attributes="0" SourcePath="Files\Microsoft.Owin.Hosting.dll" SelfReg="false" NextFile="Microsoft.WindowsAzure.Configuration.dll"/>
-    <ROW File="Microsoft.Owin.dll" Component_="Microsoft.Owin.dll" FileName="Micros~7.dll|Microsoft.Owin.dll" Attributes="0" SourcePath="Files\Microsoft.Owin.dll" SelfReg="false" NextFile="Microsoft.Owin.Host.HttpListener.dll"/>
-    <ROW File="Microsoft.WindowsAzure.Configuration.dll" Component_="Microsoft.WindowsAzure.Configuration.dll" FileName="Micro~10.dll|Microsoft.WindowsAzure.Configuration.dll" Attributes="0" SourcePath="Files\Microsoft.WindowsAzure.Configuration.dll" SelfReg="false" NextFile="Microsoft.WindowsAzure.Storage.dll"/>
-    <ROW File="Microsoft.WindowsAzure.Storage.dll" Component_="Microsoft.WindowsAzure.Storage.dll" FileName="Micro~11.dll|Microsoft.WindowsAzure.Storage.dll" Attributes="0" SourcePath="Files\Microsoft.WindowsAzure.Storage.dll" SelfReg="false" NextFile="Mono.Cecil.dll"/>
-    <ROW File="Mono.Cecil.dll" Component_="Mono.Cecil.dll" FileName="MonoCe~1.dll|Mono.Cecil.dll" Attributes="0" SourcePath="Files\Mono.Cecil.dll" SelfReg="false" NextFile="Nancy.Bootstrappers.Autofac.dll"/>
-    <ROW File="NLog.dll" Component_="NLog.dll" FileName="NLog.dll" Attributes="0" SourcePath="Files\NLog.dll" SelfReg="false" NextFile="NServiceBus.Core.dll"/>
-    <ROW File="NServiceBus.Core.dll" Component_="NServiceBus.Core.dll" FileName="NServi~1.dll|NServiceBus.Core.dll" Attributes="0" SourcePath="Files\NServiceBus.Core.dll" SelfReg="false" NextFile="NServiceBus.Core.pdb"/>
-    <ROW File="NServiceBus.Core.pdb" Component_="NServiceBus.Core.dll" FileName="NServi~1.pdb|NServiceBus.Core.pdb" Attributes="0" SourcePath="Files\NServiceBus.Core.pdb" SelfReg="false" NextFile="NServiceBus.dll"/>
-    <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="NServi~1.exe|NServiceBus.Host.exe" Attributes="0" SourcePath="Files\NServiceBus.Host.exe" SelfReg="false" NextFile="Autofac.dll" DigSign="true"/>
-    <ROW File="NServiceBus.Host.pdb" Component_="NServiceBus.Host.exe" FileName="NServi~2.pdb|NServiceBus.Host.pdb" Attributes="0" SourcePath="Files\NServiceBus.Host.pdb" SelfReg="false" NextFile="NServiceBus.ObjectBuilder.Autofac.dll"/>
-    <ROW File="NServiceBus.ObjectBuilder.Autofac.dll" Component_="NServiceBus.ObjectBuilder.Autofac.dll" FileName="NServi~3.dll|NServiceBus.ObjectBuilder.Autofac.dll" Attributes="0" SourcePath="Files\NServiceBus.ObjectBuilder.Autofac.dll" SelfReg="false" NextFile="NServiceBus.ObjectBuilder.Autofac.pdb"/>
-    <ROW File="NServiceBus.ObjectBuilder.Autofac.pdb" Component_="NServiceBus.ObjectBuilder.Autofac.dll" FileName="NServi~3.pdb|NServiceBus.ObjectBuilder.Autofac.pdb" Attributes="0" SourcePath="Files\NServiceBus.ObjectBuilder.Autofac.pdb" SelfReg="false" NextFile="NServiceBus.pdb"/>
-    <ROW File="NServiceBus.dll" Component_="NServiceBus.dll" FileName="NServi~2.dll|NServiceBus.dll" Attributes="0" SourcePath="Files\NServiceBus.dll" SelfReg="false" NextFile="NServiceBus.Host.pdb"/>
-    <ROW File="NServiceBus.pdb" Component_="NServiceBus.dll" FileName="NServi~4.pdb|NServiceBus.pdb" Attributes="0" SourcePath="Files\NServiceBus.pdb" SelfReg="false" NextFile="Owin.dll"/>
-    <ROW File="Nancy.Bootstrappers.Autofac.dll" Component_="Nancy.Bootstrappers.Autofac.dll" FileName="NancyB~1.dll|Nancy.Bootstrappers.Autofac.dll" Attributes="0" SourcePath="Files\Nancy.Bootstrappers.Autofac.dll" SelfReg="false" NextFile="Nancy.dll"/>
-    <ROW File="Nancy.Owin.dll" Component_="Nancy.Owin.dll" FileName="NancyO~1.dll|Nancy.Owin.dll" Attributes="0" SourcePath="Files\Nancy.Owin.dll" SelfReg="false" NextFile="NetTopologySuite.dll"/>
-    <ROW File="Nancy.dll" Component_="Nancy.dll" FileName="Nancy.dll" Attributes="0" SourcePath="Files\Nancy.dll" SelfReg="false" NextFile="Nancy.Owin.dll"/>
-    <ROW File="NetTopologySuite.dll" Component_="NetTopologySuite.dll" FileName="NetTop~1.dll|NetTopologySuite.dll" Attributes="0" SourcePath="Files\NetTopologySuite.dll" SelfReg="false" NextFile="Newtonsoft.Json.dll"/>
-    <ROW File="Newtonsoft.Json.dll" Component_="Newtonsoft.Json.dll" FileName="Newton~1.dll|Newtonsoft.Json.dll" Attributes="0" SourcePath="Files\Newtonsoft.Json.dll" SelfReg="false" NextFile="NLog.dll"/>
-    <ROW File="Owin.dll" Component_="Owin.dll" FileName="Owin.dll" Attributes="0" SourcePath="Files\Owin.dll" SelfReg="false" NextFile="PowerCollections.dll"/>
-    <ROW File="PowerCollections.dll" Component_="PowerCollections.dll" FileName="PowerC~1.dll|PowerCollections.dll" Attributes="0" SourcePath="Files\PowerCollections.dll" SelfReg="false" NextFile="Raven.Abstractions.dll"/>
-    <ROW File="Raven.Abstractions.dll" Component_="Raven.Abstractions.dll" FileName="RavenA~1.dll|Raven.Abstractions.dll" Attributes="0" SourcePath="Files\Raven.Abstractions.dll" SelfReg="false" NextFile="Raven.Abstractions.pdb"/>
-    <ROW File="Raven.Abstractions.pdb" Component_="Raven.Abstractions.dll" FileName="RavenA~1.pdb|Raven.Abstractions.pdb" Attributes="0" SourcePath="Files\Raven.Abstractions.pdb" SelfReg="false" NextFile="Raven.Client.Embedded.dll"/>
-    <ROW File="Raven.Client.Embedded.dll" Component_="Raven.Client.Embedded.dll" FileName="RavenC~1.dll|Raven.Client.Embedded.dll" Attributes="0" SourcePath="Files\Raven.Client.Embedded.dll" SelfReg="false" NextFile="Raven.Client.Embedded.pdb"/>
-    <ROW File="Raven.Client.Embedded.pdb" Component_="Raven.Client.Embedded.dll" FileName="RavenC~1.pdb|Raven.Client.Embedded.pdb" Attributes="0" SourcePath="Files\Raven.Client.Embedded.pdb" SelfReg="false" NextFile="Raven.Client.Lightweight.dll"/>
-    <ROW File="Raven.Client.Lightweight.dll" Component_="Raven.Client.Lightweight.dll" FileName="RavenC~2.dll|Raven.Client.Lightweight.dll" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.dll" SelfReg="false" NextFile="Raven.Client.Lightweight.pdb"/>
-    <ROW File="Raven.Client.Lightweight.pdb" Component_="Raven.Client.Lightweight.dll" FileName="RavenC~2.pdb|Raven.Client.Lightweight.pdb" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.pdb" SelfReg="false" NextFile="Raven.Database.dll"/>
-    <ROW File="Raven.Database.dll" Component_="Raven.Database.dll" FileName="RavenD~1.dll|Raven.Database.dll" Attributes="0" SourcePath="Files\Raven.Database.dll" SelfReg="false" NextFile="Raven.Database.pdb"/>
-    <ROW File="Raven.Database.pdb" Component_="Raven.Database.dll" FileName="RavenD~1.pdb|Raven.Database.pdb" Attributes="0" SourcePath="Files\Raven.Database.pdb" SelfReg="false" NextFile="ServiceControl.dll"/>
-    <ROW File="ServiceControl.EndpointPlugin.Messages.dll" Component_="ServiceControl.EndpointPlugin.Messages.d" FileName="Servic~2.dll|ServiceControl.EndpointPlugin.Messages.dll" Attributes="0" SourcePath="Files\ServiceControl.EndpointPlugin.Messages.dll" SelfReg="false" NextFile="ServiceControl.EndpointPlugin.Messages.pdb"/>
-    <ROW File="ServiceControl.EndpointPlugin.Messages.pdb" Component_="ServiceControl.EndpointPlugin.Messages.d" FileName="Servic~1.pdb|ServiceControl.EndpointPlugin.Messages.pdb" Attributes="0" SourcePath="Files\ServiceControl.EndpointPlugin.Messages.pdb" SelfReg="false" NextFile="ServiceControl.pdb"/>
-    <ROW File="ServiceControl.dll" Component_="ServiceControl.dll" FileName="Servic~1.dll|ServiceControl.dll" Attributes="0" SourcePath="Files\ServiceControl.dll" SelfReg="false" NextFile="ServiceControl.dll.config"/>
-    <ROW File="ServiceControl.dll.config" Component_="Autofac.Integration.SignalR.xml" FileName="Servic~1.con|ServiceControl.dll.config" Attributes="0" SourcePath="Files\ServiceControl.dll.config" SelfReg="false" NextFile="ServiceControl.EndpointPlugin.Messages.dll"/>
-    <ROW File="ServiceControl.pdb" Component_="ServiceControl.dll" FileName="Servic~2.pdb|ServiceControl.pdb" Attributes="0" SourcePath="Files\ServiceControl.pdb" SelfReg="false" NextFile="Spatial4n.Core.NTS.dll"/>
-    <ROW File="Spatial4n.Core.NTS.dll" Component_="Spatial4n.Core.NTS.dll" FileName="Spatia~1.dll|Spatial4n.Core.NTS.dll" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.dll" SelfReg="false" NextFile="Spatial4n.Core.NTS.pdb"/>
-    <ROW File="Spatial4n.Core.NTS.pdb" Component_="Spatial4n.Core.NTS.dll" FileName="Spatia~1.pdb|Spatial4n.Core.NTS.pdb" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.pdb" SelfReg="false" NextFile="System.Spatial.dll"/>
-    <ROW File="System.Spatial.dll" Component_="System.Spatial.dll" FileName="System~1.dll|System.Spatial.dll" Attributes="0" SourcePath="Files\System.Spatial.dll" SelfReg="false"/>
+    <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="NServi~1.exe|NServiceBus.Host.exe" Attributes="0" SourcePath="Files\NServiceBus.Host.exe" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" GeneralOptions="qh" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" EulaPathLocId="*" IntroTextPathLocId="*"/>
@@ -168,7 +69,7 @@
     <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
-    <ROW TimeStampUrl="http://timestamp.verisign.com/scripts/timstamp.dll" SignerDescription="NServiceBus installer" DescriptionUrl="http://www.nservicebus.com/" SignOptions="7" SignTool="0" Thumbprint="acfab957ce84ba76b9cddcbc7d901ae8983b6536 Subject: NServiceBus Ltd.&#10;Issuer: VeriSign Class 3 Code Signing 2010 CA&#10;Valid from 08/27/2013 to 11/11/2015"/>
+    <ROW TimeStampUrl="http://timestamp.verisign.com/scripts/timstamp.dll" SignerDescription="NServiceBus installer" DescriptionUrl="http://www.nservicebus.com/" SignOptions="7" SignTool="0" Thumbprint="acfab957ce84ba76b9cddcbc7d901ae8983b6536 Subject: NServiceBus Ltd.&#10;Issuer: VeriSign Class 3 Code Signing 2010 CA&#10;Valid from 08/27/2013 to 11/27/2015"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
     <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
@@ -190,13 +91,9 @@
     <ROW Action="AI_ExtractLzma" Description="Extracting files from archive" DescriptionLocId="ActionText.Description.AI_ExtractLzma" TemplateLocId="-"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiAppSearchComponent">
-    <ROW Property="AI_DOTNET40_SEARCH" Signature_="AI_DotNet40SearchSgn" Builds="DefaultBuild"/>
+    <ROW Property="AI_DOTNET45_SEARCH" Signature_="AI_DotNet45SearchSgn" Builds="DefaultBuild"/>
     <ROW Property="AI_SETUPEXEPATH" Signature_="AI_EXE_PATH_CU" Builds="DefaultBuild"/>
     <ROW Property="AI_SETUPEXEPATH" Signature_="AI_EXE_PATH_LM" Builds="DefaultBuild"/>
-    <ROW Property="NET_451" Signature_="AppSearchSign"/>
-    <ROW Property="NET_45" Signature_="AppSearchSign_1"/>
-    <ROW Property="KB_2468871_CP" Signature_="AppSearchSign_2"/>
-    <ROW Property="KB_2468871_EX" Signature_="AppSearchSign_2_1"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiBinaryComponent">
     <ROW Name="ExternalUICleaner.dll" SourcePath="&lt;AI_CUSTACTS&gt;ExternalUICleaner.dll"/>
@@ -208,13 +105,7 @@
     <ROW Name="viewer.exe" SourcePath="&lt;AI_CUSTACTS&gt;viewer.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiComboBoxComponent">
-    <ROW Property="TRANSPORT_TYPE" Order="1" Value="NServiceBus.Msmq, NServiceBus.Core" Text="MSMQ"/>
-    <ROW Property="TRANSPORT_TYPE" Order="2" Value="SQL Server" Text="SQL Server"/>
-    <ROW Property="TRANSPORT_TYPE" Order="3" Value="ActiveMQ" Text="ActiveMQ"/>
-    <ROW Property="TRANSPORT_TYPE" Order="4" Value="RabbitMQ" Text="RabbitMQ"/>
-    <ROW Property="TRANSPORT_TYPE" Order="5" Value="Windows Azure Queue" Text="Windows Azure Queue"/>
-    <ROW Property="TRANSPORT_TYPE" Order="6" Value="Windows Azure Service Bus" Text="Windows Azure Service Bus"/>
-    <ROW Property="TRANSPORT_TYPE" Order="7" Value="WebSphereMQ" Text="WebSphereMQ"/>
+    <ROW Property="TRANSPORT_TYPE" Order="1" Value="MSMQ" Text="MSMQ"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiControlComponent">
     <ROW Dialog_="AdminBrowseDlg" Control="DirectoryCombo" Type="DirectoryCombo" X="68" Y="131" Width="209" Height="16" Attributes="393227" Property="TARGETDIR" Order="800" MsiKey="AdminBrowseDlg#DirectoryCombo"/>
@@ -333,26 +224,6 @@
     <ROW Dialog_="CustomizeDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT" Ordering="1"/>
     <ROW Dialog_="PatchWelcomeDlg" Control_="Next" Event="EndDialog" Argument="Return" Condition="AI_PATCH" Ordering="201"/>
     <ROW Dialog_="ResumeDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_RESUME" Ordering="99"/>
-    <ROW Dialog_="InstallDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfRbDiskDlg" Condition="AI_INSTALL AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST=&quot;P&quot; OR NOT PROMPTROLLBACKCOST)" Ordering="302" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="Next" Event="EnableRollback" Argument="False" Condition="AI_INSTALL AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST=&quot;D&quot;" Ordering="303" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfDiskDlg" Condition="AI_INSTALL AND ( (OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST=&quot;F&quot;) )" Ordering="304" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[AI_ButtonText_Next_Orig]" Argument="[ButtonText_Next]" Condition="AI_INSTALL" Ordering="110" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[ButtonText_Next]" Argument="[[AI_CommitButton]]" Condition="AI_INSTALL" Ordering="111" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[AI_Text_Next_Orig]" Argument="[Text_Next]" Condition="AI_INSTALL" Ordering="112" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[Text_Next]" Argument="[Text_Install]" Condition="AI_INSTALL" Ordering="113" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="YouMustAgreeCtrl" Event="[ButtonText_Next]" Argument="[AI_ButtonText_Next_Orig]" Condition="AI_INSTALL" Ordering="202" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="YouMustAgreeCtrl" Event="[Text_Next]" Argument="[AI_Text_Next_Orig]" Condition="AI_INSTALL" Ordering="203" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="Back" Event="[ButtonText_Next]" Argument="[AI_ButtonText_Next_Orig]" Condition="AI_INSTALL" Ordering="0" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="Back" Event="[Text_Next]" Argument="[AI_Text_Next_Orig]" Condition="AI_INSTALL" Ordering="1" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfRbDiskDlg" Condition="AI_INSTALL AND AiLicenseAgreement AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST=&quot;P&quot; OR NOT PROMPTROLLBACKCOST)" Ordering="102" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="Next" Event="EnableRollback" Argument="False" Condition="AI_INSTALL AND AiLicenseAgreement AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST=&quot;D&quot;" Ordering="103" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfDiskDlg" Condition="AI_INSTALL AND AiLicenseAgreement AND ( (OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST=&quot;F&quot;) )" Ordering="104" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[AI_ButtonText_Next_Orig]" Argument="[ButtonText_Next]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="105" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[ButtonText_Next]" Argument="[[AI_CommitButton]]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="106" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[AI_Text_Next_Orig]" Argument="[Text_Next]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="107" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[Text_Next]" Argument="[Text_Install]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="108" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="Back" Event="[ButtonText_Next]" Argument="[AI_ButtonText_Next_Orig]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="4" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="Back" Event="[Text_Next]" Argument="[AI_Text_Next_Orig]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="5" Options="2"/>
     <ROW Dialog_="CustomizeDlg" Control_="Modify" Event="SpawnDialog" Argument="OutOfRbDiskDlg" Condition="AI_MAINT AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST=&quot;P&quot; OR NOT PROMPTROLLBACKCOST)" Ordering="102" Options="2"/>
     <ROW Dialog_="CustomizeDlg" Control_="Modify" Event="EnableRollback" Argument="False" Condition="AI_MAINT AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST=&quot;D&quot;" Ordering="103" Options="2"/>
     <ROW Dialog_="CustomizeDlg" Control_="Modify" Event="SpawnDialog" Argument="OutOfDiskDlg" Condition="AI_MAINT AND ( (OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST=&quot;F&quot;) )" Ordering="104" Options="2"/>
@@ -377,6 +248,26 @@
     <ROW Dialog_="LicenseAgreementDlg" Control_="AgreeInstall" Event="[AI_CONTROL_VISUAL_STYLE]" Argument="[STORE_DEFAULT_VISUAL_STYLE]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="99"/>
     <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[INST_NAME]" Argument="ServiceControl@[ComputerName]" Condition="AI_INSTALL" Ordering="98"/>
     <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[INST_DESCRIPTION]" Argument="ServiceControl on [ComputerName]" Condition="AI_INSTALL" Ordering="99"/>
+    <ROW Dialog_="InstallDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfRbDiskDlg" Condition="AI_INSTALL AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST=&quot;P&quot; OR NOT PROMPTROLLBACKCOST)" Ordering="302" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="Next" Event="EnableRollback" Argument="False" Condition="AI_INSTALL AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST=&quot;D&quot;" Ordering="303" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfDiskDlg" Condition="AI_INSTALL AND ( (OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST=&quot;F&quot;) )" Ordering="304" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[AI_ButtonText_Next_Orig]" Argument="[ButtonText_Next]" Condition="AI_INSTALL" Ordering="101" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[ButtonText_Next]" Argument="[[AI_CommitButton]]" Condition="AI_INSTALL" Ordering="102" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[AI_Text_Next_Orig]" Argument="[Text_Next]" Condition="AI_INSTALL" Ordering="103" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[Text_Next]" Argument="[Text_Install]" Condition="AI_INSTALL" Ordering="104" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="YouMustAgreeCtrl" Event="[ButtonText_Next]" Argument="[AI_ButtonText_Next_Orig]" Condition="AI_INSTALL" Ordering="202" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="YouMustAgreeCtrl" Event="[Text_Next]" Argument="[AI_Text_Next_Orig]" Condition="AI_INSTALL" Ordering="203" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="Back" Event="[ButtonText_Next]" Argument="[AI_ButtonText_Next_Orig]" Condition="AI_INSTALL" Ordering="0" Options="2"/>
+    <ROW Dialog_="InstallDlg" Control_="Back" Event="[Text_Next]" Argument="[AI_Text_Next_Orig]" Condition="AI_INSTALL" Ordering="1" Options="2"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfRbDiskDlg" Condition="AI_INSTALL AND AiLicenseAgreement AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST=&quot;P&quot; OR NOT PROMPTROLLBACKCOST)" Ordering="102" Options="2"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control_="Next" Event="EnableRollback" Argument="False" Condition="AI_INSTALL AND AiLicenseAgreement AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST=&quot;D&quot;" Ordering="103" Options="2"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfDiskDlg" Condition="AI_INSTALL AND AiLicenseAgreement AND ( (OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST=&quot;F&quot;) )" Ordering="104" Options="2"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[AI_ButtonText_Next_Orig]" Argument="[ButtonText_Next]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="105" Options="2"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[ButtonText_Next]" Argument="[[AI_CommitButton]]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="106" Options="2"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[AI_Text_Next_Orig]" Argument="[Text_Next]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="107" Options="2"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[Text_Next]" Argument="[Text_Install]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="108" Options="2"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control_="Back" Event="[ButtonText_Next]" Argument="[AI_ButtonText_Next_Orig]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="4" Options="2"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control_="Back" Event="[Text_Next]" Argument="[AI_Text_Next_Orig]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="5" Options="2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
     <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Type="51" Source="AI_SETUPEXEPATH_ORIGINAL" Target="[AI_SETUPEXEPATH]"/>
@@ -437,7 +328,7 @@
     <ROW Action="Stop_Service" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="201"/>
     <ROW Action="DetectService" Sequence="1602"/>
     <ROW Action="AI_DATA_SETTER_1" Sequence="1601"/>
-    <ROW Action="InstallMsmq" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) ) AND ( TRANSPORT_TYPE=&quot;NServiceBus.Msmq, NServiceBus.Core&quot; )" Sequence="3601"/>
+    <ROW Action="InstallMsmq" Condition="( ( NOT Installed ) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; ) ) AND ( TRANSPORT_TYPE=&quot;MSMQ&quot; )" Sequence="3601"/>
     <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Sequence="99" Builds="DefaultBuild"/>
     <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Condition="AI_SETUPEXEPATH_ORIGINAL" Sequence="101" Builds="DefaultBuild"/>
     <ROW Action="AI_DeleteCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="199" Builds="DefaultBuild"/>
@@ -459,18 +350,15 @@
     <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Condition="AI_SETUPEXEPATH_ORIGINAL" Sequence="101"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiLaunchConditionsComponent">
-    <ROW Condition="(AI_DOTNET40_SEARCH = &quot;#1&quot;) OR (AI_DOTNET45_SEARCH &gt;= &quot;4.5&quot;)" Description="[ProductName] cannot be installed on systems with .NET Framework version lower than [AI_MINDOTNETVERSION]" DescriptionLocId="AI.LaunchCondition.DotNET" IsPredefined="true" Builds="DefaultBuild"/>
-    <ROW Condition="(NET_45 &gt;= &quot;4.5&quot;) OR (NET_451 = &quot;#378758&quot;) OR (NET_451 = &quot;#378675&quot;) OR (KB_2468871_CP = &quot;1&quot;) OR (KB_2468871_EX = &quot;1&quot;)" Description="To continue this installation you need to install Windows Update KB2468871 for .NET 4 Framework or a higher version of .NET Framework."/>
+    <ROW Condition="( Version9X OR ( NOT VersionNT64 ) OR ( VersionNT64 AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &lt;&gt; 2)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR ((VersionNT64 = 502) AND ((MsiNTProductType = 1) OR (ServicePackLevel &gt;= 1)))) AND ((VersionNT64 &lt;&gt; 502) OR ((VersionNT64 = 502) AND ((MsiNTProductType = 1) OR (ServicePackLevel &lt;&gt; 1)))) AND ((VersionNT64 &lt;&gt; 502) OR ((VersionNT64 = 502) AND ((MsiNTProductType = 1) OR (ServicePackLevel &lt;&gt; 2)))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 601) OR ((VersionNT64 = 601) AND ((ServicePackLevel &gt;= 1) OR (MsiNTProductType &lt;&gt; 1)))) AND ((VersionNT64 &lt;&gt; 601) OR ((VersionNT64 = 601) AND ((ServicePackLevel &gt;= 1) OR (MsiNTProductType = 1)))) ) )" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNT64Display]" DescriptionLocId="AI.LaunchCondition.NoSpecificNT64" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="( Version9X OR VersionNT64 OR ( VersionNT AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &gt;= 1))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 1))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 2))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 3))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 4))) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &gt;= 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &lt;&gt; 2))) OR VersionNT64) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &lt;&gt; 3))) OR VersionNT64) AND (((VersionNT &lt;&gt; 502) OR ((VersionNT = 502) AND (ServicePackLevel &gt;= 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 502) OR ((VersionNT = 502) AND (ServicePackLevel &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 502) OR ((VersionNT = 502) AND (ServicePackLevel &lt;&gt; 2))) OR VersionNT64) AND (((VersionNT &lt;&gt; 600) OR (((VersionNT = 600) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 600) OR (((VersionNT = 600) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) OR VersionNT64) AND ((VersionNT &lt;&gt; 601) OR ((VersionNT = 601) AND (ServicePackLevel &gt;= 1)) OR VersionNT64) ) )" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNTDisplay]" DescriptionLocId="AI.LaunchCondition.NoSpecificNT" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="(AI_DOTNET45_SEARCH &gt;= &quot;4.5&quot;)" Description="[ProductName] cannot be installed on systems with .NET Framework version lower than [AI_MINDOTNETVERSION]" DescriptionLocId="AI.LaunchCondition.DotNET" IsPredefined="true" Builds="DefaultBuild"/>
     <ROW Condition="VersionNT" Description="[ProductName] cannot be installed on [WindowsType9XDisplay]" DescriptionLocId="AI.LaunchCondition.No9X" IsPredefined="true" Builds="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRegLocatorComponent">
-    <ROW Signature_="AI_DotNet40SearchSgn" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Install" Type="2"/>
+    <ROW Signature_="AI_DotNet45SearchSgn" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Version" Type="2"/>
     <ROW Signature_="AI_EXE_PATH_CU" Root="1" Key="Software\Caphyon\Advanced Installer\LZMA\[ProductCode]\[ProductVersion]" Name="AI_ExePath" Type="2"/>
     <ROW Signature_="AI_EXE_PATH_LM" Root="2" Key="Software\Caphyon\Advanced Installer\LZMA\[ProductCode]\[ProductVersion]" Name="AI_ExePath" Type="2"/>
-    <ROW Signature_="AppSearchSign" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Release" Type="2"/>
-    <ROW Signature_="AppSearchSign_1" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Version" Type="2"/>
-    <ROW Signature_="AppSearchSign_2" Root="2" Key="SOFTWARE\Microsoft\Updates\Microsoft .NET Framework 4 Client Profile\KB2468871" Name="PackageVersion" Type="2"/>
-    <ROW Signature_="AppSearchSign_2_1" Root="2" Key="SOFTWARE\Microsoft\Updates\Microsoft .NET Framework 4 Extended\KB2468871" Name="PackageVersion" Type="2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRegsComponent">
     <ROW Registry="AI_ExePath" Root="-1" Key="Software\Caphyon\Advanced Installer\LZMA\[ProductCode]\[ProductVersion]" Name="AI_ExePath" Value="[AI_SETUPEXEPATH]" Component_="AI_ExePath"/>
@@ -489,7 +377,6 @@
     <ROW Registry="Path" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="Path" Value="[APPDIR]" Component_="ProductInformation"/>
     <ROW Registry="Port" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="Port" Value="#[PORT_VAL]" Component_="Port"/>
     <ROW Registry="Publisher" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Publisher" Value="[Manufacturer]" Component_="AI_CustomARPName"/>
-    <ROW Registry="TransportType" Root="2" Key="Software\ParticularSoftware\ServiceControl" Name="TransportType" Value="[TRANSPORT_TYPE]" Component_="TransportType"/>
     <ROW Registry="URLInfoAbout" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLInfoAbout" Value="[ARPURLINFOABOUT]" Component_="AI_CustomARPName"/>
     <ROW Registry="URLUpdateInfo" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLUpdateInfo" Value="[ARPURLUPDATEINFO]" Component_="AI_CustomARPName"/>
     <ROW Registry="UninstallPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallPath" Value="[AI_UNINSTALLER] /x [ProductCode]" Component_="AI_CustomARPName"/>

@@ -76,6 +76,9 @@
     <Reference Include="Microsoft.AspNet.SignalR.Owin">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Owin\lib\net45\Microsoft.AspNet.SignalR.Owin.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CompilerServices.AsyncTargetingPack.Net45">
+      <HintPath>..\packages\Microsoft.CompilerServices.AsyncTargetingPack\lib\net45\Microsoft.CompilerServices.AsyncTargetingPack.Net45.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm">
       <HintPath>..\packages\Microsoft.Data.Edm\lib\net40\Microsoft.Data.Edm.dll</HintPath>
@@ -162,6 +165,7 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Messaging" />
     <Reference Include="System.Spatial">
       <HintPath>..\packages\System.Spatial\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
@@ -191,6 +195,7 @@
     <Compile Include="CompositeViews\Endpoints\KnownEndpointUpdate.cs" />
     <Compile Include="CompositeViews\Endpoints\KnownEndpointUpdateHandler.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
+    <Compile Include="CompositeViews\Messages\MessagesBodyTransformer.cs" />
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewTransformer.cs" />
@@ -219,6 +224,8 @@
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
     <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
     <Compile Include="CustomChecks\CustomChecksComputation.cs" />
+    <Compile Include="CustomChecks\DeleteCustomCheck.cs" />
+    <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
     <Compile Include="EndpointControl\Handlers\DetectNewEndpointsFromImportedMessages.cs" />
     <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
     <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
@@ -227,6 +234,7 @@
     <Compile Include="EndpointControl\KnownEndpoint.cs" />
     <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />
     <Compile Include="EndpointControl\KnownEndpointUpdated.cs" />
+    <Compile Include="EventLog\Definitions\CustomCheckDeletedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointFailedToHeartbeatDefinition.cs" />
@@ -258,6 +266,7 @@
     <Compile Include="EventLog\EventLogItem.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatMonitor.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatsComputation.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatsIndex.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
     <Compile Include="HeartbeatMonitoring\RaiseHeartbeatChanges.cs" />
     <Compile Include="HeartbeatMonitoring\RegisterEndpointStartupHandler.cs" />
@@ -266,6 +275,7 @@
     <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\PrepopulateSubscriptionStorage.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
@@ -294,6 +304,8 @@
     <Compile Include="MessageFailures\Handlers\ImportSuccessfullyProcessedMessageHandler.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\Handlers\RaiseMessageFailuresChanges.cs" />
+    <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />
+    <Compile Include="MessageFailures\InternalMessages\PerformRetry.cs" />
     <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="Infrastructure\Nancy\ExtraHeaders.cs" />
@@ -327,6 +339,7 @@
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
     <Compile Include="MessageAuditing\ProcessedMessage.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
+    <Compile Include="Operations\AuditQueueImporter.cs" />
     <Compile Include="Operations\BodyStorage\BodyStorageFeature.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
     <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />
@@ -337,8 +350,8 @@
     <Compile Include="Operations\FailedAuditImport.cs" />
     <Compile Include="Operations\FailedErrorImport.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
-    <Compile Include="Operations\BodyStorage\BodySearchEnricher.cs" />
     <Compile Include="Operations\ImportEnricher.cs" />
+    <Compile Include="Operations\MsmqAuditImporterPerformanceCounters.cs" />
     <Compile Include="Operations\SatelliteImportFailuresHandler.cs" />
     <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
     <Compile Include="Operations\ImportRegistration.cs" />

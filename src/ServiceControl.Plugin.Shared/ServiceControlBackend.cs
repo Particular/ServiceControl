@@ -46,6 +46,7 @@
             message.Body = Encoding.UTF8.GetBytes(bodyString);
             // end hack
             message.Headers[Headers.EnclosedMessageTypes] = messageToSend.GetType().FullName;
+            message.Headers[Headers.ContentType] = ContentTypes.Json; //Needed for ActiveMQ transport
 
             MessageSender.Send(message, serviceControlBackendAddress);
         }

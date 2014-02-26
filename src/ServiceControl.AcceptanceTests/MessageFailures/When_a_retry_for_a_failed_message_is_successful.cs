@@ -37,7 +37,7 @@
                         List<MessagesView> messages;
 
                         return TryGetMany("/api/messages", out messages,
-                            m => m.Status == MessageStatus.Successful);
+                            m => m.Status == MessageStatus.ResolvedSuccessfully);
                     }
 
                     IssueRetry(c,()=>Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId)));

@@ -4,6 +4,7 @@
     using System.Linq;
     using Infrastructure.Extensions;
     using Nancy;
+    using NServiceBus;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
@@ -11,6 +12,8 @@
 
     public class CustomChecksModule : BaseModule
     {
+        public IBus Bus { get; set; }
+
         public CustomChecksModule()
         {
             Get["/customchecks"] = _ =>
@@ -18,12 +21,14 @@
                 using (var session = Store.OpenSession())
                 {
                     RavenQueryStatistics stats;
-                    var results =
+                    var query =
                         session.Query<CustomCheck>()
-                            .Statistics(out stats)
-                            .Where(c => c.Status == Status.Fail)
-                            .Paging(Request)
-                            .ToArray();
+                            .Statistics(out stats);
+
+                    query = AddStatusFilter(query);
+
+                    var results = query.Paging(Request)
+                        .ToArray();
 
                     return Negotiate
                         .WithModel(results)
@@ -31,24 +36,41 @@
                         .WithEtagAndLastModified(stats);
                 }
             };
-
+            
             Delete["/customchecks/{id}"] = parameters =>
             {
-                using (var session = Store.OpenSession())
-                {
-                    Guid id = parameters.id;
+                Guid id = parameters.id;
 
-                    var customCheck = session.Load<CustomCheck>(id);
+                Bus.SendLocal(new DeleteCustomCheck{Id = id});
 
-                    if (customCheck != null)
-                    {
-                        session.Delete(customCheck);
-                        session.SaveChanges();
-                    }
-                }
-
-                return HttpStatusCode.NoContent;
+                return HttpStatusCode.Accepted;
             };
+        }
+
+        IRavenQueryable<CustomCheck> AddStatusFilter(IRavenQueryable<CustomCheck> query)
+        {
+            string status = null;
+
+            if ((bool) Request.Query.status.HasValue)
+            {
+                status = (string) Request.Query.status;
+            }
+
+            if (status == null)
+            {
+                return query;
+            }
+
+            if (status == "fail")
+            {
+                query = query.Where(c => c.Status == Status.Fail);
+            }
+
+            if (status == "pass")
+            {
+                query = query.Where(c => c.Status == Status.Pass);
+            }
+            return query;
         }
     }
 }

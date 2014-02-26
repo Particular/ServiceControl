@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>ServiceControl.install</id>
+    <version>$version$</version>
+    <title>ServiceControl.install (Install)</title>
+    <authors>Particular Software</authors>
+    <owners>Particular Software</owners>
+    <projectUrl>http://particular.net/servicecontrol</projectUrl>
+    <iconUrl>http://s3.amazonaws.com/nuget.images/ServiceControl_128.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Management extension to NServiceBus</description>
+    <summary></summary>
+    <tags>nservicebus particular chocolatey servicecontrol</tags>
+    <dependencies>
+      <dependency id="DotNet4.5" version="4.5.20120822"  />
+    </dependencies>
+  </metadata>
+</package>

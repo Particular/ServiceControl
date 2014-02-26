@@ -26,7 +26,6 @@
                 while (ie.MoveNext())
                 {
                     var retryMessage = new RetryMessage {FailedMessageId = ie.Current.Document.UniqueMessageId};
-                    message.SetHeader("RequestedAt", Bus.CurrentMessageContext.Headers["RequestedAt"]);
 
                     Bus.SendLocal(retryMessage);
                 }

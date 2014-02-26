@@ -9,13 +9,14 @@ namespace ServiceControl.CompositeViews.Endpoints
         public KnownEndpointIndex()
         {
             Map = messages => from message in messages
-                              select new
+                              select new KnownEndpoint
                               {
-                                  message.Id,
-                                  message.Name,
-                                  message.HostDisplayName,
-                                  MonitorHeartbeats = message.MonitorHeartbeat,
+                                  Name = message.Name,
+                                  HostDisplayName = message.HostDisplayName,
+                                  MonitorHeartbeat = message.MonitorHeartbeat,
                               };
+
+            DisableInMemoryIndexing = true;
         }
     }
 

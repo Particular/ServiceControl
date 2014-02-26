@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using InternalMessages;
@@ -24,13 +23,9 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                var requestedAt = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow);
-
                 foreach (var id in ids)
                 {
                     var request = new ArchiveMessage { FailedMessageId = id };
-
-                    request.SetHeader("RequestedAt", requestedAt);
 
                     Bus.SendLocal(request); 
                 }
@@ -49,7 +44,6 @@
 
                 Bus.SendLocal<ArchiveMessage>(m =>
                 {
-                    m.SetHeader("RequestedAt", DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow));
                     m.FailedMessageId = failedMessageId;
                 });
 

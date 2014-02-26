@@ -29,6 +29,8 @@ namespace ServiceControl.MessageFailures.Api
                 TimeSent = (DateTime)metadata["TimeSent"],
                 ReceivingEndpointName = ((EndpointDetails)metadata["ReceivingEndpoint"]).Name,
             };
+
+            DisableInMemoryIndexing = true;
         }
     }
 }

@@ -37,8 +37,8 @@
             Assert.NotNull(auditedMessage);
 
             Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, auditedMessage.InvokedSagas.Single().SagaType);
-            Assert.AreEqual(context.SagaId, auditedMessage.InvokedSagas.Single().SagaId);
-
+            Assert.AreEqual(context.SagaId, auditedMessage.InvokedSagas.First().SagaId);
+            Assert.AreEqual("New", auditedMessage.InvokedSagas.First().ChangeStatus);
         }
 
         public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder

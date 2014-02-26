@@ -51,11 +51,13 @@
         {
             using (var session = Store.OpenSession())
             {
+                
                 RavenQueryStatistics stats;
-                var results = session.Query<Heartbeat>()
+                var results = session.Query<Heartbeat, HeartbeatsIndex>()
                     .Statistics(out stats)
                   .ToArray();
 
+                // TODO: this only goes through one page of the results. Do we need to use the stream API here instead?
                 foreach (var result in results)
                 {
                     if (result.ReportedStatus == Status.Beating && !IsActive(result.LastReportAt))
