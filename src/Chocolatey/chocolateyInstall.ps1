@@ -2,7 +2,7 @@
 $packageName = "ServiceControl"
 $url = "https://github.com/Particular/ServiceControl/releases/download/SemVer/Particular.ServiceControl-SemVer.exe"
 
-  try {
+try {
 
     $chocTempDir = Join-Path $env:TEMP "chocolatey"
     $tempDir = Join-Path $chocTempDir "$packageName"
@@ -11,7 +11,7 @@ $url = "https://github.com/Particular/ServiceControl/releases/download/SemVer/Pa
     $logFile = Join-Path $tempDir "msiexe.log"
 
 	If (Test-Path $logFile){
-		Remove-Item $strFileName
+		Remove-Item $logFile
 	}
 
     Get-ChocolateyWebFile $packageName $file $url 
@@ -20,7 +20,7 @@ $url = "https://github.com/Particular/ServiceControl/releases/download/SemVer/Pa
     Start-ChocolateyProcessAsAdmin "$msiArguments" $file -validExitCodes 0
 
     Write-ChocolateySuccess $packageName
-  } catch {
-    Write-ChocolateyFailure $packageName $($_.Exception.Message)
-    throw
-  }
+} catch {
+	Write-ChocolateyFailure $packageName $($_.Exception.Message)
+	throw
+}
