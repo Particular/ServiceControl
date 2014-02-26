@@ -29,7 +29,7 @@
         public void RegisterResult(ReportCustomCheckResult message, IDictionary<string, string> headers)
         {
             var originatingEndpoint = EndpointDetails.SendingEndpoint(headers);
-            var key = DeterministicGuid.MakeId(message.CustomCheckId, originatingEndpoint.Name, originatingEndpoint.Machine);
+            var key = DeterministicGuid.MakeId(message.CustomCheckId, originatingEndpoint.Name, originatingEndpoint.Host);
             var publish = false;
 
             registeredCustomChecks.AddOrUpdate(key,

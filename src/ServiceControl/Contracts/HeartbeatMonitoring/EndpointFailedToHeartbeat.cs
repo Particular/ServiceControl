@@ -6,7 +6,7 @@ namespace ServiceControl.Contracts.HeartbeatMonitoring
     public class EndpointFailedToHeartbeat : IEvent
     {
         public string Endpoint { get; set; }
-        public string Machine { get; set; }
+        public Guid HostId { get; set; }
         public DateTime LastReceivedAt { get; set; }
     }
 }

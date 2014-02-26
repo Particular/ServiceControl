@@ -11,7 +11,7 @@
             Description(m => "Endpoint has failed to send expected heartbeat to ServiceControl. It is possible that the endpoint could be down or is unresponsive. If this condition persists, you might want to restart your endpoint.");
 
             RelatesToEndpoint(m => m.Endpoint);
-            RelatesToMachine(m => m.Machine);
+            RelatesToHost(m => m.HostId.ToString());
 
             RaisedAt(m => m.LastReceivedAt);
         }

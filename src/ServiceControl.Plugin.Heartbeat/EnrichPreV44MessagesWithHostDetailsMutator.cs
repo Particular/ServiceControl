@@ -4,17 +4,17 @@ namespace ServiceControl.Plugin.Heartbeat
     using NServiceBus;
     using NServiceBus.MessageMutator;
 
-    class EnrichPreV44MessagesWithHostDetailsMutator:IMutateIncomingTransportMessages,INeedInitialization
+    class EnrichPreV44MessagesWithHostDetailsMutator : IMutateIncomingTransportMessages, INeedInitialization
     {
         public void MutateIncoming(TransportMessage transportMessage)
         {
-            if (transportMessage.Headers.ContainsKey(Headers.HostId))
+            if (transportMessage.Headers.ContainsKey("$.diagnostics.hostid"))
             {
                 return;
             }
 
-            transportMessage.Headers[Headers.HostId] = HostInformation.HostId.ToString("N");
-            transportMessage.Headers[Headers.HostDisplayName] = HostInformation.DisplayName;
+            transportMessage.Headers["$.diagnostics.hostid"] = HostInformation.HostId.ToString("N");
+            transportMessage.Headers["$.diagnostics.hostdisplayname"] = HostInformation.DisplayName;
         }
 
         HostInformation HostInformation
@@ -40,7 +40,7 @@ namespace ServiceControl.Plugin.Heartbeat
                 return;
             }
 
-            Configure.Component<EnrichPreV44MessagesWithHostDetailsMutator>(DependencyLifecycle.SingleInstance);    
+            Configure.Component<EnrichPreV44MessagesWithHostDetailsMutator>(DependencyLifecycle.SingleInstance);
         }
     }
 }

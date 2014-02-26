@@ -14,7 +14,7 @@
 
         public void Handle(RegisterEndpoint message)
         {
-            var machine = message.Endpoint.Machine;
+            var machine = message.Endpoint.Host;
             var endpointName = message.Endpoint.Name;
             var id = DeterministicGuid.MakeId(endpointName, machine);
 

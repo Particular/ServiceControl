@@ -10,7 +10,7 @@
             Description(m => "Endpoint heartbeats have been restored.");
 
             RelatesToEndpoint(m => m.Endpoint);
-            RelatesToMachine(m => m.Machine);
+            RelatesToHost(m => m.HostId.ToString());
 
             RaisedAt(m => m.RestoredAt);
         }

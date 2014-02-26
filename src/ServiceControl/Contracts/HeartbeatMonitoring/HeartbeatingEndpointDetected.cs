@@ -6,7 +6,7 @@
     public class HeartbeatingEndpointDetected : IEvent
     {
         public string Endpoint { get; set; }
-        public string Machine { get; set; }
+        public Guid HostId { get; set; }
         public DateTime DetectedAt { get; set; }
     }
 }

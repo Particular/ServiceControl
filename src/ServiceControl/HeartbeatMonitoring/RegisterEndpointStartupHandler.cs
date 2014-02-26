@@ -15,7 +15,6 @@
             Bus.Publish<EndpointStarted>(e =>
             {
                 e.HostId = message.HostId;
-                e.HostDisplayName = message.HostDisplayName;
                 e.Endpoint = message.Endpoint;
                 e.StartedAt = message.StartedAt;
             });

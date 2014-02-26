@@ -5,6 +5,8 @@
 
     public class ImportMessage : IMessage
     {
+        const string Separator = " ";
+
         protected ImportMessage(TransportMessage message)
         {
             UniqueMessageId = message.UniqueId();
@@ -16,7 +18,7 @@
             {
                 {"MessageId", message.Id},
                 {"MessageIntent", message.MessageIntent},
-                {"HeadersForSearching", string.Join(" ",message.Headers.Values)}
+                {"HeadersForSearching", string.Join(Separator, message.Headers.Values)}
             };
 
             //add basic message metadata

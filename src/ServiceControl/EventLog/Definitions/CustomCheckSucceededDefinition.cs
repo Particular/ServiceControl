@@ -11,7 +11,7 @@
             RelatesToCustomCheck(m => m.CustomCheckId);
 
             RelatesToEndpoint(m => m.OriginatingEndpoint.Name);
-            RelatesToMachine(m => m.OriginatingEndpoint.Machine);
+            RelatesToMachine(m => m.OriginatingEndpoint.Host);
 
             RaisedAt(m => m.SucceededAt);
         }

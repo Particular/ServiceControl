@@ -6,7 +6,7 @@ namespace ServiceControl.Contracts.HeartbeatMonitoring
     public class EndpointHeartbeatRestored : IEvent
     {
         public string Endpoint { get; set; }
-        public string Machine { get; set; }
+        public Guid HostId { get; set; }
         public DateTime RestoredAt { get; set; }
     }
 }

@@ -16,10 +16,10 @@
             var endpointDetails = new EndpointDetails
             {
                 Name = message.Endpoint,
-                Machine = message.Machine
+                HostId = message.HostId
             };
 
-            var id = endpointDetails.Name + endpointDetails.Machine;
+            var id = endpointDetails.Name + endpointDetails.Host;
 
             if (KnownEndpointsCache.TryAdd(id))
             {

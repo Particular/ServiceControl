@@ -16,12 +16,8 @@
             MessageIntent = message.MessageIntent;
         }
 
-       
-
         public string MessageId { get; set; }
-
-       public byte[] Body { get; set; }
-
+        public byte[] Body { get; set; }
         public Dictionary<string, string> Headers { get; set; }
         public string ReplyToAddress { get; set; }
         public string CorrelationId { get; set; }

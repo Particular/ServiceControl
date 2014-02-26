@@ -14,7 +14,7 @@
             var facets = new List<Facet>
             {
                 new Facet {Name = "Name", DisplayName="Endpoints"},
-                new Facet {Name = "Machine", DisplayName = "Machines"},
+                new Facet {Name = "Host", DisplayName = "Hosts"},
                 new Facet {Name = "MessageType", DisplayName = "Message types"},
             };
 

@@ -36,15 +36,24 @@ namespace ServiceControl.Plugin
         static HostInformation GenerateHostinfoForPreV44Endpoints()
         {
             var commandLine = Environment.CommandLine;
+            var commandLineParts = commandLine.Split('"');
+            var fullPathToStartingExe = String.Empty;
 
-            var fullPathToStartingExe = commandLine.Split('"')[1];
+            if (commandLineParts.Length > 1)
+            {
+                fullPathToStartingExe = commandLineParts[1];
+            }
+            else if (commandLineParts.Length == 1)
+            {
+                fullPathToStartingExe = commandLineParts[0];
+            }
 
             var hostId = DeterministicGuid.MakeId(fullPathToStartingExe, Environment.MachineName);
 
             return new HostInformation
             {
                 HostId = hostId,
-                DisplayName = String.Format("{0}", fullPathToStartingExe),
+                DisplayName = Environment.MachineName,
                 Properties = new Dictionary<string, string>
                 {
                     {"Machine", Environment.MachineName},
@@ -53,8 +62,6 @@ namespace ServiceControl.Plugin
                     {"CommandLine", Environment.CommandLine}
                 }
             };
-
-
         }
     }
 

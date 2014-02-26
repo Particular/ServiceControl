@@ -31,13 +31,10 @@
             {
                 heartbeatInterval = TimeSpan.Parse(interval);
             }
-
             
             var hostInfo = HostInformationRetriever.RetrieveHostInfo();
 
-
             SendStartupMessageToBackend(hostInfo);
-
 
             heartbeatTimer = new Timer(ExecuteHeartbeat, hostInfo.HostId, TimeSpan.Zero, heartbeatInterval);
         }
