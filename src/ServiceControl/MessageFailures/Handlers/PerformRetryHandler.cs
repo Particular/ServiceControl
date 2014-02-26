@@ -27,6 +27,12 @@
                 throw new ArgumentException("Can't find the failed message with id: " + message.FailedMessageId);
             }
 
+            if (failedMessage.Status != FailedMessageStatus.Unresolved)
+            {
+                // We only retry messages that are unresolved
+                return;
+            }
+
             var attempt = failedMessage.ProcessingAttempts.Last();
 
             var originalHeaders = attempt.Headers;
@@ -52,7 +58,6 @@
                 Forwarder.Send(transportMessage, message.TargetEndpointAddress);
             }
         }
-
 
         static byte[] ReadFully(Stream input)
         {
