@@ -57,7 +57,7 @@
 
         protected void RelatesToMachine(Func<T, string> relatedTo)
         {
-            relatedToLinks.Add(m => string.Format("/machine/{0}", relatedTo(m)));
+            relatedToLinks.Add(m => string.Format("/host/{0}", relatedTo(m)));
         }
 
         protected void RelatesToCustomCheck(Func<T, string> relatedTo)
