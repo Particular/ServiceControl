@@ -10,5 +10,6 @@ namespace ServiceControl.SagaAudit
         public string OriginatingMachine { get; set; }
         public DateTime TimeSent { get; set; }
         public string MessageType { get; set; }
+        public string Intent { get; set; }
     }
 }

@@ -57,6 +57,7 @@
             var originatingMachine = headers[Headers.OriginatingMachine];
             var originatingEndpoint = headers[Headers.OriginatingEndpoint];
             var timeSent = DateTimeExtensions.ToUtcDateTime(headers[Headers.TimeSent]);
+            var intent = headers.ContainsKey(Headers.MessageIntent) ? headers[Headers.MessageIntent] : "Send"; // Just in case the received message is from an early version that does not have intent, should be a rare occasion.
 
             sagaAudit.Initiator = new SagaChangeInitiator
                 {
@@ -66,6 +67,7 @@
                     OriginatingEndpoint = originatingEndpoint,
                     MessageType = context.LogicalMessage.MessageType.FullName,
                     TimeSent = timeSent,
+                    Intent = intent
                 };
             sagaAudit.IsNew = activeSagaInstance.IsNew;
             sagaAudit.IsCompleted = saga.Completed;

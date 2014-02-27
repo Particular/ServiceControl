@@ -10,5 +10,6 @@ namespace ServiceControl.EndpointPlugin.Messages.SagaState
         public TimeSpan? DeliveryDelay { get; set; }
         public string Destination { get; set; }
         public string ResultingMessageId { get; set; }
+        public string Intent { get; set; }
     }
 }

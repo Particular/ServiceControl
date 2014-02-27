@@ -10,6 +10,7 @@ namespace ServiceControl.EndpointPlugin.Messages.SagaState
         public DateTime TimeSent { get; set; }
         public string OriginatingMachine { get; set; }
         public string OriginatingEndpoint { get; set; }
+        public string Intent { get; set; }
     }
 
 }
