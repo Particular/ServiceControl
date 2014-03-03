@@ -65,10 +65,6 @@
 
         public void Handle(RetryMessage message)
         {
-            if (Data.Resolved)
-            {
-                return;
-            }
             //do not allow retries if we have other retries in progress
             if (Data.RetryAttempts.Any(a => !a.Completed))
             {
@@ -91,22 +87,11 @@
                 TargetEndpointAddress = Data.ProcessingAttempts.Last().AddressOfFailingEndpoint,
                 RetryId = retryId
             });
-
         }
 
         public void Handle(RegisterSuccessfulRetry message)
         {
-            if (Data.Resolved)
-            {
-                return;
-            }
-
-            var attempt = Data.RetryAttempts.Single(r => r.Id == message.RetryId);
-
-
-            attempt.Completed = true;
-
-            Data.Resolved = true;
+            MarkAsComplete();
 
             Bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = Data.FailedMessageId);
         }
@@ -126,8 +111,6 @@
 
             public List<RetryAttempt> RetryAttempts { get; set; }
 
-            public bool Resolved { get; set; }
-
             public class FailedProcessingAttempt
             {
                 public DateTime AttemptedAt { get; set; }
@@ -145,7 +128,6 @@
             }
 
         }
-
 
         public override void ConfigureHowToFindSaga()
         {

@@ -35,7 +35,6 @@
 
             var newChange = sagaHistory.Changes.Single(x => x.Status == SagaStateChangeStatus.New);
             Assert.AreEqual(typeof(StartSagaMessage).FullName, newChange.InitiatingMessage.MessageType);
-
         }
 
         public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder

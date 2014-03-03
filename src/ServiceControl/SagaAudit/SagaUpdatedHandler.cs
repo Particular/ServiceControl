@@ -62,6 +62,7 @@
                     OriginatingMachine = initiator.OriginatingMachine,
                     TimeSent = initiator.TimeSent,
                     MessageType = initiator.MessageType,
+                    Intent = initiator.Intent,
                 };
         }
 
@@ -81,6 +82,7 @@
                 resultingMessage.DeliveryDelay = toAdd.DeliveryDelay;
                 resultingMessage.DeliverAt = toAdd.DeliveryAt;
                 resultingMessage.Destination = toAdd.Destination;
+                resultingMessage.Intent = toAdd.Intent;
             }
         }
     }

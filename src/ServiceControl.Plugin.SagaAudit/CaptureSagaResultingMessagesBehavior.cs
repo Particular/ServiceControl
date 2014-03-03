@@ -39,7 +39,7 @@
                 return;
             }
             var logicalMessage = messages.First();
-
+            
             var sagaResultingMessage = new SagaChangeOutput
                 {
                     ResultingMessageId = context.MessageToSend.Id,
@@ -47,7 +47,8 @@
                     MessageType = logicalMessage.MessageType.ToString(),
                     DeliveryDelay = context.SendOptions.DelayDeliveryWith,
                     DeliveryAt = context.SendOptions.DeliverAt,
-                    Destination = GetDestination(context)
+                    Destination = GetDestination(context),
+                    Intent = context.SendOptions.Intent.ToString()
                 };
             sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);
         }
