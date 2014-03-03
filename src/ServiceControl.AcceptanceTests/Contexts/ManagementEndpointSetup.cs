@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts
 {
     using System.IO;
+    using System.Reflection;
     using NLog;
     using NLog.Config;
     using NLog.Targets;
@@ -17,6 +18,28 @@
         {
             var c = new EndpointConfig();
             c.Init();
+
+            //We need this hack here because by default we include all assemblies minus Plugins but for these tests we need to exclude other tests!
+            for (var index = 0; index < Configure.TypesToScan.Count;)
+            {
+                var type = Configure.TypesToScan[index];
+
+                if (type.Assembly != Assembly.GetExecutingAssembly())
+                {
+                    index++;
+                    continue;
+                }
+
+                if (!(type.DeclaringType == endpointConfiguration.BuilderType.DeclaringType ||
+                      type.DeclaringType == endpointConfiguration.BuilderType))
+                {
+                    Configure.TypesToScan.RemoveAt(index);
+                }
+                else
+                {
+                    index++;
+                }
+            }
 
             SetupLogging(endpointConfiguration);
 
