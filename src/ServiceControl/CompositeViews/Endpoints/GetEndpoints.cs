@@ -48,6 +48,7 @@ namespace ServiceControl.CompositeViews.Endpoints
                                 Name = knownEndpoint.Name,
                                 HostDisplayName = knownEndpoint.HostDisplayName,
                                 MonitorHeartbeat = knownEndpoint.MonitorHeartbeat,
+                                LicenseStatus = "valid" //TODO: read from inmemory dictionary
                             };
 
                             session.Advanced.Lazily.Load<Heartbeat>(knownEndpoint.Id,
@@ -59,7 +60,7 @@ namespace ServiceControl.CompositeViews.Endpoints
                                     }
 
                                     view.HeartbeatInformation =
-                                        new HeartbeatInformation()
+                                        new HeartbeatInformation
                                         {
                                             LastReportAt = heartbeat.LastReportAt,
                                             ReportedStatus = heartbeat.ReportedStatus
