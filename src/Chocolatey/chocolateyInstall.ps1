@@ -1,6 +1,17 @@
 ﻿
 $packageName = "ServiceControl"
+
+$url = gci -path "c:\ChocolateyResourceCache" -Filter "Particular.ServiceControl-*.exe" | select -first 1
+
+if($url){
+	$url = $url | Select -expandProperty FullName
+	"$url" 
+}
+else{
 $url = "https://github.com/Particular/ServiceControl/releases/download/SemVer/Particular.ServiceControl-SemVer.exe"
+}
+
+
 
 try {
 
