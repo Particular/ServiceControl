@@ -24,7 +24,7 @@
                 Id = string.Format("EventLogItem/{0}/{1}/{2}", Category, typeof(T).Name, Headers.GetMessageHeader(@event, Headers.MessageId)),
                 Category = Category,
                 RaisedAt = raisedAtFunc(eventMessage),
-                Description =descriptionFunc(eventMessage),
+                Description = descriptionFunc(eventMessage),
                 Severity = severityFunc(eventMessage),
                 EventType = typeof(T).Name,
                 RelatedTo = relatedToLinks.Select(f => f(eventMessage)).ToList()
@@ -60,7 +60,7 @@
             relatedToLinks.Add(m => string.Format("/machine/{0}", relatedTo(m)));
         }
 
-        protected void RelatesToHost(Func<T, string> relatedTo)
+        protected void RelatesToHost(Func<T, Guid> relatedTo)
         {
             relatedToLinks.Add(m => string.Format("/host/{0}", relatedTo(m)));
         }

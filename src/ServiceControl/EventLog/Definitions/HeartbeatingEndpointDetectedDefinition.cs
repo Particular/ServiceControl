@@ -6,10 +6,10 @@
     {
         public HeartbeatingEndpointDetectedDefinition()
         {
-            Description(m => string.Format("Endpoint {0} running on machine {1} has been confirmed to have heartbeats enabled", m.Endpoint, m.HostId));
+            Description(m => string.Format("Endpoint {0} running on host {1} has been confirmed to have heartbeats enabled", m.EndpointDetails.Name, m.EndpointDetails.Host));
 
-            RelatesToEndpoint(m => m.Endpoint);
-            RelatesToHost(m => m.HostId.ToString());
+            RelatesToEndpoint(m => m.EndpointDetails.Host);
+            RelatesToHost(m => m.EndpointDetails.HostId);
 
             RaisedAt(m => m.DetectedAt);
         }

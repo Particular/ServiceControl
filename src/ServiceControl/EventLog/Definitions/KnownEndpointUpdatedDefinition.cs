@@ -9,7 +9,7 @@
             Description(m => "Endpoint configuration updated.");
 
             RelatesToEndpoint(m => m.Name);
-            RelatesToMachine(m => m.HostDisplayName);
+            RelatesToHost(m => m.HostId);
         }
 
         public override string Category

@@ -29,6 +29,8 @@
         public void RegisterResult(ReportCustomCheckResult message, IDictionary<string, string> headers)
         {
             var originatingEndpoint = EndpointDetails.SendingEndpoint(headers);
+            originatingEndpoint.HostId = message.HostId;
+
             var key = DeterministicGuid.MakeId(message.CustomCheckId, originatingEndpoint.Name, originatingEndpoint.Host);
             var publish = false;
 

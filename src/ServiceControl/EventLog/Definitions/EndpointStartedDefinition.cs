@@ -6,10 +6,10 @@
     {
         public EndpointStartedDefinition()
         {
-            Description(m => string.Format("Endpoint '{0}' started at: {1} Host: {2}", m.Endpoint, m.StartedAt, m.HostId));
+            Description(m => string.Format("Endpoint '{0}' started at {1} on host {2}", m.Endpoint, m.StartedAt, m.HostId));
 
             RelatesToEndpoint(m => m.Endpoint);
-            RelatesToHost(m => m.HostId.ToString());
+            RelatesToHost(m => m.HostId);
 
             RaisedAt(m => m.StartedAt);
         }

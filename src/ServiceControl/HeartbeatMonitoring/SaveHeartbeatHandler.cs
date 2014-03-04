@@ -17,7 +17,7 @@
         public void Handle(EndpointHeartbeat message)
         {
             var originatingEndpoint = EndpointDetails.SendingEndpoint(Bus.CurrentMessageContext.Headers);
-            var id = DeterministicGuid.MakeId(message.Endpoint, message.HostId.ToString());
+            var id = DeterministicGuid.MakeId(message.Endpoint, originatingEndpoint.Host);
             Heartbeat heartbeat = null;
             KnownEndpoint knownEndpoint = null;
 
@@ -61,10 +61,9 @@
             {
                 Bus.Publish(new HeartbeatingEndpointDetected
                 {
-                    Endpoint = heartbeat.Endpoint,
-                    HostId = heartbeat.HostId,
+                    EndpointDetails = originatingEndpoint,
                     DetectedAt = heartbeat.LastReportAt,
-                });
+                });             
             }
 
             if (heartbeat.ReportedStatus == Status.Dead)
