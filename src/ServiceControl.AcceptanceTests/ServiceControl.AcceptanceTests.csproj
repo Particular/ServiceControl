@@ -115,6 +115,7 @@
     <Compile Include="SagaAudit\When_a_message_hitting_a_saga_is_audited.cs" />
     <Compile Include="When_a_message_is_imported_twice.cs" />
     <Compile Include="When_a_message_has_been_successfully_processed.cs" />
+    <Compile Include="When_messages_are_received.cs" />
     <Compile Include="When_signalr_receives_a_message.cs" />
   </ItemGroup>
   <ItemGroup>

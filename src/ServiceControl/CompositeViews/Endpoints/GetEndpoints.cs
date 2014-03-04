@@ -7,6 +7,7 @@ namespace ServiceControl.CompositeViews.Endpoints
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
+    using Operations;
     using Raven.Abstractions.Data;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -14,6 +15,8 @@ namespace ServiceControl.CompositeViews.Endpoints
     public class GetEndpoints : BaseModule
     {
         public IBus Bus { get; set; }
+
+        public LicenseStatusKeeper LicenseStatusKeeper { get; set; }
 
         public GetEndpoints()
         {
@@ -48,7 +51,7 @@ namespace ServiceControl.CompositeViews.Endpoints
                                 Name = knownEndpoint.Name,
                                 HostDisplayName = knownEndpoint.HostDisplayName,
                                 MonitorHeartbeat = knownEndpoint.MonitorHeartbeat,
-                                LicenseStatus = "valid" //TODO: read from inmemory dictionary
+                                LicenseStatus = LicenseStatusKeeper.Get(knownEndpoint.Name + knownEndpoint.HostDisplayName)
                             };
 
                             session.Advanced.Lazily.Load<Heartbeat>(knownEndpoint.Id,
