@@ -1,32 +1,32 @@
 namespace ServiceControl.Operations
 {
-    using System;
+    using System.Collections.Generic;
     using Contracts.Operations;
-    using NServiceBus;
-
+ 
     public class UpdateLicenseEnricher : ImportEnricher
     {
         public LicenseStatusKeeper LicenseStatusKeeper { get; set; }
 
         public override void Enrich(ImportMessage message)
-        {
-            string expiresin;
-            if (!message.PhysicalMessage.Headers.TryGetValue("$.diagnostics.licenseexpires", out expiresin))
-            {
-                return;
-            }
-            
-            var expired = DateTimeExtensions.ToUtcDateTime(expiresin);
-            var status = "valid";
-            
-            if (expired <= DateTime.UtcNow)
-            {
-                status = "expired";
-            }
+        {   
+            var status = GetLicenseStatus(message.PhysicalMessage.Headers);
+            if (string.IsNullOrEmpty(status)) return;
 
             var endpoint = EndpointDetails.ReceivingEndpoint(message.PhysicalMessage.Headers);
-
             LicenseStatusKeeper.Set(endpoint.Name + endpoint.Machine, status);
+        }
+
+        public string GetLicenseStatus(Dictionary<string,string> headers)
+        {   
+            string expired;
+            if (!headers.TryGetValue("$.diagnostics.license.expired", out expired))
+            {
+                return string.Empty;
+            }
+            bool hasLicenseExpired;
+            bool.TryParse(expired, out hasLicenseExpired);
+            
+            return hasLicenseExpired ? "expired" : "valid";
         }
     }
 }
