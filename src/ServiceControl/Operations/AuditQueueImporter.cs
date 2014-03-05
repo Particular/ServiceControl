@@ -24,8 +24,6 @@ namespace ServiceControl.Operations
 
     internal class AuditQueueImporter : IWantToRunWhenBusStartsAndStops
     {
-        SatelliteImportFailuresHandler importFailuresHandler;
-
         public AuditQueueImporter(IDocumentStore store, IBuilder builder, IDequeueMessages receiver)
         {
             this.store = store;
@@ -148,7 +146,8 @@ namespace ServiceControl.Operations
                         Logger.Error("Error processing message.", ex);
                         return true;
                     });
-                }, TaskContinuationOptions.OnlyOnFaulted); ;
+                }, TaskContinuationOptions.OnlyOnFaulted);
+            ;
 
             return true;
         }
@@ -177,7 +176,7 @@ namespace ServiceControl.Operations
 
         void TryAddEndpoint(EndpointDetails endpointDetails)
         {
-            var id = endpointDetails.Name + endpointDetails.Machine;
+            var id = endpointDetails.Name + endpointDetails.Host;
 
             if (KnownEndpointsCache.TryAdd(id))
             {
@@ -304,6 +303,7 @@ namespace ServiceControl.Operations
         readonly IBuilder builder;
         readonly CountDownEvent countDownEvent = new CountDownEvent();
         readonly bool enabled;
+        readonly SatelliteImportFailuresHandler importFailuresHandler;
         readonly object lockObj = new object();
         readonly MsmqAuditImporterPerformanceCounters performanceCounters = new MsmqAuditImporterPerformanceCounters();
         readonly TimeSpan receiveTimeout = TimeSpan.FromSeconds(1);

@@ -14,7 +14,7 @@
 
         public void Handle(RegisterEndpoint message)
         {
-            var machine = message.Endpoint.Machine;
+            var machine = message.Endpoint.Host;
             var endpointName = message.Endpoint.Name;
             var id = DeterministicGuid.MakeId(endpointName, machine);
 
@@ -31,8 +31,7 @@
                     //new endpoint
                     Bus.Publish(new NewEndpointDetected
                     {
-                        Endpoint = endpointName,
-                        Machine = machine,
+                        Endpoint = message.Endpoint,
                         DetectedAt = message.DetectedAt
                     });
 
@@ -40,7 +39,8 @@
                     {
                         Id = id,
                         Name = endpointName, 
-                        HostDisplayName = machine
+                        HostDisplayName = machine,
+                        HostId = message.Endpoint.HostId
                     };
 
                     session.Store(knownEndpoint);

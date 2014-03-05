@@ -24,7 +24,7 @@
                 Id = string.Format("EventLogItem/{0}/{1}/{2}", Category, typeof(T).Name, Headers.GetMessageHeader(@event, Headers.MessageId)),
                 Category = Category,
                 RaisedAt = raisedAtFunc(eventMessage),
-                Description =descriptionFunc(eventMessage),
+                Description = descriptionFunc(eventMessage),
                 Severity = severityFunc(eventMessage),
                 EventType = typeof(T).Name,
                 RelatedTo = relatedToLinks.Select(f => f(eventMessage)).ToList()
@@ -60,6 +60,11 @@
             relatedToLinks.Add(m => string.Format("/machine/{0}", relatedTo(m)));
         }
 
+        protected void RelatesToHost(Func<T, Guid> relatedTo)
+        {
+            relatedToLinks.Add(m => string.Format("/host/{0}", relatedTo(m)));
+        }
+
         protected void RelatesToCustomCheck(Func<T, string> relatedTo)
         {
             relatedToLinks.Add(m => string.Format("/customcheck/{0}", relatedTo(m)));
@@ -80,7 +85,7 @@
             severityFunc = severity;
         }
 
-        List<Func<T, string>> relatedToLinks = new List<Func<T,string>>();
+        readonly List<Func<T, string>> relatedToLinks = new List<Func<T,string>>();
         Func<T, string> descriptionFunc = m =>  m.ToString();
         Func<T, Severity> severityFunc = arg => EventLog.Severity.Info;
 

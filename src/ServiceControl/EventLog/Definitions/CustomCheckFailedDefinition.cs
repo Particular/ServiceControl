@@ -11,7 +11,7 @@
             Description(m=> string.Format("{0}: {1}", m.CustomCheckId, m.FailureReason));
 
             RelatesToEndpoint(m => m.OriginatingEndpoint.Name);
-            RelatesToMachine(m => m.OriginatingEndpoint.Machine);
+            RelatesToHost(m => m.OriginatingEndpoint.HostId);
 
             RaisedAt(m => m.FailedAt);
         }

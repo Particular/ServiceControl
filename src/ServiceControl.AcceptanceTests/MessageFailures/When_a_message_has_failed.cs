@@ -101,7 +101,7 @@
                 .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name))
                 .Run();
 
-            Assert.AreEqual(entry.Severity,entry.Severity, "Failures shoudl be treated as errors");
+            Assert.AreEqual(Severity.Error,entry.Severity, "Failures shoudl be treated as errors");
             Assert.IsTrue(entry.Description.Contains("exception"), "For failed messages, the description should contain the exception information");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/message/" + context.UniqueMessageId), "Should contain the api url to retrieve additional details about the failed message");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), "Should contain the api url to retrieve additional details about the endpoint where the message failed");

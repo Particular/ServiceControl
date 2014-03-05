@@ -4,13 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6526946E-5299-441A-9EC7-C85306FB5F51}</ProjectGuid>
+    <ProjectGuid>{33DF70EF-9434-49A2-93ED-2387020CE388}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceControl.Plugin.CustomChecks</RootNamespace>
-    <AssemblyName>ServiceControl.Plugin.CustomChecks</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <RootNamespace>ServiceControl.Heartbeats.Sample</RootNamespace>
+    <AssemblyName>ServiceControl.Heartbeats.Sample</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NServiceBus">
@@ -36,35 +39,31 @@
     <Reference Include="NServiceBus.Core">
       <HintPath>..\packages\NServiceBus\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
+    <Reference Include="NServiceBus.Host">
+      <HintPath>..\packages\NServiceBus.Host\lib\net40\NServiceBus.Host.exe</HintPath>
+    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\ServiceControl.Plugin.Heartbeat\HostInformationRetriever.cs">
-      <Link>HostInformationRetriever.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\ReportCustomCheckResult.cs">
-      <Link>Messages\ReportCustomCheckResult.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceControl.Plugin.Shared\ServiceControlBackend.cs">
-      <Link>ServiceControlBackend.cs</Link>
-    </Compile>
-    <Compile Include="CustomCheck.cs" />
-    <Compile Include="Internal\InitializeCustomChecks.cs" />
-    <Compile Include="Internal\TimerBasedPeriodicCheck.cs" />
-    <Compile Include="PeriodicCheck.cs" />
-    <Compile Include="Internal\PeriodicCheckMonitor.cs" />
-    <Compile Include="Internal\ICustomCheck.cs" />
-    <Compile Include="Internal\IPeriodicCheck.cs" />
+    <Compile Include="EndpointConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ripple.dependencies.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
-  <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Plugin.Heartbeat\ServiceControl.Plugin.Heartbeat.csproj">
+      <Project>{842c0a62-348b-4e78-b9f1-ec931cddd562}</Project>
+      <Name>ServiceControl.Plugin.Heartbeat</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(ProjectDir)$(OutputPath)NServiceBus.Host.exe</StartProgram>
+  </PropertyGroup>
 </Project>

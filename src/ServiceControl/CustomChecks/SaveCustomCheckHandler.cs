@@ -15,7 +15,7 @@
         {
             var originatingEndpoint = EndpointDetails.SendingEndpoint(Bus.CurrentMessageContext.Headers);
             var id = DeterministicGuid.MakeId(message.CustomCheckId, originatingEndpoint.Name,
-                originatingEndpoint.Machine);
+                originatingEndpoint.Host);
             var customCheck = Session.Load<CustomCheck>(id) ?? new CustomCheck
             {
                 Id = id,

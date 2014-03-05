@@ -12,6 +12,7 @@
     {
         public ServiceControlBackend ServiceControlBackend { get; set; }
 
+
         public override bool IsEnabledByDefault
         {
             get { return true; }
@@ -30,8 +31,24 @@
             {
                 heartbeatInterval = TimeSpan.Parse(interval);
             }
+            
+            var hostInfo = HostInformationRetriever.RetrieveHostInfo();
 
-            heartbeatTimer = new Timer(ExecuteHeartbeat, null, TimeSpan.Zero, heartbeatInterval);
+            SendStartupMessageToBackend(hostInfo);
+
+            heartbeatTimer = new Timer(ExecuteHeartbeat, hostInfo.HostId, TimeSpan.Zero, heartbeatInterval);
+        }
+
+        void SendStartupMessageToBackend(HostInformation hostInfo)
+        {
+            ServiceControlBackend.Send(new RegisterEndpointStartup
+            {
+                HostId = hostInfo.HostId, 
+                Endpoint = Configure.EndpointName,
+                HostDisplayName = hostInfo.DisplayName,
+                HostProperties = hostInfo.Properties,
+                StartedAt = DateTime.UtcNow
+            });
         }
 
         public void Stop()
@@ -54,14 +71,16 @@
             }
         }
 
-        void ExecuteHeartbeat(object state)
+        void ExecuteHeartbeat(object hostId)
         {
             var heartBeat = new EndpointHeartbeat
             {
-                ExecutedAt = DateTime.UtcNow
+                ExecutedAt = DateTime.UtcNow,
+                Endpoint = Configure.EndpointName,
+                HostId = (Guid)hostId
             };
 
-            ServiceControlBackend.Send(heartBeat, TimeSpan.FromTicks(heartbeatInterval.Ticks*4));
+            ServiceControlBackend.Send(heartBeat, TimeSpan.FromTicks(heartbeatInterval.Ticks * 4));
         }
 
         Timer heartbeatTimer;

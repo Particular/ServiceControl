@@ -65,8 +65,8 @@
                         result.ReportedStatus = Status.Dead;
                         bus.Publish(new EndpointFailedToHeartbeat
                         {
-                            Endpoint = result.OriginatingEndpoint.Name,
-                            Machine = result.OriginatingEndpoint.Machine,
+                            Endpoint = result.Endpoint,
+                            HostId = result.HostId,
                             LastReceivedAt = result.LastReportAt,
                         });
                         session.SaveChanges();

@@ -22,7 +22,8 @@ namespace ServiceControl.CompositeViews.Endpoints
             {
                 KnownEndpointId = message.KnownEndpointId,
                 Name = knownEndpoint.Name,
-                HostDisplayName = knownEndpoint.HostDisplayName
+                HostDisplayName = knownEndpoint.HostDisplayName,
+                HostId = knownEndpoint.HostId,
             });
         }
     }

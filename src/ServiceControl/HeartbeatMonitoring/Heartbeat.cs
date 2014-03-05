@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
-    using Contracts.Operations;
 
     public class Heartbeat
     {
         public Guid Id { get; set; }
         public DateTime LastReportAt { get; set; }
-        public EndpointDetails OriginatingEndpoint { get; set; }
+        public Guid HostId { get; set; }
+        public string Endpoint { get; set; }
         public Status ReportedStatus { get; set; }
         public string KnownEndpointId { get; set; }
     }
