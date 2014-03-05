@@ -59,7 +59,7 @@ namespace ServiceControl.CompositeViews.Endpoints
                                     }
 
                                     view.HeartbeatInformation =
-                                        new HeartbeatInformation()
+                                        new HeartbeatInformation
                                         {
                                             LastReportAt = heartbeat.LastReportAt,
                                             ReportedStatus = heartbeat.ReportedStatus

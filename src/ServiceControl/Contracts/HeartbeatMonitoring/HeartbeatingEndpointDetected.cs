@@ -2,11 +2,11 @@
 {
     using System;
     using NServiceBus;
+    using Operations;
 
     public class HeartbeatingEndpointDetected : IEvent
     {
-        public string Endpoint { get; set; }
-        public string Machine { get; set; }
+        public EndpointDetails EndpointDetails { get; set; }
         public DateTime DetectedAt { get; set; }
     }
 }

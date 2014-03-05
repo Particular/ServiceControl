@@ -11,12 +11,12 @@
 
         public void Handle(CustomCheckFailed message)
         {
-            Bus.Publish(new CustomChecksUpdated {Failed = CustomChecksComputation.CustomCheckFailed()});
+            Bus.Publish(new CustomChecksUpdated { Failed = CustomChecksComputation.CustomCheckFailed() });
         }
 
         public void Handle(CustomCheckSucceeded message)
         {
-            Bus.Publish(new CustomChecksUpdated {Failed = CustomChecksComputation.CustomCheckSucceeded()});
+            Bus.Publish(new CustomChecksUpdated { Failed = CustomChecksComputation.CustomCheckSucceeded() });
         }
     }
 }

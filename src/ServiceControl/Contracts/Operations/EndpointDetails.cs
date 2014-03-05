@@ -1,5 +1,6 @@
 namespace ServiceControl.Contracts.Operations
 {
+    using System;
     using System.Collections.Generic;
     using Infrastructure;
     using NServiceBus;
@@ -8,15 +9,19 @@ namespace ServiceControl.Contracts.Operations
     {
         public string Name { get; set; }
 
-        public string Machine { get; set; }
+        public Guid HostId { get; set; }
+
+        public string Host { get; set; }
 
         public static EndpointDetails SendingEndpoint(IDictionary<string,string> headers )
         {
             var endpointDetails = new EndpointDetails();
-            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingEndpoint, headers, s => endpointDetails.Name = s );
-            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingMachine, headers, s => endpointDetails.Machine = s);
 
-            if (!string.IsNullOrEmpty(endpointDetails.Name) && !string.IsNullOrEmpty(endpointDetails.Machine))
+            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingEndpoint, headers, s => endpointDetails.Name = s);
+            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingMachine, headers, s => endpointDetails.Host = s);
+            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingHostId, headers, s => endpointDetails.HostId = Guid.Parse(s));
+
+            if (!string.IsNullOrEmpty(endpointDetails.Name) && !string.IsNullOrEmpty(endpointDetails.Host))
             {
                 return endpointDetails;
             }
@@ -27,7 +32,7 @@ namespace ServiceControl.Contracts.Operations
             if (address != Address.Undefined)
             {
                 endpointDetails.Name = address.Queue;
-                endpointDetails.Machine = address.Machine;
+                endpointDetails.Host = address.Machine;
                 return endpointDetails;
             }
 
@@ -37,10 +42,27 @@ namespace ServiceControl.Contracts.Operations
         public static EndpointDetails ReceivingEndpoint(IDictionary<string,string> headers)
         {
             var endpoint = new EndpointDetails();
-            DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingEndpoint, headers, s => endpoint.Name = s);
-            DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingMachine, headers, s => endpoint.Machine = s);
+            string hostIdHeader;
 
-            if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Machine))
+            if (headers.TryGetValue(Headers.HostId, out hostIdHeader))
+            {
+                endpoint.HostId = Guid.Parse(hostIdHeader);
+            }
+
+            string hostDisplayNameHeader;
+
+            if (headers.TryGetValue(Headers.HostDisplayName, out hostDisplayNameHeader))
+            {
+                endpoint.Host = hostDisplayNameHeader;
+            }
+            else
+            {
+                DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingMachine, headers, s => endpoint.Host = s);                
+            }
+
+            DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingEndpoint, headers, s => endpoint.Name = s);
+
+            if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Host))
             {
                 return endpoint;
             }
@@ -54,9 +76,9 @@ namespace ServiceControl.Contracts.Operations
                 endpoint.Name = address.Queue;
             }
 
-            if (string.IsNullOrEmpty(endpoint.Machine))
+            if (string.IsNullOrEmpty(endpoint.Host))
             {
-                endpoint.Machine = address.Machine;
+                endpoint.Host = address.Machine;
             }
 
             return endpoint;

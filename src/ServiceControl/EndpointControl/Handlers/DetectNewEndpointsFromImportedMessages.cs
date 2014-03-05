@@ -19,7 +19,7 @@
 
         void TryAddEndpoint(EndpointDetails endpointDetails)
         {
-            var id = endpointDetails.Name + endpointDetails.Machine;
+            var id = endpointDetails.Name + endpointDetails.Host;
 
             if (KnownEndpointsCache.TryAdd(id))
             {

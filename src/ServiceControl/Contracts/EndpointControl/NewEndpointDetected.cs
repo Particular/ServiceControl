@@ -2,11 +2,11 @@
 {
     using System;
     using NServiceBus;
+    using Operations;
 
-    public class NewEndpointDetected:IEvent
+    public class NewEndpointDetected : IEvent
     {
         public DateTime DetectedAt { get; set; }
-        public string Endpoint { get; set; }
-        public string Machine { get; set; }
+        public EndpointDetails Endpoint { get; set; }
     }
 }

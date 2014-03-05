@@ -46,6 +46,10 @@
             Assert.AreEqual(context.MessageId, auditedMessage.MessageId);
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpoint.Name,
                 "Receiving endpoint name should be parsed correctly");
+
+            Assert.AreNotEqual(Guid.Empty, auditedMessage.ReceivingEndpoint.HostId, "Host id should be set");
+            Assert.False(string.IsNullOrEmpty(auditedMessage.ReceivingEndpoint.Host), "Host display name should be set");
+
             Assert.AreEqual(typeof(MyMessage).FullName, auditedMessage.MessageType,
                 "AuditMessage type should be set to the FullName of the message type");
             Assert.False(auditedMessage.IsSystemMessage, "AuditMessage should not be marked as a system message");

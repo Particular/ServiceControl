@@ -15,12 +15,12 @@
                 select new
                 {
                     t.Name,
-                    t.Machine,
+                    t.Host,
                     MessageType = failure.ProcessingAttempts.Last().MessageMetadata["MessageType"]
                 };
 
             Index("Name", FieldIndexing.NotAnalyzed); //to avoid lower casing
-            Index("Machine", FieldIndexing.NotAnalyzed); //to avoid lower casing
+            Index("Host", FieldIndexing.NotAnalyzed); //to avoid lower casing
             Index("MessageType", FieldIndexing.NotAnalyzed); //to avoid lower casing
 
             DisableInMemoryIndexing = true;

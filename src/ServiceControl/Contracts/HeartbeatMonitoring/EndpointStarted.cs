@@ -3,10 +3,10 @@ namespace ServiceControl.Contracts.HeartbeatMonitoring
     using System;
     using NServiceBus;
 
-    public class EndpointFailedToHeartbeat : IEvent
+    public class EndpointStarted : IEvent
     {
-        public string Endpoint { get; set; }
         public Guid HostId { get; set; }
-        public DateTime LastReceivedAt { get; set; }
+        public string Endpoint { get; set; }
+        public DateTime StartedAt { get; set; }
     }
 }

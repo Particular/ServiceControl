@@ -8,5 +8,6 @@ namespace ServiceControl.EndpointControl
         public Guid KnownEndpointId { get; set; }
         public string Name { get; set; }
         public string HostDisplayName { get; set; }
+        public Guid HostId { get; set; }
     }
 }

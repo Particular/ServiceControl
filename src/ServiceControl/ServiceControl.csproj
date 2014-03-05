@@ -206,6 +206,7 @@
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointFailedToHeartbeat.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointHeartbeatRestored.cs" />
+    <Compile Include="Contracts\HeartbeatMonitoring\EndpointStarted.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatingEndpointDetected.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
@@ -243,6 +244,7 @@
     <Compile Include="EventLog\Definitions\KnownEndpointUpdatedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailureResolvedByRetryDefinition.cs" />
+    <Compile Include="EventLog\Definitions\EndpointStartedDefinition.cs" />
     <Compile Include="EventLog\Definitions\NewEndpointDetectedDefinition.cs" />
     <Compile Include="EventLog\EventLogApiModule.cs" />
     <Compile Include="EventLog\EventLogMappingDefinition.cs" />
@@ -267,6 +269,7 @@
     <Compile Include="HeartbeatMonitoring\HeartbeatsIndex.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
     <Compile Include="HeartbeatMonitoring\RaiseHeartbeatChanges.cs" />
+    <Compile Include="HeartbeatMonitoring\RegisterEndpointStartupHandler.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
     <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />

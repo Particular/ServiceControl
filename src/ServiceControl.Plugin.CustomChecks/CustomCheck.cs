@@ -8,6 +8,14 @@
 
     public abstract class CustomCheck : ICustomCheck
     {
+
+        static CustomCheck()
+        {
+            var hostInfo = HostInformationRetriever.RetrieveHostInfo();
+
+            hostId = hostInfo.HostId;
+        }
+
         protected CustomCheck(string id, string category)
         {
             this.category = category;
@@ -39,6 +47,7 @@
         {
             Configure.Instance.Builder.Build<ServiceControlBackend>().Send(new ReportCustomCheckResult
             {
+                HostId = hostId,
                 CustomCheckId = id,
                 Category = category,
                 Result = result,
@@ -48,5 +57,7 @@
 
         readonly string category;
         readonly string id;
+        static readonly Guid hostId;
+
     }
 }
