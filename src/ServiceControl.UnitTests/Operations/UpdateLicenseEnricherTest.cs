@@ -8,25 +8,26 @@
     public class UpdateLicenseEnricherTest
     {
         [Test]
-        [TestCase(true, "expired")]
-        [TestCase(false, "valid")]
-        public void Status_Should_Be_Set_When_Header_Contains_License_Expiration(bool hasLicenseExpired, string expectedResult)
+        [TestCase("true", "expired")]
+        [TestCase("false", "valid")]
+        [TestCase("", "unknown")]
+        public void Status_Should_Be_Set_When_Header_Contains_License_Expiration(string hasLicenseExpired, string expectedResult)
         {
             var headers = new Dictionary<string, string>();
             const string hasLicenseExpiredKey = "$.diagnostics.license.expired";
-            headers.Add(hasLicenseExpiredKey, hasLicenseExpired.ToString());
+            headers.Add(hasLicenseExpiredKey, hasLicenseExpired);
             var licenseEnricher = new UpdateLicenseEnricher();
             var status = licenseEnricher.GetLicenseStatus(headers);
             Assert.IsTrue(status.Equals(expectedResult));
         }
 
         [Test]
-        public void Status_Should_Be_Empty_When_Header_Does_Not_Contain_License_Expiration()
+        public void Status_Should_Be_Unknown_When_Header_Does_Not_Contain_License_Expiration()
         {
             var headers = new Dictionary<string, string>();
             var licenseEnricher = new UpdateLicenseEnricher();
             var status = licenseEnricher.GetLicenseStatus(headers);
-            Assert.IsTrue(string.IsNullOrEmpty(status));
+            Assert.IsTrue(status.Equals("unknown"));
         }
     }
 }

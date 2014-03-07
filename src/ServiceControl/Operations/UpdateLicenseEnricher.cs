@@ -10,8 +10,6 @@ namespace ServiceControl.Operations
         public override void Enrich(ImportMessage message)
         {   
             var status = GetLicenseStatus(message.PhysicalMessage.Headers);
-            if (string.IsNullOrEmpty(status)) return;
-
             var endpoint = EndpointDetails.ReceivingEndpoint(message.PhysicalMessage.Headers);
             LicenseStatusKeeper.Set(endpoint.Name + endpoint.Machine, status);
         }
@@ -21,8 +19,14 @@ namespace ServiceControl.Operations
             string expired;
             if (!headers.TryGetValue("$.diagnostics.license.expired", out expired))
             {
-                return string.Empty;
+                return "unknown";
             }
+
+            if (string.IsNullOrEmpty(expired))
+            {
+                return "unknown";
+            }
+
             bool hasLicenseExpired;
             bool.TryParse(expired, out hasLicenseExpired);
             
