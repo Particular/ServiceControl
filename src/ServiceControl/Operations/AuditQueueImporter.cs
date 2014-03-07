@@ -147,7 +147,6 @@ namespace ServiceControl.Operations
                         return true;
                     });
                 }, TaskContinuationOptions.OnlyOnFaulted);
-            ;
 
             return true;
         }
