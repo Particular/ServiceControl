@@ -11,7 +11,7 @@ namespace ServiceControl.Operations
         {   
             var status = GetLicenseStatus(message.PhysicalMessage.Headers);
             var endpoint = EndpointDetails.ReceivingEndpoint(message.PhysicalMessage.Headers);
-            LicenseStatusKeeper.Set(endpoint.Name + endpoint.Machine, status);
+            LicenseStatusKeeper.Set(endpoint.Name + endpoint.Host, status);
         }
 
         public string GetLicenseStatus(Dictionary<string,string> headers)
