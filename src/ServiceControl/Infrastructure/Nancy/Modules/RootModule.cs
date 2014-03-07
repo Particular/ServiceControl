@@ -36,6 +36,7 @@
                         BaseUrl + "/endpoints/{name}/messages/{?page,per_page,direction,sort}",
                     Name = SettingsReader<string>.Read("Name", "Particular Management"),
                     Description = SettingsReader<string>.Read("Description", "Description for Particular Management"),
+                    LicenseStatus = "valid" // TODO: Read this value from license validator
                 };
 
 
@@ -71,6 +72,7 @@
             public string Name { get; set; }
             public string Description { get; set; }
             public string SagasUrl { get; set; }
+            public string LicenseStatus { get; set; }
         }
     }
 }

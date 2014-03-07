@@ -8,6 +8,7 @@ namespace ServiceControl.CompositeViews.Endpoints
         public string Name { get; set; }
         public string HostDisplayName { get; set; }
         public bool MonitorHeartbeat { get; set; }
+        public string LicenseStatus { get; set; }
         public HeartbeatInformation HeartbeatInformation { get; set; }
     }
 }
