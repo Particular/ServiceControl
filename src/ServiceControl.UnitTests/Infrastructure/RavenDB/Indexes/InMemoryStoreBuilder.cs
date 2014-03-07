@@ -8,14 +8,17 @@ public class InMemoryStoreBuilder
     public static EmbeddableDocumentStore GetInMemoryStore(bool withExpiration = false)
     {
         var store = new EmbeddableDocumentStore
+        {
+            Configuration =
             {
-                Configuration =
-                    {
-                        RunInUnreliableYetFastModeThatIsNotSuitableForProduction = true,
-                        RunInMemory = true
-                    }
-            };
-        store.Conventions.SaveEnumsAsIntegers = true;
+                RunInUnreliableYetFastModeThatIsNotSuitableForProduction = true,
+                RunInMemory = true
+            },
+            Conventions =
+            {
+                SaveEnumsAsIntegers = true
+            }
+        };
 
         if (withExpiration)
         {

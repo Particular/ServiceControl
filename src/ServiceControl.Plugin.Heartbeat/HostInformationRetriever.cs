@@ -23,7 +23,7 @@ namespace ServiceControl.Plugin
 
             var property = typeof(UnicastBus).GetProperty("HostInformation", hostInformationType);
 
-            object hostInfo = property.GetValue(bus, null);
+            var hostInfo = property.GetValue(bus, null);
 
             return new HostInformation
             {
