@@ -64,6 +64,7 @@
     <Compile Include="Expiration\CustomExpirationBundleTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\TestWithRavenDB.cs" />
+    <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
     <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
   </ItemGroup>
   <ItemGroup>
