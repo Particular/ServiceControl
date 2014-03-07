@@ -54,4 +54,6 @@
     <FileUpdate Files="@(InstallFile)" Regex="MajorMinorPatch" ReplacementText="$(MajorMinorPatch)" />
     <CreatePackageTask NuGetBuildDirectory="$(ProjectDir)Build" Version="$(SemVer)" TargetDir="$(SolutionDir)..\nugets" />
   </Target>
+  <Target Name="Clean">
+  </Target>
 </Project>
