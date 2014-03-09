@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointPlugin.Operations.ServiceControlBackend
+﻿namespace ServiceControl.Plugin
 {
     using System;
     using System.Configuration;

@@ -12,6 +12,7 @@
 
             RelatesToEndpoint(m => m.OriginatingEndpoint.Name);
             RelatesToHost(m => m.OriginatingEndpoint.HostId);
+            RelatesToCustomCheck(m=>m.CustomCheckId);
 
             RaisedAt(m => m.FailedAt);
         }

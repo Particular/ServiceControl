@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Plugin.CustomChecks.Internal
 {
     using System;
-    using Messages;
 
     // needed for DI
     public interface IPeriodicCheck

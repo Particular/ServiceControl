@@ -6,7 +6,7 @@
     using NServiceBus;
     using Raven.Client;
 
-    public class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
+    class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
     {
         public IDocumentSession Session { get; set; }
 

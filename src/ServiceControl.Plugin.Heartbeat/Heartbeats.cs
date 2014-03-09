@@ -3,7 +3,6 @@
     using System;
     using System.Configuration;
     using System.Threading;
-    using EndpointPlugin.Operations.ServiceControlBackend;
     using Messages;
     using NServiceBus;
     using NServiceBus.Features;

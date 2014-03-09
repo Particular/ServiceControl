@@ -9,7 +9,7 @@
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
 
-    public class CustomCheckMonitor : INeedInitialization
+    class CustomCheckMonitor : INeedInitialization
     {
         public CustomCheckMonitor()
         {
@@ -32,19 +32,18 @@
             originatingEndpoint.HostId = message.HostId;
 
             var key = DeterministicGuid.MakeId(message.CustomCheckId, originatingEndpoint.Name, originatingEndpoint.Host);
-            var publish = false;
+            var publish = true;
 
             registeredCustomChecks.AddOrUpdate(key,
                 k => message,
                 (k, existingValue) =>
                 {
-                    if (existingValue.Result.HasFailed == message.Result.HasFailed)
+                    if (existingValue.HasFailed == message.HasFailed)
                     {
+                        publish = false;
                         return existingValue;
                     }
 
-                    publish = true;
-                    
                     return message;
                 });
 
@@ -53,14 +52,14 @@
                 return;
             }
 
-            if (message.Result.HasFailed)
+            if (message.HasFailed)
             {
                 bus.Publish<CustomCheckFailed>(m =>
                 {
                     m.CustomCheckId = message.CustomCheckId;
                     m.Category = message.Category;
                     m.FailedAt = message.ReportedAt;
-                    m.FailureReason = message.Result.FailureReason;
+                    m.FailureReason = message.FailureReason;
                     m.OriginatingEndpoint = originatingEndpoint;
                 });
             }
