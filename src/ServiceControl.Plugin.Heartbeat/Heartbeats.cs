@@ -7,11 +7,11 @@
     using Messages;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Transports;
 
     class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
     {
-        public ServiceControlBackend ServiceControlBackend { get; set; }
-
+        public ISendMessages MessageSender{ get; set; }
 
         public override bool IsEnabledByDefault
         {
@@ -24,7 +24,7 @@
             {
                 return;
             }
-
+            backend = new ServiceControlBackend(MessageSender);
             heartbeatInterval = TimeSpan.FromSeconds(10);
             var interval = ConfigurationManager.AppSettings[@"Heartbeat/Interval"];
             if (!String.IsNullOrEmpty(interval))
@@ -41,7 +41,7 @@
 
         void SendStartupMessageToBackend(HostInformation hostInfo)
         {
-            ServiceControlBackend.Send(new RegisterEndpointStartup
+            backend.Send(new RegisterEndpointStartup
             {
                 HostId = hostInfo.HostId, 
                 Endpoint = Configure.EndpointName,
@@ -80,9 +80,10 @@
                 HostId = (Guid)hostId
             };
 
-            ServiceControlBackend.Send(heartBeat, TimeSpan.FromTicks(heartbeatInterval.Ticks * 4));
+            backend.Send(heartBeat, TimeSpan.FromTicks(heartbeatInterval.Ticks * 4));
         }
 
+        ServiceControlBackend backend;
         Timer heartbeatTimer;
         TimeSpan heartbeatInterval;
     }
