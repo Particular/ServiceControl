@@ -77,7 +77,7 @@
         public void Should_be_found_in_search_by_messageType()
         {
             var context = new MyContext();
-            var response = new List<MessagesView>();
+            List<MessagesView> response;
 
             //search for the message type
             var searchString = typeof(MyMessage).Name;
@@ -98,7 +98,7 @@
         public void Should_be_found_in_search_by_messageId()
         {
             var context = new MyContext();
-            var response = new List<MessagesView>();
+            List<MessagesView> response;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -117,7 +117,7 @@
         public void Should_be_found_in_search_by_debug_session_id()
         {
             var context = new MyContext();
-            var response = new List<MessagesView>();
+            List<MessagesView> response;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -138,7 +138,7 @@
         public void Should_be_found_in_search_by_messageId_for_the_specific_endpoint()
         {
             var context = new MyContext();
-            var response = new List<MessagesView>();
+            List<MessagesView> response;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -160,7 +160,7 @@
                 PropertyToSearchFor = Guid.NewGuid().ToString()
             };
 
-            var response = new List<MessagesView>();
+            List<MessagesView> response;
 
              Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))

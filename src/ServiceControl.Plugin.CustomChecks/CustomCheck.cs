@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Plugin.CustomChecks
 {
     using System;
-    using EndpointPlugin.Operations.ServiceControlBackend;
     using Internal;
     using NServiceBus;
     using Messages;
@@ -50,7 +49,8 @@
                 HostId = hostId,
                 CustomCheckId = id,
                 Category = category,
-                Result = result,
+                HasFailed = result.HasFailed,
+                FailureReason = result.FailureReason,
                 ReportedAt = DateTime.UtcNow
             });
         }

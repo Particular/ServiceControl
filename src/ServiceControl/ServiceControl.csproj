@@ -226,7 +226,7 @@
     <Compile Include="CustomChecks\CustomChecksComputation.cs" />
     <Compile Include="CustomChecks\DeleteCustomCheck.cs" />
     <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
-    <Compile Include="EndpointControl\Handlers\DetectNewEndpointsFromImportedMessages.cs" />
+    <Compile Include="EndpointControl\DetectNewEndpointsFromImportsEnricher.cs" />
     <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
     <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
     <Compile Include="EndpointControl\Handlers\KnownEndpointsCache.cs" />
@@ -272,6 +272,7 @@
     <Compile Include="HeartbeatMonitoring\RegisterEndpointStartupHandler.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
+    <Compile Include="Infrastructure\Installers\AuditLogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
@@ -301,7 +302,7 @@
     <Compile Include="MessageFailures\Handlers\ImportFailedMessageHandler.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
     <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
-    <Compile Include="MessageFailures\Handlers\ImportSuccessfullyProcessedMessageHandler.cs" />
+    <Compile Include="MessageFailures\DetectSuccessfullRetriesEnricher.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\Handlers\RaiseMessageFailuresChanges.cs" />
     <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />
@@ -321,7 +322,7 @@
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
     <Compile Include="MessageFailures\Handlers\PerformRetryHandler.cs" />
     <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
-    <Compile Include="Infrastructure\Installers\LogQueueInstaller.cs" />
+    <Compile Include="Infrastructure\Installers\ErrorLogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryMessage.cs" />
     <Compile Include="CompositeViews\Messages\GetMessages.cs" />
@@ -339,7 +340,7 @@
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
     <Compile Include="MessageAuditing\ProcessedMessage.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
-    <Compile Include="Operations\AuditQueueImporter.cs" />
+    <Compile Include="Operations\Msmq\MsmqAuditQueueImporter.cs" />
     <Compile Include="Operations\BodyStorage\BodyStorageFeature.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
     <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />

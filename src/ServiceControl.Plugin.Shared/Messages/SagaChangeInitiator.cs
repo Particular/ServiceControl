@@ -2,7 +2,7 @@ namespace ServiceControl.EndpointPlugin.Messages.SagaState
 {
     using System;
 
-    public class SagaChangeInitiator
+    class SagaChangeInitiator
     {
         public string InitiatingMessageId { get; set; }
         public string MessageType { get; set; }

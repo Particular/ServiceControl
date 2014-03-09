@@ -18,7 +18,7 @@ namespace ServiceControl.Contracts.Operations
             var endpointDetails = new EndpointDetails();
 
             DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingEndpoint, headers, s => endpointDetails.Name = s);
-            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingMachine, headers, s => endpointDetails.Host = s);
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.OriginatingMachine", headers, s => endpointDetails.Host = s);
             DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingHostId, headers, s => endpointDetails.HostId = Guid.Parse(s));
 
             if (!string.IsNullOrEmpty(endpointDetails.Name) && !string.IsNullOrEmpty(endpointDetails.Host))
@@ -57,7 +57,7 @@ namespace ServiceControl.Contracts.Operations
             }
             else
             {
-                DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingMachine, headers, s => endpoint.Host = s);                
+                DictionaryExtensions.CheckIfKeyExists("NServiceBus.ProcessingMachine", headers, s => endpoint.Host = s);                
             }
 
             DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingEndpoint, headers, s => endpoint.Name = s);

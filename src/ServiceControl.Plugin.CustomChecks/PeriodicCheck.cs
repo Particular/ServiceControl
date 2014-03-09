@@ -2,7 +2,6 @@
 {
     using System;
     using Internal;
-    using Messages;
 
     public abstract class PeriodicCheck : IPeriodicCheck
     {

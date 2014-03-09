@@ -7,7 +7,7 @@ namespace ServiceControl.Infrastructure
     {
         public static void CheckIfKeyExists(string key, IDictionary<string, string> headers, Action<string> actionToInvokeWhenKeyIsFound)
         {
-            var value = string.Empty;
+            string value;
             if (headers.TryGetValue(key, out value))
             {
                 actionToInvokeWhenKeyIsFound(value);

@@ -23,9 +23,9 @@
 
             customCheck.CustomCheckId = message.CustomCheckId;
             customCheck.Category = message.Category;
-            customCheck.Status = message.Result.HasFailed ? Status.Fail : Status.Pass;
+            customCheck.Status = message.HasFailed ? Status.Fail : Status.Pass;
             customCheck.ReportedAt = message.ReportedAt;
-            customCheck.FailureReason = message.Result.FailureReason;
+            customCheck.FailureReason = message.FailureReason;
             customCheck.OriginatingEndpoint = originatingEndpoint;
 
             Session.Store(customCheck);

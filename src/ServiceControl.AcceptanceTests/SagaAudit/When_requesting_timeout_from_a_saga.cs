@@ -21,7 +21,9 @@
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new StartSagaMessage())))
-                .Done(c => c.ReceivedTimeoutMessage && TryGet("/api/sagas/" + c.SagaId, out sagaHistory))
+                .Done(c => c.ReceivedTimeoutMessage && 
+                    TryGet("/api/sagas/" + c.SagaId, out sagaHistory,
+                            sh=>sh.Changes.Any(change=>change.Status == SagaStateChangeStatus.Updated)))
                 .Run();
 
             Assert.NotNull(sagaHistory);
