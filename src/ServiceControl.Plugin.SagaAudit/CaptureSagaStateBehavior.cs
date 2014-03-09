@@ -54,7 +54,7 @@
             var activeSagaInstance = context.Get<ActiveSagaInstance>();
             var sagaStateString = Serializer.Serialize(saga.Entity);
             var headers = context.LogicalMessage.Headers;
-            var originatingMachine = headers[Headers.OriginatingMachine];
+            var originatingMachine = headers["NServiceBus.OriginatingMachine"];
             var originatingEndpoint = headers[Headers.OriginatingEndpoint];
             var timeSent = DateTimeExtensions.ToUtcDateTime(headers[Headers.TimeSent]);
             var intent = headers.ContainsKey(Headers.MessageIntent) ? headers[Headers.MessageIntent] : "Send"; // Just in case the received message is from an early version that does not have intent, should be a rare occasion.
