@@ -1,6 +1,5 @@
 namespace ServiceControl.Plugin.Heartbeat
 {
-    using EndpointPlugin.Operations.ServiceControlBackend;
     using NServiceBus;
     using NServiceBus.MessageMutator;
 

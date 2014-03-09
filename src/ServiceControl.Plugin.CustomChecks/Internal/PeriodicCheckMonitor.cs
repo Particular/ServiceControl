@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using EndpointPlugin.Operations.ServiceControlBackend;
     using NServiceBus;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Transports;

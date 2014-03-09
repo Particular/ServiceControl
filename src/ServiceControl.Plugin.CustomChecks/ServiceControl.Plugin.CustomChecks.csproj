@@ -52,6 +52,7 @@
       <Link>ServiceControlBackend.cs</Link>
     </Compile>
     <Compile Include="CustomCheck.cs" />
+    <Compile Include="CheckResult.cs" />
     <Compile Include="Internal\InitializeCustomChecks.cs" />
     <Compile Include="Internal\TimerBasedPeriodicCheck.cs" />
     <Compile Include="PeriodicCheck.cs" />
