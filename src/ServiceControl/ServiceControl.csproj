@@ -226,7 +226,7 @@
     <Compile Include="CustomChecks\CustomChecksComputation.cs" />
     <Compile Include="CustomChecks\DeleteCustomCheck.cs" />
     <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
-    <Compile Include="EndpointControl\Handlers\DetectNewEndpointsFromImportedMessages.cs" />
+    <Compile Include="EndpointControl\DetectNewEndpointsFromImportsEnricher.cs" />
     <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
     <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
     <Compile Include="EndpointControl\Handlers\KnownEndpointsCache.cs" />
@@ -302,7 +302,7 @@
     <Compile Include="MessageFailures\Handlers\ImportFailedMessageHandler.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
     <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
-    <Compile Include="MessageFailures\Handlers\ImportSuccessfullyProcessedMessageHandler.cs" />
+    <Compile Include="MessageFailures\DetectSuccessfullRetriesEnricher.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\Handlers\RaiseMessageFailuresChanges.cs" />
     <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />

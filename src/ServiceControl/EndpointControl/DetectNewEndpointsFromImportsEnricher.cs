@@ -4,14 +4,15 @@
     using Contracts.Operations;
     using InternalMessages;
     using NServiceBus;
+    using Operations;
 
-    class DetectNewEndpointsFromImportedMessages : IHandleMessages<ImportMessage>
+    class DetectNewEndpointsFromImportsEnricher : ImportEnricher
     {
         public IBus Bus { get; set; }
 
         public KnownEndpointsCache KnownEndpointsCache { get; set; }
         
-        public void Handle(ImportMessage message)
+        public override void Enrich(ImportMessage message)
         {
             TryAddEndpoint(EndpointDetails.SendingEndpoint(message.PhysicalMessage.Headers));
             TryAddEndpoint(EndpointDetails.ReceivingEndpoint(message.PhysicalMessage.Headers));
@@ -30,5 +31,6 @@
                 });
             }
         }
+
     }
 }
