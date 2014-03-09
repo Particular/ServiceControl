@@ -49,14 +49,14 @@
             executing = true;
             try
             {
-                DateTime currentTime = SystemTime.UtcNow;
+                var currentTime = SystemTime.UtcNow;
                 var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
                 var expiryThresholdAsStr = currentExpiryThresholdTime.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture);
                 logger.Debug("Trying to find expired documents to delete");                
                 var query = "(Status:3 OR Status:4) AND ProcessedAt:[* TO " + expiryThresholdAsStr + "]";
 
                 var list = new List<string>();
-                int start = 0;
+                var start = 0;
                 while (true)
                 {
                     const int pageSize = 1024;

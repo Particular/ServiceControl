@@ -2,9 +2,9 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
 {
     using System;
     using System.Threading;
-    using EndpointPlugin.Operations.ServiceControlBackend;
     using Messages;
     using NServiceBus.Logging;
+    using NServiceBus.Transports;
 
     public class TimerBasedPeriodicCheck : IDisposable
     {
@@ -15,10 +15,10 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
             hostId = hostInfo.HostId;
         }
 
-        public TimerBasedPeriodicCheck(IPeriodicCheck periodicCheck, ServiceControlBackend serviceControlBackend)
+        public TimerBasedPeriodicCheck(IPeriodicCheck periodicCheck, ISendMessages messageSender)
         {
             this.periodicCheck = periodicCheck;
-            this.serviceControlBackend = serviceControlBackend;
+            serviceControlBackend = new ServiceControlBackend(messageSender);
 
             timer = new Timer(Run, null, TimeSpan.Zero, periodicCheck.Interval);
         }
@@ -40,7 +40,8 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
                 HostId = hostId,
                 CustomCheckId = customCheckId,
                 Category = category,
-                Result = result,
+                HasFailed = result.HasFailed,
+                FailureReason = result.FailureReason,
                 ReportedAt = DateTime.UtcNow
             }, ttr);
         }

@@ -4,16 +4,16 @@ namespace ServiceBus.Management.Infrastructure.Installers
     using NServiceBus.Unicast.Queuing;
     using Settings;
 
-    public class AuditQueueInstaller : IWantQueueCreated
+    public class AuditLogQueueInstaller : IWantQueueCreated
     {
         public Address Address
         {
-            get { return Settings.AuditQueue; }
+            get { return Settings.AuditLogQueue; }
         }
 
         public bool IsDisabled
         {
-            get { return Settings.AuditQueue == Address.Undefined; }
+            get { return !Settings.ForwardAuditMessages; }
         }
     }
 }

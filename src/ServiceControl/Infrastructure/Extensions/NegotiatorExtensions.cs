@@ -10,23 +10,9 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using global::Nancy;
     using global::Nancy.Helpers;
     using global::Nancy.Responses.Negotiation;
-    using ServiceControl.MessageAuditing;
 
     public static class NegotiatorExtensions
     {
-        public static Negotiator WithModelAppendedRestfulUrls(this Negotiator negotiator, IEnumerable<ProcessedMessage> messages,
-            Request request)
-        {
-            var baseUrl = request.Url.SiteBase + request.Url.BasePath;
-
-            foreach (var message in messages)
-            {
-                //message.Url = baseUrl + "/messages/" + message.Id;
-            }
-
-            return negotiator.WithModel(messages);
-        }
-
         public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, RavenQueryStatistics stats,
             Request request)
         {

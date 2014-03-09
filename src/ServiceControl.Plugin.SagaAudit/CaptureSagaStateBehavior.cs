@@ -2,19 +2,18 @@
 {
     using System;
     using EndpointPlugin.Messages.SagaState;
-    using EndpointPlugin.Operations.ServiceControlBackend;
     using NServiceBus;
     using NServiceBus.Pipeline;
     using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Saga;
     using NServiceBus.Sagas;
+    using NServiceBus.Transports;
     using NServiceBus.Unicast.Messages;
 
     // ReSharper disable CSharpWarnings::CS0618
     class CaptureSagaStateBehavior : IBehavior<HandlerInvocationContext>
     {
-        public ServiceControlBackend ServiceControlBackend { get; set; }
-        SagaUpdatedMessage sagaAudit;
+        public ISendMessages MessageSender { get; set; }
 
         public void Invoke(HandlerInvocationContext context, Action next)
         {
@@ -54,7 +53,7 @@
             var activeSagaInstance = context.Get<ActiveSagaInstance>();
             var sagaStateString = Serializer.Serialize(saga.Entity);
             var headers = context.LogicalMessage.Headers;
-            var originatingMachine = headers[Headers.OriginatingMachine];
+            var originatingMachine = headers["NServiceBus.OriginatingMachine"];
             var originatingEndpoint = headers[Headers.OriginatingEndpoint];
             var timeSent = DateTimeExtensions.ToUtcDateTime(headers[Headers.TimeSent]);
             var intent = headers.ContainsKey(Headers.MessageIntent) ? headers[Headers.MessageIntent] : "Send"; // Just in case the received message is from an early version that does not have intent, should be a rare occasion.
@@ -78,7 +77,8 @@
 
             AssignSagaStateChangeCausedByMessage(context);
 
-            ServiceControlBackend.Send(sagaAudit);
+            var backend = new ServiceControlBackend(MessageSender);
+            backend.Send(sagaAudit);
         }
 
         void AssignSagaStateChangeCausedByMessage(BehaviorContext context)
@@ -119,5 +119,7 @@
             }
             return false;
         }
+
+        SagaUpdatedMessage sagaAudit;
     }
 }

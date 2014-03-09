@@ -93,6 +93,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomChecks\When_a_custom_check_fails.cs" />
     <Compile Include="DebugSessions\When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
     <Compile Include="HeartbeatMonitoring\When_an_endpoint_starts_up.cs" />
     <Compile Include="HeartbeatMonitoring\When_endpoints_heartbeats_are_received_in_a_timely_manner.cs" />
@@ -131,6 +132,10 @@
     <ProjectReference Include="..\ServiceControl.Contracts\ServiceControl.Contracts.csproj">
       <Project>{bcaa370c-58ca-46a7-a034-6cab61c004e1}</Project>
       <Name>ServiceControl.Contracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Plugin.CustomChecks\ServiceControl.Plugin.CustomChecks.csproj">
+      <Project>{6526946E-5299-441A-9EC7-C85306FB5F51}</Project>
+      <Name>ServiceControl.Plugin.CustomChecks</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Plugin.DebugSession\ServiceControl.Plugin.DebugSession.csproj">
       <Project>{1600753b-62ac-4c27-a171-ec887718d06d}</Project>

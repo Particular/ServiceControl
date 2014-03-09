@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointPlugin.Operations.ServiceControlBackend
+﻿namespace ServiceControl.Plugin
 {
     using System;
     using System.Configuration;
@@ -10,19 +10,18 @@
     using NServiceBus.Serializers.Binary;
     using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
-    using INeedInitialization = NServiceBus.INeedInitialization;
-
-    public class ServiceControlBackend : INeedInitialization
-    {
-        public ServiceControlBackend()
+   
+    class ServiceControlBackend
+    {   
+        public ServiceControlBackend(ISendMessages messageSender)
         {
+            this.messageSender = messageSender;
             serializer = new JsonMessageSerializer(new SimpleMessageMapper());
 
             serviceControlBackendAddress = GetServiceControlAddress();
         }
 
-        public ISendMessages MessageSender { get; set; }
-
+      
         public void Send(object messageToSend, TimeSpan timeToBeReceived)
         {
             var message = new TransportMessage
@@ -48,7 +47,7 @@
             message.Headers[Headers.EnclosedMessageTypes] = messageToSend.GetType().FullName;
             message.Headers[Headers.ContentType] = ContentTypes.Json; //Needed for ActiveMQ transport
 
-            MessageSender.Send(message, serviceControlBackendAddress);
+            messageSender.Send(message, serviceControlBackendAddress);
         }
 
         public void Send(object messageToSend)
@@ -103,11 +102,7 @@
 
         readonly JsonMessageSerializer serializer;
         readonly Address serviceControlBackendAddress;
-
-        public void Init()
-        {
-            Configure.Component<ServiceControlBackend>(DependencyLifecycle.SingleInstance);
-        }
+        readonly ISendMessages messageSender;
     }
 
     class VersionChecker

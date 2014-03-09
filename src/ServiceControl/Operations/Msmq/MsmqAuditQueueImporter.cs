@@ -22,7 +22,7 @@ namespace ServiceControl.Operations
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    internal class AuditQueueImporter : IWantToRunWhenBusStartsAndStops
+    class AuditQueueImporter : IWantToRunWhenBusStartsAndStops
     {
         public AuditQueueImporter(IDocumentStore store, IBuilder builder, IDequeueMessages receiver)
         {
@@ -45,6 +45,12 @@ namespace ServiceControl.Operations
         {
             if (!enabled)
             {
+                return;
+            }
+
+            if (Settings.AuditQueue == Address.Undefined)
+            {
+                Logger.Info("No Audit queue has been configured. No audit import will be performed. To enable imports add the ServiceBus/AuditQueue appsetting and restart ServiceControl");
                 return;
             }
 
@@ -147,47 +153,11 @@ namespace ServiceControl.Operations
                         return true;
                     });
                 }, TaskContinuationOptions.OnlyOnFaulted);
-            ;
 
             return true;
         }
 
-        void SendRegisterSuccessfulRetryIfNeeded(ImportSuccessfullyProcessedMessage message)
-        {
-            string retryId;
-
-            if (!message.PhysicalMessage.Headers.TryGetValue("ServiceControl.RetryId", out retryId))
-            {
-                return;
-            }
-
-            Bus.SendLocal(new RegisterSuccessfulRetry
-            {
-                FailedMessageId = message.UniqueMessageId,
-                RetryId = Guid.Parse(retryId)
-            });
-        }
-
-        void RegisterNewEndpointIfNeeded(ImportMessage message)
-        {
-            TryAddEndpoint(EndpointDetails.SendingEndpoint(message.PhysicalMessage.Headers));
-            TryAddEndpoint(EndpointDetails.ReceivingEndpoint(message.PhysicalMessage.Headers));
-        }
-
-        void TryAddEndpoint(EndpointDetails endpointDetails)
-        {
-            var id = endpointDetails.Name + endpointDetails.Host;
-
-            if (KnownEndpointsCache.TryAdd(id))
-            {
-                Bus.SendLocal(new RegisterEndpoint
-                {
-                    Endpoint = endpointDetails,
-                    DetectedAt = DateTime.UtcNow
-                });
-            }
-        }
-
+       
         void BatchImporter()
         {
             try
@@ -254,11 +224,10 @@ namespace ServiceControl.Operations
                                             enricher.Enrich(importSuccessfullyProcessedMessage);
                                         }
 
-                                        SendRegisterSuccessfulRetryIfNeeded(importSuccessfullyProcessedMessage);
-                                        RegisterNewEndpointIfNeeded(importSuccessfullyProcessedMessage);
-
                                         var auditMessage = new ProcessedMessage(importSuccessfullyProcessedMessage);
+                                        
                                         bulkInsert.Store(auditMessage);
+                                        
                                         performanceCounters.MessageProcessed();
                                     }
                                     catch (Exception ex)
