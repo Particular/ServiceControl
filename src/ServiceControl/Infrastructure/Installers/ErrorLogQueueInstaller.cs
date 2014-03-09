@@ -4,7 +4,7 @@
     using NServiceBus.Unicast.Queuing;
     using Settings;
 
-    public class LogQueueInstaller : IWantQueueCreated
+    public class ErrorLogQueueInstaller : IWantQueueCreated
     {
         public Address Address
         {

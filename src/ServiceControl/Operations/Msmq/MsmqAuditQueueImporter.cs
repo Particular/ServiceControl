@@ -22,7 +22,7 @@ namespace ServiceControl.Operations
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    internal class AuditQueueImporter : IWantToRunWhenBusStartsAndStops
+    class AuditQueueImporter : IWantToRunWhenBusStartsAndStops
     {
         public AuditQueueImporter(IDocumentStore store, IBuilder builder, IDequeueMessages receiver)
         {
@@ -45,6 +45,12 @@ namespace ServiceControl.Operations
         {
             if (!enabled)
             {
+                return;
+            }
+
+            if (Settings.AuditQueue == Address.Undefined)
+            {
+                Logger.Info("No Audit queue has been configured. No audit import will be performed. To enable imports add the ServiceBus/AuditQueue appsetting and restart ServiceControl");
                 return;
             }
 
