@@ -272,6 +272,7 @@
     <Compile Include="HeartbeatMonitoring\RegisterEndpointStartupHandler.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
+    <Compile Include="Infrastructure\Installers\AuditLogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
@@ -321,7 +322,7 @@
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
     <Compile Include="MessageFailures\Handlers\PerformRetryHandler.cs" />
     <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
-    <Compile Include="Infrastructure\Installers\LogQueueInstaller.cs" />
+    <Compile Include="Infrastructure\Installers\ErrorLogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryMessage.cs" />
     <Compile Include="CompositeViews\Messages\GetMessages.cs" />
@@ -339,7 +340,7 @@
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
     <Compile Include="MessageAuditing\ProcessedMessage.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
-    <Compile Include="Operations\AuditQueueImporter.cs" />
+    <Compile Include="Operations\Msmq\MsmqAuditQueueImporter.cs" />
     <Compile Include="Operations\BodyStorage\BodyStorageFeature.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
     <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />
