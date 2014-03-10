@@ -4,6 +4,7 @@
     using Internal;
     using NServiceBus;
     using Messages;
+    using NServiceBus.Transports;
 
     public abstract class CustomCheck : ICustomCheck
     {
@@ -44,7 +45,9 @@
 
         void ReportToBackend(CheckResult result)
         {
-            Configure.Instance.Builder.Build<ServiceControlBackend>().Send(new ReportCustomCheckResult
+            var sender = Configure.Instance.Builder.Build<ISendMessages>();
+
+            new ServiceControlBackend(sender).Send(new ReportCustomCheckResult
             {
                 HostId = hostId,
                 CustomCheckId = id,

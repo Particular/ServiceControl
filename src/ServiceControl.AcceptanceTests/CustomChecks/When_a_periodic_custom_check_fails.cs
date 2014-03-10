@@ -1,5 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.CustomChecks
 {
+    using System;
     using System.Linq;
     using Contexts;
     using NServiceBus.AcceptanceTesting;
@@ -9,7 +10,7 @@
     using ServiceControl.Plugin.CustomChecks;
 
     [TestFixture]
-    public class When_a_custom_check_fails : AcceptanceTest
+    public class When_a_periodic_custom_check_fails : AcceptanceTest
     {
         [Test]
         public void Should_result_in_a_custom_check_failed_event()
@@ -27,7 +28,7 @@
             Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as info");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/MyCustomCheckId"));
             Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/CustomChecks.EndpointWithFailingCustomCheck")));
-
+           
         }
 
 
@@ -38,18 +39,21 @@
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
-
+            
             public EndpointWithFailingCustomCheck()
             {
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class FailingCustomCheck : CustomCheck
+            class FailingCustomCheck : PeriodicCheck
             {
-                public FailingCustomCheck()
-                    : base("MyCustomCheckId", "MyCategory")
+                public FailingCustomCheck() : base("MyCustomCheckId", "MyCategory", TimeSpan.FromHours(1))
                 {
-                    ReportFailed("Some reason");
+                }
+
+                public override CheckResult PerformCheck()
+                {
+                    return CheckResult.Failed("Some reason");
                 }
             }
         }
