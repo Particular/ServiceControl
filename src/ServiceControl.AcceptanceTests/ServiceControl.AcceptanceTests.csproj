@@ -94,6 +94,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CustomChecks\When_a_custom_check_fails.cs" />
+    <Compile Include="CustomChecks\When_a_periodic_custom_check_fails.cs" />
     <Compile Include="DebugSessions\When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
     <Compile Include="HeartbeatMonitoring\When_an_endpoint_starts_up.cs" />
     <Compile Include="HeartbeatMonitoring\When_endpoints_heartbeats_are_received_in_a_timely_manner.cs" />
