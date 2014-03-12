@@ -30,13 +30,12 @@ namespace ServiceControl.CompositeViews.Messages
         public MessagesViewIndex()
         {
             AddMap<ProcessedMessage>(messages => from message in messages
-                let resolved = LoadDocument<FailedMessage>("FailedMessages/" + message.UniqueMessageId)
                 select new SortAndFilterOptions
                 {
                     MessageId = (string) message.MessageMetadata["MessageId"],
                     MessageType = (string) message.MessageMetadata["MessageType"],
                     IsSystemMessage = (bool) message.MessageMetadata["IsSystemMessage"],
-                    Status = resolved == null ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully,
+                    Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
                     TimeSent = (DateTime) message.MessageMetadata["TimeSent"],
                     ProcessedAt = message.ProcessedAt,
                     ReceivingEndpointName = ((EndpointDetails) message.MessageMetadata["ReceivingEndpoint"]).Name,

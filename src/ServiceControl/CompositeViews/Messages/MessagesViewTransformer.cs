@@ -35,7 +35,7 @@ namespace ServiceControl.CompositeViews.Messages
                         : message.ProcessedAt
                 let status =
                     message.ProcessingAttempts == null
-                        ? LoadDocument<FailedMessage>("FailedMessages/" + message.UniqueMessageId) == null ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully
+                        ? (!(bool)message.MessageMetadata["IsRetried"]) ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully
                         : message.Status == FailedMessageStatus.Archived
                             ? MessageStatus.ArchivedFailure
                             : message.ProcessingAttempts.Count == 1
