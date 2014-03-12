@@ -18,8 +18,12 @@
             }
 
             string retryId;
-
-            if (!message.PhysicalMessage.Headers.TryGetValue("ServiceControl.RetryId", out retryId))
+            
+            var hasBeenRetried = message.PhysicalMessage.Headers.TryGetValue("ServiceControl.RetryId", out retryId);
+                
+            message.Metadata.Add("IsRetried", hasBeenRetried);
+            
+            if (!hasBeenRetried)
             {
                 return;
             }
