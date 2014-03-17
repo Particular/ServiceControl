@@ -36,22 +36,11 @@ namespace Particular.ServiceControl
                 .UseTransport(Type.GetType(transportType))
                 .UnicastBus();
 
-            ConfigureLicense();
-
             Feature.Disable<AutoSubscribe>();
             Feature.Disable<SecondLevelRetries>();
 
             Configure.Serialization.Json();
             Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
-        }
-
-        static void ConfigureLicense()
-        {
-            using (var licenseStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.License.xml"))
-            using (var sr = new StreamReader(licenseStream))
-            {
-                Configure.Instance.License(sr.ReadToEnd());
-            }
         }
 
         static void ConfigureLogging()
