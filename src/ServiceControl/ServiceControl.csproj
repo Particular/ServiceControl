@@ -391,16 +391,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="License.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Contracts\ServiceControl.Contracts.csproj">
       <Project>{bcaa370c-58ca-46a7-a034-6cab61c004e1}</Project>
       <Name>ServiceControl.Contracts</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
-  <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />
+  <Import Project="$(SolutionDir)..\BuildSupport\GitVersionTask\Build\GitVersionTask.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <StartAction>Program</StartAction>
