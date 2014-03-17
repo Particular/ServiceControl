@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Nancy.Modules
 {
     using System.IO;
+    using Particular.ServiceControl.Licensing;
     using Settings;
     using global::Nancy;
 
@@ -34,27 +35,20 @@
                         "/endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
                     EndpointsMessagesUrl =
                         BaseUrl + "/endpoints/{name}/messages/{?page,per_page,direction,sort}",
-                    Name = SettingsReader<string>.Read("Name", "Particular Management"),
-                    Description = SettingsReader<string>.Read("Description", "Description for Particular Management"),
-                    LicenseStatus = "valid" // TODO: Read this value from license validator
+                    Name = SettingsReader<string>.Read("Name", "ServiceControl"),
+                    Description = SettingsReader<string>.Read("Description", "The management backend for the Particular Service Platform"),
+                    LicenseStatus = License.IsValid ? "valid" : "invalid"
                 };
 
 
                 return Negotiate
-                    //.WithMediaRangeModel(MediaRange.FromString(@"application/vnd.particular-v1"), new RootUrls{
-                    //        AuditUrl = baseUrl + "/audit/{?page,per_page,direction,sort}",
-                    //        EndpointsAuditUrl = baseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
-                    //    })
-                    //.WithMediaRangeModel(MediaRange.FromString(@"application/vnd.particular-v2"), new RootUrls
-                    //    {
-                    //        AuditUrl = baseUrl + "/audit/{?page,per_page,direction,sort}",
-                    //        EndpointsAuditUrl = baseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
-                    //    })
                     .WithModel(model)
                     .WithHeader("ETag", CurrentEtag)
                     .WithHeader("Last-Modified", CurrentLastModified);
             };
         }
+
+        public ActiveLicense License { get; set; }
 
         static readonly string CurrentEtag;
         static readonly string CurrentLastModified;
