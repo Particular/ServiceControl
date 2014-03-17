@@ -30,7 +30,7 @@
   </ItemGroup>
   <Target Name="Build" DependsOnTargets="Build" />
   <Target Name="ReBuild" DependsOnTargets="Build" />
-  <UsingTask TaskName="GitFlowVersionTask.GetVersion" AssemblyFile="$(SolutionDir)..\buildsupport\GitFlowVersion\GitFlowVersionTask.dll" />
+  <UsingTask TaskName="GitVersionTask.GetVersion" AssemblyFile="$(SolutionDir)..\buildsupport\GitVersionTask\GitVersionTask.dll" />
   <UsingTask TaskName="PepitaPackage.CreatePackageTask" AssemblyFile="$(SolutionDir)..\buildsupport\PepitaPackage.dll" />
   <UsingTask TaskName="MSBuild.Community.Tasks.FileUpdate" AssemblyFile="$(SolutionDir)..\buildsupport\MSBuild.Community.Tasks.dll" />
   <Target Name="Build">
