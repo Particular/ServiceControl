@@ -2,7 +2,6 @@ namespace Particular.ServiceControl
 {
     using System;
     using System.IO;
-    using System.Reflection;
     using Autofac;
     using NLog;
     using NLog.Config;
