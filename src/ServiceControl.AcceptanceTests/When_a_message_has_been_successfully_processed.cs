@@ -10,6 +10,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Contracts.Operations;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {
@@ -44,6 +45,7 @@
 
        
             Assert.AreEqual(context.MessageId, auditedMessage.MessageId);
+            Assert.AreEqual(MessageStatus.Successful, auditedMessage.Status);
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpoint.Name,
                 "Receiving endpoint name should be parsed correctly");
 
