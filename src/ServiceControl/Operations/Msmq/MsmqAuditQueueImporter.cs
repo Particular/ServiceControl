@@ -9,9 +9,7 @@ namespace ServiceControl.Operations
     using System.Threading.Tasks;
     using Contracts.Operations;
     using EndpointControl.Handlers;
-    using EndpointControl.InternalMessages;
     using MessageAuditing;
-    using MessageFailures.InternalMessages;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;

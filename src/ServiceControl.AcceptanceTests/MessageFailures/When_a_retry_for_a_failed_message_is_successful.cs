@@ -20,6 +20,8 @@
         public void Should_show_up_as_resolved_when_doing_a_single_retry()
         {
             FailedMessage failure = null;
+            MessagesView message = null;
+
 
             var context = new MyContext();
 
@@ -34,22 +36,22 @@
                     }
                     if (failure.Status == FailedMessageStatus.Resolved)
                     {
-                        List<MessagesView> messages;
-
-                        return TryGetMany("/api/messages", out messages,
+                        return TryGetSingle("/api/messages", out message,
                             m => m.Status == MessageStatus.ResolvedSuccessfully);
                     }
 
-                    IssueRetry(c,()=>Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId)));
+                    IssueRetry(c, () => Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId)));
 
                     return false;
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
             Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
+            Assert.AreEqual(failure.UniqueMessageId, message.Id);
+            Assert.AreEqual(MessageStatus.ResolvedSuccessfully, message.Status);
         }
 
-     
+
 
         [Test]
         public void Should_show_up_as_resolved_when_doing_a_multi_retry()
@@ -156,7 +158,7 @@
             return true;
         }
 
-        void IssueRetry(MyContext c,Action retryAction)
+        void IssueRetry(MyContext c, Action retryAction)
         {
             if (c.RetryIssued)
             {
@@ -165,7 +167,7 @@
             else
             {
                 c.RetryIssued = true;
-                
+
                 retryAction();
             }
         }
@@ -193,7 +195,7 @@
                 {
                     Console.Out.WriteLine("Handling message");
                     Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
-                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\","-");
+                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
                     if (!Context.RetryIssued) //simulate that the exception will be resolved with the retry
                     {
