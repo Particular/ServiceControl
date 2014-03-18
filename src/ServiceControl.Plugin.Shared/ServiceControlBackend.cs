@@ -113,7 +113,7 @@
 
         readonly JsonMessageSerializer serializer;
         readonly ISendMessages messageSender;
-        Address serviceControlBackendAddress;
+        readonly Address serviceControlBackendAddress;
         static readonly ILog Logger = LogManager.GetLogger(typeof(ServiceControlBackend));
     }
 
