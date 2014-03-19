@@ -122,7 +122,7 @@
                 // hence the send.
                 messageSender.Send(ControlMessage.Create(Address.Self), serviceControlBackendAddress);
             }
-            catch (QueueNotFoundException ex)
+            catch (Exception ex)
             {
                  var errMsg = "This endpoint is unable to contact the ServiceControl Backend to report endpoint information. You have the ServiceControl plugins installed in your endpoint. However, please ensure that the Particular ServiceControl service is installed on this machine, " +
                                   "or if running ServiceControl on a different machine, then ensure that your endpoint's app.config / web.config, AppSettings has the following key set appropriately: ServiceControl/Queue. \r\n" +
@@ -142,7 +142,7 @@
                 ex =>
                     Configure.Instance.RaiseCriticalError(
                         "This endpoint is repeatedly unable to contact the ServiceControl backend to report endpoint information. You have the ServiceControl plugins installed in your endpoint. However, please ensure that the Particular ServiceControl service is installed on this machine, " +
-                                   "or if running ServiceControl on a different machine, then ensure that your endpoint's app.config, AppSettings has the following key set appropriately: ServiceControl/Queue. \r\n" +
+                                   "or if running ServiceControl on a different machine, then ensure that your endpoint's app.config / web.config, AppSettings has the following key set appropriately: ServiceControl/Queue. \r\n" +
                                    @"For example: <add key=""ServiceControl/Queue"" value=""particular.servicecontrol@machine""/>" +
                                    "\r\n", ex));
     }
