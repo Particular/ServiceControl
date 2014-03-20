@@ -9,7 +9,12 @@
     {
         public HeartbeatsStats RegisterNewEndpoint(EndpointDetails endpointDetails)
         {
-            return RegisterEndpointThatFailedToHeartbeat(endpointDetails);
+            lock (locker)
+            {
+                var existingEndpoint = GetEndpoint(endpointDetails);
+
+                return GetHeartbeatsStats();
+            }
         }
 
         public HeartbeatsStats RegisterHeartbeatingEndpoint(EndpointDetails endpointDetails)
@@ -67,13 +72,9 @@
 
         public HeartbeatsStats DisableMonitoring(EndpointDetails endpoint)
         {
-
             lock (locker)
             {
-                var existingEndpoint = GetEndpoint(endpoint);
-
-
-                existingEndpoint.MonitoringDisabled = true;
+                GetEndpoint(endpoint);
 
                 return GetHeartbeatsStats();
             }
