@@ -35,7 +35,9 @@
 
                     if (knownEndpoint == null)
                     {
-                        knownEndpoint = session.Query<KnownEndpoint>().SingleOrDefault(e => e.HasTemporaryId && e.EndpointDetails.Name == message.Endpoint.Name && e.EndpointDetails.Host == message.Endpoint.Host);
+                        knownEndpoint = session.Query<KnownEndpoint>().SingleOrDefault(e => e.HasTemporaryId && 
+                            e.EndpointDetails.Name == message.Endpoint.Name && 
+                            e.EndpointDetails.Host == message.Endpoint.Host);
                     }
                 }
                
@@ -56,8 +58,9 @@
 
                     if (id == Guid.Empty)
                     {
-                        knownEndpoint.Id = DeterministicGuid.MakeId(message.Endpoint.Name,message.Endpoint.Name);
+                        knownEndpoint.Id = DeterministicGuid.MakeId(message.Endpoint.Name,message.Endpoint.HostId.ToString());
                         knownEndpoint.HasTemporaryId = true;
+                        id = knownEndpoint.Id;
                     }
                     else
                     {
@@ -82,7 +85,7 @@
                 session.SaveChanges();
             }
 
-            EndpointsCache.MarkAsProcessed(message.Endpoint.HostId);
+            EndpointsCache.MarkAsProcessed(id);
         }
     }
 }

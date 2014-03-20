@@ -62,10 +62,7 @@
             lock (locker)
             {
                 var existingEndpoint = GetEndpoint(endpoint);
-
-
                 existingEndpoint.MonitoringDisabled = false;
-
                 return GetHeartbeatsStats();
             }
         }
@@ -74,8 +71,8 @@
         {
             lock (locker)
             {
-                GetEndpoint(endpoint);
-
+                var existingEndpoint = GetEndpoint(endpoint);
+                existingEndpoint.MonitoringDisabled = true;
                 return GetHeartbeatsStats();
             }
         }
@@ -83,7 +80,6 @@
         HeartbeatingEndpoint GetEndpoint(EndpointDetails endpointDetails)
         {
             var existingEndpoint = TryFindEndpoint(endpointDetails);
-
             if (existingEndpoint == null)
             {
                 existingEndpoint = new HeartbeatingEndpoint
@@ -102,8 +98,6 @@
                     existingEndpoint.HostId = endpointDetails.HostId;
                 }
             }
-
-
             return existingEndpoint;
         }
 
