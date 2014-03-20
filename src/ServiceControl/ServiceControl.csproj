@@ -277,6 +277,7 @@
     <Compile Include="HeartbeatMonitoring\HeartbeatsComputation.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatsIndex.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatStatusProvider.cs" />
     <Compile Include="HeartbeatMonitoring\RaiseHeartbeatChanges.cs" />
     <Compile Include="HeartbeatMonitoring\RegisterEndpointStartupHandler.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />

@@ -21,26 +21,28 @@
 
         public void Handle(EndpointFailedToHeartbeat message)
         {
-            PublishUpdate(HeartbeatsComputation.EndpointFailedToHeartbeat());
+            PublishUpdate(HeartbeatsComputation.EndpointFailedToHeartbeat(message.Endpoint, message.HostId));
         }
 
         public void Handle(EndpointHeartbeatRestored message)
         {
-            PublishUpdate(HeartbeatsComputation.EndpointHeartbeatRestored());
+            PublishUpdate(HeartbeatsComputation.EndpointHeartbeatRestored(message.Endpoint, message.HostId));
         }
 
         public void Handle(HeartbeatingEndpointDetected message)
         {
-            PublishUpdate(HeartbeatsComputation.NewHeartbeatingEndpointDetected());
+            PublishUpdate(HeartbeatsComputation.NewHeartbeatingEndpointDetected(message.EndpointDetails));
         }
 
         public void Handle(KnownEndpointUpdated message)
         {
+            //TODO: Remove the reset here. 
             PublishUpdate(HeartbeatsComputation.Reset());
         }
 
         public void Handle(NewEndpointDetected message)
         {
+            //TODO: Remove the reset here. 
             PublishUpdate(HeartbeatsComputation.Reset());
         }
 

@@ -1,14 +1,19 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using CompositeViews.Endpoints;
+    using Contracts.Operations;
     using EndpointControl;
     using NServiceBus;
     using Raven.Client;
 
     public class HeartbeatsComputation : INeedInitialization
     {
+        List<string> activeEndpoints = new List<string>();
+        List<string> deadEndpoints = new List<string>();
+ 
         public HeartbeatsComputation()
         {
             // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
@@ -26,7 +31,7 @@ namespace ServiceControl.HeartbeatMonitoring
             {
                 lock (locker)
                 {
-                    return new HeartbeatsStats(numberOfEndpointsActive, numberOfEndpointsDead);
+                    return new HeartbeatsStats(activeEndpoints.Count, deadEndpoints.Count);
                 }
             }
         }
@@ -36,41 +41,74 @@ namespace ServiceControl.HeartbeatMonitoring
             Configure.Component<HeartbeatsComputation>(DependencyLifecycle.SingleInstance);
         }
 
-        public HeartbeatsStats NewHeartbeatingEndpointDetected()
+        public HeartbeatsStats NewHeartbeatingEndpointDetected(EndpointDetails endpointDetails)
         {
             lock (locker)
             {
-                return new HeartbeatsStats(++numberOfEndpointsActive, numberOfEndpointsDead);
+                var endpointId = string.Format("{0}-{1}", endpointDetails.Name, endpointDetails.HostId);
+                activeEndpoints.Add(endpointId);
+                if (deadEndpoints.Contains(endpointId))
+                {
+                    deadEndpoints.Remove(endpointId);
+                }
+                return new HeartbeatsStats(activeEndpoints.Count, deadEndpoints.Count);
             }
         }
 
-        public HeartbeatsStats EndpointFailedToHeartbeat()
+        public HeartbeatsStats NewEndpointDetected(EndpointDetails endpointDetails)
         {
             lock (locker)
             {
-                return new HeartbeatsStats(--numberOfEndpointsActive, ++numberOfEndpointsDead);
+                var endpointId = string.Format("{0}-{1}", endpointDetails.Name, endpointDetails.HostId);
+                activeEndpoints.Add(endpointId);
+                return new HeartbeatsStats(activeEndpoints.Count, deadEndpoints.Count);
             }
         }
 
-        public HeartbeatsStats EndpointHeartbeatRestored()
+        public HeartbeatsStats EndpointHeartbeatRestored(string endpoint, Guid hostId)
         {
             lock (locker)
             {
-                return new HeartbeatsStats(++numberOfEndpointsActive, --numberOfEndpointsDead);
+                var endpointId = string.Format("{0}-{1}", endpoint, hostId);
+                activeEndpoints.Add(endpointId);
+                if (deadEndpoints.Contains(endpointId))
+                {
+                    deadEndpoints.Remove(endpointId);
+                }
+                return new HeartbeatsStats(activeEndpoints.Count, deadEndpoints.Count);
             }
         }
+
+        public HeartbeatsStats EndpointFailedToHeartbeat(string endpoint, Guid hostId)
+        {
+            lock (locker)
+            {
+                var endpointId = string.Format("{0}-{1}", endpoint, hostId);
+                deadEndpoints.Add(endpointId);
+                if (activeEndpoints.Contains(endpointId))
+                {
+                    activeEndpoints.Remove(endpointId);
+                }
+                return new HeartbeatsStats(activeEndpoints.Count, deadEndpoints.Count);
+            }
+        }
+
+
 
         public HeartbeatsStats Reset()
         {
             lock (locker)
             {
                 Initialise(true);
-                return new HeartbeatsStats(numberOfEndpointsActive, numberOfEndpointsDead);
+                return new HeartbeatsStats(activeEndpoints.Count, deadEndpoints.Count);
             }
         }
 
         void Initialise(bool waitForNonStale)
         {
+            activeEndpoints.Clear();
+            deadEndpoints.Clear();
+
             Action<IDocumentQueryCustomization> customization = c => { };
 
             if (waitForNonStale)
@@ -85,32 +123,43 @@ namespace ServiceControl.HeartbeatMonitoring
                 // Workaround to do Lazily Count, see https://groups.google.com/d/msg/ravendb/ptgTQbrPfzI/w9QJ0wdYkc4J
                 // Raven v3 should support this natively, see http://issues.hibernatingrhinos.com/issue/RavenDB-1310
 
-                RavenQueryStatistics stats1;
                 session.Query<KnownEndpoint, KnownEndpointIndex>()
                     .Customize(customization)
-                    .Statistics(out stats1)
                     .Where(endpoint => endpoint.MonitorHeartbeat)
-                    .Take(0)
-                    .Lazily(heartbeats => total = stats1.TotalResults);
-                RavenQueryStatistics stats2;
+                    .Lazily(heartbeats =>
+                    {
+                        foreach (var knownEndpoint in heartbeats)
+                        {
+                            deadEndpoints.Add(string.Format("{0}-{1}",knownEndpoint.Name, knownEndpoint.HostId));
+                        }
+                    });
+                
                 session.Query<Heartbeat, HeartbeatsIndex>()
                     .Customize(customization)
-                    .Statistics(out stats2)
                     .Where(heartbeat => heartbeat.ReportedStatus == Status.Beating)
-                    .Take(0)
-                    .Lazily(heartbeats => numberOfEndpointsActive = stats2.TotalResults);
-
+                    .Lazily(heartbeats =>
+                    {
+                        foreach (var heartbeat in heartbeats)
+                        {
+                            activeEndpoints.Add(string.Format("{0}-{1}", heartbeat.Endpoint, heartbeat.HostId));
+                        }
+                    });
                 session.Advanced.Eagerly.ExecuteAllPendingLazyOperations();
 
-                numberOfEndpointsDead = total - numberOfEndpointsActive;
+                // remove the endpoitns that are in the deadEndpoint list if they are currently active
+                foreach (var endpointId in activeEndpoints)
+                {
+                    if (deadEndpoints.Contains(endpointId))
+                    {
+                        deadEndpoints.Remove(endpointId);
+                    }
+                }
             }
         }
 
         readonly object locker = new object();
         readonly IDocumentStore store;
-        int numberOfEndpointsActive;
-        int numberOfEndpointsDead;
-
+      
         public class HeartbeatsStats
         {
             public HeartbeatsStats(int active, int dead)
