@@ -22,6 +22,19 @@
 
 
         [Test]
+        public void When_A_New_Endpoint_Is_Detected_Should_not_override_if_endpoint_already_exists()
+        {
+            var currentHeartbeatStatus = new HeartbeatStatusProvider();
+            var hostId = Guid.NewGuid();
+
+            VerifyHeartbeatStats(currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint1" }), 1, 0);
+
+            VerifyHeartbeatStats(currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint1" }), 1, 0);
+
+        }
+
+
+        [Test]
         public void When_endpoint_is_disabled_should_not_count()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
