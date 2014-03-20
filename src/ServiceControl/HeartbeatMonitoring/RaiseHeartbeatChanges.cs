@@ -45,7 +45,7 @@
 
         public void Handle(NewEndpointDetected message)
         {
-            PublishUpdate(StatusProvider.RegisterHeartbeatingEndpoint(message.Endpoint));
+            PublishUpdate(StatusProvider.RegisterNewEndpoint(message.Endpoint));
         }
 
         void PublishUpdate(HeartbeatsStats stats)
