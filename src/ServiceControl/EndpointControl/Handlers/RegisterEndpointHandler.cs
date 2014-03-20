@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using Infrastructure;
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
@@ -55,7 +56,7 @@
 
                     if (id == Guid.Empty)
                     {
-                        knownEndpoint.Id = Guid.NewGuid();
+                        knownEndpoint.Id = DeterministicGuid.MakeId(message.Endpoint.Name,message.Endpoint.Name);
                         knownEndpoint.HasTemporaryId = true;
                     }
                     else
