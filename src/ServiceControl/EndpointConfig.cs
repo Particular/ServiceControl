@@ -6,6 +6,7 @@ namespace Particular.ServiceControl
     using Autofac;
     using NLog;
     using NLog.Config;
+    using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
     using NServiceBus.Features;
@@ -45,18 +46,10 @@ namespace Particular.ServiceControl
             Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
         }
 
-        static void ConfigureLicense()
-        {
-            using (var licenseStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.License.xml"))
-            using (var sr = new StreamReader(licenseStream))
-            {
-                Configure.Instance.License(sr.ReadToEnd());
-            }
-        }
-
         static void ConfigureLogging()
         {
             var nlogConfig = new LoggingConfiguration();
+            var simpleLayout = new SimpleLayout("${longdate}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
 
             var fileTarget = new FileTarget
             {
@@ -64,11 +57,12 @@ namespace Particular.ServiceControl
                 FileName = Path.Combine(Settings.LogPath, "logfile.txt"),
                 ArchiveFileName = Path.Combine(Settings.LogPath, "log.{#}.txt"),
                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
-                MaxArchiveFiles = 14
+                Layout = simpleLayout,
+                MaxArchiveFiles = 14,
             };
-
             var consoleTarget = new ColoredConsoleTarget
             {
+                Layout = simpleLayout,
                 UseDefaultRowHighlightingRules = true,
             };
 
@@ -76,12 +70,23 @@ namespace Particular.ServiceControl
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, consoleTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, consoleTarget) { Final = true });
+
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget)); 
+            
             nlogConfig.AddTarget("debugger", fileTarget);
             nlogConfig.AddTarget("console", consoleTarget);
             NLogConfigurator.Configure(new object[] { fileTarget, consoleTarget }, "Info");
             LogManager.Configuration = nlogConfig;
+        }
+
+        static void ConfigureLicense()
+        {
+            using (var licenseStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.License.xml"))
+            using (var sr = new StreamReader(licenseStream))
+            {
+                Configure.Instance.License(sr.ReadToEnd());
+            }
         }
     }
 }
