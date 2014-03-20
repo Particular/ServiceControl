@@ -16,8 +16,8 @@
 
         public void Handle(EndpointHeartbeat message)
         {
-            var originatingEndpoint = EndpointDetails.SendingEndpoint(Bus.CurrentMessageContext.Headers);
-            var id = DeterministicGuid.MakeId(message.Endpoint, originatingEndpoint.Host);
+            var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString());
+
             Heartbeat heartbeat = null;
             KnownEndpoint knownEndpoint = null;
 
@@ -42,26 +42,29 @@
                 heartbeat = new Heartbeat
                 {
                     Id = id,
-                    ReportedStatus = Status.Beating,
-                    KnownEndpointId = "KnownEndpoints/" + id,
+                    ReportedStatus = Status.Beating
                 };
             }
 
             if (message.ExecutedAt <= heartbeat.LastReportAt)
             {
-                Logger.InfoFormat("Out of sync heartbeat received for endpoint {0}", originatingEndpoint.Name);
+                Logger.InfoFormat("Out of sync heartbeat received for endpoint {0}", message.EndpointName);
                 return;
             }
 
             heartbeat.LastReportAt = message.ExecutedAt;
-            heartbeat.Endpoint = message.Endpoint;
-            heartbeat.HostId = message.HostId;
+            heartbeat.EndpointDetails = new EndpointDetails
+            {
+                HostId = message.HostId,
+                Host = message.Host,
+                Name = message.EndpointName
+            };
 
             if (isNew) // New endpoint heartbeat
             {
                 Bus.Publish(new HeartbeatingEndpointDetected
                 {
-                    EndpointDetails = originatingEndpoint,
+                    Endpoint = heartbeat.EndpointDetails,
                     DetectedAt = heartbeat.LastReportAt,
                 });             
             }
@@ -71,8 +74,7 @@
                 heartbeat.ReportedStatus = Status.Beating;
                 Bus.Publish(new EndpointHeartbeatRestored
                 {
-                    Endpoint = heartbeat.Endpoint,
-                    HostId = heartbeat.HostId,
+                    Endpoint = heartbeat.EndpointDetails,
                     RestoredAt = heartbeat.LastReportAt
                 });
             }

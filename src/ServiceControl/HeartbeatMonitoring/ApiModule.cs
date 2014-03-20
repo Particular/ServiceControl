@@ -5,13 +5,13 @@ namespace ServiceControl.HeartbeatMonitoring
 
     public class ApiModule : BaseModule
     {
-        public HeartbeatsComputation HeartbeatsComputation { get; set; }
+        public HeartbeatStatusProvider StatusProvider { get; set; }
 
         public ApiModule()
         {
             Get["/heartbeats/stats"] = _ =>
             {
-                var heartbeatsStats = HeartbeatsComputation.Current;
+                var heartbeatsStats = StatusProvider.GetHeartbeatsStats();
 
                 return Negotiate.WithModel(new
                 {

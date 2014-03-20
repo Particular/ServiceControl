@@ -12,6 +12,11 @@ namespace ServiceControl.CompositeViews.Endpoints
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
+    public class EndpointUpdateModel : ICommand
+    {
+        public bool MonitorHeartbeat { get; set; }
+    }
+
     public class GetEndpoints : BaseModule
     {
         public IBus Bus { get; set; }
@@ -22,10 +27,34 @@ namespace ServiceControl.CompositeViews.Endpoints
         {
             Patch["/endpoints/{id}"] = parameters =>
             {
-                var data = this.Bind<KnownEndpointUpdate>();
-                data.KnownEndpointId = (Guid) parameters.id;
+                var data = this.Bind<EndpointUpdateModel>();
+                var endpointId = (Guid) parameters.id;
 
-                Bus.SendLocal(data);
+                using (var session = Store.OpenSession())
+                {
+                    var endpoint = session.Load<KnownEndpoint>(endpointId);
+
+                    if (endpoint == null)
+                    {
+                        return HttpStatusCode.NotFound;
+                    }
+
+                    if (data.MonitorHeartbeat == endpoint.MonitorHeartbeat)
+                    {
+                        return HttpStatusCode.NotModified;
+                    }
+
+                    if (data.MonitorHeartbeat)
+                    {
+                        Bus.SendLocal(new EnableEndpointMonitoring{EndpointId = endpointId});
+                    }
+                    else
+                    {
+                        Bus.SendLocal(new DisableEndpointMonitoring { EndpointId = endpointId });
+                    }
+                }
+
+             
 
                 return HttpStatusCode.Accepted;
             };
@@ -48,10 +77,10 @@ namespace ServiceControl.CompositeViews.Endpoints
                             var view = new EndpointsView
                             {
                                 Id = knownEndpoint.Id,
-                                Name = knownEndpoint.Name,
+                                Name = knownEndpoint.EndpointDetails.Name,
                                 HostDisplayName = knownEndpoint.HostDisplayName,
                                 MonitorHeartbeat = knownEndpoint.MonitorHeartbeat,
-                                LicenseStatus = LicenseStatusKeeper.Get(knownEndpoint.Name + knownEndpoint.HostDisplayName)
+                                LicenseStatus = LicenseStatusKeeper.Get(knownEndpoint.EndpointDetails.Name + knownEndpoint.HostDisplayName)
                             };
 
                             session.Advanced.Lazily.Load<Heartbeat>(knownEndpoint.Id,
