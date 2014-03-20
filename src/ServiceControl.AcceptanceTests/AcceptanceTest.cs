@@ -223,6 +223,7 @@
 
             response = Get<T>(url);
 
+
             if (response == null || !condition(response))
             {
                 Thread.Sleep(1000);

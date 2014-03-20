@@ -1,16 +1,17 @@
 namespace ServiceControl.EndpointControl.Handlers
 {
+    using System;
     using System.Collections.Concurrent;
     using NServiceBus;
 
-    internal class KnownEndpointsCache : INeedInitialization
+    public class KnownEndpointsCache : INeedInitialization
     {
-        public bool TryAdd(string key)
+        public bool TryAdd(Guid key)
         {
             return !processed.ContainsKey(key);
         }
 
-        public void MarkAsProcessed(string key)
+        public void MarkAsProcessed(Guid key)
         {
             processed.TryAdd(key, true);
         }
@@ -20,6 +21,6 @@ namespace ServiceControl.EndpointControl.Handlers
             Configure.Component<KnownEndpointsCache>(DependencyLifecycle.SingleInstance);
         }
 
-        readonly ConcurrentDictionary<string, bool> processed = new ConcurrentDictionary<string, bool>();
+        readonly ConcurrentDictionary<Guid, bool> processed = new ConcurrentDictionary<Guid, bool>();
     }
 }

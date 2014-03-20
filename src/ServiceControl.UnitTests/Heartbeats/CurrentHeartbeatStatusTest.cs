@@ -12,7 +12,47 @@
         public void When_A_New_Endpoint_Is_Detected_Should_List_As_Inactive()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
-            var stats = currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails(){Host="Machine", HostId = Guid.NewGuid(), Name = "NewEndpoint" });
+            var hostId = Guid.NewGuid();
+
+            VerifyHeartbeatStats(currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails{ Host = "Machine", HostId = hostId, Name = "NewEndpoint1" }), 0, 1);
+
+            VerifyHeartbeatStats(currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails{ Host = "Machine", HostId = hostId, Name = "NewEndpoint2" }), 0, 2);
+
+        }
+
+
+        [Test]
+        public void When_endpoint_is_disabled_should_not_count()
+        {
+            var currentHeartbeatStatus = new HeartbeatStatusProvider();
+
+            var endpoint = new EndpointDetails()
+            {
+                Host = "Machine",
+                HostId = Guid.NewGuid(),
+                Name = "NewEndpoint"
+            };
+            currentHeartbeatStatus.RegisterNewEndpoint(endpoint);
+            var stats = currentHeartbeatStatus.DisableMonitoring(endpoint);
+            
+            VerifyHeartbeatStats(stats, 0, 0);
+
+            //enable and make sure it counts again
+            stats = currentHeartbeatStatus.EnableMonitoring(endpoint);
+
+            VerifyHeartbeatStats(stats, 0, 1);
+
+        }
+
+        [Test]
+        public void When_A_New_Endpoint_without_a_hostid_Is_Detected_Should_List_As_Inactive()
+        {
+            var currentHeartbeatStatus = new HeartbeatStatusProvider();
+            var stats = currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails() { Host = "Machine", Name = "NewEndpoint" });
+            VerifyHeartbeatStats(stats, 0, 1);
+
+            //make sure to handles duplicates as well
+            stats = currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails() { Host = "Machine", Name = "NewEndpoint" });
             VerifyHeartbeatStats(stats, 0, 1);
         }
 
@@ -37,12 +77,12 @@
         }
 
         [Test]
-        public void When_Heartbeating_Endpoint_No_Longer_Sends_Heartbats()
+        public void When_Heartbeating_Endpoint_No_Longer_Sends_Heartbeats()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
             var hostId = Guid.NewGuid();
-            currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails() { Host = "Machine", HostId = hostId, Name = "NewEndpoint" });
-            var stats = currentHeartbeatStatus.RegisterEndpointThatFailedToHeartbeat(new EndpointDetails() { Host = "Machine", HostId = hostId, Name = "NewEndpoint" });
+            currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" });
+            var stats = currentHeartbeatStatus.RegisterEndpointThatFailedToHeartbeat(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" });
             VerifyHeartbeatStats(stats, 0, 1);
         }
 
@@ -56,31 +96,7 @@
             VerifyHeartbeatStats(stats, 1, 0);
         }
 
-        [Test]
-        public void When_A_Heartbeating_Endpoint_Is_Unmonitored()
-        {
-            //TODO
-        }
-
-        [Test]
-        public void When_A_Heartbeating_Endpoint_Is_Monitored()
-        {
-            //TODO
-        }
-
-        [Test]
-        public void When_A_Dead_Endpoint_Is_Unmonitored()
-        {
-            //TODO
-        }
-
-        [Test]
-        public void When_A_Dead_Endpoint_Is_Monitored()
-        {
-            //TODO
-        }
-
-        static void VerifyHeartbeatStats(HeartbeatsComputation.HeartbeatsStats stats, int expectedActive, int expectedDead)
+        static void VerifyHeartbeatStats(HeartbeatsStats stats, int expectedActive, int expectedDead)
         {
             Assert.AreEqual(expectedDead, stats.Dead);
             Assert.AreEqual(expectedActive, stats.Active);

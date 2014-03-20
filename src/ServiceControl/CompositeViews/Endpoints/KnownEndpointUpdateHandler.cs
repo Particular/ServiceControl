@@ -1,29 +1,54 @@
 namespace ServiceControl.CompositeViews.Endpoints
 {
+    using System;
     using EndpointControl;
+    using EndpointControl.Contracts;
     using NServiceBus;
     using Raven.Client;
 
-    public class KnownEndpointUpdateHandler : IHandleMessages<KnownEndpointUpdate>
+    public class KnownEndpointUpdateHandler : IHandleMessages<EnableEndpointMonitoring>, IHandleMessages<DisableEndpointMonitoring>
     {
         public IDocumentSession Session { get; set; }
 
         public IBus Bus { get; set; }
 
-        public void Handle(KnownEndpointUpdate message)
+        public void Handle(EnableEndpointMonitoring message)
         {
-            var knownEndpoint = Session.Load<KnownEndpoint>(message.KnownEndpointId);
+            var knownEndpoint = Session.Load<KnownEndpoint>(message.EndpointId);
 
-            knownEndpoint.MonitorHeartbeat = message.MonitorHeartbeat;
+            if (knownEndpoint == null)
+            {
+                throw new Exception("No endpoint with found with id: " + message.EndpointId);
+            }
+
+            knownEndpoint.MonitorHeartbeat = true;
 
             Session.Store(knownEndpoint);
 
-            Bus.Publish(new KnownEndpointUpdated
+            Bus.Publish(new MonitoringEnabledForEndpoint
             {
-                KnownEndpointId = message.KnownEndpointId,
-                Name = knownEndpoint.Name,
-                HostDisplayName = knownEndpoint.HostDisplayName,
-                HostId = knownEndpoint.HostId,
+                EndpointId = message.EndpointId,
+                Endpoint = knownEndpoint.EndpointDetails
+            });
+        }
+
+        public void Handle(DisableEndpointMonitoring message)
+        {
+            var knownEndpoint = Session.Load<KnownEndpoint>(message.EndpointId);
+
+            if (knownEndpoint == null)
+            {
+                throw new Exception("No endpoint with found with id: " + message.EndpointId);
+            }
+
+            knownEndpoint.MonitorHeartbeat = false;
+
+            Session.Store(knownEndpoint);
+
+            Bus.Publish(new MonitoringDisabledForEndpoint
+            {
+                EndpointId = message.EndpointId,
+                Endpoint = knownEndpoint.EndpointDetails
             });
         }
     }

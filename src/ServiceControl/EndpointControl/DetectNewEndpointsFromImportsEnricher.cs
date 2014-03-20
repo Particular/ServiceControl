@@ -1,10 +1,11 @@
 ﻿namespace ServiceControl.EndpointControl.Handlers
 {
     using System;
-    using Contracts.Operations;
+    using Infrastructure;
     using InternalMessages;
     using NServiceBus;
     using Operations;
+    using ServiceControl.Contracts.Operations;
 
     class DetectNewEndpointsFromImportsEnricher : ImportEnricher
     {
@@ -14,18 +15,28 @@
         
         public override void Enrich(ImportMessage message)
         {
-            TryAddEndpoint(EndpointDetails.SendingEndpoint(message.PhysicalMessage.Headers));
-            TryAddEndpoint(EndpointDetails.ReceivingEndpoint(message.PhysicalMessage.Headers));
+            TryAddEndpoint(EndpointDetailsParser.SendingEndpoint(message.PhysicalMessage.Headers));
+            TryAddEndpoint(EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers));
         }
 
         void TryAddEndpoint(EndpointDetails endpointDetails)
         {
-            var id = endpointDetails.Name + endpointDetails.Host;
+            Guid id;
+
+            if (endpointDetails.HostId == Guid.Empty)
+            {
+                id = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.Host);
+            }
+            else
+            {
+                id = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.HostId.ToString());
+            }
 
             if (KnownEndpointsCache.TryAdd(id))
             {
                 Bus.SendLocal(new RegisterEndpoint
                 {
+                    //we don't set then endpoint instance id since we don't have the host id
                     Endpoint = endpointDetails,
                     DetectedAt = DateTime.UtcNow
                 });

@@ -10,7 +10,7 @@ namespace ServiceControl.Operations
         public override void Enrich(ImportMessage message)
         {   
             var status = GetLicenseStatus(message.PhysicalMessage.Headers);
-            var endpoint = EndpointDetails.ReceivingEndpoint(message.PhysicalMessage.Headers);
+            var endpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
             LicenseStatusKeeper.Set(endpoint.Name + endpoint.Host, status);
         }
 
