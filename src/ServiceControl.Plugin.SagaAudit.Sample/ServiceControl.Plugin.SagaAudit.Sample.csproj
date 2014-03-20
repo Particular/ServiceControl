@@ -66,6 +66,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Plugin.Heartbeat\ServiceControl.Plugin.Heartbeat.csproj">
+      <Project>{842c0a62-348b-4e78-b9f1-ec931cddd562}</Project>
+      <Name>ServiceControl.Plugin.Heartbeat</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Plugin.SagaAudit\ServiceControl.Plugin.SagaAudit.csproj">
       <Project>{97079a73-235e-4d52-a6df-ebf3bf0f4971}</Project>
       <Name>ServiceControl.Plugin.SagaAudit</Name>
