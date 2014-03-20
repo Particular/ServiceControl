@@ -37,6 +37,7 @@
     <GetVersion SolutionDirectory="$(SolutionDir)">
       <Output TaskParameter="SemVer" PropertyName="SemVer" />
       <Output TaskParameter="MajorMinorPatch" PropertyName="MajorMinorPatch" />
+      <Output TaskParameter="NuGetVersion" PropertyName="NuGetVersion" />
     </GetVersion>
     <ItemGroup>
       <FilesToDelete Include="$(ProjectDir)Build\**\*.*" />
@@ -52,7 +53,7 @@
     </ItemGroup>
     <FileUpdate Files="@(InstallFile)" Regex="SemVer" ReplacementText="$(SemVer)" />
     <FileUpdate Files="@(InstallFile)" Regex="MajorMinorPatch" ReplacementText="$(MajorMinorPatch)" />
-    <CreatePackageTask NuGetBuildDirectory="$(ProjectDir)Build" Version="$(SemVer)" TargetDir="$(SolutionDir)..\nugets" />
+    <CreatePackageTask NuGetBuildDirectory="$(ProjectDir)Build" Version="$(NuGetVersion)" TargetDir="$(SolutionDir)..\nugets" />
   </Target>
   <Target Name="Clean">
   </Target>
