@@ -11,7 +11,6 @@
     using NServiceBus.Serializers.Binary;
     using NServiceBus.Serializers.Json;
     using NServiceBus.Transports;
-    using NServiceBus.Unicast.Queuing;
     using NServiceBus.Unicast.Transport;
     using NServiceBus.CircuitBreakers;
 
