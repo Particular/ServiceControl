@@ -6,15 +6,15 @@ namespace ServiceControl.HeartbeatMonitoring
     using NServiceBus;
     using Raven.Client;
 
-    public class HeartbeatStatusInitalizer : INeedInitialization,IWantToRunWhenBusStartsAndStops
+    public class HeartbeatStatusInitializer : INeedInitialization,IWantToRunWhenBusStartsAndStops
     {
  
-        public HeartbeatStatusInitalizer()
+        public HeartbeatStatusInitializer()
         {
             // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
         }
 
-        public HeartbeatStatusInitalizer(IDocumentStore store,HeartbeatStatusProvider statusProvider)
+        public HeartbeatStatusInitializer(IDocumentStore store,HeartbeatStatusProvider statusProvider)
         {
             this.store = store;
             this.statusProvider = statusProvider;
@@ -23,7 +23,7 @@ namespace ServiceControl.HeartbeatMonitoring
      
         public void Init()
         {
-            Configure.Component<HeartbeatStatusInitalizer>(DependencyLifecycle.SingleInstance);
+            Configure.Component<HeartbeatStatusInitializer>(DependencyLifecycle.SingleInstance);
             Configure.Component<HeartbeatStatusProvider>(DependencyLifecycle.SingleInstance);
         }
 
