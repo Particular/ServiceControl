@@ -227,6 +227,8 @@
     <Compile Include="Contracts\Operations\EndpointDetails.cs" />
     <Compile Include="Contracts\EndpointControl\MonitoringDisabledForEndpoint.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatsStats.cs" />
+    <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterPotentiallyMissingHeartbeats.cs" />
+    <Compile Include="HeartbeatMonitoring\RegisterPotentiallyMissingHeartbeatsHandler.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />

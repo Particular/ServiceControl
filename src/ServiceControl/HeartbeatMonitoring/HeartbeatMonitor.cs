@@ -1,23 +1,17 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
-    using System.Linq;
     using System.Threading;
-    using Contracts.HeartbeatMonitoring;
+    using Infrastructure;
+    using InternalMessages;
     using NServiceBus;
-    using Raven.Client;
 
     public class HeartbeatMonitor : IWantToRunWhenBusStartsAndStops
     {
-        public HeartbeatMonitor(IBus bus)
-        {
-            this.bus = bus;
-            GracePeriod = TimeSpan.FromSeconds(40);
-        }
+        public IBus Bus { get; set; }
 
-        public IDocumentStore Store { get; set; }
-
-        public TimeSpan GracePeriod { get; set; }
+        public HeartbeatStatusProvider HeartbeatStatusProvider { get; set; }
+     
 
         public void Start()
         {
@@ -40,7 +34,7 @@
 
             try
             {
-                timer.Change((int) GracePeriod.TotalMilliseconds, -1);
+                timer.Change((int) TimeSpan.FromSeconds(5).TotalMilliseconds, -1);
             }
             catch (ObjectDisposedException)
             {
@@ -49,39 +43,20 @@
 
         void UpdateStatuses()
         {
-            using (var session = Store.OpenSession())
-            {
-                
-                RavenQueryStatistics stats;
-                var results = session.Query<Heartbeat, HeartbeatsIndex>()
-                    .Statistics(out stats)
-                  .ToArray();
+            var now = DateTime.UtcNow;
 
-                // TODO: this only goes through one page of the results. Do we need to use the stream API here instead?
-                foreach (var result in results)
+            foreach (var failingEndpoint in HeartbeatStatusProvider.GetPotentiallyFailedEndpoints(now))
+            {
+                var id = DeterministicGuid.MakeId(failingEndpoint.Details.Name, failingEndpoint.Details.HostId.ToString());
+
+                Bus.SendLocal(new RegisterPotentiallyMissingHeartbeats
                 {
-                    if (result.ReportedStatus == Status.Beating && !IsActive(result.LastReportAt))
-                    {
-                        result.ReportedStatus = Status.Dead;
-                        bus.Publish(new EndpointFailedToHeartbeat
-                        {
-                            Endpoint = result.EndpointDetails,
-                            LastReceivedAt = result.LastReportAt,
-                        });
-                        session.SaveChanges();
-                    }
-                }
+                    EndpointInstanceId = id,
+                    DetectedAt = now,
+                    LastHeartbeatAt = failingEndpoint.LastHeartbeatAt
+                });
             }
         }
-
-        bool IsActive(DateTime lastReportedAt)
-        {
-            var timeSinceLastHeartbeat = DateTime.UtcNow - lastReportedAt;
-
-            return timeSinceLastHeartbeat < GracePeriod;
-        }
-
-        readonly IBus bus;
 
         Timer timer;
     }

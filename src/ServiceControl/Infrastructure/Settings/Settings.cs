@@ -51,6 +51,7 @@
             }
         }
 
+        
         static Address GetAuditLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
@@ -132,6 +133,8 @@
         public static string Schema = SettingsReader<string>.Read("Schema", "http");
         public static string Hostname = SettingsReader<string>.Read("Hostname", "localhost");
         public static string VirtualDirectory = SettingsReader<string>.Read("VirtualDirectory", String.Empty);
+        public static TimeSpan HeartbeatGracePeriod = TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
+        
 
         public static string LogPath =
             Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath",

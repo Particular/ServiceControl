@@ -11,5 +11,6 @@ namespace ServiceControl.HeartbeatMonitoring
         public string Host { get; set; }
         public bool Active { get; set; }
         public bool MonitoringDisabled { get; set; }
+        public DateTime? TimeOfLastHeartbeat { get; set; }
     }
 }
