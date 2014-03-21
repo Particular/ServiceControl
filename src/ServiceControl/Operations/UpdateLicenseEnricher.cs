@@ -8,10 +8,16 @@ namespace ServiceControl.Operations
         public LicenseStatusKeeper LicenseStatusKeeper { get; set; }
 
         public override void Enrich(ImportMessage message)
-        {   
+        {
             var status = GetLicenseStatus(message.PhysicalMessage.Headers);
             var endpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
-            LicenseStatusKeeper.Set(endpoint.Name + endpoint.Host, status);
+
+            // The ReceivingEndpoint will be null for messages from v3.3.x endpoints that were successfully
+            // processed because we dont have the information from the relevant headers.
+            if (endpoint != null)
+            {
+                LicenseStatusKeeper.Set(endpoint.Name + endpoint.Host, status);
+            }
         }
 
         public string GetLicenseStatus(Dictionary<string,string> headers)
