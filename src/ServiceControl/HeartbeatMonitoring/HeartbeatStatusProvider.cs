@@ -11,13 +11,13 @@
         {
             lock (locker)
             {
-                var existingEndpoint = GetEndpoint(endpointDetails);
+                GetEndpoint(endpointDetails);
 
                 return GetHeartbeatsStats();
             }
         }
 
-        public HeartbeatsStats RegisterHeartbeatingEndpoint(EndpointDetails endpointDetails)
+        public HeartbeatsStats RegisterHeartbeatingEndpoint(EndpointDetails endpointDetails,DateTime timeOfHeartbeat)
         {
             lock (locker)
             {
@@ -25,6 +25,7 @@
 
 
                 existingEndpoint.Active = true;
+                existingEndpoint.TimeOfLastHeartbeat = timeOfHeartbeat;
 
                 return GetHeartbeatsStats();
             }
@@ -45,9 +46,9 @@
             }
         }
 
-        public HeartbeatsStats RegisterEndpointWhoseHeartbeatIsRestored(EndpointDetails endpointDetails)
+        public HeartbeatsStats RegisterEndpointWhoseHeartbeatIsRestored(EndpointDetails endpointDetails, DateTime timeOfHeartbeat)
         {
-            return RegisterHeartbeatingEndpoint(endpointDetails);
+            return RegisterHeartbeatingEndpoint(endpointDetails,timeOfHeartbeat);
         }
 
         public HeartbeatsStats GetHeartbeatsStats()
@@ -76,6 +77,40 @@
                 return GetHeartbeatsStats();
             }
         }
+
+        public IEnumerable<PotentiallyFailedEndpoint> GetPotentiallyFailedEndpoints(DateTime time)
+        {
+            lock (locker)
+            {
+                return endpoints.Where(e =>HasPassedTheGracePeriod(time,e))
+                    .Select(e => new PotentiallyFailedEndpoint
+                {
+                    Details = new EndpointDetails { Host = e.Host,HostId = e.HostId,Name = e.Name},
+                    LastHeartbeatAt = e.TimeOfLastHeartbeat.Value
+
+                }).ToList();
+            }
+        }
+
+        bool HasPassedTheGracePeriod(DateTime time,HeartbeatingEndpoint heartbeatingEndpoint)
+        {
+            if (!heartbeatingEndpoint.TimeOfLastHeartbeat.HasValue)
+            {
+                return false;
+            }
+
+            if (!heartbeatingEndpoint.Active)
+            {
+                return false;
+            }
+
+
+            var timeSinceLastHeartbeat = time - heartbeatingEndpoint.TimeOfLastHeartbeat;
+
+            return timeSinceLastHeartbeat >= GracePeriod;
+        }
+
+
 
         HeartbeatingEndpoint GetEndpoint(EndpointDetails endpointDetails)
         {
@@ -127,5 +162,16 @@
         readonly object locker = new object();
 
         List<HeartbeatingEndpoint> endpoints = new List<HeartbeatingEndpoint>();
+
+
+
+        public class PotentiallyFailedEndpoint
+        {
+            public DateTime LastHeartbeatAt { get; set; }
+            public EndpointDetails Details { get; set; }
+
+        }
+
+        public TimeSpan GracePeriod { get; set; }
     }
 }

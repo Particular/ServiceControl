@@ -8,5 +8,6 @@ namespace ServiceControl.Contracts.HeartbeatMonitoring
     {
         public EndpointDetails Endpoint { get; set; }
         public DateTime LastReceivedAt { get; set; }
+        public DateTime DetectedAt { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 {
     using Contracts.EventLog;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Raven.Client;
 
     /// <summary>
@@ -16,6 +17,8 @@
 
         public void Handle(IEvent message)
         {
+            Logger.InfoFormat("Event: {0} emitted", message.GetType().Name);
+
             //to prevent a infinite loop
             if (message is EventLogItemAdded)
             {
@@ -39,6 +42,9 @@
                 m.RelatedTo = logItem.RelatedTo;
             });
 
+            
         }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(GenericAuditHandler));
     }
 }

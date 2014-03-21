@@ -24,12 +24,12 @@
 
         public void Handle(EndpointHeartbeatRestored message)
         {
-            PublishUpdate(StatusProvider.RegisterEndpointWhoseHeartbeatIsRestored(message.Endpoint));
+            PublishUpdate(StatusProvider.RegisterEndpointWhoseHeartbeatIsRestored(message.Endpoint, message.RestoredAt));
         }
 
         public void Handle(HeartbeatingEndpointDetected message)
         {
-            PublishUpdate(StatusProvider.RegisterHeartbeatingEndpoint(message.Endpoint));
+            PublishUpdate(StatusProvider.RegisterHeartbeatingEndpoint(message.Endpoint,message.DetectedAt));
         }
 
         public void Handle(MonitoringEnabledForEndpoint message)

@@ -5,26 +5,28 @@ namespace ServiceControl.HeartbeatMonitoring
     using EndpointControl;
     using NServiceBus;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
 
-    public class HeartbeatStatusInitializer : INeedInitialization,IWantToRunWhenBusStartsAndStops
+    public class HeartbeatStatusInitializer : INeedInitialization, IWantToRunWhenBusStartsAndStops
     {
- 
+
         public HeartbeatStatusInitializer()
         {
             // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
         }
 
-        public HeartbeatStatusInitializer(IDocumentStore store,HeartbeatStatusProvider statusProvider)
+        public HeartbeatStatusInitializer(IDocumentStore store, HeartbeatStatusProvider statusProvider)
         {
             this.store = store;
             this.statusProvider = statusProvider;
         }
 
-     
+
         public void Init()
         {
             Configure.Component<HeartbeatStatusInitializer>(DependencyLifecycle.SingleInstance);
-            Configure.Component<HeartbeatStatusProvider>(DependencyLifecycle.SingleInstance);
+            Configure.Component<HeartbeatStatusProvider>(DependencyLifecycle.SingleInstance)
+                .ConfigureProperty(p => p.GracePeriod, Settings.HeartbeatGracePeriod);
         }
 
         public void Start()
@@ -37,7 +39,7 @@ namespace ServiceControl.HeartbeatMonitoring
 
         }
 
-     
+
         void Initialise()
         {
             Action<IDocumentQueryCustomization> customization = c => { };
@@ -64,15 +66,21 @@ namespace ServiceControl.HeartbeatMonitoring
 
                         }
                     });
-                
+
                 session.Query<Heartbeat, HeartbeatsIndex>()
                     .Customize(customization)
                     .Lazily(heartbeats =>
                     {
                         foreach (var heartbeat in heartbeats)
                         {
-                            //we initalize all as "dead" since this happens when we startup so we can't assume that they are still running
-                            statusProvider.RegisterEndpointThatFailedToHeartbeat(heartbeat.EndpointDetails);
+                            if (heartbeat.ReportedStatus == Status.Beating)
+                            {
+                                statusProvider.RegisterHeartbeatingEndpoint(heartbeat.EndpointDetails, heartbeat.LastReportAt);
+                            }
+                            else
+                            {
+                                statusProvider.RegisterEndpointThatFailedToHeartbeat(heartbeat.EndpointDetails);
+                            }
                         }
                     });
                 session.Advanced.Eagerly.ExecuteAllPendingLazyOperations();
@@ -81,6 +89,6 @@ namespace ServiceControl.HeartbeatMonitoring
 
         readonly IDocumentStore store;
         readonly HeartbeatStatusProvider statusProvider;
-        
+
     }
 }
