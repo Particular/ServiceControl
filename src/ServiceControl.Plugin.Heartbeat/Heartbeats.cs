@@ -44,6 +44,7 @@
             backend.Send(new RegisterEndpointStartup
             {
                 HostId = hostInfo.HostId, 
+                Host = hostInfo.Name,
                 Endpoint = Configure.EndpointName,
                 HostDisplayName = hostInfo.DisplayName,
                 HostProperties = hostInfo.Properties,
@@ -78,7 +79,7 @@
             {
                 ExecutedAt = DateTime.UtcNow,
                 EndpointName = Configure.EndpointName,
-                Host =  RuntimeEnvironment.MachineName,
+                Host = hostInfo.Name,
                 HostId = hostInfo.HostId
             };
 

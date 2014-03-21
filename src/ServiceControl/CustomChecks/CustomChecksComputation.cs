@@ -1,22 +1,28 @@
 ﻿namespace ServiceControl.CustomChecks
 {
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
     using NServiceBus;
     using Raven.Client;
 
-    public class CustomChecksComputation : INeedInitialization
+    public class CustomChecksComputation
     {
-        public CustomChecksComputation()
-        {
-            // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
-        }
+        public IDocumentStore DocumentStore { get; set; }
 
-        public CustomChecksComputation(IDocumentStore store)
+        public void Initialize()
         {
-            using (var session = store.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
-                totalFailures = session.Query<CustomCheck>().Count(c => c.Status == Status.Fail);
+                foreach (var customCheck in session.Query<CustomCheck>())
+                {
+                    entries.Add(new CustomCheckEntry
+                    {
+                        Id = customCheck.Id,
+                        Status = customCheck.Status
+                    });
+                }
+               
             }
         }
 
@@ -25,16 +31,79 @@
             Configure.Component<CustomChecksComputation>(DependencyLifecycle.SingleInstance);
         }
 
-        public int CustomCheckFailed()
+        public int CustomCheckFailed(Guid id)
         {
-            return Interlocked.Decrement(ref totalFailures);
+            lock (locker)
+            {
+                GetEntry(id).Status = Status.Fail;
+                
+                return NumberOfFailedChecks();    
+            }
+            
         }
 
-        public int CustomCheckSucceeded()
+        public int CustomCheckSucceeded(Guid id)
         {
-            return Interlocked.Increment(ref totalFailures);
+            lock (locker)
+            {
+                GetEntry(id).Status = Status.Pass;
+
+                return NumberOfFailedChecks();
+            }
         }
 
-        int totalFailures;
+
+        CustomCheckEntry GetEntry(Guid id)
+        {
+            var entry = entries.SingleOrDefault(e => e.Id == id);
+
+            if (entry == null)
+            {
+                entry = new CustomCheckEntry
+                {
+                    Id = id
+                };
+
+                entries.Add(entry);
+            }
+
+            return entry;
+        }
+
+
+        int NumberOfFailedChecks()
+        {
+            return entries.Count(s => s.Status == Status.Fail);
+        }
+
+
+
+        List<CustomCheckEntry> entries = new List<CustomCheckEntry>();
+        object locker = new object();
+
+        class CustomCheckEntry
+        {
+            public Guid Id { get; set; }
+            public Status Status { get; set; }
+        }
+    }
+
+    class CustomChecksComputationInitializer : INeedInitialization,IWantToRunWhenBusStartsAndStops
+    {
+        public void Init()
+        {
+            Configure.Component<CustomChecksComputation>(DependencyLifecycle.SingleInstance);
+        }
+
+        public CustomChecksComputation CustomChecksComputation { get; set; }
+
+        public void Start()
+        {
+           CustomChecksComputation.Initialize();
+        }
+
+        public void Stop()
+        {
+        }
     }
 }

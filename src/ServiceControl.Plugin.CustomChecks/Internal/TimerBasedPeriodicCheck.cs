@@ -3,6 +3,7 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
     using System;
     using System.Threading;
     using Messages;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transports;
 
@@ -10,9 +11,7 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
     {
         static TimerBasedPeriodicCheck()
         {
-            var hostInfo =  HostInformationRetriever.RetrieveHostInfo();
-
-            hostId = hostInfo.HostId;
+            hostInfo =  HostInformationRetriever.RetrieveHostInfo();
         }
 
         public TimerBasedPeriodicCheck(IPeriodicCheck periodicCheck, ISendMessages messageSender)
@@ -37,7 +36,9 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
         {
             serviceControlBackend.Send(new ReportCustomCheckResult
             {
-                HostId = hostId,
+                HostId = hostInfo.HostId,
+                Host = hostInfo.Name,
+                EndpointName = Configure.EndpointName,
                 CustomCheckId = customCheckId,
                 Category = category,
                 HasFailed = result.HasFailed,
@@ -75,7 +76,7 @@ namespace ServiceControl.Plugin.CustomChecks.Internal
         readonly IPeriodicCheck periodicCheck;
         readonly ServiceControlBackend serviceControlBackend;
         readonly Timer timer;
-        static readonly Guid hostId;
+        static readonly HostInformation hostInfo;
 
     }
 }

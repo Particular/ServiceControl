@@ -11,5 +11,6 @@
         public string FailureReason { get; set; }
         public DateTime FailedAt { get; set; }
         public EndpointDetails OriginatingEndpoint { get; set; }
+        public Guid Id { get; set; }
     }
 }

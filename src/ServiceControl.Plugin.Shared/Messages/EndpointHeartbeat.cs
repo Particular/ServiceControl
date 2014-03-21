@@ -21,5 +21,6 @@
         public DateTime StartedAt { get; set; }
         public Dictionary<string, string> HostProperties { get; set; }
         public string HostDisplayName { get; set; }
+        public string Host { get; set; }
     }
 }
