@@ -6,7 +6,7 @@
     {
         public MessageFailureResolvedByRetryDefinition()
         {
-            Description(m => "Failed message resolve.");
+            Description(m => "Failed message resolved by retry");
 
             RelatesToMessage(m => m.FailedMessageId);
         }
