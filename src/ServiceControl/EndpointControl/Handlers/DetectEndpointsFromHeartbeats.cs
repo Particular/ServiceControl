@@ -1,8 +1,9 @@
 ﻿namespace ServiceControl.EndpointControl.Handlers
 {
-    using Contracts.HeartbeatMonitoring;
+    using Infrastructure;
     using InternalMessages;
     using NServiceBus;
+    using ServiceControl.Contracts.HeartbeatMonitoring;
 
     class DetectEndpointsFromHeartbeats : IHandleMessages<HeartbeatingEndpointDetected>
     {
@@ -12,13 +13,14 @@
 
         public void Handle(HeartbeatingEndpointDetected message)
         {
-            var id = message.EndpointDetails.Name + message.EndpointDetails.Host;
+            var id = DeterministicGuid.MakeId(message.Endpoint.Name, message.Endpoint.HostId.ToString());
 
             if (KnownEndpointsCache.TryAdd(id))
             {
                 Bus.SendLocal(new RegisterEndpoint
                 {
-                    Endpoint = message.EndpointDetails,
+                    EndpointInstanceId = id,
+                    Endpoint = message.Endpoint,
                     DetectedAt = message.DetectedAt
                 });
             }

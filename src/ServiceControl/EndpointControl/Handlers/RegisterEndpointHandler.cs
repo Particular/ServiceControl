@@ -1,12 +1,14 @@
 ﻿namespace ServiceControl.EndpointControl.Handlers
 {
-    using Contracts.EndpointControl;
+    using System;
+    using System.Linq;
     using Infrastructure;
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Contracts.EndpointControl;
 
-    internal class RegisterEndpointHandler : IHandleMessages<RegisterEndpoint>
+    public class RegisterEndpointHandler : IHandleMessages<RegisterEndpoint>
     {
         public IDocumentStore Store { get; set; }
         public KnownEndpointsCache EndpointsCache { get; set; }
@@ -14,18 +16,31 @@
 
         public void Handle(RegisterEndpoint message)
         {
-            var machine = message.Endpoint.Host;
-            var endpointName = message.Endpoint.Name;
-            var id = DeterministicGuid.MakeId(endpointName, machine);
+            var id = message.EndpointInstanceId;
 
             //Injecting store in this class because we want to know about ConcurrencyExceptions so that EndpointsCache.MarkAsProcessed is not called if the save fails.
-
             using (var session = Store.OpenSession()) 
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var knownEndpoint = session.Load<KnownEndpoint>(id);
+                KnownEndpoint knownEndpoint;
 
+                if (id == Guid.Empty)
+                {
+                    knownEndpoint = session.Query<KnownEndpoint>().SingleOrDefault(e => e.EndpointDetails.Name == message.Endpoint.Name && e.EndpointDetails.Host == message.Endpoint.Host);
+                }
+                else
+                {
+                    knownEndpoint = session.Load<KnownEndpoint>(id);
+
+                    if (knownEndpoint == null)
+                    {
+                        knownEndpoint = session.Query<KnownEndpoint>().SingleOrDefault(e => e.HasTemporaryId && 
+                            e.EndpointDetails.Name == message.Endpoint.Name && 
+                            e.EndpointDetails.Host == message.Endpoint.Host);
+                    }
+                }
+               
                 if (knownEndpoint == null)
                 {
                     //new endpoint
@@ -37,18 +52,40 @@
 
                     knownEndpoint = new KnownEndpoint
                     {
-                        Id = id,
-                        Name = endpointName, 
-                        HostDisplayName = machine,
-                        HostId = message.Endpoint.HostId
+                        EndpointDetails = message.Endpoint,
+                        HostDisplayName = message.Endpoint.Host,
                     };
 
-                    session.Store(knownEndpoint);
-                    session.SaveChanges();
+                    if (id == Guid.Empty)
+                    {
+                        knownEndpoint.Id = DeterministicGuid.MakeId(message.Endpoint.Name,message.Endpoint.HostId.ToString());
+                        knownEndpoint.HasTemporaryId = true;
+                        id = knownEndpoint.Id;
+                    }
+                    else
+                    {
+                        knownEndpoint.Id = id;
+                    }
                 }
+                else
+                {
+                    if (knownEndpoint.HasTemporaryId && id != Guid.Empty)
+                    {
+                        session.Delete(knownEndpoint);
+                        session.Store(new KnownEndpoint
+                        {
+                            Id = id,
+                            EndpointDetails = message.Endpoint,
+                            HostDisplayName = message.Endpoint.Host,
+                        });
+                    }
+                }
+
+                session.Store(knownEndpoint);
+                session.SaveChanges();
             }
 
-            EndpointsCache.MarkAsProcessed(endpointName + machine);
+            EndpointsCache.MarkAsProcessed(id);
         }
     }
 }

@@ -6,6 +6,7 @@
     using Messages;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Support;
     using NServiceBus.Transports;
 
     class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
@@ -35,7 +36,7 @@
 
             SendStartupMessageToBackend(hostInfo);
 
-            heartbeatTimer = new Timer(ExecuteHeartbeat, hostInfo.HostId, TimeSpan.Zero, heartbeatInterval);
+            heartbeatTimer = new Timer(ExecuteHeartbeat, hostInfo, TimeSpan.Zero, heartbeatInterval);
         }
 
         void SendStartupMessageToBackend(HostInformation hostInfo)
@@ -70,13 +71,15 @@
             }
         }
 
-        void ExecuteHeartbeat(object hostId)
+        void ExecuteHeartbeat(object parameter)
         {
+            var hostInfo = (HostInformation)parameter;
             var heartBeat = new EndpointHeartbeat
             {
                 ExecutedAt = DateTime.UtcNow,
-                Endpoint = Configure.EndpointName,
-                HostId = (Guid)hostId
+                EndpointName = Configure.EndpointName,
+                Host =  RuntimeEnvironment.MachineName,
+                HostId = hostInfo.HostId
             };
 
             backend.Send(heartBeat, TimeSpan.FromTicks(heartbeatInterval.Ticks * 4));
