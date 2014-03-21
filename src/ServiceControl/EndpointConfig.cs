@@ -2,7 +2,6 @@ namespace Particular.ServiceControl
 {
     using System;
     using System.IO;
-    using System.Reflection;
     using Autofac;
     using NLog;
     using NLog.Config;
@@ -36,8 +35,6 @@ namespace Particular.ServiceControl
                 .AutofacBuilder(Container)
                 .UseTransport(Type.GetType(transportType))
                 .UnicastBus();
-
-            ConfigureLicense();
 
             Feature.Disable<AutoSubscribe>();
             Feature.Disable<SecondLevelRetries>();
