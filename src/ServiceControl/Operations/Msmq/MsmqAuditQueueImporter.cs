@@ -38,6 +38,7 @@ namespace ServiceControl.Operations
         public IBus Bus { get; set; }
         public KnownEndpointsCache KnownEndpointsCache { get; set; }
         public UnicastBus UnicastBus { get; set; }
+        public ISendMessages Forwarder { get; set; }
 
         public void Start()
         {
@@ -227,6 +228,11 @@ namespace ServiceControl.Operations
                                         bulkInsert.Store(auditMessage);
                                         
                                         performanceCounters.MessageProcessed();
+
+                                        if (Settings.ForwardAuditMessages)
+                                        {
+                                            Forwarder.Send(transportMessage, Settings.AuditLogQueue);
+                                        }
                                     }
                                     catch (Exception ex)
                                     {
