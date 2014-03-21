@@ -134,7 +134,7 @@
                         return true;
                     }
 
-                    IssueRetry(c, () => Post<object>(String.Format("/api//errors/{0}/retry/all", c.EndpointNameOfReceivingEndpoint)));
+                    IssueRetry(c, () => Post<object>(String.Format("/api/errors/{0}/retry/all", c.EndpointNameOfReceivingEndpoint)));
 
                     return false;
                 })

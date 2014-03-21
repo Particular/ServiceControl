@@ -166,6 +166,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Messaging" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Spatial">
       <HintPath>..\packages\System.Spatial\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
@@ -187,6 +188,14 @@
     <Compile Include="..\ServiceControl.Plugin.Shared\Messages\SagaUpdatedMessage.cs">
       <Link>SagaAudit\Messages\SagaUpdatedMessage.cs</Link>
     </Compile>
+    <Compile Include="App_Packages\Particular.Licensing\License.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\LicenseDeserializer.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\LicenseExpirationChecker.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\LicenseVerifier.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\RegistryLicenseStore.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\ReleaseDateReader.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
@@ -279,6 +288,9 @@
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\PrepopulateSubscriptionStorage.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
+    <Compile Include="Licensing\ActiveLicense.cs" />
+    <Compile Include="Licensing\LicenseDetector.cs" />
+    <Compile Include="Licensing\NonLockingFileReader.cs" />
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageFacetsIndex.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewIndex.cs" />
@@ -352,10 +364,12 @@
     <Compile Include="Operations\FailedErrorImport.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
     <Compile Include="Operations\ImportEnricher.cs" />
+    <Compile Include="Operations\LicenseStatusKeeper.cs" />
     <Compile Include="Operations\MsmqAuditImporterPerformanceCounters.cs" />
     <Compile Include="Operations\SatelliteImportFailuresHandler.cs" />
     <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
     <Compile Include="Operations\ImportRegistration.cs" />
+    <Compile Include="Operations\UpdateLicenseEnricher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
@@ -380,16 +394,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="License.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Contracts\ServiceControl.Contracts.csproj">
       <Project>{bcaa370c-58ca-46a7-a034-6cab61c004e1}</Project>
       <Name>ServiceControl.Contracts</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
-  <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\Build\GitFlowVersionTask.targets" />
+  <Import Project="$(SolutionDir)..\BuildSupport\GitVersionTask\Build\GitVersionTask.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <StartAction>Program</StartAction>
