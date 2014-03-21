@@ -11,5 +11,7 @@
         public string FailureReason { get; set; }
 
         public DateTime ReportedAt { get; set; }
+        public string EndpointName { get; set; }
+        public string Host { get; set; }
     }
 }

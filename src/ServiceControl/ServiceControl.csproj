@@ -267,11 +267,9 @@
     <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="CustomChecks\CustomCheck.cs" />
-    <Compile Include="CustomChecks\CustomCheckMonitor.cs" />
-    <Compile Include="CustomChecks\CustomCheckResultHandler.cs" />
     <Compile Include="CustomChecks\CustomChecksModule.cs" />
     <Compile Include="CustomChecks\RaiseCustomCheckChanges.cs" />
-    <Compile Include="CustomChecks\SaveCustomCheckHandler.cs" />
+    <Compile Include="CustomChecks\ReportCustomCheckResultHandler.cs" />
     <Compile Include="CustomChecks\Status.cs" />
     <Compile Include="CustomChecks\CustomChecksUpdated.cs" />
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />

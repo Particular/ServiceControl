@@ -18,11 +18,20 @@
         public void Handle(EndpointHeartbeat message)
         {
             if (string.IsNullOrEmpty(message.EndpointName))
+            {
                 throw new ArgumentException("Received an EndpointHeartbeat message without proper initialization of the EndpointName in the schema", "message.EndpointName");
+            }
+
             if (string.IsNullOrEmpty(message.Host))
+            {
                 throw new ArgumentException("Received an EndpointHeartbeat message without proper initialization of the Host in the schema", "message.Host");
+            }
+
             if (message.HostId == Guid.Empty)
+            {
                 throw new ArgumentException("Received an EndpointHeartbeat message without proper initialization of the HostId in the schema", "message.HostId");
+            }
+                
 
             var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString());
 

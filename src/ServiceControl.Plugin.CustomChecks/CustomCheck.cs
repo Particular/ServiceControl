@@ -11,9 +11,7 @@
 
         static CustomCheck()
         {
-            var hostInfo = HostInformationRetriever.RetrieveHostInfo();
-
-            hostId = hostInfo.HostId;
+            hostInfo = HostInformationRetriever.RetrieveHostInfo();
         }
 
         protected CustomCheck(string id, string category)
@@ -49,7 +47,9 @@
 
             new ServiceControlBackend(sender).Send(new ReportCustomCheckResult
             {
-                HostId = hostId,
+                HostId = hostInfo.HostId,
+                Host = hostInfo.Name,
+                EndpointName = Configure.EndpointName,
                 CustomCheckId = id,
                 Category = category,
                 HasFailed = result.HasFailed,
@@ -60,7 +60,7 @@
 
         readonly string category;
         readonly string id;
-        static readonly Guid hostId;
+        static readonly HostInformation hostInfo;
 
     }
 }

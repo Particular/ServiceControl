@@ -28,6 +28,7 @@ namespace ServiceControl.Plugin
             return new HostInformation
             {
                 HostId = (Guid)hostInformationType.GetProperty("HostId").GetValue(hostInfo, null),
+                Name = (string)hostInformationType.GetProperty("DisplayName").GetValue(hostInfo, null), //need to use DisplayName since the core doesn't have a Name property
                 DisplayName = (string)hostInformationType.GetProperty("DisplayName").GetValue(hostInfo, null),
                 Properties = (Dictionary<string, string>)hostInformationType.GetProperty("Properties").GetValue(hostInfo, null)
             };
@@ -53,6 +54,7 @@ namespace ServiceControl.Plugin
             return new HostInformation
             {
                 HostId = hostId,
+                Name = Environment.MachineName,
                 DisplayName = Environment.MachineName,
                 Properties = new Dictionary<string, string>
                 {
@@ -91,5 +93,6 @@ namespace ServiceControl.Plugin
         public Guid HostId { get; set; }
         public Dictionary<string, string> Properties { get; set; }
         public string DisplayName { get; set; }
+        public string Name { get; set; }
     }
 }
