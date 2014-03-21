@@ -1,17 +1,17 @@
 ﻿namespace ServiceControl.EndpointControl
 {
-    using Contracts.Operations;
     using Operations;
+    using ServiceControl.Contracts.Operations;
 
     public class EnrichWithEndpointDetails : ImportEnricher
     {
         public override void Enrich(ImportMessage message)
         {
-            var sendingEndpoint = EndpointDetails.SendingEndpoint(message.PhysicalMessage.Headers);
+            var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(message.PhysicalMessage.Headers);
 
             message.Metadata.Add("SendingEndpoint", sendingEndpoint);
 
-            var receivingEndpoint = EndpointDetails.ReceivingEndpoint(message.PhysicalMessage.Headers);
+            var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
 
             message.Metadata.Add("ReceivingEndpoint", receivingEndpoint);
         }

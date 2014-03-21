@@ -1,15 +1,14 @@
 ﻿namespace ServiceControl.EventLog.Definitions
 {
-    using EndpointControl;
+    using EndpointControl.Contracts;
 
-    public class KnownEndpointUpdatedDefinition : EventLogMappingDefinition<KnownEndpointUpdated>
+    public class KnownEndpointUpdatedDefinition : EventLogMappingDefinition<MonitoringEnabledForEndpoint>
     {
         public KnownEndpointUpdatedDefinition()
         {
             Description(m => "Endpoint configuration updated.");
 
-            RelatesToEndpoint(m => m.Name);
-            RelatesToHost(m => m.HostId);
+            RelatesToEndpoint(m => m.Endpoint.Name);
         }
 
         public override string Category

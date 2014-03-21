@@ -13,7 +13,7 @@
 
         public void Handle(ReportCustomCheckResult message)
         {
-            var originatingEndpoint = EndpointDetails.SendingEndpoint(Bus.CurrentMessageContext.Headers);
+            var originatingEndpoint = EndpointDetailsParser.SendingEndpoint(Bus.CurrentMessageContext.Headers);
             var id = DeterministicGuid.MakeId(message.CustomCheckId, originatingEndpoint.Name,
                 originatingEndpoint.Host);
             var customCheck = Session.Load<CustomCheck>(id) ?? new CustomCheck

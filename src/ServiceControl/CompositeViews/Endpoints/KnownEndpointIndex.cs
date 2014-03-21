@@ -11,7 +11,7 @@ namespace ServiceControl.CompositeViews.Endpoints
             Map = messages => from message in messages
                               select new KnownEndpoint
                               {
-                                  Name = message.Name,
+                                  EndpointDetails = message.EndpointDetails,
                                   HostDisplayName = message.HostDisplayName,
                                   MonitorHeartbeat = message.MonitorHeartbeat,
                               };
