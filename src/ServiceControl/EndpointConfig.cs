@@ -76,14 +76,5 @@ namespace Particular.ServiceControl
             NLogConfigurator.Configure(new object[] { fileTarget, consoleTarget }, "Info");
             LogManager.Configuration = nlogConfig;
         }
-
-        static void ConfigureLicense()
-        {
-            using (var licenseStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.License.xml"))
-            using (var sr = new StreamReader(licenseStream))
-            {
-                Configure.Instance.License(sr.ReadToEnd());
-            }
-        }
     }
 }
