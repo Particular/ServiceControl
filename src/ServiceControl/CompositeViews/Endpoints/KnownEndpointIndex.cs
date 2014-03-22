@@ -13,7 +13,7 @@ namespace ServiceControl.CompositeViews.Endpoints
                               {
                                   EndpointDetails = message.EndpointDetails,
                                   HostDisplayName = message.HostDisplayName,
-                                  MonitorHeartbeat = message.MonitorHeartbeat,
+                                  Monitored = message.Monitored,
                               };
 
             DisableInMemoryIndexing = true;

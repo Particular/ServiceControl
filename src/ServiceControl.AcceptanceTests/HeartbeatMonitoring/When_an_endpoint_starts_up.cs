@@ -7,7 +7,7 @@
     using NServiceBus.Config;
     using NServiceBus.Unicast;
     using NUnit.Framework;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
+    using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.EventLog;
 
     public class When_an_endpoint_starts_up : AcceptanceTest
