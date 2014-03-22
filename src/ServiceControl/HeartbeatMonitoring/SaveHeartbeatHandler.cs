@@ -14,6 +14,7 @@
     {
         public IDocumentSession Session { get; set; }
         public IBus Bus { get; set; }
+        public HeartbeatStatusProvider HeartbeatStatusProvider { get; set; }
 
         public void Handle(EndpointHeartbeat message)
         {
@@ -96,6 +97,7 @@
                 });
             }
 
+            HeartbeatStatusProvider.RegisterHeartbeat(heartbeat.EndpointDetails);
             Session.Store(heartbeat);
         }
 
