@@ -65,17 +65,20 @@ namespace ServiceControl.Contracts.Operations
             //use the failed q to determine the receiving endpoint
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.FailedQ", headers, s => address = Address.Parse(s));
 
-            if (string.IsNullOrEmpty(endpoint.Name))
+            // If we have a failed queue, then construct an endpoint from the failed queue information
+            if (address != Address.Undefined)
             {
-                endpoint.Name = address.Queue;
+                if (string.IsNullOrEmpty(endpoint.Name))
+                {
+                    endpoint.Name = address.Queue;
+                }
+                if (string.IsNullOrEmpty(endpoint.Host))
+                {
+                    endpoint.Host = address.Machine;
+                }
+                return endpoint;
             }
-
-            if (string.IsNullOrEmpty(endpoint.Host))
-            {
-                endpoint.Host = address.Machine;
-            }
-
-            return endpoint;
+            return null;
         }  
     }
 }
