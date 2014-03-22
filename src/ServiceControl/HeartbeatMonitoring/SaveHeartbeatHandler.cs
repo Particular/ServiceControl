@@ -3,7 +3,6 @@
     using System;
     using Contracts.HeartbeatMonitoring;
     using Contracts.Operations;
-    using EndpointControl;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -36,17 +35,11 @@
 
             var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString());
 
-            Heartbeat heartbeat = null;
-            KnownEndpoint knownEndpoint = null;
-
-            Session.Advanced.Lazily.Load<Heartbeat>(id, doc => heartbeat = doc);
-            Session.Advanced.Lazily.Load<KnownEndpoint>(id, doc => knownEndpoint = doc);
-
-            Session.Advanced.Eagerly.ExecuteAllPendingLazyOperations();
-
-            if (knownEndpoint != null)
+            var heartbeat = Session.Load<Heartbeat>(id);
+          
+            if (heartbeat != null)
             {
-                if (!knownEndpoint.MonitorHeartbeat)
+                if (heartbeat.Disabled)
                 {
                     return;
                 }
@@ -97,7 +90,8 @@
                 });
             }
 
-            HeartbeatStatusProvider.RegisterHeartbeat(heartbeat.EndpointDetails);
+            HeartbeatStatusProvider.RegisterHeartbeatingEndpoint(heartbeat.EndpointDetails, heartbeat.LastReportAt);
+
             Session.Store(heartbeat);
         }
 
