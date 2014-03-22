@@ -6,7 +6,7 @@ namespace ServiceControl.EndpointControl.Contracts
 
     public class MonitoringDisabledForEndpoint : IEvent
     {
-        public Guid EndpointId { get; set; }
+        public Guid EndpointInstanceId { get; set; }
 
         public EndpointDetails Endpoint { get; set; }
     }

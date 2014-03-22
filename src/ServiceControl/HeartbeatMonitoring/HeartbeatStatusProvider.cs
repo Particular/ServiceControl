@@ -173,11 +173,5 @@
         }
 
         public TimeSpan GracePeriod { get; set; }
-
-        public void RegisterHeartbeat(EndpointDetails endpointDetails)
-        {
-            var heartbeatingEndpoint = GetEndpoint(endpointDetails);
-            heartbeatingEndpoint.TimeOfLastHeartbeat = DateTime.UtcNow;
-        }
     }
 }

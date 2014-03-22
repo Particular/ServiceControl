@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
-    using Contracts.HeartbeatMonitoring;
+    using Contracts.EndpointControl;
+    using Contracts.Operations;
     using NServiceBus;
     using Plugin.Heartbeat.Messages;
     using Raven.Client;
@@ -14,8 +15,12 @@
         {
             Bus.Publish<EndpointStarted>(e =>
             {
-                e.HostId = message.HostId;
-                e.Endpoint = message.Endpoint;
+                e.EndpointDetails = new EndpointDetails
+                {
+                    Host = message.Host,
+                    HostId = message.HostId,
+                    Name = message.Endpoint
+                };
                 e.StartedAt = message.StartedAt;
             });
         }
