@@ -1,10 +1,9 @@
 ﻿namespace ServiceControl.Contracts.HeartbeatMonitoring
 {
     using System;
-    using NServiceBus;
     using Operations;
 
-    public class HeartbeatingEndpointDetected : IEvent
+    public class HeartbeatingEndpointDetected : HeartbeatStatusChanged
     {
         public EndpointDetails Endpoint { get; set; }
         public DateTime DetectedAt { get; set; }

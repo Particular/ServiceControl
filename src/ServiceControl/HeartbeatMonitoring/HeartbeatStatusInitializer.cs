@@ -51,19 +51,11 @@ namespace ServiceControl.HeartbeatMonitoring
 
                 session.Query<KnownEndpoint, KnownEndpointIndex>()
                     .Customize(customization)
-                    .Lazily(heartbeats =>
+                    .Lazily(endpoints =>
                     {
-                        foreach (var knownEndpoint in heartbeats)
+                        foreach (var knownEndpoint in endpoints)
                         {
-                            if (knownEndpoint.MonitorHeartbeat)
-                            {
-                                statusProvider.EnableMonitoring(knownEndpoint.EndpointDetails);
-                            }
-                            else
-                            {
-                                statusProvider.DisableMonitoring(knownEndpoint.EndpointDetails);
-                            }
-
+                            statusProvider.RegisterNewEndpoint(knownEndpoint.EndpointDetails);
                         }
                     });
 
@@ -73,6 +65,14 @@ namespace ServiceControl.HeartbeatMonitoring
                     {
                         foreach (var heartbeat in heartbeats)
                         {
+                            if (heartbeat.Disabled)
+                            {
+                                statusProvider.DisableMonitoring(heartbeat.EndpointDetails);
+                                continue;
+                            }
+
+                            statusProvider.EnableMonitoring(heartbeat.EndpointDetails);
+
                             if (heartbeat.ReportedStatus == Status.Beating)
                             {
                                 statusProvider.RegisterHeartbeatingEndpoint(heartbeat.EndpointDetails, heartbeat.LastReportAt);

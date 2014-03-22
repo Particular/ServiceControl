@@ -39,7 +39,7 @@ namespace ServiceControl.CompositeViews.Endpoints
                         return HttpStatusCode.NotFound;
                     }
 
-                    if (data.MonitorHeartbeat == endpoint.MonitorHeartbeat)
+                    if (data.MonitorHeartbeat == endpoint.Monitored)
                     {
                         return HttpStatusCode.NotModified;
                     }
@@ -79,7 +79,8 @@ namespace ServiceControl.CompositeViews.Endpoints
                                 Id = knownEndpoint.Id,
                                 Name = knownEndpoint.EndpointDetails.Name,
                                 HostDisplayName = knownEndpoint.HostDisplayName,
-                                MonitorHeartbeat = knownEndpoint.MonitorHeartbeat,
+                                Monitored = knownEndpoint.Monitored,
+                                MonitorHeartbeat = true,
                                 LicenseStatus = LicenseStatusKeeper.Get(knownEndpoint.EndpointDetails.Name + knownEndpoint.HostDisplayName)
                             };
 
@@ -90,6 +91,10 @@ namespace ServiceControl.CompositeViews.Endpoints
                                     {
                                         return;
                                     }
+
+                                    view.IsSendingHeartbeats = true;
+
+                                    view.MonitorHeartbeat = !heartbeat.Disabled;
 
                                     view.HeartbeatInformation =
                                         new HeartbeatInformation
