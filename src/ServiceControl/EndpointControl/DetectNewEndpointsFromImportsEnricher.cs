@@ -21,6 +21,12 @@
 
         void TryAddEndpoint(EndpointDetails endpointDetails)
         {
+            // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
+            // have the relevant information via the headers, which were added in v4.
+            // The ReceivingEndpoint will be null for messages from v3.3.x endpoints that were successfully
+            // processed because we dont have the information from the relevant headers.
+            if (endpointDetails == null) return; 
+
             Guid id;
 
             if (endpointDetails.HostId == Guid.Empty)
