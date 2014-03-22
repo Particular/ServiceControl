@@ -215,8 +215,11 @@
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointFailedToHeartbeat.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\EndpointHeartbeatRestored.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\EndpointStarted.cs" />
+    <Compile Include="Contracts\EndpointControl\EndpointStarted.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatingEndpointDetected.cs" />
+    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatMonitoringDisabled.cs" />
+    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatMonitoringEnabled.cs" />
+    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatStatusChanged.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
@@ -228,6 +231,8 @@
     <Compile Include="Contracts\EndpointControl\MonitoringDisabledForEndpoint.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatsStats.cs" />
     <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterPotentiallyMissingHeartbeats.cs" />
+    <Compile Include="HeartbeatMonitoring\MonitoringDisabledForEndpointHandler.cs" />
+    <Compile Include="HeartbeatMonitoring\MonitoringEnabledForEndpointHandler.cs" />
     <Compile Include="HeartbeatMonitoring\RegisterPotentiallyMissingHeartbeatsHandler.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />

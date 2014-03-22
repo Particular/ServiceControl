@@ -2,49 +2,25 @@
 {
     using Contracts.EndpointControl;
     using Contracts.HeartbeatMonitoring;
-    using EndpointControl.Contracts;
     using NServiceBus;
 
     public class RaiseHeartbeatChanges :
-        IHandleMessages<HeartbeatingEndpointDetected>,
-        IHandleMessages<EndpointFailedToHeartbeat>,
-        IHandleMessages<EndpointHeartbeatRestored>,
-        IHandleMessages<MonitoringEnabledForEndpoint>,
-        IHandleMessages<MonitoringDisabledForEndpoint>,
+        IHandleMessages<HeartbeatStatusChanged>,
         IHandleMessages<NewEndpointDetected>
     {
         public IBus Bus { get; set; }
-     
+
         public HeartbeatStatusProvider StatusProvider { get; set; }
 
-        public void Handle(EndpointFailedToHeartbeat message)
+        public void Handle(HeartbeatStatusChanged message)
         {
-            PublishUpdate(StatusProvider.RegisterEndpointThatFailedToHeartbeat(message.Endpoint));
-        }
-
-        public void Handle(EndpointHeartbeatRestored message)
-        {
-            PublishUpdate(StatusProvider.RegisterEndpointWhoseHeartbeatIsRestored(message.Endpoint, message.RestoredAt));
-        }
-
-        public void Handle(HeartbeatingEndpointDetected message)
-        {
-            PublishUpdate(StatusProvider.RegisterHeartbeatingEndpoint(message.Endpoint,message.DetectedAt));
-        }
-
-        public void Handle(MonitoringEnabledForEndpoint message)
-        {
-            PublishUpdate(StatusProvider.EnableMonitoring(message.Endpoint));
-        }
-
-        public void Handle(MonitoringDisabledForEndpoint message)
-        {
-
-            PublishUpdate(StatusProvider.DisableMonitoring(message.Endpoint));
+            PublishUpdate(StatusProvider.GetHeartbeatsStats());
         }
 
         public void Handle(NewEndpointDetected message)
         {
+            //this call is non intuitive, we just call it since endpoints without the heartbeat plugin installed should count as "failing"
+            // we need to revisit the requirements for this
             PublishUpdate(StatusProvider.RegisterNewEndpoint(message.Endpoint));
         }
 
@@ -56,8 +32,5 @@
                 Failing = stats.Dead,
             });
         }
-
-
-
     }
 }

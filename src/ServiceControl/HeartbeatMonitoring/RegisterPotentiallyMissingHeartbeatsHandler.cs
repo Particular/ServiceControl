@@ -10,6 +10,7 @@ namespace ServiceControl.HeartbeatMonitoring
     {
         public IDocumentSession Session { get; set; }
         public IBus Bus { get; set; }
+        public HeartbeatStatusProvider StatusProvider { get; set; }
 
         public void Handle(RegisterPotentiallyMissingHeartbeats message)
         {
@@ -37,6 +38,7 @@ namespace ServiceControl.HeartbeatMonitoring
                 DetectedAt = message.DetectedAt
             });
 
+            StatusProvider.RegisterEndpointThatFailedToHeartbeat(heartbeat.EndpointDetails);
 
             Session.Store(heartbeat);
         }

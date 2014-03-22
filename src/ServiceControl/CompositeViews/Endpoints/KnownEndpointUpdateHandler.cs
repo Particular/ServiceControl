@@ -21,13 +21,13 @@ namespace ServiceControl.CompositeViews.Endpoints
                 throw new Exception("No endpoint with found with id: " + message.EndpointId);
             }
 
-            knownEndpoint.MonitorHeartbeat = true;
+            knownEndpoint.Monitored = true;
 
             Session.Store(knownEndpoint);
 
             Bus.Publish(new MonitoringEnabledForEndpoint
             {
-                EndpointId = message.EndpointId,
+                EndpointInstanceId = message.EndpointId,
                 Endpoint = knownEndpoint.EndpointDetails
             });
         }
@@ -41,13 +41,13 @@ namespace ServiceControl.CompositeViews.Endpoints
                 throw new Exception("No endpoint with found with id: " + message.EndpointId);
             }
 
-            knownEndpoint.MonitorHeartbeat = false;
+            knownEndpoint.Monitored = false;
 
             Session.Store(knownEndpoint);
 
             Bus.Publish(new MonitoringDisabledForEndpoint
             {
-                EndpointId = message.EndpointId,
+                EndpointInstanceId = message.EndpointId,
                 Endpoint = knownEndpoint.EndpointDetails
             });
         }
