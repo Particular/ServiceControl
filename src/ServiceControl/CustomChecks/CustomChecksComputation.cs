@@ -14,7 +14,7 @@
         {
             using (var session = DocumentStore.OpenSession())
             {
-                foreach (var customCheck in session.Query<CustomCheck>())
+                foreach (var customCheck in session.Query<CustomCheck, CustomChecksIndex>())
                 {
                     entries.Add(new CustomCheckEntry
                     {

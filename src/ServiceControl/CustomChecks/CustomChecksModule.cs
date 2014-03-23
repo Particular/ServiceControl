@@ -22,7 +22,7 @@
                 {
                     RavenQueryStatistics stats;
                     var query =
-                        session.Query<CustomCheck>()
+                        session.Query<CustomCheck, CustomChecksIndex>()
                             .Statistics(out stats);
 
                     query = AddStatusFilter(query);

@@ -2,8 +2,8 @@
 {
     using System;
     using Contracts.Operations;
-    
-    class CustomCheck
+
+    public class CustomCheck
     {
         public Guid Id { get; set; }
         public string CustomCheckId { get; set; }

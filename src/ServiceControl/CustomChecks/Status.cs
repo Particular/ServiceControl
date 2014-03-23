@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.CustomChecks
 {
-    enum Status
+    public enum Status
     {
         Fail = 0,
         Pass = 1
