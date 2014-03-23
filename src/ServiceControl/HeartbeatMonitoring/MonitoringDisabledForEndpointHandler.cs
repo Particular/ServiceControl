@@ -17,25 +17,25 @@
 
         public void Handle(MonitoringDisabledForEndpoint message)
         {
+            // The user could be disabling an endpoint that had the heartbeats plugin, or not.
+            // Check to see if the endpoint had associated heartbeat.
             var heartbeat = Session.Load<Heartbeat>(message.EndpointInstanceId);
-
-            if (heartbeat == null)
+            if (heartbeat != null)
             {
-                throw new Exception("No heartbeat with found with id: " + message.EndpointInstanceId);
+                if (heartbeat.Disabled)
+                {
+                    Logger.InfoFormat("Heartbeat monitoring for endpoint {0} is already disabled", message.EndpointInstanceId);
+                    return;
+                }
+                heartbeat.Disabled = true;
+                Session.Store(heartbeat);
             }
-
-            if (heartbeat.Disabled)
+            else
             {
-                Logger.InfoFormat("Heartbeat monitoring for endpoint {0} is already disabled", message.EndpointInstanceId);
-                return;
+                Logger.InfoFormat("Heartbeat for endpoint {0} not found. Possible cause is that the endpoint may not have the plug in installed.", message.EndpointInstanceId);
             }
-
-            heartbeat.Disabled = true;
 
             StatusProvider.DisableMonitoring(message.Endpoint);
-
-            Session.Store(heartbeat);
-
             Bus.Publish(new HeartbeatMonitoringDisabled
             {
                 EndpointInstanceId = message.EndpointInstanceId

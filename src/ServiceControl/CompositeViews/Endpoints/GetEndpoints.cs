@@ -80,7 +80,7 @@ namespace ServiceControl.CompositeViews.Endpoints
                                 Name = knownEndpoint.EndpointDetails.Name,
                                 HostDisplayName = knownEndpoint.HostDisplayName,
                                 Monitored = knownEndpoint.Monitored,
-                                MonitorHeartbeat = true,
+                                MonitorHeartbeat = knownEndpoint.Monitored,
                                 LicenseStatus = LicenseStatusKeeper.Get(knownEndpoint.EndpointDetails.Name + knownEndpoint.HostDisplayName)
                             };
 
