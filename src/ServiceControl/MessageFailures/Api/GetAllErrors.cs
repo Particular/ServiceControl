@@ -1,8 +1,10 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
+    using System.Collections.Generic;
     using System.Linq;
     using Infrastructure.Extensions;
     using Nancy;
+    using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -65,7 +67,12 @@
                 using (var session = Store.OpenSession())
                 {
                     var facetResults = session.Query<FailedMessage, FailedMessageFacetsIndex>()
-                        .ToFacets("facets/failedMessagesFacets")
+                        .ToFacets(new List<Facet>
+                                    {
+                                        new Facet {Name = "Name", DisplayName="Endpoints"},
+                                        new Facet {Name = "Host", DisplayName = "Hosts"},
+                                        new Facet {Name = "MessageType", DisplayName = "Message types"},
+                                    })
                         .Results;
 
                     return Negotiate.WithModel(facetResults);
