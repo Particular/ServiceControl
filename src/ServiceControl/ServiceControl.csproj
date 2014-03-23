@@ -306,7 +306,6 @@
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageFacetsIndex.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewIndex.cs" />
-    <Compile Include="MessageFailures\Api\SetupFailedMessagesFacets.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
     <Compile Include="Infrastructure\SignalR\GlobalEventHandler.cs" />
