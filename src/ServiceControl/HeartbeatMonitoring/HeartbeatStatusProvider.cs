@@ -128,7 +128,7 @@
             }
             else
             {
-                if (existingEndpoint.HostId != Guid.Empty && endpointDetails.HostId != Guid.Empty)
+                if (existingEndpoint.HostId == Guid.Empty && endpointDetails.HostId != Guid.Empty)
                 {
                     existingEndpoint.HostId = endpointDetails.HostId;
                 }
