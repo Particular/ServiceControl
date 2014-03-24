@@ -22,7 +22,7 @@ namespace ServiceControl.MessageFailures
             }
         }
 
-        public int MessageResolved()
+        public int MessageBeingResolved()
         {
             return Interlocked.Decrement(ref unresolvedFailures);
         }

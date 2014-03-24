@@ -6,7 +6,6 @@
     using Messages;
     using NServiceBus;
     using NServiceBus.Features;
-    using NServiceBus.Support;
     using NServiceBus.Transports;
 
     class Heartbeats : Feature, IWantToRunWhenBusStartsAndStops
