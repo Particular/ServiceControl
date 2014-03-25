@@ -36,9 +36,20 @@
   <Target Name="Build">
     <GetVersion SolutionDirectory="$(SolutionDir)">
       <Output TaskParameter="SemVer" PropertyName="SemVer" />
+      <Output TaskParameter="Stability" PropertyName="Stability" />
       <Output TaskParameter="MajorMinorPatch" PropertyName="MajorMinorPatch" />
-      <Output TaskParameter="NuGetVersion" PropertyName="NuGetVersion" />
+      <Output TaskParameter="Stability" PropertyName="Stability" />
+      <Output TaskParameter="PreReleasePartOne" PropertyName="PreReleasePartOne" />
     </GetVersion>
+
+    <PropertyGroup Condition=" '$(Stability)' == 'Final' ">
+      <ChocoVersion>$(MajorMinorPatch)</ChocoVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Stability)' != 'Final' ">
+      <ChocoVersion>$(MajorMinorPatch)-$(Stability)$(PreReleasePartOne)</ChocoVersion>
+    </PropertyGroup>
+
     <ItemGroup>
       <FilesToDelete Include="$(ProjectDir)Build\**\*.*" />
     </ItemGroup>
@@ -49,11 +60,14 @@
     <Copy SourceFiles="$(ProjectDir)chocolateyUninstall.ps1" DestinationFolder="$(ProjectDir)Build\Tools" />
     <Copy SourceFiles="$(ProjectDir)elevatedUninstall.ps1" DestinationFolder="$(ProjectDir)Build\Tools" />
     <ItemGroup>
-      <InstallFile Include="$(ProjectDir)Build\Tools\*.ps1" />
+      <InstallFile Include="$(ProjectDir)Build\Tools\chocolateyInstall.ps1" />
+      <InstallFile Include="$(ProjectDir)Build\Tools\chocolateyUninstall.ps1" />
+      <InstallFile Include="$(ProjectDir)Build\Tools\elevatedUninstall.ps1" />
     </ItemGroup>
-    <FileUpdate Files="@(InstallFile)" Regex="SemVer" ReplacementText="$(SemVer)" />
-    <FileUpdate Files="@(InstallFile)" Regex="MajorMinorPatch" ReplacementText="$(MajorMinorPatch)" />
-    <CreatePackageTask NuGetBuildDirectory="$(ProjectDir)Build" Version="$(NuGetVersion)" TargetDir="$(SolutionDir)..\nugets" />
+    <FileUpdate Files="@(InstallFile)" Regex="{{FileVersion}}" ReplacementText="$(SemVer)" />
+    <FileUpdate Files="@(InstallFile)" Regex="{{ReleaseName}}" ReplacementText="$(ChocoVersion)" />
+
+    <CreatePackageTask  NuGetBuildDirectory="$(ProjectDir)Build" Version="$(ChocoVersion)" TargetDir="$(SolutionDir)..\nugets" />
   </Target>
   <Target Name="Clean">
   </Target>
