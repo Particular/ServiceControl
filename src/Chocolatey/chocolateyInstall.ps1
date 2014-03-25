@@ -1,14 +1,14 @@
 ﻿
 $packageName = "ServiceControl"
 
-$url = gci -path "c:\ChocolateyResourceCache" -Filter "Particular.ServiceControl-*.exe" | select -first 1
+$url = gci -path "c:\ChocolateyResourceCache" -Filter "Particular.ServiceControl-*.exe" -ErrorAction SilentlyContinue | select -first 1
 
 if($url){
 	$url = $url | Select -expandProperty FullName
 	"$url" 
 }
 else{
-$url = "https://github.com/Particular/ServiceControl/releases/download/SemVer/Particular.ServiceControl-SemVer.exe"
+    $url = "https://github.com/Particular/ServiceControl/releases/download/SemVer/Particular.ServiceControl-SemVer.exe"
 }
 
 
@@ -16,7 +16,9 @@ $url = "https://github.com/Particular/ServiceControl/releases/download/SemVer/Pa
 try {
 
     $chocTempDir = Join-Path $env:TEMP "chocolatey"
+    
     $tempDir = Join-Path $chocTempDir "$packageName"
+
     if (![System.IO.Directory]::Exists($tempDir)) {[System.IO.Directory]::CreateDirectory($tempDir) | Out-Null}
     $file = Join-Path $tempDir "$($packageName)Install.exe"
     $logFile = Join-Path $tempDir "msiexe.log"
