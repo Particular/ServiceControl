@@ -5,10 +5,9 @@ $url = gci -path "c:\ChocolateyResourceCache" -Filter "Particular.ServiceControl
 
 if($url){
 	$url = $url | Select -expandProperty FullName
-	"$url" 
 }
 else{
-    $url = "https://github.com/Particular/ServiceControl/releases/download/SemVer/Particular.ServiceControl-SemVer.exe"
+    $url = "https://github.com/Particular/$packageName/releases/download/{{ReleaseName}}/Particular.$packageName-{{FileVersion}}.exe"
 }
 
 
