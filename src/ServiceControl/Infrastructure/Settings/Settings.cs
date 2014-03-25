@@ -15,6 +15,7 @@
             ErrorLogQueue = GetErrorLogQueue();
             AuditLogQueue = GetAuditLogQueue();
             DbPath = GetDbPath();
+            TransportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
         }
 
         public static string ApiUrl
@@ -51,7 +52,6 @@
             }
         }
 
-        
         static Address GetAuditLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
@@ -122,7 +122,6 @@
             return SettingsReader<string>.Read("DbPath", defaultPath);
         }
 
-
         static string SanitiseFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
@@ -134,9 +133,9 @@
         public static string Hostname = SettingsReader<string>.Read("Hostname", "localhost");
         public static string VirtualDirectory = SettingsReader<string>.Read("VirtualDirectory", String.Empty);
         public static TimeSpan HeartbeatGracePeriod = TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
-        
+        public static string TransportType { get; set; }
 
-        public static string LogPath =
+        public static readonly string LogPath =
             Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath",
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                     "Particular\\ServiceControl\\logs")));

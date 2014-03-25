@@ -23,17 +23,16 @@ namespace Particular.ServiceControl
             var containerBuilder = new ContainerBuilder();
 
             Container = containerBuilder.Build();
-
-            var transportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
-
+            
             // Disable Auditing for the service control endpoint
             Configure.Features.Disable<Audit>();
             Configure.Features.Enable<Sagas>();
 
+            var transportType = Type.GetType(Settings.TransportType);
             Configure
                 .With(AllAssemblies.Except("ServiceControl.Plugin"))
                 .AutofacBuilder(Container)
-                .UseTransport(Type.GetType(transportType))
+                .UseTransport(transportType)
                 .UnicastBus();
 
             Feature.Disable<AutoSubscribe>();
