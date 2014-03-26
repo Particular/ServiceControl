@@ -228,15 +228,12 @@
             {
                 request = (HttpWebRequest)WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
             }
-
-
-
             request.Accept = "application/json";
 
-            Console.Out.Write(request.RequestUri);
+            var reportStatus = new StringBuilder();
+            reportStatus.Append(request.RequestUri);
 
             HttpWebResponse response;
-
             try
             {
                 response = request.GetResponse() as HttpWebResponse;
@@ -252,7 +249,8 @@
                 return null;
             }
 
-            Console.Out.WriteLine(" - {0}", (int)response.StatusCode);
+            reportStatus.AppendFormat(" - {0}", (int)response.StatusCode);
+            Console.WriteLine(reportStatus.ToString());
 
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
