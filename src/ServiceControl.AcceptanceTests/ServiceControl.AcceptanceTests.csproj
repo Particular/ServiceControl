@@ -102,6 +102,11 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Contexts\TransportIntegration\ActiveMqTransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\ITransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\MsmqTransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\SqlServerTransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\RabbitMqTransportIntegration.cs" />
     <Compile Include="CustomChecks\When_a_custom_check_fails.cs" />
     <Compile Include="CustomChecks\When_a_periodic_custom_check_fails.cs" />
     <Compile Include="DebugSessions\When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />

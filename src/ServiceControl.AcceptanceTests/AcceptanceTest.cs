@@ -14,6 +14,7 @@
     using System.Threading;
     using System.Xml.Linq;
     using System.Xml.XPath;
+    using Contexts.TransportIntegration;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -21,18 +22,54 @@
     using ServiceControl.Infrastructure.SignalR;
 
     [TestFixture]
+    //[TestFixture(typeof(MsmqTransportIntegration), "cacheSendConnection=true", TypeArgs = new[] { typeof(Type), typeof(string) })]
+    //[TestFixture(typeof(SqlServerTransportIntegration), @"Data Source=.\SQLEXPRESS;Initial Catalog=nservicebus;Integrated Security=True", TypeArgs = new[] { typeof(Type), typeof(string) })]
     public abstract class AcceptanceTest
     {
+        public AcceptanceTest()
+        {
+
+        }
+
+        public AcceptanceTest(Type typeOfTransport, string connectionString)
+        {
+            if (!typeOfTransport.GetInterfaces().Contains(typeof(ITransportIntegration)))
+                throw new Exception("Unsupported transport type: " + typeOfTransport);
+
+            transportToUse = (ITransportIntegration)Activator.CreateInstance(typeOfTransport);
+            transportToUse.ConnectionString = connectionString;
+        }
+
+        public static ITransportIntegration GetTransportIntegrationFromEnvironmentVar()
+        {
+            ITransportIntegration transportToUse = new MsmqTransportIntegration();
+            var transportToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport");
+            if (transportToUseString != null)
+            {
+                transportToUse = (ITransportIntegration)Activator.CreateInstance(Type.GetType(typeof(MsmqTransportIntegration).FullName.Replace("Msmq", transportToUseString)) ?? typeof(MsmqTransportIntegration));
+            }
+
+            var connectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
+            if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                transportToUse.ConnectionString = connectionString;
+            }
+            return transportToUse;
+        }
+
         [SetUp]
         public void SetUp()
         {
             ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-
             port = FindAvailablePort(33333);
 
             pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
-
             InitialiseAppConfig();
+
+            if (transportToUse == null)
+                transportToUse = GetTransportIntegrationFromEnvironmentVar();
+
+            Console.Out.WriteLine("Using transport " + transportToUse.Name);
 
             Conventions.EndpointNamingConvention = t =>
             {
@@ -112,6 +149,30 @@
                 appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/CreateIndexSync"), new XAttribute("value", true)));
             }
 
+            // transport specification
+            if (transportToUse != null)
+            {
+                var el = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/TransportType""]");
+                if (el != null)
+                {
+                    el.SetAttributeValue("value", transportToUse.Type);
+                }
+                else
+                {
+                    el.Add(new XElement("add", new XAttribute("key", "ServiceControl/TransportType"), new XAttribute("value", transportToUse.Type)));
+                }
+
+                var connectionStringsElement = doc.XPathSelectElement(@"/configuration/connectionStrings");
+                el = connectionStringsElement.XPathSelectElement(@"add[@name=""NServiceBus/Transport""]");
+                if (el != null)
+                {
+                    el.SetAttributeValue("connectionString", transportToUse.ConnectionString);
+                }
+                else
+                {
+                    el.Add(new XElement("add", new XAttribute("name", "NServiceBus/Transport"), new XAttribute("connectionString", transportToUse.ConnectionString)));
+                }
+            }
 
             doc.Save(pathToAppConfig);
         }
@@ -362,7 +423,7 @@
 
         int port;
         string pathToAppConfig;
-
+        ITransportIntegration transportToUse = null;
         public string PathToAppConfig
         {
             get { return pathToAppConfig; }
