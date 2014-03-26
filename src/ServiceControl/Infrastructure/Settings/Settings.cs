@@ -137,7 +137,7 @@
 
         public static readonly string LogPath =
             Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "Particular\\ServiceControl\\logs")));
 
         public static string DbPath;
