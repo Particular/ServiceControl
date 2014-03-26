@@ -63,11 +63,11 @@
             ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             port = FindAvailablePort(33333);
 
-            pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
-            InitialiseAppConfig();
-
             if (transportToUse == null)
                 transportToUse = GetTransportIntegrationFromEnvironmentVar();
+
+            pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+            InitialiseAppConfig();
 
             Console.Out.WriteLine("Using transport " + transportToUse.Name);
 
@@ -155,11 +155,11 @@
                 var el = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/TransportType""]");
                 if (el != null)
                 {
-                    el.SetAttributeValue("value", transportToUse.Type);
+                    el.SetAttributeValue("value", transportToUse.Type.AssemblyQualifiedName);
                 }
                 else
                 {
-                    el.Add(new XElement("add", new XAttribute("key", "ServiceControl/TransportType"), new XAttribute("value", transportToUse.Type)));
+                    el.Add(new XElement("add", new XAttribute("key", "ServiceControl/TransportType"), new XAttribute("value", transportToUse.Type.AssemblyQualifiedName)));
                 }
 
                 var connectionStringsElement = doc.XPathSelectElement(@"/configuration/connectionStrings");

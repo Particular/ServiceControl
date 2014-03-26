@@ -27,7 +27,7 @@
                 return config.UseTransport<Msmq>();
             }
 
-            return config.UseTransport(transport.Type, transport.ConnectionString);
+            return config.UseTransport(transport.Type, () => transport.ConnectionString);
         }
 
         public static Configure DefineSerializer(this Configure config, string serializer)
