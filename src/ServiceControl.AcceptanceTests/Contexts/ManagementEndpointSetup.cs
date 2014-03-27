@@ -16,6 +16,8 @@
         public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration,
             IConfigurationSource configSource)
         {
+            Configure.ScaleOut(_ => _.UseSingleBrokerQueue());
+
             var c = new EndpointConfig();
             c.Init();
 

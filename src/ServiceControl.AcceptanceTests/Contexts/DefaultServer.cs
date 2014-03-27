@@ -43,6 +43,7 @@
             SetupLogging(endpointConfiguration);
 
             Configure.Features.Enable<Sagas>();
+            Configure.ScaleOut(_ => _.UseSingleBrokerQueue());
 
             AddMoreConfig();
 
