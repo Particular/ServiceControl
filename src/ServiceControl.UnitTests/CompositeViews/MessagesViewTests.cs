@@ -49,7 +49,7 @@
             }
         }
 
-        [Test, Ignore("RavenDB-1934 @ http://issues.hibernatingrhinos.com/issue/RavenDB-1934")]
+        [Test]
         public void Order_by_critical_time()
         {
             using (var session = documentStore.OpenSession())
