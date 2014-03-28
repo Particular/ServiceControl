@@ -237,6 +237,7 @@
     <Compile Include="HeartbeatMonitoring\MonitoringDisabledForEndpointHandler.cs" />
     <Compile Include="HeartbeatMonitoring\MonitoringEnabledForEndpointHandler.cs" />
     <Compile Include="HeartbeatMonitoring\RegisterPotentiallyMissingHeartbeatsHandler.cs" />
+    <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
@@ -299,7 +300,7 @@
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleaner.cs" />
-    <Compile Include="Infrastructure\RavenDB\PrepopulateSubscriptionStorage.cs" />
+    <Compile Include="Infrastructure\PrepopulateSubscriptionStorage.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
     <Compile Include="Licensing\ActiveLicense.cs" />
     <Compile Include="Licensing\LicenseDetector.cs" />

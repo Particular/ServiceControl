@@ -1,4 +1,4 @@
-namespace ServiceControl.Infrastructure.RavenDB
+namespace ServiceControl.Infrastructure
 {
     using NServiceBus;
     using NServiceBus.Config;
@@ -12,6 +12,7 @@ namespace ServiceControl.Infrastructure.RavenDB
 
         public void Run()
         {
+            // Setup storage for transports using message driven subscriptions
             var messageDrivenSubscriptionManager = SusbcriptionManager as MessageDrivenSubscriptionManager;
             if (messageDrivenSubscriptionManager != null)
             {
@@ -19,10 +20,6 @@ namespace ServiceControl.Infrastructure.RavenDB
                 {
                     new MessageType(eventType)
                 }));
-            }
-            else
-            {
-                Configure.Instance.ForAllTypes<IEvent>(eventType => SusbcriptionManager.Subscribe(eventType, Address.Local));
             }
         }
     }
