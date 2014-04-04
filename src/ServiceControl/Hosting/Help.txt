@@ -3,7 +3,6 @@
 USAGE:
    ServiceControl.exe --install [options]
    ServiceControl.exe --uninstall [options]
-   ServiceControl.exe [--url="http://localhost:9090"]
 																
 INSTALL OPTIONS:
 

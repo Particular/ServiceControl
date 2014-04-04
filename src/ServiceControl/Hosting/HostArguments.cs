@@ -2,9 +2,6 @@ namespace Particular.ServiceControl.Hosting
 {
     using System;
     using System.Collections.Generic;
-#if DEBUG
-    using System.Diagnostics;
-#endif
     using System.IO;
     using System.Reflection;
     using System.ServiceProcess;
@@ -19,35 +16,18 @@ namespace Particular.ServiceControl.Hosting
 
             commands = new List<Type> { typeof(RunCommand) };
             startMode = StartMode.Automatic;
-            url = "http://localhost:8081";
-            ServiceName = "Particular.ServicePulse";
-            DisplayName = "Particular ServicePulse";
-            Description = "An Operations Manager's Best Friend in Particular.";
+            ServiceName = "Particular.ServiceControl";
+            DisplayName = "Particular ServiceControl";
+            Description = "Particular Software ServiceControl for NServiceBus.";
             ServiceAccount = ServiceAccount.LocalSystem;
             Username = String.Empty;
             Password = String.Empty;
-            OutputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app");
-#if DEBUG
-            if (Debugger.IsAttached)
-            {
-                OutputPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\app"));
-            }     
-#endif
+
             var runOptions = new OptionSet
             {
                 {
                     "?|h|help", "Help about the command line options.", key => { Help = true; }
                 },
-                {
-                    "serviceControlUrl=",
-                    @"Configures the service control url."
-                    , s => { serviceControlUrl = s; }
-                },
-                {
-                    "url=",
-                    @"Configures ServicePulse to listen on the specified url."
-                    , s => { url = s; }
-                }
             };
 
             uninstallOptions = new OptionSet
@@ -147,16 +127,6 @@ namespace Particular.ServiceControl.Hosting
                     @"The service should be started manually."
                     , s => { startMode = StartMode.Manual; }
                 },
-                {
-                    "serviceControlUrl=",
-                    @"Configures the service control url."
-                    , s => { serviceControlUrl = s; }
-                },
-                {
-                    "url=",
-                    @"Configures ServicePulse to listen on the specified url."
-                    , s => { url = s; }
-                }
             };
 
             try
@@ -189,17 +159,6 @@ namespace Particular.ServiceControl.Hosting
 
         public bool Help { get; set; }
         public string ServiceName { get; set; }
-
-        public string Url
-        {
-            get { return url; }
-        }
-
-        public string ServiceControlUrl
-        {
-            get { return serviceControlUrl; }
-        }
-
         public string DisplayName { get; set; }
         public string Description { get; set; }
 
@@ -245,9 +204,7 @@ namespace Particular.ServiceControl.Hosting
         readonly OptionSet installOptions;
         readonly OptionSet uninstallOptions;
         List<Type> commands;
-        string serviceControlUrl;
         StartMode startMode;
-        string url;
     }
 
     internal enum ExecutionMode
