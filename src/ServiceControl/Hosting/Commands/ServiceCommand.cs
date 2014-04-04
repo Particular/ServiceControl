@@ -41,11 +41,6 @@
 
             var arguments = String.Empty;
 
-            if (!String.IsNullOrEmpty(args.Url))
-            {
-                arguments += string.Format(" --url=\"{0}\"", args.Url);
-            }
-
             using (var hostInstaller = new HostInstaller(args, arguments, installers))
             using (var transactedInstaller = new TransactedInstaller())
             {
