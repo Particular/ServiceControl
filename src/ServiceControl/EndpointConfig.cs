@@ -44,9 +44,14 @@ namespace Particular.ServiceControl
 
         static void ConfigureLogging()
         {
+            if (LogManager.Configuration != null)
+            {
+                return;
+            }
+
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
-
+            
             var fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
