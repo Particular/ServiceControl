@@ -15,6 +15,11 @@ else{
 
 try {
 
+    $existngService = Get-Service -Name "Particular.Management" -ErrorAction SilentlyContinue
+    if ($existngService) {
+        throw "The 'Particular Management' service must be uninstalled prior to installing Service Control"
+    }
+
     $chocTempDir = Join-Path $env:TEMP "chocolatey"
     
     $tempDir = Join-Path $chocTempDir "$packageName"
