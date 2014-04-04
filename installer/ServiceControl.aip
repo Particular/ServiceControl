@@ -20,7 +20,7 @@
     <ROW Property="AppLogoIcon" Value="applogoicon" MultiBuildValue="DefaultBuild:Operationslogo.png" Type="1" MsiKey="AppLogoIcon"/>
     <ROW Property="ExtractFilesFirst" Value="1"/>
     <ROW Property="InstanceId" Value="#0"/>
-    <ROW Property="Manufacturer" Value="NServiceBus Ltd"/>
+    <ROW Property="Manufacturer" Value="Particular Software"/>
     <ROW Property="PORT_VAL" Value="33333" Type="4"/>
     <ROW Property="ProductCode" Value="1033:{12BDB3E7-3A70-410A-A2C0-43037E33E3E6} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
