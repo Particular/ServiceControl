@@ -8,9 +8,35 @@ namespace Particular.ServiceControl
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
+    using NServiceBus.Config;
+    using NServiceBus.Config.ConfigurationSource;
     using NServiceBus.Features;
     using NServiceBus.Logging.Loggers.NLogAdapter;
     using ServiceBus.Management.Infrastructure.Settings;
+
+    class ConfigErrorQueue : IProvideConfiguration<MessageForwardingInCaseOfFaultConfig>
+    {
+        public MessageForwardingInCaseOfFaultConfig GetConfiguration()
+        {
+            return new MessageForwardingInCaseOfFaultConfig
+            {
+                ErrorQueue = "Particular.ServiceControl.Errors"
+            };
+        }
+    }
+
+    class ConfigTransportConfig : IProvideConfiguration<TransportConfig>
+    {
+        public TransportConfig GetConfiguration()
+        {
+            return new TransportConfig
+            {
+
+                MaximumConcurrencyLevel = 10,
+                MaxRetries = 3,
+            };
+        }
+    }
 
     public class EndpointConfig : IConfigureThisEndpoint, AsA_Publisher, IWantCustomLogging, IWantCustomInitialization
     {

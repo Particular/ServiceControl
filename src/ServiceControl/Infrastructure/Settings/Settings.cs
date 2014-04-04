@@ -65,7 +65,7 @@
 
         static Address GetAuditQueue()
         {
-            var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", null);
+            var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
 
             if (value == null)
             {
@@ -78,7 +78,7 @@
 
         static Address GetErrorQueue()
         {
-            var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", null);
+            var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
 
             if (value == null)
             {
