@@ -1,0 +1,25 @@
+﻿ServiceControl by Particular Software
+
+USAGE:
+   ServiceControl.exe --install [options]
+   ServiceControl.exe --uninstall [options]
+   ServiceControl.exe [--url="http://localhost:9090"]
+																
+INSTALL OPTIONS:
+
+{0}
+
+UNINSTALL OPTIONS:
+
+{1}
+
+EXAMPLES:
+   ServiceControl.exe --install 
+     --serviceName="MyServiceControl" 
+     --displayName="My ServiceControl"
+     --description="Service for monitoring" 
+     --username="corp\serviceuser"
+     --password="p@ssw0rd!"
+	 --url="http://localhost:9090"
+
+   ServiceControl.exe --uninstall --serviceName="MyServiceControl"

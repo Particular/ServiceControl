@@ -1,6 +1,7 @@
 namespace Particular.ServiceControl
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using Autofac;
     using NLog;
@@ -8,41 +9,17 @@ namespace Particular.ServiceControl
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
-    using NServiceBus.Config;
-    using NServiceBus.Config.ConfigurationSource;
     using NServiceBus.Features;
+    using NServiceBus.Installation.Environments;
     using NServiceBus.Logging.Loggers.NLogAdapter;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class ConfigErrorQueue : IProvideConfiguration<MessageForwardingInCaseOfFaultConfig>
+    public class Bootstrapper
     {
-        public MessageForwardingInCaseOfFaultConfig GetConfiguration()
-        {
-            return new MessageForwardingInCaseOfFaultConfig
-            {
-                ErrorQueue = "Particular.ServiceControl.Errors"
-            };
-        }
-    }
-
-    class ConfigTransportConfig : IProvideConfiguration<TransportConfig>
-    {
-        public TransportConfig GetConfiguration()
-        {
-            return new TransportConfig
-            {
-
-                MaximumConcurrencyLevel = 10,
-                MaxRetries = 3,
-            };
-        }
-    }
-
-    public class EndpointConfig : IConfigureThisEndpoint, AsA_Publisher, IWantCustomLogging, IWantCustomInitialization
-    {
+        IStartableBus bus;
         public static IContainer Container { get; set; }
 
-        public void Init()
+        public Bootstrapper()
         {
             ConfigureLogging();
 
@@ -53,19 +30,40 @@ namespace Particular.ServiceControl
             // Disable Auditing for the service control endpoint
             Configure.Features.Disable<Audit>();
             Configure.Features.Enable<Sagas>();
-
-            var transportType = Type.GetType(Settings.TransportType);
-            Configure
-                .With(AllAssemblies.Except("ServiceControl.Plugin"))
-                .AutofacBuilder(Container)
-                .UseTransport(transportType)
-                .UnicastBus();
-
             Feature.Disable<AutoSubscribe>();
             Feature.Disable<SecondLevelRetries>();
 
             Configure.Serialization.Json();
             Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
+
+            Feature.EnableByDefault<StorageDrivenPublisher>();
+            Configure.ScaleOut(s => s.UseSingleBrokerQueue());
+
+            var transportType = Type.GetType(Settings.TransportType);
+            bus = Configure
+                .With(AllAssemblies.Except("ServiceControl.Plugin"))
+                .DefineEndpointName("Particular.ServiceControl")
+                .AutofacBuilder(Container)
+                .UseTransport(transportType)
+                .MessageForwardingInCaseOfFault()
+                .UnicastBus()
+                .CreateBus();
+        }
+
+        public void Start()
+        {
+            bus.Start(() =>
+            {
+                if (Environment.UserInteractive && Debugger.IsAttached)
+                {
+                    Configure.Instance.ForInstallationOn<Windows>().Install();
+                }
+            });
+        }
+
+        public void Stop()
+        {
+            bus.Dispose();
         }
 
         static void ConfigureLogging()

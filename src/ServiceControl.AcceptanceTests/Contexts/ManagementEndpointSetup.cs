@@ -18,8 +18,7 @@
         {
             Configure.ScaleOut(_ => _.UseSingleBrokerQueue());
 
-            var c = new EndpointConfig();
-            c.Init();
+            new Bootstrapper();
 
             //We need this hack here because by default we include all assemblies minus Plugins but for these tests we need to exclude other tests!
             for (var index = 0; index < Configure.TypesToScan.Count;)

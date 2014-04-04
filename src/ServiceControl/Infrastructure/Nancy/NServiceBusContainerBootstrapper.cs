@@ -5,12 +5,12 @@
     using System.Text;
     using Autofac;
     using NServiceBus.Logging;
-    using Particular.ServiceControl;
     using global::Nancy;
     using global::Nancy.Bootstrapper;
     using global::Nancy.Bootstrappers.Autofac;
     using global::Nancy.Diagnostics;
     using global::Nancy.Responses;
+    using Particular.ServiceControl;
 
     public class NServiceBusContainerBootstrapper : AutofacNancyBootstrapper
     {
@@ -66,7 +66,7 @@
 
         protected override ILifetimeScope GetApplicationContainer()
         {
-            return EndpointConfig.Container;
+            return Bootstrapper.Container;
         }
 
         protected override void RegisterRequestContainerModules(ILifetimeScope container,

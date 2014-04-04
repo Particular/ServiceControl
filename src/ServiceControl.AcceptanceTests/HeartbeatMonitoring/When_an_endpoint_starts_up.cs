@@ -37,7 +37,6 @@
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
-            
             public StartingEndpoint()
             {
                 EndpointSetup<DefaultServerWithoutAudit>();
@@ -51,6 +50,11 @@
 
                 public void Run()
                 {
+                    if (Context == null)
+                    {
+                        return;
+                    }
+
                     Context.HostId = UnicastBus.HostInformation.HostId;
                 }
             }

@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ServiceControl</RootNamespace>
     <AssemblyName>ServiceControl</AssemblyName>
@@ -32,6 +32,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Particular.ServiceControl.Program</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Autofac">
@@ -131,9 +137,6 @@
     <Reference Include="NServiceBus.Core">
       <HintPath>..\packages\NServiceBus\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus.Host">
-      <HintPath>..\packages\NServiceBus.Host\lib\net40\NServiceBus.Host.exe</HintPath>
-    </Reference>
     <Reference Include="NServiceBus.ObjectBuilder.Autofac">
       <HintPath>..\packages\NServiceBus.Autofac\lib\net40\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
     </Reference>
@@ -164,9 +167,11 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
     <Reference Include="System.Messaging" />
     <Reference Include="System.Security" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Spatial">
       <HintPath>..\packages\System.Spatial\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
@@ -208,6 +213,8 @@
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewTransformer.cs" />
+    <Compile Include="ConfigErrorQueue.cs" />
+    <Compile Include="ConfigTransportConfig.cs" />
     <Compile Include="Contracts\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="Contracts\CustomChecks\CustomCheckFailed.cs" />
     <Compile Include="Contracts\CustomChecks\CustomCheckSucceeded.cs" />
@@ -237,6 +244,21 @@
     <Compile Include="HeartbeatMonitoring\MonitoringDisabledForEndpointHandler.cs" />
     <Compile Include="HeartbeatMonitoring\MonitoringEnabledForEndpointHandler.cs" />
     <Compile Include="HeartbeatMonitoring\RegisterPotentiallyMissingHeartbeatsHandler.cs" />
+    <Compile Include="Hosting\Commands\AbstractCommand.cs" />
+    <Compile Include="Hosting\Commands\CommandRunner.cs" />
+    <Compile Include="Hosting\Commands\InstallCommand.cs" />
+    <Compile Include="Hosting\Commands\RunBootstrapper.cs" />
+    <Compile Include="Hosting\Commands\RunCommand.cs" />
+    <Compile Include="Hosting\Commands\ServiceCommand.cs" />
+    <Compile Include="Hosting\Commands\UninstallCommand.cs" />
+    <Compile Include="Hosting\Host.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Hosting\HostArguments.cs" />
+    <Compile Include="Hosting\HostInstaller.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Hosting\Options.cs" />
     <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
@@ -360,7 +382,7 @@
     <Compile Include="MessageTypes\MessageTypeEnricher.cs" />
     <Compile Include="Operations\AuditQueueImport.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByConversation.cs" />
-    <Compile Include="EndpointConfig.cs" />
+    <Compile Include="Bootstrapper.cs" />
     <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\QueryableExtensions.cs" />
     <Compile Include="MessageAuditing\ProcessedMessage.cs" />
@@ -383,6 +405,7 @@
     <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
     <Compile Include="Operations\ImportRegistration.cs" />
     <Compile Include="Operations\UpdateLicenseEnricher.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
@@ -399,9 +422,6 @@
     <Compile Include="SagaAudit\SageMessageState.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="ripple.dependencies.config">
       <SubType>Designer</SubType>
     </None>
@@ -413,15 +433,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Hosting\Help.txt" />
     <Content Include="License.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Operations.ico" />
   </ItemGroup>
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\GitVersionTask\Build\GitVersionTask.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <StartAction>Program</StartAction>
-    <StartProgram>$(ProjectDir)$(OutputPath)NServiceBus.Host.exe</StartProgram>
-  </PropertyGroup>
 </Project>
