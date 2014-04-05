@@ -55,7 +55,7 @@
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="NServi~1.exe|NServiceBus.Host.exe" Attributes="0" SourcePath="Files\NServiceBus.Host.exe" SelfReg="false"/>
+    <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="Servic~1.exe|ServiceControl.exe" Attributes="0" SourcePath="Files\ServiceControl.exe" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" GeneralOptions="qh" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" EulaPathLocId="*" IntroTextPathLocId="*"/>

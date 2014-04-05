@@ -159,7 +159,7 @@
                 }
                 else
                 {
-                    el.Add(new XElement("add", new XAttribute("key", "ServiceControl/TransportType"), new XAttribute("value", transportToUse.Type.AssemblyQualifiedName)));
+                    appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/TransportType"), new XAttribute("value", transportToUse.Type.AssemblyQualifiedName)));
                 }
 
                 var connectionStringsElement = doc.XPathSelectElement(@"/configuration/connectionStrings");
@@ -170,7 +170,7 @@
                 }
                 else
                 {
-                    el.Add(new XElement("add", new XAttribute("name", "NServiceBus/Transport"), new XAttribute("connectionString", transportToUse.ConnectionString)));
+                    connectionStringsElement.Add(new XElement("add", new XAttribute("name", "NServiceBus/Transport"), new XAttribute("connectionString", transportToUse.ConnectionString)));
                 }
             }
 
@@ -421,7 +421,7 @@
 
         int port;
         string pathToAppConfig;
-        ITransportIntegration transportToUse = null;
+        ITransportIntegration transportToUse;
         public string PathToAppConfig
         {
             get { return pathToAppConfig; }

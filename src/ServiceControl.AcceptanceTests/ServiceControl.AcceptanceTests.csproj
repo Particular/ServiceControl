@@ -55,9 +55,6 @@
     <Reference Include="NServiceBus.Core">
       <HintPath>..\packages\NServiceBus\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus.Host">
-      <HintPath>..\packages\NServiceBus.Host\lib\net40\NServiceBus.Host.exe</HintPath>
-    </Reference>
     <Reference Include="NServiceBus.Transports.RabbitMQ">
       <HintPath>..\packages\NServiceBus.RabbitMQ\lib\net40\NServiceBus.Transports.RabbitMQ.dll</HintPath>
     </Reference>
@@ -135,8 +132,8 @@
     <Compile Include="When_signalr_receives_a_message.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\ServiceControl\App.config">
-      <Link>App.config</Link>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
     </None>
     <None Include="ripple.dependencies.config">
       <SubType>Designer</SubType>
