@@ -3,7 +3,7 @@
     using System;
     using System.ServiceProcess;
 
-    internal class Host : ServiceBase
+    public class Host : ServiceBase
     {
         public void Run()
         {
@@ -18,13 +18,17 @@
 
         protected override void OnStart(string[] args)
         {
-            bootstrapper = new Bootstrapper();
+            bootstrapper = new Bootstrapper(this);
             bootstrapper.Start();
         }
+
+        internal Action OnStopping = () => { };
 
         protected override void OnStop()
         {
             bootstrapper.Stop();
+
+            OnStopping();
         }
 
         protected override void Dispose(bool disposing)

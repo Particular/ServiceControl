@@ -8,25 +8,42 @@
     {
         public override void Execute(HostArguments args)
         {
-            using (var service = new Host())
+            if (!Environment.UserInteractive)
             {
-                service.Run();
-
-                if (!Environment.UserInteractive)
+                using (var service = new Host())
                 {
-                    return;
+                    service.Run();
                 }
 
-                Console.CancelKeyPress += (sender, e) =>
-                {
-                    e.Cancel = true;
-                    waitHandle.Set();
-                };
-
-                Console.WriteLine("Press Ctrl+C to exit");
-                waitHandle.WaitOne();
-                waitHandle.Dispose();
+                return;
             }
+
+            using (var service = new Host())
+            {
+                using (waitHandle)
+                {
+                    service.OnStopping = () =>
+                    {
+                        service.OnStopping = () => { };
+                        waitHandle.Set();
+                    };
+
+                    service.Run();
+
+                    Console.CancelKeyPress += ConsoleOnCancelKeyPress;
+
+                    Console.WriteLine("Press Ctrl+C to exit");
+                    waitHandle.WaitOne();
+                }
+            }
+        }
+
+        void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            Console.CancelKeyPress -= ConsoleOnCancelKeyPress;
+
+            e.Cancel = true;
+            waitHandle.Set();
         }
 
         ManualResetEvent waitHandle = new ManualResetEvent(false);

@@ -63,7 +63,7 @@ namespace Particular.ServiceControl.Hosting
                     @"Install the endpoint as a Windows service."
                     , s =>
                     {
-                        commands = new List<Type> { typeof(RunBootstrapper), typeof(InstallCommand) };
+                        commands = new List<Type> { typeof(RunBootstrapperAndNServiceBusInstallers), typeof(InstallCommand) };
                         executionMode = ExecutionMode.Install;
                     }
                 },

@@ -4,7 +4,7 @@
     using NServiceBus;
     using NServiceBus.Installation.Environments;
 
-    class RunBootstrapper : AbstractCommand
+    class RunBootstrapperAndNServiceBusInstallers : AbstractCommand
     {
         public override void Execute(HostArguments args)
         {

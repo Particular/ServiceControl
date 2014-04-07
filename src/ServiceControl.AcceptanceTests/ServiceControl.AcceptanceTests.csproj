@@ -91,6 +91,7 @@
     <Reference Include="System.Runtime">
       <HintPath>..\packages\Microsoft.Bcl\lib\net45\System.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Threading.Tasks">
       <HintPath>..\packages\Microsoft.Bcl\lib\net45\System.Threading.Tasks.dll</HintPath>
     </Reference>

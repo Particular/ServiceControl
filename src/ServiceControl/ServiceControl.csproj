@@ -247,7 +247,7 @@
     <Compile Include="Hosting\Commands\AbstractCommand.cs" />
     <Compile Include="Hosting\Commands\CommandRunner.cs" />
     <Compile Include="Hosting\Commands\InstallCommand.cs" />
-    <Compile Include="Hosting\Commands\RunBootstrapper.cs" />
+    <Compile Include="Hosting\Commands\RunBootstrapperAndNServiceBusInstallers.cs" />
     <Compile Include="Hosting\Commands\RunCommand.cs" />
     <Compile Include="Hosting\Commands\ServiceCommand.cs" />
     <Compile Include="Hosting\Commands\UninstallCommand.cs" />

@@ -3,6 +3,7 @@ namespace Particular.ServiceControl
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.ServiceProcess;
     using Autofac;
     using NLog;
     using NLog.Config;
@@ -19,7 +20,7 @@ namespace Particular.ServiceControl
         IStartableBus bus;
         public static IContainer Container { get; set; }
 
-        public Bootstrapper()
+        public Bootstrapper(ServiceBase host = null)
         {
             ConfigureLogging();
 
@@ -46,6 +47,13 @@ namespace Particular.ServiceControl
                 .AutofacBuilder(Container)
                 .UseTransport(transportType)
                 .MessageForwardingInCaseOfFault()
+                .DefineCriticalErrorAction((s, exception) =>
+                {
+                    if (host != null)
+                    {
+                        host.Stop();
+                    }
+                })
                 .UnicastBus()
                 .CreateBus();
         }
@@ -74,7 +82,7 @@ namespace Particular.ServiceControl
             }
 
             var nlogConfig = new LoggingConfiguration();
-            var simpleLayout = new SimpleLayout("${longdate}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
+            var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
             
             var fileTarget = new FileTarget
             {
