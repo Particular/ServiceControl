@@ -70,6 +70,15 @@
 
         static string TryFindLicense()
         {
+            //look for a license file in /bin/license/license.exml
+            var localLicenseFileInLicenseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"License", @"License.xml");
+            if (File.Exists(localLicenseFileInLicenseDir))
+            {
+                Logger.InfoFormat(@"Using license in current folder ({0}).", localLicenseFileInLicenseDir);
+                return NonLockingFileReader.ReadAllTextWithoutLocking(localLicenseFileInLicenseDir);
+            }
+
+
             //look for a license file in /bin
             var localLicenseFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"ParticularPlatformLicense.xml");
             if (File.Exists(localLicenseFile))
