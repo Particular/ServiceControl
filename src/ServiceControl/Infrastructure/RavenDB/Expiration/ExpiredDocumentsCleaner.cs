@@ -20,7 +20,7 @@
     [ExportMetadata("Bundle", "customDocumentExpiration")]
     public class ExpiredDocumentsCleaner : IStartupTask, IDisposable
     {
-        private readonly ILog logger = LogManager.GetCurrentClassLogger();
+        private readonly ILog logger = LogManager.GetLogger("DocumentsExpiryLogger");
         private Timer timer;
         DocumentDatabase Database { get; set; }
         string indexName;
@@ -52,7 +52,7 @@
                 var currentTime = SystemTime.UtcNow;
                 var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
                 var expiryThresholdAsStr = currentExpiryThresholdTime.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture);
-                logger.Debug("Trying to find expired documents to delete");                
+                logger.Debug("Trying to find expired documents to delete...");
                 var query = "(Status:3 OR Status:4) AND ProcessedAt:[* TO " + expiryThresholdAsStr + "]";
 
                 var list = new List<string>();
@@ -88,10 +88,12 @@
                 }
 
                 if (list.Count == 0)
+                {
+                    logger.Debug("No expired documents found");
                     return;
+                }
 
-                logger.Debug(
-                    () => string.Format("Deleting {0} expired documents: [{1}]", list.Count, string.Join(", ", list)));
+                logger.Debug(() => string.Format("Deleting {0} expired documents: [{1}]", list.Count, string.Join(", ", list)));
 
                 foreach (var id in list)
                 {
