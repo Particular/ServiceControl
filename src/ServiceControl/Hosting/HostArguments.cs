@@ -7,6 +7,7 @@ namespace Particular.ServiceControl.Hosting
     using System.ServiceProcess;
     using System.Text;
     using Commands;
+    using global::ServiceControl.Hosting.Commands;
 
     internal class HostArguments
     {
@@ -23,11 +24,62 @@ namespace Particular.ServiceControl.Hosting
             Username = String.Empty;
             Password = String.Empty;
 
-            var runOptions = new OptionSet
+            defaultOptions = new OptionSet
             {
                 {
                     "?|h|help", "Help about the command line options.", key => { Help = true; }
                 },
+                {
+                    "d|set={==}", "The configuration {0:option} to set to the specified {1:value}", (key, value) =>
+                    {
+                        options[key] = value;
+
+                        commands = new List<Type>
+                        {
+                            typeof(WriteOptionsCommand),
+                        };
+                    }
+                },
+                {
+                    "restart",
+                    @"Restarts the endpoint."
+                    , s =>
+                    {
+                        commands = new List<Type>
+                        {
+                            typeof(WriteOptionsCommand),
+                            typeof(RestartCommand),
+                        };
+                    }
+                },
+                {
+                    "start",
+                    @"Starts the endpoint."
+                    , s =>
+                    {
+                        commands = new List<Type>
+                        {
+                            typeof(WriteOptionsCommand),
+                            typeof(StartCommand),
+                        };
+                    }
+                },
+                {
+                    "stop",
+                    @"Stops the endpoint."
+                    , s =>
+                    {
+                        commands = new List<Type>
+                        {
+                            typeof(StopCommand),
+                        };
+                    }
+                },
+                {
+                    "serviceName=",
+                    @"Specify the service name for the installed service."
+                    , s => { ServiceName = s; }
+                }
             };
 
             uninstallOptions = new OptionSet
@@ -63,7 +115,12 @@ namespace Particular.ServiceControl.Hosting
                     @"Install the endpoint as a Windows service."
                     , s =>
                     {
-                        commands = new List<Type> { typeof(RunBootstrapperAndNServiceBusInstallers), typeof(InstallCommand) };
+                        commands = new List<Type>
+                        {
+                            typeof(WriteOptionsCommand),
+                            typeof(RunBootstrapperAndNServiceBusInstallers),
+                            typeof(InstallCommand)
+                        };
                         executionMode = ExecutionMode.Install;
                     }
                 },
@@ -127,6 +184,12 @@ namespace Particular.ServiceControl.Hosting
                     @"The service should be started manually."
                     , s => { startMode = StartMode.Manual; }
                 },
+                {
+                    "d|set={==}", "The configuration {0:option} to set to the specified {1:value}", (key, value) =>
+                    {
+                        options[key] = value;
+                    }
+                },
             };
 
             try
@@ -143,7 +206,7 @@ namespace Particular.ServiceControl.Hosting
                     return;
                 }
 
-                runOptions.Parse(args);
+                defaultOptions.Parse(args);
             }
             catch (Exception e)
             {
@@ -156,6 +219,11 @@ namespace Particular.ServiceControl.Hosting
         {
             get { return commands; }
         }
+
+        public Dictionary<string, string> Options
+        {
+            get { return options; }
+        } 
 
         public bool Help { get; set; }
         public string ServiceName { get; set; }
@@ -198,12 +266,18 @@ namespace Particular.ServiceControl.Hosting
             uninstallOptions.WriteOptionDescriptions(new StringWriter(sb));
             var uninstallOptionsHelp = sb.ToString();
 
-            Console.Out.WriteLine(helpText, installOptionsHelp, uninstallOptionsHelp);
+            sb.Clear();
+            defaultOptions.WriteOptionDescriptions(new StringWriter(sb));
+            var defaultOptionsHelp = sb.ToString();
+
+            Console.Out.WriteLine(helpText, defaultOptionsHelp, installOptionsHelp, uninstallOptionsHelp);
         }
 
         readonly OptionSet installOptions;
         readonly OptionSet uninstallOptions;
+        readonly OptionSet defaultOptions;
         List<Type> commands;
+        Dictionary<string, string> options = new Dictionary<string, string>();
         StartMode startMode;
     }
 
@@ -211,7 +285,6 @@ namespace Particular.ServiceControl.Hosting
     {
         Install,
         Uninstall,
-        Extract,
         Run
     }
 

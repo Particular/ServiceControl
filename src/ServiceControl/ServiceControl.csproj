@@ -247,10 +247,15 @@
     <Compile Include="Hosting\Commands\AbstractCommand.cs" />
     <Compile Include="Hosting\Commands\CommandRunner.cs" />
     <Compile Include="Hosting\Commands\InstallCommand.cs" />
+    <Compile Include="Hosting\Commands\RestartCommand.cs" />
     <Compile Include="Hosting\Commands\RunBootstrapperAndNServiceBusInstallers.cs" />
     <Compile Include="Hosting\Commands\RunCommand.cs" />
     <Compile Include="Hosting\Commands\ServiceCommand.cs" />
+    <Compile Include="Hosting\Commands\ServiceUtils.cs" />
+    <Compile Include="Hosting\Commands\StartCommand.cs" />
+    <Compile Include="Hosting\Commands\StopCommand.cs" />
     <Compile Include="Hosting\Commands\UninstallCommand.cs" />
+    <Compile Include="Hosting\Commands\WriteOptionsCommand.cs" />
     <Compile Include="Hosting\Host.cs">
       <SubType>Component</SubType>
     </Compile>
