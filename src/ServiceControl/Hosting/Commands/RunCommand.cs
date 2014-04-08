@@ -20,7 +20,7 @@
 
             using (var service = new Host())
             {
-                using (waitHandle)
+                using (var waitHandle = new ManualResetEvent(false))
                 {
                     service.OnStopping = () =>
                     {
@@ -30,22 +30,17 @@
 
                     service.Run();
 
-                    Console.CancelKeyPress += ConsoleOnCancelKeyPress;
+                    Console.CancelKeyPress += (sender, e) =>
+                    {
+                        service.OnStopping = () => { };
+                        e.Cancel = true;
+                        waitHandle.Set();
+                    };
 
                     Console.WriteLine("Press Ctrl+C to exit");
                     waitHandle.WaitOne();
                 }
             }
         }
-
-        void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
-        {
-            Console.CancelKeyPress -= ConsoleOnCancelKeyPress;
-
-            e.Cancel = true;
-            waitHandle.Set();
-        }
-
-        ManualResetEvent waitHandle = new ManualResetEvent(false);
     }
 }

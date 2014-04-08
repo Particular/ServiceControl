@@ -1,24 +1,36 @@
 ﻿ServiceControl by Particular Software
 
 USAGE:
+   ServiceControl.exe --start [options]
+   ServiceControl.exe --stop [options]
+   ServiceControl.exe --restart [options]
    ServiceControl.exe --install [options]
    ServiceControl.exe --uninstall [options]
+
+DEFAULT OPTIONS:
+
+{0}
 																
 INSTALL OPTIONS:
 
-{0}
+{1}
 
 UNINSTALL OPTIONS:
 
-{1}
+{2}
 
 EXAMPLES:
+   ServiceControl.exe --restart 
+     -d="ServiceControl/LogPath==c:\MyLogs Files"
+     -d=ServiceControl/Hostname==sc.myspecialdomain.com
+     -d=ServiceControl/Port==80
+
    ServiceControl.exe --install 
      --serviceName="MyServiceControl" 
      --displayName="My ServiceControl"
      --description="Service for monitoring" 
      --username="corp\serviceuser"
      --password="p@ssw0rd!"
-	 --url="http://localhost:9090"
+     --url="http://localhost:9090"
 
    ServiceControl.exe --uninstall --serviceName="MyServiceControl"

@@ -12,7 +12,7 @@
 
         public override void Execute(HostArguments args)
         {
-            if (IsServiceInstalled(args.ServiceName))
+            if (ServiceUtils.IsServiceInstalled(args.ServiceName))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Out.WriteLine("The '{0}' service is already installed.", args.ServiceName);
