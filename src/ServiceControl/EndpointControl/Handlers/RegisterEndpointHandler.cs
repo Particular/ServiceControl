@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using CompositeViews.Endpoints;
     using Infrastructure;
     using InternalMessages;
     using NServiceBus;
@@ -27,7 +28,7 @@
 
                 if (id == Guid.Empty)
                 {
-                    knownEndpoint = session.Query<KnownEndpoint>().SingleOrDefault(e => e.EndpointDetails.Name == message.Endpoint.Name && e.EndpointDetails.Host == message.Endpoint.Host);
+                    knownEndpoint = session.Query<KnownEndpoint, KnownEndpointIndex>().SingleOrDefault(e => e.EndpointDetails.Name == message.Endpoint.Name && e.EndpointDetails.Host == message.Endpoint.Host);
                 }
                 else
                 {
@@ -35,7 +36,7 @@
 
                     if (knownEndpoint == null)
                     {
-                        knownEndpoint = session.Query<KnownEndpoint>().SingleOrDefault(e => e.HasTemporaryId && 
+                        knownEndpoint = session.Query<KnownEndpoint, KnownEndpointIndex>().SingleOrDefault(e => e.HasTemporaryId && 
                             e.EndpointDetails.Name == message.Endpoint.Name && 
                             e.EndpointDetails.Host == message.Endpoint.Host);
                     }

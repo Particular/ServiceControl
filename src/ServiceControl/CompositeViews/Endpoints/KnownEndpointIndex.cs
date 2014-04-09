@@ -9,11 +9,13 @@ namespace ServiceControl.CompositeViews.Endpoints
         public KnownEndpointIndex()
         {
             Map = messages => from message in messages
-                              select new KnownEndpoint
+                              select new
                               {
-                                  EndpointDetails = message.EndpointDetails,
-                                  HostDisplayName = message.HostDisplayName,
-                                  Monitored = message.Monitored,
+                                  EndpointDetails_Name = message.EndpointDetails.Name,
+                                  EndpointDetails_Host = message.EndpointDetails.Host,
+                                  message.HostDisplayName,
+                                  message.Monitored,
+                                  message.HasTemporaryId,
                               };
 
             DisableInMemoryIndexing = true;
