@@ -155,11 +155,11 @@
                 var el = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/TransportType""]");
                 if (el != null)
                 {
-                    el.SetAttributeValue("value", transportToUse.Type.AssemblyQualifiedName);
+                    el.SetAttributeValue("value", transportToUse.TypeName);
                 }
                 else
                 {
-                    appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/TransportType"), new XAttribute("value", transportToUse.Type.AssemblyQualifiedName)));
+                    appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/TransportType"), new XAttribute("value", transportToUse.TypeName)));
                 }
 
                 var connectionStringsElement = doc.XPathSelectElement(@"/configuration/connectionStrings");

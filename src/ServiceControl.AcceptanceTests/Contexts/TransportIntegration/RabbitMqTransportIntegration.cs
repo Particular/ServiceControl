@@ -12,6 +12,7 @@
 
         public string Name { get { return "RabbitMq"; } }
         public Type Type { get { return typeof(RabbitMQ); } }
+        public string TypeName { get { return "NServiceBus.RabbitMQ, NServiceBus.Transports.RabbitMQ"; } }
         public string ConnectionString { get; set; }
 
         public void SetUp()

@@ -12,6 +12,7 @@
 
         public string Name { get { return "Msmq"; } }
         public Type Type { get { return typeof(Msmq); } }
+        public string TypeName { get { return "NServiceBus.Core, NServiceBus.Transports.Msmq"; }}
         public string ConnectionString { get; set; }
 
         public void SetUp()
