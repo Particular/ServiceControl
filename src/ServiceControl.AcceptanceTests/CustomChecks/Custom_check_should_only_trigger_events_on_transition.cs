@@ -14,6 +14,7 @@ namespace ServiceBus.Management.AcceptanceTests.CustomChecks
     [TestFixture]
     public class Custom_check_should_only_trigger_events_on_transition : AcceptanceTest
     {
+        [Ignore]
         [Test]
         public void Should_result_in_a_custom_check_failed_event()
         {
