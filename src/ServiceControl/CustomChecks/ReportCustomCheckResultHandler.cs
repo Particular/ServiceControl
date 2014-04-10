@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
-    using System.Collections.Concurrent;
     using Contracts.CustomChecks;
     using Contracts.Operations;
     using Infrastructure;
