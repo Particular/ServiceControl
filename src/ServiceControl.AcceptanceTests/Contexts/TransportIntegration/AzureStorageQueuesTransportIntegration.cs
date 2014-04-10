@@ -3,9 +3,9 @@
     using System;
     using NServiceBus;
 
-    public class AzureStorageQueuesIntegration : ITransportIntegration
+    public class AzureStorageQueuesTransportIntegration : ITransportIntegration
     {
-        public AzureStorageQueuesIntegration()
+        public AzureStorageQueuesTransportIntegration()
         {
             ConnectionString = ""; // empty on purpse
         }

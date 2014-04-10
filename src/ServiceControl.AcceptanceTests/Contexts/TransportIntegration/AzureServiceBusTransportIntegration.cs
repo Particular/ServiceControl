@@ -3,9 +3,9 @@
     using System;
     using NServiceBus;
 
-    public class AzureServiceBusIntegration : ITransportIntegration
+    public class AzureServiceBusTransportIntegration : ITransportIntegration
     {
-        public AzureServiceBusIntegration()
+        public AzureServiceBusTransportIntegration()
         {
             ConnectionString = ""; // empty on purpse
         }

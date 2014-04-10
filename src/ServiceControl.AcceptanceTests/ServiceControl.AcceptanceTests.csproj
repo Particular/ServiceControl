@@ -125,8 +125,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Contexts\TransportIntegration\ActiveMqTransportIntegration.cs" />
-    <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesIntegration.cs" />
-    <Compile Include="Contexts\TransportIntegration\AzureServiceBusIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\AzureServiceBusTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\ITransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\MsmqTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\SqlServerTransportIntegration.cs" />
