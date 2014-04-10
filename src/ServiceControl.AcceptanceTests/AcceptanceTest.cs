@@ -22,8 +22,6 @@
     using ServiceControl.Infrastructure.SignalR;
 
     [TestFixture]
-    //[TestFixture(typeof(MsmqTransportIntegration), "cacheSendConnection=true", TypeArgs = new[] { typeof(Type), typeof(string) })]
-    //[TestFixture(typeof(SqlServerTransportIntegration), @"Data Source=.\SQLEXPRESS;Initial Catalog=nservicebus;Integrated Security=True", TypeArgs = new[] { typeof(Type), typeof(string) })]
     public abstract class AcceptanceTest
     {
         public AcceptanceTest()
@@ -42,11 +40,19 @@
 
         public static ITransportIntegration GetTransportIntegrationFromEnvironmentVar()
         {
-            ITransportIntegration transportToUse = new MsmqTransportIntegration();
+            ITransportIntegration transportToUse;
+            if ((transportToUse = GetOverrideTransportIntegration()) != null)
+                return transportToUse;
+
             var transportToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport");
             if (transportToUseString != null)
             {
                 transportToUse = (ITransportIntegration)Activator.CreateInstance(Type.GetType(typeof(MsmqTransportIntegration).FullName.Replace("Msmq", transportToUseString)) ?? typeof(MsmqTransportIntegration));
+            }
+            
+            if (transportToUse == null)
+            {
+                transportToUse = new MsmqTransportIntegration();
             }
 
             var connectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
@@ -55,6 +61,11 @@
                 transportToUse.ConnectionString = connectionString;
             }
             return transportToUse;
+        }
+
+        static ITransportIntegration GetOverrideTransportIntegration()
+        {
+            return null;
         }
 
         [SetUp]
