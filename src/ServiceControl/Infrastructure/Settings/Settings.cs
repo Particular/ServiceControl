@@ -31,7 +31,7 @@
 
                 suffix += "api/";
 
-                return string.Format("{0}://{1}:{2}/{3}", Schema, Hostname, Port, suffix);
+                return string.Format("http://{0}:{1}/{2}", Hostname, Port, suffix);
             }
         }
 
@@ -48,7 +48,7 @@
 
                 suffix += "storage/";
 
-                return string.Format("{0}://{1}:{2}/{3}", Schema, Hostname, Port, suffix);
+                return string.Format("http://{0}:{1}/{2}", Hostname, Port, suffix);
             }
         }
 
@@ -129,7 +129,6 @@
 
         public static int Port = SettingsReader<int>.Read("Port", 33333);
         public static bool ExposeRavenDB = SettingsReader<bool>.Read("ExposeRavenDB");
-        public static string Schema = SettingsReader<string>.Read("Schema", "http");
         public static string Hostname = SettingsReader<string>.Read("Hostname", "localhost");
         public static string VirtualDirectory = SettingsReader<string>.Read("VirtualDirectory", String.Empty);
         public static TimeSpan HeartbeatGracePeriod = TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
