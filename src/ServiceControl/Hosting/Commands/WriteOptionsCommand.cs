@@ -20,11 +20,12 @@
                 {
                     configuration.ConnectionStrings.ConnectionStrings.Remove("NServiceBus/Transport");
                     configuration.ConnectionStrings.ConnectionStrings.Add(new ConnectionStringSettings("NServiceBus/Transport", option.Value));
-                    return;
                 }
-
-                configuration.AppSettings.Settings.Remove(option.Key);
-                configuration.AppSettings.Settings.Add(new KeyValueConfigurationElement(option.Key, option.Value));
+                else
+                {
+                    configuration.AppSettings.Settings.Remove(option.Key);
+                    configuration.AppSettings.Settings.Add(new KeyValueConfigurationElement(option.Key, option.Value));
+                }
             }
 
             configuration.Save();
