@@ -1,0 +1,98 @@
+namespace ServiceControl.Plugin
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Security.Cryptography;
+    using System.Text;
+    using NServiceBus;
+    using NServiceBus.Unicast;
+
+    static class HostInformationRetriever
+    {
+        public static HostInformation RetrieveHostInfo()
+        {
+            //since Hostinfo is available in the core since v4.4 we need to use reflection here
+            var hostInformationType = Type.GetType("NServiceBus.Hosting.HostInformation, NServiceBus.Core", false);
+            if (hostInformationType == null)
+            {
+                return GenerateHostinfoForPreV44Endpoints();
+            }
+
+            var bus = Configure.Instance.Builder.Build<UnicastBus>();
+
+            var property = typeof(UnicastBus).GetProperty("HostInformation", hostInformationType);
+
+            var hostInfo = property.GetValue(bus, null);
+
+            return new HostInformation
+            {
+                HostId = (Guid)hostInformationType.GetProperty("HostId").GetValue(hostInfo, null),
+                Name = (string)hostInformationType.GetProperty("DisplayName").GetValue(hostInfo, null), //need to use DisplayName since the core doesn't have a Name property
+                DisplayName = (string)hostInformationType.GetProperty("DisplayName").GetValue(hostInfo, null),
+                Properties = (Dictionary<string, string>)hostInformationType.GetProperty("Properties").GetValue(hostInfo, null)
+            };
+        }
+
+        static HostInformation GenerateHostinfoForPreV44Endpoints()
+        {
+            var commandLine = Environment.CommandLine;
+            var commandLineParts = commandLine.Split('"');
+            var fullPathToStartingExe = String.Empty;
+
+            if (commandLineParts.Length > 1)
+            {
+                fullPathToStartingExe = commandLineParts[1];
+            }
+            else if (commandLineParts.Length == 1)
+            {
+                fullPathToStartingExe = commandLineParts[0];
+            }
+
+            var hostId = DeterministicGuid.MakeId(fullPathToStartingExe, Environment.MachineName);
+
+            return new HostInformation
+            {
+                HostId = hostId,
+                Name = Environment.MachineName,
+                DisplayName = Environment.MachineName,
+                Properties = new Dictionary<string, string>
+                {
+                    {"Machine", Environment.MachineName},
+                    {"ProcessID", Process.GetCurrentProcess().Id.ToString()},
+                    {"UserName", Environment.UserName},
+                    {"CommandLine", Environment.CommandLine}
+                }
+            };
+        }
+    }
+
+    static class DeterministicGuid
+    {
+        public static Guid MakeId(params string[] data)
+        {
+            return DeterministicGuidBuilder(String.Concat(data));
+        }
+
+        static Guid DeterministicGuidBuilder(string input)
+        {
+            // use MD5 hash to get a 16-byte hash of the string
+            using (var provider = new MD5CryptoServiceProvider())
+            {
+                var inputBytes = Encoding.Default.GetBytes(input);
+                var hashBytes = provider.ComputeHash(inputBytes);
+                // generate a guid from the hash:
+                return new Guid(hashBytes);
+            }
+        }
+    }
+
+
+    class HostInformation
+    {
+        public Guid HostId { get; set; }
+        public Dictionary<string, string> Properties { get; set; }
+        public string DisplayName { get; set; }
+        public string Name { get; set; }
+    }
+}
