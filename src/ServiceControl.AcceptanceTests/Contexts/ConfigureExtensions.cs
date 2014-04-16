@@ -6,6 +6,7 @@
     using NServiceBus.Serializers.Binary;
     using NServiceBus.Serializers.Json;
     using NServiceBus.Serializers.XML;
+    using TransportIntegration;
 
     public static class ConfigureExtensions
     {
@@ -19,16 +20,14 @@
             return dictionary[key];
         }
 
-        public static Configure DefineTransport(this Configure config, string transport)
+        public static Configure DefineTransport(this Configure config, ITransportIntegration transport)
         {
-            if (string.IsNullOrEmpty(transport))
+            if (transport == null)
             {
                 return config.UseTransport<Msmq>();
             }
 
-            var transportType = Type.GetType(transport);
-
-            return config.UseTransport(transportType);
+            return config.UseTransport(transport.Type, () => transport.ConnectionString);
         }
 
         public static Configure DefineSerializer(this Configure config, string serializer)

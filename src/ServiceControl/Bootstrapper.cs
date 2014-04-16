@@ -1,7 +1,9 @@
 namespace Particular.ServiceControl
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
+    using System.ServiceProcess;
     using Autofac;
     using NLog;
     using NLog.Config;
@@ -9,45 +11,79 @@ namespace Particular.ServiceControl
     using NLog.Targets;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Installation.Environments;
     using NServiceBus.Logging.Loggers.NLogAdapter;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class EndpointConfig : IConfigureThisEndpoint, AsA_Publisher, IWantCustomLogging, IWantCustomInitialization
+    public class Bootstrapper
     {
+        IStartableBus bus;
         public static IContainer Container { get; set; }
 
-        public void Init()
+        public Bootstrapper(ServiceBase host = null)
         {
             ConfigureLogging();
 
             var containerBuilder = new ContainerBuilder();
 
             Container = containerBuilder.Build();
-
-            var transportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
-
+            
             // Disable Auditing for the service control endpoint
             Configure.Features.Disable<Audit>();
             Configure.Features.Enable<Sagas>();
-
-            Configure
-                .With(AllAssemblies.Except("ServiceControl.Plugin"))
-                .AutofacBuilder(Container)
-                .UseTransport(Type.GetType(transportType))
-                .UnicastBus();
-
             Feature.Disable<AutoSubscribe>();
             Feature.Disable<SecondLevelRetries>();
 
             Configure.Serialization.Json();
             Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
+
+            Feature.EnableByDefault<StorageDrivenPublisher>();
+            Configure.ScaleOut(s => s.UseSingleBrokerQueue());
+
+            var transportType = Type.GetType(Settings.TransportType);
+            bus = Configure
+                .With(AllAssemblies.Except("ServiceControl.Plugin"))
+                .DefineEndpointName("Particular.ServiceControl")
+                .AutofacBuilder(Container)
+                .UseTransport(transportType)
+                .MessageForwardingInCaseOfFault()
+                .DefineCriticalErrorAction((s, exception) =>
+                {
+                    if (host != null)
+                    {
+                        host.Stop();
+                    }
+                })
+                .UnicastBus()
+                .CreateBus();
+        }
+
+        public void Start()
+        {
+            bus.Start(() =>
+            {
+                if (Environment.UserInteractive && Debugger.IsAttached)
+                {
+                    Configure.Instance.ForInstallationOn<Windows>().Install();
+                }
+            });
+        }
+
+        public void Stop()
+        {
+            bus.Dispose();
         }
 
         static void ConfigureLogging()
         {
-            var nlogConfig = new LoggingConfiguration();
-            var simpleLayout = new SimpleLayout("${longdate}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
+            if (LogManager.Configuration != null)
+            {
+                return;
+            }
 
+            var nlogConfig = new LoggingConfiguration();
+            var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
+            
             var fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
@@ -68,7 +104,7 @@ namespace Particular.ServiceControl
             nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, consoleTarget) { Final = true });
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Warn, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget)); 
             
             nlogConfig.AddTarget("debugger", fileTarget);

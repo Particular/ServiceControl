@@ -15,6 +15,7 @@
             ErrorLogQueue = GetErrorLogQueue();
             AuditLogQueue = GetAuditLogQueue();
             DbPath = GetDbPath();
+            TransportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
         }
 
         public static string ApiUrl
@@ -30,7 +31,7 @@
 
                 suffix += "api/";
 
-                return string.Format("{0}://{1}:{2}/{3}", Schema, Hostname, Port, suffix);
+                return string.Format("http://{0}:{1}/{2}", Hostname, Port, suffix);
             }
         }
 
@@ -47,11 +48,10 @@
 
                 suffix += "storage/";
 
-                return string.Format("{0}://{1}:{2}/{3}", Schema, Hostname, Port, suffix);
+                return string.Format("http://{0}:{1}/{2}", Hostname, Port, suffix);
             }
         }
 
-        
         static Address GetAuditLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
@@ -65,7 +65,7 @@
 
         static Address GetAuditQueue()
         {
-            var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", null);
+            var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
 
             if (value == null)
             {
@@ -78,7 +78,7 @@
 
         static Address GetErrorQueue()
         {
-            var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", null);
+            var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
 
             if (value == null)
             {
@@ -122,7 +122,6 @@
             return SettingsReader<string>.Read("DbPath", defaultPath);
         }
 
-
         static string SanitiseFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
@@ -130,15 +129,14 @@
 
         public static int Port = SettingsReader<int>.Read("Port", 33333);
         public static bool ExposeRavenDB = SettingsReader<bool>.Read("ExposeRavenDB");
-        public static string Schema = SettingsReader<string>.Read("Schema", "http");
         public static string Hostname = SettingsReader<string>.Read("Hostname", "localhost");
         public static string VirtualDirectory = SettingsReader<string>.Read("VirtualDirectory", String.Empty);
         public static TimeSpan HeartbeatGracePeriod = TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
-        
+        public static string TransportType { get; set; }
 
-        public static string LogPath =
+        public static readonly string LogPath =
             Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "Particular\\ServiceControl\\logs")));
 
         public static string DbPath;

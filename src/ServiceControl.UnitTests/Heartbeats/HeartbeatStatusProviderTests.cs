@@ -36,6 +36,22 @@
 
 
         [Test]
+        public void When_heartbeats_are_enabled_should_update_existing_endpoint_host_id_if_needed()
+        {
+            var currentHeartbeatStatus = new HeartbeatStatusProvider();
+            var hostId = Guid.NewGuid();
+
+            VerifyHeartbeatStats(currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails { Host = "Machine", Name = "NewEndpoint1" }), 0, 1); 
+            VerifyHeartbeatStats(currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint1" }, DateTime.UtcNow), 1, 0);
+
+            var endpoint = currentHeartbeatStatus.GetPotentiallyFailedEndpoints(DateTime.UtcNow.AddDays(1)).SingleOrDefault();
+
+            
+            Assert.AreEqual(hostId,endpoint.Details.HostId);
+        }
+
+
+        [Test]
         public void When_endpoint_is_disabled_should_not_count()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();

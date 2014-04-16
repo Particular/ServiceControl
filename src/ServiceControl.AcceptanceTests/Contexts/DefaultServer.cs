@@ -15,6 +15,7 @@
     using NServiceBus.Hosting.Helpers;
     using NServiceBus.Logging.Loggers.NLogAdapter;
     using ServiceControl.MessageAuditing;
+    using TransportIntegration;
 
     public class DefaultServerWithoutAudit : DefaultServer
     {
@@ -38,11 +39,11 @@
 
             var types = GetTypesToUse(endpointConfiguration);
 
-            var transportToUse = settings.GetOrNull("Transport");
-
+            var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
             SetupLogging(endpointConfiguration);
 
             Configure.Features.Enable<Sagas>();
+            Configure.ScaleOut(_ => _.UseSingleBrokerQueue());
 
             AddMoreConfig();
 
@@ -55,13 +56,13 @@
                 .InMemorySagaPersister();
 
 
-            if (transportToUse == null || transportToUse.Contains("Msmq") || transportToUse.Contains("SqlServer") ||
-                transportToUse.Contains("RabbitMq"))
+            if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration ||
+                transportToUse is RabbitMqTransportIntegration)
             {
                 config.UseInMemoryTimeoutPersister();
             }
 
-            if (transportToUse == null || transportToUse.Contains("Msmq") || transportToUse.Contains("SqlServer"))
+            if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration)
             {
                 config.InMemorySubscriptionStorage();
             }

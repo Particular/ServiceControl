@@ -37,8 +37,23 @@
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Client\lib\net45\Microsoft.AspNet.SignalR.Client.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Data.Edm">
+      <HintPath>..\packages\Microsoft.Data.Edm\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.OData">
+      <HintPath>..\packages\Microsoft.Data.OData\lib\net40\Microsoft.Data.OData.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Owin.Host.HttpListener">
       <HintPath>..\packages\Microsoft.Owin.Host.HttpListener\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ServiceBus">
+      <HintPath>..\packages\WindowsAzure.ServiceBus\lib\net40-full\Microsoft.ServiceBus.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Configuration">
+      <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager\lib\net35-full\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage">
+      <HintPath>..\packages\WindowsAzure.Storage\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -52,14 +67,26 @@
     <Reference Include="NServiceBus.AcceptanceTesting">
       <HintPath>..\packages\NServiceBus.AcceptanceTesting\lib\net40\NServiceBus.AcceptanceTesting.dll</HintPath>
     </Reference>
+    <Reference Include="NServiceBus.Azure.Transports.WindowsAzureServiceBus">
+      <HintPath>..\packages\NServiceBus.Azure.Transports.WindowsAzureServiceBus\lib\net40\NServiceBus.Azure.Transports.WindowsAzureServiceBus.dll</HintPath>
+    </Reference>
+    <Reference Include="NServiceBus.Azure.Transports.WindowsAzureStorageQueues">
+      <HintPath>..\packages\NServiceBus.Azure.Transports.WindowsAzureStorageQueues\lib\net40\NServiceBus.Azure.Transports.WindowsAzureStorageQueues.dll</HintPath>
+    </Reference>
     <Reference Include="NServiceBus.Core">
       <HintPath>..\packages\NServiceBus\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus.Host">
-      <HintPath>..\packages\NServiceBus.Host\lib\net40\NServiceBus.Host.exe</HintPath>
+    <Reference Include="NServiceBus.Transports.RabbitMQ">
+      <HintPath>..\packages\NServiceBus.RabbitMQ\lib\net40\NServiceBus.Transports.RabbitMQ.dll</HintPath>
+    </Reference>
+    <Reference Include="NServiceBus.Transports.SQLServer">
+      <HintPath>..\packages\NServiceBus.SqlServer\lib\net40\NServiceBus.Transports.SQLServer.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit\lib\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="RabbitMQ.Client">
+      <HintPath>..\packages\RabbitMQ.Client\lib\net30\RabbitMQ.Client.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -85,6 +112,10 @@
     <Reference Include="System.Runtime">
       <HintPath>..\packages\Microsoft.Bcl\lib\net45\System.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Spatial">
+      <HintPath>..\packages\System.Spatial\lib\net40\System.Spatial.dll</HintPath>
+    </Reference>
     <Reference Include="System.Threading.Tasks">
       <HintPath>..\packages\Microsoft.Bcl\lib\net45\System.Threading.Tasks.dll</HintPath>
     </Reference>
@@ -93,6 +124,14 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Contexts\TransportIntegration\ActiveMqTransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\AzureServiceBusTransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\ITransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\MsmqTransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\SqlServerTransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\RabbitMqTransportIntegration.cs" />
+    <Compile Include="CustomChecks\Custom_check_should_only_trigger_events_on_transition.cs" />
     <Compile Include="CustomChecks\When_a_custom_check_fails.cs" />
     <Compile Include="CustomChecks\When_a_periodic_custom_check_fails.cs" />
     <Compile Include="DebugSessions\When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
@@ -121,8 +160,8 @@
     <Compile Include="When_signalr_receives_a_message.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\ServiceControl\App.config">
-      <Link>App.config</Link>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
     </None>
     <None Include="ripple.dependencies.config">
       <SubType>Designer</SubType>

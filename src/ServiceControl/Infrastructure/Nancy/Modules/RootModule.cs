@@ -37,15 +37,23 @@
                         BaseUrl + "/endpoints/{name}/messages/{?page,per_page,direction,sort}",
                     Name = SettingsReader<string>.Read("Name", "ServiceControl"),
                     Description = SettingsReader<string>.Read("Description", "The management backend for the Particular Service Platform"),
-                    LicenseStatus = License.IsValid ? "valid" : "invalid"
+                    LicenseStatus = License.IsValid ? "valid" : "invalid",
                 };
-
 
                 return Negotiate
                     .WithModel(model)
                     .WithHeader("ETag", CurrentEtag)
                     .WithHeader("Last-Modified", CurrentLastModified);
             };
+
+            Get["/instance-info"] = p => Negotiate
+                    .WithModel(new
+                                  {
+                                      LogfilePath = Path.Combine(Settings.LogPath, "logfile.txt"),
+                                      Settings.TransportType,
+                                  })
+                    .WithHeader("ETag", CurrentEtag)
+                    .WithHeader("Last-Modified", CurrentLastModified);
         }
 
         public ActiveLicense License { get; set; }

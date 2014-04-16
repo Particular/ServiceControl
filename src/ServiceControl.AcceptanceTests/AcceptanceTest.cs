@@ -14,6 +14,7 @@
     using System.Threading;
     using System.Xml.Linq;
     using System.Xml.XPath;
+    using Contexts.TransportIntegration;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -23,16 +24,63 @@
     [TestFixture]
     public abstract class AcceptanceTest
     {
+        public AcceptanceTest()
+        {
+
+        }
+
+        public AcceptanceTest(Type typeOfTransport, string connectionString)
+        {
+            if (!typeOfTransport.GetInterfaces().Contains(typeof(ITransportIntegration)))
+                throw new Exception("Unsupported transport type: " + typeOfTransport);
+
+            transportToUse = (ITransportIntegration)Activator.CreateInstance(typeOfTransport);
+            transportToUse.ConnectionString = connectionString;
+        }
+
+        public static ITransportIntegration GetTransportIntegrationFromEnvironmentVar()
+        {
+            ITransportIntegration transportToUse;
+            if ((transportToUse = GetOverrideTransportIntegration()) != null)
+                return transportToUse;
+
+            var transportToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport");
+            if (transportToUseString != null)
+            {
+                transportToUse = (ITransportIntegration)Activator.CreateInstance(Type.GetType(typeof(MsmqTransportIntegration).FullName.Replace("Msmq", transportToUseString)) ?? typeof(MsmqTransportIntegration));
+            }
+            
+            if (transportToUse == null)
+            {
+                transportToUse = new MsmqTransportIntegration();
+            }
+
+            var connectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
+            if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                transportToUse.ConnectionString = connectionString;
+            }
+            return transportToUse;
+        }
+
+        static ITransportIntegration GetOverrideTransportIntegration()
+        {
+            return null;
+        }
+
         [SetUp]
         public void SetUp()
         {
             ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-
             port = FindAvailablePort(33333);
 
-            pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+            if (transportToUse == null)
+                transportToUse = GetTransportIntegrationFromEnvironmentVar();
 
+            pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
             InitialiseAppConfig();
+
+            Console.Out.WriteLine("Using transport " + transportToUse.Name);
 
             Conventions.EndpointNamingConvention = t =>
             {
@@ -112,6 +160,30 @@
                 appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/CreateIndexSync"), new XAttribute("value", true)));
             }
 
+            // transport specification
+            if (transportToUse != null)
+            {
+                var el = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/TransportType""]");
+                if (el != null)
+                {
+                    el.SetAttributeValue("value", transportToUse.TypeName);
+                }
+                else
+                {
+                    appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/TransportType"), new XAttribute("value", transportToUse.TypeName)));
+                }
+
+                var connectionStringsElement = doc.XPathSelectElement(@"/configuration/connectionStrings");
+                el = connectionStringsElement.XPathSelectElement(@"add[@name=""NServiceBus/Transport""]");
+                if (el != null)
+                {
+                    el.SetAttributeValue("connectionString", transportToUse.ConnectionString);
+                }
+                else
+                {
+                    connectionStringsElement.Add(new XElement("add", new XAttribute("name", "NServiceBus/Transport"), new XAttribute("connectionString", transportToUse.ConnectionString)));
+                }
+            }
 
             doc.Save(pathToAppConfig);
         }
@@ -167,15 +239,12 @@
             {
                 request = (HttpWebRequest)WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
             }
-
-
-
             request.Accept = "application/json";
 
-            Console.Out.Write(request.RequestUri);
+            var reportStatus = new StringBuilder();
+            reportStatus.Append(request.RequestUri);
 
             HttpWebResponse response;
-
             try
             {
                 response = request.GetResponse() as HttpWebResponse;
@@ -191,7 +260,8 @@
                 return null;
             }
 
-            Console.Out.WriteLine(" - {0}", (int)response.StatusCode);
+            reportStatus.AppendFormat(" - {0}", (int)response.StatusCode);
+            Console.WriteLine(reportStatus.ToString());
 
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
@@ -362,7 +432,7 @@
 
         int port;
         string pathToAppConfig;
-
+        ITransportIntegration transportToUse;
         public string PathToAppConfig
         {
             get { return pathToAppConfig; }

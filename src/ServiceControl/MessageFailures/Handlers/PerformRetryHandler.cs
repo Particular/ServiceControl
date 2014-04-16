@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Contracts.MessageFailures;
     using InternalMessages;
     using NServiceBus;
     using NServiceBus.Transports;
@@ -17,6 +18,8 @@
         public ISendMessages Forwarder { get; set; }
 
         public IBodyStorage BodyStorage { get; set; }
+
+        public IBus Bus { get; set; }
 
         public void Handle(PerformRetry message)
         {
@@ -57,6 +60,8 @@
 
                 Forwarder.Send(transportMessage, message.TargetEndpointAddress);
             }
+
+            Bus.Publish<MessageSubmittedForRetry>(m => m.FailedMessageId = message.FailedMessageId);
         }
 
         static byte[] ReadFully(Stream input)

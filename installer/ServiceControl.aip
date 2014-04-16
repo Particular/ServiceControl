@@ -20,7 +20,7 @@
     <ROW Property="AppLogoIcon" Value="applogoicon" MultiBuildValue="DefaultBuild:Operationslogo.png" Type="1" MsiKey="AppLogoIcon"/>
     <ROW Property="ExtractFilesFirst" Value="1"/>
     <ROW Property="InstanceId" Value="#0"/>
-    <ROW Property="Manufacturer" Value="Particular Software Ltd."/>
+    <ROW Property="Manufacturer" Value="Particular Software"/>
     <ROW Property="PORT_VAL" Value="33333" Type="4"/>
     <ROW Property="ProductCode" Value="1033:{12BDB3E7-3A70-410A-A2C0-43037E33E3E6} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
@@ -55,7 +55,7 @@
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="NServi~1.exe|NServiceBus.Host.exe" Attributes="0" SourcePath="Files\NServiceBus.Host.exe" SelfReg="false"/>
+    <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="Servic~1.exe|ServiceControl.exe" Attributes="0" SourcePath="Files\ServiceControl.exe" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" GeneralOptions="qh" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" EulaPathLocId="*" IntroTextPathLocId="*"/>
@@ -390,6 +390,6 @@
     <ROW UpgradeCode="[|UpgradeCode]" VersionMin="[|ProductVersion]" Attributes="2" ActionProperty="AI_NEWERPRODUCTFOUND"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.SynchronizedFolderComponent">
-    <ROW Directory_="APPDIR" SourcePath="Files" Feature="MainFeature" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store|/*.xml" ExcludeFlags="6"/>
+    <ROW Directory_="APPDIR" SourcePath="Files" Feature="MainFeature" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store" ExcludeFlags="6"/>
   </COMPONENT>
 </DOCUMENT>

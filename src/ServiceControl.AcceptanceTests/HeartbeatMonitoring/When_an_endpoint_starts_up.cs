@@ -26,8 +26,7 @@
                 .Run();
 
             Assert.AreEqual(Severity.Info, entry.Severity, "Endpoint startup should be treated as info");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/host/" + context.HostId));
-           
+            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/host/" + context.HostId));           
         }
 
 
@@ -38,7 +37,6 @@
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
-            
             public StartingEndpoint()
             {
                 EndpointSetup<DefaultServerWithoutAudit>();
@@ -52,6 +50,11 @@
 
                 public void Run()
                 {
+                    if (Context == null)
+                    {
+                        return;
+                    }
+
                     Context.HostId = UnicastBus.HostInformation.HostId;
                 }
             }

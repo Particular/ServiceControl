@@ -236,7 +236,7 @@ namespace ServiceControl.Operations
                                     }
                                     catch (Exception ex)
                                     {
-                                        importFailuresHandler.ProcessingAlwaysFailsForMessage(transportMessage, ex);
+                                        ThreadPool.QueueUserWorkItem(state => importFailuresHandler.ProcessingAlwaysFailsForMessage(transportMessage, ex));
                                         throw;
                                     }
                                 }
@@ -263,7 +263,7 @@ namespace ServiceControl.Operations
             }
             catch (Exception ex)
             {
-                importFailuresHandler.FailedToReceive(ex);
+                ThreadPool.QueueUserWorkItem(state => importFailuresHandler.FailedToReceive(ex));
                 throw;
             }
         }

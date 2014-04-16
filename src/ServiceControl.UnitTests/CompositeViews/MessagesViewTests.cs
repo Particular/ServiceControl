@@ -49,7 +49,7 @@
             }
         }
 
-        [Test,Ignore("Until Itamar figures out the issue")]
+        [Test]
         public void Order_by_critical_time()
         {
             using (var session = documentStore.OpenSession())

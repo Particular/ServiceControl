@@ -16,8 +16,9 @@
         public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration,
             IConfigurationSource configSource)
         {
-            var c = new EndpointConfig();
-            c.Init();
+            Configure.ScaleOut(_ => _.UseSingleBrokerQueue());
+
+            new Bootstrapper();
 
             //We need this hack here because by default we include all assemblies minus Plugins but for these tests we need to exclude other tests!
             for (var index = 0; index < Configure.TypesToScan.Count;)

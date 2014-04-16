@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
-    using System.Collections.Concurrent;
     using Contracts.CustomChecks;
     using Contracts.Operations;
     using Infrastructure;
@@ -30,14 +29,24 @@
             {
                 throw new ArgumentException("Received an custom check message without proper initialization of the HostId in the schema", "message.HostId");
             }
-                
 
+            var publish = false;
             var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString(), message.CustomCheckId);
+            var customCheck = Session.Load<CustomCheck>(id);
 
-            var customCheck = Session.Load<CustomCheck>(id) ?? new CustomCheck
+            if (customCheck == null ||
+                (customCheck.Status == Status.Fail && !message.HasFailed) ||
+                (customCheck.Status == Status.Pass && message.HasFailed))
             {
-                Id = id,
-            };
+                if (customCheck == null)
+                {
+                    customCheck = new CustomCheck
+                    {
+                        Id = id,
+                    };
+                }
+                publish = true;
+            }
 
             customCheck.CustomCheckId = message.CustomCheckId;
             customCheck.Category = message.Category;
@@ -51,59 +60,34 @@
                 Name = message.EndpointName
             };
 
-            DetectChanges(message, id, customCheck.OriginatingEndpoint);
+            if (publish)
+            {
+                if (message.HasFailed)
+                {
+                    Bus.Publish<CustomCheckFailed>(m =>
+                    {
+                        m.Id = id;
+                        m.CustomCheckId = message.CustomCheckId;
+                        m.Category = message.Category;
+                        m.FailedAt = message.ReportedAt;
+                        m.FailureReason = message.FailureReason;
+                        m.OriginatingEndpoint = customCheck.OriginatingEndpoint;
+                    });
+                }
+                else
+                {
+                    Bus.Publish<CustomCheckSucceeded>(m =>
+                    {
+                        m.Id = id;
+                        m.CustomCheckId = message.CustomCheckId;
+                        m.Category = message.Category;
+                        m.SucceededAt = message.ReportedAt;
+                        m.OriginatingEndpoint = customCheck.OriginatingEndpoint;
+                    });
+                }
+            }
 
             Session.Store(customCheck);
         }
-
-        void DetectChanges(ReportCustomCheckResult message, Guid id,EndpointDetails endpoint)
-        {
-           var publish = true;
-
-            registeredCustomChecks.AddOrUpdate(id,
-                k => message,
-                (k, existingValue) =>
-                {
-                    if (existingValue.HasFailed == message.HasFailed)
-                    {
-                        publish = false;
-                        return existingValue;
-                    }
-
-                    return message;
-                });
-
-            if (!publish)
-            {
-                return;
-            }
-
-            if (message.HasFailed)
-            {
-                Bus.Publish<CustomCheckFailed>(m =>
-                {
-                    m.Id = id;
-                    m.CustomCheckId = message.CustomCheckId;
-                    m.Category = message.Category;
-                    m.FailedAt = message.ReportedAt;
-                    m.FailureReason = message.FailureReason;
-                    m.OriginatingEndpoint = endpoint;
-                });
-            }
-            else
-            {
-                Bus.Publish<CustomCheckSucceeded>(m =>
-                {
-                    m.Id = id;
-                    m.CustomCheckId = message.CustomCheckId;
-                    m.Category = message.Category;
-                    m.SucceededAt = message.ReportedAt;
-                    m.OriginatingEndpoint = endpoint;
-                });
-            }
-        }
-
-        readonly ConcurrentDictionary<Guid, ReportCustomCheckResult> registeredCustomChecks =
-          new ConcurrentDictionary<Guid, ReportCustomCheckResult>();
     }
 }
