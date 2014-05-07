@@ -27,18 +27,12 @@
             {
                 return;
             }
-            var messages = context.LogicalMessages.ToList();
-            if (messages.Count > 1)
-            {
-                logger.WarnFormat("Could not audit outgoing messages for the the saga `{0}` since the SagaAuditing plugin does not support batch messages. Consider not using batch messages from this saga.", sagaUpdatedMessage.SagaType);
-                return;
-            }
-            if (messages.Count == 0)
+            var logicalMessage = context.LogicalMessage;
+            if (logicalMessage == null)
             {
                 //this can happen on control messages
                 return;
             }
-            var logicalMessage = messages.First();
             
             var sagaResultingMessage = new SagaChangeOutput
                 {

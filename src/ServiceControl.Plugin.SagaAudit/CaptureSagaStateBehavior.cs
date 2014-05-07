@@ -17,7 +17,7 @@
 
         public void Invoke(HandlerInvocationContext context, Action next)
         {
-            var saga = context.MessageHandler.Instance as ISaga;
+            var saga = context.MessageHandler.Instance as Saga;
 
             if (saga == null)
             {
@@ -41,7 +41,7 @@
             AuditSaga(saga, context);
         }
 
-        void AuditSaga(ISaga saga, HandlerInvocationContext context)
+        void AuditSaga(Saga saga, HandlerInvocationContext context)
         {
             string messageId;
 
