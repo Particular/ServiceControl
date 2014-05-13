@@ -11,7 +11,7 @@ namespace ServiceControl.EndpointControl.Handlers
             // We are adding the key right away to prevent Raven Concurrency exceptions.
             // If we add after the message is processed, before the value could be added in the 
             // dictionary,  we try to process the same message again causing the concurrency exception. 
-            return processed.TryAdd(key, new CachedEntry(){TimeAdded = DateTime.UtcNow});
+            return processed.TryAdd(key, new CachedEntry{TimeAdded = DateTime.UtcNow});
         }
 
         public void MarkAsProcessed(Guid key)

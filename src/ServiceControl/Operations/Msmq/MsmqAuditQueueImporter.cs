@@ -144,14 +144,11 @@ namespace ServiceControl.Operations
 
             Task.Factory
                 .StartNew(BatchImporter, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-                .ContinueWith(task =>
+                .ContinueWith(task => task.Exception.Handle(ex =>
                 {
-                    task.Exception.Handle(ex =>
-                    {
-                        Logger.Error("Error processing message.", ex);
-                        return true;
-                    });
-                }, TaskContinuationOptions.OnlyOnFaulted);
+                    Logger.Error("Error processing message.", ex);
+                    return true;
+                }), TaskContinuationOptions.OnlyOnFaulted);
 
             return true;
         }

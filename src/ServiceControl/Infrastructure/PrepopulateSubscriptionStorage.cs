@@ -8,12 +8,12 @@ namespace ServiceControl.Infrastructure
 
     class PrepopulateSubscriptionStorage:IWantToRunWhenConfigurationIsComplete
     {
-        public IManageSubscriptions SusbcriptionManager { get; set; }
+        public IManageSubscriptions SubscriptionManager { get; set; }
 
         public void Run()
         {
             // Setup storage for transports using message driven subscriptions
-            var messageDrivenSubscriptionManager = SusbcriptionManager as MessageDrivenSubscriptionManager;
+            var messageDrivenSubscriptionManager = SubscriptionManager as MessageDrivenSubscriptionManager;
             if (messageDrivenSubscriptionManager != null)
             {
                 Configure.Instance.ForAllTypes<IEvent>(eventType => messageDrivenSubscriptionManager.SubscriptionStorage.Subscribe(Address.Local, new[]

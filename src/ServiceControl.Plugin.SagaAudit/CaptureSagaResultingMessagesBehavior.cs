@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Plugin.SagaAudit
 {
     using System;
-    using System.Linq;
     using EndpointPlugin.Messages.SagaState;
     using NServiceBus;
     using NServiceBus.Logging;
