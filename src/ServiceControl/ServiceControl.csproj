@@ -201,6 +201,7 @@
     <Compile Include="App_Packages\Particular.Licensing\ReleaseDateReader.cs" />
     <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\UserSidChecker.cs" />
     <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
