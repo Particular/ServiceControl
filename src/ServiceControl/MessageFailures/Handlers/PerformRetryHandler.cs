@@ -53,8 +53,12 @@
                     CorrelationId = attempt.CorrelationId,
                     Recoverable = attempt.Recoverable,
                     MessageIntent = attempt.MessageIntent,
-                    ReplyToAddress = Address.Parse(attempt.ReplyToAddress)
                 };
+
+                if (!String.IsNullOrWhiteSpace(attempt.ReplyToAddress))
+                {
+                    transportMessage.ReplyToAddress = Address.Parse(attempt.ReplyToAddress);
+                }
 
                 failedMessage.Status = FailedMessageStatus.RetryIssued;
 

@@ -7,6 +7,7 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Transports;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.CompositeViews.Messages;
@@ -196,10 +197,33 @@
                 }))
                 .WithEndpoint<Receiver>()
                 .Done(c => TryGetMany("/api/endpoints", out knownEndpoints, m => m.Name == context.EndpointNameOfReceivingEndpoint))
-                .Run(TimeSpan.FromSeconds(40));
+                .Run(TimeSpan.FromSeconds(20));
 
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).Name);
             Assert.AreEqual(Environment.MachineName, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);
+        }
+
+        [Test]
+        public void Should_import_messages_from_sendonly_endpoint()
+        {
+            var context = new MyContext
+            {
+                MessageId = Guid.NewGuid().ToString()
+            };
+
+            Scenario.Define(context)
+               .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+               .WithEndpoint<SendOnlyEndpoint>()
+               .Done(c =>
+               {
+                   MessagesView auditedMessage;
+                   if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
+                   {
+                       return false;
+                   }
+                   return true;
+               })
+               .Run(TimeSpan.FromSeconds(40));
         }
 
         public class Sender : EndpointConfigurationBuilder
@@ -208,6 +232,32 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>()
                     .AddMapping<MyMessage>(typeof(Receiver));
+            }
+        }
+
+        public class SendOnlyEndpoint : EndpointConfigurationBuilder
+        {
+            public SendOnlyEndpoint()
+            {
+                EndpointSetup<DefaultServerWithoutAudit>();
+            }
+
+            class Foo: IWantToRunWhenBusStartsAndStops
+            {
+                public ISendMessages SendMessages { get; set; }
+
+                public MyContext MyContext { get; set; }
+
+                public void Start()
+                {
+                    var transportMessage = new TransportMessage();
+                    transportMessage.Headers["NServiceBus.MessageId"] = MyContext.MessageId;
+                    SendMessages.Send(transportMessage, Address.Parse("audit"));
+                }
+
+                public void Stop()
+                {
+                }
             }
         }
 
