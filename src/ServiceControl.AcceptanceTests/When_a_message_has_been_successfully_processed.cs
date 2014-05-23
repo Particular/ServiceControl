@@ -250,8 +250,20 @@
 
                 public void Start()
                 {
+                    //hack until we can fix the types filtering in default server
+                    if (string.IsNullOrEmpty(MyContext.MessageId))
+                    {
+                        return;
+                    }
+
+                    if (Configure.EndpointName != "Particular.ServiceControl")
+                    {
+                        return;
+                    }
+
                     var transportMessage = new TransportMessage();
-                    transportMessage.Headers["NServiceBus.MessageId"] = MyContext.MessageId;
+                    transportMessage.Headers[Headers.MessageId] = MyContext.MessageId;
+                    transportMessage.Headers[Headers.ProcessingEndpoint] = Configure.EndpointName;
                     SendMessages.Send(transportMessage, Address.Parse("audit"));
                 }
 
