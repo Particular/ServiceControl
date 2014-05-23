@@ -16,13 +16,7 @@
 
         public void Stop()
         {
-            if (webApp == null)
-            {
-                return;
-            }
-
-            webApp.Dispose();
-            Logger.InfoFormat("Api is now stopped");
+            
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(OwinRunner));
