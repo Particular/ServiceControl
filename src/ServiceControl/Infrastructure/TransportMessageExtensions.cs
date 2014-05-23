@@ -20,7 +20,13 @@
                 return message.ReplyToAddress.Queue;
             }
 
-            throw new InvalidOperationException("No processing endpoint could be determined for message");
+            string messageTypes;
+            if (!message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes))
+            {
+                messageTypes = "Unknown";
+            }
+
+            throw new InvalidOperationException(string.Format("No processing endpoint could be determined for message ({0})", messageTypes));
         }
 
         public static string UniqueId(this TransportMessage message)
