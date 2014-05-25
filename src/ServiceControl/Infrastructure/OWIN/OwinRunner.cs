@@ -20,6 +20,8 @@
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(OwinRunner));
+// ReSharper disable NotAccessedField.Local
         IDisposable webApp;
+// ReSharper restore NotAccessedField.Local
     }
 }
