@@ -38,7 +38,7 @@
                             return HttpStatusCode.NotFound;
                         }
                         var data = System.Text.Encoding.UTF8.GetBytes(message.Body);
-                        contents = stream => stream.Write(data, 0, message.Body.Length);
+                        contents = stream => stream.Write(data, 0, data.Length);
                         contentType = message.ContentType;
                         bodySize = message.BodySize;
                     }

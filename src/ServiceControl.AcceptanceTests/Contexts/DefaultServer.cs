@@ -14,7 +14,6 @@
     using NServiceBus.Features;
     using NServiceBus.Hosting.Helpers;
     using NServiceBus.Logging.Loggers.NLogAdapter;
-    using ServiceControl.MessageAuditing;
     using TransportIntegration;
 
     public class DefaultServerWithoutAudit : DefaultServer
@@ -102,20 +101,32 @@
 
         static IEnumerable<Type> GetTypesToUse(EndpointConfiguration endpointConfiguration)
         {
-            var assemblies = new AssemblyScanner().GetScannableAssemblies().Assemblies
-                .Where(a => a != typeof(ProcessedMessage).Assembly).ToList();
+            var assemblies = new AssemblyScanner().GetScannableAssemblies();
 
+            var types = assemblies.Assemblies
+                //exclude all test types by default
+                                  .Where(a => a != Assembly.GetExecutingAssembly())
+                                  .Where(a => a.GetName().Name != "ServiceControl")
+                                  .SelectMany(a => a.GetTypes());
 
-            var types = assemblies
-                .SelectMany(a => a.GetTypes())
-                .Where(
-                    t =>
-                        t.Assembly != Assembly.GetExecutingAssembly() || //exclude all test types by default
-                        t.DeclaringType == endpointConfiguration.BuilderType.DeclaringType ||
-                        //but include types on the test level
-                        t.DeclaringType == endpointConfiguration.BuilderType);
-                //and the specific types for this endpoint
-            return types;
+            types = types.Union(GetNestedTypeRecursive(endpointConfiguration.BuilderType.DeclaringType, endpointConfiguration.BuilderType));
+
+            types = types.Union(endpointConfiguration.TypesToInclude);
+
+            return types.Where(t => !endpointConfiguration.TypesToExclude.Contains(t)).ToList();
+        }
+
+        static IEnumerable<Type> GetNestedTypeRecursive(Type rootType, Type builderType)
+        {
+            yield return rootType;
+
+            if (typeof(IEndpointConfigurationFactory).IsAssignableFrom(rootType) && rootType != builderType)
+                yield break;
+
+            foreach (var nestedType in rootType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).SelectMany(t => GetNestedTypeRecursive(t, builderType)))
+            {
+                yield return nestedType;
+            }
         }
     }
 }
