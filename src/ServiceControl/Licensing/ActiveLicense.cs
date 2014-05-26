@@ -6,6 +6,6 @@
     {
         public bool IsValid { get; set; }
         public bool HasExpired { get; set; }
-        public License Details { get; set; }
+        internal License Details { get; set; }
     }
 }
