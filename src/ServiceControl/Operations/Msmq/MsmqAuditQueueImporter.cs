@@ -236,8 +236,7 @@ namespace ServiceControl.Operations
                                     }
                                     catch (Exception ex)
                                     {
-                                        ThreadPool.QueueUserWorkItem(state => importFailuresHandler.ProcessingAlwaysFailsForMessage(transportMessage, ex));
-                                        throw;
+                                        importFailuresHandler.Log(transportMessage, ex);
                                     }
                                 }
                             }
