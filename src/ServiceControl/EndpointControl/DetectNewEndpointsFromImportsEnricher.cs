@@ -12,7 +12,7 @@
         public IBus Bus { get; set; }
 
         public KnownEndpointsCache KnownEndpointsCache { get; set; }
-        
+
         public override void Enrich(ImportMessage message)
         {
             var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(message.PhysicalMessage.Headers);
@@ -21,9 +21,11 @@
             // have the relevant information via the headers, which were added in v4.
             if (sendingEndpoint != null)
             {
-                TryAddEndpoint(sendingEndpoint);    
+                TryAddEndpoint(sendingEndpoint);
             }
-            TryAddEndpoint(EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers));
+
+            var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
+            TryAddEndpoint(receivingEndpoint);
         }
 
         void TryAddEndpoint(EndpointDetails endpointDetails)
@@ -32,29 +34,50 @@
             // have the relevant information via the headers, which were added in v4.
             // The ReceivingEndpoint will be null for messages from v3.3.x endpoints that were successfully
             // processed because we dont have the information from the relevant headers.
-            if (endpointDetails == null) return; 
+            if (endpointDetails == null)
+            {
+                return;
+            }
 
-            Guid id;
-
+            // for backwards compat with version before 4_5 we might not have a hostid
             if (endpointDetails.HostId == Guid.Empty)
             {
-                id = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.Host);
-            }
-            else
-            {
-                id = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.HostId.ToString());
+                HandlePre45Endpoint(endpointDetails);
+                return;
             }
 
-            if (KnownEndpointsCache.TryAdd(id))
+            HandlePost45Endpoint(endpointDetails);
+        }
+
+        void HandlePost45Endpoint(EndpointDetails endpointDetails)
+        {
+            var endpointInstanceId = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.HostId.ToString());
+            if (KnownEndpointsCache.TryAdd(endpointInstanceId))
             {
-                Bus.SendLocal(new RegisterEndpoint
+                var registerEndpoint = new RegisterEndpoint
+                {
+                    EndpointInstanceId = endpointInstanceId,
+                    Endpoint = endpointDetails,
+                    DetectedAt = DateTime.UtcNow
+                };
+                Bus.SendLocal(registerEndpoint);
+            }
+        }
+
+        void HandlePre45Endpoint(EndpointDetails endpointDetails)
+        {
+            //since for pre 4.5 endpoints we wont have a hostid then fake one
+            var endpointInstanceId = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.Host);
+            if (KnownEndpointsCache.TryAdd(endpointInstanceId))
+            {
+                var registerEndpoint = new RegisterEndpoint
                 {
                     //we don't set then endpoint instance id since we don't have the host id
                     Endpoint = endpointDetails,
                     DetectedAt = DateTime.UtcNow
-                });
+                };
+                Bus.SendLocal(registerEndpoint);
             }
         }
-
     }
 }
