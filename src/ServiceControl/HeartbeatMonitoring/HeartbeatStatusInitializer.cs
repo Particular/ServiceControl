@@ -46,9 +46,6 @@ namespace ServiceControl.HeartbeatMonitoring
 
             using (var session = store.OpenSession())
             {
-                // Workaround to do Lazily Count, see https://groups.google.com/d/msg/ravendb/ptgTQbrPfzI/w9QJ0wdYkc4J
-                // Raven v3 should support this natively, see http://issues.hibernatingrhinos.com/issue/RavenDB-1310
-
                 session.Query<KnownEndpoint, KnownEndpointIndex>()
                     .Customize(customization)
                     .Lazily(endpoints =>
