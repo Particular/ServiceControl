@@ -393,7 +393,6 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiLockPermComponent">
     <ROW LockObject="ServiceControl_Dir" Table="CreateFolder" User="Users" Permission="1610809791"/>
-    <ROW LockObject="ServiceControl_Dir" Table="CreateFolder" User="LocalSystem" Permission="1880096767"/>
     <ROW LockObject="ServiceControl_Dir" Table="CreateFolder" User="Administrators" Permission="1880096767"/>
     <ROW LockObject="ServiceControl_Dir" Table="CreateFolder" User="System" Permission="1880096767"/>
   </COMPONENT>
