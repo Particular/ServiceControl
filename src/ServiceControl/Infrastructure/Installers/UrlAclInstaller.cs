@@ -3,15 +3,22 @@
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Security.Principal;
     using NServiceBus.Installation;
     using NServiceBus.Installation.Environments;
     using NServiceBus.Logging;
     using Settings;
-
+    
     public class UrlAclInstaller : INeedToInstallSomething<Windows>
     {
         public void Install(string identity)
         {
+            // Ignore identity and set URL ACL to 'Builtin\Users'
+
+            // Builtin account names can be localized: e.g. the Everyone Group is Jeder in German so Tranlate from SID
+            var accountSid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
+            identity = accountSid.Translate(typeof(NTAccount)).Value;
+            
             if (Environment.OSVersion.Version.Major <= 5)
             {
                 Logger.InfoFormat(
