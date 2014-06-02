@@ -18,6 +18,12 @@
             // Builtin account names can be localized: e.g. the Everyone Group is Jeder in German so Tranlate from SID
             var accountSid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
             identity = accountSid.Translate(typeof(NTAccount)).Value;
+
+            if (CurrentUserIsNotAdmin())
+            {
+                Logger.InfoFormat(@"Did not attempt to grant user '{0}' HttpListener permissions since you are not running with admin privileges", identity);
+                return;
+            } 
             
             if (Environment.OSVersion.Version.Major <= 5)
             {
@@ -29,6 +35,14 @@ httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a 
             }
 
             StartNetshProcess(identity, Settings.ApiUrl);
+        }
+
+
+        static bool CurrentUserIsNotAdmin()
+        {
+            // ReSharper disable once AssignNullToNotNullAttribute
+            var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+            return !principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
         static void StartNetshProcess(string identity, string uri, bool deleteExisting = true)
