@@ -91,6 +91,9 @@
     <Reference Include="RabbitMQ.Client">
       <HintPath>..\packages\RabbitMQ.Client\lib\net30\RabbitMQ.Client.dll</HintPath>
     </Reference>
+    <Reference Include="ServiceControl.Plugin.Nsb4.CustomChecks">
+      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.CustomChecks\lib\net40\ServiceControl.Plugin.Nsb4.CustomChecks.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -174,22 +177,6 @@
     <ProjectReference Include="..\ServiceControl.Contracts\ServiceControl.Contracts.csproj">
       <Project>{bcaa370c-58ca-46a7-a034-6cab61c004e1}</Project>
       <Name>ServiceControl.Contracts</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Plugin.CustomChecks\ServiceControl.Plugin.CustomChecks.csproj">
-      <Project>{6526946E-5299-441A-9EC7-C85306FB5F51}</Project>
-      <Name>ServiceControl.Plugin.CustomChecks</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Plugin.DebugSession\ServiceControl.Plugin.DebugSession.csproj">
-      <Project>{1600753b-62ac-4c27-a171-ec887718d06d}</Project>
-      <Name>ServiceControl.Plugin.DebugSession</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Plugin.Heartbeat\ServiceControl.Plugin.Heartbeat.csproj">
-      <Project>{842c0a62-348b-4e78-b9f1-ec931cddd562}</Project>
-      <Name>ServiceControl.Plugin.Heartbeat</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Plugin.SagaAudit\ServiceControl.Plugin.SagaAudit.csproj">
-      <Project>{97079a73-235e-4d52-a6df-ebf3bf0f4971}</Project>
-      <Name>ServiceControl.Plugin.SagaAudit</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>

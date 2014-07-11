@@ -9,47 +9,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl", "ServiceCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTests", "ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{F1ECC986-9583-469E-AC58-727DDB74FF15}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Plugin.DebugSession", "ServiceControl.Plugin.DebugSession\ServiceControl.Plugin.DebugSession.csproj", "{1600753B-62AC-4C27-A171-EC887718D06D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Plugin.Heartbeat", "ServiceControl.Plugin.Heartbeat\ServiceControl.Plugin.Heartbeat.csproj", "{842C0A62-348B-4E78-B9F1-EC931CDDD562}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{290D5F7D-AA5D-429F-A95D-DA820B2BB1B2}"
-	ProjectSection(SolutionItems) = preProject
-		ServiceControl.Plugin.Shared\ServiceControlBackend.cs = ServiceControl.Plugin.Shared\ServiceControlBackend.cs
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messages", "Messages", "{37877FBD-610F-4AA5-8EAA-60E69F438869}"
-	ProjectSection(SolutionItems) = preProject
-		ServiceControl.Plugin.Shared\Messages\EndpointHeartbeat.cs = ServiceControl.Plugin.Shared\Messages\EndpointHeartbeat.cs
-		ServiceControl.Plugin.Shared\Messages\ReportCustomCheckResult.cs = ServiceControl.Plugin.Shared\Messages\ReportCustomCheckResult.cs
-		ServiceControl.Plugin.Shared\Messages\SagaChangeInitiator.cs = ServiceControl.Plugin.Shared\Messages\SagaChangeInitiator.cs
-		ServiceControl.Plugin.Shared\Messages\SagaChangeOutput.cs = ServiceControl.Plugin.Shared\Messages\SagaChangeOutput.cs
-		ServiceControl.Plugin.Shared\Messages\SagaUpdatedMessage.cs = ServiceControl.Plugin.Shared\Messages\SagaUpdatedMessage.cs
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Plugin.CustomChecks", "ServiceControl.Plugin.CustomChecks\ServiceControl.Plugin.CustomChecks.csproj", "{6526946E-5299-441A-9EC7-C85306FB5F51}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Plugin.SagaAudit", "ServiceControl.Plugin.SagaAudit\ServiceControl.Plugin.SagaAudit.csproj", "{97079A73-235E-4D52-A6DF-EBF3BF0F4971}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Plugin.SagaAudit.Sample", "ServiceControl.Plugin.SagaAudit.Sample\ServiceControl.Plugin.SagaAudit.Sample.csproj", "{E661AC36-B063-46C0-8BB6-8488AC68727F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Contracts", "ServiceControl.Contracts\ServiceControl.Contracts.csproj", "{BCAA370C-58CA-46A7-A034-6CAB61C004E1}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{09F15FB0-2BED-4EF5-9C79-53A003A2FC93}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.IntegrationDemo", "ServiceControl.IntegrationDemo\ServiceControl.IntegrationDemo.csproj", "{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Heartbeats.Sample", "ServiceControl.Heartbeats.Sample\ServiceControl.Heartbeats.Sample.csproj", "{33DF70EF-9434-49A2-93ED-2387020CE388}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chocolatey", "Chocolatey\Chocolatey.csproj", "{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.CustomChecks.Sample", "ServiceControl.CustomChecks.Sample\ServiceControl.CustomChecks.Sample.csproj", "{12F8A140-A529-42EA-B8F4-C41B4E76F883}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.MessageFailures.Sample", "ServiceControl.MessageFailures.Sample\ServiceControl.MessageFailures.Sample.csproj", "{3E4E58BC-B3F6-464F-BFC0-129169E60A98}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Install.CustomActions", "ServiceControl.Install.CustomActions\ServiceControl.Install.CustomActions.csproj", "{7E47B904-EF48-4F26-AAB5-BE435BCDC696}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.IntegrationDemo", "ServiceControl.IntegrationDemo\ServiceControl.IntegrationDemo.csproj", "{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,69 +35,24 @@ Global
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1600753B-62AC-4C27-A171-EC887718D06D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1600753B-62AC-4C27-A171-EC887718D06D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1600753B-62AC-4C27-A171-EC887718D06D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1600753B-62AC-4C27-A171-EC887718D06D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{842C0A62-348B-4E78-B9F1-EC931CDDD562}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{842C0A62-348B-4E78-B9F1-EC931CDDD562}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{842C0A62-348B-4E78-B9F1-EC931CDDD562}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{842C0A62-348B-4E78-B9F1-EC931CDDD562}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6526946E-5299-441A-9EC7-C85306FB5F51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6526946E-5299-441A-9EC7-C85306FB5F51}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6526946E-5299-441A-9EC7-C85306FB5F51}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6526946E-5299-441A-9EC7-C85306FB5F51}.Release|Any CPU.Build.0 = Release|Any CPU
-		{97079A73-235E-4D52-A6DF-EBF3BF0F4971}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97079A73-235E-4D52-A6DF-EBF3BF0F4971}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{97079A73-235E-4D52-A6DF-EBF3BF0F4971}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{97079A73-235E-4D52-A6DF-EBF3BF0F4971}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E661AC36-B063-46C0-8BB6-8488AC68727F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E661AC36-B063-46C0-8BB6-8488AC68727F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E661AC36-B063-46C0-8BB6-8488AC68727F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E661AC36-B063-46C0-8BB6-8488AC68727F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BCAA370C-58CA-46A7-A034-6CAB61C004E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BCAA370C-58CA-46A7-A034-6CAB61C004E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCAA370C-58CA-46A7-A034-6CAB61C004E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCAA370C-58CA-46A7-A034-6CAB61C004E1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Release|Any CPU.Build.0 = Release|Any CPU
-		{33DF70EF-9434-49A2-93ED-2387020CE388}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{33DF70EF-9434-49A2-93ED-2387020CE388}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{33DF70EF-9434-49A2-93ED-2387020CE388}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{33DF70EF-9434-49A2-93ED-2387020CE388}.Release|Any CPU.Build.0 = Release|Any CPU
 		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{12F8A140-A529-42EA-B8F4-C41B4E76F883}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{12F8A140-A529-42EA-B8F4-C41B4E76F883}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{12F8A140-A529-42EA-B8F4-C41B4E76F883}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{12F8A140-A529-42EA-B8F4-C41B4E76F883}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3E4E58BC-B3F6-464F-BFC0-129169E60A98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3E4E58BC-B3F6-464F-BFC0-129169E60A98}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3E4E58BC-B3F6-464F-BFC0-129169E60A98}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3E4E58BC-B3F6-464F-BFC0-129169E60A98}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7E47B904-EF48-4F26-AAB5-BE435BCDC696}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7E47B904-EF48-4F26-AAB5-BE435BCDC696}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E47B904-EF48-4F26-AAB5-BE435BCDC696}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E47B904-EF48-4F26-AAB5-BE435BCDC696}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{1600753B-62AC-4C27-A171-EC887718D06D} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
-		{842C0A62-348B-4E78-B9F1-EC931CDDD562} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
-		{290D5F7D-AA5D-429F-A95D-DA820B2BB1B2} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
-		{37877FBD-610F-4AA5-8EAA-60E69F438869} = {290D5F7D-AA5D-429F-A95D-DA820B2BB1B2}
-		{6526946E-5299-441A-9EC7-C85306FB5F51} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
-		{97079A73-235E-4D52-A6DF-EBF3BF0F4971} = {F1ECC986-9583-469E-AC58-727DDB74FF15}
-		{E661AC36-B063-46C0-8BB6-8488AC68727F} = {09F15FB0-2BED-4EF5-9C79-53A003A2FC93}
-		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217} = {09F15FB0-2BED-4EF5-9C79-53A003A2FC93}
-		{33DF70EF-9434-49A2-93ED-2387020CE388} = {09F15FB0-2BED-4EF5-9C79-53A003A2FC93}
-		{12F8A140-A529-42EA-B8F4-C41B4E76F883} = {09F15FB0-2BED-4EF5-9C79-53A003A2FC93}
-		{3E4E58BC-B3F6-464F-BFC0-129169E60A98} = {09F15FB0-2BED-4EF5-9C79-53A003A2FC93}
 	EndGlobalSection
 EndGlobal
