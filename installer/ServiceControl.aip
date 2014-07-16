@@ -14,6 +14,7 @@
     <ROW Property="ALLUSERS" Value="1"/>
     <ROW Property="ARPCOMMENTS" Value="Particular Software ServiceControl version [|ProductVersion] for NServiceBus" ValueLocId="*"/>
     <ROW Property="ARPHELPLINK" Value="http://particular.net/support"/>
+    <ROW Property="ARPNOMODIFY" MultiBuildValue="DefaultBuild:1"/>
     <ROW Property="ARPNOREPAIR" Value="1"/>
     <ROW Property="ARPPRODUCTICON" Value="Operations.exe" Type="8"/>
     <ROW Property="ARPSYSTEMCOMPONENT" Value="1"/>
