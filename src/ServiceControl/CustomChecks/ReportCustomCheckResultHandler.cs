@@ -44,6 +44,7 @@
                     {
                         Id = id,
                     };
+                    Session.Store(customCheck);
                 }
                 publish = true;
             }
@@ -86,8 +87,6 @@
                     });
                 }
             }
-
-            Session.Store(customCheck);
         }
     }
 }
