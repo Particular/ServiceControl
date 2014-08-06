@@ -42,6 +42,7 @@ namespace ServiceControl.Operations
 
         public void Start()
         {
+
             if (!enabled)
             {
                 return;
@@ -77,7 +78,7 @@ namespace ServiceControl.Operations
             }
 
             stopping = true;
-
+            
             queuePeeker.PeekCompleted -= QueueOnPeekCompleted;
 
             stopResetEvent.Wait();
@@ -141,14 +142,14 @@ namespace ServiceControl.Operations
                 countDownEvent.Add();
             }
 
-            // if batchErrorLockObj can not be locked it means one of the Tasks has had a batch error, and that Task is 
-            // going to try non-batch mode for member of the batch   while this is happening new batchimporters are prevented 
-            // from starting to ensure the message isn't read into that batch
-             
-            if (Monitor.TryEnter(batchErrorLockObj, TimeSpan.FromSeconds(10)))
+            // If batchErrorLockObj can not be locked it means one of the Tasks has had a batch error, and RetryMessageImportById is running
+            
+            lock (batchErrorLockObj)
             {
-                Monitor.Exit(batchErrorLockObj);
             }
+
+            if (stopping)
+                return true;
             
             batchTaskTracker.Add(Task.Factory
                 .StartNew(BatchImporter, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
@@ -168,10 +169,10 @@ namespace ServiceControl.Operations
         void BatchImporter()
         {
             String failedMessageID = null;
-
             try
             { 
-                Logger.Debug("Batch job started");
+                Logger.DebugFormat("Batch job started", Task.CurrentId);
+                
                 var moreMessages = 0;
 
                 using (var queueReceiver = CreateReceiver())
@@ -220,7 +221,7 @@ namespace ServiceControl.Operations
                                         }
                                         throw;
                                     }
-                                                
+
                                     try
                                     {
                                         var importSuccessfullyProcessedMessage = new ImportSuccessfullyProcessedMessage(transportMessage);
@@ -247,7 +248,6 @@ namespace ServiceControl.Operations
                                     }
                                 }
                             }
-
                             msmqTransaction.Commit();
                         }
                     } while (moreMessages > 0 && !stopping);
@@ -267,63 +267,97 @@ namespace ServiceControl.Operations
 
         void RetryMessageImportById(string messageID)
         {
-            //If we can't get a lock then skip, the message will still be in the queue and will retrigger this when it fails on a subsequent batch run
-            if (Monitor.TryEnter(batchErrorLockObj, receiveTimeout))
+            // Try to get the batchErrorLock, if we can't then exit, 
+            // the message will trigger a retry next time on the next batch read.
+            // Retrymessage may be fired again for the same message until the batches drain so this 
+            // prevents the message being processed twice, 
+            if (Monitor.TryEnter(batchErrorLockObj))
             {
                 try
                 {
-                    //Wait for all the current batchmporters to complete - because we've locked batchErrorLockObj then no batch imports will run in parallel
+                    Logger.DebugFormat("Drain stop running batch importers");
+                    stopping = true;
                     var runningTasks = batchTaskTracker.Active();
                     Task.WaitAll(runningTasks);
-                    TransportMessage transportMessage;
-                    try
+
+                    var commitTransaction = false;
+                    using (var queueReceiver = CreateReceiver())
+                    using (var msmqTransaction = new MessageQueueTransaction())
                     {
-                        using (var queueReceiver = CreateReceiver())
+                        msmqTransaction.Begin();
+                        Logger.DebugFormat("Retry import of messageID - {0}", messageID);
+                        try
                         {
-                            using (var msmqTransaction = new MessageQueueTransaction())
+                            Message message;
+                            TransportMessage transportMessage;
+                            try
                             {
-                                msmqTransaction.Begin();
-                                var message = queueReceiver.ReceiveById(messageID);
+                                message = queueReceiver.ReceiveById(messageID);
                                 performanceCounters.MessageDequeued();
+                            }
+                            catch (Exception mqex)
+                            {
+                                importFailuresHandler.FailedToReceive(mqex); //logs and increments circuit breaker
+                                return;
+                            }
+
+                            try
+                            {
                                 transportMessage = MsmqUtilities.Convert(message);
+                            }
+                            catch (Exception convertException)
+                            {
+                                commitTransaction = true; // Can't convert the messsage, so commit to get message out of the queue
+                                importFailuresHandler.FailedToReceive(convertException); //logs and increments circuit breaker
+                                return;
+                            }
+
+                            try
+                            {
+                                var importSuccessfullyProcessedMessage = new ImportSuccessfullyProcessedMessage(transportMessage);
+                                foreach (var enricher in enrichers)
+                                {
+                                    enricher.Enrich(importSuccessfullyProcessedMessage);
+                                }
+
+                                using (var session = store.OpenSession())
+                                {
+                                    var auditMessage = new ProcessedMessage(importSuccessfullyProcessedMessage);
+                                    session.Store(auditMessage);
+                                    session.SaveChanges();
+                                }
+                                performanceCounters.MessageProcessed();
+
+                                if (Settings.ForwardAuditMessages)
+                                {
+                                    Forwarder.Send(transportMessage, Settings.AuditLogQueue);
+                                }
+
+                                commitTransaction = true;
+                            }
+                            catch (Exception importException)
+                            {
+                                importFailuresHandler.Log(transportMessage, importException); //Logs and Writes failure transport message to Raven
+                            }
+                        }
+                        finally
+                        {
+                            if (commitTransaction)  
+                            {
                                 msmqTransaction.Commit();
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        importFailuresHandler.FailedToReceive(ex);
-                        return;
-                    }
-
-                    try
-                    {
-                        var importSuccessfullyProcessedMessage = new ImportSuccessfullyProcessedMessage(transportMessage);
-                        foreach (var enricher in enrichers)
-                        {
-                            enricher.Enrich(importSuccessfullyProcessedMessage);
-                        }
-                        using (var bulkInsert = store.BulkInsert(options: new BulkInsertOptions{CheckForUpdates = true}))
-                        {
-                            var auditMessage = new ProcessedMessage(importSuccessfullyProcessedMessage);
-                            bulkInsert.Store(auditMessage);
-                        }
-                        performanceCounters.MessageProcessed();
-                        if (Settings.ForwardAuditMessages)
-                        {
-                            Forwarder.Send(transportMessage, Settings.AuditLogQueue);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        importFailuresHandler.Log(transportMessage, ex);
                     }
                 }
                 finally
                 {
                     Monitor.Exit(batchErrorLockObj);
+                    //Restart Batch mode
+                    stopping = false;
+                    Logger.Debug("Ready to BeginPeek again");
+                    queuePeeker.BeginPeek();
                 }
-            }
+            } 
         }
 
         const int RampUpConcurrencyMagicNumber = 5; //How many batches before we ramp up?
