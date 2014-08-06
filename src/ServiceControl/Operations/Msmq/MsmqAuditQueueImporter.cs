@@ -307,8 +307,8 @@ namespace ServiceControl.Operations
                             }
                             catch (Exception convertException)
                             {
-                                commitTransaction = true; // Can't convert the messsage, so commit to get message out of the queue
                                 importFailuresHandler.FailedToReceive(convertException); //logs and increments circuit breaker
+                                commitTransaction = true; // Can't convert the messsage, so commit to get message out of the queue
                                 return;
                             }
 
