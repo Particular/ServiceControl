@@ -59,6 +59,7 @@
                 HostId = message.HostId,
                 Name = message.EndpointName
             };
+            Session.Store(customCheck);
 
             if (publish)
             {
@@ -86,8 +87,6 @@
                     });
                 }
             }
-
-            Session.Store(customCheck);
         }
     }
 }
