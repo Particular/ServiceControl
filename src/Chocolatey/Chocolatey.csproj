@@ -36,7 +36,7 @@
   <Target Name="Build">
     <GetVersion SolutionDirectory="$(SolutionDir)">
       <Output TaskParameter="SemVer" PropertyName="SemVer" />
-      <Output TaskParameter="LegacySemVer" PropertyName="ChocoVersion" />
+      <Output TaskParameter="LegacySemVerPadded" PropertyName="ChocoVersion" />
     </GetVersion>
 
     <ItemGroup>
