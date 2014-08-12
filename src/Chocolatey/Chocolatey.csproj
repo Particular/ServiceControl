@@ -36,19 +36,8 @@
   <Target Name="Build">
     <GetVersion SolutionDirectory="$(SolutionDir)">
       <Output TaskParameter="SemVer" PropertyName="SemVer" />
-      <Output TaskParameter="Stability" PropertyName="Stability" />
-      <Output TaskParameter="MajorMinorPatch" PropertyName="MajorMinorPatch" />
-      <Output TaskParameter="Stability" PropertyName="Stability" />
-      <Output TaskParameter="PreReleasePartOne" PropertyName="PreReleasePartOne" />
+      <Output TaskParameter="LegacySemVer" PropertyName="ChocoVersion" />
     </GetVersion>
-
-    <PropertyGroup Condition=" '$(Stability)' == 'Final' ">
-      <ChocoVersion>$(MajorMinorPatch)</ChocoVersion>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Stability)' != 'Final' ">
-      <ChocoVersion>$(MajorMinorPatch)-$(Stability)$(PreReleasePartOne)</ChocoVersion>
-    </PropertyGroup>
 
     <ItemGroup>
       <FilesToDelete Include="$(ProjectDir)Build\**\*.*" />
