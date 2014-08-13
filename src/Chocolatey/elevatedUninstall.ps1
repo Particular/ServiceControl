@@ -1,7 +1,7 @@
 ﻿$productName = "ServiceControl";
 $version = "MajorMinorPatch";
 
-$app = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "$productName*"  -and ($_.Version -eq "$version") }
+$app = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*$productName*"  -and ($_.Version -eq "$version") }
 if($app -eq $null) 
 {
 	Write-Warning "Could not find an installed program for $productName matching version $version to uninstall. It may have been manualy removed. To check the cuurent status ensure that no instance of $productName exists in 'Programs and Features'."
