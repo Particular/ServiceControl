@@ -36,3 +36,4 @@ logs
 run-git.cmd
 src/Chocolatey/Build/*
 App_Packages
+octopus/Build/*

@@ -3,15 +3,28 @@
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Security.Principal;
     using NServiceBus.Installation;
     using NServiceBus.Installation.Environments;
     using NServiceBus.Logging;
     using Settings;
-
+    
     public class UrlAclInstaller : INeedToInstallSomething<Windows>
     {
         public void Install(string identity)
         {
+            // Ignore identity and set URL ACL to 'Builtin\Users'
+
+            // Builtin account names can be localized: e.g. the Everyone Group is Jeder in German so Tranlate from SID
+            var accountSid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
+            identity = accountSid.Translate(typeof(NTAccount)).Value;
+
+            if (CurrentUserIsNotAdmin())
+            {
+                Logger.InfoFormat(@"Did not attempt to grant user '{0}' HttpListener permissions since you are not running with admin privileges", identity);
+                return;
+            } 
+            
             if (Environment.OSVersion.Version.Major <= 5)
             {
                 Logger.InfoFormat(
@@ -22,6 +35,14 @@ httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a 
             }
 
             StartNetshProcess(identity, Settings.ApiUrl);
+        }
+
+
+        static bool CurrentUserIsNotAdmin()
+        {
+            // ReSharper disable once AssignNullToNotNullAttribute
+            var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+            return !principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
         static void StartNetshProcess(string identity, string uri, bool deleteExisting = true)

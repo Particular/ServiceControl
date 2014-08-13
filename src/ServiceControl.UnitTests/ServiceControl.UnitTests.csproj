@@ -66,7 +66,6 @@
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\TestWithRavenDB.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
-    <Compile Include="Plugins\DebugSession\DebugSessionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ripple.dependencies.config">
@@ -74,10 +73,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Plugin.DebugSession\ServiceControl.Plugin.DebugSession.csproj">
-      <Project>{1600753b-62ac-4c27-a171-ec887718d06d}</Project>
-      <Name>ServiceControl.Plugin.DebugSession</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>
       <Name>ServiceControl</Name>

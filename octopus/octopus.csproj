@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <SolutionDir>$(MSBuildProjectDirectory)\</SolutionDir>
+  </PropertyGroup>
+
+  <Target Name="Clean" />
+  <Target Name="Build" />
+  <Target Name="ReBuild" DependsOnTargets="Clean;Build" />
+
+  <UsingTask TaskName="GitVersionTask.GetVersion" AssemblyFile="$(SolutionDir)..\buildsupport\GitVersionTask\GitVersionTask.dll" />
+  <UsingTask TaskName="MSBuild.Community.Tasks.FileUpdate" AssemblyFile="$(SolutionDir)..\buildsupport\MSBuild.Community.Tasks.dll" />
+
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="Build">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)packages\NuGet.CommandLine.2.8.2\tools\NuGet.exe')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\NuGet.CommandLine.2.8.2\tools\NuGet.exe'))" />
+  </Target>
+
+  <Target Name="Build">
+    <GetVersion SolutionDirectory="$(SolutionDir)">
+      <Output TaskParameter="SemVer" PropertyName="SemVer" />
+      <Output TaskParameter="LegacySemVerPadded" PropertyName="LegacySemVerPadded" />
+    </GetVersion>
+
+    <PropertyGroup>
+      <BuildFolder>$(ProjectDir)Build\</BuildFolder>
+      <OutputFolder>$(SolutionDir)..\nugets</OutputFolder>
+
+      <NuGetExePath>$(SolutionDir)packages\NuGet.CommandLine.2.8.2\tools\NuGet.exe</NuGetExePath>
+
+      <NuGetCommand Condition=" '$(OS)' == 'Windows_NT'">"$(NuGetExePath)"</NuGetCommand>
+      <NuGetCommand Condition=" '$(OS)' != 'Windows_NT' ">mono --runtime=v4.0.30319 "$(NuGetExePath)"</NuGetCommand>
+
+      <BuildCommand>$(NuGetCommand) pack "$(BuildFolder)Particular.ServiceControl.nuspec"</BuildCommand>
+      <BuildCommand>$(BuildCommand) -Version $(LegacySemVerPadded)</BuildCommand>
+      <BuildCommand>$(BuildCommand) -OutputDirectory "$(OutputFolder)"</BuildCommand>
+      <BuildCommand>$(BuildCommand) -NoPackageAnalysis</BuildCommand>
+      <BuildCommand>$(BuildCommand) -NonInteractive</BuildCommand>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <FilesToDelete Include="$(ProjectDir)Build\**\*.*" />
+
+      <MainFiles Include="$(ProjectDir)*.nuspec" />
+      <MainFiles Include="$(ProjectDir)*.ps1" />
+      <MainFiles Include="$(ProjectDir)ReleaseNotesCompiler.CLI.exe" />
+      <MainFiles Include="$(NuGetExePath)" />
+      <MainFiles Include="$(SolutionDir)..\Output\Particular.ServiceControl-$(SemVer).exe" />
+
+      <ContentFiles Include="$(OutputFolder)\ServiceControl.install.$(LegacySemVerPadded).nupkg" />
+    </ItemGroup>
+
+    <Delete Files="@(FilesToDelete)" />
+    <MakeDir Directories="$(BuildFolder)" />
+    <MakeDir Directories="$(OutputFolder)" />
+    <Copy SourceFiles="@(MainFiles)" DestinationFolder="$(BuildFolder)" />
+    <Copy SourceFiles="@(ContentFiles)" DestinationFiles="@(ContentFiles -> '$(BuildFolder)%(Filename)%(Extension).nzip')" />
+    <ItemGroup>
+      <InstallFile Include="$(BuildFolder)**\*.ps1" />
+      <InstallFile Include="$(BuildFolder)**\*.nuspec" />
+    </ItemGroup>
+    <FileUpdate Files="@(InstallFile)" Regex="{{milestone}}" ReplacementText="$(SemVer)" />
+
+    <Exec Command="$(BuildCommand)"
+          Condition=" '$(OS)' != 'Windows_NT' " />
+
+    <Exec Command="$(BuildCommand)"
+          LogStandardErrorAsError="true"
+          Condition=" '$(OS)' == 'Windows_NT' " />
+  </Target>
+
+</Project>
