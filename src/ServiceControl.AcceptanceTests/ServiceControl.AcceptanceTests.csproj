@@ -94,6 +94,15 @@
     <Reference Include="ServiceControl.Plugin.Nsb4.CustomChecks">
       <HintPath>..\packages\ServiceControl.Plugin.Nsb4.CustomChecks\lib\net40\ServiceControl.Plugin.Nsb4.CustomChecks.dll</HintPath>
     </Reference>
+    <Reference Include="ServiceControl.Plugin.Nsb4.DebugSession">
+      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.DebugSession\lib\net40\ServiceControl.Plugin.Nsb4.DebugSession.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceControl.Plugin.Nsb4.Heartbeat">
+      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.Heartbeat\lib\net40\ServiceControl.Plugin.Nsb4.Heartbeat.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceControl.Plugin.Nsb4.SagaAudit">
+      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.SagaAudit\lib\net40\ServiceControl.Plugin.Nsb4.SagaAudit.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
