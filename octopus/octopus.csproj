@@ -45,6 +45,7 @@
 
       <MainFiles Include="$(ProjectDir)*.nuspec" />
       <MainFiles Include="$(ProjectDir)*.ps1" />
+      <MainFiles Include="$(ProjectDir)footer.md" />
       <MainFiles Include="$(ProjectDir)ReleaseNotesCompiler.CLI.exe" />
       <MainFiles Include="$(NuGetExePath)" />
       <MainFiles Include="$(SolutionDir)..\Output\Particular.ServiceControl-$(SemVer).exe" />

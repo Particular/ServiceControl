@@ -15,6 +15,7 @@
 		<file src="*.ps1" target="" />
         <file src="*.nzip" target="content" />
         <file src="Particular.ServiceControl-{{milestone}}.exe" target="content" />
+        <file src="footer.md" target="content" />
         <file src="ReleaseNotesCompiler.CLI.exe" target="tools" />
         <file src="NuGet.exe" target="tools" />
     </files>
