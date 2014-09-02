@@ -54,28 +54,38 @@
         {
         }
 
+        public void Log(TransportMessage message, Exception e)
+        {
+            DoLogging(e, messageBuilder(message), logPath);
+        }
+
         void Handle(Exception exception, dynamic failure, string logDirectory)
         {
             try
             {
-                var id = Guid.NewGuid();
-
-                using (var session = store.OpenSession())
-                {
-                    failure.Id = id;
-
-                    session.Store(failure);
-                    session.SaveChanges();
-                }
-
-                var filePath = Path.Combine(logDirectory, id + ".txt");
-                File.WriteAllText(filePath, exception.ToFriendlyString());
-                WriteEvent("A message import has failed. A log file has been written to " + filePath);
+                DoLogging(exception, failure, logDirectory);
             }
             finally
             {
                 failureCircuitBreaker.Increment(exception);
             }
+        }
+
+        void DoLogging(Exception exception, dynamic failure, string logDirectory)
+        {
+            var id = Guid.NewGuid();
+
+            using (var session = store.OpenSession())
+            {
+                failure.Id = id;
+
+                session.Store(failure);
+                session.SaveChanges();
+            }
+
+            var filePath = Path.Combine(logDirectory, id + ".txt");
+            File.WriteAllText(filePath, exception.ToFriendlyString());
+            WriteEvent("A message import has failed. A log file has been written to " + filePath);
         }
 
         static void WriteEvent(string message)
