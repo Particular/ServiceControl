@@ -38,7 +38,6 @@
       <Output TaskParameter="SemVer" PropertyName="SemVer" />
       <Output TaskParameter="LegacySemVerPadded" PropertyName="ChocoVersion" />
     </GetVersion>
-
     <ItemGroup>
       <FilesToDelete Include="$(ProjectDir)Build\**\*.*" />
     </ItemGroup>
@@ -55,8 +54,7 @@
     </ItemGroup>
     <FileUpdate Files="@(InstallFile)" Regex="{{FileVersion}}" ReplacementText="$(SemVer)" />
     <FileUpdate Files="@(InstallFile)" Regex="{{ReleaseName}}" ReplacementText="$(ChocoVersion)" />
-
-    <CreatePackageTask  NuGetBuildDirectory="$(ProjectDir)Build" Version="$(ChocoVersion)" TargetDir="$(SolutionDir)..\nugets" />
+    <CreatePackageTask NuGetBuildDirectory="$(ProjectDir)Build" Version="$(ChocoVersion)" TargetDir="$(SolutionDir)..\nugets" />
   </Target>
   <Target Name="Clean">
   </Target>
