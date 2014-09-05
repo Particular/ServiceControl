@@ -22,7 +22,7 @@ namespace Particular.ServiceControl
 
         public Bootstrapper(ServiceBase host = null)
         {
-            Settings.ServiceName = "foo";  // DetermineServiceName(host);
+            Settings.ServiceName = DetermineServiceName(host);
             ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
             
