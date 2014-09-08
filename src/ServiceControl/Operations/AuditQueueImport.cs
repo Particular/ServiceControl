@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using Contracts.Operations;
     using NServiceBus;
@@ -9,7 +10,7 @@
     using NServiceBus.Pipeline;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
-    using NServiceBus.Transports.Msmq;
+    using NServiceBus.Unicast;
     using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
@@ -28,7 +29,7 @@
 
         public AuditQueueImport(IDequeueMessages receiver)
         {
-            disabled = receiver is MsmqDequeueStrategy;
+            disabled = receiver.GetType().Name == "MsmqDequeueStrategy";
         }
 
         public bool Handle(TransportMessage message)
@@ -52,14 +53,15 @@
                 }
 
                 var logicalMessage = LogicalMessageFactory.Create(typeof(ImportSuccessfullyProcessedMessage),
-                    receivedMessage);
+                    receivedMessage,new Dictionary<string, string>());
 
-                PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
+                //todo
+                //PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
             }
 
             if (Settings.ForwardAuditMessages)
             {
-                Forwarder.Send(message, Settings.AuditLogQueue);
+                Forwarder.Send(message, new SendOptions(Settings.AuditLogQueue));
             }
         }
 
@@ -82,13 +84,15 @@
             get { return disabled; }
         }
 
+        public CriticalError CriticalError { get; set; }
+
         public Action<TransportReceiver> GetReceiverCustomization()
         {
             satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(Builder.Build<IDocumentStore>(),
                 Path.Combine(Settings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
                 {
                     Message = tm,
-                });
+                }, CriticalError);
 
             return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
         }

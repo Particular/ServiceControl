@@ -15,7 +15,7 @@
             ErrorLogQueue = GetErrorLogQueue();
             AuditLogQueue = GetAuditLogQueue();
             DbPath = GetDbPath();
-            TransportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
+            TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
         }
 
         public static string ApiUrl

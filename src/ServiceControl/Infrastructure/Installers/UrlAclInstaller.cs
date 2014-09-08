@@ -4,14 +4,14 @@
     using System.Diagnostics;
     using System.IO;
     using System.Security.Principal;
+    using NServiceBus;
     using NServiceBus.Installation;
-    using NServiceBus.Installation.Environments;
     using NServiceBus.Logging;
     using Settings;
     
-    public class UrlAclInstaller : INeedToInstallSomething<Windows>
+    public class UrlAclInstaller : INeedToInstallSomething
     {
-        public void Install(string identity)
+        public void Install(string identity, Configure config)
         {
             // Ignore identity and set URL ACL to 'Builtin\Users'
 

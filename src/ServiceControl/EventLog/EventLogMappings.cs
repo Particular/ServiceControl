@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvanceExtensibility;
 
     public class EventLogMappings : INeedInitialization
     {
@@ -14,32 +15,37 @@
             return mappings.ContainsKey(message.GetType());
         }
 
-        public EventLogItem ApplyMapping(IEvent @event)
+        public EventLogItem ApplyMapping(IEvent @event, IDictionary<string, string> headers)
         {
             var mapping = (IEventLogMappingDefinition)Activator.CreateInstance(mappings[@event.GetType()]);
 
-            return mapping.Apply(@event);
+            return mapping.Apply(@event, headers);
         }
 
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
-            var temp = new EventLogMappings();
-
-            Configure.Instance.ForAllTypes<IEventLogMappingDefinition>(t =>
+            configuration.RegisterComponents(c =>
             {
-                if (t.BaseType == null)
+                var temp = new EventLogMappings();
+
+                foreach (var mapperType in configuration.GetSettings().GetAvailableTypes()
+                    .Where(t => typeof(IEventLogMappingDefinition).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface))
                 {
-                    return;
+                    if (mapperType.BaseType == null)
+                    {
+                        return;
+                    }
+
+                    var args = mapperType.BaseType.GetGenericArguments();
+                    if (args.Count() == 1)
+                    {
+                        temp.mappings.Add(args.Single(), mapperType);
+                    }
+
                 }
 
-                var args = t.BaseType.GetGenericArguments();
-                if (args.Count() == 1)
-                {
-                    temp.mappings.Add(args.Single(), t);
-                }
+                c.RegisterSingleton(temp);
             });
-
-            Configure.Instance.Configurer.RegisterSingleton<EventLogMappings>(temp);
         }
     }
 }

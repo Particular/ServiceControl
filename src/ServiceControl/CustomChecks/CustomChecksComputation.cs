@@ -26,11 +26,6 @@
             }
         }
 
-        public void Init()
-        {
-            Configure.Component<CustomChecksComputation>(DependencyLifecycle.SingleInstance);
-        }
-
         public int CustomCheckFailed(Guid id)
         {
             lock (locker)
@@ -90,10 +85,11 @@
 
     class CustomChecksComputationInitializer : INeedInitialization,IWantToRunWhenBusStartsAndStops
     {
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
-            Configure.Component<CustomChecksComputation>(DependencyLifecycle.SingleInstance);
+            configuration.RegisterComponents(c => c.ConfigureComponent<CustomChecksComputation>(DependencyLifecycle.SingleInstance));
         }
+    
 
         public CustomChecksComputation CustomChecksComputation { get; set; }
 

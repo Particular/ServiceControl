@@ -1,23 +1,24 @@
 ﻿namespace ServiceControl.Operations.BodyStorage
 {
     using NServiceBus;
+    using NServiceBus.Features;
     using RavenAttachments;
 
-    public class BodyStorageFeature:NServiceBus.Features.Feature
+    public class BodyStorageFeature:Feature
     {
-        public override bool IsEnabledByDefault
+        public BodyStorageFeature()
         {
-            get { return true; }
+            EnableByDefault();
         }
 
-        public override void Initialize()
+        protected override void Setup(FeatureConfigurationContext context)
         {
-            if (Configure.HasComponent<IBodyStorage>())
+            if (context.Container.HasComponent<IBodyStorage>())
             {
                 return;
             }
 
-            Configure.Component<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
         }
     }
 }

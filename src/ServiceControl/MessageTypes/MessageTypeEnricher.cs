@@ -3,7 +3,6 @@
     using System.Linq;
     using Contracts.Operations;
     using Operations;
-    using NServiceBus.Scheduling.Messages;
 
     public class MessageTypeEnricher:ImportEnricher
     {
@@ -28,7 +27,7 @@
 
         bool DetectSystemMessage(string messageTypeString)
         {
-            return messageTypeString.Contains(typeof(ScheduledTask).FullName);
+            return messageTypeString.Contains("NServiceBus.Scheduling.ScheduledTask");
         }
 
         string GetMessageType(string messageTypeString)

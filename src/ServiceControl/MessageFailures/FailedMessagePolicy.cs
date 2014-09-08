@@ -129,15 +129,15 @@
 
         }
 
-        public override void ConfigureHowToFindSaga()
+        protected override void ConfigureHowToFindSaga(SagaPropertyMapper<FailedMessagePolicyData> mapper)
         {
-            ConfigureMapping<ImportFailedMessage>(m => m.UniqueMessageId)
-                .ToSaga(s => s.FailedMessageId);
+            mapper.ConfigureMapping<ImportFailedMessage>(m => m.UniqueMessageId)
+           .ToSaga(s => s.FailedMessageId);
 
-            ConfigureMapping<RetryMessage>(m => m.FailedMessageId)
+            mapper.ConfigureMapping<RetryMessage>(m => m.FailedMessageId)
                .ToSaga(s => s.FailedMessageId);
 
-            ConfigureMapping<RegisterSuccessfulRetry>(m => m.FailedMessageId)
+            mapper.ConfigureMapping<RegisterSuccessfulRetry>(m => m.FailedMessageId)
             .ToSaga(s => s.FailedMessageId);
         }
     }

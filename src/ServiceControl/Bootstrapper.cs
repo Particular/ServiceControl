@@ -1,18 +1,16 @@
 namespace Particular.ServiceControl
 {
     using System;
-    using System.Diagnostics;
     using System.IO;
     using System.ServiceProcess;
     using Autofac;
+    using Nancy.Security;
     using NLog;
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
     using NServiceBus.Features;
-    using NServiceBus.Installation.Environments;
-    using NServiceBus.Logging.Loggers.NLogAdapter;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class Bootstrapper
@@ -20,52 +18,53 @@ namespace Particular.ServiceControl
         IStartableBus bus;
         public static IContainer Container { get; set; }
 
-        public Bootstrapper(ServiceBase host = null)
+        public Bootstrapper(ServiceBase host,bool runInstallers=false,string username = null)
         {
             Settings.ServiceName = DetermineServiceName(host);
             ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
             
             Container = containerBuilder.Build();
-            
-            // Disable Auditing for the service control endpoint
-            Configure.Features.Disable<Audit>();
-            Configure.Features.Enable<Sagas>();
-            Feature.Disable<AutoSubscribe>();
-            Feature.Disable<SecondLevelRetries>();
 
-            Configure.Serialization.Json();
-            Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
 
-            Feature.EnableByDefault<StorageDrivenPublisher>();
-            Configure.ScaleOut(s => s.UseSingleBrokerQueue());
+            var busConfiguration = new BusConfiguration();
+
+            busConfiguration.UseContainer<Autofac>(c => c.ExistingLifetimeScope(Container));
+
+            busConfiguration.DisableFeature<Audit>();
+            busConfiguration.DisableFeature<AutoSubscribe>();
+            busConfiguration.DisableFeature<SecondLevelRetries>();
+
+            busConfiguration.UseSerialization<JsonSerializer>();
+            busConfiguration.Transactions().DisableDistributedTransactions();
+            busConfiguration.ScaleOut().UseSingleBrokerQueue();
             var transportType = Type.GetType(Settings.TransportType);
-            bus = Configure
-                .With(AllAssemblies.Except("ServiceControl.Plugin"))
-                .DefineEndpointName(Settings.ServiceName)
-                .AutofacBuilder(Container)
-                .UseTransport(transportType)
-                .MessageForwardingInCaseOfFault()
-                .DefineCriticalErrorAction((s, exception) =>
+
+            busConfiguration.UseTransport(transportType);
+            busConfiguration.EndpointName(Settings.ServiceName);
+            busConfiguration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+
+            busConfiguration.DefineCriticalErrorAction((s, exception) =>
+            {
+                if (host != null)
                 {
-                    if (host != null)
-                    {
-                        host.Stop();
-                    }
-                })
-                .UnicastBus()
-                .CreateBus();
+                    host.Stop();
+                }
+            });
+
+
+            if (runInstallers)
+            {
+                busConfiguration.EnableInstallers(username);    
+            }
+            
+
+            bus = Bus.Create(busConfiguration);
         }
 
         public void Start()
         {
-            bus.Start(() =>
-            {
-                if (Environment.UserInteractive && Debugger.IsAttached)
-                {
-                    Configure.Instance.ForInstallationOn<Windows>().Install();
-                }
-            });
+            bus.Start();
         }
 
         public void Stop()
@@ -108,7 +107,9 @@ namespace Particular.ServiceControl
             
             nlogConfig.AddTarget("debugger", fileTarget);
             nlogConfig.AddTarget("console", consoleTarget);
-            NLogConfigurator.Configure(new object[] { fileTarget, consoleTarget }, "Info");
+
+            //todo: ref nlog adapter
+            //NLogConfigurator.Configure(new object[] { fileTarget, consoleTarget }, "Info"); 
             LogManager.Configuration = nlogConfig;
         }
    

@@ -8,6 +8,7 @@
     using InternalMessages;
     using NServiceBus;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using Operations.BodyStorage;
     using Raven.Client;
 
@@ -45,6 +46,12 @@
 
             headersToRetryWith["ServiceControl.RetryId"] = message.RetryId.ToString();
 
+            if (!String.IsNullOrWhiteSpace(attempt.ReplyToAddress))
+            {
+                headersToRetryWith[Headers.ReplyToAddress] = attempt.ReplyToAddress;
+            }
+
+
             using (var stream = BodyStorage.Fetch(attempt.MessageId))
             {
                 var transportMessage = new TransportMessage(failedMessage.Id, headersToRetryWith)
@@ -55,14 +62,10 @@
                     MessageIntent = attempt.MessageIntent,
                 };
 
-                if (!String.IsNullOrWhiteSpace(attempt.ReplyToAddress))
-                {
-                    transportMessage.ReplyToAddress = Address.Parse(attempt.ReplyToAddress);
-                }
-
+              
                 failedMessage.Status = FailedMessageStatus.RetryIssued;
 
-                Forwarder.Send(transportMessage, message.TargetEndpointAddress);
+                Forwarder.Send(transportMessage, new SendOptions(message.TargetEndpointAddress));
             }
 
             Bus.Publish<MessageSubmittedForRetry>(m => m.FailedMessageId = message.FailedMessageId);

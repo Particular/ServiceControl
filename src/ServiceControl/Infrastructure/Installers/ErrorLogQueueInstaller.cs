@@ -6,14 +6,14 @@
 
     public class ErrorLogQueueInstaller : IWantQueueCreated
     {
+        public bool ShouldCreateQueue()
+        {
+            return Settings.ErrorLogQueue != Address.Undefined; 
+        }
+
         public Address Address
         {
             get { return Settings.ErrorLogQueue; }
-        }
-
-        public bool IsDisabled
-        {
-            get { return Settings.ErrorLogQueue == Address.Undefined; }
         }
     }
 }

@@ -19,9 +19,9 @@ namespace ServiceControl.Operations
             return cache.TryGetValue(key, out value) ? value : "unknown";
         }
 
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
-            Configure.Instance.Configurer.ConfigureComponent<LicenseStatusKeeper>(DependencyLifecycle.SingleInstance);
+            configuration.RegisterComponents(c=>c.ConfigureComponent<LicenseStatusKeeper>(DependencyLifecycle.SingleInstance));
         }
     }
 }

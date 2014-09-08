@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using Raven.Client;
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -43,7 +44,7 @@
                     {
                         var transportMessage = ((dynamic) ie.Current.Document).Message;
 
-                        messageSender.Send(transportMessage, queue);
+                        messageSender.Send(transportMessage, new SendOptions(queue));
 
                         store.DatabaseCommands.Delete(ie.Current.Key, null);
                     }

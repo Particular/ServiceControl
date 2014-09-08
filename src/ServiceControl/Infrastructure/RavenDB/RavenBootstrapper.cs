@@ -1,13 +1,10 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
-    using System;
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using NServiceBus;
     using NServiceBus.Logging;
-    using NServiceBus.Pipeline;
-    using NServiceBus.RavenDB;
-    using Raven.Client;
+    using NServiceBus.Persistence;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -15,7 +12,7 @@
 
     public class RavenBootstrapper : INeedInitialization
     {
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
             Directory.CreateDirectory(Settings.DbPath);
 
@@ -58,30 +55,10 @@
                     });
             }
 
-            Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
-            Configure.Component(builder =>
-            {
-#pragma warning disable 618
-                var context = builder.Build<PipelineExecutor>().CurrentContext;
-#pragma warning restore 618
-
-                IDocumentSession session;
-
-                if (context.TryGet(out session))
-                {
-                    return session;
-                }
-
-                throw new InvalidOperationException("No session available");
-            }, DependencyLifecycle.InstancePerCall);
-
-            Configure.Instance.RavenDBStorageWithSelfManagedSession(documentStore, false,
-                () => Configure.Instance.Builder.Build<IDocumentSession>())
-                .UseRavenDBSagaStorage()
-                .UseRavenDBSubscriptionStorage()
-                .UseRavenDBTimeoutStorage();
+            configuration.UsePersistence<RavenDBPersistence>();
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
+
     }
 }

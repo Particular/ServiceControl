@@ -22,11 +22,14 @@ namespace ServiceControl.HeartbeatMonitoring
         }
 
 
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
-            Configure.Component<HeartbeatStatusInitializer>(DependencyLifecycle.SingleInstance);
-            Configure.Component<HeartbeatStatusProvider>(DependencyLifecycle.SingleInstance)
-                .ConfigureProperty(p => p.GracePeriod, Settings.HeartbeatGracePeriod);
+            configuration.RegisterComponents(c =>
+            {
+                c.ConfigureComponent<HeartbeatStatusInitializer>(DependencyLifecycle.SingleInstance);
+                c.ConfigureComponent<HeartbeatStatusProvider>(DependencyLifecycle.SingleInstance)
+                    .ConfigureProperty(p => p.GracePeriod, Settings.HeartbeatGracePeriod);
+            });
         }
 
         public void Start()
@@ -86,6 +89,5 @@ namespace ServiceControl.HeartbeatMonitoring
 
         readonly IDocumentStore store;
         readonly HeartbeatStatusProvider statusProvider;
-
     }
 }

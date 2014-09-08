@@ -28,7 +28,7 @@
             {
                 return;
             }
-            var logItem = EventLogMappings.ApplyMapping(message);
+            var logItem = EventLogMappings.ApplyMapping(message,Bus.CurrentMessageContext.Headers);
 
             Session.Store(logItem);
 
