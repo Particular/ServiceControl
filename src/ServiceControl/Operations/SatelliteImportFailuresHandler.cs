@@ -10,13 +10,15 @@
 
     public class SatelliteImportFailuresHandler : IManageMessageFailures, IDisposable
     {
-        public SatelliteImportFailuresHandler(IDocumentStore store, string logPath, Func<TransportMessage, object> messageBuilder)
+        public SatelliteImportFailuresHandler(IDocumentStore store, string logPath, Func<TransportMessage, object> messageBuilder,CriticalError criticalError)
         {
             this.store = store;
             this.logPath = logPath;
             this.messageBuilder = messageBuilder;
 
             Directory.CreateDirectory(logPath);
+
+            failureCircuitBreaker = new ImportFailureCircuitBreaker(criticalError);
         }
 
         public void Dispose()
@@ -91,12 +93,12 @@
         static void WriteEvent(string message)
         {
 #if DEBUG
-            new CreateEventSource().Install(null);
+            new CreateEventSource().Install(null,null);
 #endif
             EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
         }
 
-        readonly ImportFailureCircuitBreaker failureCircuitBreaker = new ImportFailureCircuitBreaker();
+        ImportFailureCircuitBreaker failureCircuitBreaker;
         readonly string logPath;
         readonly Func<TransportMessage, object> messageBuilder;
         readonly IDocumentStore store;

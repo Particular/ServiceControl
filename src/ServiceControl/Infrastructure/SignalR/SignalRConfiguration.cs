@@ -7,10 +7,11 @@
     using Newtonsoft.Json.Converters;
     using NServiceBus;
 
-    public class Configure : INeedInitialization
+    public class SignalRConfiguration : INeedInitialization
     {
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
+
             var serializer = new JsonNetSerializer(new JsonSerializerSettings
             {
                 ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),

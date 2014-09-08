@@ -9,12 +9,11 @@
 
     public class LicenseDetector : INeedInitialization
     {
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
-            var activeLicense = DetermineActiveLicense();
+             var activeLicense = DetermineActiveLicense();
 
-            //valid license
-            Configure.Component(() => activeLicense, DependencyLifecycle.SingleInstance);
+             configuration.RegisterComponents(c => c.ConfigureComponent(() => activeLicense, DependencyLifecycle.SingleInstance));
         }
 
         static ActiveLicense DetermineActiveLicense()

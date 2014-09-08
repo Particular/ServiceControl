@@ -1,12 +1,13 @@
 ﻿namespace ServiceControl.Infrastructure.Plugins
 {
     using NServiceBus;
+    using NServiceBus.Configuration.AdvanceExtensibility;
 
-    class RegisterPluginMessages : IWantToRunBeforeConfiguration
+    class RegisterPluginMessages : INeedInitialization
     {
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
-            MessageConventionExtensions.AddSystemMessagesConventions(t => t.Namespace != null
+            configuration.GetSettings().Get<Conventions>().AddSystemMessagesConventions(t => t.Namespace != null
                 && t.Namespace.StartsWith("ServiceControl.Plugin.")
                 && t.Namespace.EndsWith(".Messages"));
         }

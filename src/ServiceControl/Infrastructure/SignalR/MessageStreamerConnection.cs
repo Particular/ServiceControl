@@ -15,9 +15,11 @@
     {
         public MessageStreamerConnection()
         {
-            sender = NServiceBus.Configure.Instance.Builder.Build<ISendMessages>();
 
-            messageTypes = NServiceBus.Configure.TypesToScan.Where(MessageConventionExtensions.IsMessageType).ToList();
+            //todo are we using the push from SPA to SC feature John?
+            //sender = NServiceBus.Configure.Instance.Builder.Build<ISendMessages>();
+
+            //messageTypes = NServiceBus.Configure.TypesToScan.Where(MessageConventionExtensions.IsMessageType).ToList();
         }
 
         static Task MakeEmptyTask()
@@ -40,7 +42,7 @@
                 message.Headers[Headers.EnclosedMessageTypes] = MapMessageType(messageType);
                 message.Body = Encoding.UTF8.GetBytes(jsonMessage);
 
-                sender.Send(message, Address.Local);
+                //sender.Send(message, Address.Local);
 
                 return EmptyTask;
             }

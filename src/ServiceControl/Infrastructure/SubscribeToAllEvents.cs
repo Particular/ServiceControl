@@ -1,8 +1,9 @@
 ﻿namespace ServiceControl.Infrastructure
 {
+    using System.Linq;
     using NServiceBus;
+    using NServiceBus.Settings;
     using NServiceBus.Transports;
-    using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 
     class SubscribeToAllEvents : IWantToRunWhenBusStartsAndStops
     {
@@ -12,12 +13,20 @@
         {
         }
 
+        public ReadOnlySettings ReadOnlySettings { get; set; }
+
+        public Configure Configure { get; set; } 
+
         public void Start()
         {
             // Subscribe to events for brokers
-            if (!(SubscriptionManager is MessageDrivenSubscriptionManager))
+            if (!(SubscriptionManager.GetType().Name.Contains("MessageDriven"))) //todo
             {
-                Configure.Instance.ForAllTypes<IEvent>(eventType => SubscriptionManager.Subscribe(eventType, Address.Local));
+                foreach (var eventType in ReadOnlySettings.GetAvailableTypes()
+                   .Where(t => typeof(IEvent).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface))
+                {
+                    SubscriptionManager.Subscribe(eventType, Configure.LocalAddress);
+                }
             }
         }
     }

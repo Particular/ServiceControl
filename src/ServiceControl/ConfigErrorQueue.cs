@@ -9,7 +9,8 @@ namespace Particular.ServiceControl
         {
             return new MessageForwardingInCaseOfFaultConfig
             {
-                ErrorQueue = string.Format("{0}.Errors", NServiceBus.Configure.EndpointName)
+                //todo
+                ErrorQueue = string.Format("{0}.Errors", "todo")//NServiceBus.Configure.EndpointName)
             };
         }
     }

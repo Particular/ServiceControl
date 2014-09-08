@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using Contracts.Operations;
     using NServiceBus;
@@ -9,6 +10,7 @@
     using NServiceBus.Pipeline;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
@@ -17,6 +19,8 @@
     public class ErrorQueueImport : IAdvancedSatellite, IDisposable
     {
         public ISendMessages Forwarder { get; set; }
+
+        public CriticalError CriticalError { get; set; }
         public IBuilder Builder { get; set; }
 
 #pragma warning disable 618
@@ -35,7 +39,7 @@
         {
             var errorMessageReceived = new ImportFailedMessage(message);
 
-            var logicalMessage = LogicalMessageFactory.Create(typeof(ImportFailedMessage), errorMessageReceived);
+            var logicalMessage = LogicalMessageFactory.Create(typeof(ImportFailedMessage), errorMessageReceived, new Dictionary<string, string>());
 
             using (var childBuilder = Builder.CreateChildBuilder())
             {
@@ -46,10 +50,11 @@
                     enricher.Enrich(errorMessageReceived);
                 }
 
-                PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
+                //todo
+                //PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
             }
 
-            Forwarder.Send(message, Settings.ErrorLogQueue);
+            Forwarder.Send(message, new SendOptions(Settings.ErrorLogQueue));
         }
 
         public void Start()
@@ -77,7 +82,7 @@
                 Path.Combine(Settings.LogPath, @"FailedImports\Error"), tm => new FailedErrorImport
                 {
                     Message = tm,
-                });
+                }, CriticalError);
 
             return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
         }

@@ -32,9 +32,9 @@ namespace ServiceControl.MessageFailures
             return Interlocked.Increment(ref unresolvedFailures);
         }
 
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
-            Configure.Component<MessageFailuresComputation>(DependencyLifecycle.SingleInstance);
+            configuration.RegisterComponents(c => c.ConfigureComponent<MessageFailuresComputation>(DependencyLifecycle.SingleInstance));
         }
     }
 }

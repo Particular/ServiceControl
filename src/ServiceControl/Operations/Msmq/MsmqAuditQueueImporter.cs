@@ -14,7 +14,6 @@ namespace ServiceControl.Operations
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Transports;
-    using NServiceBus.Transports.Msmq;
     using NServiceBus.Unicast;
     using Raven.Abstractions.Data;
     using Raven.Client;
@@ -22,17 +21,17 @@ namespace ServiceControl.Operations
 
     class MsmqAuditQueueImporter : IWantToRunWhenBusStartsAndStops
     {
-        public MsmqAuditQueueImporter(IDocumentStore store, IBuilder builder, IDequeueMessages receiver)
+        public MsmqAuditQueueImporter(IDocumentStore store, IBuilder builder, IDequeueMessages receiver,CriticalError criticalError)
         {
             this.store = store;
             this.builder = builder;
-            enabled = receiver is MsmqDequeueStrategy;
+            enabled = receiver.GetType().Name == "MsmqDequeueStrategy";
 
             importFailuresHandler = new SatelliteImportFailuresHandler(store,
                 Path.Combine(Settings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
                 {
                     Message = tm,
-                });
+                }, criticalError);
         }
 
         public IBus Bus { get; set; }
@@ -235,7 +234,7 @@ namespace ServiceControl.Operations
 
                                         if (Settings.ForwardAuditMessages)
                                         {
-                                            Forwarder.Send(transportMessage, Settings.AuditLogQueue);
+                                            Forwarder.Send(transportMessage,new SendOptions(Settings.AuditLogQueue));
                                         }
                                     }
                                     catch (Exception)
@@ -330,7 +329,7 @@ namespace ServiceControl.Operations
 
                                 if (Settings.ForwardAuditMessages)
                                 {
-                                    Forwarder.Send(transportMessage, Settings.AuditLogQueue);
+                                    Forwarder.Send(transportMessage, new SendOptions(Settings.AuditLogQueue));
                                 }
 
                                 commitTransaction = true;
