@@ -1,0 +1,2 @@
+﻿Placeholder to force nuget to deplrecare the NServiceBus.Install package
+If nuget fails to clean up this file it can be deleted.
