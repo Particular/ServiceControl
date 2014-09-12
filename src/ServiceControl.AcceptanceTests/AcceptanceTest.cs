@@ -215,7 +215,7 @@
                     Directory.SetAccessControl(path, directorySecurity);
                 }
 
-                if (!Directory.GetFiles(path).Any())
+                if (! (Directory.GetFiles(path).Any() || Directory.GetDirectories(path).Any()))
                 {
                     Directory.Delete(path);
                 }
