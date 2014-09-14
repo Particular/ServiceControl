@@ -134,10 +134,13 @@
         public static TimeSpan HeartbeatGracePeriod = TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
         public static string TransportType { get; set; }
 
-        public static readonly string LogPath =
-            Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "Particular\\ServiceControl\\logs")));
+        public static string LogPath
+        {
+            get
+            {
+                return Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", DefaultLogPathForInstance())); 
+            }
+        }
 
         public static string DbPath;
         public static Address ErrorLogQueue;
@@ -151,5 +154,17 @@
         public static int HoursToKeepMessagesBeforeExpiring = SettingsReader<int>.Read("HoursToKeepMessagesBeforeExpiring", 24 * 30); // default is 30 days
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(Settings));
+        public static string ServiceName;
+
+        static string DefaultLogPathForInstance()
+        {
+            if (ServiceName.Equals("Particular.ServiceControl", StringComparison.OrdinalIgnoreCase))
+            {
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Particular\\ServiceControl\\logs");
+            }
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                string.Format("Particular\\ServiceControl-{0}\\logs", ServiceName));
+
+        }
     }
 }

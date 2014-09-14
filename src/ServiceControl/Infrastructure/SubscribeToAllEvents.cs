@@ -6,7 +6,7 @@
 
     class SubscribeToAllEvents : IWantToRunWhenBusStartsAndStops
     {
-        public IManageSubscriptions SusbcriptionManager { get; set; }
+        public IManageSubscriptions SubscriptionManager { get; set; }
 
         public void Stop()
         {
@@ -15,9 +15,9 @@
         public void Start()
         {
             // Subscribe to events for brokers
-            if (!(SusbcriptionManager is MessageDrivenSubscriptionManager))
+            if (!(SubscriptionManager is MessageDrivenSubscriptionManager))
             {
-                Configure.Instance.ForAllTypes<IEvent>(eventType => SusbcriptionManager.Subscribe(eventType, Address.Local));
+                Configure.Instance.ForAllTypes<IEvent>(eventType => SubscriptionManager.Subscribe(eventType, Address.Local));
             }
         }
     }

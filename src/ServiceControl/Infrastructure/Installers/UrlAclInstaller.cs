@@ -13,9 +13,7 @@
     {
         public void Install(string identity)
         {
-            // Ignore identity and set URL ACL to 'Builtin\Users'
-
-            // Builtin account names can be localized: e.g. the Everyone Group is Jeder in German so Tranlate from SID
+            // Ignore identity and set URL ACL to localized 'Builtin\Users'
             var accountSid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
             identity = accountSid.Translate(typeof(NTAccount)).Value;
 
@@ -33,7 +31,6 @@ To manually perform this action run the following command for each url from an a
 httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a D:(A;;GX;;;""{0}"")", identity);
                 return;
             }
-
             StartNetshProcess(identity, Settings.ApiUrl);
         }
 
@@ -54,29 +51,24 @@ httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a 
             if (ExecuteNetshCommand(startInfo, out error))
             {
                 Logger.InfoFormat("Granted user '{0}' HttpListener permissions for {1}.", identity, uri);
-
                 return;
             }
 
-            if (deleteExisting && error.Contains("Error: 183"))
+            if (deleteExisting && error.Contains(": 183"))
             {
                 startInfo = GetProcessStartInfo(identity, uri, true);
-
-                Logger.Info(
-                    string.Format(
-                        @"Failed to grant to grant user '{0}' HttpListener permissions.  The error message from running the above command is: {1} Will try to delete the existing urlacl",
-                        identity, error));
+                Logger.Info(string.Format(@"Failed to grant to grant user '{0}' HttpListener permissions.  The error message from running the above command is: {1} Will try to delete the existing urlacl",identity, error));
 
                 if (ExecuteNetshCommand(startInfo, out error))
                 {
-                    Logger.InfoFormat("Deleted user '{0}' HttpListener permissions for {1}.", identity, uri);
+                    Logger.InfoFormat("Deleted user HttpListener permissions for {0}.", uri);
                     StartNetshProcess(identity, uri, false);
                     return;
                 }
             }
 
             throw new Exception(string.Format(
-                @"Failed to grant to grant user '{0}' HttpListener permissions.
+                @"Failed to grant to grant user '{0}' HttpListener permissions. 
 Try running the following command from an admin console:
 netsh http add urlacl url={2} user=""{0}""
 
@@ -87,7 +79,6 @@ The error message from running the above command is:
         static bool ExecuteNetshCommand(ProcessStartInfo startInfo, out string error)
         {
             error = null;
-
             using (var process = Process.Start(startInfo))
             {
                 process.WaitForExit(5000);
@@ -96,9 +87,7 @@ The error message from running the above command is:
                 {
                     return true;
                 }
-
                 error = process.StandardOutput.ReadToEnd().Trim();
-
                 return false;
             }
         }

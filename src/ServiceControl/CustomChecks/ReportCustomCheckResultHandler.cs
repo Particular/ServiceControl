@@ -44,6 +44,7 @@
                     {
                         Id = id,
                     };
+                    Session.Store(customCheck);
                 }
                 publish = true;
             }

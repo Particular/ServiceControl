@@ -1,4 +1,5 @@
 using System.ComponentModel.Composition.Hosting;
+using System.IO;
 using Raven.Client.Embedded;
 using ServiceBus.Management.Infrastructure.Settings;
 using ServiceControl.CompositeViews.Messages;
@@ -19,6 +20,7 @@ public class InMemoryStoreBuilder
                 SaveEnumsAsIntegers = true
             }
         };
+        store.Configuration.CompiledIndexCacheDirectory = Path.GetTempPath(); // RavenDB-2236
 
         if (withExpiration)
         {

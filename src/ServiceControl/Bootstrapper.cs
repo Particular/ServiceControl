@@ -22,10 +22,10 @@ namespace Particular.ServiceControl
 
         public Bootstrapper(ServiceBase host = null)
         {
+            Settings.ServiceName = DetermineServiceName(host);
             ConfigureLogging();
-
             var containerBuilder = new ContainerBuilder();
-
+            
             Container = containerBuilder.Build();
             
             // Disable Auditing for the service control endpoint
@@ -39,11 +39,10 @@ namespace Particular.ServiceControl
 
             Feature.EnableByDefault<StorageDrivenPublisher>();
             Configure.ScaleOut(s => s.UseSingleBrokerQueue());
-
             var transportType = Type.GetType(Settings.TransportType);
             bus = Configure
                 .With(AllAssemblies.Except("ServiceControl.Plugin"))
-                .DefineEndpointName("Particular.ServiceControl")
+                .DefineEndpointName(Settings.ServiceName)
                 .AutofacBuilder(Container)
                 .UseTransport(transportType)
                 .MessageForwardingInCaseOfFault()
@@ -83,7 +82,7 @@ namespace Particular.ServiceControl
 
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
-            
+
             var fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
@@ -111,6 +110,15 @@ namespace Particular.ServiceControl
             nlogConfig.AddTarget("console", consoleTarget);
             NLogConfigurator.Configure(new object[] { fileTarget, consoleTarget }, "Info");
             LogManager.Configuration = nlogConfig;
+        }
+   
+        string DetermineServiceName(ServiceBase host)
+        {
+            if ((host == null) || (string.IsNullOrWhiteSpace(host.ServiceName)))
+            {
+                return "Particular.ServiceControl";
+            }
+            return host.ServiceName;
         }
     }
 }

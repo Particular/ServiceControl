@@ -31,14 +31,13 @@
   <Target Name="Build" DependsOnTargets="Build" />
   <Target Name="ReBuild" DependsOnTargets="Build" />
   <UsingTask TaskName="GitVersionTask.GetVersion" AssemblyFile="$(SolutionDir)..\buildsupport\GitVersionTask\GitVersionTask.dll" />
-  <UsingTask TaskName="PepitaPackage.CreatePackageTask" AssemblyFile="$(SolutionDir)..\buildsupport\PepitaPackage.dll" />
-  <UsingTask TaskName="MSBuild.Community.Tasks.FileUpdate" AssemblyFile="$(SolutionDir)..\buildsupport\MSBuild.Community.Tasks.dll" />
+  <UsingTask TaskName="PepitaPackage.CreatePackageTask" AssemblyFile="$(ProjectDir)PepitaPackage.dll" />
+  <UsingTask TaskName="MSBuild.Community.Tasks.FileUpdate" AssemblyFile="$(ProjectDir)MSBuild.Community.Tasks.dll" />
   <Target Name="Build">
     <GetVersion SolutionDirectory="$(SolutionDir)">
       <Output TaskParameter="SemVer" PropertyName="SemVer" />
       <Output TaskParameter="LegacySemVerPadded" PropertyName="ChocoVersion" />
     </GetVersion>
-
     <ItemGroup>
       <FilesToDelete Include="$(ProjectDir)Build\**\*.*" />
     </ItemGroup>
@@ -55,8 +54,7 @@
     </ItemGroup>
     <FileUpdate Files="@(InstallFile)" Regex="{{FileVersion}}" ReplacementText="$(SemVer)" />
     <FileUpdate Files="@(InstallFile)" Regex="{{ReleaseName}}" ReplacementText="$(ChocoVersion)" />
-
-    <CreatePackageTask  NuGetBuildDirectory="$(ProjectDir)Build" Version="$(ChocoVersion)" TargetDir="$(SolutionDir)..\nugets" />
+    <CreatePackageTask NuGetBuildDirectory="$(ProjectDir)Build" Version="$(ChocoVersion)" TargetDir="$(SolutionDir)..\nugets" />
   </Target>
   <Target Name="Clean">
   </Target>

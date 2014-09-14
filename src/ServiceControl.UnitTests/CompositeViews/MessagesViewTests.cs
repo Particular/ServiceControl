@@ -76,7 +76,8 @@
                 {
                     Id = "4",
                     Status = FailedMessageStatus.Unresolved,
-                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>{{new FailedMessage.ProcessingAttempt{MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }}}},
+                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>{new FailedMessage.ProcessingAttempt{MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }}
+                    },
                 });
                 session.SaveChanges();
             }

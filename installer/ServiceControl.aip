@@ -376,8 +376,8 @@
     <ROW Condition="VersionNT" Description="[ProductName] cannot be installed on [WindowsType9XDisplay]" DescriptionLocId="AI.LaunchCondition.No9X" IsPredefined="true" Builds="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiLockPermComponent">
-    <ROW LockObject="ServiceControl_Dir" Table="CreateFolder" User="Users" Permission="1610809791"/>
-    <ROW LockObject="ServiceControl_Dir" Table="CreateFolder" User="Administrators" Permission="1880096767"/>
+    <ROW LockObject="ServiceControl_Dir" Table="CreateFolder" User="[GRP_USERS]" Permission="1610809791"/>
+    <ROW LockObject="ServiceControl_Dir" Table="CreateFolder" User="[GRP_ADMINISTRATORS]" Permission="1880096767"/>
     <ROW LockObject="ServiceControl_Dir" Table="CreateFolder" User="System" Permission="1880096767"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRegLocatorComponent">

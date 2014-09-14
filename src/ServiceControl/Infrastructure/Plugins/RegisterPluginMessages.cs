@@ -6,7 +6,7 @@
     {
         public void Init()
         {
-            Configure.Instance.AddSystemMessagesAs(t => t.Namespace != null
+            MessageConventionExtensions.AddSystemMessagesConventions(t => t.Namespace != null
                 && t.Namespace.StartsWith("ServiceControl.Plugin.")
                 && t.Namespace.EndsWith(".Messages"));
         }

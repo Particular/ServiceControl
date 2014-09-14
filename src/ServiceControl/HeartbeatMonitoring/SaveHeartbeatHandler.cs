@@ -55,6 +55,7 @@
                     Id = id,
                     ReportedStatus = Status.Beating
                 };
+                Session.Store(heartbeat);
             }
 
             if (message.ExecutedAt <= heartbeat.LastReportAt)
@@ -77,7 +78,7 @@
                 {
                     Endpoint = heartbeat.EndpointDetails,
                     DetectedAt = heartbeat.LastReportAt,
-                });             
+                });
             }
 
             if (heartbeat.ReportedStatus == Status.Dead)
@@ -91,8 +92,6 @@
             }
 
             HeartbeatStatusProvider.RegisterHeartbeatingEndpoint(heartbeat.EndpointDetails, heartbeat.LastReportAt);
-
-            Session.Store(heartbeat);
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(SaveHeartbeatHandler));

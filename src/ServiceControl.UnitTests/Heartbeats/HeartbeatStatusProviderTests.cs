@@ -56,7 +56,7 @@
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
 
-            var endpoint = new EndpointDetails()
+            var endpoint = new EndpointDetails
             {
                 Host = "Machine",
                 HostId = Guid.NewGuid(),
@@ -78,11 +78,11 @@
         public void When_A_New_Endpoint_without_a_hostid_Is_Detected_Should_List_As_Inactive()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
-            var stats = currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails() { Host = "Machine", Name = "NewEndpoint" });
+            var stats = currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails { Host = "Machine", Name = "NewEndpoint" });
             VerifyHeartbeatStats(stats, 0, 1);
 
             //make sure to handles duplicates as well
-            stats = currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails() { Host = "Machine", Name = "NewEndpoint" });
+            stats = currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails { Host = "Machine", Name = "NewEndpoint" });
             VerifyHeartbeatStats(stats, 0, 1);
         }
 
@@ -91,8 +91,8 @@
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
             var hostId = Guid.NewGuid();
-            currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails() { Host = "Machine", HostId = hostId, Name = "NewEndpoint" });
-            var stats = currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails() { Host = "Machine", HostId = hostId, Name = "NewEndpoint" }, DateTime.UtcNow);
+            currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" });
+            var stats = currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" }, DateTime.UtcNow);
             VerifyHeartbeatStats(stats, 1, 0);
         }
 
@@ -101,8 +101,19 @@
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
             var hostId = Guid.NewGuid();
-            currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails() { Host = "Machine", Name = "NewEndpoint" });
-            var stats = currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails() { Host = "Machine", HostId = hostId, Name = "NewEndpoint" }, DateTime.UtcNow);
+            var endpointWithNoHostId = new EndpointDetails
+            {
+                Host = "Machine", 
+                Name = "NewEndpoint"
+            };
+            currentHeartbeatStatus.RegisterNewEndpoint(endpointWithNoHostId);
+            var endpointWithHostId = new EndpointDetails
+            {
+                Host = "Machine", 
+                HostId = hostId, 
+                Name = "NewEndpoint"
+            };
+            var stats = currentHeartbeatStatus.RegisterHeartbeatingEndpoint(endpointWithHostId, DateTime.UtcNow);
             VerifyHeartbeatStats(stats, 1, 0);
         }
 
@@ -121,8 +132,8 @@
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
             var hostId = Guid.NewGuid();
-            currentHeartbeatStatus.RegisterEndpointThatFailedToHeartbeat(new EndpointDetails() { Host = "Machine", HostId = hostId, Name = "NewEndpoint" });
-            var stats = currentHeartbeatStatus.RegisterEndpointWhoseHeartbeatIsRestored(new EndpointDetails() { Host = "Machine", HostId = hostId, Name = "NewEndpoint" },DateTime.UtcNow);
+            currentHeartbeatStatus.RegisterEndpointThatFailedToHeartbeat(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" });
+            var stats = currentHeartbeatStatus.RegisterEndpointWhoseHeartbeatIsRestored(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" },DateTime.UtcNow);
             VerifyHeartbeatStats(stats, 1, 0);
         }
 
