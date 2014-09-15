@@ -38,6 +38,7 @@
                     Name = SettingsReader<string>.Read("Name", "ServiceControl"),
                     Description = SettingsReader<string>.Read("Description", "The management backend for the Particular Service Platform"),
                     LicenseStatus = License.IsValid ? "valid" : "invalid",
+                    InstanceInfo = BaseUrl + "/instance-info"
                 };
 
                 return Negotiate
@@ -63,18 +64,19 @@
 
         public class RootUrls
         {
-            public string AuditUrl { get; set; }
-            public string EndpointsAuditUrl { get; set; }
-            public string EndpointsUrl { get; set; }
-            public string ErrorsUrl { get; set; }
+            public string AuditUrl { get; set; } 
+            public string Description { get; set; }
+            public string EndpointsAuditUrl { get; set; } 
             public string EndpointsErrorUrl { get; set; }
-            public string MessageSearchUrl { get; set; }
             public string EndpointsMessageSearchUrl { get; set; }
             public string EndpointsMessagesUrl { get; set; }
-            public string Name { get; set; }
-            public string Description { get; set; }
-            public string SagasUrl { get; set; }
+            public string EndpointsUrl { get; set; }
+            public string ErrorsUrl { get; set; }
+            public string InstanceInfo { get; set; }
+            public string MessageSearchUrl { get; set; }
             public string LicenseStatus { get; set; }
+            public string Name { get; set; }
+            public string SagasUrl { get; set; }
         }
     }
 }
