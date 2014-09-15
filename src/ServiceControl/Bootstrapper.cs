@@ -42,6 +42,7 @@ namespace Particular.ServiceControl
             var transportType = Type.GetType(Settings.TransportType);
             bus = Configure
                 .With(AllAssemblies.Except("ServiceControl.Plugin"))
+                .DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t))
                 .DefineEndpointName(Settings.ServiceName)
                 .AutofacBuilder(Container)
                 .UseTransport(transportType)
@@ -55,6 +56,11 @@ namespace Particular.ServiceControl
                 })
                 .UnicastBus()
                 .CreateBus();
+        }
+
+        static bool IsExternalContract(Type t)
+        {
+            return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts");
         }
 
         public void Start()
