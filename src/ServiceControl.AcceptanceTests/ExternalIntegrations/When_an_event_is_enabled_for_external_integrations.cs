@@ -33,6 +33,7 @@
                 .Run(TimeSpan.FromSeconds(30));
 
             Assert.IsTrue(context.MessageDelivered);
+            Assert.AreEqual(context.MessageId, context.MessageIdDeliveredToExternalProcessor);
         }
 
 
@@ -88,6 +89,7 @@
 
                 public void Handle(ServiceControl.Contracts.Failures.MessageFailed message)
                 {
+                    Context.MessageIdDeliveredToExternalProcessor = message.MessageId;
                     Context.MessageDelivered = true;
                 }
             }
@@ -124,6 +126,7 @@
         public class MyContext : ScenarioContext
         {
             public bool MessageDelivered { get; set; }
+            public string MessageIdDeliveredToExternalProcessor { get; set; }
             public bool ExternalProcessorSubscribed { get; set; }
             public string MessageId { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }

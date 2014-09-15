@@ -16,8 +16,7 @@
                 return;
             }
             var pushRequest = new TransportMessage();
-            pushRequest.Headers[EventDispatcherSatellite.EntityIdHeaderKey] = failedMessageEvent.FailedMessageId;
-            pushRequest.Headers[EventDispatcherSatellite.MessageTypeHeaderKey] = "MessagFailed";
+            pushRequest.Headers[EventDispatcherSatellite.MessageUniqueIdHeaderKey] = failedMessageEvent.FailedMessageId;
             MessageSender.Send(pushRequest, Address.Local.SubScope("ExternalIntegrations"));
         }
     }
