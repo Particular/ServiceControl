@@ -3,9 +3,6 @@
     using System;
     using System.Collections.Generic;
     using NServiceBus;
-    using NServiceBus.Serializers.Binary;
-    using NServiceBus.Serializers.Json;
-    using NServiceBus.Serializers.XML;
     using TransportIntegration;
 
     public static class ConfigureExtensions

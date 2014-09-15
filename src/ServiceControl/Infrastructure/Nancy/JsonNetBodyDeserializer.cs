@@ -22,7 +22,8 @@
             var serializerSettings = new JsonSerializerSettings
             {
                 ContractResolver = new UnderscoreMappingResolver(),
-                Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}, {new StringEnumConverter{CamelCaseText = true}}}
+                Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}, new StringEnumConverter{CamelCaseText = true}
+                }
             };
             serializer = JsonSerializer.Create(serializerSettings);
         }
