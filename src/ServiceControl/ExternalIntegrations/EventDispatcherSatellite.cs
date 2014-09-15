@@ -12,8 +12,8 @@
 
         public bool Handle(TransportMessage message)
         {
-            var entityId = message.Headers[EntityIdHeaderKey];
-            var messageType = message.Headers[MessageTypeHeaderKey];
+            //var entityId = message.Headers[EntityIdHeaderKey];
+            //var messageType = message.Headers[MessageTypeHeaderKey];
 
             Bus.Publish(new MessageFailed());
 
