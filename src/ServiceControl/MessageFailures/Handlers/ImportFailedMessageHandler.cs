@@ -11,11 +11,11 @@
 
         public void Handle(ImportFailedMessage message)
         {
-            var messageId = "FailedMessages/" + message.UniqueMessageId;
+            var documentId = FailedMessage.MakeDocumentId(message.UniqueMessageId);
 
-            var failure = Session.Load<FailedMessage>(messageId) ?? new FailedMessage
+            var failure = Session.Load<FailedMessage>(documentId) ?? new FailedMessage
             {
-                Id = messageId,
+                Id = documentId,
                 UniqueMessageId = message.UniqueMessageId
             };
 
