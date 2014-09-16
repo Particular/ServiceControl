@@ -216,7 +216,7 @@
     <Compile Include="CustomChecks\CustomChecksIndex.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcherSatellite.cs" />
     <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
-    <Compile Include="ExternalIntegrations\ExternalIntegrationsFailedMessagesViewIndex.cs" />
+    <Compile Include="ExternalIntegrations\ExternalIntegrationsFailedMessagesIndex.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatsStats.cs" />
     <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterPotentiallyMissingHeartbeats.cs" />
     <Compile Include="HeartbeatMonitoring\MonitoringDisabledForEndpointHandler.cs" />

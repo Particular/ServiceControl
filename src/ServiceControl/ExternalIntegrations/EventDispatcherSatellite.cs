@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.ExternalIntegrations
 {
+    using System;
     using System.Linq;
     using global::ServiceControl.Contracts.Failures;
     using NServiceBus;
@@ -8,7 +9,7 @@
 
     public class EventDispatcherSatellite : ISatellite
     {
-        public const string MessageUniqueIdHeaderKey = "ServiceControl.EntityId";
+        public const string MessageUniqueIdHeaderKey = "ServiceControl.FailedMessageId";
         public IBus Bus { get; set; }
         public IDocumentStore Store { get; set; }
 
@@ -19,15 +20,15 @@
             MessageFailed result;
             using (var session = Store.OpenSession())
             {
-                result = session.Query<MessageFailed, ExternalIntegrationsFailedMessagesViewIndex>()
+                result = session.Query<MessageFailed, ExternalIntegrationsFailedMessagesIndex>()
                     .Customize(c => c.WaitForNonStaleResults())
-                    .Where(x => x.EntityId == messageUniqueId)
+                    .Where(x => x.FailedMessageId == messageUniqueId)
                     .ProjectFromIndexFieldsInto<MessageFailed>()
                     .SingleOrDefault();
             }
             if (result == null)
             {
-                return true;
+                throw new Exception("Either Raven index has not been updated yet or data in the index is missing (possible bug). Triggering a first-level retry.");
             }
             Bus.Publish(result);
             return true;
