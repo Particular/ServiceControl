@@ -1,8 +1,7 @@
-﻿namespace Particular.ServiceControl.ExternalIntegrations
+﻿namespace ServiceControl.ExternalIntegrations
 {
     using System.Linq;
     using global::ServiceControl.Contracts.Failures;
-    using global::ServiceControl.MessageFailures;
     using NServiceBus;
     using NServiceBus.Satellites;
     using Raven.Client;
@@ -17,25 +16,20 @@
         {
             var messageUniqueId = message.Headers[MessageUniqueIdHeaderKey];
 
-            FailedMessage failedMessageData;
+            MessageFailed result;
             using (var session = Store.OpenSession())
             {
-                failedMessageData = session.Load<FailedMessage>(FailedMessage.MakeDocumentId(messageUniqueId));
+                result = session.Query<MessageFailed, ExternalIntegrationsFailedMessagesViewIndex>()
+                    .Customize(c => c.WaitForNonStaleResults())
+                    .Where(x => x.EntityId == messageUniqueId)
+                    .ProjectFromIndexFieldsInto<MessageFailed>()
+                    .SingleOrDefault();
             }
-
-            if (failedMessageData == null)
+            if (result == null)
             {
                 return true;
             }
-
-            var lastProcessingAttempt = failedMessageData.ProcessingAttempts.Last();
-            var notification = new MessageFailed
-            {
-                MessageId = lastProcessingAttempt.MessageId,
-                NumberOfProcessingAttempts = failedMessageData.ProcessingAttempts.Count
-            };
-            Bus.Publish(notification);
-
+            Bus.Publish(result);
             return true;
         }
 

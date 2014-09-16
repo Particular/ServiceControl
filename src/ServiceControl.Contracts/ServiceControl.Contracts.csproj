@@ -42,6 +42,9 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Failures\ExceptionDetails.cs" />
+    <Compile Include="Failures\MessageStatus.cs" />
+    <Compile Include="Failures\FailureDetails.cs" />
     <Compile Include="Failures\MessageFailed.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
