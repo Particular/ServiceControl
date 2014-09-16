@@ -89,7 +89,7 @@
 
                 public void Handle(ServiceControl.Contracts.Failures.MessageFailed message)
                 {
-                    Context.MessageIdDeliveredToExternalProcessor = message.MessageId;
+                    Context.MessageIdDeliveredToExternalProcessor = message.ProcessingDetails.MessageId;
                     Context.MessageDelivered = true;
                 }
             }
