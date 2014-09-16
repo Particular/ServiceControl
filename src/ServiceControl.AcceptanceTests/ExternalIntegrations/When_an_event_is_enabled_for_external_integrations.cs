@@ -30,7 +30,7 @@
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage())))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<ServiceControl.Contracts.Failures.MessageFailed>()))
                 .Done(c => c.MessageDelivered)
-                .Run(TimeSpan.FromSeconds(30));
+                .Run(TimeSpan.FromSeconds(300));
 
             Assert.IsTrue(context.MessageDelivered);
             Assert.AreEqual(context.MessageId, context.MessageIdDeliveredToExternalProcessor);
@@ -69,7 +69,7 @@
 
                 public void Handle(MyMessage message)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
+                    Context.EndpointName = Configure.EndpointName;
                     Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
@@ -126,16 +126,19 @@
         public class MyContext : ScenarioContext
         {
             public bool MessageDelivered { get; set; }
-            public string MessageIdDeliveredToExternalProcessor { get; set; }
             public bool ExternalProcessorSubscribed { get; set; }
+
             public string MessageId { get; set; }
-            public string EndpointNameOfReceivingEndpoint { get; set; }
+            public string EndpointName { get; set; }
+
+            public string MessageIdDeliveredToExternalProcessor { get; set; }
+            public string EndpointNameDeliveredToExternalProcessor { get; set; }
 
             public string UniqueMessageId
             {
                 get
                 {
-                    return DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
+                    return DeterministicGuid.MakeId(MessageId, EndpointName).ToString();
                 }
             }
         }

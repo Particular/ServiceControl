@@ -1,4 +1,4 @@
-﻿namespace Particular.ServiceControl.ExternalIntegrations
+﻿namespace ServiceControl.ExternalIntegrations
 {
     using global::ServiceControl.Contracts.MessageFailures;
     using NServiceBus;
