@@ -30,7 +30,7 @@
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage())))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<ServiceControl.Contracts.Failures.MessageFailed>()))
                 .Done(c => c.MessageDelivered)
-                .Run(TimeSpan.FromSeconds(300));
+                .Run();
 
             Assert.IsTrue(context.MessageDelivered);
             Assert.AreEqual(context.MessageId, context.MessageIdDeliveredToExternalProcessor);
