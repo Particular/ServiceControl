@@ -5,6 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.Contracts.MessageFailures;
@@ -48,26 +49,38 @@
 
                 if (!awaitingDispatching.Any())
                 {
+                    if (Logger.IsDebugEnabled)
+                    {
+                        Logger.Debug("Nothing to dispatch. Waiting...");
+                    }
                     token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1));
                     return;
                 }
 
-                var fialedMessageIds = awaitingDispatching
+                var failedMessageIds = awaitingDispatching
                     .Select(x => x.Payload)
                     .Cast<MessageFailed>()
                     .Select(x => x.FailedMessageId)
                     .ToArray();
 
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.DebugFormat("Dispatching {0} events.",failedMessageIds.Length);
+                }
                 var newestEtag = awaitingDispatching.Max(x => session.Advanced.GetEtagFor(x));
 
                 var failedMessageData = session.Query<Contracts.Failures.MessageFailed, ExternalIntegrationsFailedMessagesIndex>()
                     .Customize(c => c.WaitForNonStaleResultsAsOf(newestEtag))
-                    .Where(x => x.FailedMessageId.In(fialedMessageIds))
+                    .Where(x => x.FailedMessageId.In(failedMessageIds))
                     .ProjectFromIndexFieldsInto<Contracts.Failures.MessageFailed>()
                     .ToList();
 
                 foreach (var messageFailed in failedMessageData)
                 {
+                    if (Logger.IsDebugEnabled)
+                    {
+                        Logger.DebugFormat("Publishing external event on the bus.");
+                    }
                     Bus.Publish(messageFailed);
                 }
 
@@ -81,5 +94,7 @@
         }
 
         CancellationTokenSource tokenSource;
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
     }
 }

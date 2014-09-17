@@ -104,6 +104,14 @@
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.2.0.1.2\lib\net45\NLog.dll</HintPath>
     </Reference>
+    <Reference Include="Raven.Abstractions, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\RavenDB.Client.2.5.2916\lib\net45\Raven.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Client.Lightweight, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\RavenDB.Client.2.5.2916\lib\net45\Raven.Client.Lightweight.dll</HintPath>
+    </Reference>
     <Reference Include="ServiceControl.Plugin.Nsb4.CustomChecks">
       <HintPath>..\packages\ServiceControl.Plugin.Nsb4.CustomChecks.1.0.0-beta0001\lib\net40\ServiceControl.Plugin.Nsb4.CustomChecks.dll</HintPath>
     </Reference>
@@ -117,6 +125,7 @@
       <HintPath>..\packages\ServiceControl.Plugin.Nsb4.SagaAudit.1.0.0-beta0001\lib\net40\ServiceControl.Plugin.Nsb4.SagaAudit.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -150,6 +159,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Contexts\ExternalIntegrationsManagementEndpointSetup.cs" />
     <Compile Include="Contexts\TransportIntegration\ActiveMqTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureServiceBusTransportIntegration.cs" />

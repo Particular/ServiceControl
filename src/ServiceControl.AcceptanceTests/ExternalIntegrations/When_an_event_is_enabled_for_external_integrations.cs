@@ -14,26 +14,35 @@
 
     public class When_an_event_is_enabled_for_external_integrations : AcceptanceTest
     {
+        const int MessageCount = 100;
+
         [Test]
         public void Should_be_published_on_the_bus()
         {
             var context = new MyContext();
 
             Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>(b => b.Given((bus, c) => Subscriptions.OnEndpointSubscribed(s =>
+                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.Given((bus, c) => Subscriptions.OnEndpointSubscribed(s =>
                 {
                     if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
                     {
                         c.ExternalProcessorSubscribed = true;
                     }
                 })).AppConfig(PathToAppConfig))
-                .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus =>
+                {
+                    //bus.SendLocal(new MyMessage());
+                    for (var i = 0; i < MessageCount; i++)
+                    {
+                        bus.SendLocal(new MyMessage());
+                    }
+                }))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<ServiceControl.Contracts.Failures.MessageFailed>()))
-                .Done(c => c.MessageDelivered)
+                .Done(c => c.LastEventDeliveredAt.HasValue && c.LastEventDeliveredAt.Value.Add(TimeSpan.FromSeconds(10)) < DateTime.Now) //Wait 10 seconds from last event
                 .Run();
 
-            Assert.IsTrue(context.MessageDelivered);
-            Assert.AreEqual(context.MessageId, context.MessageIdDeliveredToExternalProcessor);
+            Console.WriteLine("Delivered {0} messages",context.MessagesDelivered);
+            //Assert.AreEqual(context.MessageId, context.MessageIdDeliveredToExternalProcessor);
         }
 
 
@@ -52,6 +61,14 @@
                 }
             };
 
+        }
+
+        public class ExternalIntegrationsManagementEndpoint : EndpointConfigurationBuilder
+        {
+            public ExternalIntegrationsManagementEndpoint()
+            {
+                EndpointSetup<ExternalIntegrationsManagementEndpointSetup>();
+            }
         }
 
         public class FailingReceiver : EndpointConfigurationBuilder
@@ -89,8 +106,13 @@
 
                 public void Handle(ServiceControl.Contracts.Failures.MessageFailed message)
                 {
+                    if (message.FailureDetails.Exception.Message != "Simulated exception")
+                    {
+                        return;
+                    }
                     Context.MessageIdDeliveredToExternalProcessor = message.ProcessingDetails.MessageId;
-                    Context.MessageDelivered = true;
+                    Context.MessagesDelivered++;
+                    Context.LastEventDeliveredAt = DateTime.Now;
                 }
             }
 
@@ -125,11 +147,12 @@
 
         public class MyContext : ScenarioContext
         {
-            public bool MessageDelivered { get; set; }
+            public int MessagesDelivered { get; set; }
             public bool ExternalProcessorSubscribed { get; set; }
 
             public string MessageId { get; set; }
             public string EndpointName { get; set; }
+            public DateTime? LastEventDeliveredAt { get; set; }
 
             public string MessageIdDeliveredToExternalProcessor { get; set; }
             public string EndpointNameDeliveredToExternalProcessor { get; set; }
