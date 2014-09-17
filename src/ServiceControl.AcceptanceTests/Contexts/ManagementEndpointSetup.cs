@@ -42,12 +42,12 @@
                 }
             }
 
-            SetupLogging(endpointConfiguration);
+            LogManager.Configuration = SetupLogging(endpointConfiguration);
 
             return Configure.Instance;
         }
 
-        static void SetupLogging(EndpointConfiguration endpointConfiguration)
+        protected virtual LoggingConfiguration SetupLogging(EndpointConfiguration endpointConfiguration)
         {
             var logDir = ".\\logfiles\\";
 
@@ -73,7 +73,7 @@
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
             NLogConfigurator.Configure(new object[] {fileTarget}, logLevel);
-            LogManager.Configuration = nlogConfig;
+            return nlogConfig;
         }
     }
 }
