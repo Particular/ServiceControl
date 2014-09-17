@@ -1,23 +1,27 @@
 ﻿namespace ServiceControl.ExternalIntegrations
 {
-    using global::ServiceControl.Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.Transports;
+    using Raven.Client;
+    using ServiceControl.Contracts.MessageFailures;
 
     public class EventMappingHandler : IHandleMessages<IEvent>
     {
         public ISendMessages MessageSender { get; set; }
+        public IDocumentSession Session { get; set; }
 
         public void Handle(IEvent message)
         {
-            var failedMessageEvent = message as MessageFailed;
-            if (failedMessageEvent == null)
+            if (!(message is MessageFailed))
             {
                 return;
             }
-            var pushRequest = new TransportMessage();
-            pushRequest.Headers[EventDispatcherSatellite.MessageUniqueIdHeaderKey] = failedMessageEvent.FailedMessageId;
-            MessageSender.Send(pushRequest, Address.Local.SubScope("ExternalIntegrations"));
+            var storedEvent = new StoredEvent()
+            {
+                Payload = message,
+                Type = message.GetType().FullName
+            };
+            Session.Store(storedEvent);
         }
     }
 }
