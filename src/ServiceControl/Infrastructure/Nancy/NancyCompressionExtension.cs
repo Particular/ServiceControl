@@ -36,6 +36,9 @@
         {
             response.Headers["Content-Encoding"] = "gzip";
 
+            // Content length needs to be recalculated, but isn't needed, so drop it.
+            response.Headers.Remove("Content-Length");
+
             var contents = response.Contents;
             response.Contents = responseStream =>
             {
