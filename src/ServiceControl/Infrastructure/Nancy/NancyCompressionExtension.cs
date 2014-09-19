@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Nancy
 {
-    using System.Collections.Generic;
     using System.IO.Compression;
     using System.Linq;
     using global::Nancy;
@@ -15,11 +14,6 @@
             }
 
             if (context.Response.StatusCode != HttpStatusCode.OK)
-            {
-                return;
-            }
-
-            if (!ResponseIsCompatibleMimeType(context.Response))
             {
                 return;
             }
@@ -63,27 +57,9 @@
             return false;
         }
 
-        static bool ResponseIsCompatibleMimeType(Response response)
-        {
-            return ValidMimes.Any(x => x == response.ContentType);
-        }
-
         static bool RequestIsGzipCompatible(Request request)
         {
             return request.Headers.AcceptEncoding.Any(x => x.Contains("gzip"));
         }
-
-        static readonly List<string> ValidMimes = new List<string>
-        {
-            "text/css",
-            "text/html",
-            "text/plain",
-            "application/xml",
-            "text/xml",
-            "application/json",
-            "text/json",
-            "application/xaml+xml",
-            "application/x-javascript"
-        };
     }
 }
