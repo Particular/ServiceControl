@@ -9,7 +9,7 @@ namespace Particular.ServiceControl.Hosting
     using Commands;
     using global::ServiceControl.Hosting.Commands;
 
-    internal class HostArguments
+    public class HostArguments
     {
         public HostArguments(string[] args)
         {
@@ -102,6 +102,8 @@ namespace Particular.ServiceControl.Hosting
                     , s => { ServiceName = s; }
                 }
             };
+
+            
 
             installOptions = new OptionSet
             {
@@ -288,7 +290,7 @@ namespace Particular.ServiceControl.Hosting
         Run
     }
 
-    internal enum StartMode
+    public enum StartMode
     {
         Manual,
         Automatic,

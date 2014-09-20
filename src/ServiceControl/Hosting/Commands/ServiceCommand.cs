@@ -38,7 +38,7 @@
                 serviceProcessInstaller
             };
 
-            var arguments = String.Empty;
+            var arguments = string.Format(" --serviceName:{0}", args.ServiceName);
 
             using (var hostInstaller = new HostInstaller(args, arguments, installers))
             using (var transactedInstaller = new TransactedInstaller())
