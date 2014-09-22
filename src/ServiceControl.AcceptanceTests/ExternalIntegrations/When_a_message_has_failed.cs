@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using System;
+    using System.Collections.Generic;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -10,13 +11,13 @@
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure;
+    using ServiceControl.Contracts.Failures;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
 
         [Test]
-        public void Notification_should_be_published_on_the_bus()
+        public void Notification_of_the_latest_failure_should_be_published_on_the_bus()
         {
             var context = new MyContext();
 
@@ -28,10 +29,17 @@
                         c.ExternalProcessorSubscribed = true;
                     }
                 })).AppConfig(PathToAppConfig))
-                .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage())))
-                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<ServiceControl.Contracts.Failures.MessageFailed>()))
-                .Done(c => c.MessagesDelivered == 1)
+                .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus =>
+                {
+                    bus.SendLocal(new MyMessage { Body = "First" });
+                    bus.SendLocal(new MyMessage { Body = "Second" });
+                }))
+                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<MessageFailed>()))
+                .Done(c => c.EventsDelivered.Count >= 2)
                 .Run();
+
+            Assert.AreEqual("First",context.EventsDelivered[0]);
+            Assert.AreEqual("Second",context.EventsDelivered[1]);
         }
 
         [Test]
@@ -54,14 +62,14 @@
                 {
                     for (var i = 0; i < MessageCount; i++)
                     {
-                        bus.SendLocal(new MyMessage());
+                        bus.SendLocal(new MyMessage() { Body = i.ToString() });
                     }
                 }))
-                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<ServiceControl.Contracts.Failures.MessageFailed>()))
+                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<MessageFailed>()))
                 .Done(c => c.LastEventDeliveredAt.HasValue && c.LastEventDeliveredAt.Value.Add(TimeSpan.FromSeconds(10)) < DateTime.Now) //Wait 10 seconds from last event
                 .Run();
 
-            Console.WriteLine("Delivered {0} messages", context.MessagesDelivered);
+            Console.WriteLine("Delivered {0} messages", context.EventsDelivered.Count);
         }
 
 
@@ -105,9 +113,7 @@
 
                 public void Handle(MyMessage message)
                 {
-                    Context.EndpointName = Configure.EndpointName;
-                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
-                    throw new Exception("Simulated exception");
+                    throw new Exception(message.Body);
                 }
             }
         }
@@ -119,18 +125,13 @@
                 EndpointSetup<JSonServer>();
             }
 
-            public class FailureHandler : IHandleMessages<ServiceControl.Contracts.Failures.MessageFailed>
+            public class FailureHandler : IHandleMessages<MessageFailed>
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(ServiceControl.Contracts.Failures.MessageFailed message)
+                public void Handle(MessageFailed message)
                 {
-                    if (message.FailureDetails.Exception.Message != "Simulated exception")
-                    {
-                        return;
-                    }
-                    Context.MessageIdDeliveredToExternalProcessor = message.ProcessingDetails.MessageId;
-                    Context.MessagesDelivered++;
+                    Context.RegisteredDeliveredEvent(message.FailureDetails.Exception.Message);
                     Context.LastEventDeliveredAt = DateTime.Now;
                 }
             }
@@ -162,26 +163,23 @@
         [Serializable]
         public class MyMessage : ICommand
         {
+            public string Body { get; set; }
         }
 
         public class MyContext : ScenarioContext
         {
-            public int MessagesDelivered { get; set; }
+            private readonly  List<string> eventsDelivered = new List<string>();
             public bool ExternalProcessorSubscribed { get; set; }
-
-            public string MessageId { get; set; }
-            public string EndpointName { get; set; }
             public DateTime? LastEventDeliveredAt { get; set; }
 
-            public string MessageIdDeliveredToExternalProcessor { get; set; }
-            public string EndpointNameDeliveredToExternalProcessor { get; set; }
-
-            public string UniqueMessageId
+            public List<String> EventsDelivered
             {
-                get
-                {
-                    return DeterministicGuid.MakeId(MessageId, EndpointName).ToString();
-                }
+                get { return eventsDelivered; }
+            }
+
+            public void RegisteredDeliveredEvent(string exceptionMessage)
+            {
+                eventsDelivered.Add(exceptionMessage);
             }
         }
     }
