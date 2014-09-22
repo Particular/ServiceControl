@@ -1,11 +1,11 @@
-﻿namespace ServiceControl.UnitTests.CompositeViews
+﻿namespace ServiceControl.UnitTests.ExternalIntegrations
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using NUnit.Framework;
     using Raven.Client;
-    using ServiceControl.Contracts.Failures;
+    using ServiceControl.Contracts;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.MessageFailures;
     using ServiceControl.UnitTests.Infrastructure.RavenDB;
@@ -28,7 +28,7 @@
             }
 
             var result = WaitForIndexingAndReadFirst();
-            Assert.AreEqual(MessageStatus.ArchivedFailure, result.Status);
+            Assert.AreEqual(MessageFailed.MessageStatus.ArchivedFailure, result.Status);
         }
 
         [Test]
@@ -44,7 +44,7 @@
             }
 
             var result = WaitForIndexingAndReadFirst();
-            Assert.AreEqual(MessageStatus.Failed, result.Status);
+            Assert.AreEqual(MessageFailed.MessageStatus.Failed, result.Status);
         }
 
         [Test]
@@ -62,7 +62,7 @@
             }
 
             var result = WaitForIndexingAndReadFirst();
-            Assert.AreEqual(MessageStatus.RepeatedFailure, result.Status);
+            Assert.AreEqual(MessageFailed.MessageStatus.RepeatedFailure, result.Status);
         }
 
         [Test]

@@ -4,11 +4,7 @@ namespace ServiceControl.ExternalIntegrations
     using MessageFailures;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
-    using ServiceControl.Contracts.Failures;
-    using ExceptionDetails = ServiceControl.Contracts.Failures.ExceptionDetails;
-    using FailedMessageStatus = ServiceControl.MessageFailures.FailedMessageStatus;
-    using FailureDetails = ServiceControl.Contracts.Failures.FailureDetails;
-    using MessageStatus = ServiceControl.Contracts.Failures.MessageStatus;
+    using ServiceControl.Contracts;
 
     public class ExternalIntegrationsFailedMessagesIndex : AbstractMultiMapIndexCreationTask<MessageFailed>
     {        
@@ -25,45 +21,44 @@ namespace ServiceControl.ExternalIntegrations
                     MessageType = (string)last.MessageMetadata["MessageType"],
                     NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
                     Status = message.Status == FailedMessageStatus.Archived
-                        ? MessageStatus.ArchivedFailure
+                        ? MessageFailed.MessageStatus.ArchivedFailure
                         : message.ProcessingAttempts.Count == 1
-                            ? MessageStatus.Failed
-                            : MessageStatus.RepeatedFailure,
-                    ProcessingDetails = new ProcessingDetails
+                            ? MessageFailed.MessageStatus.Failed
+                            : MessageFailed.MessageStatus.RepeatedFailure,
+                    ProcessingDetails = new MessageFailed.ProcessingInfo
                     {
-                        MessageId = last.MessageId,
-                        SendingEndpoint = new EndpointDetails()
+                        SendingEndpoint = new MessageFailed.ProcessingInfo.Endpoint()
                         {
                             Host = sendingEndpoint.Host,
                             HostId = sendingEndpoint.HostId,
                             Name = sendingEndpoint.Name
                         },
-                        ProcessingEndpoint = new EndpointDetails()
+                        ProcessingEndpoint = new MessageFailed.ProcessingInfo.Endpoint()
                         {
                             Host = receivingEndpoint.Host,
                             HostId = receivingEndpoint.HostId,
                             Name = receivingEndpoint.Name
-                        }
+                        },
                     },
-                    MessageDetails = new MessageDetails()
+                    MessageDetails = new MessageFailed.Message()
                     {
                         Headers = last.Headers,
                         ContentType = (string)last.MessageMetadata["ContentType"],
-                        Body = (string)last.MessageMetadata["Body"],                       
-                        BodyUrl = (string)last.MessageMetadata["BodyUrl"],                       
+                        Body = (string)last.MessageMetadata["Body"],
+                        MessageId = last.MessageId,
                     },
-                    FailureDetails = new FailureDetails
+                    FailureDetails = new MessageFailed.FailureInfo
                     {
                         AddressOfFailingEndpoint = last.FailureDetails.AddressOfFailingEndpoint,
                         TimeOfFailure = last.FailureDetails.TimeOfFailure,
-                        Exception = new ExceptionDetails
+                        Exception = new MessageFailed.FailureInfo.ExceptionInfo
                         {
                             ExceptionType = last.FailureDetails.Exception.ExceptionType,
                             Message = last.FailureDetails.Exception.Message,
                             Source = last.FailureDetails.Exception.Source,
-                            StackTrace = last.FailureDetails.Exception.StackTrace
-                        }
-                    }
+                            StackTrace = last.FailureDetails.Exception.StackTrace,
+                        },
+                    },
                 });
             
             DisableInMemoryIndexing = true;

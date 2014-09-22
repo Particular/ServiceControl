@@ -69,10 +69,10 @@
                 }
                 var newestEtag = awaitingDispatching.Max(x => session.Advanced.GetEtagFor(x));
 
-                var failedMessageData = session.Query<Contracts.Failures.MessageFailed, ExternalIntegrationsFailedMessagesIndex>()
+                var failedMessageData = session.Query<Contracts.MessageFailed, ExternalIntegrationsFailedMessagesIndex>()
                     .Customize(c => c.WaitForNonStaleResultsAsOf(newestEtag))
                     .Where(x => x.FailedMessageId.In(failedMessageIds))
-                    .ProjectFromIndexFieldsInto<Contracts.Failures.MessageFailed>()
+                    .ProjectFromIndexFieldsInto<Contracts.MessageFailed>()
                     .ToList();
 
                 foreach (var messageFailed in failedMessageData)

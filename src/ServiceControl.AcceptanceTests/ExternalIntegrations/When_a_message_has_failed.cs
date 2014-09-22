@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Security.Cryptography;
     using Contexts;
+    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -11,13 +13,13 @@
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using NUnit.Framework;
-    using ServiceControl.Contracts.Failures;
+    using ServiceControl.Contracts;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
 
         [Test]
-        public void Notification_of_the_latest_failure_should_be_published_on_the_bus()
+        public void Notification_should_be_published_on_the_bus()
         {
             var context = new MyContext();
 
@@ -29,17 +31,18 @@
                         c.ExternalProcessorSubscribed = true;
                     }
                 })).AppConfig(PathToAppConfig))
-                .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus =>
-                {
-                    bus.SendLocal(new MyMessage { Body = "First" });
-                    bus.SendLocal(new MyMessage { Body = "Second" });
-                }))
+                .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<MessageFailed>()))
-                .Done(c => c.EventsDelivered.Count >= 2)
+                .Done(c => c.EventsDelivered.Count >= 1)
                 .Run();
 
-            Assert.AreEqual("First",context.EventsDelivered[0]);
-            Assert.AreEqual("Second",context.EventsDelivered[1]);
+            var deserializedEvent = JsonConvert.DeserializeObject<MessageFailed>(context.EventsDelivered[0]);
+
+            Assert.AreEqual("Faulty message", deserializedEvent.FailureDetails.Exception.Message);
+            //These are important so check it they are set
+            Assert.IsNotNull(deserializedEvent.MessageDetails.MessageId);
+            Assert.IsNotNull(deserializedEvent.ProcessingDetails.SendingEndpoint.Name);
+            Assert.IsNotNull(deserializedEvent.ProcessingDetails.ProcessingEndpoint.Name);
         }
 
         [Test]
@@ -131,7 +134,8 @@
 
                 public void Handle(MessageFailed message)
                 {
-                    Context.RegisteredDeliveredEvent(message.FailureDetails.Exception.Message);
+                    var serialized = JsonConvert.SerializeObject(message);
+                    Context.RegisteredDeliveredEvent(serialized);
                     Context.LastEventDeliveredAt = DateTime.Now;
                 }
             }
@@ -177,9 +181,9 @@
                 get { return eventsDelivered; }
             }
 
-            public void RegisteredDeliveredEvent(string exceptionMessage)
+            public void RegisteredDeliveredEvent(string jsonSerializedEvent)
             {
-                eventsDelivered.Add(exceptionMessage);
+                eventsDelivered.Add(jsonSerializedEvent);
             }
         }
     }
