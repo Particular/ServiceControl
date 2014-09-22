@@ -131,6 +131,9 @@
     <Reference Include="Raven.Database">
       <HintPath>..\packages\RavenDB.Database.2.5.2916\lib\net45\Raven.Database.dll</HintPath>
     </Reference>
+    <Reference Include="ServiceControl.Contracts">
+      <HintPath>..\packages\ServiceControl.Contracts.0.1.0\lib\net45\ServiceControl.Contracts.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
@@ -412,12 +415,6 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Contracts\ServiceControl.Contracts.csproj">
-      <Project>{bcaa370c-58ca-46a7-a034-6cab61c004e1}</Project>
-      <Name>ServiceControl.Contracts</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Hosting\Help.txt" />
