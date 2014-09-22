@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.IntegrationDemo
 {
     using System;
-    using Contracts.Failures;
     using NServiceBus;
+    using ServiceControl.Contracts;
 
     class MessageFailedHandler:IHandleMessages<MessageFailed>
     {
