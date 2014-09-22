@@ -9,7 +9,7 @@
         {
             WindowsInstallerRunner.RunInstallers = true;
             WindowsInstallerRunner.RunAs = args.Username;
-            new Bootstrapper();
+            new Bootstrapper(null, args);
         }
     }
 }

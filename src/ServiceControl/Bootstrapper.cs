@@ -5,6 +5,7 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.ServiceProcess;
     using Autofac;
+    using Hosting;
     using NLog;
     using NLog.Config;
     using NLog.Layouts;
@@ -20,14 +21,14 @@ namespace Particular.ServiceControl
         IStartableBus bus;
         public static IContainer Container { get; set; }
 
-        public Bootstrapper(ServiceBase host = null)
+        public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null)
         {
-            Settings.ServiceName = DetermineServiceName(host);
+            Settings.ServiceName = DetermineServiceName(host, hostArguments);
             ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
-            
+
             Container = containerBuilder.Build();
-            
+
             // Disable Auditing for the service control endpoint
             Configure.Features.Disable<Audit>();
             Configure.Features.Enable<Sagas>();
@@ -112,8 +113,15 @@ namespace Particular.ServiceControl
             LogManager.Configuration = nlogConfig;
         }
    
-        string DetermineServiceName(ServiceBase host)
+        string DetermineServiceName(ServiceBase host, HostArguments hostArguments)
         {
+            //if Arguments not null then bootstrapper was run from installer so use servicename passed to the installer
+            if (hostArguments != null)
+            {
+                return hostArguments.ServiceName;
+            }
+
+            // Try to get HostName from Windows Service Name, default to "Particular.ServiceControl"
             if ((host == null) || (string.IsNullOrWhiteSpace(host.ServiceName)))
             {
                 return "Particular.ServiceControl";

@@ -162,8 +162,7 @@
             {
                 return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Particular\\ServiceControl\\logs");
             }
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                string.Format("Particular\\ServiceControl-{0}\\logs", ServiceName));
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), string.Format("Particular\\{0}\\logs", ServiceName));
 
         }
     }

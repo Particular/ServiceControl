@@ -78,6 +78,7 @@ EXAMPLES:
      --description="Service for monitoring" 
      --username="corp\serviceuser"
      --password="p@ssw0rd!"
-     --url="http://localhost:9090"
+     --d=ServiceControl/Hostname==localhost 
+     --d=ServiceControl/Port==33334
 
    ServiceControl.exe --uninstall --serviceName="MyServiceControl"

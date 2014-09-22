@@ -50,6 +50,7 @@
             Get["/instance-info"] = p => Negotiate
                     .WithModel(new
                                   {
+                                      WindowsService = Settings.ServiceName,
                                       LogfilePath = Path.Combine(Settings.LogPath, "logfile.txt"),
                                       Settings.TransportType,
                                   })

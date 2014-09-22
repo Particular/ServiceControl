@@ -10,7 +10,7 @@
         {
             if (!Environment.UserInteractive)
             {
-                using (var service = new Host())
+                using (var service = new Host{ServiceName = args.ServiceName})
                 {
                     service.Run();
                 }
@@ -18,8 +18,10 @@
                 return;
             }
 
-            using (var service = new Host())
+            using (var service = new Host{ ServiceName = args.ServiceName} )
             {
+
+
                 using (var waitHandle = new ManualResetEvent(false))
                 {
                     service.OnStopping = () =>
