@@ -112,6 +112,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\RavenDB.Client.2.5.2916\lib\net45\Raven.Client.Lightweight.dll</HintPath>
     </Reference>
+    <Reference Include="ServiceControl.Contracts">
+      <HintPath>..\packages\ServiceControl.Contracts.0.1.0\lib\net45\ServiceControl.Contracts.dll</HintPath>
+    </Reference>
     <Reference Include="ServiceControl.Plugin.Nsb4.CustomChecks">
       <HintPath>..\packages\ServiceControl.Plugin.Nsb4.CustomChecks.1.0.0-beta0001\lib\net40\ServiceControl.Plugin.Nsb4.CustomChecks.dll</HintPath>
     </Reference>
@@ -204,10 +207,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Contracts\ServiceControl.Contracts.csproj">
-      <Project>{bcaa370c-58ca-46a7-a034-6cab61c004e1}</Project>
-      <Name>ServiceControl.Contracts</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4c6b71b2-74ef-4b9e-88ff-c56532727c6d}</Project>
       <Name>ServiceControl</Name>
