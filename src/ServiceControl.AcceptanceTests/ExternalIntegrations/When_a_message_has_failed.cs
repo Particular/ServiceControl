@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Security.Cryptography;
     using Contexts;
     using Newtonsoft.Json;
     using NServiceBus;
