@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using System;
     using Contexts;
@@ -12,13 +12,34 @@
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
 
-    public class When_an_event_is_enabled_for_external_integrations : AcceptanceTest
+    public class When_a_message_has_failed : AcceptanceTest
     {
-        const int MessageCount = 100;
 
         [Test]
-        public void Should_be_published_on_the_bus()
+        public void Notification_should_be_published_on_the_bus()
         {
+            var context = new MyContext();
+
+            Scenario.Define(context)
+                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.Given((bus, c) => Subscriptions.OnEndpointSubscribed(s =>
+                {
+                    if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
+                    {
+                        c.ExternalProcessorSubscribed = true;
+                    }
+                })).AppConfig(PathToAppConfig))
+                .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<ServiceControl.Contracts.Failures.MessageFailed>()))
+                .Done(c => c.MessagesDelivered == 1)
+                .Run();
+        }
+
+        [Test]
+        [Explicit]
+        public void Performance_test()
+        {
+            const int MessageCount = 100;
+
             var context = new MyContext();
 
             Scenario.Define(context)
@@ -31,7 +52,6 @@
                 })).AppConfig(PathToAppConfig))
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus =>
                 {
-                    //bus.SendLocal(new MyMessage());
                     for (var i = 0; i < MessageCount; i++)
                     {
                         bus.SendLocal(new MyMessage());
@@ -41,8 +61,7 @@
                 .Done(c => c.LastEventDeliveredAt.HasValue && c.LastEventDeliveredAt.Value.Add(TimeSpan.FromSeconds(10)) < DateTime.Now) //Wait 10 seconds from last event
                 .Run();
 
-            Console.WriteLine("Delivered {0} messages",context.MessagesDelivered);
-            //Assert.AreEqual(context.MessageId, context.MessageIdDeliveredToExternalProcessor);
+            Console.WriteLine("Delivered {0} messages", context.MessagesDelivered);
         }
 
 
