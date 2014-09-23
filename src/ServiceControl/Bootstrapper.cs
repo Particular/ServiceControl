@@ -6,6 +6,7 @@ namespace Particular.ServiceControl
     using System.ServiceProcess;
     using Autofac;
     using Hosting;
+    using global::ServiceControl.ExternalIntegrations;
     using NLog;
     using NLog.Config;
     using NLog.Layouts;
@@ -26,7 +27,7 @@ namespace Particular.ServiceControl
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
             ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
-
+            containerBuilder.RegisterModule(new ExternalIntegrationsModule());
             Container = containerBuilder.Build();
 
             // Disable Auditing for the service control endpoint
