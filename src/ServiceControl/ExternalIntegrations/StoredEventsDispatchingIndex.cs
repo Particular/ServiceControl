@@ -13,6 +13,8 @@
                     c.Dispatched,
                     c.RegistrationDate
                 };
+
+            DisableInMemoryIndexing = true;
         }
     }
 }

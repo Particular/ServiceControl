@@ -12,7 +12,7 @@
 
     public class EventDispatcher : IWantToRunWhenBusStartsAndStops
     {
-        const int BatchSize = 10;
+        const int BatchSize = 100;
         public IDocumentStore DocumentStore { get; set; }
         public IBus Bus { get; set; }
 
@@ -41,6 +41,7 @@
             {
                 var awaitingDispatching = session.Query<StoredEvent, StoredEventsDispatchingIndex>()
                     .Where(x => !x.Dispatched)
+                    .Customize(x => x.WaitForNonStaleResultsAsOfLastWrite())
                     .OrderBy(x => x.RegistrationDate)
                     .Take(BatchSize)
                     .ToList()
