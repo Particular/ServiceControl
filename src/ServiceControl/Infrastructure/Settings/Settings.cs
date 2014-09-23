@@ -142,6 +142,8 @@
             }
         }
 
+        public static int ExternalIntegrationsDispatchingBatchSize = SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
+
         public static string DbPath;
         public static Address ErrorLogQueue;
         public static Address ErrorQueue;

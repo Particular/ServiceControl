@@ -8,10 +8,10 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class EventDispatcher : IWantToRunWhenBusStartsAndStops
     {
-        const int BatchSize = 100;
         public IDocumentStore DocumentStore { get; set; }
         public IBus Bus { get; set; }
         public IEnumerable<IEventPublisher> EventPublishers { get; set; }
@@ -39,7 +39,7 @@
         {
             using (var session = DocumentStore.OpenSession())
             {
-                var awaitingDispatching = session.Query<ExternalIntegrationDispatchRequest>().Take(BatchSize).ToList();
+                var awaitingDispatching = session.Query<ExternalIntegrationDispatchRequest>().Take(Settings.ExternalIntegrationsDispatchingBatchSize).ToList();
                 if (!awaitingDispatching.Any())
                 {
                     if (Logger.IsDebugEnabled)
