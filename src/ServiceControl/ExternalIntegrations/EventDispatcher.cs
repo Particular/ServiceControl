@@ -7,8 +7,8 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
-    using Raven.Client.Linq;
-    using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.MessageFailures;
+    using MessageFailed = ServiceControl.Contracts.MessageFailed;
 
     public class EventDispatcher : IWantToRunWhenBusStartsAndStops
     {
@@ -39,15 +39,7 @@
         {
             using (var session = DocumentStore.OpenSession())
             {
-                var awaitingDispatching = session.Query<StoredEvent, StoredEventsDispatchingIndex>()
-                    .Where(x => !x.Dispatched)
-                    .Customize(x => x.WaitForNonStaleResultsAsOfLastWrite())
-                    .OrderBy(x => x.RegistrationDate)
-                    .Take(BatchSize)
-                    .ToList()
-                    .Where(x => !x.Dispatched) //Because the index might be stale
-                    .ToList();
-
+                var awaitingDispatching = session.Query<MessageFailedDispatchRequest>().Take(BatchSize).ToList();
                 if (!awaitingDispatching.Any())
                 {
                     if (Logger.IsDebugEnabled)
@@ -58,23 +50,16 @@
                     return;
                 }
 
+
                 var failedMessageIds = awaitingDispatching
-                    .Select(x => x.Payload)
-                    .Cast<MessageFailed>()
-                    .Select(x => x.FailedMessageId)
+                    .Select(x => FailedMessage.MakeDocumentId(x.FailedMessageId))
                     .ToArray();
 
                 if (Logger.IsDebugEnabled)
                 {
                     Logger.DebugFormat("Dispatching {0} events.",failedMessageIds.Length);
                 }
-                var newestEtag = awaitingDispatching.Max(x => session.Advanced.GetEtagFor(x));
-
-                var failedMessageData = session.Query<Contracts.MessageFailed, ExternalIntegrationsFailedMessagesIndex>()
-                    .Customize(c => c.WaitForNonStaleResultsAsOf(newestEtag))
-                    .Where(x => x.FailedMessageId.In(failedMessageIds))
-                    .ProjectFromIndexFieldsInto<Contracts.MessageFailed>()
-                    .ToList();
+                var failedMessageData = session.Load<FailedMessage>(failedMessageIds);
 
                 foreach (var messageFailed in failedMessageData)
                 {
@@ -82,16 +67,67 @@
                     {
                         Logger.DebugFormat("Publishing external event on the bus.");
                     }
-                    Bus.Publish(messageFailed);
+                    Bus.Publish(ConvertToEvent(messageFailed));
                 }
 
                 foreach (var dispatchedEvent in awaitingDispatching)
                 {
-                    dispatchedEvent.Dispatched = true;
+                    session.Delete(dispatchedEvent);
                 }
-
                 session.SaveChanges();
             }
+        }
+
+        private static MessageFailed ConvertToEvent(FailedMessage message)
+        {
+            var last = message.ProcessingAttempts.Last();
+            var sendingEndpoint = (Contracts.Operations.EndpointDetails) last.MessageMetadata["SendingEndpoint"];
+            var receivingEndpoint = (Contracts.Operations.EndpointDetails) last.MessageMetadata["ReceivingEndpoint"];
+            return new MessageFailed()
+            {
+                FailedMessageId = message.UniqueMessageId,
+                MessageType = (string) last.MessageMetadata["MessageType"],
+                NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
+                Status = message.Status == FailedMessageStatus.Archived
+                    ? MessageFailed.MessageStatus.ArchivedFailure
+                    : message.ProcessingAttempts.Count == 1
+                        ? MessageFailed.MessageStatus.Failed
+                        : MessageFailed.MessageStatus.RepeatedFailure,
+                ProcessingDetails = new MessageFailed.ProcessingInfo
+                {
+                    SendingEndpoint = new MessageFailed.ProcessingInfo.Endpoint()
+                    {
+                        Host = sendingEndpoint.Host,
+                        HostId = sendingEndpoint.HostId,
+                        Name = sendingEndpoint.Name
+                    },
+                    ProcessingEndpoint = new MessageFailed.ProcessingInfo.Endpoint()
+                    {
+                        Host = receivingEndpoint.Host,
+                        HostId = receivingEndpoint.HostId,
+                        Name = receivingEndpoint.Name
+                    },
+                },
+                MessageDetails = new MessageFailed.Message()
+                {
+                    Headers = last.Headers,
+                    ContentType = (string) last.MessageMetadata["ContentType"],
+                    Body = (string) last.MessageMetadata["Body"],
+                    MessageId = last.MessageId,
+                },
+                FailureDetails = new MessageFailed.FailureInfo
+                {
+                    AddressOfFailingEndpoint = last.FailureDetails.AddressOfFailingEndpoint,
+                    TimeOfFailure = last.FailureDetails.TimeOfFailure,
+                    Exception = new MessageFailed.FailureInfo.ExceptionInfo
+                    {
+                        ExceptionType = last.FailureDetails.Exception.ExceptionType,
+                        Message = last.FailureDetails.Exception.Message,
+                        Source = last.FailureDetails.Exception.Source,
+                        StackTrace = last.FailureDetails.Exception.StackTrace,
+                    },
+                },
+            };
         }
 
         CancellationTokenSource tokenSource;

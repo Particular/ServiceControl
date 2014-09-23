@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.ExternalIntegrations
 {
-    using System;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transports;
@@ -14,21 +13,20 @@
 
         public void Handle(IEvent message)
         {
-            if (!(message is MessageFailed))
+            var messageFailed = message as MessageFailed;
+            if (messageFailed == null)
             {
                 return;
             }
-            var storedEvent = new StoredEvent()
+            var dispatchRequest = new MessageFailedDispatchRequest()
             {
-                Payload = message,
-                Type = message.GetType().FullName,
-                RegistrationDate = DateTime.UtcNow
+                FailedMessageId = messageFailed.FailedMessageId
             };
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug("Storing event for later dispatching");
+                Logger.DebugFormat("Storing dispatch request for failutre {0}",dispatchRequest.FailedMessageId);
             }
-            Session.Store(storedEvent);
+            Session.Store(dispatchRequest);
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(EventMappingHandler));

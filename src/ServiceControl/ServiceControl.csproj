@@ -218,11 +218,10 @@
     <Compile Include="Contracts\Operations\FailureDetails.cs" />
     <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
     <Compile Include="CustomChecks\CustomChecksIndex.cs" />
+    <Compile Include="ExternalIntegrations\MessageFailedDispatchRequest.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
     <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationsFailedMessagesIndex.cs" />
-    <Compile Include="ExternalIntegrations\StoredEvent.cs" />
-    <Compile Include="ExternalIntegrations\StoredEventsDispatchingIndex.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatsStats.cs" />
     <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterPotentiallyMissingHeartbeats.cs" />
     <Compile Include="HeartbeatMonitoring\MonitoringDisabledForEndpointHandler.cs" />
