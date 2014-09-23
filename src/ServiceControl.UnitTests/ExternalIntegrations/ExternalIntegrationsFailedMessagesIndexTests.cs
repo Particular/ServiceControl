@@ -4,112 +4,70 @@
     using System.Collections.Generic;
     using System.Linq;
     using NUnit.Framework;
-    using Raven.Client;
     using ServiceControl.Contracts;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.MessageFailures;
-    using ServiceControl.UnitTests.Infrastructure.RavenDB;
     using ExceptionDetails = ServiceControl.Contracts.Operations.ExceptionDetails;
     using FailureDetails = ServiceControl.Contracts.Operations.FailureDetails;
 
     [TestFixture]
-    public class ExternalIntegrationsFailedMessagesIndexTests : TestWithRavenDB
+    public class ExternalIntegrationsFailedMessagesIndexTests
     {
         [Test]
         public void Archive_status_maps_to_archive()
         {
-            using (var session = documentStore.OpenSession())
-            {
-                var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Archived)
-                    .AddProcessingAttempt(pa => { })
-                    .Build();
-                session.Store(failedMessage);
-                session.SaveChanges();
-            }
+            var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Archived)
+                .AddProcessingAttempt(pa => { })
+                .Build();
 
-            var result = WaitForIndexingAndReadFirst();
+            var result = failedMessage.ToEvent();
+
             Assert.AreEqual(MessageFailed.MessageStatus.ArchivedFailure, result.Status);
         }
 
         [Test]
         public void Unresolved_failure_is_not_considered_repeated_if_it_has_only_one_processing_attempt()
         {
-            using (var session = documentStore.OpenSession())
-            {
-                var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Unresolved)
-                    .AddProcessingAttempt(pa => { })
-                    .Build();
-                session.Store(failedMessage);
-                session.SaveChanges();
-            }
+            var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Unresolved)
+                .AddProcessingAttempt(pa => { })
+                .Build();
 
-            var result = WaitForIndexingAndReadFirst();
+            var result = failedMessage.ToEvent();
             Assert.AreEqual(MessageFailed.MessageStatus.Failed, result.Status);
         }
 
         [Test]
         public void Unresolved_failure_is_considered_repeated_if_it_has_more_than_one_processing_attempt()
         {
-            using (var session = documentStore.OpenSession())
-            {
-                var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Unresolved)
-                    .AddProcessingAttempt(pa => { })
-                    .AddProcessingAttempt(pa => { })
-                    .Build();
+            var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Unresolved)
+                .AddProcessingAttempt(pa => { })
+                .AddProcessingAttempt(pa => { })
+                .Build();
 
-                session.Store(failedMessage);
-                session.SaveChanges();
-            }
-
-            var result = WaitForIndexingAndReadFirst();
+            var result = failedMessage.ToEvent();
             Assert.AreEqual(MessageFailed.MessageStatus.RepeatedFailure, result.Status);
         }
 
         [Test]
         public void If_not_present_in_metadata_body_is_ignored()
         {
-            using (var session = documentStore.OpenSession())
-            {
-                var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Unresolved)
-                    .AddProcessingAttempt(pa => { })
-                    .Build();
+            var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Unresolved)
+                .AddProcessingAttempt(pa => { })
+                .Build();
 
-                session.Store(failedMessage);
-                session.SaveChanges();
-            }
-
-            var result = WaitForIndexingAndReadFirst();
+            var result = failedMessage.ToEvent();
             Assert.IsNull(result.MessageDetails.Body);
         }
 
         [Test]
         public void Body_is_mapped_from_metadata_of_last_processing_attempt()
         {
-            using (var session = documentStore.OpenSession())
-            {
-                var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Unresolved)
-                    .AddProcessingAttempt(pa => { pa.MessageMetadata["Body"] = "Beautiful Body"; })
-                    .Build();
-                session.Store(failedMessage);
-                session.SaveChanges();
-            }
+            var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Unresolved)
+                .AddProcessingAttempt(pa => { pa.MessageMetadata["Body"] = "Beautiful Body"; })
+                .Build();
 
-            var result = WaitForIndexingAndReadFirst();
+            var result = failedMessage.ToEvent();
             Assert.AreEqual("Beautiful Body", result.MessageDetails.Body);
-        }
-
-        MessageFailed WaitForIndexingAndReadFirst()
-        {
-            WaitForIndexing(documentStore);
-            MessageFailed result;
-            using (var session = documentStore.OpenSession())
-            {
-                result = session.Query<MessageFailed, ExternalIntegrationsFailedMessagesIndex>()
-                    .Customize(c => c.WaitForNonStaleResults())
-                    .ProjectFromIndexFieldsInto<MessageFailed>()
-                    .Single();
-            }
-            return result;
         }
 
         private class FailedMessageBuilder
@@ -143,8 +101,10 @@
                             MessageMetadata = new Dictionary<string, object>()
                             {
                                 {"SendingEndpoint",new Contracts.Operations.EndpointDetails()},
-                                {"ReceivingEndpoint",new Contracts.Operations.EndpointDetails()}
-                            }
+                                {"ReceivingEndpoint",new Contracts.Operations.EndpointDetails()},
+                                {"MessageType","SomeMessage"},
+                                {"ContentType","application/json"},
+                            },
                         };
                         x(attempt);
                         return attempt;
@@ -153,22 +113,5 @@
                 };
             }
         }
-
-        [SetUp]
-        public void SetUp()
-        {
-            documentStore = InMemoryStoreBuilder.GetInMemoryStore();
-
-            var customIndex = new ExternalIntegrationsFailedMessagesIndex();
-            customIndex.Execute(documentStore);
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            documentStore.Dispose();
-        }
-
-        IDocumentStore documentStore;
     }
 }

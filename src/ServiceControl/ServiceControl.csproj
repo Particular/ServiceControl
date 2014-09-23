@@ -222,9 +222,9 @@
     <Compile Include="ExternalIntegrations\ExternalIntegrationDispatchRequest.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
     <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
-    <Compile Include="ExternalIntegrations\ExternalIntegrationsFailedMessagesIndex.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationsModule.cs" />
     <Compile Include="ExternalIntegrations\IEventPublisher.cs" />
+    <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatsStats.cs" />
     <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterPotentiallyMissingHeartbeats.cs" />
