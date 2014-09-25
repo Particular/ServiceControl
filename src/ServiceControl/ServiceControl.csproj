@@ -223,7 +223,7 @@
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
     <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationsModule.cs" />
-    <Compile Include="ExternalIntegrations\HeartbeatStoppedPublisher - Copy.cs" />
+    <Compile Include="ExternalIntegrations\HeartbeatRestoredPublisher.cs" />
     <Compile Include="ExternalIntegrations\HeartbeatStoppedPublisher.cs" />
     <Compile Include="ExternalIntegrations\IEventPublisher.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />

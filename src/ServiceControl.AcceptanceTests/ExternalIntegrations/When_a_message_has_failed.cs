@@ -14,6 +14,7 @@
     using NUnit.Framework;
     using ServiceControl.Contracts;
 
+    [TestFixture]
     public class When_a_message_has_failed : AcceptanceTest
     {
 
@@ -31,7 +32,7 @@
                     }
                 })).AppConfig(PathToAppConfig))
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })))
-                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<MessageFailed>()))
+                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<HeartbeatStopped>()))
                 .Done(c => c.EventsDelivered.Count >= 1)
                 .Run();
 
@@ -152,14 +153,6 @@
                     config.MessageEndpointMappings.Add(serviceControlMapping);
                     return config;
                 }
-            }
-        }
-
-        public class JSonServer : DefaultServer
-        {
-            public override void SetSerializer(Configure configure)
-            {
-                Configure.Serialization.Json();
             }
         }
 
