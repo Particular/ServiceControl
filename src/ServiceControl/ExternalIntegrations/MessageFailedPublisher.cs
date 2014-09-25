@@ -7,24 +7,24 @@ namespace ServiceControl.ExternalIntegrations
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.MessageFailures;
 
-    public class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.Reference>
+    public class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
     {
-        protected override Reference CreateReference(MessageFailed evnt)
+        protected override DispatchContext CreateDispatchRequest(MessageFailed evnt)
         {
-            return new Reference
+            return new DispatchContext
             {
                 FailedMessageId = new Guid(evnt.FailedMessageId)
             };
         }
 
-        protected override IEnumerable<object> PublishEvents(IEnumerable<Reference> references, IDocumentSession session)
+        protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
         {
-            var documentIds = references.Select(x => x.FailedMessageId).Cast<ValueType>().ToArray();
+            var documentIds = contexts.Select(x => x.FailedMessageId).Cast<ValueType>().ToArray();
             var failedMessageData = session.Load<FailedMessage>(documentIds);
             return failedMessageData.Select(x => x.ToEvent());
         }
 
-        public class Reference
+        public class DispatchContext
         {
             public Guid FailedMessageId { get; set; }
         }

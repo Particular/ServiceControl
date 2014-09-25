@@ -5,7 +5,7 @@ namespace ServiceControl.ExternalIntegrations
     using NServiceBus;
     using Raven.Client;
 
-    public abstract class EventPublisher<TEvent, TReference> :IEventPublisher
+    public abstract class EventPublisher<TEvent, TDispatchContext> :IEventPublisher
         where TEvent : IEvent
     {
         public bool Handles(IEvent evnt)
@@ -13,18 +13,18 @@ namespace ServiceControl.ExternalIntegrations
             return evnt is TEvent;
         }
 
-        public object CreateReference(IEvent evnt)
+        public object CreateDispatchContext(IEvent evnt)
         {
-            return CreateReference((TEvent) evnt);
+            return CreateDispatchRequest((TEvent) evnt);
         }
 
-        protected abstract TReference CreateReference(TEvent evnt);
+        protected abstract TDispatchContext CreateDispatchRequest(TEvent evnt);
 
-        public IEnumerable<object> PublishEventsForOwnReferences(IEnumerable<object> allReferences, IDocumentSession session)
+        public IEnumerable<object> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IDocumentSession session)
         {
-            return PublishEvents(allReferences.OfType<TReference>(), session);
+            return PublishEvents(allContexts.OfType<TDispatchContext>(), session);
         }
 
-        protected abstract IEnumerable<object> PublishEvents(IEnumerable<TReference> references, IDocumentSession session);
+        protected abstract IEnumerable<object> PublishEvents(IEnumerable<TDispatchContext> contexts, IDocumentSession session);
     }
 }
