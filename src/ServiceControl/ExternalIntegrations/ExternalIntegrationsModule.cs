@@ -9,6 +9,7 @@ namespace ServiceControl.ExternalIntegrations
             base.Load(builder);
             builder.RegisterType<MessageFailedPublisher>().AsImplementedInterfaces();
             builder.RegisterType<HeartbeatStoppedPublisher>().AsImplementedInterfaces();
+            builder.RegisterType<HeartbeatRestoredPublisher>().AsImplementedInterfaces();
         }
     }
 }

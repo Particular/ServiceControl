@@ -40,8 +40,8 @@
             Assert.AreEqual("Faulty message", deserializedEvent.FailureDetails.Exception.Message);
             //These are important so check it they are set
             Assert.IsNotNull(deserializedEvent.MessageDetails.MessageId);
-            Assert.IsNotNull(deserializedEvent.ProcessingDetails.SendingEndpoint.Name);
-            Assert.IsNotNull(deserializedEvent.ProcessingDetails.ProcessingEndpoint.Name);
+            Assert.IsNotNull(deserializedEvent.SendingEndpoint.Name);
+            Assert.IsNotNull(deserializedEvent.ProcessingEndpoint.Name);
         }
 
         [Test]

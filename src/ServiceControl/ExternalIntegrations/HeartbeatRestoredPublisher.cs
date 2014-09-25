@@ -7,26 +7,24 @@ namespace ServiceControl.ExternalIntegrations
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
 
-    public class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat, HeartbeatStoppedPublisher.DispatchContext>
+    public class HeartbeatRestoredPublisher : EventPublisher<EndpointHeartbeatRestored, HeartbeatRestoredPublisher.DispatchContext>
     {
-        protected override DispatchContext CreateDispatchRequest(EndpointFailedToHeartbeat evnt)
+        protected override DispatchContext CreateDispatchRequest(EndpointHeartbeatRestored evnt)
         {
             return new DispatchContext
             {
                 EndpointHost = evnt.Endpoint.Host,
                 EndpointHostId = evnt.Endpoint.HostId,
                 EndpointName = evnt.Endpoint.Name,
-                DetectedAt = evnt.DetectedAt,
-                LastReceivedAt = evnt.LastReceivedAt
+                RestoredAt = evnt.RestoredAt,
             };
         }
 
         protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
         {
-            return contexts.Select(r => new HeartbeatStopped
+            return contexts.Select(r => new HeartbeatRestored()
             {
-                DetectedAt = r.DetectedAt,
-                LastReceivedAt = r.LastReceivedAt,
+                RestoredAt = r.RestoredAt,
                 Host = r.EndpointHost,
                 HostId = r.EndpointHostId,
                 EndpointName = r.EndpointName
@@ -38,8 +36,7 @@ namespace ServiceControl.ExternalIntegrations
             public string EndpointName { get; set; }
             public Guid EndpointHostId { get; set; }
             public string EndpointHost { get; set; }
-            public DateTime LastReceivedAt { get; set; }
-            public DateTime DetectedAt { get; set; }
+            public DateTime RestoredAt { get; set; }
         }
     }
 }
