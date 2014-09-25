@@ -27,7 +27,6 @@ namespace Particular.ServiceControl
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
             ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
-            containerBuilder.RegisterModule(new ExternalIntegrationsModule());
             Container = containerBuilder.Build();
 
             // Disable Auditing for the service control endpoint
