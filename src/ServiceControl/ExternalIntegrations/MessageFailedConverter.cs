@@ -20,20 +20,17 @@ namespace ServiceControl.ExternalIntegrations
                     : message.ProcessingAttempts.Count == 1
                         ? Contracts.MessageFailed.MessageStatus.Failed
                         : Contracts.MessageFailed.MessageStatus.RepeatedFailure,
-                ProcessingDetails = new Contracts.MessageFailed.ProcessingInfo
+                SendingEndpoint = new Contracts.MessageFailed.Endpoint()
                 {
-                    SendingEndpoint = new Contracts.MessageFailed.ProcessingInfo.Endpoint()
-                    {
-                        Host = sendingEndpoint.Host,
-                        HostId = sendingEndpoint.HostId,
-                        Name = sendingEndpoint.Name
-                    },
-                    ProcessingEndpoint = new Contracts.MessageFailed.ProcessingInfo.Endpoint()
-                    {
-                        Host = receivingEndpoint.Host,
-                        HostId = receivingEndpoint.HostId,
-                        Name = receivingEndpoint.Name
-                    },
+                    Host = sendingEndpoint.Host,
+                    HostId = sendingEndpoint.HostId,
+                    Name = sendingEndpoint.Name
+                },
+                ProcessingEndpoint = new Contracts.MessageFailed.Endpoint()
+                {
+                    Host = receivingEndpoint.Host,
+                    HostId = receivingEndpoint.HostId,
+                    Name = receivingEndpoint.Name
                 },
                 MessageDetails = new Contracts.MessageFailed.Message()
                 {
@@ -62,7 +59,7 @@ namespace ServiceControl.ExternalIntegrations
             object body;
             if (last.MessageMetadata.TryGetValue("Body", out body))
             {
-                return (string) body;
+                return (string)body;
             }
             return null;
         }
