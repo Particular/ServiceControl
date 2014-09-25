@@ -7,11 +7,11 @@ namespace ServiceControl.ExternalIntegrations
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
 
-    public class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat,HeartbeatStoppedPublisher.Reference>
+    public class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat,HeartbeatStoppedPublisher.DispatchContext>
     {
-        protected override Reference CreateReference(EndpointFailedToHeartbeat evnt)
+        protected override DispatchContext CreateDispatchRequest(EndpointFailedToHeartbeat evnt)
         {
-            return new Reference
+            return new DispatchContext
             {
                 EndpointHost = evnt.Endpoint.Host,
                 EndpointHostId = evnt.Endpoint.HostId,
@@ -21,9 +21,9 @@ namespace ServiceControl.ExternalIntegrations
             };
         }
 
-        protected override IEnumerable<object> PublishEvents(IEnumerable<Reference> references, IDocumentSession session)
+        protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
         {
-            return references.Select(r => new HeartbeatStopped
+            return contexts.Select(r => new HeartbeatStopped
             {
                 DetectedAt = r.DetectedAt,
                 LastReceivedAt = r.LastReceivedAt,
@@ -36,7 +36,7 @@ namespace ServiceControl.ExternalIntegrations
             });
         }
 
-        public class Reference
+        public class DispatchContext
         {
             public string EndpointName { get; set; }
             public Guid EndpointHostId { get; set; }

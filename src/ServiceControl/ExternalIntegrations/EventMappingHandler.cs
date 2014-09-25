@@ -15,11 +15,11 @@
 
         public void Handle(IEvent message)
         {
-            var references = EventPublishers
+            var dispatchContexts = EventPublishers
                 .Where(p => p.Handles(message))
-                .Select(p => p.CreateReference(message));
+                .Select(p => p.CreateDispatchContext(message));
 
-            foreach (var reference in references)
+            foreach (var dispatchContext in dispatchContexts)
             {
                 if (Logger.IsDebugEnabled)
                 {
@@ -27,7 +27,7 @@
                 }
                 var dispatchRequest = new ExternalIntegrationDispatchRequest()
                 {
-                    Reference = reference
+                    DispatchContext = dispatchContext
                 };
                 Session.Store(dispatchRequest);    
             }

@@ -7,7 +7,8 @@ namespace ServiceControl.ExternalIntegrations
     public interface IEventPublisher
     {
         bool Handles(IEvent evnt);
-        object CreateReference(IEvent evnt);
-        IEnumerable<object> PublishEventsForOwnReferences(IEnumerable<object> allReferences, IDocumentSession session);
+        object CreateDispatchContext(IEvent evnt);
+
+        IEnumerable<object> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IDocumentSession session);
     }
 }

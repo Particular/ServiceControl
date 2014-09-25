@@ -50,12 +50,12 @@
                     return;
                 }
 
-                var allReferences = awaitingDispatching.Select(r => r.Reference).ToArray();
+                var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
                 if (Logger.IsDebugEnabled)
                 {
-                    Logger.DebugFormat("Dispatching {0} events.", allReferences.Length);
+                    Logger.DebugFormat("Dispatching {0} events.", allContexts.Length);
                 }
-                var eventsToBePublished = EventPublishers.SelectMany(p => p.PublishEventsForOwnReferences(allReferences, session));
+                var eventsToBePublished = EventPublishers.SelectMany(p => p.PublishEventsForOwnContexts(allContexts, session));
 
                 foreach (var evnt in eventsToBePublished)
                 {
