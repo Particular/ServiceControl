@@ -22,8 +22,6 @@
             {
                 var model = new RootUrls
                 {
-                    AuditUrl = BaseUrl + "/audit/{?page,per_page,direction,sort}",
-                    EndpointsAuditUrl = BaseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
                     EndpointsUrl = BaseUrl + "/endpoints",
                     SagasUrl = BaseUrl + "/sagas",
                     ErrorsUrl = BaseUrl + "/errors/{?page,per_page,direction,sort}",
@@ -53,6 +51,7 @@
                                       WindowsService = Settings.ServiceName,
                                       LogfilePath = Path.Combine(Settings.LogPath, "logfile.txt"),
                                       Settings.TransportType,
+                                      RavenDBPath = Settings.DbPath
                                   })
                     .WithHeader("ETag", CurrentEtag)
                     .WithHeader("Last-Modified", CurrentLastModified);
@@ -65,9 +64,7 @@
 
         public class RootUrls
         {
-            public string AuditUrl { get; set; } 
             public string Description { get; set; }
-            public string EndpointsAuditUrl { get; set; } 
             public string EndpointsErrorUrl { get; set; }
             public string EndpointsMessageSearchUrl { get; set; }
             public string EndpointsMessagesUrl { get; set; }
