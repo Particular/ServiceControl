@@ -6,6 +6,7 @@ namespace Particular.ServiceControl
     using System.ServiceProcess;
     using Autofac;
     using Hosting;
+    using global::ServiceControl.ExternalIntegrations;
     using NLog;
     using NLog.Config;
     using NLog.Layouts;
@@ -26,7 +27,6 @@ namespace Particular.ServiceControl
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
             ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
-
             Container = containerBuilder.Build();
 
             // Disable Auditing for the service control endpoint
@@ -43,6 +43,7 @@ namespace Particular.ServiceControl
             var transportType = Type.GetType(Settings.TransportType);
             bus = Configure
                 .With(AllAssemblies.Except("ServiceControl.Plugin"))
+                .DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t))
                 .DefineEndpointName(Settings.ServiceName)
                 .AutofacBuilder(Container)
                 .UseTransport(transportType)
@@ -56,6 +57,11 @@ namespace Particular.ServiceControl
                 })
                 .UnicastBus()
                 .CreateBus();
+        }
+
+        static bool IsExternalContract(Type t)
+        {
+            return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts");
         }
 
         public void Start()

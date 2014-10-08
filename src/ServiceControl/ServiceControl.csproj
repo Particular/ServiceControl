@@ -102,11 +102,13 @@
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.2.0.1.2\lib\net45\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus">
-      <HintPath>..\packages\NServiceBus.Interfaces.4.6.1\lib\net40\NServiceBus.dll</HintPath>
+    <Reference Include="NServiceBus, Version=4.6.5.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NServiceBus.Interfaces.4.6.5\lib\net40\NServiceBus.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus.Core">
-      <HintPath>..\packages\NServiceBus.4.6.1\lib\net40\NServiceBus.Core.dll</HintPath>
+    <Reference Include="NServiceBus.Core, Version=4.6.5.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NServiceBus.4.6.5\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.ObjectBuilder.Autofac">
       <HintPath>..\packages\NServiceBus.Autofac.4.6.1\lib\net40\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
@@ -128,6 +130,10 @@
     </Reference>
     <Reference Include="Raven.Database">
       <HintPath>..\packages\RavenDB.Database.2.5.2916\lib\net45\Raven.Database.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceControl.Contracts, Version=0.1.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ServiceControl.Contracts.0.1.3\lib\net45\ServiceControl.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -199,6 +205,7 @@
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatStatusChanged.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
+    <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
@@ -207,8 +214,20 @@
     <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointDetails.cs" />
     <Compile Include="Contracts\EndpointControl\MonitoringDisabledForEndpoint.cs" />
+    <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
+    <Compile Include="Contracts\Operations\FailureDetails.cs" />
     <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
     <Compile Include="CustomChecks\CustomChecksIndex.cs" />
+    <Compile Include="ExternalIntegrations\EventPublisher.cs" />
+    <Compile Include="ExternalIntegrations\ExternalIntegrationDispatchRequest.cs" />
+    <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
+    <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
+    <Compile Include="ExternalIntegrations\ExternalIntegrationsInitializer.cs" />
+    <Compile Include="ExternalIntegrations\HeartbeatRestoredPublisher.cs" />
+    <Compile Include="ExternalIntegrations\HeartbeatStoppedPublisher.cs" />
+    <Compile Include="ExternalIntegrations\IEventPublisher.cs" />
+    <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
+    <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatsStats.cs" />
     <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterPotentiallyMissingHeartbeats.cs" />
     <Compile Include="HeartbeatMonitoring\MonitoringDisabledForEndpointHandler.cs" />
@@ -402,12 +421,6 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Contracts\ServiceControl.Contracts.csproj">
-      <Project>{bcaa370c-58ca-46a7-a034-6cab61c004e1}</Project>
-      <Name>ServiceControl.Contracts</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Hosting\Help.txt" />

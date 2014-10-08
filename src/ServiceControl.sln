@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl", "ServiceControl\ServiceControl.csproj", "{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTests", "ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Contracts", "ServiceControl.Contracts\ServiceControl.Contracts.csproj", "{BCAA370C-58CA-46A7-A034-6CAB61C004E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chocolatey", "Chocolatey\Chocolatey.csproj", "{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}"
 EndProject
@@ -35,10 +33,6 @@ Global
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BCAA370C-58CA-46A7-A034-6CAB61C004E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BCAA370C-58CA-46A7-A034-6CAB61C004E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BCAA370C-58CA-46A7-A034-6CAB61C004E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BCAA370C-58CA-46A7-A034-6CAB61C004E1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Release|Any CPU.ActiveCfg = Release|Any CPU

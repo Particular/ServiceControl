@@ -7,6 +7,11 @@
 
     public class FailedMessage
     {
+        public static string MakeDocumentId(string messageUniqueId)
+        {
+            return "FailedMessages/" + messageUniqueId;
+        }
+
         public FailedMessage()
         {
             ProcessingAttempts = new List<ProcessingAttempt>();
