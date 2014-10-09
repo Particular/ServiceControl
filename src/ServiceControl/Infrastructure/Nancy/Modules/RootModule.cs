@@ -7,15 +7,6 @@
 
     public class RootModule : BaseModule
     {
-        static RootModule()
-        {
-            var fileInfo = new FileInfo(typeof(RootModule).Assembly.Location);
-            var lastWriteTimeUtc = fileInfo.LastWriteTimeUtc;
-
-            CurrentEtag = string.Concat("\"", lastWriteTimeUtc.Ticks.ToString("x"), "\"");
-            CurrentLastModified = lastWriteTimeUtc.ToString("R");
-        }
-
         public RootModule()
         {
             Get["/"] = parameters =>
@@ -40,9 +31,7 @@
                 };
 
                 return Negotiate
-                    .WithModel(model)
-                    .WithHeader("ETag", CurrentEtag)
-                    .WithHeader("Last-Modified", CurrentLastModified);
+                    .WithModel(model);
             };
 
             Get["/instance-info"] = p => Negotiate
@@ -52,15 +41,10 @@
                                       LogfilePath = Path.Combine(Settings.LogPath, "logfile.txt"),
                                       Settings.TransportType,
                                       RavenDBPath = Settings.DbPath
-                                  })
-                    .WithHeader("ETag", CurrentEtag)
-                    .WithHeader("Last-Modified", CurrentLastModified);
+                                  });
         }
 
         public ActiveLicense License { get; set; }
-
-        static readonly string CurrentEtag;
-        static readonly string CurrentLastModified;
 
         public class RootUrls
         {
