@@ -112,21 +112,25 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\RavenDB.Client.2.5.2916\lib\net45\Raven.Client.Lightweight.dll</HintPath>
     </Reference>
-    <Reference Include="ServiceControl.Contracts, Version=0.1.3.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ServiceControl.Contracts, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\ServiceControl.Contracts.0.1.3\lib\net45\ServiceControl.Contracts.dll</HintPath>
+      <HintPath>..\packages\ServiceControl.Contracts.1.0.0\lib\net45\ServiceControl.Contracts.dll</HintPath>
     </Reference>
-    <Reference Include="ServiceControl.Plugin.Nsb4.CustomChecks">
-      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.CustomChecks.1.0.0-beta0001\lib\net40\ServiceControl.Plugin.Nsb4.CustomChecks.dll</HintPath>
+    <Reference Include="ServiceControl.Plugin.Nsb4.CustomChecks, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.CustomChecks.1.0.0\lib\net40\ServiceControl.Plugin.Nsb4.CustomChecks.dll</HintPath>
     </Reference>
-    <Reference Include="ServiceControl.Plugin.Nsb4.DebugSession">
-      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.DebugSession.1.0.0-beta0001\lib\net40\ServiceControl.Plugin.Nsb4.DebugSession.dll</HintPath>
+    <Reference Include="ServiceControl.Plugin.Nsb4.DebugSession, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.DebugSession.1.0.0\lib\net40\ServiceControl.Plugin.Nsb4.DebugSession.dll</HintPath>
     </Reference>
-    <Reference Include="ServiceControl.Plugin.Nsb4.Heartbeat">
-      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.Heartbeat.1.0.0-beta0001\lib\net40\ServiceControl.Plugin.Nsb4.Heartbeat.dll</HintPath>
+    <Reference Include="ServiceControl.Plugin.Nsb4.Heartbeat, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.Heartbeat.1.0.0\lib\net40\ServiceControl.Plugin.Nsb4.Heartbeat.dll</HintPath>
     </Reference>
-    <Reference Include="ServiceControl.Plugin.Nsb4.SagaAudit">
-      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.SagaAudit.1.0.0-beta0001\lib\net40\ServiceControl.Plugin.Nsb4.SagaAudit.dll</HintPath>
+    <Reference Include="ServiceControl.Plugin.Nsb4.SagaAudit, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ServiceControl.Plugin.Nsb4.SagaAudit.1.0.0\lib\net40\ServiceControl.Plugin.Nsb4.SagaAudit.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
