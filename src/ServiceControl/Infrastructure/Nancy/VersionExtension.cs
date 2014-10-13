@@ -18,15 +18,14 @@
 
         static string GetFileVersion()
         {
-            var customAttributes =
-                typeof(VersionExtension).Assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute),
+            var customAttributes = typeof(VersionExtension).Assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute),
                     false);
 
             if (customAttributes.Length >= 1)
             {
                 var fileVersionAttribute = (AssemblyInformationalVersionAttribute) customAttributes[0];
                 var informationalVersion = fileVersionAttribute.InformationalVersion;
-                return informationalVersion.Split(' ')[0];
+                return informationalVersion.Split('+')[0];
             }
 
             return typeof(VersionExtension).Assembly.GetName().Version.ToString(4);
