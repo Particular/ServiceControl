@@ -28,7 +28,7 @@
 
             if (string.IsNullOrEmpty(licenseText))
             {
-                Logger.InfoFormat("No valid license could be found, falling back to trial license");
+                Logger.Warn("No valid license could be found, falling back to trial license");
 
                 activeLicense.Details = License.TrialLicense(TrialStartDateStore.GetTrialStartDate());
             }
@@ -38,7 +38,7 @@
 
                 if (!LicenseVerifier.TryVerify(licenseText, out validationFailure))
                 {
-                    Logger.InfoFormat("Found license was not valid: {0}", validationFailure);
+                    Logger.WarnFormat("Found license was not valid: {0}", validationFailure);
                     return activeLicense;
                 }
 
@@ -47,7 +47,7 @@
 
                 if (!licenseDetails.ValidForApplication("ServiceControl"))
                 {
-                    Logger.InfoFormat("Found license was is not valid for ServiceControl. Valid apps: '{0}'", string.Join(",", licenseDetails.ValidApplications));
+                    Logger.WarnFormat("Found license was is not valid for ServiceControl. Valid apps: '{0}'", string.Join(",", licenseDetails.ValidApplications));
                     return activeLicense;
                 }
 
@@ -58,7 +58,7 @@
 
             if (activeLicense.HasExpired)
             {
-                Logger.InfoFormat("Found license has expired");
+                Logger.WarnFormat("Found license has expired");
             }
             else
             {
@@ -70,7 +70,7 @@
 
         static string TryFindLicense()
         {
-            //look for a license file in /bin/license/license.exml
+            //look for a license file in /bin/license/license.xml
             var localLicenseFileInLicenseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"License", @"License.xml");
             if (File.Exists(localLicenseFileInLicenseDir))
             {

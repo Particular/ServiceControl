@@ -7,23 +7,12 @@
 
     public class RootModule : BaseModule
     {
-        static RootModule()
-        {
-            var fileInfo = new FileInfo(typeof(RootModule).Assembly.Location);
-            var lastWriteTimeUtc = fileInfo.LastWriteTimeUtc;
-
-            CurrentEtag = string.Concat("\"", lastWriteTimeUtc.Ticks.ToString("x"), "\"");
-            CurrentLastModified = lastWriteTimeUtc.ToString("R");
-        }
-
         public RootModule()
         {
             Get["/"] = parameters =>
             {
                 var model = new RootUrls
                 {
-                    AuditUrl = BaseUrl + "/audit/{?page,per_page,direction,sort}",
-                    EndpointsAuditUrl = BaseUrl + "/endpoints/{name}/audit/{?page,per_page,direction,sort}",
                     EndpointsUrl = BaseUrl + "/endpoints",
                     SagasUrl = BaseUrl + "/sagas",
                     ErrorsUrl = BaseUrl + "/errors/{?page,per_page,direction,sort}",
@@ -42,9 +31,7 @@
                 };
 
                 return Negotiate
-                    .WithModel(model)
-                    .WithHeader("ETag", CurrentEtag)
-                    .WithHeader("Last-Modified", CurrentLastModified);
+                    .WithModel(model);
             };
 
             Get["/instance-info"] = p => Negotiate
@@ -53,21 +40,15 @@
                                       WindowsService = Settings.ServiceName,
                                       LogfilePath = Path.Combine(Settings.LogPath, "logfile.txt"),
                                       Settings.TransportType,
-                                  })
-                    .WithHeader("ETag", CurrentEtag)
-                    .WithHeader("Last-Modified", CurrentLastModified);
+                                      RavenDBPath = Settings.DbPath
+                                  });
         }
 
         public ActiveLicense License { get; set; }
 
-        static readonly string CurrentEtag;
-        static readonly string CurrentLastModified;
-
         public class RootUrls
         {
-            public string AuditUrl { get; set; } 
             public string Description { get; set; }
-            public string EndpointsAuditUrl { get; set; } 
             public string EndpointsErrorUrl { get; set; }
             public string EndpointsMessageSearchUrl { get; set; }
             public string EndpointsMessagesUrl { get; set; }

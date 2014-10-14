@@ -31,6 +31,11 @@
             
         }
 
+        public virtual void SetSerializer(Configure configure)
+        {
+            //NOOP Default is XML serializer
+        }
+
         public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration,
             IConfigurationSource configSource)
         {
@@ -47,10 +52,14 @@
             AddMoreConfig();
 
             var config = Configure.With(types)
+                .DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t))
                 .DefineEndpointName(endpointConfiguration.EndpointName)
                 .CustomConfigurationSource(configSource)
-                .DefineBuilder(settings.GetOrNull("Builder"))
-                .DefineSerializer(settings.GetOrNull("Serializer"))
+                .DefineBuilder(settings.GetOrNull("Builder"));
+
+            SetSerializer(config);
+
+            config
                 .DefineTransport(transportToUse)
                 .InMemorySagaPersister();
 
@@ -70,6 +79,12 @@
 
             return config.UnicastBus();
         }
+
+        static bool IsExternalContract(Type t)
+        {
+            return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts");
+        }
+
 
         static void SetupLogging(EndpointConfiguration endpointConfiguration)
         {

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using Contexts;
     using NServiceBus;
@@ -11,6 +12,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.EventLog;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -21,7 +23,7 @@
         {
             FailedMessage failure = null;
             MessagesView message = null;
-
+            List<EventLogItem> eventLogItems = null;
 
             var context = new MyContext();
 
@@ -36,8 +38,8 @@
                     }
                     if (failure.Status == FailedMessageStatus.Resolved)
                     {
-                        return TryGetSingle("/api/messages", out message,
-                            m => m.Status == MessageStatus.ResolvedSuccessfully);
+                        return TryGetSingle("/api/messages", out message, m => m.Status == MessageStatus.ResolvedSuccessfully)
+                            && TryGetMany("/api/eventlogitems", out eventLogItems);
                     }
 
                     IssueRetry(c, () => Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId)));
@@ -49,9 +51,9 @@
             Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
             Assert.AreEqual(failure.UniqueMessageId, message.Id);
             Assert.AreEqual(MessageStatus.ResolvedSuccessfully, message.Status);
+            Assert.AreEqual("Failed message ServiceBus.Management.AcceptanceTests.When_a_retry_for_a_failed_message_is_successful+MyMessage resolved by retry", eventLogItems.Last().Description);
+
         }
-
-
 
         [Test]
         public void Should_show_up_as_resolved_when_doing_a_multi_retry()

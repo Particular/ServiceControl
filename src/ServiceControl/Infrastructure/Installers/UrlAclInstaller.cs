@@ -11,6 +11,7 @@
     
     public class UrlAclInstaller : INeedToInstallSomething<Windows>
     {
+// ReSharper disable once RedundantAssignment
         public void Install(string identity)
         {
             // Ignore identity and set URL ACL to localized 'Builtin\Users'

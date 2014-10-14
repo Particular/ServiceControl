@@ -1,6 +1,7 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
+    using System.Linq;
     using CompositeViews.Endpoints;
     using EndpointControl;
     using NServiceBus;
@@ -50,7 +51,7 @@ namespace ServiceControl.HeartbeatMonitoring
                     .Customize(customization)
                     .Lazily(endpoints =>
                     {
-                        foreach (var knownEndpoint in endpoints)
+                        foreach (var knownEndpoint in endpoints.Where(p => p.Monitored))
                         {
                             statusProvider.RegisterNewEndpoint(knownEndpoint.EndpointDetails);
                         }

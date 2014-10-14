@@ -17,6 +17,7 @@
         public void Handle(ImportFailedMessage message)
         {
             Data.FailedMessageId = message.UniqueMessageId;
+            Data.FailedMessageType = (string)message.Metadata["MessageType"];
 
             var timeOfFailure = message.FailureDetails.TimeOfFailure;
 
@@ -93,7 +94,11 @@
         {
             MarkAsComplete();
 
-            Bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = Data.FailedMessageId);
+            Bus.Publish<MessageFailureResolvedByRetry>(m =>
+                {
+                    m.FailedMessageId = Data.FailedMessageId;
+                    m.FailedMessageType = Data.FailedMessageType;
+                });
         }
 
         public class FailedMessagePolicyData : ContainSagaData
@@ -106,6 +111,7 @@
 
             [Unique]
             public string FailedMessageId { get; set; }
+            public string FailedMessageType { get; set; }
 
             public List<FailedProcessingAttempt> ProcessingAttempts { get; set; }
 
