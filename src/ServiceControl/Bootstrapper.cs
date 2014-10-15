@@ -6,7 +6,6 @@ namespace Particular.ServiceControl
     using System.ServiceProcess;
     using Autofac;
     using Hosting;
-    using global::ServiceControl.ExternalIntegrations;
     using NLog;
     using NLog.Config;
     using NLog.Layouts;

@@ -25,7 +25,7 @@
                 {
                     Logger.DebugFormat("Storing dispatch request.");
                 }
-                var dispatchRequest = new ExternalIntegrationDispatchRequest()
+                var dispatchRequest = new ExternalIntegrationDispatchRequest
                 {
                     DispatchContext = dispatchContext
                 };

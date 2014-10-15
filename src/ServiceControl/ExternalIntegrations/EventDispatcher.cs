@@ -57,13 +57,13 @@
                 }
                 var eventsToBePublished = EventPublishers.SelectMany(p => p.PublishEventsForOwnContexts(allContexts, session));
 
-                foreach (var evnt in eventsToBePublished)
+                foreach (var eventToBePublished in eventsToBePublished)
                 {
                     if (Logger.IsDebugEnabled)
                     {
                         Logger.DebugFormat("Publishing external event on the bus.");
                     }
-                    Bus.Publish(evnt);
+                    Bus.Publish(eventToBePublished);
                 }
                 foreach (var dispatchedEvent in awaitingDispatching)
                 {

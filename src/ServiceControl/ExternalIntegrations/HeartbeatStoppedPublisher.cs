@@ -9,15 +9,15 @@ namespace ServiceControl.ExternalIntegrations
 
     public class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat, HeartbeatStoppedPublisher.DispatchContext>
     {
-        protected override DispatchContext CreateDispatchRequest(EndpointFailedToHeartbeat evnt)
+        protected override DispatchContext CreateDispatchRequest(EndpointFailedToHeartbeat @event)
         {
             return new DispatchContext
             {
-                EndpointHost = evnt.Endpoint.Host,
-                EndpointHostId = evnt.Endpoint.HostId,
-                EndpointName = evnt.Endpoint.Name,
-                DetectedAt = evnt.DetectedAt,
-                LastReceivedAt = evnt.LastReceivedAt
+                EndpointHost = @event.Endpoint.Host,
+                EndpointHostId = @event.Endpoint.HostId,
+                EndpointName = @event.Endpoint.Name,
+                DetectedAt = @event.DetectedAt,
+                LastReceivedAt = @event.LastReceivedAt
             };
         }
 

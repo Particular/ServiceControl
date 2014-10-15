@@ -10,7 +10,7 @@ namespace ServiceControl.ExternalIntegrations
             var last = message.ProcessingAttempts.Last();
             var sendingEndpoint = (Contracts.Operations.EndpointDetails)last.MessageMetadata["SendingEndpoint"];
             var receivingEndpoint = (Contracts.Operations.EndpointDetails)last.MessageMetadata["ReceivingEndpoint"];
-            return new Contracts.MessageFailed()
+            return new Contracts.MessageFailed
             {
                 FailedMessageId = message.UniqueMessageId,
                 MessageType = (string)last.MessageMetadata["MessageType"],
@@ -20,19 +20,19 @@ namespace ServiceControl.ExternalIntegrations
                     : message.ProcessingAttempts.Count == 1
                         ? Contracts.MessageFailed.MessageStatus.Failed
                         : Contracts.MessageFailed.MessageStatus.RepeatedFailure,
-                SendingEndpoint = new Contracts.MessageFailed.Endpoint()
+                SendingEndpoint = new Contracts.MessageFailed.Endpoint
                 {
                     Host = sendingEndpoint.Host,
                     HostId = sendingEndpoint.HostId,
                     Name = sendingEndpoint.Name
                 },
-                ProcessingEndpoint = new Contracts.MessageFailed.Endpoint()
+                ProcessingEndpoint = new Contracts.MessageFailed.Endpoint
                 {
                     Host = receivingEndpoint.Host,
                     HostId = receivingEndpoint.HostId,
                     Name = receivingEndpoint.Name
                 },
-                MessageDetails = new Contracts.MessageFailed.Message()
+                MessageDetails = new Contracts.MessageFailed.Message
                 {
                     Headers = last.Headers,
                     ContentType = (string)last.MessageMetadata["ContentType"],
