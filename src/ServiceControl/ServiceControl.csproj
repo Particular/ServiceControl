@@ -424,9 +424,10 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Hosting\Help.txt" />
-    <Content Include="License.xml">
+    <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <Content Include="Operations.ico" />
   </ItemGroup>
   <Import Project="$(SolutionDir)..\BuildSupport\GitVersionTask\Build\GitVersionTask.targets" />
