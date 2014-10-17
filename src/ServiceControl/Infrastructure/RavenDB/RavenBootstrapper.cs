@@ -15,6 +15,16 @@
 
     public class RavenBootstrapper : INeedInitialization
     {
+
+        public static string ReadLicense()
+        {
+            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
+            using (var reader = new StreamReader(resourceStream))
+            {
+                return reader.ReadToEnd();
+            }
+        }
+
         public void Init()
         {
             Directory.CreateDirectory(Settings.DbPath);
@@ -26,6 +36,7 @@
                 EnlistInDistributedTransactions = false,
             };
 
+            documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
             documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration"); // Enable the expiration bundle
 
