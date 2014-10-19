@@ -49,6 +49,7 @@
 
             documentStore.Conventions.SaveEnumsAsIntegers = true;
 
+            
             documentStore.Initialize();
 
             Logger.Info("Index creation started");
