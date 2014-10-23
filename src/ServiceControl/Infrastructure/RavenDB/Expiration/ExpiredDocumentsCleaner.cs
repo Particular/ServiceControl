@@ -51,16 +51,14 @@
             {
                 var currentTime = SystemTime.UtcNow;
                 var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
-                var expiryThresholdAsStr = currentExpiryThresholdTime.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture);
-                logger.Debug("Trying to find expired documents to delete...");
-                var query = "(Status:3 OR Status:4) AND ProcessedAt:[* TO " + expiryThresholdAsStr + "]";
+                logger.Debug("Trying to find expired documents to delete (with threshold {0})", currentExpiryThresholdTime.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
+                const string query = "(Status:3 OR Status:4)";
 
+                var pageSize = 10; // Prevent periodic checks from being too expensive
                 var list = new List<string>();
                 var start = 0;
                 while (true)
                 {
-                    const int pageSize = 1024;
-
                     QueryResultWithIncludes queryResult;
                     using (var cts = new CancellationTokenSource())
                     using (Database.DisableAllTriggersForCurrentThread())
@@ -72,19 +70,32 @@
                             PageSize = pageSize,
                             Cutoff = currentTime,
                             Query = query,
-                            FieldsToFetch = new[] { "__document_id" }
+                            FieldsToFetch = new[] { "__document_id", "ProcessedAt" },
+                            SortedFields = new[] { new SortedField("ProcessedAt") { Field = "ProcessedAt" } },
                         } , cts.Token);
                     }
 
                     if (queryResult.Results.Count == 0)
                         break;
 
-                    list.AddRange(queryResult.Results.Select(result => result.Value<string>("__document_id")).Where(x => string.IsNullOrEmpty(x) == false));
+                    foreach (var result in queryResult.Results)
+                    {
+                        if (result.Value<DateTime>("ProcessedAt") >= currentExpiryThresholdTime)
+                            break;
+
+                        var id = result.Value<string>("__document_id");
+                        if (!string.IsNullOrEmpty(id))
+                            list.Add(id);
+                    }
 
                     if (queryResult.Results.Count < pageSize)
                         break;
 
                     start += pageSize;
+
+                    // If we found results, we bump pageSize to start working in bulks
+                    if (pageSize < 1024)
+                        pageSize = 1024;
                 }
 
                 if (list.Count == 0)
@@ -93,7 +104,7 @@
                     return;
                 }
 
-                logger.Debug(() => string.Format("Deleting {0} expired documents: [{1}]", list.Count, string.Join(", ", list)));
+                logger.Debug(() => string.Format("Deleting {0} expired documents", list.Count));
 
                 foreach (var id in list)
                 {

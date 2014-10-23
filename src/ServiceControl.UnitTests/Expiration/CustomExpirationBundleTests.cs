@@ -51,6 +51,42 @@
         }
 
         [Test]
+        public void Only_processed_messages_are_being_expired()
+        {
+            var processedMessage = new ProcessedMessage
+            {
+                Id = "1",
+                ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 3)),
+            };
+
+            var processedMessage2 = new ProcessedMessage
+            {
+                Id = "2",
+                ProcessedAt = DateTime.UtcNow,
+            };
+            processedMessage2.MessageMetadata["IsSystemMessage"] = true;
+
+            using (var session = documentStore.OpenSession())
+            {
+                session.Store(processedMessage);
+                session.Store(processedMessage2);
+                session.SaveChanges();
+            }
+
+            WaitForIndexing(documentStore);
+            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
+
+            using (var session = documentStore.OpenSession())
+            {
+                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
+                Assert.Null(msg);
+
+                msg = session.Load<ProcessedMessage>(processedMessage2.Id);
+                Assert.NotNull(msg);
+            }
+        }
+
+        [Test]
         public void Recent_processed_messages_are_not_being_expired()
         {
             var processedMessage = new ProcessedMessage
