@@ -7,6 +7,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
     using NServiceBus.RavenDB;
+    using Particular.ServiceControl.Licensing;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
@@ -36,7 +37,18 @@
                 EnlistInDistributedTransactions = false,
             };
 
-            documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
+            var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
+            if (File.Exists(localRavenLicense))
+            {
+                Logger.InfoFormat("Loading RavenDB license found from {0}", localRavenLicense);
+                documentStore.Configuration.Settings["Raven/License"] = NonLockingFileReader.ReadAllTextWithoutLocking(localRavenLicense);
+            }
+            else
+            {
+                Logger.InfoFormat("Loading Embedded RavenDB license");
+                documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
+            }
+            
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
             documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration"); // Enable the expiration bundle
 
@@ -49,6 +61,7 @@
 
             documentStore.Conventions.SaveEnumsAsIntegers = true;
 
+            
             documentStore.Initialize();
 
             Logger.Info("Index creation started");
