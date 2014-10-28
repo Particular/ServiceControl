@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.ComponentModel.Composition;
     using System.Globalization;
-    using System.Linq;
     using System.Threading;
     using CompositeViews.Messages;
     using Raven.Abstractions;
@@ -34,7 +33,9 @@
 
             var deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
             if (deleteFrequencyInSeconds == 0)
+            {
                 return;
+            }
 
             logger.Info("Initialized expired document cleaner, will check for expired documents every {0} seconds",
                         deleteFrequencyInSeconds);
@@ -44,9 +45,12 @@
         private void TimerCallback(object state)
         {
             if (executing)
+            {
                 return;
+            }
 
             executing = true;
+            
             try
             {
                 var currentTime = SystemTime.UtcNow;
@@ -71,31 +75,43 @@
                             Cutoff = currentTime,
                             Query = query,
                             FieldsToFetch = new[] { "__document_id", "ProcessedAt" },
-                            SortedFields = new[] { new SortedField("ProcessedAt") { Field = "ProcessedAt" } },
+                            SortedFields = new[] { new SortedField("ProcessedAt") { Field = "ProcessedAt", Descending = false } },
                         } , cts.Token);
                     }
 
                     if (queryResult.Results.Count == 0)
+                    {
                         break;
+                    }
 
+                    var documentWithCurrentThresholdTimeReached = false;
                     foreach (var result in queryResult.Results)
                     {
                         if (result.Value<DateTime>("ProcessedAt") >= currentExpiryThresholdTime)
+                        {
+                            documentWithCurrentThresholdTimeReached = true;
                             break;
+                        }
 
                         var id = result.Value<string>("__document_id");
                         if (!string.IsNullOrEmpty(id))
+                        {
                             list.Add(id);
+                        }
                     }
 
-                    if (queryResult.Results.Count < pageSize)
+                    if (documentWithCurrentThresholdTimeReached || queryResult.Results.Count < pageSize)
+                    {
                         break;
+                    }
 
                     start += pageSize;
 
                     // If we found results, we bump pageSize to start working in bulks
                     if (pageSize < 1024)
+                    {
                         pageSize = 1024;
+                    }
                 }
 
                 if (list.Count == 0)
@@ -119,7 +135,6 @@
             {
                 executing = false;
             }
-
         }
 
         /// <summary>
@@ -129,7 +144,9 @@
         public void Dispose()
         {
             if (timer != null)
+            {
                 timer.Dispose();
+            }
         }
     }
 }
