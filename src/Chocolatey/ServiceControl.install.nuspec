@@ -6,7 +6,7 @@
     <title>ServiceControl.install (Install)</title>
     <authors>Particular Software</authors>
     <owners>Particular Software</owners>
-    <projectUrl>http://particular.net/servicecontrol</projectUrl>
+    <projectUrl>http://particular.net</projectUrl>
     <iconUrl>http://s3.amazonaws.com/nuget.images/ServiceControl_128.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Management extension to NServiceBus</description>

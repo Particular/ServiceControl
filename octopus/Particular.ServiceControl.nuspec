@@ -6,8 +6,8 @@
         <title>Particular.ServiceControl</title>
         <authors>Particular Software Ltd</authors>
         <owners>Particular Software Ltd</owners>
-        <licenseUrl>http://www.particular.net/</licenseUrl>
-        <projectUrl>http://www.particular.net/</projectUrl>
+        <licenseUrl>http://particular.net/</licenseUrl>
+        <projectUrl>http://particular.net/</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Service Control Deployment Package</description>
     </metadata>
