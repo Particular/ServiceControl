@@ -19,7 +19,7 @@
     [ExportMetadata("Bundle", "customDocumentExpiration")]
     public class ExpiredDocumentsCleaner : IStartupTask, IDisposable
     {
-        private readonly ILog logger = LogManager.GetLogger("DocumentsExpiryLogger");
+        private readonly ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleaner));
         private Timer timer;
         DocumentDatabase Database { get; set; }
         string indexName;
@@ -127,7 +127,7 @@
                 }
                 else
                 {
-                    logger.Debug(() => string.Format("Deleted {0} expired documents", docsToExpire));
+                    logger.Debug("Deleted {0} expired documents", docsToExpire);
                 }
             }
             catch (OperationCanceledException)
