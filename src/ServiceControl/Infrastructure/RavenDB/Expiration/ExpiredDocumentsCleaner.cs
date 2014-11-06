@@ -7,11 +7,11 @@
     using System.Threading;
     using CompositeViews.Messages;
     using Raven.Abstractions;
+    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Logging;
     using Raven.Database;
-    using Raven.Database.Data;
-    using Raven.Database.Extensions;
+    using Raven.Database.Impl;
     using Raven.Database.Plugins;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -25,6 +25,8 @@
         string indexName;
 
         private volatile bool executing;
+
+        const int DeletionBatchSize = 1024;
 
         public void Execute(DocumentDatabase database)
         {
@@ -42,7 +44,7 @@
             timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(deleteFrequencyInSeconds), TimeSpan.FromSeconds(deleteFrequencyInSeconds));
         }
 
-        private void TimerCallback(object state)
+        void TimerCallback(object state)
         {
             if (executing)
             {
@@ -50,81 +52,90 @@
             }
 
             executing = true;
-            
+
+            var currentTime = SystemTime.UtcNow;
+            var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
+            logger.Debug("Trying to find expired documents to delete (with threshold {0})", currentExpiryThresholdTime.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
+            const string queryString = "Status:3 OR Status:4";
+            var query = new IndexQuery
+            {
+                Start = 0,
+                //Cutoff = currentTime,
+                Query = queryString,
+                FieldsToFetch = new[]
+                {
+                    "__document_id",
+                    "ProcessedAt"
+                },
+                SortedFields = new[]
+                {
+                    new SortedField("ProcessedAt")
+                    {
+                        Field = "ProcessedAt",
+                        Descending = false
+                    }
+                },
+            };
+
+            var docsToExpire = 0;
+
             try
             {
-                var currentTime = SystemTime.UtcNow;
-                var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
-                logger.Debug("Trying to find expired documents to delete (with threshold {0})", currentExpiryThresholdTime.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
-                const string query = "(Status:3 OR Status:4)";
-
-                var pageSize = 10; // Prevent periodic checks from being too expensive
-                var list = new List<string>();
-                var start = 0;
-                while (true)
+                // we may be receiving a LOT of documents to delete, so we are going to skip
+                // the cache for that, to avoid filling it up very quickly
+                using (DocumentCacher.SkipSettingDocumentsInDocumentCache())
+                using (Database.DisableAllTriggersForCurrentThread())
+                using (var cts = new CancellationTokenSource())
                 {
-                    QueryResultWithIncludes queryResult;
-                    using (var cts = new CancellationTokenSource())
-                    using (Database.DisableAllTriggersForCurrentThread())
-                    {
-                        cts.TimeoutAfter(TimeSpan.FromMinutes(5));
-                        queryResult = Database.Query(indexName, new IndexQuery
-                        {
-                            Start = start,
-                            PageSize = pageSize,
-                            Cutoff = currentTime,
-                            Query = query,
-                            FieldsToFetch = new[] { "__document_id", "ProcessedAt" },
-                            SortedFields = new[] { new SortedField("ProcessedAt") { Field = "ProcessedAt", Descending = false } },
-                        } , cts.Token);
-                    }
-
-                    if (queryResult.Results.Count == 0)
-                    {
-                        break;
-                    }
-
                     var documentWithCurrentThresholdTimeReached = false;
-                    foreach (var result in queryResult.Results)
-                    {
-                        if (result.Value<DateTime>("ProcessedAt") >= currentExpiryThresholdTime)
+                    var items = new List<ICommandData>(DeletionBatchSize);
+
+                    Database.Query(indexName, query, cts.Token,
+                        information => logger.Debug("Found {0} docs to expire, starting deleting in bulks", information.TotalResults),
+                        doc =>
                         {
-                            documentWithCurrentThresholdTimeReached = true;
-                            break;
-                        }
+                            if (documentWithCurrentThresholdTimeReached)
+                                return;
 
-                        var id = result.Value<string>("__document_id");
-                        if (!string.IsNullOrEmpty(id))
-                        {
-                            list.Add(id);
-                        }
-                    }
+                            if (doc.Value<DateTime>("ProcessedAt") >= currentExpiryThresholdTime)
+                            {
+                                documentWithCurrentThresholdTimeReached = true;
+                                cts.Cancel();
+                                return;
+                            }
 
-                    if (documentWithCurrentThresholdTimeReached || queryResult.Results.Count < pageSize)
+                            var id = doc.Value<string>("__document_id");
+                            if (!string.IsNullOrEmpty(id))
+                            {
+                                items.Add(new DeleteCommandData
+                                {
+                                    Key = id
+                                });
+
+                                if (items.Count%DeletionBatchSize == 0)
+                                {
+                                    docsToExpire += items.Count;
+                                    Database.Batch(items.ToArray());
+                                    items.Clear();
+                                }
+                            }
+                        });
+
+                    if (items.Count > 0)
                     {
-                        break;
-                    }
-
-                    start += pageSize;
-
-                    // If we found results, we bump pageSize to start working in bulks
-                    if (pageSize < 1024)
-                    {
-                        pageSize = 1024;
+                        docsToExpire += items.Count;
+                        Database.Batch(items.ToArray());
+                        items.Clear();
                     }
                 }
 
-                if (list.Count == 0)
+                if (docsToExpire == 0)
                 {
                     logger.Debug("No expired documents found");
-                    return;
                 }
-
-                logger.Debug(() => string.Format("Deleting {0} expired documents", list.Count));
-
-                foreach (var id in list)
+                else
                 {
-                    Database.Delete(id, null, null);
+                    logger.Debug(() => string.Format("Deleted {0} expired documents", docsToExpire));
                 }
             }
             catch (Exception e)
