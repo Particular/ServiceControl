@@ -23,8 +23,7 @@
         private Timer timer;
         DocumentDatabase Database { get; set; }
         string indexName;
-
-        private volatile bool executing;
+        int deleteFrequencyInSeconds;
 
         const int DeletionBatchSize = 1024;
 
@@ -33,7 +32,7 @@
             Database = database;
             indexName = new MessagesViewIndex().IndexName;
 
-            var deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
+            deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
             if (deleteFrequencyInSeconds == 0)
             {
                 return;
@@ -41,18 +40,11 @@
 
             logger.Info("Initialized expired document cleaner, will check for expired documents every {0} seconds",
                         deleteFrequencyInSeconds);
-            timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(deleteFrequencyInSeconds), TimeSpan.FromSeconds(deleteFrequencyInSeconds));
+            timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(deleteFrequencyInSeconds), Timeout.InfiniteTimeSpan);
         }
 
         void TimerCallback(object state)
         {
-            if (executing)
-            {
-                return;
-            }
-
-            executing = true;
-
             var currentTime = SystemTime.UtcNow;
             var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
             logger.Debug("Trying to find expired documents to delete (with threshold {0})", currentExpiryThresholdTime.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
@@ -89,7 +81,7 @@
                 {
                     var documentWithCurrentThresholdTimeReached = false;
                     var items = new List<ICommandData>(DeletionBatchSize);
-
+                    
                     Database.Query(indexName, query, cts.Token,
                         information => logger.Debug("Found {0} docs to expire, starting deleting in bulks", information.TotalResults),
                         doc =>
@@ -144,7 +136,7 @@
             }
             finally
             {
-                executing = false;
+                timer.Change(TimeSpan.FromSeconds(deleteFrequencyInSeconds), Timeout.InfiniteTimeSpan);
             }
         }
 
