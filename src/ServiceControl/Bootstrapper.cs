@@ -15,6 +15,7 @@ namespace Particular.ServiceControl
     using NServiceBus.Installation.Environments;
     using NServiceBus.Logging.Loggers.NLogAdapter;
     using ServiceBus.Management.Infrastructure.Settings;
+    using LogManager = NLog.LogManager;
 
     public class Bootstrapper
     {
@@ -39,7 +40,9 @@ namespace Particular.ServiceControl
 
             Feature.EnableByDefault<StorageDrivenPublisher>();
             Configure.ScaleOut(s => s.UseSingleBrokerQueue());
-            var transportType = Type.GetType(Settings.TransportType);
+            
+            var transportType = DetermineTransportType();
+
             bus = Configure
                 .With(AllAssemblies.Except("ServiceControl.Plugin"))
                 .DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t))
@@ -56,6 +59,19 @@ namespace Particular.ServiceControl
                 })
                 .UnicastBus()
                 .CreateBus();
+        }
+
+        static Type DetermineTransportType()
+        {
+            var Logger = NServiceBus.Logging.LogManager.GetLogger(typeof(Bootstrapper));
+            var transportType = Type.GetType(Settings.TransportType);
+            if (transportType != null)
+            {
+                return transportType;
+            }
+            var errorMsg = string.Format("Configuration of transport Failed. Could not resolve type '{0}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings", Settings.TransportType);
+            Logger.Error(errorMsg);
+            throw new Exception(errorMsg);
         }
 
         static bool IsExternalContract(Type t)
