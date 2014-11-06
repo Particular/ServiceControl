@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.CircuitBreakers;
     using NServiceBus.Logging;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -19,7 +20,32 @@
         public void Start()
         {
             tokenSource = new CancellationTokenSource();
-            Task.Factory.StartNew(() => DispatchEvents(tokenSource.Token));
+            circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventDispatcher",
+                TimeSpan.FromMinutes(2),
+                ex => Configure.Instance.RaiseCriticalError("Repeated failures when dispatching external integration events.", ex),
+                TimeSpan.FromSeconds(20));
+            StartDispatcher();
+        }
+
+        void StartDispatcher()
+        {
+            Task.Factory
+                .StartNew(() => DispatchEvents(tokenSource.Token), tokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+                .ContinueWith(t =>
+                {
+// ReSharper disable once PossibleNullReferenceException
+                    t.Exception.Handle(ex =>
+                    {
+                        Logger.Error("An exception occurred when dispatching external integration events", ex);
+                        circuitBreaker.Failure(ex);
+                        return true;
+                    });
+
+                    if (!tokenSource.IsCancellationRequested)
+                    {
+                        StartDispatcher();
+                    }
+                }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         public void Stop()
@@ -74,7 +100,7 @@
         }
 
         CancellationTokenSource tokenSource;
-
+        RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
         static readonly ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
     }
 }

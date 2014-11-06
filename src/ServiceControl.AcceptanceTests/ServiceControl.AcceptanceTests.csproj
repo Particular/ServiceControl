@@ -182,6 +182,7 @@
     <Compile Include="ExternalIntegrations\JSonServer.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_failed.cs" />
     <Compile Include="ExternalIntegrations\When_heartbeat_is_restored.cs" />
+    <Compile Include="ExternalIntegrations\When_encountered_an_error.cs" />
     <Compile Include="ExternalIntegrations\When_heartbeat_loss_is_detected.cs" />
     <Compile Include="HeartbeatMonitoring\When_an_endpoint_starts_up.cs" />
     <Compile Include="HeartbeatMonitoring\When_endpoints_heartbeats_are_received_in_a_timely_manner.cs" />
