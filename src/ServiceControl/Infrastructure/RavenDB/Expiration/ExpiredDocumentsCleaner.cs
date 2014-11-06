@@ -148,7 +148,12 @@
         {
             if (timer != null)
             {
-                timer.Dispose();
+                using (var waitHandle = new ManualResetEvent(false))
+                {
+                    timer.Dispose(waitHandle);
+
+                    waitHandle.WaitOne();
+                }
             }
         }
     }
