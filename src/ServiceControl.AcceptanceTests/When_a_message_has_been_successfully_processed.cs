@@ -32,6 +32,10 @@
                 .WithEndpoint<Receiver>()
                 .Done(c =>
                 {
+                    if (c.MessageId == null)
+                    {
+                        return false;
+                    }
                     if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
                     {
                         return false;
