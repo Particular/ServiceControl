@@ -82,7 +82,7 @@
                     var documentWithCurrentThresholdTimeReached = false;
                     var items = new List<ICommandData>(DeletionBatchSize);
                     
-                    Database.Query(indexName, query, cts.Token,
+                    Database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(Database.WorkContext.CancellationToken, cts.Token).Token,
                         information => logger.Debug("Found {0} docs to expire, starting deleting in bulks", information.TotalResults),
                         doc =>
                         {
