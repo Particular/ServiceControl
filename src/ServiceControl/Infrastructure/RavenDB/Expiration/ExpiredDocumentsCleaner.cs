@@ -52,6 +52,7 @@
             var query = new IndexQuery
             {
                 Start = 0,
+                PageSize = int.MaxValue,
                 //Cutoff = currentTime,
                 Query = queryString,
                 FieldsToFetch = new[]
