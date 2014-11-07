@@ -7,8 +7,9 @@
     using Contracts.Operations;
     using InternalMessages;
     using NServiceBus;
+    using NServiceBus.Logging;
     using NServiceBus.Saga;
-
+    
     public class FailedMessagePolicy : Saga<FailedMessagePolicy.FailedMessagePolicyData>,
         IAmStartedByMessages<ImportFailedMessage>,
         IHandleMessages<RetryMessage>,
@@ -35,13 +36,22 @@
             });
 
             string retryId;
-
             if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.RetryId", out retryId))
             {
-                var retryAttempt = Data.RetryAttempts.Single(r => r.Id == Guid.Parse(retryId));
-
-                retryAttempt.Completed = true;
-                retryAttempt.Failed = true;
+                var retryAttempt = Data.RetryAttempts.SingleOrDefault(r => r.Id == Guid.Parse(retryId));
+                // If for some reason the user has deleted the RavenDB database and starting fresh and the user
+                // attempts to move messages from error.log back into the error queue for ServiceControl to 
+                // rehydrate the error messages, in this case, we won't have a corresponding saga. Therefore
+                // we are using SingleOrDefault instead of Single.
+                if (retryAttempt != null)
+                {
+                    retryAttempt.Completed = true;
+                    retryAttempt.Failed = true;
+                }
+                else
+                {
+                    Logger.DebugFormat("This message {0} has `ServiceControl.RetryId` header, but could not find the associated data in the Saga - Possible cause, an old message from the errors.Log queue is being retried and we don't have the associated saga for it.", Data.FailedMessageId);
+                }
             }
 
             if (Data.ProcessingAttempts.Count > 1)
@@ -146,5 +156,8 @@
             ConfigureMapping<RegisterSuccessfulRetry>(m => m.FailedMessageId)
             .ToSaga(s => s.FailedMessageId);
         }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(FailedMessagePolicy));
+       
     }
 }
