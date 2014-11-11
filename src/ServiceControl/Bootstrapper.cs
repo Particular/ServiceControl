@@ -122,8 +122,12 @@ namespace Particular.ServiceControl
 
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, consoleTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
+
+#if (DEBUG)  //TODO : Remove once we've stabilized deletions
+            nlogConfig.LoggingRules.Add(new LoggingRule("ServiceControl.Infrastructure.RavenDB.Expiration.*", LogLevel.Debug, consoleTarget));
+#endif
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, consoleTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Warn, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget)); 
