@@ -128,6 +128,7 @@
         }
 
         public static int Port = SettingsReader<int>.Read("Port", 33333);
+      
         public static bool ExposeRavenDB = SettingsReader<bool>.Read("ExposeRavenDB");
         public static string Hostname = SettingsReader<string>.Read("Hostname", "localhost");
         public static string VirtualDirectory = SettingsReader<string>.Read("VirtualDirectory", String.Empty);
@@ -151,10 +152,56 @@
         public static bool ForwardAuditMessages = SettingsReader<bool>.Read("ForwardAuditMessages");
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;
+        
+        const int ExpirationProcessTimerInSecondsDefault = 900;
+        static int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault); 
+        public static int ExpirationProcessTimerInSeconds
+        {
+            get
+            {
+                if ((expirationProcessTimerInSeconds < 0) || (expirationProcessTimerInSeconds > TimeSpan.FromDays(1).TotalSeconds))
+                {
+                    Logger.ErrorFormat("ExpirationProcessTimerInSeconds settings is invalid, the valid range is 0 to {0}. Defaulting to {1}" , TimeSpan.FromDays(1).TotalSeconds, ExpirationProcessTimerInSecondsDefault);
+                    return ExpirationProcessTimerInSecondsDefault;
+                }
+                return expirationProcessTimerInSeconds;
+            }
+            set { expirationProcessTimerInSeconds = value; }
+        }
+        
+        const int HoursToKeepMessagesBeforeExpiringDefault = 720; 
+        static int hoursToKeepMessagesBeforeExpiring = SettingsReader<int>.Read("HoursToKeepMessagesBeforeExpiring", HoursToKeepMessagesBeforeExpiringDefault);
+        public static int HoursToKeepMessagesBeforeExpiring
+        {
+            get
+            {
+                if ((hoursToKeepMessagesBeforeExpiring < 24) || (hoursToKeepMessagesBeforeExpiring > 1440))
+                {
+                    Logger.ErrorFormat("HoursToKeepMessagesBeforeExpiring settings is invalid, the valid range is 24 to 1440 (60 days).  Defaulting to {0}",  HoursToKeepMessagesBeforeExpiringDefault);
+                    return HoursToKeepMessagesBeforeExpiringDefault;
+                }
+                return hoursToKeepMessagesBeforeExpiring;
+            }
+            set { hoursToKeepMessagesBeforeExpiring = value; }
+        }
 
-        public static int ExpirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", 60); // default is once a minute
-        public static int HoursToKeepMessagesBeforeExpiring = SettingsReader<int>.Read("HoursToKeepMessagesBeforeExpiring", 24 * 30); // default is 30 days
+        const int ExpirationProcessBatchSizeDefault = 262144; 
+        static int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
 
+        public static int ExpirationProcessBatchSize
+        {
+            get
+            {
+                if ((expirationProcessBatchSize < 0) || (expirationProcessBatchSize < int.MaxValue)) 
+                {
+                    Logger.ErrorFormat("ExpirationProcessBatchSize settings is invalid, the value must be greater than 0.  Defaulting to {0}", ExpirationProcessBatchSizeDefault);
+                    return ExpirationProcessBatchSizeDefault;
+                }
+                return expirationProcessBatchSize;
+            }
+            set { expirationProcessBatchSize = value; }
+        }
+        
         static readonly ILog Logger = LogManager.GetLogger(typeof(Settings));
         public static string ServiceName;
 
@@ -165,7 +212,6 @@
                 return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Particular\\ServiceControl\\logs");
             }
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), string.Format("Particular\\{0}\\logs", ServiceName));
-
         }
     }
 }

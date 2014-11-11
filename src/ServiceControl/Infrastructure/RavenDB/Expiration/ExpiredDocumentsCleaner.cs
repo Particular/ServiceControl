@@ -3,7 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.Composition;
+    using System.Diagnostics;
     using System.Globalization;
+    using System.Linq;
     using System.Threading;
     using CompositeViews.Messages;
     using Raven.Abstractions;
@@ -24,23 +26,27 @@
         DocumentDatabase Database { get; set; }
         string indexName;
         int deleteFrequencyInSeconds;
-
-        const int DeletionBatchSize = 1024;
+        string firstDocumentIdinBatch;
+        int deletionBatchSize;
 
         public void Execute(DocumentDatabase database)
         {
             Database = database;
             indexName = new MessagesViewIndex().IndexName;
-
+            
+            deletionBatchSize = Settings.ExpirationProcessBatchSize;
             deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
+            
             if (deleteFrequencyInSeconds == 0)
             {
                 return;
             }
 
-            logger.Info("Initialized expired document cleaner, will check for expired documents every {0} seconds",
-                        deleteFrequencyInSeconds);
-            timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(deleteFrequencyInSeconds), Timeout.InfiniteTimeSpan);
+            logger.Info("Expired Documents every {0} seconds",deleteFrequencyInSeconds);
+            logger.Info("Deletion Batch Size: {0}", deletionBatchSize);
+            logger.Info("Retention Period: {0}", Settings.HoursToKeepMessagesBeforeExpiring);
+
+            timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(30), Timeout.InfiniteTimeSpan);
         }
 
         void TimerCallback(object state)
@@ -52,8 +58,8 @@
             var query = new IndexQuery
             {
                 Start = 0,
-                PageSize = int.MaxValue,
-                //Cutoff = currentTime,
+                PageSize = deletionBatchSize,
+                Cutoff = currentTime,
                 Query = queryString,
                 FieldsToFetch = new[]
                 {
@@ -70,21 +76,22 @@
                 },
             };
 
+            var deletionCount = 0;
             var docsToExpire = 0;
-
+            var stopwatch = Stopwatch.StartNew();
             try
             {
                 // we may be receiving a LOT of documents to delete, so we are going to skip
                 // the cache for that, to avoid filling it up very quickly
+               
                 using (DocumentCacher.SkipSettingDocumentsInDocumentCache())
                 using (Database.DisableAllTriggersForCurrentThread())
                 using (var cts = new CancellationTokenSource())
                 {
                     var documentWithCurrentThresholdTimeReached = false;
-                    var items = new List<ICommandData>(DeletionBatchSize);
-
+                    var items = new List<ICommandData>(deletionBatchSize);
                     Database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(Database.WorkContext.CancellationToken, cts.Token).Token,
-                        information => logger.Debug("Found {0} docs to expire, starting deleting in bulks", information.TotalResults),
+                       null,
                         doc =>
                         {
                             if (documentWithCurrentThresholdTimeReached)
@@ -100,26 +107,31 @@
                             var id = doc.Value<string>("__document_id");
                             if (!string.IsNullOrEmpty(id))
                             {
+                                if (firstDocumentIdinBatch == id)
+                                {
+                                    Debug.WriteLine("Skipping - same as last batch");
+                                    return;
+                                }
+
+                                if (items.Count == 0)
+                                {
+                                    firstDocumentIdinBatch = id;
+                                }
+
                                 items.Add(new DeleteCommandData
                                 {
                                     Key = id
                                 });
 
-                                if (items.Count%DeletionBatchSize == 0)
+                                if (items.Count%deletionBatchSize == 0)
                                 {
                                     docsToExpire += items.Count;
-                                    Database.Batch(items.ToArray());
+                                    var results = Database.Batch(items.ToArray());
+                                    deletionCount = results.Count(x => x.Deleted == true);
                                     items.Clear();
                                 }
                             }
                         });
-
-                    if (items.Count > 0)
-                    {
-                        docsToExpire += items.Count;
-                        Database.Batch(items.ToArray());
-                        items.Clear();
-                    }
                 }
 
                 if (docsToExpire == 0)
@@ -128,7 +140,7 @@
                 }
                 else
                 {
-                    logger.Debug("Deleted {0} expired documents", docsToExpire);
+                    logger.Debug("Deleted {0} out of  {1} expired documents batch - Execution time:{2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
                 }
             }
             catch (OperationCanceledException)
@@ -141,7 +153,18 @@
             }
             finally
             {
-                timer.Change(TimeSpan.FromSeconds(deleteFrequencyInSeconds), Timeout.InfiniteTimeSpan);
+                if (stopwatch.IsRunning)
+                {
+                    stopwatch.Stop();
+                }
+                try
+                {
+                    timer.Change(TimeSpan.FromSeconds(deleteFrequencyInSeconds), Timeout.InfiniteTimeSpan);
+                }
+                catch (ObjectDisposedException)
+                {
+                    //Ignore 
+                }
             }
         }
 
