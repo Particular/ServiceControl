@@ -48,7 +48,7 @@
             logger.Info("Deletion Batch Size: {0}", deletionBatchSize);
             logger.Info("Retention Period: {0}", Settings.HoursToKeepMessagesBeforeExpiring);
 
-            timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(deleteFrequencyInSeconds), Timeout.InfiniteTimeSpan);
+            timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(10), Timeout.InfiniteTimeSpan);
         }
 
         void TimerCallback(object state)
@@ -134,7 +134,7 @@
                 }
                 else
                 {
-                    logger.Debug("Deleted {0} out of  {1} expired documents batch - Execution time:{2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
+                    logger.Debug("Deleted {0} out of {1} expired documents batch - Execution time:{2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
                 }
             }
             catch (OperationCanceledException)

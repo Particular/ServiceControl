@@ -158,9 +158,9 @@
         {
             get
             {
-                if ((expirationProcessTimerInSeconds < 0) || (expirationProcessTimerInSeconds > TimeSpan.FromDays(1).TotalSeconds))
+                if ((expirationProcessTimerInSeconds < 0) || (expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds))
                 {
-                    Logger.ErrorFormat("ExpirationProcessTimerInSeconds settings is invalid, the valid range is 0 to {0}. Defaulting to {1}" , TimeSpan.FromDays(1).TotalSeconds, ExpirationProcessTimerInSecondsDefault);
+                    Logger.ErrorFormat("ExpirationProcessTimerInSeconds settings is invalid, the valid range is 0 to {0}. Defaulting to {1}" , TimeSpan.FromHours(3).TotalSeconds, ExpirationProcessTimerInSecondsDefault);
                     return ExpirationProcessTimerInSecondsDefault;
                 }
                 return expirationProcessTimerInSeconds;
