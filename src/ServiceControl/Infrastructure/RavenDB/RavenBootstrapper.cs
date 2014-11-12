@@ -50,8 +50,7 @@
             }
             
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
-            documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration"); // Enable the expiration bundle
-
+            documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration"); 
             documentStore.Configuration.Port = Settings.Port;
             documentStore.Configuration.HostName = (Settings.Hostname == "*" || Settings.Hostname == "+")
                 ? "localhost"
