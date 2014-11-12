@@ -26,11 +26,8 @@
         DocumentDatabase Database { get; set; }
         string indexName;
         int deleteFrequencyInSeconds;
-        string firstDocumentIdinBatch;
         int deletionBatchSize;
         
-
-
         public void Execute(DocumentDatabase database)
         {
             Database = database;
@@ -48,7 +45,7 @@
             logger.Info("Deletion Batch Size: {0}", deletionBatchSize);
             logger.Info("Retention Period: {0}", Settings.HoursToKeepMessagesBeforeExpiring);
 
-            timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(10), Timeout.InfiniteTimeSpan);
+            timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(deleteFrequencyInSeconds), Timeout.InfiniteTimeSpan);
         }
 
         void TimerCallback(object state)
@@ -78,14 +75,14 @@
                 },
             };
 
-            var deletionCount = 0;
             var docsToExpire = 0;
             var stopwatch = Stopwatch.StartNew();
             try
             {
                 // we may be receiving a LOT of documents to delete, so we are going to skip
                 // the cache for that, to avoid filling it up very quickly
-               
+
+                int deletionCount;
                 using (DocumentCacher.SkipSettingDocumentsInDocumentCache())
                 using (Database.DisableAllTriggersForCurrentThread())
                 using (var cts = new CancellationTokenSource())
@@ -109,17 +106,10 @@
                             var id = doc.Value<string>("__document_id");
                             if (!string.IsNullOrEmpty(id))
                             {
-                                if (items.Count == 0)
-                                {
-                                    firstDocumentIdinBatch = id;
-                                }
-
                                 items.Add(new DeleteCommandData
                                 {
                                     Key = id
                                 });
-
-                                
                             }
                         });
                         docsToExpire += items.Count;
