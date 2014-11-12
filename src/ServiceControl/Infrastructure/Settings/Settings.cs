@@ -152,7 +152,7 @@
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;
         
-        const int ExpirationProcessTimerInSecondsDefault = 900;
+        const int ExpirationProcessTimerInSecondsDefault = 600;
         static int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault); 
         public static int ExpirationProcessTimerInSeconds
         {
@@ -184,7 +184,7 @@
             set { hoursToKeepMessagesBeforeExpiring = value; }
         }
 
-        const int ExpirationProcessBatchSizeDefault = 262144;
+        const int ExpirationProcessBatchSizeDefault = 65512;
         const int ExpirationProcessBatchSizeMinimum = 10240;
         static int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
 
