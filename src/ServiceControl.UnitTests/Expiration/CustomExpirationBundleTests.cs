@@ -59,15 +59,14 @@
             var processedMessage = new ProcessedMessage
             {
                 Id = Guid.NewGuid().ToString(),
-                ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond%30)
-                    .AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
+                ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond%30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
             };
             var processedMessage2 = new ProcessedMessage
             {
                 Id = "2",
                 ProcessedAt = DateTime.UtcNow,
             };
-
+            
             using (var session = documentStore.OpenSession())
             {
                 for (var i = 0; i < 2049; i++)
@@ -75,8 +74,7 @@
                     processedMessage = new ProcessedMessage
                     {
                         Id = Guid.NewGuid().ToString(),
-                        ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond%30)
-                            .AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
+                        ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond%30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
                     };
 
                     session.Store(processedMessage);

@@ -28,6 +28,8 @@
         int deleteFrequencyInSeconds;
         string firstDocumentIdinBatch;
         int deletionBatchSize;
+        
+
 
         public void Execute(DocumentDatabase database)
         {
@@ -46,7 +48,7 @@
             logger.Info("Deletion Batch Size: {0}", deletionBatchSize);
             logger.Info("Retention Period: {0}", Settings.HoursToKeepMessagesBeforeExpiring);
 
-            timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(30), Timeout.InfiniteTimeSpan);
+            timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(deleteFrequencyInSeconds), Timeout.InfiniteTimeSpan);
         }
 
         void TimerCallback(object state)
@@ -107,12 +109,6 @@
                             var id = doc.Value<string>("__document_id");
                             if (!string.IsNullOrEmpty(id))
                             {
-                                if (firstDocumentIdinBatch == id)
-                                {
-                                    Debug.WriteLine("Skipping - same as last batch");
-                                    return;
-                                }
-
                                 if (items.Count == 0)
                                 {
                                     firstDocumentIdinBatch = id;
@@ -123,15 +119,13 @@
                                     Key = id
                                 });
 
-                                if (items.Count%deletionBatchSize == 0)
-                                {
-                                    docsToExpire += items.Count;
-                                    var results = Database.Batch(items.ToArray());
-                                    deletionCount = results.Count(x => x.Deleted == true);
-                                    items.Clear();
-                                }
+                                
                             }
                         });
+                        docsToExpire += items.Count;
+                        var results = Database.Batch(items.ToArray());
+                        deletionCount = results.Count(x => x.Deleted == true);
+                        items.Clear();
                 }
 
                 if (docsToExpire == 0)
