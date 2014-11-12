@@ -257,7 +257,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Hosting\Options.cs" />
-    <Compile Include="Infrastructure\RavenDB\Expiration\DocumentsCounter.cs" />
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
