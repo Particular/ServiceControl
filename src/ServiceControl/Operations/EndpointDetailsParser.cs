@@ -77,6 +77,12 @@ namespace ServiceControl.Contracts.Operations
                 {
                     endpoint.Host = address.Machine;
                 }
+
+                // If we've been now able to get the endpoint details, return the new info. 
+                if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Host))
+                {
+                    return endpoint;
+                }
             }
 
             return null;

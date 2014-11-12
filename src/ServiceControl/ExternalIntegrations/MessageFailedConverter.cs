@@ -1,6 +1,7 @@
 namespace ServiceControl.ExternalIntegrations
 {
     using System.Linq;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageFailures;
 
     public static class MessageFailedConverter
@@ -8,8 +9,10 @@ namespace ServiceControl.ExternalIntegrations
         public static Contracts.MessageFailed ToEvent(this FailedMessage message)
         {
             var last = message.ProcessingAttempts.Last();
-            var sendingEndpoint = (Contracts.Operations.EndpointDetails)last.MessageMetadata["SendingEndpoint"];
-            var receivingEndpoint = (Contracts.Operations.EndpointDetails)last.MessageMetadata["ReceivingEndpoint"];
+            var sendingEndpoint = (EndpointDetails)last.MessageMetadata["SendingEndpoint"];
+            object tmp;
+            last.MessageMetadata.TryGetValue("ReceivingEndpoint", out tmp);
+            var receivingEndpoint = (EndpointDetails) tmp;
             return new Contracts.MessageFailed
             {
                 FailedMessageId = message.UniqueMessageId,
@@ -26,12 +29,12 @@ namespace ServiceControl.ExternalIntegrations
                     HostId = sendingEndpoint.HostId,
                     Name = sendingEndpoint.Name
                 },
-                ProcessingEndpoint = new Contracts.MessageFailed.Endpoint
+                ProcessingEndpoint = receivingEndpoint != null ? new Contracts.MessageFailed.Endpoint
                 {
                     Host = receivingEndpoint.Host,
                     HostId = receivingEndpoint.HostId,
                     Name = receivingEndpoint.Name
-                },
+                } : null,
                 MessageDetails = new Contracts.MessageFailed.Message
                 {
                     Headers = last.Headers,
