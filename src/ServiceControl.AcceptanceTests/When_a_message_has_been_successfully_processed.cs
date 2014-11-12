@@ -255,7 +255,7 @@
                 public void Start()
                 {
                     //hack until we can fix the types filtering in default server
-                    if (string.IsNullOrEmpty(MyContext.MessageId))
+                    if (MyContext == null || string.IsNullOrEmpty(MyContext.MessageId))
                     {
                         return;
                     }

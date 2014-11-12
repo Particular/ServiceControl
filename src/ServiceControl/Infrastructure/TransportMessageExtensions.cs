@@ -15,18 +15,24 @@
                 return endpoint;
             }
 
-            if (message.ReplyToAddress != null)
-            {
-                return message.ReplyToAddress.Queue;
-            }
 
-            string messageTypes;
-            if (!message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes))
+            if (message.ReplyToAddress == null)
             {
-                messageTypes = "Unknown";
-            }
+                // If the ReplyToAddress is null, then the message came from a send-only endpoint. 
+                // This message could be a failed message.  
+                if (message.Headers.TryGetValue("NServiceBus.FailedQ", out endpoint))
+                {
+                    return endpoint;
+                }
+                string messageTypes;
+                if (!message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes))
+                {
+                    messageTypes = "Unknown";
+                }
 
-            throw new InvalidOperationException(string.Format("No processing endpoint could be determined for message ({0})", messageTypes));
+                throw new InvalidOperationException(string.Format("No processing endpoint could be determined for message ({0})", messageTypes));
+            }
+            return message.ReplyToAddress.Queue;
         }
 
         public static string UniqueId(this TransportMessage message)
