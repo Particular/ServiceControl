@@ -116,8 +116,7 @@
                 dbFolder += String.Format("-{0}", SanitiseFolderName(VirtualDirectory));
             }
 
-            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                "Particular", "ServiceControl", dbFolder);
+            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
 
             return SettingsReader<string>.Read("DbPath", defaultPath);
         }
@@ -185,23 +184,26 @@
             set { hoursToKeepMessagesBeforeExpiring = value; }
         }
 
-        const int ExpirationProcessBatchSizeDefault = 262144; 
+        const int ExpirationProcessBatchSizeDefault = 262144;
+        const int ExpirationProcessBatchSizeMinimum = 10240;
         static int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
 
         public static int ExpirationProcessBatchSize
         {
             get
             {
-                if ((expirationProcessBatchSize < 0) || (expirationProcessBatchSize < int.MaxValue)) 
+                if (expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum) 
                 {
-                    Logger.ErrorFormat("ExpirationProcessBatchSize settings is invalid, the value must be greater than 0.  Defaulting to {0}", ExpirationProcessBatchSizeDefault);
+                    Logger.ErrorFormat("ExpirationProcessBatchSize settings is invalid, {0} is the minimum value. Defaulting to {1}", ExpirationProcessBatchSizeMinimum, ExpirationProcessBatchSizeDefault);
                     return ExpirationProcessBatchSizeDefault;
                 }
                 return expirationProcessBatchSize;
             }
             set { expirationProcessBatchSize = value; }
         }
-        
+
+        public static bool RandomizeProcessedAtDate = SettingsReader<bool>.Read("RandomizeProcessedAtDate");
+
         static readonly ILog Logger = LogManager.GetLogger(typeof(Settings));
         public static string ServiceName;
 
