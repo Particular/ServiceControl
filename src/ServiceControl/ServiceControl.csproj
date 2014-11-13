@@ -420,6 +420,8 @@
     <Compile Include="SagaAudit\SagaStateChange.cs" />
     <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
     <Compile Include="SagaAudit\SageMessageState.cs" />
+    <Compile Include="ScaleOut\DetectRoutes.cs" />
+    <Compile Include="ScaleOut\GetRoutesForEndpoint.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
@@ -434,6 +436,7 @@
     </EmbeddedResource>
     <Content Include="Operations.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(SolutionDir)..\BuildSupport\GitVersionTask\Build\GitVersionTask.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
