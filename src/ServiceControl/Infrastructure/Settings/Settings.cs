@@ -18,6 +18,8 @@
             TransportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
         }
 
+        public static bool MaintenanceMode;
+
         public static string ApiUrl
         {
             get
