@@ -32,6 +32,10 @@
                 .WithEndpoint<Receiver>()
                 .Done(c =>
                 {
+                    if (c.MessageId == null)
+                    {
+                        return false;
+                    }
                     if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
                     {
                         return false;
@@ -251,7 +255,7 @@
                 public void Start()
                 {
                     //hack until we can fix the types filtering in default server
-                    if (string.IsNullOrEmpty(MyContext.MessageId))
+                    if (MyContext == null || string.IsNullOrEmpty(MyContext.MessageId))
                     {
                         return;
                     }

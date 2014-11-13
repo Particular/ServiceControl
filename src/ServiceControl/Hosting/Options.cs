@@ -1102,7 +1102,6 @@ namespace Particular.ServiceControl.Hosting
             }
             for (var i = 0; i < n.Length; ++i)
             {
-                Option p;
                 var opt = f + n[i];
                 var rn = n[i].ToString();
                 if (!Contains(rn))
@@ -1114,7 +1113,7 @@ namespace Particular.ServiceControl.Hosting
                     throw new OptionException(string.Format(localizer(
                         "Cannot bundle unregistered option '{0}'."), opt), opt);
                 }
-                p = this[rn];
+                var p = this[rn];
                 switch (p.OptionValueType)
                 {
                     case OptionValueType.None:

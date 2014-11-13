@@ -6,7 +6,6 @@ namespace Particular.ServiceControl
     using System.ServiceProcess;
     using Autofac;
     using Hosting;
-    using global::ServiceControl.ExternalIntegrations;
     using NLog;
     using NLog.Config;
     using NLog.Layouts;
@@ -16,11 +15,13 @@ namespace Particular.ServiceControl
     using NServiceBus.Installation.Environments;
     using NServiceBus.Logging.Loggers.NLogAdapter;
     using ServiceBus.Management.Infrastructure.Settings;
+    using LogManager = NLog.LogManager;
 
     public class Bootstrapper
     {
         IStartableBus bus;
         public static IContainer Container { get; set; }
+
 
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null)
         {
@@ -40,7 +41,9 @@ namespace Particular.ServiceControl
 
             Feature.EnableByDefault<StorageDrivenPublisher>();
             Configure.ScaleOut(s => s.UseSingleBrokerQueue());
-            var transportType = Type.GetType(Settings.TransportType);
+            
+            var transportType = DetermineTransportType();
+
             bus = Configure
                 .With(AllAssemblies.Except("ServiceControl.Plugin"))
                 .DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t))
@@ -59,6 +62,19 @@ namespace Particular.ServiceControl
                 .CreateBus();
         }
 
+        static Type DetermineTransportType()
+        {
+            var Logger = NServiceBus.Logging.LogManager.GetLogger(typeof(Bootstrapper));
+            var transportType = Type.GetType(Settings.TransportType);
+            if (transportType != null)
+            {
+                return transportType;
+            }
+            var errorMsg = string.Format("Configuration of transport Failed. Could not resolve type '{0}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings", Settings.TransportType);
+            Logger.Error(errorMsg);
+            throw new Exception(errorMsg);
+        }
+
         static bool IsExternalContract(Type t)
         {
             return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts");
@@ -66,6 +82,18 @@ namespace Particular.ServiceControl
 
         public void Start()
         {
+             var Logger = NServiceBus.Logging.LogManager.GetLogger(typeof(Bootstrapper));
+            if (Settings.MaintenanceMode)
+            {
+                Logger.InfoFormat("RavenDB is now accepting requests on {0}", Settings.StorageUrl);
+                Logger.Warn("RavenDB Maintenance Mode - Press Enter to exit");
+                while (Console.ReadLine() == null)
+                {
+                }
+                return;
+            }
+
+            
             bus.Start(() =>
             {
                 if (Environment.UserInteractive && Debugger.IsAttached)
@@ -107,8 +135,8 @@ namespace Particular.ServiceControl
 
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, consoleTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, consoleTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Warn, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget)); 

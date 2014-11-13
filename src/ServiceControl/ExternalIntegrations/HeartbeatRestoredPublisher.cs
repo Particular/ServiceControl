@@ -9,20 +9,20 @@ namespace ServiceControl.ExternalIntegrations
 
     public class HeartbeatRestoredPublisher : EventPublisher<EndpointHeartbeatRestored, HeartbeatRestoredPublisher.DispatchContext>
     {
-        protected override DispatchContext CreateDispatchRequest(EndpointHeartbeatRestored evnt)
+        protected override DispatchContext CreateDispatchRequest(EndpointHeartbeatRestored @event)
         {
             return new DispatchContext
             {
-                EndpointHost = evnt.Endpoint.Host,
-                EndpointHostId = evnt.Endpoint.HostId,
-                EndpointName = evnt.Endpoint.Name,
-                RestoredAt = evnt.RestoredAt,
+                EndpointHost = @event.Endpoint.Host,
+                EndpointHostId = @event.Endpoint.HostId,
+                EndpointName = @event.Endpoint.Name,
+                RestoredAt = @event.RestoredAt,
             };
         }
 
         protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
         {
-            return contexts.Select(r => new HeartbeatRestored()
+            return contexts.Select(r => new HeartbeatRestored
             {
                 RestoredAt = r.RestoredAt,
                 Host = r.EndpointHost,

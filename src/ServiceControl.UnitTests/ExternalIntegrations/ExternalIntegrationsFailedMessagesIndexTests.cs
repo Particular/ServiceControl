@@ -98,7 +98,7 @@
                             {
                                 Exception = new ExceptionDetails()
                             },
-                            MessageMetadata = new Dictionary<string, object>()
+                            MessageMetadata = new Dictionary<string, object>
                             {
                                 {"SendingEndpoint",new Contracts.Operations.EndpointDetails()},
                                 {"ReceivingEndpoint",new Contracts.Operations.EndpointDetails()},

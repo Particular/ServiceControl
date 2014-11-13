@@ -1,6 +1,7 @@
 namespace ServiceControl.ExternalIntegrations
 {
     using System.Linq;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageFailures;
 
     public static class MessageFailedConverter
@@ -8,9 +9,11 @@ namespace ServiceControl.ExternalIntegrations
         public static Contracts.MessageFailed ToEvent(this FailedMessage message)
         {
             var last = message.ProcessingAttempts.Last();
-            var sendingEndpoint = (Contracts.Operations.EndpointDetails)last.MessageMetadata["SendingEndpoint"];
-            var receivingEndpoint = (Contracts.Operations.EndpointDetails)last.MessageMetadata["ReceivingEndpoint"];
-            return new Contracts.MessageFailed()
+            var sendingEndpoint = (EndpointDetails)last.MessageMetadata["SendingEndpoint"];
+            object tmp;
+            last.MessageMetadata.TryGetValue("ReceivingEndpoint", out tmp);
+            var receivingEndpoint = (EndpointDetails) tmp;
+            return new Contracts.MessageFailed
             {
                 FailedMessageId = message.UniqueMessageId,
                 MessageType = (string)last.MessageMetadata["MessageType"],
@@ -20,19 +23,19 @@ namespace ServiceControl.ExternalIntegrations
                     : message.ProcessingAttempts.Count == 1
                         ? Contracts.MessageFailed.MessageStatus.Failed
                         : Contracts.MessageFailed.MessageStatus.RepeatedFailure,
-                SendingEndpoint = new Contracts.MessageFailed.Endpoint()
+                SendingEndpoint = new Contracts.MessageFailed.Endpoint
                 {
                     Host = sendingEndpoint.Host,
                     HostId = sendingEndpoint.HostId,
                     Name = sendingEndpoint.Name
                 },
-                ProcessingEndpoint = new Contracts.MessageFailed.Endpoint()
+                ProcessingEndpoint = receivingEndpoint != null ? new Contracts.MessageFailed.Endpoint
                 {
                     Host = receivingEndpoint.Host,
                     HostId = receivingEndpoint.HostId,
                     Name = receivingEndpoint.Name
-                },
-                MessageDetails = new Contracts.MessageFailed.Message()
+                } : null,
+                MessageDetails = new Contracts.MessageFailed.Message
                 {
                     Headers = last.Headers,
                     ContentType = (string)last.MessageMetadata["ContentType"],

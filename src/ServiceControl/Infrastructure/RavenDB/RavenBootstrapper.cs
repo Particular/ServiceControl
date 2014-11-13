@@ -7,6 +7,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
     using NServiceBus.RavenDB;
+    using Particular.ServiceControl.Licensing;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
@@ -15,6 +16,15 @@
 
     public class RavenBootstrapper : INeedInitialization
     {
+        public static string ReadLicense()
+        {
+            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
+            using (var reader = new StreamReader(resourceStream))
+            {
+                return reader.ReadToEnd();
+            }
+        }
+
         public void Init()
         {
             Directory.CreateDirectory(Settings.DbPath);
@@ -22,12 +32,27 @@
             var documentStore = new EmbeddableDocumentStore
             {
                 DataDirectory = Settings.DbPath,
-                UseEmbeddedHttpServer = Settings.ExposeRavenDB,
+                UseEmbeddedHttpServer = Settings.MaintenanceMode || Settings.ExposeRavenDB,
                 EnlistInDistributedTransactions = false,
             };
 
+            var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
+            if (File.Exists(localRavenLicense))
+            {
+                Logger.InfoFormat("Loading RavenDB license found from {0}", localRavenLicense);
+                documentStore.Configuration.Settings["Raven/License"] = NonLockingFileReader.ReadAllTextWithoutLocking(localRavenLicense);
+            }
+            else
+            {
+                Logger.InfoFormat("Loading Embedded RavenDB license");
+                documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
+            }
+
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
-            documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration"); // Enable the expiration bundle
+            
+            if (!Settings.MaintenanceMode) {
+                documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
+            }
 
             documentStore.Configuration.Port = Settings.Port;
             documentStore.Configuration.HostName = (Settings.Hostname == "*" || Settings.Hostname == "+")
@@ -35,9 +60,7 @@
                 : Settings.Hostname;
             documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
             documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
-
             documentStore.Conventions.SaveEnumsAsIntegers = true;
-
             documentStore.Initialize();
 
             Logger.Info("Index creation started");

@@ -22,13 +22,11 @@
                 {
                     RavenQueryStatistics stats;
                     var query =
-                        session.Query<CustomCheck, CustomChecksIndex>()
-                            .Customize(x => x.WaitForNonStaleResultsAsOfLastWrite())
-                            .Statistics(out stats);
+                        session.Query<CustomCheck, CustomChecksIndex>().Statistics(out stats);
 
                     query = AddStatusFilter(query);
 
-                    var results = query.Customize(x => x.WaitForNonStaleResultsAsOfLastWrite())
+                    var results = query
                         .Paging(Request)
                         .ToArray();
 

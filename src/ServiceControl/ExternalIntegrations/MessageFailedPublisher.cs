@@ -9,11 +9,11 @@ namespace ServiceControl.ExternalIntegrations
 
     public class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
     {
-        protected override DispatchContext CreateDispatchRequest(MessageFailed evnt)
+        protected override DispatchContext CreateDispatchRequest(MessageFailed @event)
         {
             return new DispatchContext
             {
-                FailedMessageId = new Guid(evnt.FailedMessageId)
+                FailedMessageId = new Guid(@event.FailedMessageId)
             };
         }
 

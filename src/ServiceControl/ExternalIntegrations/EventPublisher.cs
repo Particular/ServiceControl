@@ -8,17 +8,17 @@ namespace ServiceControl.ExternalIntegrations
     public abstract class EventPublisher<TEvent, TDispatchContext> :IEventPublisher
         where TEvent : IEvent
     {
-        public bool Handles(IEvent evnt)
+        public bool Handles(IEvent @event)
         {
-            return evnt is TEvent;
+            return @event is TEvent;
         }
 
-        public object CreateDispatchContext(IEvent evnt)
+        public object CreateDispatchContext(IEvent @event)
         {
-            return CreateDispatchRequest((TEvent) evnt);
+            return CreateDispatchRequest((TEvent)@event);
         }
 
-        protected abstract TDispatchContext CreateDispatchRequest(TEvent evnt);
+        protected abstract TDispatchContext CreateDispatchRequest(TEvent @event);
 
         public IEnumerable<object> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IDocumentSession session)
         {

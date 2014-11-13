@@ -65,7 +65,7 @@
                 {
                     for (var i = 0; i < MessageCount; i++)
                     {
-                        bus.SendLocal(new MyMessage() { Body = i.ToString() });
+                        bus.SendLocal(new MyMessage { Body = i.ToString() });
                     }
                 }))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<MessageFailed>()))

@@ -21,7 +21,6 @@
 
                     var results = session.Advanced
                         .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                        .WaitForNonStaleResultsAsOfLastWrite()
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
                         .Sort(Request)
@@ -46,7 +45,6 @@
                     RavenQueryStatistics stats;
                     var results = session.Advanced
                         .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                        .WaitForNonStaleResultsAsOfLastWrite()
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
                         .AndAlso()

@@ -295,9 +295,9 @@ namespace ServiceControl.Operations
                                 message = queueReceiver.ReceiveById(messageID);
                                 performanceCounters.MessageDequeued();
                             }
-                            catch (Exception mqex)
+                            catch (Exception exception)
                             {
-                                importFailuresHandler.FailedToReceive(mqex); //logs and increments circuit breaker
+                                importFailuresHandler.FailedToReceive(exception); //logs and increments circuit breaker
                                 return;
                             }
 
