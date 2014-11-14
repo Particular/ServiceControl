@@ -5,7 +5,9 @@
     using Raven.Client;
     using ServiceControl.Contracts.EndpointControl;
 
-    public class DetectRoutes : IHandleMessages<EndpointStarted>
+
+    //demos on how we could us conventions to autodetect scaleout groups
+    public class AutoDetectScaleOutGroup : IHandleMessages<EndpointStarted>
     {
         public IDocumentSession Session { get; set; }
 
@@ -21,7 +23,7 @@
 
             var logicalEndpoint = parts[0];
 
-            var enpointRoutes = Session.Load<EndpointRoutes>(logicalEndpoint) ?? new EndpointRoutes{Id = logicalEndpoint};
+            var enpointRoutes = Session.Load<ScaleOutGroup>(logicalEndpoint) ?? new ScaleOutGroup{Id = logicalEndpoint};
 
             //todo: we need to get the real address
             var address = message.EndpointDetails.Name + "@" + message.EndpointDetails.Host;
@@ -37,9 +39,9 @@
         }
     }
 
-    public class EndpointRoutes
+    public class ScaleOutGroup
     {
-        public EndpointRoutes()
+        public ScaleOutGroup()
         {
             Routes = new List<string>();
         }
