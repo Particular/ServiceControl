@@ -13,7 +13,12 @@
 
                 using(var session = Store.OpenSession())
                 {
-                    var availableRoutes = session.Load<EndpointRoutes>(endpoint) ?? new EndpointRoutes();
+                    var availableRoutes = session.Load<EndpointRoutes>(endpoint);
+
+                    if (availableRoutes == null)
+                    {
+                        return HttpStatusCode.NotFound;
+                    }
 
                     return Negotiate.WithModel(availableRoutes.Routes);    
                 }
