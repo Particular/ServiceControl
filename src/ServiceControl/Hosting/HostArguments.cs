@@ -8,6 +8,7 @@ namespace Particular.ServiceControl.Hosting
     using System.Text;
     using Commands;
     using global::ServiceControl.Hosting.Commands;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class HostArguments
     {
@@ -79,9 +80,25 @@ namespace Particular.ServiceControl.Hosting
                     "serviceName=",
                     @"Specify the service name for the installed service."
                     , s => { ServiceName = s; }
+                },
+            };
+
+            maintenanceOptions = new OptionSet
+            {
+                {
+                    "m|maint|maintenance",
+                    @"Run RavenDB only - use for DB maintenance", 
+                    s => {
+                        commands = new List<Type>
+                        {
+                            typeof(MaintCommand)
+                        };
+                        executionMode = ExecutionMode.Maintenance;
+                    }
                 }
             };
 
+         
             uninstallOptions = new OptionSet
             {
                 {
@@ -102,8 +119,6 @@ namespace Particular.ServiceControl.Hosting
                     , s => { ServiceName = s; }
                 }
             };
-
-            
 
             installOptions = new OptionSet
             {
@@ -207,6 +222,12 @@ namespace Particular.ServiceControl.Hosting
                 {
                     return;
                 }
+                maintenanceOptions.Parse(args);
+                if (executionMode == ExecutionMode.Maintenance)
+                {
+                    Settings.MaintenanceMode = true;
+                    return;
+                }
 
                 defaultOptions.Parse(args);
             }
@@ -278,6 +299,7 @@ namespace Particular.ServiceControl.Hosting
         readonly OptionSet installOptions;
         readonly OptionSet uninstallOptions;
         readonly OptionSet defaultOptions;
+        readonly OptionSet maintenanceOptions;
         List<Type> commands;
         Dictionary<string, string> options = new Dictionary<string, string>();
         StartMode startMode;
@@ -287,7 +309,8 @@ namespace Particular.ServiceControl.Hosting
     {
         Install,
         Uninstall,
-        Run
+        Run,
+        Maintenance
     }
 
     public enum StartMode

@@ -240,6 +240,7 @@
     <Compile Include="Hosting\Commands\AbstractCommand.cs" />
     <Compile Include="Hosting\Commands\CommandRunner.cs" />
     <Compile Include="Hosting\Commands\InstallCommand.cs" />
+    <Compile Include="Hosting\Commands\MaintCommand.cs" />
     <Compile Include="Hosting\Commands\RestartCommand.cs" />
     <Compile Include="Hosting\Commands\RunBootstrapperAndNServiceBusInstallers.cs" />
     <Compile Include="Hosting\Commands\RunCommand.cs" />

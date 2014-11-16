@@ -22,6 +22,7 @@ namespace Particular.ServiceControl
         IStartableBus bus;
         public static IContainer Container { get; set; }
 
+
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null)
         {
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
@@ -81,6 +82,18 @@ namespace Particular.ServiceControl
 
         public void Start()
         {
+             var Logger = NServiceBus.Logging.LogManager.GetLogger(typeof(Bootstrapper));
+            if (Settings.MaintenanceMode)
+            {
+                Logger.InfoFormat("RavenDB is now accepting requests on {0}", Settings.StorageUrl);
+                Logger.Warn("RavenDB Maintenance Mode - Press Enter to exit");
+                while (Console.ReadLine() == null)
+                {
+                }
+                return;
+            }
+
+            
             bus.Start(() =>
             {
                 if (Environment.UserInteractive && Debugger.IsAttached)
@@ -123,11 +136,6 @@ namespace Particular.ServiceControl
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, consoleTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
-
-#if (DEBUG)  //TODO : Remove once we've stabilized deletions
-            nlogConfig.LoggingRules.Add(new LoggingRule("ServiceControl.Infrastructure.RavenDB.Expiration.*", LogLevel.Debug, consoleTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("ServiceControl.Infrastructure.RavenDB.Expiration.*", LogLevel.Debug, fileTarget));
-#endif
             nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, consoleTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Warn, fileTarget));

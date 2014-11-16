@@ -6,6 +6,7 @@ USAGE:
    ServiceControl.exe --restart [options]
    ServiceControl.exe --install [options]
    ServiceControl.exe --uninstall [options]
+   ServiceControl.exe --maintenance [options]
 
 DEFAULT OPTIONS:
 
@@ -18,6 +19,13 @@ INSTALL OPTIONS:
 UNINSTALL OPTIONS:
 
 {2}
+
+MAINTENANCE 
+
+The maintenance switch allows RavenDB Maintenance tasks to be carried out.  In this mode ServiceControl enables the RavenDB Web UI only.  
+The REST API, message importers and the background document expiry are all disabled.
+
+This mode is only supported when run interactively. 
 
 CONFIGURATION OPTIONS:
 
