@@ -420,7 +420,7 @@
     <Compile Include="SagaAudit\SagaStateChange.cs" />
     <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
     <Compile Include="SagaAudit\SageMessageState.cs" />
-    <Compile Include="ScaleOut\AutoDetectScaleOutGroup.cs" />
+    <Compile Include="ScaleOut\EnlistInScaleOutGroup.cs" />
     <Compile Include="ScaleOut\GetRoutesForEndpoint.cs" />
   </ItemGroup>
   <ItemGroup>
