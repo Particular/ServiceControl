@@ -204,8 +204,7 @@
             set { expirationProcessBatchSize = value; }
         }
 
-        public static bool RandomizeProcessedAtDate = SettingsReader<bool>.Read("RandomizeProcessedAtDate");
-
+      
         static readonly ILog Logger = LogManager.GetLogger(typeof(Settings));
         public static string ServiceName;
 
