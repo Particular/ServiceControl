@@ -96,6 +96,7 @@
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapperTests.cs" />
     <Compile Include="Infrastructure\RavenDB\TestWithRavenDB.cs" />
+    <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
   </ItemGroup>
   <ItemGroup>
