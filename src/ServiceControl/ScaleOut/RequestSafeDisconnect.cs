@@ -1,6 +1,7 @@
 namespace ServiceControl.MessageFailures.Api
 {
     using Nancy;
+    using Nancy.Helpers;
     using Nancy.ModelBinding;
     using NServiceBus;
     using NServiceBus.Transports;
@@ -17,11 +18,19 @@ namespace ServiceControl.MessageFailures.Api
 
                 var transportMessage = ControlMessage.Create(Address.Local);
                 transportMessage.Headers["NServiceBus.DisconnectMessage"] = "true";
-                transportMessage.Headers["ServiceControlCallbackUrl"] = BaseUrl + "/SafeToDisconnect/" + request.Address;
+                transportMessage.Headers["ServiceControlCallbackUrl"] = BaseUrl + "/SafeToDisconnect/" + HttpUtility.UrlEncode(request.Address);
 
                 SendMessage.Send(transportMessage, Address.Parse(request.Address));
 
+                return HttpStatusCode.OK;
+            };
 
+            Post["/SafeToDisconnect/{address}"] = parameters =>
+            {
+                string address = HttpUtility.UrlDecode(parameters.address);
+
+                // What to do here?
+                
                 return HttpStatusCode.OK;
             };
         }
