@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Runtime.Remoting.Contexts;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;

@@ -420,8 +420,10 @@
     <Compile Include="SagaAudit\SagaStateChange.cs" />
     <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
     <Compile Include="SagaAudit\SageMessageState.cs" />
+    <Compile Include="ScaleOut\DischargeFromScaleOutGroup.cs" />
     <Compile Include="ScaleOut\EnlistInScaleOutGroup.cs" />
     <Compile Include="ScaleOut\GetRoutesForEndpoint.cs" />
+    <Compile Include="ScaleOut\RequestSafeDisconnect.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">

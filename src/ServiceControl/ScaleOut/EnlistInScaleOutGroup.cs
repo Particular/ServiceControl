@@ -35,10 +35,11 @@
 
             };
         }
-        class EnlistRequest
-        {
-            public string Address { get; set; }
-        }
+    }
+
+    class EnlistRequest
+    {
+        public string Address { get; set; }
     }
 
     public class ScaleOutGroup

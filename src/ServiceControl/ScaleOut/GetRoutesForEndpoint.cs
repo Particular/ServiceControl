@@ -1,8 +1,5 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Runtime.InteropServices;
     using Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
@@ -28,9 +25,5 @@
 
             };
         }
-
-
-
-    
     }
 }
