@@ -15,8 +15,7 @@
                 using (var session = Store.OpenSession())
                 {
                     RavenQueryStatistics stats;
-                    var results = session.Query<EventLogItem>()
-                        .Statistics(out stats)
+                    var results = session.Query<EventLogItem>().Statistics(out stats).OrderByDescending(p => p.RaisedAt)
                         .ToArray();
 
                     return Negotiate.WithModel(results)
