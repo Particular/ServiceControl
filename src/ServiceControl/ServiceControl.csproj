@@ -260,6 +260,7 @@
     <Compile Include="Hosting\Options.cs" />
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />
+    <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
@@ -351,7 +352,6 @@
     <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
     <Compile Include="MessageFailures\DetectSuccessfullRetriesEnricher.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
-    <Compile Include="MessageFailures\Handlers\RaiseMessageFailuresChanges.cs" />
     <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />
     <Compile Include="MessageFailures\InternalMessages\PerformRetry.cs" />
     <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
@@ -378,7 +378,6 @@
     <Compile Include="Infrastructure\OWIN\Startup.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
-    <Compile Include="MessageFailures\MessageFailuresComputation.cs" />
     <Compile Include="MessageTypes\MessageTypeEnricher.cs" />
     <Compile Include="Operations\AuditQueueImport.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByConversation.cs" />
