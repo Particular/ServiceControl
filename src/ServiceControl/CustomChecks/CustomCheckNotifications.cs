@@ -1,11 +1,10 @@
-﻿namespace ServiceControl.MessageFailures
+﻿namespace ServiceControl.CustomChecks
 {
     using System;
     using System.Linq;
     using NServiceBus;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using ServiceControl.CustomChecks;
     using INeedInitialization = NServiceBus.INeedInitialization;
 
     public class CustomCheckNotifications : INeedInitialization, IWantToRunWhenBusStartsAndStops, IObserver<IndexChangeNotification>
