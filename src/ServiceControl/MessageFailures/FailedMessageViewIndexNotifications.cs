@@ -4,18 +4,16 @@
     using System.Linq;
     using NServiceBus;
     using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
     using INeedInitialization = NServiceBus.INeedInitialization;
 
-
-    public class FailedMessageViewIndexNotifications : INeedInitialization, IObserver<IndexChangeNotification>
+    public class FailedMessageViewIndexNotifications : INeedInitialization, IWantToRunWhenBusStartsAndStops, IObserver<IndexChangeNotification>
     {
-        IDocumentStore Store;
-        IBus Bus;
-
-        const string failedMsgsIndex = "FailedMessageViewIndex";
+        IBus bus;
+        IDocumentStore store;
+        int lastCount;
 
         public FailedMessageViewIndexNotifications()
         {
@@ -24,19 +22,8 @@
 
         public FailedMessageViewIndexNotifications(IDocumentStore store, IBus bus)
         {
-            Bus = bus;
-            Store = store;
-            UpdatedCount();
-
-            var s = store.DatabaseCommands.GetIndexes(0, 128).Select(x => x.Name).ToList();
-            if (s.Contains(failedMsgsIndex))
-            {
-                store.Changes().ForIndex(failedMsgsIndex).Subscribe(this);
-            }
-            else
-            {
-                throw new IndexDoesNotExistsException(string.Format("Can't find {0} index", failedMsgsIndex));
-            }
+            this.bus = bus;
+            this.store = store;
         }
 
         public void OnNext(IndexChangeNotification value)
@@ -51,21 +38,34 @@
 
         public void OnCompleted()
         {
-            UpdatedCount();
+            //Ignore
         }
 
         void UpdatedCount()
         {
-            using (var session = Store.OpenSession())
+            using (var session = store.OpenSession())
             {
-                var total = session.Query<FailedMessage>().Count(m => m.Status == FailedMessageStatus.Unresolved);
-                Bus.Publish(new MessageFailuresUpdated { Total = total });
+                var failedMessageCount = session.Query<FailedMessage, FailedMessageViewIndex>().Count(p => p.Status == FailedMessageStatus.Unresolved);
+                if (lastCount == failedMessageCount)
+                    return;
+                lastCount = failedMessageCount;
+                bus.Publish(new MessageFailuresUpdated { Total = failedMessageCount });
             }
         }
 
         public void Init()
         {
             Configure.Component<FailedMessageViewIndexNotifications>(DependencyLifecycle.SingleInstance);
+        }
+
+        public void Start()
+        {
+            store.Changes().ForIndex("FailedMessageViewIndex").Subscribe(this);
+        }
+
+        public void Stop()
+        {
+            //Ignore
         }
     }
 }
