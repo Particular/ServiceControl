@@ -14,24 +14,24 @@ namespace ServiceControl.MessageFailures.Api
         {
             Post["/scaleoutgroups/requestsafedisconnect"] = _ =>
             {
-                var request = this.Bind<EnlistRequest>();
+                var address = this.Bind<string>();
 
                 var transportMessage = ControlMessage.Create(Address.Local);
                 transportMessage.Headers["NServiceBus.DisconnectMessage"] = "true";
-                transportMessage.Headers["ServiceControlCallbackUrl"] = BaseUrl + "/SafeToDisconnect/" + HttpUtility.UrlEncode(request.Address);
+                transportMessage.Headers["ServiceControlCallbackUrl"] = BaseUrl + "/SafeToDisconnect/" + HttpUtility.UrlEncode(address);
 
-                SendMessage.Send(transportMessage, Address.Parse(request.Address));
+                SendMessage.Send(transportMessage, Address.Parse(address));
 
-                return HttpStatusCode.OK;
+                return HttpStatusCode.NoContent;
             };
 
             Post["/SafeToDisconnect/{address}"] = parameters =>
             {
-                string address = HttpUtility.UrlDecode(parameters.address);
+                //string address = HttpUtility.UrlDecode(parameters.address);
 
                 // What to do here?
                 
-                return HttpStatusCode.OK;
+                return HttpStatusCode.NoContent;
             };
         }
 

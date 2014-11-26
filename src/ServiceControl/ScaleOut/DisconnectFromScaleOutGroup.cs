@@ -4,17 +4,20 @@
     using Nancy.ModelBinding;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class DischargeFromScaleOutGroup : BaseModule
+    public class DisconnectFromScaleOutGroup : BaseModule
     {
-        public DischargeFromScaleOutGroup()
+        public DisconnectFromScaleOutGroup()
         {
-            Delete["/scaleoutgroups/{id}/discharge"] = parameters =>
+            Delete["/scaleoutgroups/{id}/disconnect"] = parameters =>
             {
                 string scaleOutGroupId = parameters.id;
 
-                var request = this.Bind<EnlistRequest>();
+                var address = this.Bind<string>();
 
-                var address = request.Address;
+                if (string.IsNullOrEmpty(address))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
 
                 using (var session = Store.OpenSession())
                 {
@@ -22,7 +25,7 @@
 
                     if (scaleOutGroup == null)
                     {
-                        return HttpStatusCode.OK;
+                        return HttpStatusCode.NoContent;
                     }
 
                     if (scaleOutGroup.Routes.Contains(address))
@@ -33,7 +36,7 @@
                         session.SaveChanges();
                     }
 
-                    return HttpStatusCode.OK;
+                    return HttpStatusCode.NoContent;
                 }
             };
         }

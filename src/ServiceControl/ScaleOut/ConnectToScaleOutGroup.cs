@@ -5,17 +5,20 @@
     using Nancy.ModelBinding;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class EnlistInScaleOutGroup : BaseModule
+    public class ConnectToScaleOutGroup : BaseModule
     {
-        public EnlistInScaleOutGroup()
+        public ConnectToScaleOutGroup()
         {
-            Post["/scaleoutgroups/{id}/enlist"] = parameters =>
+            Post["/scaleoutgroups/{id}/connect"] = parameters =>
             {
                 string scaleOutGroupId = parameters.id;
 
-                var request = this.Bind<EnlistRequest>();
+                var address = this.Bind<string>();
 
-                var address = request.Address;
+                if (string.IsNullOrEmpty(address))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
 
                 using (var session = Store.OpenSession())
                 {
@@ -30,16 +33,11 @@
                         session.SaveChanges();
                     }
 
-                    return HttpStatusCode.OK;
+                    return HttpStatusCode.NoContent;
                 }
 
             };
         }
-    }
-
-    class EnlistRequest
-    {
-        public string Address { get; set; }
     }
 
     public class ScaleOutGroup
