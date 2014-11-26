@@ -2,7 +2,10 @@
 {
     using System;
     using System.Linq;
+    using System.Reactive.Concurrency;
+    using System.Reactive.Linq;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using INeedInitialization = NServiceBus.INeedInitialization;
@@ -12,7 +15,9 @@
         IDocumentStore store;
         IBus bus;
         int lastCount;
-
+        IDisposable subscription;
+        ILog logging = LogManager.GetLogger(typeof(CustomCheckNotifications));
+    
         public CustomCheckNotifications()
         {
             // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
@@ -36,14 +41,25 @@
 
         void UpdateCount()
         {
-            using (var session = store.OpenSession())
+            try
             {
-                var failedCustomCheckCount = session.Query<CustomCheck, CustomChecksIndex>().Count(p => p.Status == Status.Fail);
-                if (lastCount == failedCustomCheckCount)
-                    return;
-                lastCount = failedCustomCheckCount;
-                bus.Publish(new CustomChecksUpdated { Failed = lastCount });
+                using (var session = store.OpenSession())
+                {
+                    var failedCustomCheckCount = session.Query<CustomCheck, CustomChecksIndex>().Count(p => p.Status == Status.Fail);
+                    if (lastCount == failedCustomCheckCount)
+                        return;
+                    lastCount = failedCustomCheckCount;
+                    bus.Publish(new CustomChecksUpdated
+                    {
+                        Failed = lastCount
+                    });
+                }
             }
+            catch (Exception ex)
+            {
+                logging.WarnFormat("Failed to emit CustomCheckUpdated - {0}", ex);
+            }
+
         }
 
         public void OnError(Exception error)
@@ -58,12 +74,12 @@
 
         public void Start()
         {
-            store.Changes().ForIndex("CustomChecksIndex").Subscribe(this);
+            subscription = store.Changes().ForIndex("CustomChecksIndex").SubscribeOn(Scheduler.Default).Subscribe(this);
         }
 
         public void Stop()
         {
-            //Ignore
+            subscription.Dispose();
         }
     }
 }

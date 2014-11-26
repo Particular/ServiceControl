@@ -2,7 +2,10 @@
 {
     using System;
     using System.Linq;
+    using System.Reactive.Concurrency;
+    using System.Reactive.Linq;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
@@ -14,7 +17,9 @@
         IBus bus;
         IDocumentStore store;
         int lastCount;
-
+        IDisposable subscription;
+        ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
+        
         public FailedMessageViewIndexNotifications()
         {
             // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
@@ -33,7 +38,7 @@
 
         public void OnError(Exception error)
         {
-            //Ignore
+            //Ignore  
         }
 
         public void OnCompleted()
@@ -43,13 +48,23 @@
 
         void UpdatedCount()
         {
-            using (var session = store.OpenSession())
+            try
             {
-                var failedMessageCount = session.Query<FailedMessage, FailedMessageViewIndex>().Count(p => p.Status == FailedMessageStatus.Unresolved);
-                if (lastCount == failedMessageCount)
-                    return;
-                lastCount = failedMessageCount;
-                bus.Publish(new MessageFailuresUpdated { Total = failedMessageCount });
+                using (var session = store.OpenSession())
+                {
+                    var failedMessageCount = session.Query<FailedMessage, FailedMessageViewIndex>().Count(p => p.Status == FailedMessageStatus.Unresolved);
+                    if (lastCount == failedMessageCount)
+                        return;
+                    lastCount = failedMessageCount;
+                    bus.Publish(new MessageFailuresUpdated
+                    {
+                        Total = failedMessageCount
+                    });
+                }
+            }
+            catch(Exception ex)
+            {
+                logging.WarnFormat("Failed to emit MessageFailuresUpdated - {0}", ex);
             }
         }
 
@@ -60,12 +75,12 @@
 
         public void Start()
         {
-            store.Changes().ForIndex("FailedMessageViewIndex").Subscribe(this);
+            subscription = store.Changes().ForIndex("FailedMessageViewIndex").SubscribeOn(Scheduler.Default).Subscribe(this);
         }
 
         public void Stop()
         {
-            //Ignore
+            subscription.Dispose();
         }
     }
 }
