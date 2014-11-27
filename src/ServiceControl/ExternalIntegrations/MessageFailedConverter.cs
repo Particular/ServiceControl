@@ -1,5 +1,6 @@
 namespace ServiceControl.ExternalIntegrations
 {
+    using System.Collections.Generic;
     using System.Linq;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageFailures;
@@ -10,13 +11,12 @@ namespace ServiceControl.ExternalIntegrations
         {
             var last = message.ProcessingAttempts.Last();
             var sendingEndpoint = (EndpointDetails)last.MessageMetadata["SendingEndpoint"];
-            object tmp;
-            last.MessageMetadata.TryGetValue("ReceivingEndpoint", out tmp);
-            var receivingEndpoint = (EndpointDetails) tmp;
+            var receivingEndpoint = GetNullableMetadataValue<EndpointDetails>(last.MessageMetadata, "ReceivingEndpoint");
+
             return new Contracts.MessageFailed
             {
                 FailedMessageId = message.UniqueMessageId,
-                MessageType = (string)last.MessageMetadata["MessageType"],
+                MessageType = GetNullableMetadataValue<string>(last.MessageMetadata,"MessageType"),
                 NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
                 Status = message.Status == FailedMessageStatus.Archived
                     ? Contracts.MessageFailed.MessageStatus.ArchivedFailure
@@ -38,7 +38,7 @@ namespace ServiceControl.ExternalIntegrations
                 MessageDetails = new Contracts.MessageFailed.Message
                 {
                     Headers = last.Headers,
-                    ContentType = (string)last.MessageMetadata["ContentType"],
+                    ContentType = GetNullableMetadataValue<string>(last.MessageMetadata, "ContentType"),
                     Body = GetBody(last),
                     MessageId = last.MessageId,
                 },
@@ -55,6 +55,14 @@ namespace ServiceControl.ExternalIntegrations
                     },
                 },
             };
+        }
+
+        static T GetNullableMetadataValue<T>(IReadOnlyDictionary<string, object> metadata, string key)
+            where T : class 
+        {
+            object value;
+            metadata.TryGetValue(key, out value);
+            return (T)value;
         }
 
         static string GetBody(FailedMessage.ProcessingAttempt last)
