@@ -21,8 +21,8 @@
     [ExportMetadata("Bundle", "customDocumentExpiration")]
     public class ExpiredDocumentsCleaner : IStartupTask, IDisposable
     {
-        private readonly ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleaner));
-        private Timer timer;
+        ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleaner));
+        Timer timer;
         DocumentDatabase Database { get; set; }
         string indexName;
         int deleteFrequencyInSeconds;
@@ -75,13 +75,12 @@
                 },
             };
 
-            var docsToExpire = 0;
-            var stopwatch = Stopwatch.StartNew();
             try
             {
+                var docsToExpire = 0;
                 // we may be receiving a LOT of documents to delete, so we are going to skip
                 // the cache for that, to avoid filling it up very quickly
-
+                var stopwatch = Stopwatch.StartNew();
                 int deletionCount;
                 using (DocumentCacher.SkipSettingDocumentsInDocumentCache())
                 using (Database.DisableAllTriggersForCurrentThread())
@@ -94,7 +93,9 @@
                         doc =>
                         {
                             if (documentWithCurrentThresholdTimeReached)
+                            {
                                 return;
+                            }
 
                             if (doc.Value<DateTime>("ProcessedAt") >= currentExpiryThresholdTime)
                             {
@@ -137,10 +138,6 @@
             }
             finally
             {
-                if (stopwatch.IsRunning)
-                {
-                    stopwatch.Stop();
-                }
                 try
                 {
                     timer.Change(TimeSpan.FromSeconds(deleteFrequencyInSeconds), Timeout.InfiniteTimeSpan);

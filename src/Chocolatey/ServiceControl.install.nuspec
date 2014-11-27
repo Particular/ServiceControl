@@ -7,6 +7,7 @@
     <authors>Particular Software</authors>
     <owners>Particular Software</owners>
     <projectUrl>http://particular.net</projectUrl>
+    <licenseUrl>http://particular.net/LicenseAgreement</licenseUrl>
     <iconUrl>http://s3.amazonaws.com/nuget.images/ServiceControl_128.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Management extension to NServiceBus</description>
