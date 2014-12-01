@@ -422,7 +422,8 @@
     <Compile Include="SagaAudit\SageMessageState.cs" />
     <Compile Include="ScaleOut\DisconnectFromScaleOutGroup.cs" />
     <Compile Include="ScaleOut\ConnectToScaleOutGroup.cs" />
-    <Compile Include="ScaleOut\GetRoutesForEndpoint.cs" />
+    <Compile Include="ScaleOut\GetRoutesForScaleOutGroup.cs" />
+    <Compile Include="ScaleOut\GetScaleOutGroup.cs" />
     <Compile Include="ScaleOut\RequestSafeDisconnect.cs" />
     <Compile Include="ScaleOut\ScaleOutGroupRegistration.cs" />
     <Compile Include="ScaleOut\ScaleOutGroupRegistrationStatus.cs" />

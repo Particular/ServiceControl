@@ -1,9 +1,8 @@
 namespace ServiceControl.MessageFailures.Api
 {
     using System;
+    using System.IO;
     using Nancy;
-    using Nancy.Helpers;
-    using Nancy.ModelBinding;
     using NServiceBus;
     using NServiceBus.Transports;
     using NServiceBus.Unicast.Transport;
@@ -13,25 +12,21 @@ namespace ServiceControl.MessageFailures.Api
     {
         public RequestSafeDisconnect()
         {
-            Post["/scaleoutgroups/requestsafedisconnect"] = _ =>
+            Post["/scaleoutgroups/{id}/requestsafedisconnect"] = parameters =>
             {
-                var address = this.Bind<string>();
+                string groupId = parameters.id;
+                string address;
 
-                var transportMessage = ControlMessage.Create(Address.Local);
-                transportMessage.Headers["NServiceBus.DisconnectMessage"] = "true";
-                transportMessage.Headers["ServiceControlCallbackUrl"] = BaseUrl + "/SafeToDisconnect/" + HttpUtility.UrlEncode(address);
+                using (var reader = new StreamReader(Request.Body))
+                {
+                    address = reader.ReadToEnd();
+                }
 
-                SendMessage.Send(transportMessage, Address.Parse(address));
 
-                return HttpStatusCode.NoContent;
-            };
 
-            Post["/SafeToDisconnect/{address}"] = parameters =>
-            {
-                string address = HttpUtility.UrlDecode(parameters.address);
                 using (var session = Store.OpenSession())
                 {
-                    var scaleOutGroup = session.Load<ScaleOutGroupRegistration>(String.Format("ScaleOutGroupRegistrations/*/{0}", address));
+                    var scaleOutGroup = session.Load<ScaleOutGroupRegistration>(String.Format("ScaleOutGroupRegistrations/{0}/{1}",groupId, address));
 
                     if (scaleOutGroup == null)
                     {
@@ -41,6 +36,13 @@ namespace ServiceControl.MessageFailures.Api
                     scaleOutGroup.Status = ScaleOutGroupRegistrationStatus.Disconnecting;
 
                     session.Store(scaleOutGroup);
+
+                    var transportMessage = ControlMessage.Create(Address.Local);
+                    transportMessage.Headers["NServiceBus.DisconnectMessage"] = "true";
+                    transportMessage.Headers["ServiceControlCallbackUrl"] = string.Format("{0}/scaleoutgroups/{1}/disconnect",BaseUrl,groupId);
+
+                    SendMessage.Send(transportMessage, Address.Parse(address));
+                    
                     session.SaveChanges();
                 }
 

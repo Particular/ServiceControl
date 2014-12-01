@@ -1,19 +1,24 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System;
+    using System.IO;
     using Nancy;
-    using Nancy.ModelBinding;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class DisconnectFromScaleOutGroup : BaseModule
     {
         public DisconnectFromScaleOutGroup()
         {
-            Delete["/scaleoutgroups/{id}/disconnect"] = parameters =>
+            Post["/scaleoutgroups/{id}/disconnect"] = parameters =>
             {
                 string groupId = parameters.id;
 
-                var address = this.Bind<string>();
+                string address;
+
+                using (var reader = new StreamReader(Request.Body))
+                {
+                    address = reader.ReadToEnd();
+                }
 
                 if (string.IsNullOrEmpty(address))
                 {
@@ -22,15 +27,14 @@
 
                 using (var session = Store.OpenSession())
                 {
-                    var scaleOutGroup = session.Load<ScaleOutGroupRegistration>(String.Format("ScaleOutGroupRegistrations/{0}/{1}", groupId, address));
+                    var endpointInstance = session.Load<ScaleOutGroupRegistration>(String.Format("ScaleOutGroupRegistrations/{0}/{1}", groupId, address));
 
-                    if (scaleOutGroup == null)
+                    if (endpointInstance == null)
                     {
                         return HttpStatusCode.NoContent;
                     }
 
-                    //TODO: Should we validate that the status is at Disconnecting ?
-                    session.Delete(scaleOutGroup);
+                    endpointInstance.Status = ScaleOutGroupRegistrationStatus.Disconnected;
                     session.SaveChanges();
 
                     return HttpStatusCode.NoContent;

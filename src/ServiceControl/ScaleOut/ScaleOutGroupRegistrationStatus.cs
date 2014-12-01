@@ -2,7 +2,8 @@
 {
     public enum ScaleOutGroupRegistrationStatus
     {
-        Connected,
-        Disconnecting,
+        Disconnected = 0,
+        Connected = 1,
+        Disconnecting = 2
     }
 }

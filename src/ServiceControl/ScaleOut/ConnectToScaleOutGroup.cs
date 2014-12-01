@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
+    using System.IO;
     using Nancy;
-    using Nancy.ModelBinding;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class ConnectToScaleOutGroup : BaseModule
@@ -12,7 +12,12 @@
             {
                 string groupId = parameters.id;
 
-                var address = this.Bind<string>();
+                string address;
+
+                using (var reader = new StreamReader(Request.Body))
+                {
+                    address = reader.ReadToEnd();
+                }
 
                 if (string.IsNullOrEmpty(address))
                 {
