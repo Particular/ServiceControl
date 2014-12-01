@@ -1,6 +1,10 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
+    using System.Linq;
     using Nancy;
+    using Raven.Client;
+    using Raven.Client.Linq;
+    using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class GetRoutesForScaleOutGroup : BaseModule
@@ -9,20 +13,25 @@
         {
             Get["/routes/{id}"] = parameters =>
             {
-                string endpoint = parameters.id;
+                string groupId = parameters.id;
 
                 using (var session = Store.OpenSession())
                 {
-                    var availableRoutes = session.Load<ScaleOutGroup>(endpoint);
+                    RavenQueryStatistics stats;
+                    var availableRoutes = session.Query<ScaleOutGroupRegistration>()
+                        .Where(r => r.GroupId == groupId && r.Status == ScaleOutGroupRegistrationStatus.Connected)
+                        .Statistics(out stats)                        
+                        .Select(r => r.Address)
+                        .ToArray();
 
-                    if (availableRoutes == null)
+                    if (availableRoutes.Length == 0)
                     {
                         return HttpStatusCode.NotFound;
                     }
 
-                    return Negotiate.WithModel(availableRoutes.Routes);
+                    return Negotiate.WithModel(availableRoutes)
+                        .WithEtagAndLastModified(stats);
                 }
-
             };
         }
     }

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
+    using System;
     using Nancy;
     using Nancy.ModelBinding;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -10,7 +11,7 @@
         {
             Delete["/scaleoutgroups/{id}/disconnect"] = parameters =>
             {
-                string scaleOutGroupId = parameters.id;
+                string groupId = parameters.id;
 
                 var address = this.Bind<string>();
 
@@ -21,20 +22,16 @@
 
                 using (var session = Store.OpenSession())
                 {
-                    var scaleOutGroup = session.Load<ScaleOutGroup>(scaleOutGroupId);
+                    var scaleOutGroup = session.Load<ScaleOutGroupRegistration>(String.Format("ScaleOutGroupRegistrations/{0}/{1}", groupId, address));
 
                     if (scaleOutGroup == null)
                     {
                         return HttpStatusCode.NoContent;
                     }
 
-                    if (scaleOutGroup.Routes.Contains(address))
-                    {
-                        scaleOutGroup.Routes.Remove(address);
-
-                        session.Store(scaleOutGroup);
-                        session.SaveChanges();
-                    }
+                    //TODO: Should we validate that the status is at Disconnecting ?
+                    session.Delete(scaleOutGroup);
+                    session.SaveChanges();
 
                     return HttpStatusCode.NoContent;
                 }

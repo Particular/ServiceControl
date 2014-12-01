@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System.Collections.Generic;
     using Nancy;
     using Nancy.ModelBinding;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -11,7 +10,7 @@
         {
             Post["/scaleoutgroups/{id}/connect"] = parameters =>
             {
-                string scaleOutGroupId = parameters.id;
+                string groupId = parameters.id;
 
                 var address = this.Bind<string>();
 
@@ -22,31 +21,14 @@
 
                 using (var session = Store.OpenSession())
                 {
-                    var scaleOutGroup = session.Load<ScaleOutGroup>(scaleOutGroupId) ?? new ScaleOutGroup { Id = scaleOutGroupId };
-
-
-                    if (!scaleOutGroup.Routes.Contains(address))
-                    {
-                        scaleOutGroup.Routes.Add(address);
-
-                        session.Store(scaleOutGroup);
-                        session.SaveChanges();
-                    }
+                    var scaleOutGroupRegistration = new ScaleOutGroupRegistration(groupId, address);
+                   
+                    session.Store(scaleOutGroupRegistration);
+                    session.SaveChanges();
 
                     return HttpStatusCode.NoContent;
                 }
-
             };
         }
-    }
-
-    public class ScaleOutGroup
-    {
-        public ScaleOutGroup()
-        {
-            Routes = new List<string>();
-        }
-        public string Id { get; set; }
-        public List<string> Routes { get; set; }
     }
 }

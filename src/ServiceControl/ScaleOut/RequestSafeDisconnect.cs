@@ -1,5 +1,6 @@
 namespace ServiceControl.MessageFailures.Api
 {
+    using System;
     using Nancy;
     using Nancy.Helpers;
     using Nancy.ModelBinding;
@@ -27,10 +28,22 @@ namespace ServiceControl.MessageFailures.Api
 
             Post["/SafeToDisconnect/{address}"] = parameters =>
             {
-                //string address = HttpUtility.UrlDecode(parameters.address);
+                string address = HttpUtility.UrlDecode(parameters.address);
+                using (var session = Store.OpenSession())
+                {
+                    var scaleOutGroup = session.Load<ScaleOutGroupRegistration>(String.Format("ScaleOutGroupRegistrations/*/{0}", address));
 
-                // What to do here?
-                
+                    if (scaleOutGroup == null)
+                    {
+                        return HttpStatusCode.NoContent;
+                    }
+
+                    scaleOutGroup.Status = ScaleOutGroupRegistrationStatus.Disconnecting;
+
+                    session.Store(scaleOutGroup);
+                    session.SaveChanges();
+                }
+
                 return HttpStatusCode.NoContent;
             };
         }

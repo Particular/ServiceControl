@@ -424,6 +424,8 @@
     <Compile Include="ScaleOut\ConnectToScaleOutGroup.cs" />
     <Compile Include="ScaleOut\GetRoutesForEndpoint.cs" />
     <Compile Include="ScaleOut\RequestSafeDisconnect.cs" />
+    <Compile Include="ScaleOut\ScaleOutGroupRegistration.cs" />
+    <Compile Include="ScaleOut\ScaleOutGroupRegistrationStatus.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
