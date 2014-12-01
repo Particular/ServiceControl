@@ -20,7 +20,8 @@
                     RavenQueryStatistics stats;
                     var availableRoutes = session.Query<ScaleOutGroupRegistration>()
                         .Where(r => r.GroupId == groupId && r.Status == ScaleOutGroupRegistrationStatus.Connected)
-                        .Statistics(out stats)                        
+                        .Statistics(out stats)
+                        .Take(1024)                    
                         .Select(r => r.Address)
                         .ToArray();
 
