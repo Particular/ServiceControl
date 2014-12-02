@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System;
-    using System.IO;
     using Nancy;
+    using Nancy.ModelBinding;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class DisconnectFromScaleOutGroup : BaseModule
@@ -13,12 +13,7 @@
             {
                 string groupId = parameters.id;
 
-                string address;
-
-                using (var reader = new StreamReader(Request.Body))
-                {
-                    address = reader.ReadToEnd();
-                }
+                var address = this.Bind<string>();
 
                 if (string.IsNullOrEmpty(address))
                 {

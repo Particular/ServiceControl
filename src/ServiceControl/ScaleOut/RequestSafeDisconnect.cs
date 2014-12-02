@@ -1,8 +1,8 @@
 namespace ServiceControl.MessageFailures.Api
 {
     using System;
-    using System.IO;
     using Nancy;
+    using Nancy.ModelBinding;
     using NServiceBus;
     using NServiceBus.Transports;
     using NServiceBus.Unicast.Transport;
@@ -12,21 +12,14 @@ namespace ServiceControl.MessageFailures.Api
     {
         public RequestSafeDisconnect()
         {
-            Post["/scaleoutgroups/{id}/requestsafedisconnect"] = parameters =>
+            Post["/scaleoutgroups/{id}/startsafedisconnect"] = parameters =>
             {
                 string groupId = parameters.id;
-                string address;
-
-                using (var reader = new StreamReader(Request.Body))
-                {
-                    address = reader.ReadToEnd();
-                }
-
-
+                var address = this.Bind<string>();
 
                 using (var session = Store.OpenSession())
                 {
-                    var scaleOutGroup = session.Load<ScaleOutGroupRegistration>(String.Format("ScaleOutGroupRegistrations/{0}/{1}",groupId, address));
+                    var scaleOutGroup = session.Load<ScaleOutGroupRegistration>(String.Format("ScaleOutGroupRegistrations/{0}/{1}", groupId, address));
 
                     if (scaleOutGroup == null)
                     {
@@ -39,10 +32,10 @@ namespace ServiceControl.MessageFailures.Api
 
                     var transportMessage = ControlMessage.Create(Address.Local);
                     transportMessage.Headers["NServiceBus.DisconnectMessage"] = "true";
-                    transportMessage.Headers["ServiceControlCallbackUrl"] = string.Format("{0}/scaleoutgroups/{1}/disconnect",BaseUrl,groupId);
+                    transportMessage.Headers["ServiceControlCallbackUrl"] = string.Format("{0}/scaleoutgroups/{1}/disconnect", BaseUrl, groupId);
 
                     SendMessage.Send(transportMessage, Address.Parse(address));
-                    
+
                     session.SaveChanges();
                 }
 

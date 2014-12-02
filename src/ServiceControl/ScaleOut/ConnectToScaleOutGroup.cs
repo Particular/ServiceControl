@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System.IO;
     using Nancy;
+    using Nancy.ModelBinding;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class ConnectToScaleOutGroup : BaseModule
@@ -11,14 +11,8 @@
             Post["/scaleoutgroups/{id}/connect"] = parameters =>
             {
                 string groupId = parameters.id;
-
-                string address;
-
-                using (var reader = new StreamReader(Request.Body))
-                {
-                    address = reader.ReadToEnd();
-                }
-
+                var address = this.Bind<string>();
+                
                 if (string.IsNullOrEmpty(address))
                 {
                     return HttpStatusCode.BadRequest;
