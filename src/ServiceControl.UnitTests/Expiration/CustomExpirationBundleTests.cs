@@ -10,7 +10,7 @@
     using NUnit.Framework;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Infrastructure.RavenDB.Expiration;
 
     [TestFixture]
     public class CustomExpirationBundleTests : TestWithRavenDB
@@ -54,13 +54,14 @@
         [Test]
         public void Many_processed_messages_are_being_expired()
         {
-            new MessagesViewIndex().Execute(documentStore);
+            new ExpiryProcessedMessageIndex().Execute(documentStore);
 
             var processedMessage = new ProcessedMessage
             {
                 Id = Guid.NewGuid().ToString(),
                 ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond%30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
             };
+
             var processedMessage2 = new ProcessedMessage
             {
                 Id = "2",
@@ -69,7 +70,7 @@
             
             using (var session = documentStore.OpenSession())
             {
-                for (var i = 0; i < 2049; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     processedMessage = new ProcessedMessage
                     {
@@ -85,13 +86,10 @@
             }
 
             WaitForIndexing(documentStore);
-            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 4);
-
+            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 10);
             using (var session = documentStore.OpenSession())
             {
-                var results = session.Query<ProcessedMessage, MessagesViewIndex>()
-                    .Customize(x => x.WaitForNonStaleResults())
-                    .ToArray();
+                var results = session.Query<ProcessedMessage, ExpiryProcessedMessageIndex>().Customize(x => x.WaitForNonStaleResults()).ToArray();
                 Assert.AreEqual(1, results.Length);
 
                 var msg = session.Load<ProcessedMessage>(processedMessage.Id);
@@ -105,6 +103,8 @@
         [Test]
         public void Only_processed_messages_are_being_expired()
         {
+            new ExpiryProcessedMessageIndex().Execute(documentStore);
+
             var processedMessage = new ProcessedMessage
             {
                 Id = "1",
@@ -141,6 +141,8 @@
         [Test]
         public void Recent_processed_messages_are_not_being_expired()
         {
+            new ExpiryProcessedMessageIndex().Execute(documentStore);
+
             var processedMessage = new ProcessedMessage
             {
                 Id = "1",
@@ -205,12 +207,8 @@
         {
             documentStore = InMemoryStoreBuilder.GetInMemoryStore(withExpiration: true);
 
-            var customIndex = new MessagesViewIndex();
+            var customIndex = new ExpiryProcessedMessageIndex();
             customIndex.Execute(documentStore);
-
-            var transformer = new MessagesViewTransformer();
-
-            transformer.Execute(documentStore);
         }
 
         [TearDown]
