@@ -7,7 +7,6 @@
     using System.Globalization;
     using System.Linq;
     using System.Threading;
-    using CompositeViews.Messages;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -31,7 +30,7 @@
         public void Execute(DocumentDatabase database)
         {
             Database = database;
-            indexName = new MessagesViewIndex().IndexName;
+            indexName = new ExpiryProcessedMessageIndex().IndexName;
             
             deletionBatchSize = Settings.ExpirationProcessBatchSize;
             deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
