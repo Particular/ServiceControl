@@ -22,6 +22,11 @@
                         .Where(r => r.GroupId == groupId)
                         .Statistics(out stats)
                         .Take(1024)
+                        .Select(r=> new
+                        {
+                            r.Address,
+                            r.Status
+                        })
                         .ToArray();
 
                     if (availableRoutes.Length == 0)

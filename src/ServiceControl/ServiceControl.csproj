@@ -425,9 +425,15 @@
     <Compile Include="ScaleOut\ConnectToScaleOutGroup.cs" />
     <Compile Include="ScaleOut\GetRoutesForScaleOutGroup.cs" />
     <Compile Include="ScaleOut\GetScaleOutGroup.cs" />
+    <Compile Include="ScaleOut\ListScaleOutGroups.cs" />
+    <Compile Include="ScaleOut\ListScaleOutGroupsIndex.cs" />
+    <Compile Include="ScaleOut\ListScaleOutGroupsTransformer.cs" />
     <Compile Include="ScaleOut\RequestSafeDisconnect.cs" />
+    <Compile Include="ScaleOut\ScaleOutGroup.cs" />
     <Compile Include="ScaleOut\ScaleOutGroupRegistration.cs" />
     <Compile Include="ScaleOut\ScaleOutGroupRegistrationStatus.cs" />
+    <Compile Include="ScaleOut\ScaleOutGroupSettings.cs" />
+    <Compile Include="ScaleOut\UpdateScaleOutGroupSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
