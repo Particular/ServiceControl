@@ -15,7 +15,6 @@ namespace Particular.ServiceControl.Hosting
         public HostArguments(string[] args)
         {
             var executionMode = ExecutionMode.Run;
-
             commands = new List<Type> { typeof(RunCommand) };
             startMode = StartMode.Automatic;
             ServiceName = "Particular.ServiceControl";
@@ -135,6 +134,7 @@ namespace Particular.ServiceControl.Hosting
                         commands = new List<Type>
                         {
                             typeof(WriteOptionsCommand),
+                            typeof(CheckMandatoryInstallOptionsCommand),
                             typeof(RunBootstrapperAndNServiceBusInstallers),
                             typeof(InstallCommand)
                         };

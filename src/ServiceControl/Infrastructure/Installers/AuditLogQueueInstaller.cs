@@ -13,7 +13,7 @@ namespace ServiceBus.Management.Infrastructure.Installers
 
         public bool IsDisabled
         {
-            get { return !Settings.ForwardAuditMessages; }
+            get { return Settings.AuditLogQueue == Address.Undefined; }
         }
     }
 }

@@ -233,7 +233,7 @@ namespace ServiceControl.Operations
                                         bulkInsert.Store(auditMessage);
                                         performanceCounters.MessageProcessed();
 
-                                        if (Settings.ForwardAuditMessages)
+                                        if (Settings.ForwardAuditMessages == true)
                                         {
                                             Forwarder.Send(transportMessage, Settings.AuditLogQueue);
                                         }
@@ -328,7 +328,7 @@ namespace ServiceControl.Operations
                                 }
                                 performanceCounters.MessageProcessed();
 
-                                if (Settings.ForwardAuditMessages)
+                                if (Settings.ForwardAuditMessages == true)
                                 {
                                     Forwarder.Send(transportMessage, Settings.AuditLogQueue);
                                 }

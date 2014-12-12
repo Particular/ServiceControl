@@ -19,12 +19,15 @@
     <ROW Property="ARPPRODUCTICON" Value="Operations.exe" Type="8"/>
     <ROW Property="ARPSYSTEMCOMPONENT" Value="1"/>
     <ROW Property="ARPURLUPDATEINFO" Value="http://particular.net/downloads"/>
+    <ROW Property="AUDITFORWARDING" Value="null" Type="4"/>
     <ROW Property="AppLogoIcon" Value="applogoicon" MultiBuildValue="DefaultBuild:Operationslogo.png" Type="1" MsiKey="AppLogoIcon"/>
     <ROW Property="ExtractFilesFirst" Value="1"/>
+    <ROW Property="FORWARDAUDITMESSAGES" Value="null"/>
     <ROW Property="InstanceId" Value="#0"/>
     <ROW Property="Manufacturer" Value="Particular Software"/>
+    <ROW Property="PLATFORMINSTALLER" Value="false"/>
     <ROW Property="PORT_VAL" Value="33333" Type="4"/>
-    <ROW Property="ProductCode" Value="1033:{12BDB3E7-3A70-410A-A2C0-43037E33E3E6} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{F4B59B95-A264-4357-BD1F-3D88B21A6667} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="ServiceControl [|ProductVersion]"/>
     <ROW Property="ProductVersion" Value="1.0.0" Type="32"/>
@@ -54,7 +57,7 @@
     <ROW Component="AI_ExePath" ComponentId="{39176FE9-3DC1-4B49-8344-9FE6BBC43DB9}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
     <ROW Component="AWSSDK.dll" ComponentId="{E1EBD4A9-711E-4A75-B8CF-F51BC712652B}" Directory_="APPDIR" Attributes="0" KeyPath="AWSSDK.dll"/>
     <ROW Component="Autofac.dll" ComponentId="{4F1C0A43-A790-4E91-9FF5-42DD8F984201}" Directory_="APPDIR" Attributes="0" KeyPath="Autofac.dll"/>
-    <ROW Component="Autofac.xml" ComponentId="{E0B3B9E1-0243-4422-9FBC-F55FF086837E}" Directory_="APPDIR" Attributes="0" KeyPath="Autofac.xml" Type="0"/>
+    <ROW Component="Autofac.xml" ComponentId="{08F5B5EA-1529-4643-851C-C57CF4FC9167}" Directory_="APPDIR" Attributes="0" KeyPath="Autofac.xml" Type="0"/>
     <ROW Component="Esent.Interop.dll" ComponentId="{4F4A4367-4EA8-4381-A393-226EAB5CB76F}" Directory_="APPDIR" Attributes="0" KeyPath="Esent.Interop.dll"/>
     <ROW Component="GeoAPI.dll" ComponentId="{DD745EE3-22FA-43EB-AFDF-68D0CF34492A}" Directory_="APPDIR" Attributes="0" KeyPath="GeoAPI.dll"/>
     <ROW Component="ICSharpCode.NRefactory.CSharp.dll" ComponentId="{8F9547D8-B68B-4CE0-BD61-B122139B1B4C}" Directory_="APPDIR" Attributes="0" KeyPath="ICSharpCode.NRefactory.CSharp.dll"/>
@@ -70,7 +73,6 @@
     <ROW Component="Microsoft.CompilerServices.AsyncTargetin" ComponentId="{32E25302-60FD-4F41-9E4A-F1806177E55F}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.CompilerServices.AsyncTargetingPack.Net45.dll"/>
     <ROW Component="Microsoft.Data.Edm.dll" ComponentId="{C456B7A0-D07B-445C-99A1-4934EE731494}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Data.Edm.dll"/>
     <ROW Component="Microsoft.Data.OData.dll" ComponentId="{9A7EE262-0F48-4176-A414-E0252E582243}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Data.OData.dll"/>
-    <ROW Component="Microsoft.Data.Services.Client.dll" ComponentId="{34E33AD0-CCA3-4437-8029-17E3AD00078A}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Data.Services.Client.dll"/>
     <ROW Component="Microsoft.Owin.Diagnostics.dll" ComponentId="{DED0DC4F-2037-4581-B638-19E67DB18059}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Owin.Diagnostics.dll"/>
     <ROW Component="Microsoft.Owin.Host.HttpListener.dll" ComponentId="{0DB98820-4F2F-4F98-A2D5-6FE497AD8C9F}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Owin.Host.HttpListener.dll"/>
     <ROW Component="Microsoft.Owin.Hosting.dll" ComponentId="{A1BA2B38-B1A4-4F95-956C-C284010FFA82}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Owin.Hosting.dll"/>
@@ -79,7 +81,6 @@
     <ROW Component="Microsoft.WindowsAzure.Storage.dll" ComponentId="{E21342BA-1888-46FC-ADE8-9966BE622070}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.WindowsAzure.Storage.dll"/>
     <ROW Component="Mono.Cecil.dll" ComponentId="{0143411B-27AD-4C2E-8594-84E41038D264}" Directory_="APPDIR" Attributes="0" KeyPath="Mono.Cecil.dll"/>
     <ROW Component="NLog.dll" ComponentId="{8113642A-D44C-4A35-95BB-63B141ABC201}" Directory_="APPDIR" Attributes="0" KeyPath="NLog.dll"/>
-    <ROW Component="NServiceBus.Azure.Transports.WindowsAzur" ComponentId="{7B4275AE-1196-471B-A17C-09D0DAACB432}" Directory_="APPDIR" Attributes="0" KeyPath="NServiceBus.Azure.Transports.WindowsAzureStorageQueues.dll"/>
     <ROW Component="NServiceBus.Core.dll" ComponentId="{46059C4F-4296-4DF0-87B8-776E6556175F}" Directory_="APPDIR" Attributes="0" KeyPath="NServiceBus.Core.dll"/>
     <ROW Component="NServiceBus.Host.exe" ComponentId="{9E531DAB-075B-4CEE-AB88-09B4438F2E54}" Directory_="APPDIR" Attributes="0" KeyPath="NServiceBus.Host.exe"/>
     <ROW Component="NServiceBus.ObjectBuilder.Autofac.dll" ComponentId="{FC4B495D-EB00-4B7A-9D20-378A7144DDB3}" Directory_="APPDIR" Attributes="0" KeyPath="NServiceBus.ObjectBuilder.Autofac.dll"/>
@@ -101,98 +102,105 @@
     <ROW Component="ServiceControl" ComponentId="{25064E1F-7742-493E-87A4-93A31C9A8A3A}" Directory_="ServiceControl_Dir" Attributes="0"/>
     <ROW Component="ServiceControl.Contracts.dll" ComponentId="{E435F395-B3A1-4B66-AB36-EAF47E2B301E}" Directory_="APPDIR" Attributes="0" KeyPath="ServiceControl.Contracts.dll"/>
     <ROW Component="Spatial4n.Core.NTS.dll" ComponentId="{C12DD324-809C-48B7-8076-0134BA3475BA}" Directory_="APPDIR" Attributes="0" KeyPath="Spatial4n.Core.NTS.dll"/>
+    <ROW Component="System.Reactive.Core.dll" ComponentId="{4E81487D-4912-404F-8864-EAE2FBB30573}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Core.dll"/>
+    <ROW Component="System.Reactive.Interfaces.dll" ComponentId="{D100525A-12E6-4353-9F28-585E1F139CC9}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Interfaces.dll"/>
+    <ROW Component="System.Reactive.Linq.dll" ComponentId="{73A629DD-33D1-4175-97CF-8D7D1F530FA2}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Linq.dll"/>
+    <ROW Component="System.Reactive.PlatformServices.dll" ComponentId="{804D0F88-9A75-49FE-9F8A-6117F39BA180}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.PlatformServices.dll"/>
     <ROW Component="System.Spatial.dll" ComponentId="{0A95F5B9-B039-426D-98FA-A7E6D24B1F56}" Directory_="APPDIR" Attributes="0" KeyPath="System.Spatial.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="MainFeature" Title="ServiceControl for NServiceBus" Description="ServiceControl for NServiceBus provides auditing and analysis features for NServiceBus." Display="1" Level="1" Directory_="APPDIR" Attributes="16" Components="AI_CustomARPName AI_DisableModify AI_ExePath AWSSDK.dll Autofac.dll Autofac.xml Esent.Interop.dll GeoAPI.dll ICSharpCode.NRefactory.CSharp.dll ICSharpCode.NRefactory.dll ICSharpCode.SharpZipLib.dll InstanceDescription InstanceName Jint.Raven.dll Lucene.Net.Contrib.Spatial.NTS.dll Lucene.Net.dll Microsoft.AspNet.SignalR.Core.dll Microsoft.AspNet.SignalR.Owin.dll Microsoft.CompilerServices.AsyncTargetin Microsoft.Data.Edm.dll Microsoft.Data.OData.dll Microsoft.Data.Services.Client.dll Microsoft.Owin.Diagnostics.dll Microsoft.Owin.Host.HttpListener.dll Microsoft.Owin.Hosting.dll Microsoft.Owin.dll Microsoft.WindowsAzure.Configuration.dll Microsoft.WindowsAzure.Storage.dll Mono.Cecil.dll NLog.dll NServiceBus.Azure.Transports.WindowsAzur NServiceBus.Core.dll NServiceBus.Host.exe NServiceBus.ObjectBuilder.Autofac.dll NServiceBus.RavenDB.dll NServiceBus.dll Nancy.Bootstrappers.Autofac.dll Nancy.Owin.dll Nancy.dll NetTopologySuite.dll Newtonsoft.Json.dll Owin.dll Port PowerCollections.dll ProductInformation Raven.Abstractions.dll Raven.Client.Embedded.dll Raven.Client.Lightweight.dll Raven.Database.dll ServiceControl ServiceControl.Contracts.dll Spatial4n.Core.NTS.dll System.Spatial.dll"/>
+    <ROW Feature="MainFeature" Title="ServiceControl for NServiceBus" Description="ServiceControl for NServiceBus provides auditing and analysis features for NServiceBus." Display="1" Level="1" Directory_="APPDIR" Attributes="16" Components="AI_CustomARPName AI_DisableModify AI_ExePath AWSSDK.dll Autofac.dll Autofac.xml Esent.Interop.dll GeoAPI.dll ICSharpCode.NRefactory.CSharp.dll ICSharpCode.NRefactory.dll ICSharpCode.SharpZipLib.dll InstanceDescription InstanceName Jint.Raven.dll Lucene.Net.Contrib.Spatial.NTS.dll Lucene.Net.dll Microsoft.AspNet.SignalR.Core.dll Microsoft.AspNet.SignalR.Owin.dll Microsoft.CompilerServices.AsyncTargetin Microsoft.Data.Edm.dll Microsoft.Data.OData.dll Microsoft.Owin.Diagnostics.dll Microsoft.Owin.Host.HttpListener.dll Microsoft.Owin.Hosting.dll Microsoft.Owin.dll Microsoft.WindowsAzure.Configuration.dll Microsoft.WindowsAzure.Storage.dll Mono.Cecil.dll NLog.dll NServiceBus.Core.dll NServiceBus.Host.exe NServiceBus.ObjectBuilder.Autofac.dll NServiceBus.RavenDB.dll NServiceBus.dll Nancy.Bootstrappers.Autofac.dll Nancy.Owin.dll Nancy.dll NetTopologySuite.dll Newtonsoft.Json.dll Owin.dll Port PowerCollections.dll ProductInformation Raven.Abstractions.dll Raven.Client.Embedded.dll Raven.Client.Lightweight.dll Raven.Database.dll ServiceControl ServiceControl.Contracts.dll Spatial4n.Core.NTS.dll System.Reactive.Core.dll System.Reactive.Interfaces.dll System.Reactive.Linq.dll System.Reactive.PlatformServices.dll System.Spatial.dll"/>
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="AWSSDK.dll" Component_="AWSSDK.dll" FileName="AWSSDK.dll" Attributes="0" SourcePath="Files\AWSSDK.dll" SelfReg="false" NextFile="AWSSDK.xml"/>
-    <ROW File="AWSSDK.xml" Component_="Autofac.xml" FileName="AWSSDK.xml" Attributes="0" SourcePath="Files\AWSSDK.xml" SelfReg="false" NextFile="Esent.Interop.dll"/>
-    <ROW File="Autofac.dll" Component_="Autofac.dll" FileName="Autofac.dll" Attributes="0" SourcePath="Files\Autofac.dll" SelfReg="false" NextFile="Autofac.xml"/>
-    <ROW File="Autofac.xml" Component_="Autofac.xml" FileName="Autofac.xml" Attributes="0" SourcePath="Files\Autofac.xml" SelfReg="false" NextFile="AWSSDK.dll"/>
-    <ROW File="Esent.Interop.dll" Component_="Esent.Interop.dll" FileName="EsentI~1.dll|Esent.Interop.dll" Attributes="0" SourcePath="Files\Esent.Interop.dll" SelfReg="false" NextFile="Esent.Interop.xml"/>
-    <ROW File="Esent.Interop.xml" Component_="Autofac.xml" FileName="EsentI~1.xml|Esent.Interop.xml" Attributes="0" SourcePath="Files\Esent.Interop.xml" SelfReg="false" NextFile="GeoAPI.dll"/>
+    <ROW File="AWSSDK.dll" Component_="AWSSDK.dll" FileName="AWSSDK.dll" Attributes="0" SourcePath="Files\AWSSDK.dll" SelfReg="false" NextFile="Esent.Interop.dll"/>
+    <ROW File="AWSSDK.xml" Component_="Autofac.xml" FileName="AWSSDK.xml" Attributes="0" SourcePath="Files\AWSSDK.xml" SelfReg="false" NextFile="Esent.Interop.xml"/>
+    <ROW File="Autofac.dll" Component_="Autofac.dll" FileName="Autofac.dll" Attributes="0" SourcePath="Files\Autofac.dll" SelfReg="false" NextFile="AWSSDK.dll"/>
+    <ROW File="Autofac.xml" Component_="Autofac.xml" FileName="Autofac.xml" Attributes="0" SourcePath="Files\Autofac.xml" SelfReg="false" NextFile="AWSSDK.xml"/>
+    <ROW File="Esent.Interop.dll" Component_="Esent.Interop.dll" FileName="EsentI~1.dll|Esent.Interop.dll" Attributes="0" SourcePath="Files\Esent.Interop.dll" SelfReg="false" NextFile="GeoAPI.dll"/>
+    <ROW File="Esent.Interop.xml" Component_="Autofac.xml" FileName="EsentI~1.xml|Esent.Interop.xml" Attributes="0" SourcePath="Files\Esent.Interop.xml" SelfReg="false" NextFile="ICSharpCode.NRefactory.CSharp.xml"/>
     <ROW File="GeoAPI.dll" Component_="GeoAPI.dll" FileName="GeoAPI.dll" Attributes="0" SourcePath="Files\GeoAPI.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.CSharp.dll"/>
-    <ROW File="ICSharpCode.NRefactory.CSharp.dll" Component_="ICSharpCode.NRefactory.CSharp.dll" FileName="ICShar~1.dll|ICSharpCode.NRefactory.CSharp.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.CSharp.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.CSharp.xml"/>
-    <ROW File="ICSharpCode.NRefactory.CSharp.xml" Component_="Autofac.xml" FileName="ICShar~1.xml|ICSharpCode.NRefactory.CSharp.xml" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.CSharp.xml" SelfReg="false" NextFile="ICSharpCode.NRefactory.dll"/>
-    <ROW File="ICSharpCode.NRefactory.dll" Component_="ICSharpCode.NRefactory.dll" FileName="ICShar~2.dll|ICSharpCode.NRefactory.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.xml"/>
-    <ROW File="ICSharpCode.NRefactory.xml" Component_="Autofac.xml" FileName="ICShar~2.xml|ICSharpCode.NRefactory.xml" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.xml" SelfReg="false" NextFile="ICSharpCode.SharpZipLib.dll"/>
+    <ROW File="ICSharpCode.NRefactory.CSharp.dll" Component_="ICSharpCode.NRefactory.CSharp.dll" FileName="ICShar~1.dll|ICSharpCode.NRefactory.CSharp.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.CSharp.dll" SelfReg="false" NextFile="ICSharpCode.NRefactory.dll"/>
+    <ROW File="ICSharpCode.NRefactory.CSharp.xml" Component_="Autofac.xml" FileName="ICShar~1.xml|ICSharpCode.NRefactory.CSharp.xml" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.CSharp.xml" SelfReg="false" NextFile="ICSharpCode.NRefactory.xml"/>
+    <ROW File="ICSharpCode.NRefactory.dll" Component_="ICSharpCode.NRefactory.dll" FileName="ICShar~2.dll|ICSharpCode.NRefactory.dll" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.dll" SelfReg="false" NextFile="ICSharpCode.SharpZipLib.dll"/>
+    <ROW File="ICSharpCode.NRefactory.xml" Component_="Autofac.xml" FileName="ICShar~2.xml|ICSharpCode.NRefactory.xml" Attributes="0" SourcePath="Files\ICSharpCode.NRefactory.xml" SelfReg="false" NextFile="local.config"/>
     <ROW File="ICSharpCode.SharpZipLib.dll" Component_="ICSharpCode.SharpZipLib.dll" FileName="ICShar~3.dll|ICSharpCode.SharpZipLib.dll" Attributes="0" SourcePath="Files\ICSharpCode.SharpZipLib.dll" SelfReg="false" NextFile="Jint.Raven.dll"/>
-    <ROW File="Jint.Raven.dll" Component_="Jint.Raven.dll" FileName="JintRa~1.dll|Jint.Raven.dll" Attributes="0" SourcePath="Files\Jint.Raven.dll" SelfReg="false" NextFile="local.config"/>
-    <ROW File="Lucene.Net.Contrib.Spatial.NTS.dll" Component_="Lucene.Net.Contrib.Spatial.NTS.dll" FileName="Lucene~1.dll|Lucene.Net.Contrib.Spatial.NTS.dll" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.dll" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.xml"/>
-    <ROW File="Lucene.Net.Contrib.Spatial.NTS.xml" Component_="Autofac.xml" FileName="Lucene~1.xml|Lucene.Net.Contrib.Spatial.NTS.xml" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.xml" SelfReg="false" NextFile="Lucene.Net.dll"/>
+    <ROW File="Jint.Raven.dll" Component_="Jint.Raven.dll" FileName="JintRa~1.dll|Jint.Raven.dll" Attributes="0" SourcePath="Files\Jint.Raven.dll" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.dll"/>
+    <ROW File="Lucene.Net.Contrib.Spatial.NTS.dll" Component_="Lucene.Net.Contrib.Spatial.NTS.dll" FileName="Lucene~1.dll|Lucene.Net.Contrib.Spatial.NTS.dll" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.dll" SelfReg="false" NextFile="Lucene.Net.dll"/>
+    <ROW File="Lucene.Net.Contrib.Spatial.NTS.xml" Component_="Autofac.xml" FileName="Lucene~1.xml|Lucene.Net.Contrib.Spatial.NTS.xml" Attributes="0" SourcePath="Files\Lucene.Net.Contrib.Spatial.NTS.xml" SelfReg="false" NextFile="Lucene.Net.xml"/>
     <ROW File="Lucene.Net.dll" Component_="Lucene.Net.dll" FileName="Lucene~2.dll|Lucene.Net.dll" Attributes="0" SourcePath="Files\Lucene.Net.dll" SelfReg="false" NextFile="Lucene.Net.pdb"/>
-    <ROW File="Lucene.Net.pdb" Component_="Lucene.Net.dll" FileName="Lucene~1.pdb|Lucene.Net.pdb" Attributes="0" SourcePath="Files\Lucene.Net.pdb" SelfReg="false" NextFile="Lucene.Net.xml"/>
-    <ROW File="Lucene.Net.xml" Component_="Autofac.xml" FileName="Lucene~2.xml|Lucene.Net.xml" Attributes="0" SourcePath="Files\Lucene.Net.xml" SelfReg="false" NextFile="Microsoft.AspNet.SignalR.Core.dll"/>
-    <ROW File="Microsoft.AspNet.SignalR.Core.dll" Component_="Microsoft.AspNet.SignalR.Core.dll" FileName="Micros~1.dll|Microsoft.AspNet.SignalR.Core.dll" Attributes="0" SourcePath="Files\Microsoft.AspNet.SignalR.Core.dll" SelfReg="false" NextFile="Microsoft.AspNet.SignalR.Core.xml"/>
-    <ROW File="Microsoft.AspNet.SignalR.Core.xml" Component_="Autofac.xml" FileName="Micros~1.xml|Microsoft.AspNet.SignalR.Core.xml" Attributes="0" SourcePath="Files\Microsoft.AspNet.SignalR.Core.xml" SelfReg="false" NextFile="Microsoft.AspNet.SignalR.Owin.dll"/>
-    <ROW File="Microsoft.AspNet.SignalR.Owin.dll" Component_="Microsoft.AspNet.SignalR.Owin.dll" FileName="Micros~2.dll|Microsoft.AspNet.SignalR.Owin.dll" Attributes="0" SourcePath="Files\Microsoft.AspNet.SignalR.Owin.dll" SelfReg="false" NextFile="Microsoft.AspNet.SignalR.Owin.xml"/>
-    <ROW File="Microsoft.AspNet.SignalR.Owin.xml" Component_="Autofac.xml" FileName="Micros~2.xml|Microsoft.AspNet.SignalR.Owin.xml" Attributes="0" SourcePath="Files\Microsoft.AspNet.SignalR.Owin.xml" SelfReg="false" NextFile="Microsoft.CompilerServices.AsyncTargetingPack.Net45.dll"/>
+    <ROW File="Lucene.Net.pdb" Component_="Lucene.Net.dll" FileName="Lucene~1.pdb|Lucene.Net.pdb" Attributes="0" SourcePath="Files\Lucene.Net.pdb" SelfReg="false" NextFile="Microsoft.AspNet.SignalR.Core.dll"/>
+    <ROW File="Lucene.Net.xml" Component_="Autofac.xml" FileName="Lucene~2.xml|Lucene.Net.xml" Attributes="0" SourcePath="Files\Lucene.Net.xml" SelfReg="false" NextFile="Microsoft.AspNet.SignalR.Core.xml"/>
+    <ROW File="Microsoft.AspNet.SignalR.Core.dll" Component_="Microsoft.AspNet.SignalR.Core.dll" FileName="Micros~1.dll|Microsoft.AspNet.SignalR.Core.dll" Attributes="0" SourcePath="Files\Microsoft.AspNet.SignalR.Core.dll" SelfReg="false" NextFile="Microsoft.AspNet.SignalR.Owin.dll"/>
+    <ROW File="Microsoft.AspNet.SignalR.Core.xml" Component_="Autofac.xml" FileName="Micros~1.xml|Microsoft.AspNet.SignalR.Core.xml" Attributes="0" SourcePath="Files\Microsoft.AspNet.SignalR.Core.xml" SelfReg="false" NextFile="Microsoft.AspNet.SignalR.Owin.xml"/>
+    <ROW File="Microsoft.AspNet.SignalR.Owin.dll" Component_="Microsoft.AspNet.SignalR.Owin.dll" FileName="Micros~2.dll|Microsoft.AspNet.SignalR.Owin.dll" Attributes="0" SourcePath="Files\Microsoft.AspNet.SignalR.Owin.dll" SelfReg="false" NextFile="Microsoft.CompilerServices.AsyncTargetingPack.Net45.dll"/>
+    <ROW File="Microsoft.AspNet.SignalR.Owin.xml" Component_="Autofac.xml" FileName="Micros~2.xml|Microsoft.AspNet.SignalR.Owin.xml" Attributes="0" SourcePath="Files\Microsoft.AspNet.SignalR.Owin.xml" SelfReg="false" NextFile="Microsoft.Data.Edm.xml"/>
     <ROW File="Microsoft.CompilerServices.AsyncTargetingPack.Net45.dll" Component_="Microsoft.CompilerServices.AsyncTargetin" FileName="Micros~3.dll|Microsoft.CompilerServices.AsyncTargetingPack.Net45.dll" Attributes="0" SourcePath="Files\Microsoft.CompilerServices.AsyncTargetingPack.Net45.dll" SelfReg="false" NextFile="Microsoft.Data.Edm.dll"/>
-    <ROW File="Microsoft.Data.Edm.dll" Component_="Microsoft.Data.Edm.dll" FileName="Micros~4.dll|Microsoft.Data.Edm.dll" Attributes="0" SourcePath="Files\Microsoft.Data.Edm.dll" SelfReg="false" NextFile="Microsoft.Data.Edm.xml"/>
-    <ROW File="Microsoft.Data.Edm.xml" Component_="Autofac.xml" FileName="Micros~3.xml|Microsoft.Data.Edm.xml" Attributes="0" SourcePath="Files\Microsoft.Data.Edm.xml" SelfReg="false" NextFile="Microsoft.Data.OData.dll"/>
-    <ROW File="Microsoft.Data.OData.dll" Component_="Microsoft.Data.OData.dll" FileName="Micros~5.dll|Microsoft.Data.OData.dll" Attributes="0" SourcePath="Files\Microsoft.Data.OData.dll" SelfReg="false" NextFile="Microsoft.Data.OData.xml"/>
-    <ROW File="Microsoft.Data.OData.xml" Component_="Autofac.xml" FileName="Micros~4.xml|Microsoft.Data.OData.xml" Attributes="0" SourcePath="Files\Microsoft.Data.OData.xml" SelfReg="false" NextFile="Microsoft.Data.Services.Client.dll"/>
-    <ROW File="Microsoft.Data.Services.Client.dll" Component_="Microsoft.Data.Services.Client.dll" FileName="Micros~6.dll|Microsoft.Data.Services.Client.dll" Attributes="0" SourcePath="Files\Microsoft.Data.Services.Client.dll" SelfReg="false" NextFile="Microsoft.Data.Services.Client.xml"/>
-    <ROW File="Microsoft.Data.Services.Client.xml" Component_="Autofac.xml" FileName="Micros~5.xml|Microsoft.Data.Services.Client.xml" Attributes="0" SourcePath="Files\Microsoft.Data.Services.Client.xml" SelfReg="false" NextFile="Microsoft.Owin.Diagnostics.dll"/>
-    <ROW File="Microsoft.Owin.Diagnostics.dll" Component_="Microsoft.Owin.Diagnostics.dll" FileName="Micros~7.dll|Microsoft.Owin.Diagnostics.dll" Attributes="0" SourcePath="Files\Microsoft.Owin.Diagnostics.dll" SelfReg="false" NextFile="Microsoft.Owin.Diagnostics.xml"/>
-    <ROW File="Microsoft.Owin.Diagnostics.xml" Component_="Autofac.xml" FileName="Micros~6.xml|Microsoft.Owin.Diagnostics.xml" Attributes="0" SourcePath="Files\Microsoft.Owin.Diagnostics.xml" SelfReg="false" NextFile="Microsoft.Owin.dll"/>
-    <ROW File="Microsoft.Owin.Host.HttpListener.dll" Component_="Microsoft.Owin.Host.HttpListener.dll" FileName="Micros~9.dll|Microsoft.Owin.Host.HttpListener.dll" Attributes="0" SourcePath="Files\Microsoft.Owin.Host.HttpListener.dll" SelfReg="false" NextFile="Microsoft.Owin.Host.HttpListener.xml"/>
-    <ROW File="Microsoft.Owin.Host.HttpListener.xml" Component_="Autofac.xml" FileName="Micros~7.xml|Microsoft.Owin.Host.HttpListener.xml" Attributes="0" SourcePath="Files\Microsoft.Owin.Host.HttpListener.xml" SelfReg="false" NextFile="Microsoft.Owin.Hosting.dll"/>
-    <ROW File="Microsoft.Owin.Hosting.dll" Component_="Microsoft.Owin.Hosting.dll" FileName="Micro~10.dll|Microsoft.Owin.Hosting.dll" Attributes="0" SourcePath="Files\Microsoft.Owin.Hosting.dll" SelfReg="false" NextFile="Microsoft.Owin.Hosting.xml"/>
-    <ROW File="Microsoft.Owin.Hosting.xml" Component_="Autofac.xml" FileName="Micros~8.xml|Microsoft.Owin.Hosting.xml" Attributes="0" SourcePath="Files\Microsoft.Owin.Hosting.xml" SelfReg="false" NextFile="Microsoft.Owin.xml"/>
+    <ROW File="Microsoft.Data.Edm.dll" Component_="Microsoft.Data.Edm.dll" FileName="Micros~4.dll|Microsoft.Data.Edm.dll" Attributes="0" SourcePath="Files\Microsoft.Data.Edm.dll" SelfReg="false" NextFile="Microsoft.Data.OData.dll"/>
+    <ROW File="Microsoft.Data.Edm.xml" Component_="Autofac.xml" FileName="Micros~3.xml|Microsoft.Data.Edm.xml" Attributes="0" SourcePath="Files\Microsoft.Data.Edm.xml" SelfReg="false" NextFile="Microsoft.Data.OData.xml"/>
+    <ROW File="Microsoft.Data.OData.dll" Component_="Microsoft.Data.OData.dll" FileName="Micros~5.dll|Microsoft.Data.OData.dll" Attributes="0" SourcePath="Files\Microsoft.Data.OData.dll" SelfReg="false" NextFile="Microsoft.Owin.Diagnostics.dll"/>
+    <ROW File="Microsoft.Data.OData.xml" Component_="Autofac.xml" FileName="Micros~4.xml|Microsoft.Data.OData.xml" Attributes="0" SourcePath="Files\Microsoft.Data.OData.xml" SelfReg="false" NextFile="Microsoft.Owin.Diagnostics.xml"/>
+    <ROW File="Microsoft.Owin.Diagnostics.dll" Component_="Microsoft.Owin.Diagnostics.dll" FileName="Micros~7.dll|Microsoft.Owin.Diagnostics.dll" Attributes="0" SourcePath="Files\Microsoft.Owin.Diagnostics.dll" SelfReg="false" NextFile="Microsoft.Owin.dll"/>
+    <ROW File="Microsoft.Owin.Diagnostics.xml" Component_="Autofac.xml" FileName="Micros~5.xml|Microsoft.Owin.Diagnostics.xml" Attributes="0" SourcePath="Files\Microsoft.Owin.Diagnostics.xml" SelfReg="false" NextFile="Microsoft.Owin.Host.HttpListener.xml"/>
+    <ROW File="Microsoft.Owin.Host.HttpListener.dll" Component_="Microsoft.Owin.Host.HttpListener.dll" FileName="Micros~9.dll|Microsoft.Owin.Host.HttpListener.dll" Attributes="0" SourcePath="Files\Microsoft.Owin.Host.HttpListener.dll" SelfReg="false" NextFile="Microsoft.Owin.Hosting.dll"/>
+    <ROW File="Microsoft.Owin.Host.HttpListener.xml" Component_="Autofac.xml" FileName="Micros~6.xml|Microsoft.Owin.Host.HttpListener.xml" Attributes="0" SourcePath="Files\Microsoft.Owin.Host.HttpListener.xml" SelfReg="false" NextFile="Microsoft.Owin.Hosting.xml"/>
+    <ROW File="Microsoft.Owin.Hosting.dll" Component_="Microsoft.Owin.Hosting.dll" FileName="Micro~10.dll|Microsoft.Owin.Hosting.dll" Attributes="0" SourcePath="Files\Microsoft.Owin.Hosting.dll" SelfReg="false" NextFile="Microsoft.WindowsAzure.Configuration.dll"/>
+    <ROW File="Microsoft.Owin.Hosting.xml" Component_="Autofac.xml" FileName="Micros~7.xml|Microsoft.Owin.Hosting.xml" Attributes="0" SourcePath="Files\Microsoft.Owin.Hosting.xml" SelfReg="false" NextFile="Microsoft.Owin.xml"/>
     <ROW File="Microsoft.Owin.dll" Component_="Microsoft.Owin.dll" FileName="Micros~8.dll|Microsoft.Owin.dll" Attributes="0" SourcePath="Files\Microsoft.Owin.dll" SelfReg="false" NextFile="Microsoft.Owin.Host.HttpListener.dll"/>
-    <ROW File="Microsoft.Owin.xml" Component_="Autofac.xml" FileName="Micros~9.xml|Microsoft.Owin.xml" Attributes="0" SourcePath="Files\Microsoft.Owin.xml" SelfReg="false" NextFile="Microsoft.WindowsAzure.Configuration.dll"/>
+    <ROW File="Microsoft.Owin.xml" Component_="Autofac.xml" FileName="Micros~8.xml|Microsoft.Owin.xml" Attributes="0" SourcePath="Files\Microsoft.Owin.xml" SelfReg="false" NextFile="Microsoft.WindowsAzure.Storage.xml"/>
     <ROW File="Microsoft.WindowsAzure.Configuration.dll" Component_="Microsoft.WindowsAzure.Configuration.dll" FileName="Micro~11.dll|Microsoft.WindowsAzure.Configuration.dll" Attributes="0" SourcePath="Files\Microsoft.WindowsAzure.Configuration.dll" SelfReg="false" NextFile="Microsoft.WindowsAzure.Storage.dll"/>
-    <ROW File="Microsoft.WindowsAzure.Storage.dll" Component_="Microsoft.WindowsAzure.Storage.dll" FileName="Micro~12.dll|Microsoft.WindowsAzure.Storage.dll" Attributes="0" SourcePath="Files\Microsoft.WindowsAzure.Storage.dll" SelfReg="false" NextFile="Microsoft.WindowsAzure.Storage.xml"/>
-    <ROW File="Microsoft.WindowsAzure.Storage.xml" Component_="Autofac.xml" FileName="Micro~10.xml|Microsoft.WindowsAzure.Storage.xml" Attributes="0" SourcePath="Files\Microsoft.WindowsAzure.Storage.xml" SelfReg="false" NextFile="Mono.Cecil.dll"/>
+    <ROW File="Microsoft.WindowsAzure.Storage.dll" Component_="Microsoft.WindowsAzure.Storage.dll" FileName="Micro~12.dll|Microsoft.WindowsAzure.Storage.dll" Attributes="0" SourcePath="Files\Microsoft.WindowsAzure.Storage.dll" SelfReg="false" NextFile="Mono.Cecil.dll"/>
+    <ROW File="Microsoft.WindowsAzure.Storage.xml" Component_="Autofac.xml" FileName="Micros~9.xml|Microsoft.WindowsAzure.Storage.xml" Attributes="0" SourcePath="Files\Microsoft.WindowsAzure.Storage.xml" SelfReg="false" NextFile="Nancy.Owin.xml"/>
     <ROW File="Mono.Cecil.dll" Component_="Mono.Cecil.dll" FileName="MonoCe~1.dll|Mono.Cecil.dll" Attributes="0" SourcePath="Files\Mono.Cecil.dll" SelfReg="false" NextFile="Nancy.Bootstrappers.Autofac.dll"/>
-    <ROW File="NLog.dll" Component_="NLog.dll" FileName="NLog.dll" Attributes="0" SourcePath="Files\NLog.dll" SelfReg="false" NextFile="NLog.xml"/>
-    <ROW File="NLog.xml" Component_="Autofac.xml" FileName="NLog.xml" Attributes="0" SourcePath="Files\NLog.xml" SelfReg="false" NextFile="NServiceBus.Azure.Transports.WindowsAzureStorageQueues.dll"/>
-    <ROW File="NServiceBus.Azure.Transports.WindowsAzureStorageQueues.dll" Component_="NServiceBus.Azure.Transports.WindowsAzur" FileName="NServi~1.dll|NServiceBus.Azure.Transports.WindowsAzureStorageQueues.dll" Attributes="0" SourcePath="Files\NServiceBus.Azure.Transports.WindowsAzureStorageQueues.dll" SelfReg="false" NextFile="NServiceBus.Azure.Transports.WindowsAzureStorageQueues.pdb"/>
-    <ROW File="NServiceBus.Azure.Transports.WindowsAzureStorageQueues.pdb" Component_="NServiceBus.Azure.Transports.WindowsAzur" FileName="NServi~1.pdb|NServiceBus.Azure.Transports.WindowsAzureStorageQueues.pdb" Attributes="0" SourcePath="Files\NServiceBus.Azure.Transports.WindowsAzureStorageQueues.pdb" SelfReg="false" NextFile="NServiceBus.Azure.Transports.WindowsAzureStorageQueues.xml"/>
-    <ROW File="NServiceBus.Azure.Transports.WindowsAzureStorageQueues.xml" Component_="Autofac.xml" FileName="NServi~1.xml|NServiceBus.Azure.Transports.WindowsAzureStorageQueues.xml" Attributes="0" SourcePath="Files\NServiceBus.Azure.Transports.WindowsAzureStorageQueues.xml" SelfReg="false" NextFile="NServiceBus.Core.dll"/>
+    <ROW File="NLog.dll" Component_="NLog.dll" FileName="NLog.dll" Attributes="0" SourcePath="Files\NLog.dll" SelfReg="false" NextFile="NServiceBus.Core.dll"/>
+    <ROW File="NLog.xml" Component_="Autofac.xml" FileName="NLog.xml" Attributes="0" SourcePath="Files\NLog.xml" SelfReg="false" NextFile="NServiceBus.Core.xml"/>
     <ROW File="NServiceBus.Core.dll" Component_="NServiceBus.Core.dll" FileName="NServi~2.dll|NServiceBus.Core.dll" Attributes="0" SourcePath="Files\NServiceBus.Core.dll" SelfReg="false" NextFile="NServiceBus.Core.pdb"/>
-    <ROW File="NServiceBus.Core.pdb" Component_="NServiceBus.Core.dll" FileName="NServi~2.pdb|NServiceBus.Core.pdb" Attributes="0" SourcePath="Files\NServiceBus.Core.pdb" SelfReg="false" NextFile="NServiceBus.Core.xml"/>
-    <ROW File="NServiceBus.Core.xml" Component_="Autofac.xml" FileName="NServi~2.xml|NServiceBus.Core.xml" Attributes="0" SourcePath="Files\NServiceBus.Core.xml" SelfReg="false" NextFile="NServiceBus.dll"/>
+    <ROW File="NServiceBus.Core.pdb" Component_="NServiceBus.Core.dll" FileName="NServi~2.pdb|NServiceBus.Core.pdb" Attributes="0" SourcePath="Files\NServiceBus.Core.pdb" SelfReg="false" NextFile="NServiceBus.dll"/>
+    <ROW File="NServiceBus.Core.xml" Component_="Autofac.xml" FileName="NServi~1.xml|NServiceBus.Core.xml" Attributes="0" SourcePath="Files\NServiceBus.Core.xml" SelfReg="false" NextFile="NServiceBus.ObjectBuilder.Autofac.xml"/>
     <ROW File="NServiceBus.Host.exe" Component_="NServiceBus.Host.exe" FileName="Servic~1.exe|ServiceControl.exe" Attributes="0" SourcePath="Files\ServiceControl.exe" SelfReg="false" NextFile="Autofac.dll"/>
     <ROW File="NServiceBus.ObjectBuilder.Autofac.dll" Component_="NServiceBus.ObjectBuilder.Autofac.dll" FileName="NServi~4.dll|NServiceBus.ObjectBuilder.Autofac.dll" Attributes="0" SourcePath="Files\NServiceBus.ObjectBuilder.Autofac.dll" SelfReg="false" NextFile="NServiceBus.ObjectBuilder.Autofac.pdb"/>
-    <ROW File="NServiceBus.ObjectBuilder.Autofac.pdb" Component_="NServiceBus.ObjectBuilder.Autofac.dll" FileName="NServi~3.pdb|NServiceBus.ObjectBuilder.Autofac.pdb" Attributes="0" SourcePath="Files\NServiceBus.ObjectBuilder.Autofac.pdb" SelfReg="false" NextFile="NServiceBus.ObjectBuilder.Autofac.xml"/>
-    <ROW File="NServiceBus.ObjectBuilder.Autofac.xml" Component_="Autofac.xml" FileName="NServi~3.xml|NServiceBus.ObjectBuilder.Autofac.xml" Attributes="0" SourcePath="Files\NServiceBus.ObjectBuilder.Autofac.xml" SelfReg="false" NextFile="NServiceBus.pdb"/>
+    <ROW File="NServiceBus.ObjectBuilder.Autofac.pdb" Component_="NServiceBus.ObjectBuilder.Autofac.dll" FileName="NServi~3.pdb|NServiceBus.ObjectBuilder.Autofac.pdb" Attributes="0" SourcePath="Files\NServiceBus.ObjectBuilder.Autofac.pdb" SelfReg="false" NextFile="NServiceBus.pdb"/>
+    <ROW File="NServiceBus.ObjectBuilder.Autofac.xml" Component_="Autofac.xml" FileName="NServi~2.xml|NServiceBus.ObjectBuilder.Autofac.xml" Attributes="0" SourcePath="Files\NServiceBus.ObjectBuilder.Autofac.xml" SelfReg="false" NextFile="NServiceBus.RavenDB.xml"/>
     <ROW File="NServiceBus.RavenDB.dll" Component_="NServiceBus.RavenDB.dll" FileName="NServi~5.dll|NServiceBus.RavenDB.dll" Attributes="0" SourcePath="Files\NServiceBus.RavenDB.dll" SelfReg="false" NextFile="NServiceBus.RavenDB.pdb"/>
-    <ROW File="NServiceBus.RavenDB.pdb" Component_="NServiceBus.RavenDB.dll" FileName="NServi~5.pdb|NServiceBus.RavenDB.pdb" Attributes="0" SourcePath="Files\NServiceBus.RavenDB.pdb" SelfReg="false" NextFile="NServiceBus.RavenDB.xml"/>
-    <ROW File="NServiceBus.RavenDB.xml" Component_="Autofac.xml" FileName="NServi~4.xml|NServiceBus.RavenDB.xml" Attributes="0" SourcePath="Files\NServiceBus.RavenDB.xml" SelfReg="false" NextFile="NServiceBus.xml"/>
+    <ROW File="NServiceBus.RavenDB.pdb" Component_="NServiceBus.RavenDB.dll" FileName="NServi~5.pdb|NServiceBus.RavenDB.pdb" Attributes="0" SourcePath="Files\NServiceBus.RavenDB.pdb" SelfReg="false" NextFile="Owin.dll"/>
+    <ROW File="NServiceBus.RavenDB.xml" Component_="Autofac.xml" FileName="NServi~3.xml|NServiceBus.RavenDB.xml" Attributes="0" SourcePath="Files\NServiceBus.RavenDB.xml" SelfReg="false" NextFile="NServiceBus.xml"/>
     <ROW File="NServiceBus.dll" Component_="NServiceBus.dll" FileName="NServi~3.dll|NServiceBus.dll" Attributes="0" SourcePath="Files\NServiceBus.dll" SelfReg="false" NextFile="NServiceBus.ObjectBuilder.Autofac.dll"/>
     <ROW File="NServiceBus.pdb" Component_="NServiceBus.dll" FileName="NServi~4.pdb|NServiceBus.pdb" Attributes="0" SourcePath="Files\NServiceBus.pdb" SelfReg="false" NextFile="NServiceBus.RavenDB.dll"/>
-    <ROW File="NServiceBus.xml" Component_="Autofac.xml" FileName="NServi~5.xml|NServiceBus.xml" Attributes="0" SourcePath="Files\NServiceBus.xml" SelfReg="false" NextFile="Owin.dll"/>
+    <ROW File="NServiceBus.xml" Component_="Autofac.xml" FileName="NServi~4.xml|NServiceBus.xml" Attributes="0" SourcePath="Files\NServiceBus.xml" SelfReg="false" NextFile="Raven.Abstractions.xml"/>
     <ROW File="Nancy.Bootstrappers.Autofac.dll" Component_="Nancy.Bootstrappers.Autofac.dll" FileName="NancyB~1.dll|Nancy.Bootstrappers.Autofac.dll" Attributes="0" SourcePath="Files\Nancy.Bootstrappers.Autofac.dll" SelfReg="false" NextFile="Nancy.dll"/>
-    <ROW File="Nancy.Owin.dll" Component_="Nancy.Owin.dll" FileName="NancyO~1.dll|Nancy.Owin.dll" Attributes="0" SourcePath="Files\Nancy.Owin.dll" SelfReg="false" NextFile="Nancy.Owin.xml"/>
+    <ROW File="Nancy.Owin.dll" Component_="Nancy.Owin.dll" FileName="NancyO~1.dll|Nancy.Owin.dll" Attributes="0" SourcePath="Files\Nancy.Owin.dll" SelfReg="false" NextFile="NetTopologySuite.dll"/>
     <ROW File="Nancy.Owin.xml" Component_="Autofac.xml" FileName="NancyO~1.xml|Nancy.Owin.xml" Attributes="0" SourcePath="Files\Nancy.Owin.xml" SelfReg="false" NextFile="Nancy.xml"/>
     <ROW File="Nancy.dll" Component_="Nancy.dll" FileName="Nancy.dll" Attributes="0" SourcePath="Files\Nancy.dll" SelfReg="false" NextFile="Nancy.Owin.dll"/>
-    <ROW File="Nancy.xml" Component_="Autofac.xml" FileName="Nancy.xml" Attributes="0" SourcePath="Files\Nancy.xml" SelfReg="false" NextFile="NetTopologySuite.dll"/>
+    <ROW File="Nancy.xml" Component_="Autofac.xml" FileName="Nancy.xml" Attributes="0" SourcePath="Files\Nancy.xml" SelfReg="false" NextFile="Newtonsoft.Json.xml"/>
     <ROW File="NetTopologySuite.dll" Component_="NetTopologySuite.dll" FileName="NetTop~1.dll|NetTopologySuite.dll" Attributes="0" SourcePath="Files\NetTopologySuite.dll" SelfReg="false" NextFile="Newtonsoft.Json.dll"/>
-    <ROW File="Newtonsoft.Json.dll" Component_="Newtonsoft.Json.dll" FileName="Newton~1.dll|Newtonsoft.Json.dll" Attributes="0" SourcePath="Files\Newtonsoft.Json.dll" SelfReg="false" NextFile="Newtonsoft.Json.xml"/>
-    <ROW File="Newtonsoft.Json.xml" Component_="Autofac.xml" FileName="Newton~1.xml|Newtonsoft.Json.xml" Attributes="0" SourcePath="Files\Newtonsoft.Json.xml" SelfReg="false" NextFile="NLog.dll"/>
+    <ROW File="Newtonsoft.Json.dll" Component_="Newtonsoft.Json.dll" FileName="Newton~1.dll|Newtonsoft.Json.dll" Attributes="0" SourcePath="Files\Newtonsoft.Json.dll" SelfReg="false" NextFile="NLog.dll"/>
+    <ROW File="Newtonsoft.Json.xml" Component_="Autofac.xml" FileName="Newton~1.xml|Newtonsoft.Json.xml" Attributes="0" SourcePath="Files\Newtonsoft.Json.xml" SelfReg="false" NextFile="NLog.xml"/>
     <ROW File="Owin.dll" Component_="Owin.dll" FileName="Owin.dll" Attributes="0" SourcePath="Files\Owin.dll" SelfReg="false" NextFile="PowerCollections.dll"/>
     <ROW File="PowerCollections.dll" Component_="PowerCollections.dll" FileName="PowerC~1.dll|PowerCollections.dll" Attributes="0" SourcePath="Files\PowerCollections.dll" SelfReg="false" NextFile="Raven.Abstractions.dll"/>
-    <ROW File="Raven.Abstractions.dll" Component_="Raven.Abstractions.dll" FileName="RavenA~1.dll|Raven.Abstractions.dll" Attributes="0" SourcePath="Files\Raven.Abstractions.dll" SelfReg="false" NextFile="Raven.Abstractions.xml"/>
-    <ROW File="Raven.Abstractions.xml" Component_="Autofac.xml" FileName="RavenA~1.xml|Raven.Abstractions.xml" Attributes="0" SourcePath="Files\Raven.Abstractions.xml" SelfReg="false" NextFile="Raven.Client.Embedded.dll"/>
-    <ROW File="Raven.Client.Embedded.dll" Component_="Raven.Client.Embedded.dll" FileName="RavenC~1.dll|Raven.Client.Embedded.dll" Attributes="0" SourcePath="Files\Raven.Client.Embedded.dll" SelfReg="false" NextFile="Raven.Client.Embedded.xml"/>
-    <ROW File="Raven.Client.Embedded.xml" Component_="Autofac.xml" FileName="RavenC~1.xml|Raven.Client.Embedded.xml" Attributes="0" SourcePath="Files\Raven.Client.Embedded.xml" SelfReg="false" NextFile="Raven.Client.Lightweight.dll"/>
-    <ROW File="Raven.Client.Lightweight.dll" Component_="Raven.Client.Lightweight.dll" FileName="RavenC~2.dll|Raven.Client.Lightweight.dll" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.dll" SelfReg="false" NextFile="Raven.Client.Lightweight.xml"/>
-    <ROW File="Raven.Client.Lightweight.xml" Component_="Autofac.xml" FileName="RavenC~2.xml|Raven.Client.Lightweight.xml" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.xml" SelfReg="false" NextFile="Raven.Database.dll"/>
+    <ROW File="Raven.Abstractions.dll" Component_="Raven.Abstractions.dll" FileName="RavenA~1.dll|Raven.Abstractions.dll" Attributes="0" SourcePath="Files\Raven.Abstractions.dll" SelfReg="false" NextFile="Raven.Client.Embedded.dll"/>
+    <ROW File="Raven.Abstractions.xml" Component_="Autofac.xml" FileName="RavenA~1.xml|Raven.Abstractions.xml" Attributes="0" SourcePath="Files\Raven.Abstractions.xml" SelfReg="false" NextFile="Raven.Client.Embedded.xml"/>
+    <ROW File="Raven.Client.Embedded.dll" Component_="Raven.Client.Embedded.dll" FileName="RavenC~1.dll|Raven.Client.Embedded.dll" Attributes="0" SourcePath="Files\Raven.Client.Embedded.dll" SelfReg="false" NextFile="Raven.Client.Lightweight.dll"/>
+    <ROW File="Raven.Client.Embedded.xml" Component_="Autofac.xml" FileName="RavenC~1.xml|Raven.Client.Embedded.xml" Attributes="0" SourcePath="Files\Raven.Client.Embedded.xml" SelfReg="false" NextFile="Raven.Client.Lightweight.xml"/>
+    <ROW File="Raven.Client.Lightweight.dll" Component_="Raven.Client.Lightweight.dll" FileName="RavenC~2.dll|Raven.Client.Lightweight.dll" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.dll" SelfReg="false" NextFile="Raven.Database.dll"/>
+    <ROW File="Raven.Client.Lightweight.xml" Component_="Autofac.xml" FileName="RavenC~2.xml|Raven.Client.Lightweight.xml" Attributes="0" SourcePath="Files\Raven.Client.Lightweight.xml" SelfReg="false" NextFile="ServiceControl.Contracts.xml"/>
     <ROW File="Raven.Database.dll" Component_="Raven.Database.dll" FileName="RavenD~1.dll|Raven.Database.dll" Attributes="0" SourcePath="Files\Raven.Database.dll" SelfReg="false" NextFile="ServiceControl.Contracts.dll"/>
     <ROW File="ServiceControl.Contracts.dll" Component_="ServiceControl.Contracts.dll" FileName="Servic~1.dll|ServiceControl.Contracts.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="Files\ServiceControl.Contracts.dll" SelfReg="false" NextFile="ServiceControl.Contracts.pdb"/>
-    <ROW File="ServiceControl.Contracts.pdb" Component_="ServiceControl.Contracts.dll" FileName="Servic~1.pdb|ServiceControl.Contracts.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="Files\ServiceControl.Contracts.pdb" SelfReg="false" NextFile="ServiceControl.Contracts.xml"/>
-    <ROW File="ServiceControl.Contracts.xml" Component_="Autofac.xml" FileName="Servic~1.xml|ServiceControl.Contracts.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="Files\ServiceControl.Contracts.xml" SelfReg="false" NextFile="ServiceControl.pdb"/>
+    <ROW File="ServiceControl.Contracts.pdb" Component_="ServiceControl.Contracts.dll" FileName="Servic~1.pdb|ServiceControl.Contracts.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="Files\ServiceControl.Contracts.pdb" SelfReg="false" NextFile="ServiceControl.pdb"/>
+    <ROW File="ServiceControl.Contracts.xml" Component_="Autofac.xml" FileName="Servic~1.xml|ServiceControl.Contracts.xml" Attributes="0" SourcePath="Files\ServiceControl.Contracts.xml" SelfReg="false" NextFile="Spatial4n.Core.NTS.xml"/>
     <ROW File="ServiceControl.pdb" Component_="NServiceBus.Host.exe" FileName="Servic~2.pdb|ServiceControl.pdb" Attributes="0" SourcePath="Files\ServiceControl.pdb" SelfReg="false" NextFile="Spatial4n.Core.NTS.dll"/>
-    <ROW File="Spatial4n.Core.NTS.dll" Component_="Spatial4n.Core.NTS.dll" FileName="Spatia~1.dll|Spatial4n.Core.NTS.dll" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.dll" SelfReg="false" NextFile="Spatial4n.Core.NTS.xml"/>
-    <ROW File="Spatial4n.Core.NTS.xml" Component_="Autofac.xml" FileName="Spatia~1.xml|Spatial4n.Core.NTS.xml" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.xml" SelfReg="false" NextFile="System.Spatial.dll"/>
-    <ROW File="System.Spatial.dll" Component_="System.Spatial.dll" FileName="System~1.dll|System.Spatial.dll" Attributes="0" SourcePath="Files\System.Spatial.dll" SelfReg="false" NextFile="System.Spatial.xml"/>
-    <ROW File="System.Spatial.xml" Component_="Autofac.xml" FileName="System~1.xml|System.Spatial.xml" Attributes="0" SourcePath="Files\System.Spatial.xml" SelfReg="false"/>
-    <ROW File="local.config" Component_="Autofac.xml" FileName="local~1.con|local.config" Attributes="0" SourcePath="Files\local.config" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.dll"/>
+    <ROW File="Spatial4n.Core.NTS.dll" Component_="Spatial4n.Core.NTS.dll" FileName="Spatia~1.dll|Spatial4n.Core.NTS.dll" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.dll" SelfReg="false" NextFile="System.Spatial.dll"/>
+    <ROW File="Spatial4n.Core.NTS.xml" Component_="Autofac.xml" FileName="Spatia~1.xml|Spatial4n.Core.NTS.xml" Attributes="0" SourcePath="Files\Spatial4n.Core.NTS.xml" SelfReg="false" NextFile="System.Reactive.Core.xml"/>
+    <ROW File="System.Reactive.Core.dll" Component_="System.Reactive.Core.dll" FileName="System~2.dll|System.Reactive.Core.dll" Attributes="0" SourcePath="Files\System.Reactive.Core.dll" SelfReg="false" NextFile="System.Reactive.Interfaces.dll"/>
+    <ROW File="System.Reactive.Core.xml" Component_="Autofac.xml" FileName="System~1.xml|System.Reactive.Core.xml" Attributes="0" SourcePath="Files\System.Reactive.Core.xml" SelfReg="false" NextFile="System.Reactive.Interfaces.xml"/>
+    <ROW File="System.Reactive.Interfaces.dll" Component_="System.Reactive.Interfaces.dll" FileName="System~3.dll|System.Reactive.Interfaces.dll" Attributes="0" SourcePath="Files\System.Reactive.Interfaces.dll" SelfReg="false" NextFile="System.Reactive.Linq.dll"/>
+    <ROW File="System.Reactive.Interfaces.xml" Component_="Autofac.xml" FileName="System~2.xml|System.Reactive.Interfaces.xml" Attributes="0" SourcePath="Files\System.Reactive.Interfaces.xml" SelfReg="false" NextFile="System.Reactive.Linq.xml"/>
+    <ROW File="System.Reactive.Linq.dll" Component_="System.Reactive.Linq.dll" FileName="System~4.dll|System.Reactive.Linq.dll" Attributes="0" SourcePath="Files\System.Reactive.Linq.dll" SelfReg="false" NextFile="System.Reactive.PlatformServices.dll"/>
+    <ROW File="System.Reactive.Linq.xml" Component_="Autofac.xml" FileName="System~3.xml|System.Reactive.Linq.xml" Attributes="0" SourcePath="Files\System.Reactive.Linq.xml" SelfReg="false" NextFile="System.Reactive.PlatformServices.xml"/>
+    <ROW File="System.Reactive.PlatformServices.dll" Component_="System.Reactive.PlatformServices.dll" FileName="System~5.dll|System.Reactive.PlatformServices.dll" Attributes="0" SourcePath="Files\System.Reactive.PlatformServices.dll" SelfReg="false" NextFile="Autofac.xml"/>
+    <ROW File="System.Reactive.PlatformServices.xml" Component_="Autofac.xml" FileName="System~4.xml|System.Reactive.PlatformServices.xml" Attributes="0" SourcePath="Files\System.Reactive.PlatformServices.xml" SelfReg="false" NextFile="System.Spatial.xml"/>
+    <ROW File="System.Spatial.dll" Component_="System.Spatial.dll" FileName="System~1.dll|System.Spatial.dll" Attributes="0" SourcePath="Files\System.Spatial.dll" SelfReg="false" NextFile="System.Reactive.Core.dll"/>
+    <ROW File="System.Spatial.xml" Component_="Autofac.xml" FileName="System~5.xml|System.Spatial.xml" Attributes="0" SourcePath="Files\System.Spatial.xml" SelfReg="false"/>
+    <ROW File="local.config" Component_="Autofac.xml" FileName="local~1.con|local.config" Attributes="0" SourcePath="Files\local.config" SelfReg="false" NextFile="Lucene.Net.Contrib.Spatial.NTS.xml"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" GeneralOptions="qh" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" EulaPathLocId="*" IntroTextPathLocId="*"/>
@@ -243,6 +251,9 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiComboBoxComponent">
     <ROW Property="TRANSPORT_TYPE" Order="1" Value="MSMQ" Text="MSMQ"/>
+    <ROW Property="AUDITFORWARDING" Order="1" Value="null" Text="Choose an option..."/>
+    <ROW Property="AUDITFORWARDING" Order="2" Value="true" Text="Enable"/>
+    <ROW Property="AUDITFORWARDING" Order="3" Value="false" Text="Disable"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiControlComponent">
     <ROW Dialog_="AdminBrowseDlg" Control="DirectoryCombo" Type="DirectoryCombo" X="68" Y="131" Width="209" Height="16" Attributes="393227" Property="TARGETDIR" Order="800" MsiKey="AdminBrowseDlg#DirectoryCombo"/>
@@ -278,7 +289,7 @@
     <ROW Dialog_="FilesInUse" Control="ProductLogo" Type="Bitmap" X="17" Y="31" Width="290" Height="59" Attributes="1" Text="[AppLogoIcon]" Order="900"/>
     <ROW Dialog_="InstallDlg" Control="Bitmap" Type="Bitmap" X="0" Y="0" Width="345" Height="400" Attributes="1" Text="[Background]" Order="100" MsiKey="InstallDlg#Bitmap"/>
     <ROW Dialog_="InstallDlg" Control="Description" Type="Text" X="17" Y="117" Width="299" Height="17" Attributes="589827" Text="Setup requires [PrimaryVolumeSpaceRequired] in:" Order="500" TextLocId="Control.Text.InstallDlg#DescWithSize" MsiKey="InstallDlg#Description"/>
-    <ROW Dialog_="InstallDlg" Control="FolderEdit" Type="PathEdit" X="17" Y="133" Width="290" Height="20" Attributes="7" Property="APPDIR" Text="Control.Text.InstallDlg#Edit_1" TextStyle="[InputCtrlFont]" Order="600" TextLocId="Control.Text.InstallDlg#Edit_1" MsiKey="InstallDlg#FolderEdit"/>
+    <ROW Dialog_="InstallDlg" Control="FolderEdit" Type="PathEdit" X="17" Y="133" Width="290" Height="20" Attributes="5" Property="APPDIR" Text="Control.Text.InstallDlg#Edit_1" TextStyle="[InputCtrlFont]" Order="600" TextLocId="Control.Text.InstallDlg#Edit_1" MsiKey="InstallDlg#FolderEdit" ExtAttributes="1"/>
     <ROW Dialog_="InstallDlg" Control="Browse" Type="ImageButton" X="311" Y="133" Width="21" Height="20" Attributes="3" Text="[browsebutton]" TextStyle="[MetroButtonText]" Order="700" MsiKey="InstallDlg#Browse" ExtType="ImageButton" ExtData="..." ExtDataLocId="Metro.Control.ExtData.WelcomeDlg.BrowseTxt"/>
     <ROW Dialog_="InstallDlg" Control="YouMustAgreeCtrl" Type="Hyperlink" X="18" Y="299" Width="311" Height="33" Attributes="65539" Text="You must agree to the &lt;a href=&quot;&quot;&gt;Licenses terms and conditions&lt;/a&gt; before you can install [ProductName]." TextStyle="[HyperlinkFont]" Order="800" TextLocId="Metro.Control.Text.WelcomeDlg#YouMustAgreeCtrl" MsiKey="InstallDlg#YouMustAgreeCtrl"/>
     <ROW Dialog_="InstallDlg" Control="LicenseCheckbox" Type="ImageCheckBox" X="17" Y="335" Width="311" Height="20" Attributes="3" Property="AGREE_CHECKBOX" Text="[checkbox]" Order="900" MsiKey="InstallDlg#LicenseCheckbox" ExtType="ImageCheckBox" ExtData="I agree to the License terms and conditions." ExtDataLocId="Metro.Control.Text.WelcomeDlg.AgreeToLicense"/>
@@ -292,6 +303,8 @@
     <ROW Dialog_="InstallDlg" Control="Edit_3" Type="Edit" X="158" Y="251" Width="149" Height="18" Attributes="3" Property="INST_DESCRIPTION" Text="{260}" Order="1800"/>
     <ROW Dialog_="InstallDlg" Control="ComboBox_1" Type="ComboBox" X="158" Y="202" Width="149" Height="16" Attributes="196609" Property="TRANSPORT_TYPE" Text="{260}" Order="1900"/>
     <ROW Dialog_="InstallDlg" Control="ProductLogo" Type="Bitmap" X="17" Y="31" Width="290" Height="59" Attributes="1" Text="[AppLogoIcon]" Order="2000"/>
+    <ROW Dialog_="InstallDlg" Control="Text_5" Type="Text" X="17" Y="276" Width="125" Height="18" Attributes="65539" Property="TEXT_1_PROP_1_1_1_1" Text="Audit Forwarding:" Order="2100"/>
+    <ROW Dialog_="InstallDlg" Control="ComboBox_2" Type="ComboBox" X="158" Y="281" Width="149" Height="14" Attributes="196611" Property="AUDITFORWARDING" Text="{260}" Order="2200"/>
     <ROW Dialog_="LicenseAgreementDlg" Control="AgreementText" Type="ScrollableText" X="17" Y="106" Width="312" Height="243" Attributes="3" Property="EulaRead" Text="License.rtf" Order="600" TextLocId="Control.Text.LicenseAgreementDlg#AgreementText_2" MsiKey="LicenseAgreementDlg#AgreementText"/>
     <ROW Dialog_="LicenseAgreementDlg" Control="PrintBtn" Type="ImageButton" X="301" Y="77" Width="28" Height="28" Attributes="3" Text="[MetroPrintButton]" Order="700" MsiKey="LicenseAgreementDlg#PrintBtn" AssociatedCtrl="AgreementText" ExtType="ImageButton"/>
     <ROW Dialog_="LicenseAgreementDlg" Control="AdvInst" Type="Text" X="5" Y="388" Width="74" Height="11" Attributes="65539" Text="Advanced Installer" TextStyle="[BrandingStyle]" Order="800" MsiKey="LicenseAgreementDlg#AdvInst"/>
@@ -384,6 +397,12 @@
     <ROW Dialog_="LicenseAgreementDlg" Control_="AgreeInstall" Event="[AI_CONTROL_VISUAL_STYLE]" Argument="[STORE_DEFAULT_VISUAL_STYLE]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="99"/>
     <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[INST_NAME]" Argument="ServiceControl@[ComputerName]" Condition="AI_INSTALL" Ordering="98"/>
     <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="[INST_DESCRIPTION]" Argument="ServiceControl on [ComputerName]" Condition="AI_INSTALL" Ordering="99"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallButton" Event="[AiEventsControl]" Argument="Next" Condition="1 AND (VALID_PORT = &quot;TRUE&quot;) AND (FORWARDAUDITMESSAGES &lt;&gt; &quot;null&quot;)" Ordering="203" MsiKey="InstallDlg#InstallButton#[AiEventsControl]#Next#1"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallButton" Event="DoAction" Argument="Check_PortIsInValidRange" Condition="AI_INSTALL" Ordering="97"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallButton" Event="DoAction" Argument="AI_DATA_SETTER_2" Condition="AI_INSTALL" Ordering="96"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallButton" Event="DoAction" Argument="Invalid_SerceControlPortMsg" Condition="AI_INSTALL AND ( VALID_PORT = &quot;FALSE&quot; )" Ordering="99"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallButton" Event="DoAction" Argument="AI_DATA_SETTER_3" Condition="AI_INSTALL AND ( VALID_PORT = &quot;FALSE&quot; )" Ordering="98"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallButton" Event="[FORWARDAUDITMESSAGES]" Argument="[AUDITFORWARDING]" Condition="AI_INSTALL" Ordering="94"/>
     <ROW Dialog_="InstallDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfRbDiskDlg" Condition="AI_INSTALL AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST=&quot;P&quot; OR NOT PROMPTROLLBACKCOST)" Ordering="302" Options="2"/>
     <ROW Dialog_="InstallDlg" Control_="Next" Event="EnableRollback" Argument="False" Condition="AI_INSTALL AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST=&quot;D&quot;" Ordering="303" Options="2"/>
     <ROW Dialog_="InstallDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfDiskDlg" Condition="AI_INSTALL AND ( (OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST=&quot;F&quot;) )" Ordering="304" Options="2"/>
@@ -395,20 +414,10 @@
     <ROW Dialog_="InstallDlg" Control_="YouMustAgreeCtrl" Event="[Text_Next]" Argument="[AI_Text_Next_Orig]" Condition="AI_INSTALL" Ordering="203" Options="2"/>
     <ROW Dialog_="InstallDlg" Control_="Back" Event="[ButtonText_Next]" Argument="[AI_ButtonText_Next_Orig]" Condition="AI_INSTALL" Ordering="0" Options="2"/>
     <ROW Dialog_="InstallDlg" Control_="Back" Event="[Text_Next]" Argument="[AI_Text_Next_Orig]" Condition="AI_INSTALL" Ordering="1" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfRbDiskDlg" Condition="AI_INSTALL AND AiLicenseAgreement AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST=&quot;P&quot; OR NOT PROMPTROLLBACKCOST)" Ordering="102" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="Next" Event="EnableRollback" Argument="False" Condition="AI_INSTALL AND AiLicenseAgreement AND OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST=&quot;D&quot;" Ordering="103" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="Next" Event="SpawnDialog" Argument="OutOfDiskDlg" Condition="AI_INSTALL AND AiLicenseAgreement AND ( (OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST=&quot;F&quot;) )" Ordering="104" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[AI_ButtonText_Next_Orig]" Argument="[ButtonText_Next]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="105" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[ButtonText_Next]" Argument="[[AI_CommitButton]]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="106" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[AI_Text_Next_Orig]" Argument="[Text_Next]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="107" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="LicenseAgreementDlgDialogInitializer" Event="[Text_Next]" Argument="[Text_Install]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="108" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="Back" Event="[ButtonText_Next]" Argument="[AI_ButtonText_Next_Orig]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="4" Options="2"/>
-    <ROW Dialog_="LicenseAgreementDlg" Control_="Back" Event="[Text_Next]" Argument="[AI_Text_Next_Orig]" Condition="AI_INSTALL AND AiLicenseAgreement" Ordering="5" Options="2"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallButton" Event="[AiEventsControl]" Argument="Next" Condition="1 AND (VALID_PORT = &quot;TRUE&quot;)" Ordering="200" MsiKey="InstallDlg#InstallButton#[AiEventsControl]#Next#1"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallButton" Event="DoAction" Argument="Check_PortIsInValidRange" Condition="AI_INSTALL" Ordering="97"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallButton" Event="DoAction" Argument="AI_DATA_SETTER_2" Condition="AI_INSTALL" Ordering="96"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallButton" Event="DoAction" Argument="Invalid_SerceControlPortMsg" Condition="AI_INSTALL AND ( VALID_PORT = &quot;FALSE&quot; )" Ordering="99"/>
-    <ROW Dialog_="InstallDlg" Control_="InstallButton" Event="DoAction" Argument="AI_DATA_SETTER_3" Condition="AI_INSTALL AND ( VALID_PORT = &quot;FALSE&quot; )" Ordering="98"/>
+    <ROW Dialog_="BrowseDlg" Control_="OK" Event="DoAction" Argument="Read_ForwardAuditMessages_From_Config_And_Set_Combo" Condition="1" Ordering="199"/>
+    <ROW Dialog_="BrowseDlg" Control_="OK" Event="DoAction" Argument="AI_DATA_SETTER_4" Condition="1" Ordering="198"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="DoAction" Argument="Read_ForwardAuditMessages_From_Config_And_Set_Combo" Condition="AI_INSTALL" Ordering="106"/>
+    <ROW Dialog_="InstallDlg" Control_="InstallDlgDialogInitializer" Event="DoAction" Argument="AI_DATA_SETTER_4" Condition="AI_INSTALL" Ordering="105"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCreateFolderComponent">
     <ROW Directory_="ServiceControl_Dir" Component_="ServiceControl"/>
@@ -420,6 +429,8 @@
     <ROW Action="AI_DATA_SETTER_1" Type="51" Source="CustomActionData" Target="Particular.ServiceControl"/>
     <ROW Action="AI_DATA_SETTER_2" Type="51" Source="CustomActionData" Target="PORT=[PORT_VAL]"/>
     <ROW Action="AI_DATA_SETTER_3" Type="51" Source="CustomActionData" Target="The specified port  for ServiceControl is invalid. Please enter a port between 1 and 49151 |ServiceControl [ProductVersion] |MB_OK,MB_ICONWARNING,MB_DEFBUTTON1|BTN_PRESSED|[CLIENTPROCESSID]"/>
+    <ROW Action="AI_DATA_SETTER_4" Type="51" Source="CustomActionData" Target="AUDITFORWARDING"/>
+    <ROW Action="AI_DATA_SETTER_5" Type="51" Source="CustomActionData" Target="[FORWARDAUDITMESSAGES]"/>
     <ROW Action="AI_DOWNGRADE" Type="19" Target="4010"/>
     <ROW Action="AI_DeleteCadLzma" Type="51" Source="AI_DeleteLzma" Target="[AI_SETUPEXEPATH]"/>
     <ROW Action="AI_DeleteLzma" Type="1025" Source="lzmaextractor.dll" Target="DeleteLZMAFiles"/>
@@ -443,14 +454,20 @@
     <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
     <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
     <ROW Action="Check_PortIsInValidRange" Type="1" Source="ServiceControl.Install.CustomActions.CA.dll" Target="CheckValidPort" WithoutSeq="true" AdditionalSeq="AI_DATA_SETTER_2"/>
+    <ROW Action="Default_ForwardAuditMessage_For_PlatformInstaller" Type="51" Source="FORWARDAUDITMESSAGES" Target="false"/>
     <ROW Action="DetectService" Type="1" Source="aicustact.dll" Target="DetectService" AdditionalSeq="AI_DATA_SETTER_1"/>
+    <ROW Action="Fail_install_If_ForwardAuditMessage_Not_Set" Type="1" Source="ServiceControl.Install.CustomActions.CA.dll" Target="ValidateForwardAuditMessages"/>
+    <ROW Action="Fix_Case_For_ForwardAuditMessages_when_false" Type="51" Source="FORWARDAUDITMESSAGES" Target="false"/>
+    <ROW Action="Fix_Case_For_ForwardAuditMessages_when_true" Type="51" Source="FORWARDAUDITMESSAGES" Target="true"/>
     <ROW Action="Invalid_SerceControlPortMsg" Type="1" Source="aicustact.dll" Target="MsgBox" WithoutSeq="true" Options="1" AdditionalSeq="AI_DATA_SETTER_3"/>
     <ROW Action="Launch_Url" Type="1090" Source="viewer.exe" Target="http://www.particular.net/Installation-completed?installer=ServiceControl&amp;version=[ProductVersion]" Options="1"/>
-    <ROW Action="NServiceBus.Host.exe_Install" Type="3074" Source="viewer.exe" Target="/HideWindow &quot;[#NServiceBus.Host.exe]&quot; -install -serviceName=&quot;Particular.ServiceControl&quot; -displayName=&quot;Particular ServiceControl&quot; -description=&quot;Particular Software ServiceControl for NServiceBus (version [ProductVersion])&quot;" Options="1"/>
+    <ROW Action="NServiceBus.Host.exe_Install" Type="3074" Source="viewer.exe" Target="/HideWindow &quot;[#NServiceBus.Host.exe]&quot; -install -serviceName=&quot;Particular.ServiceControl&quot; -displayName=&quot;Particular ServiceControl&quot; -d=&quot;ServiceControl/ForwardAuditMessages==[FORWARDAUDITMESSAGES]&quot; -description=&quot;Particular Software ServiceControl for NServiceBus (version [ProductVersion])&quot;" Options="1"/>
     <ROW Action="NServiceBus.Host.exe_Uninstall" Type="3074" Source="viewer.exe" Target="/HideWindow &quot;[#NServiceBus.Host.exe]&quot; -uninstall -serviceName=&quot;Particular.ServiceControl&quot;"/>
+    <ROW Action="Read_ForwardAuditMessages_From_Config_And_Set_Combo" Type="1" Source="ServiceControl.Install.CustomActions.CA.dll" Target="ReadForwardAuditMessagesFromConfig" WithoutSeq="true" AdditionalSeq="AI_DATA_SETTER_4"/>
     <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[ProgramFilesFolder]\Particular Software\ServiceControl\"/>
-    <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
+    <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]" MultiBuildTarget="DefaultBuild:[DesktopFolder]"/>
     <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
+    <ROW Action="Silent_Mode_ReadForwardAuditMessagesFromConfig" Type="1" Source="ServiceControl.Install.CustomActions.CA.dll" Target="ReadForwardAuditMessagesFromConfig" AdditionalSeq="AI_DATA_SETTER_5"/>
     <ROW Action="Start_Service" Type="3138" Source="viewer.exe" Target="/HideWindow &quot;[SystemFolder]net.exe&quot; start Particular.ServiceControl"/>
     <ROW Action="Stop_Service" Type="66" Source="viewer.exe" Target="/HideWindow &quot;[SystemFolder]net.exe&quot; stop Particular.ServiceControl"/>
   </COMPONENT>
@@ -466,13 +483,13 @@
     <ROW Action="AI_ResolveLocalizedCredentials" Sequence="52"/>
     <ROW Action="AI_GetArpIconPath" Sequence="51"/>
     <ROW Action="AI_RemoveExternalUIStub" Condition="(REMOVE=&quot;ALL&quot;) AND ((VersionNT &gt; 500) OR((VersionNT = 500) AND (ServicePackLevel &gt;= 4)))" Sequence="1501"/>
-    <ROW Action="Launch_Url" Condition="( NOT Installed ) AND ( UILevel &lt;&gt; &quot;2&quot; )" Sequence="6403"/>
+    <ROW Action="Launch_Url" Condition="( NOT Installed ) AND ( UILevel &lt;&gt; &quot;2&quot; )" Sequence="6407"/>
     <ROW Action="AI_ExtractFiles" Sequence="3998" Builds="DefaultBuild"/>
     <ROW Action="AI_DATA_SETTER" Sequence="3997"/>
     <ROW Action="AI_EstimateExtractFiles" Sequence="3999" Builds="DefaultBuild"/>
-    <ROW Action="NServiceBus.Host.exe_Install" Condition="( NOT Installed )" Sequence="6401"/>
+    <ROW Action="NServiceBus.Host.exe_Install" Condition="( NOT Installed )" Sequence="6405"/>
     <ROW Action="NServiceBus.Host.exe_Uninstall" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) ) AND ( AI_SERVICE_STATE&lt;&gt;&quot;Not Found&quot; )" Sequence="1603"/>
-    <ROW Action="Start_Service" Condition="( NOT Installed )" Sequence="6402"/>
+    <ROW Action="Start_Service" Condition="( NOT Installed )" Sequence="6406"/>
     <ROW Action="Stop_Service" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="201"/>
     <ROW Action="DetectService" Sequence="1602"/>
     <ROW Action="AI_DATA_SETTER_1" Sequence="1601"/>
@@ -485,6 +502,12 @@
     <ROW Action="AI_ExtractLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="1549" Builds="DefaultBuild"/>
     <ROW Action="AI_DeleteRLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="1548" Builds="DefaultBuild"/>
     <ROW Action="AI_DeleteLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="6599" Builds="DefaultBuild"/>
+    <ROW Action="Default_ForwardAuditMessage_For_PlatformInstaller" Condition="( NOT Installed ) AND ( FORWARDAUDITMESSAGE &lt;&gt; &quot;false&quot; AND FORWARDAUDITMESSAGE &lt;&gt; &quot;true&quot; AND PLATFORMINSTALLER ~= &quot;true&quot; )" Sequence="6403"/>
+    <ROW Action="Silent_Mode_ReadForwardAuditMessagesFromConfig" Condition="( NOT Installed ) AND ( (FORWARDAUDITMESSAGES = &quot;null&quot;) )" Sequence="1202"/>
+    <ROW Action="AI_DATA_SETTER_5" Condition="( NOT Installed ) AND ( (FORWARDAUDITMESSAGES = &quot;null&quot;) )" Sequence="1201"/>
+    <ROW Action="Fix_Case_For_ForwardAuditMessages_when_true" Condition="( NOT Installed ) AND ( FORWARDAUDITMESSAGES ~= &quot;true&quot; )" Sequence="6401"/>
+    <ROW Action="Fix_Case_For_ForwardAuditMessages_when_false" Condition="( NOT Installed ) AND ( FORWARDAUDITMESSAGES ~= &quot;false&quot; )" Sequence="6402"/>
+    <ROW Action="Fail_install_If_ForwardAuditMessage_Not_Set" Condition="( NOT Installed )" Sequence="6404"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
     <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>

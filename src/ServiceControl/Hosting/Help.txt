@@ -4,7 +4,7 @@ USAGE:
    ServiceControl.exe --start [options]
    ServiceControl.exe --stop [options]
    ServiceControl.exe --restart [options]
-   ServiceControl.exe --install [options]
+   ServiceControl.exe --install -d="ForwardAuditQueue==[true|false]" [options]
    ServiceControl.exe --uninstall [options]
    ServiceControl.exe --maintenance [options]
 
@@ -29,6 +29,10 @@ This mode is only supported when run interactively.
 
 CONFIGURATION OPTIONS:
 
+ServiceControl/ForwardAuditMessages bool (true/false)
+Use this setting to configure whether processed audit messages are forwarded to another queue or not. 
+This is a mandatory setting and does not have a default value.
+
 ServiceControl/LogPath string
 The path for the ServiceControl logs. Default: %LOCALAPPDATA%\Particular\ServiceControl\logs
 
@@ -44,11 +48,8 @@ The virtual directory to bind the embedded http server to, modify if you want to
 ServiceControl/HeartbeatGracePeriod timespan
 The period that defines whether an endpoint is considered alive or not. Default: 00:00:40 (40 secs)
 
-ServiceControl/ForwardAuditMessages bool (true/false)
-Use this setting to configure whether processed audit messages are forwarded to anothe queue or not. Default false
-
 ServiceControl/ExpirationProcessTimerInSeconds int 
-The number of seconds to wait between checking for expired messages, Default 60 (1 minute)
+The number of seconds to wait between checking for expired messages, Default 600 (10 minutes)
 
 ServiceControl/HoursToKeepMessagesBeforeExpiring int
 The number of hours to keep a message for before it is deleted, Default 720 (30 days)
@@ -79,14 +80,17 @@ EXAMPLES:
      -d="ServiceControl/LogPath==c:\MyLogs Files"
      -d=ServiceControl/Hostname==sc.myspecialdomain.com
      -d=ServiceControl/Port==80
-
+	 
    ServiceControl.exe --install 
      --serviceName="MyServiceControl" 
      --displayName="My ServiceControl"
      --description="Service for monitoring" 
      --username="corp\serviceuser"
      --password="p@ssw0rd!"
+	 --d=ServiceControl/ForwardAuditMessages==true
      --d=ServiceControl/Hostname==localhost 
      --d=ServiceControl/Port==33334
 
    ServiceControl.exe --uninstall --serviceName="MyServiceControl"
+
+

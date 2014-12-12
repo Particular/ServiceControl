@@ -57,7 +57,7 @@
                 PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
             }
 
-            if (Settings.ForwardAuditMessages)
+            if (Settings.ForwardAuditMessages == true)
             {
                 Forwarder.Send(message, Settings.AuditLogQueue);
             }
