@@ -10,7 +10,6 @@ else{
 	$url = "https://github.com/Particular/$packageName/releases/download/{{ReleaseName}}/Particular.$packageName-{{FileVersion}}.exe"
 }
 
-
 try {
 
     $existngService = Get-Service -Name "Particular.Management" -ErrorAction SilentlyContinue
@@ -29,7 +28,7 @@ try {
 	}
 
     Get-ChocolateyWebFile $packageName $file $url 
-	$msiArguments  ="/quiet  /L*V `"$logFile`""
+	$msiArguments  ="/quiet PlatformInstaller=true /L*V `"$logFile`""
 	Write-Host "Starting installer with arguments: $msiArguments";
     Start-ChocolateyProcessAsAdmin "$msiArguments" $file -validExitCodes 0
     Write-ChocolateySuccess $packageName
