@@ -6,12 +6,12 @@
     class SettingsCheck : IWantToRunWhenBusStartsAndStops
     {
         ILog logger = LogManager.GetLogger(typeof(SettingsCheck));
-
+        
         public void Start()
         {
             if (!ServiceBus.Management.Infrastructure.Settings.Settings.ForwardAuditMessages.HasValue)
             {
-                logger.WarnFormat("The setting ForwardAuditMessges is not explicitly set. To suppress this warning please set ForwardAuditMessges to true or false.");
+                logger.ErrorFormat("The setting ServiceControl/ForwardAuditMessges is not explicitly set. To suppress this error set ServiceControl/ForwardAuditMessges to true or false.");
             }
         }
 
