@@ -241,10 +241,6 @@
       <Project>{1cf8a2c4-21b5-4826-bcaf-3f0b99b5c3aa}</Project>
       <Name>ServiceControl.Shell</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
-      <Project>{4c6b71b2-74ef-4b9e-88ff-c56532727c6d}</Project>
-      <Name>ServiceControl</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(SolutionDir)..\BuildSupport\GitVersionTask\Build\GitVersionTask.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

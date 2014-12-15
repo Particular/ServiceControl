@@ -116,12 +116,17 @@
 
         static IEnumerable<Type> GetTypesToUse(EndpointConfiguration endpointConfiguration)
         {
-            var assemblies = new AssemblyScanner().GetScannableAssemblies();
+            var assemblyScanner = new AssemblyScanner
+            {
+                ThrowExceptions = false
+            };
+            var assemblies = assemblyScanner.GetScannableAssemblies();
 
             var types = assemblies.Assemblies
                 //exclude all test types by default
                                   .Where(a => a != Assembly.GetExecutingAssembly())
-                                  .Where(a => a.GetName().Name != "ServiceControl")
+                                  .Where(a => !a.GetName().Name.StartsWith("ServiceControl"))
+                                  .Where(a => !a.GetName().Name.StartsWith("Nancy"))
                                   .SelectMany(a => a.GetTypes());
 
             types = types.Union(GetNestedTypeRecursive(endpointConfiguration.BuilderType.DeclaringType, endpointConfiguration.BuilderType));
