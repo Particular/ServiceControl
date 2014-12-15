@@ -1,0 +1,243 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B66B966A-22DA-42C3-8FBC-472DB3B983D3}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ServiceControl.Core</RootNamespace>
+    <AssemblyName>ServiceControl.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Nancy">
+      <HintPath>..\packages\Nancy.0.22.2\lib\net40\Nancy.dll</HintPath>
+    </Reference>
+    <Reference Include="NServiceBus">
+      <HintPath>..\packages\NServiceBus.Interfaces.4.6.5\lib\net40\NServiceBus.dll</HintPath>
+    </Reference>
+    <Reference Include="NServiceBus.Core">
+      <HintPath>..\packages\NServiceBus.4.6.5\lib\net40\NServiceBus.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Abstractions">
+      <HintPath>..\packages\RavenDB.Client.2.5.2939\lib\net45\Raven.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Client.Lightweight">
+      <HintPath>..\packages\RavenDB.Client.2.5.2939\lib\net45\Raven.Client.Lightweight.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceControl.Contracts">
+      <HintPath>..\packages\ServiceControl.Contracts.1.0.1\lib\net45\ServiceControl.Contracts.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Reactive.Core">
+      <HintPath>..\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Interfaces">
+      <HintPath>..\packages\Rx-Interfaces.2.2.5\lib\net45\System.Reactive.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Linq">
+      <HintPath>..\packages\Rx-Linq.2.2.5\lib\net45\System.Reactive.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.PlatformServices">
+      <HintPath>..\packages\Rx-PlatformServices.2.2.5\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\servicecontrol.plugin.shared\messages\EndpointHeartbeat.cs">
+      <Link>HeartbeatMonitoring\InternalMessages\EndpointHeartbeat.cs</Link>
+    </Compile>
+    <Compile Include="..\servicecontrol.plugin.shared\messages\ReportCustomCheckResult.cs">
+      <Link>CustomChecks\InternalMessages\ReportCustomCheckResult.cs</Link>
+    </Compile>
+    <Compile Include="..\servicecontrol.plugin.shared\messages\SagaChangeInitiator.cs">
+      <Link>SagaAudit\Messages\SagaChangeInitiator.cs</Link>
+    </Compile>
+    <Compile Include="..\servicecontrol.plugin.shared\messages\SagaChangeOutput.cs">
+      <Link>SagaAudit\Messages\SagaChangeOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\servicecontrol.plugin.shared\messages\SagaUpdatedMessage.cs">
+      <Link>SagaAudit\Messages\SagaUpdatedMessage.cs</Link>
+    </Compile>
+    <Compile Include="BusinessMonitoring\ApiModule.cs" />
+    <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
+    <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
+    <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
+    <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
+    <Compile Include="CompositeViews\Endpoints\EnableEndpointMonitoring.cs" />
+    <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
+    <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
+    <Compile Include="CompositeViews\Endpoints\HeartbeatInformation.cs" />
+    <Compile Include="CompositeViews\Endpoints\KnownEndpointIndex.cs" />
+    <Compile Include="CompositeViews\Endpoints\KnownEndpointUpdateHandler.cs" />
+    <Compile Include="CustomChecks\CustomCheck.cs" />
+    <Compile Include="CustomChecks\CustomCheckNotifications.cs" />
+    <Compile Include="CustomChecks\CustomChecksIndex.cs" />
+    <Compile Include="CustomChecks\CustomChecksModule.cs" />
+    <Compile Include="CustomChecks\CustomChecksUpdated.cs" />
+    <Compile Include="CustomChecks\DeleteCustomCheck.cs" />
+    <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
+    <Compile Include="CustomChecks\ReportCustomCheckResultHandler.cs" />
+    <Compile Include="CustomChecks\Status.cs" />
+    <Compile Include="EndpointControl\DetectNewEndpointsFromImportsEnricher.cs" />
+    <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
+    <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
+    <Compile Include="EndpointControl\Handlers\KnownEndpointsCache.cs" />
+    <Compile Include="EndpointControl\Handlers\RegisterEndpointHandler.cs" />
+    <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />
+    <Compile Include="EndpointControl\KnownEndpoint.cs" />
+    <Compile Include="EventLog\Definitions\CustomCheckDeletedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
+    <Compile Include="EventLog\Definitions\EndpointFailedToHeartbeatDefinition.cs" />
+    <Compile Include="EventLog\Definitions\EndpointHeartbeatRestoredDefinition.cs" />
+    <Compile Include="EventLog\Definitions\EndpointStartedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\FailedMessageArchivedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\HeartbeatingEndpointDetectedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\KnownEndpointUpdatedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessageFailedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessageFailureResolvedByRetryDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
+    <Compile Include="EventLog\Definitions\NewEndpointDetectedDefinition.cs" />
+    <Compile Include="EventLog\EventLogApiModule.cs" />
+    <Compile Include="EventLog\EventLogItem.cs" />
+    <Compile Include="EventLog\EventLogMappingDefinition.cs" />
+    <Compile Include="EventLog\EventLogMappings.cs" />
+    <Compile Include="EventLog\GenericAuditHandler.cs" />
+    <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
+    <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
+    <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
+    <Compile Include="ExternalIntegrations\EventPublisher.cs" />
+    <Compile Include="ExternalIntegrations\ExternalIntegrationDispatchRequest.cs" />
+    <Compile Include="ExternalIntegrations\ExternalIntegrationsInitializer.cs" />
+    <Compile Include="ExternalIntegrations\HeartbeatRestoredPublisher.cs" />
+    <Compile Include="ExternalIntegrations\HeartbeatStoppedPublisher.cs" />
+    <Compile Include="ExternalIntegrations\IEventPublisher.cs" />
+    <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
+    <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
+    <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
+    <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatingEndpoint.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatMonitor.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatsIndex.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatsStats.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatStatusInitializer.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatStatusProvider.cs" />
+    <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterPotentiallyMissingHeartbeats.cs" />
+    <Compile Include="HeartbeatMonitoring\MonitoringDisabledForEndpointHandler.cs" />
+    <Compile Include="HeartbeatMonitoring\MonitoringEnabledForEndpointHandler.cs" />
+    <Compile Include="HeartbeatMonitoring\RaiseHeartbeatChanges.cs" />
+    <Compile Include="HeartbeatMonitoring\RegisterEndpointStartupHandler.cs" />
+    <Compile Include="HeartbeatMonitoring\RegisterPotentiallyMissingHeartbeatsHandler.cs" />
+    <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
+    <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
+    <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
+    <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageFacetsIndex.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageViewIndex.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageViewTransformer.cs" />
+    <Compile Include="MessageFailures\Api\FilterByStatusWhereQueriableExtensions.cs" />
+    <Compile Include="MessageFailures\Api\GetAllErrors.cs" />
+    <Compile Include="MessageFailures\Api\GetErrorById.cs" />
+    <Compile Include="MessageFailures\Api\RetryMessages.cs" />
+    <Compile Include="MessageFailures\DetectSuccessfullRetriesEnricher.cs" />
+    <Compile Include="MessageFailures\FailedMessage.cs" />
+    <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
+    <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
+    <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\ImportFailedMessageHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\PerformRetryHandler.cs" />
+    <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />
+    <Compile Include="MessageFailures\InternalMessages\PerformRetry.cs" />
+    <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
+    <Compile Include="MessageFailures\InternalMessages\RequestRetryAll.cs" />
+    <Compile Include="MessageFailures\InternalMessages\RetryMessage.cs" />
+    <Compile Include="MessageTypes\MessageTypeEnricher.cs" />
+    <Compile Include="Operations\AttemptToReImportFailedMessages.cs" />
+    <Compile Include="Operations\AuditQueueImport.cs" />
+    <Compile Include="Operations\BodyStorage\BodyStorageEnricher.cs" />
+    <Compile Include="Operations\BodyStorage\BodyStorageFeature.cs" />
+    <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />
+    <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
+    <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
+    <Compile Include="Operations\EndpointDetailsParser.cs" />
+    <Compile Include="Operations\ErrorQueueImport.cs" />
+    <Compile Include="Operations\ExceptionExtensions.cs" />
+    <Compile Include="Operations\FailedAuditImport.cs" />
+    <Compile Include="Operations\FailedErrorImport.cs" />
+    <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
+    <Compile Include="Operations\ImportRegistration.cs" />
+    <Compile Include="Operations\LicenseStatusKeeper.cs" />
+    <Compile Include="Operations\MsmqAuditImporterPerformanceCounters.cs" />
+    <Compile Include="Operations\Msmq\MsmqAuditQueueImporter.cs" />
+    <Compile Include="Operations\SatelliteImportFailuresHandler.cs" />
+    <Compile Include="Operations\UpdateLicenseEnricher.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SagaAudit\ApiModule.cs" />
+    <Compile Include="SagaAudit\InitiatingMessage.cs" />
+    <Compile Include="SagaAudit\ProcessingState.cs" />
+    <Compile Include="SagaAudit\ResultingMessage.cs" />
+    <Compile Include="SagaAudit\SagaHistory.cs" />
+    <Compile Include="SagaAudit\SagaRelationshipsEnricher.cs" />
+    <Compile Include="SagaAudit\SagaStateChange.cs" />
+    <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
+    <Compile Include="SagaAudit\SagaUpdatedHandler.cs" />
+    <Compile Include="SagaAudit\SageMessageState.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.Audit.Api.csproj">
+      <Project>{3d470493-002a-41f1-a555-ff84257c4e01}</Project>
+      <Name>ServiceControl.Audit.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.InternalContracts\ServiceControl.InternalContracts.csproj">
+      <Project>{d0cf644e-160b-48ba-bc3d-d7fca8234759}</Project>
+      <Name>ServiceControl.InternalContracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Shell.Api\ServiceControl.Shell.Api.csproj">
+      <Project>{2ca0b6b2-eaa2-4057-9ed1-b55e30eb20a5}</Project>
+      <Name>ServiceControl.Shell.Api</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

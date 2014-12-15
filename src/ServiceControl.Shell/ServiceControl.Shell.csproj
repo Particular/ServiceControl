@@ -1,17 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{1CF8A2C4-21B5-4826-BCAF-3F0B99B5C3AA}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceControl</RootNamespace>
-    <AssemblyName>ServiceControl</AssemblyName>
+    <RootNamespace>ServiceControl.Shell</RootNamespace>
+    <AssemblyName>ServiceControl.Shell</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,8 +20,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,23 +28,10 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>Particular.ServiceControl.Program</StartupObject>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Autofac">
       <HintPath>..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
-    </Reference>
-    <Reference Include="ICSharpCode.SharpZipLib">
-      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
-    </Reference>
-    <Reference Include="Lucene.Net">
-      <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.1.1.3\lib\net40\Microsoft.AspNet.SignalR.Core.dll</HintPath>
@@ -58,7 +42,6 @@
     <Reference Include="Microsoft.CompilerServices.AsyncTargetingPack.Net45">
       <HintPath>..\packages\Microsoft.CompilerServices.AsyncTargetingPack.1.0.1\lib\net45\Microsoft.CompilerServices.AsyncTargetingPack.Net45.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm, Version=5.6.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Data.Edm.5.6.3\lib\net40\Microsoft.Data.Edm.dll</HintPath>
@@ -73,18 +56,13 @@
     <Reference Include="Microsoft.Owin.Diagnostics">
       <HintPath>..\packages\Microsoft.Owin.Diagnostics.2.0.0\lib\net40\Microsoft.Owin.Diagnostics.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Owin.Host.HttpListener">
-      <HintPath>..\packages\Microsoft.Owin.Host.HttpListener.2.0.0\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Owin.Hosting">
       <HintPath>..\packages\Microsoft.Owin.Hosting.2.0.0\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=1.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Microsoft.WindowsAzure.Configuration">
       <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.1.8.0.0\lib\net35-full\Microsoft.WindowsAzure.Configuration.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage, Version=2.1.0.4, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Microsoft.WindowsAzure.Storage">
       <HintPath>..\packages\WindowsAzure.Storage.2.1.0.4\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Nancy">
@@ -97,7 +75,7 @@
       <HintPath>..\packages\Nancy.Owin.0.22.2\lib\net40\Nancy.Owin.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.5.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.2.0.1.2\lib\net45\NLog.dll</HintPath>
@@ -106,8 +84,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NServiceBus.Interfaces.4.6.5\lib\net40\NServiceBus.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus.Core, Version=4.6.5.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="NServiceBus.Core">
       <HintPath>..\packages\NServiceBus.4.6.5\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.ObjectBuilder.Autofac">
@@ -119,95 +96,127 @@
     <Reference Include="Owin">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Abstractions, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RavenDB.Client.2.5.2939\lib\net45\Raven.Abstractions.dll</HintPath>
+    <Reference Include="Raven.Abstractions">
+      <HintPath>..\packages\RavenDB.Database.2.5.2939\lib\net45\Raven.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Client.Embedded, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Raven.Client.Embedded">
       <HintPath>..\packages\RavenDB.Embedded.2.5.2939\lib\net45\Raven.Client.Embedded.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Client.Lightweight, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Raven.Client.Lightweight">
       <HintPath>..\packages\RavenDB.Client.2.5.2939\lib\net45\Raven.Client.Lightweight.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Database, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Raven.Database">
       <HintPath>..\packages\RavenDB.Database.2.5.2939\lib\net45\Raven.Database.dll</HintPath>
-    </Reference>
-    <Reference Include="ServiceControl.Contracts, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\ServiceControl.Contracts.1.0.0\lib\net45\ServiceControl.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Data.Services.Client" />
-    <Reference Include="System.Messaging" />
-    <Reference Include="System.Reactive.Core">
-      <HintPath>..\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reactive.Interfaces">
-      <HintPath>..\packages\Rx-Interfaces.2.2.5\lib\net45\System.Reactive.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reactive.Linq">
-      <HintPath>..\packages\Rx-Linq.2.2.5\lib\net45\System.Reactive.Linq.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reactive.PlatformServices">
-      <HintPath>..\packages\Rx-PlatformServices.2.2.5\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
-    </Reference>
     <Reference Include="System.Security" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Spatial, Version=5.6.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\System.Spatial.5.6.3\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
-    <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\License.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\LicenseDeserializer.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\LicenseExpirationChecker.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\LicenseVerifier.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\RegistryLicenseStore.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\ReleaseDateReader.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\UserSidChecker.cs" />
+    <Compile Include="Bootstrapper.cs" />
+    <Compile Include="ConfigErrorQueue.cs" />
+    <Compile Include="ConfigTransportConfig.cs" />
+    <Compile Include="Hosting\Commands\AbstractCommand.cs" />
+    <Compile Include="Hosting\Commands\CommandRunner.cs" />
+    <Compile Include="Hosting\Commands\InstallCommand.cs" />
+    <Compile Include="Hosting\Commands\MaintCommand.cs" />
+    <Compile Include="Hosting\Commands\RestartCommand.cs" />
+    <Compile Include="Hosting\Commands\RunBootstrapperAndNServiceBusInstallers.cs" />
+    <Compile Include="Hosting\Commands\RunCommand.cs" />
+    <Compile Include="Hosting\Commands\ServiceCommand.cs" />
+    <Compile Include="Hosting\Commands\ServiceUtils.cs" />
+    <Compile Include="Hosting\Commands\StartCommand.cs" />
+    <Compile Include="Hosting\Commands\StopCommand.cs" />
+    <Compile Include="Hosting\Commands\UninstallCommand.cs" />
+    <Compile Include="Hosting\Commands\WriteOptionsCommand.cs" />
+    <Compile Include="Hosting\Host.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Hosting\HostArguments.cs" />
+    <Compile Include="Hosting\HostInstaller.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Hosting\Options.cs" />
+    <Compile Include="Infrastructure\Installers\AuditLogQueueInstaller.cs" />
+    <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
+    <Compile Include="Infrastructure\Installers\ErrorLogQueueInstaller.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAclInstaller.cs" />
+    <Compile Include="Infrastructure\Nancy\ExtraHeaders.cs" />
+    <Compile Include="Infrastructure\Nancy\Helpers.cs" />
+    <Compile Include="Infrastructure\Nancy\JsonNetBodyDeserializer.cs" />
+    <Compile Include="Infrastructure\Nancy\JsonNetSerializer.cs" />
+    <Compile Include="Infrastructure\Nancy\Modules\RootModule.cs" />
+    <Compile Include="Infrastructure\Nancy\NancyCompressionExtension.cs" />
+    <Compile Include="Infrastructure\Nancy\NotModifiedStatusExtension.cs" />
+    <Compile Include="Infrastructure\Nancy\NServiceBusContainerBootstrapper.cs" />
+    <Compile Include="Infrastructure\Nancy\StringListBinder.cs" />
+    <Compile Include="Infrastructure\Nancy\VersionExtension.cs" />
+    <Compile Include="Infrastructure\OWIN\OwinRunner.cs" />
+    <Compile Include="Infrastructure\OWIN\Startup.cs" />
+    <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
+    <Compile Include="Infrastructure\PrepopulateSubscriptionStorage.cs" />
+    <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
+    <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
+    <Compile Include="Infrastructure\SignalR\Configure.cs" />
+    <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
+    <Compile Include="Infrastructure\SignalR\Envelope.cs" />
+    <Compile Include="Infrastructure\SignalR\GlobalEventHandler.cs" />
+    <Compile Include="Infrastructure\SignalR\MessageStreamerConnection.cs" />
+    <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
+    <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Licensing\ActiveLicense.cs" />
+    <Compile Include="Licensing\LicenseDetector.cs" />
+    <Compile Include="Licensing\NonLockingFileReader.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Operations.ico" />
+    <EmbeddedResource Include="Hosting\Help.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.Audit.Api.csproj">
-      <Project>{3D470493-002A-41F1-A555-FF84257C4E01}</Project>
-      <Name>ServiceControl.Audit.Api</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Audit.RavenDB\ServiceControl.Audit.RavenDB.csproj">
-      <Project>{c303c107-7222-4eb4-8af4-d61bcf99f917}</Project>
-      <Name>ServiceControl.Audit.RavenDB</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Core\ServiceControl.Core.csproj">
-      <Project>{b66b966a-22da-42c3-8fbc-472db3b983d3}</Project>
-      <Name>ServiceControl.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.InternalContracts\ServiceControl.InternalContracts.csproj">
-      <Project>{d0cf644e-160b-48ba-bc3d-d7fca8234759}</Project>
-      <Name>ServiceControl.InternalContracts</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Shell.Api\ServiceControl.Shell.Api.csproj">
-      <Project>{2ca0b6b2-eaa2-4057-9ed1-b55e30eb20a5}</Project>
+      <Project>{2CA0B6B2-EAA2-4057-9ED1-B55E30EB20A5}</Project>
       <Name>ServiceControl.Shell.Api</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Shell\ServiceControl.Shell.csproj">
-      <Project>{1cf8a2c4-21b5-4826-bcaf-3f0b99b5c3aa}</Project>
-      <Name>ServiceControl.Shell</Name>
-    </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(SolutionDir)..\BuildSupport\GitVersionTask\Build\GitVersionTask.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
 </Project>

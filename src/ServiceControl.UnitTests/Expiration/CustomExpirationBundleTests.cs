@@ -11,6 +11,7 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
+    using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
 
     [TestFixture]
     public class CustomExpirationBundleTests : TestWithRavenDB

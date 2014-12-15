@@ -108,6 +108,30 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.Audit.Api.csproj">
+      <Project>{3d470493-002a-41f1-a555-ff84257c4e01}</Project>
+      <Name>ServiceControl.Audit.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Audit.RavenDB\ServiceControl.Audit.RavenDB.csproj">
+      <Project>{c303c107-7222-4eb4-8af4-d61bcf99f917}</Project>
+      <Name>ServiceControl.Audit.RavenDB</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Core\ServiceControl.Core.csproj">
+      <Project>{B66B966A-22DA-42C3-8FBC-472DB3B983D3}</Project>
+      <Name>ServiceControl.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.InternalContracts\ServiceControl.InternalContracts.csproj">
+      <Project>{d0cf644e-160b-48ba-bc3d-d7fca8234759}</Project>
+      <Name>ServiceControl.InternalContracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Shell.Api\ServiceControl.Shell.Api.csproj">
+      <Project>{2CA0B6B2-EAA2-4057-9ED1-B55E30EB20A5}</Project>
+      <Name>ServiceControl.Shell.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Shell\ServiceControl.Shell.csproj">
+      <Project>{1cf8a2c4-21b5-4826-bcaf-3f0b99b5c3aa}</Project>
+      <Name>ServiceControl.Shell</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>
       <Name>ServiceControl</Name>
