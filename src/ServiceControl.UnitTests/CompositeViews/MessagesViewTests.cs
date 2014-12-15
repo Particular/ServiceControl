@@ -5,11 +5,11 @@
     using System.Linq;
     using Contracts.Operations;
     using MessageAuditing;
-    using MessageFailures;
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.CompositeViews.Messages;
+    using FailedMessage = ServiceControl.MessageAuditing.FailedMessage;
 
     [TestFixture]
     public class MessagesViewTests 
@@ -74,8 +74,8 @@
                 session.Store(new FailedMessage
                 {
                     Id = "4",
-                    Status = FailedMessageStatus.Unresolved,
-                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>{new FailedMessage.ProcessingAttempt{MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }}
+                    Status = MessageStatus.Failed,
+                    LastProcessingAttempt = new FailedMessage.ProcessingAttempt{MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
                     },
                 });
                 session.SaveChanges();
@@ -150,10 +150,7 @@
                 session.Store(new FailedMessage
                 {
                     Id = "1",
-                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
-                    {
-                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"}}},
-                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"}} }
+                    LastProcessingAttempt = new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"} }
                     },
                 });
          
