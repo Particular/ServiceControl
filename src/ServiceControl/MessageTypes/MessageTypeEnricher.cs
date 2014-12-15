@@ -9,9 +9,10 @@
     {
         public override void Enrich(ImportMessage message)
         {
+            var isSystemMessage = false;
             if (message.PhysicalMessage.Headers.ContainsKey(NServiceBus.Headers.ControlMessageHeader))
             {
-                message.Metadata.Add("IsSystemMessage", true);
+                isSystemMessage = true;
                 message.Metadata.Add("MessageType", "SystemMessage");
             }
 
@@ -20,10 +21,12 @@
             if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.EnclosedMessageTypes, out enclosedMessageTypes))
             {
                 var messageType = GetMessageType(enclosedMessageTypes);
-                message.Metadata.Add("IsSystemMessage", DetectSystemMessage(messageType));
+                isSystemMessage = DetectSystemMessage(messageType);
                 message.Metadata.Add("MessageType", messageType);
                 message.Metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
             }
+            message.Metadata.Add("IsSystemMessage", isSystemMessage);
+               
         }
 
         bool DetectSystemMessage(string messageTypeString)

@@ -13,7 +13,7 @@
                 {
                     Id = failure.UniqueMessageId,
                     MessageType = rec.MessageMetadata["MessageType"],
-                    IsSystemMessage = rec.MessageMetadata["IsSystemMessage"],
+                    IsSystemMessage = (bool)rec.MessageMetadata["IsSystemMessage"],
                     SendingEndpoint = rec.MessageMetadata["SendingEndpoint"],
                     ReceivingEndpoint = rec.MessageMetadata["ReceivingEndpoint"],
                     TimeSent = rec.MessageMetadata["TimeSent"],
