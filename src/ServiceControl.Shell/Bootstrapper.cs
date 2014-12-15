@@ -45,7 +45,7 @@ namespace Particular.ServiceControl
             var transportType = DetermineTransportType();
 
             bus = Configure
-                .With(AllAssemblies.Except("ServiceControl.Plugin"))
+                .With(AllAssemblies.Except("ServiceControl.Plugin").And("Nancy.Bootstrappers.Autofac"))
                 .DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t))
                 .DefineEndpointName(Settings.ServiceName)
                 .AutofacBuilder(Container)

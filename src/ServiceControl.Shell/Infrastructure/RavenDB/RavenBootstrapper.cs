@@ -40,6 +40,9 @@
                 EnlistInDistributedTransactions = false,
             };
 
+            var serviceControlAssemblies = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(x => x.GetName().Name.StartsWith("ServiceControl")).ToArray();
+
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
             if (File.Exists(localRavenLicense))
             {
@@ -52,7 +55,11 @@
                 documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
             }
 
-            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
+            foreach (var serviceControlAssembly in serviceControlAssemblies)
+            {
+                documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(serviceControlAssembly));
+            }
+
             
             if (!Settings.MaintenanceMode) {
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
@@ -71,18 +78,24 @@
 
             if (Settings.CreateIndexSync)
             {
-                IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
+                foreach (var serviceControlAssembly in serviceControlAssemblies)
+                {
+                    IndexCreation.CreateIndexes(serviceControlAssembly, documentStore);
+                }
             }
             else
             {
-                IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore)
-                    .ContinueWith(c =>
-                    {
-                        if (c.IsFaulted)
+                foreach (var serviceControlAssembly in serviceControlAssemblies)
+                {
+                    IndexCreation.CreateIndexesAsync(serviceControlAssembly, documentStore)
+                        .ContinueWith(c =>
                         {
-                            Logger.Error("Index creation failed", c.Exception);
-                        }
-                    });
+                            if (c.IsFaulted)
+                            {
+                                Logger.Error("Index creation failed", c.Exception);
+                            }
+                        });
+                }
             }
 
             // standard ravendb index. created by studio on first use. used by sagahistory migrations
