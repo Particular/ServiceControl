@@ -89,6 +89,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompositeViews\FailedMessageTest.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverterTests.cs" />
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Expiration\CustomExpirationBundleTests.cs" />
