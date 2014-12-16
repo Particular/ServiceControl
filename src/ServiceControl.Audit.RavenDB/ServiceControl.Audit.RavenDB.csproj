@@ -88,10 +88,10 @@
   <ItemGroup>
     <Compile Include="Expiration\ExpiredDocumentsCleaner.cs" />
     <Compile Include="Expiration\ExpiryProcessedMessageIndex.cs" />
-    <Compile Include="Data\FailedMessage.cs" />
+    <Compile Include="Data\AuditFailedMessage.cs" />
     <Compile Include="Data\Handlers\ImportMessageHandler.cs" />
     <Compile Include="Data\Handlers\FailedMessageStateUpdateHandler.cs" />
-    <Compile Include="Data\ProcessedMessage.cs" />
+    <Compile Include="Data\AuditProcessedMessage.cs" />
     <Compile Include="Api\GetBodyById.cs" />
     <Compile Include="Api\GetMessages.cs" />
     <Compile Include="Api\GetMessagesByConversation.cs" />

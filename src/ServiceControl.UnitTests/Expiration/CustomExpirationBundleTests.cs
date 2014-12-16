@@ -19,13 +19,13 @@
         [Test]
         public void Processed_messages_are_being_expired()
         {
-            var processedMessage = new ProcessedMessage
+            var processedMessage = new AuditProcessedMessage
             {
                 Id = "1",
                 ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 3)),
             };
 
-            var processedMessage2 = new ProcessedMessage
+            var processedMessage2 = new AuditProcessedMessage
             {
                 Id = "2",
                 ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),                
@@ -44,10 +44,10 @@
 
             using (var session = documentStore.OpenSession())
             {
-                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
+                var msg = session.Load<AuditProcessedMessage>(processedMessage.Id);
                 Assert.Null(msg);
 
-                msg = session.Load<ProcessedMessage>(processedMessage2.Id);
+                msg = session.Load<AuditProcessedMessage>(processedMessage2.Id);
                 Assert.Null(msg);
             }
         }
@@ -57,13 +57,13 @@
         {
             new ExpiryProcessedMessageIndex().Execute(documentStore);
 
-            var processedMessage = new ProcessedMessage
+            var processedMessage = new AuditProcessedMessage
             {
                 Id = Guid.NewGuid().ToString(),
                 ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond%30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
             };
 
-            var processedMessage2 = new ProcessedMessage
+            var processedMessage2 = new AuditProcessedMessage
             {
                 Id = "2",
                 ProcessedAt = DateTime.UtcNow,
@@ -73,7 +73,7 @@
             {
                 for (var i = 0; i < 100; i++)
                 {
-                    processedMessage = new ProcessedMessage
+                    processedMessage = new AuditProcessedMessage
                     {
                         Id = Guid.NewGuid().ToString(),
                         ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond%30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
@@ -90,13 +90,13 @@
             Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 10);
             using (var session = documentStore.OpenSession())
             {
-                var results = session.Query<ProcessedMessage, ExpiryProcessedMessageIndex>().Customize(x => x.WaitForNonStaleResults()).ToArray();
+                var results = session.Query<AuditProcessedMessage, ExpiryProcessedMessageIndex>().Customize(x => x.WaitForNonStaleResults()).ToArray();
                 Assert.AreEqual(1, results.Length);
 
-                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
+                var msg = session.Load<AuditProcessedMessage>(processedMessage.Id);
                 Assert.Null(msg, "Message with datestamp {0} and ID {1} was found", processedMessage.ProcessedAt, processedMessage.Id);
 
-                msg = session.Load<ProcessedMessage>(processedMessage2.Id);
+                msg = session.Load<AuditProcessedMessage>(processedMessage2.Id);
                 Assert.NotNull(msg);
             }
         }
@@ -106,13 +106,13 @@
         {
             new ExpiryProcessedMessageIndex().Execute(documentStore);
 
-            var processedMessage = new ProcessedMessage
+            var processedMessage = new AuditProcessedMessage
             {
                 Id = "1",
                 ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 3)),
             };
 
-            var processedMessage2 = new ProcessedMessage
+            var processedMessage2 = new AuditProcessedMessage
             {
                 Id = "2",
                 ProcessedAt = DateTime.UtcNow,
@@ -131,10 +131,10 @@
 
             using (var session = documentStore.OpenSession())
             {
-                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
+                var msg = session.Load<AuditProcessedMessage>(processedMessage.Id);
                 Assert.Null(msg);
 
-                msg = session.Load<ProcessedMessage>(processedMessage2.Id);
+                msg = session.Load<AuditProcessedMessage>(processedMessage2.Id);
                 Assert.NotNull(msg);
             }
         }
@@ -144,7 +144,7 @@
         {
             new ExpiryProcessedMessageIndex().Execute(documentStore);
 
-            var processedMessage = new ProcessedMessage
+            var processedMessage = new AuditProcessedMessage
             {
                 Id = "1",
                 ProcessedAt = DateTime.UtcNow,
@@ -161,7 +161,7 @@
 
             using (var session = documentStore.OpenSession())
             {
-                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
+                var msg = session.Load<AuditProcessedMessage>(processedMessage.Id);
                 Assert.NotNull(msg);
             }
         }

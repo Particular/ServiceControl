@@ -28,7 +28,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         public MessagesViewIndex()
         {
-            AddMap<ProcessedMessage>(messages => from message in messages
+            AddMap<AuditProcessedMessage>(messages => from message in messages
                 select new SortAndFilterOptions
                 {
                     MessageId = (string) message.MessageMetadata["MessageId"],
@@ -45,7 +45,7 @@ namespace ServiceControl.CompositeViews.Messages
                     ConversationId = (string) message.MessageMetadata["ConversationId"],
                 });
 
-            AddMap<FailedMessage>(messages => from message in messages
+            AddMap<AuditFailedMessage>(messages => from message in messages
                 let last = message.LastProcessingAttempt
                 select new
                 {

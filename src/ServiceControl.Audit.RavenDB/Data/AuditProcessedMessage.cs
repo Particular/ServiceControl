@@ -5,14 +5,14 @@
     using NServiceBus;
     using Contracts.Operations;
 
-    public class ProcessedMessage
+    public class AuditProcessedMessage
     {
-        public ProcessedMessage()
+        public AuditProcessedMessage()
         {
            MessageMetadata = new Dictionary<string, object>();
         }
 
-        public ProcessedMessage(ImportSuccessfullyProcessedMessage message)
+        public AuditProcessedMessage(ImportSuccessfullyProcessedMessage message)
         {
             UniqueMessageId = message.UniqueMessageId;            
             MessageMetadata = message.Metadata;

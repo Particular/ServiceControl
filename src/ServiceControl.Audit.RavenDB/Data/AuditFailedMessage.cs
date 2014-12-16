@@ -5,11 +5,11 @@
     using Contracts.Operations;
     using NServiceBus;
 
-    public class FailedMessage
+    public class AuditFailedMessage
     {
         public static string MakeDocumentId(string messageUniqueId)
         {
-            return "FailedMessages/" + messageUniqueId;
+            return "AuditFailedMessages/" + messageUniqueId;
         }
 
         public string Id { get; set; }
