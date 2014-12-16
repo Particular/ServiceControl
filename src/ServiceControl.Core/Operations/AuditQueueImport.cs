@@ -30,7 +30,7 @@
 
         public AuditQueueImport(IDequeueMessages receiver)
         {
-            disabled = receiver is MsmqDequeueStrategy;
+            disabled = false; //since we commented out the batch importer
         }
 
         public bool Handle(TransportMessage message)

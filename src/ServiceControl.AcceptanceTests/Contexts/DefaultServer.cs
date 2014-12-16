@@ -26,6 +26,17 @@
 
     public class DefaultServer : IEndpointSetupTemplate
     {
+        static readonly string[] serviceControlAssemblies =
+        {
+            "ServiceControl",
+            "ServiceControl.Core",
+            "ServiceControl.Audit.Api",
+            "ServiceControl.Audit.RavenDB",
+            "ServiceControl.Shell",
+            "ServiceControl.Shell.Api",
+            "ServiceControl.InternalContracts",
+        };
+
         public virtual void AddMoreConfig()
         {
             
@@ -125,8 +136,7 @@
             var types = assemblies.Assemblies
                 //exclude all test types by default
                                   .Where(a => a != Assembly.GetExecutingAssembly())
-                                  .Where(a => !a.GetName().Name.StartsWith("ServiceControl"))
-                                  .Where(a => !a.GetName().Name.StartsWith("Nancy"))
+                                  .Where(a => !serviceControlAssemblies.Contains(a.GetName().Name))
                                   .SelectMany(a => a.GetTypes());
 
             types = types.Union(GetNestedTypeRecursive(endpointConfiguration.BuilderType.DeclaringType, endpointConfiguration.BuilderType));

@@ -15,7 +15,7 @@
 
         public void Handle(MessageFailureResolvedByRetry message)
         {
-            var failedMessage = Session.Load<FailedMessage>(new Guid(message.FailedMessageId));
+            var failedMessage = Session.Load<AuditFailedMessage>(new Guid(message.FailedMessageId));
 
             if (failedMessage != null)
             {
@@ -25,7 +25,7 @@
 
         public void Handle(FailedMessageArchived message)
         {
-            var failedMessage = Session.Load<FailedMessage>(new Guid(message.FailedMessageId));
+            var failedMessage = Session.Load<AuditFailedMessage>(new Guid(message.FailedMessageId));
 
             if (failedMessage == null)
             {

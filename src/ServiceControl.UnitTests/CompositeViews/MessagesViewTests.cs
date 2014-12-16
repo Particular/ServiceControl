@@ -9,7 +9,6 @@
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.CompositeViews.Messages;
-    using FailedMessage = ServiceControl.MessageAuditing.FailedMessage;
 
     [TestFixture]
     public class MessagesViewTests 
@@ -19,14 +18,14 @@
         {
             using (var session = documentStore.OpenSession())
             {
-                var processedMessage = new ProcessedMessage
+                var processedMessage = new AuditProcessedMessage
                                        {
                                            Id = "1",
                                        };
 
                 processedMessage.MessageMetadata["IsSystemMessage"] = true;
                 session.Store(processedMessage);
-                var processedMessage2 = new ProcessedMessage
+                var processedMessage2 = new AuditProcessedMessage
                                         {
                                             Id = "2",
                                         };
@@ -41,7 +40,7 @@
                 var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Customize(x => x.WaitForNonStaleResults())
                     .Where(x => !x.IsSystemMessage)
-                    .OfType<ProcessedMessage>()
+                    .OfType<AuditProcessedMessage>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 Assert.AreNotEqual("1", results.Single().Id);
@@ -53,29 +52,29 @@
         {
             using (var session = documentStore.OpenSession())
             {
-                session.Store(new ProcessedMessage
+                session.Store(new AuditProcessedMessage
                 {
                     Id = "1",
                     MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(10) } }
                 });
 
-                session.Store(new ProcessedMessage
+                session.Store(new AuditProcessedMessage
                 {
                     Id = "2",
                     MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(20) } }
                 });
 
-                session.Store(new ProcessedMessage
+                session.Store(new AuditProcessedMessage
                 {
                     Id = "3",
                     MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
                 });
 
-                session.Store(new FailedMessage
+                session.Store(new AuditFailedMessage
                 {
                     Id = "4",
                     Status = MessageStatus.Failed,
-                    LastProcessingAttempt = new FailedMessage.ProcessingAttempt{MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
+                    LastProcessingAttempt = new AuditFailedMessage.ProcessingAttempt{MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
                     },
                 });
                 session.SaveChanges();
@@ -88,14 +87,14 @@
                 var firstByCriticalTime = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.CriticalTime)
                     .Where(x => x.CriticalTime != null)
-                    .AsProjection<ProcessedMessage>()
+                    .AsProjection<AuditProcessedMessage>()
                     .First();
                 Assert.AreEqual("1", firstByCriticalTime.Id);
 
                 var firstByCriticalTimeDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.CriticalTime)
                     .Where(x => x.CriticalTime != null)
-                    .AsProjection<ProcessedMessage>()
+                    .AsProjection<AuditProcessedMessage>()
                     .First();
                 Assert.AreEqual("2", firstByCriticalTimeDescription.Id);
             }
@@ -105,18 +104,18 @@
         {
             using (var session = documentStore.OpenSession())
             {
-                session.Store(new ProcessedMessage
+                session.Store(new AuditProcessedMessage
                 {
                     Id = "1",
                     MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(20) } }
                 });
 
-                session.Store(new ProcessedMessage
+                session.Store(new AuditProcessedMessage
                 {
                     Id = "2",
                     MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(10) } }
                 });
-                session.Store(new ProcessedMessage
+                session.Store(new AuditProcessedMessage
                 {
                     Id = "3",
                     MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddDays(-1) } }
@@ -130,13 +129,13 @@
             {
                 var firstByTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.TimeSent)
-                    .OfType<ProcessedMessage>()
+                    .OfType<AuditProcessedMessage>()
                     .First();
                 Assert.AreEqual("3", firstByTimeSent.Id);
 
                 var firstByTimeSentDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.TimeSent)
-                    .OfType<ProcessedMessage>()
+                    .OfType<AuditProcessedMessage>()
                     .First();
                 Assert.AreEqual("1", firstByTimeSentDescription.Id);
             }
@@ -147,10 +146,10 @@
         {
             using (var session = documentStore.OpenSession())
             {
-                session.Store(new FailedMessage
+                session.Store(new AuditFailedMessage
                 {
                     Id = "1",
-                    LastProcessingAttempt = new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"} }
+                    LastProcessingAttempt = new AuditFailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"} }
                     },
                 });
          
@@ -161,7 +160,7 @@
 
             using (var session = documentStore.OpenSession())
             {
-                var message = session.Query<FailedMessage>()
+                var message = session.Query<AuditFailedMessage>()
                     .TransformWith<MessagesViewTransformer, MessagesView>()
                     .Customize(x => x.WaitForNonStaleResults())
                     .Single();

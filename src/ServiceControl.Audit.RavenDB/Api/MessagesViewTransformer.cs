@@ -16,7 +16,7 @@ namespace ServiceControl.CompositeViews.Messages
             public DateTime ProcessedAt { get; set; }
             public Dictionary<string, string> Headers { get; set; }
             public Dictionary<string, object> MessageMetadata { get; set; }
-            public FailedMessage.ProcessingAttempt LastProcessingAttempt { get; set; }
+            public AuditFailedMessage.ProcessingAttempt LastProcessingAttempt { get; set; }
             public MessageStatus Status { get; set; }
         }
 
