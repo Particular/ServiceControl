@@ -17,9 +17,19 @@
             UniqueMessageId = message.UniqueMessageId;            
             MessageMetadata = message.Metadata;
             Headers = message.PhysicalMessage.Headers;
+            Status = MessageStatus.Successful;
+
+            object retried;
+            if (message.Metadata.TryGetValue("IsRetried", out retried) && (bool) retried)
+            {
+                Status = MessageStatus.ResolvedSuccessfully;
+            }
+            else
+            {
+                Status = MessageStatus.Successful;
+            }
 
             string processedAt;
-            
             if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out processedAt))
             {
                 ProcessedAt = DateTimeExtensions.ToUtcDateTime(processedAt);
