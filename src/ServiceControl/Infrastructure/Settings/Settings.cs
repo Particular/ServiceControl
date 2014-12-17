@@ -150,7 +150,7 @@
         public static Address ErrorLogQueue;
         public static Address ErrorQueue;
         public static Address AuditQueue;
-        public static bool ForwardAuditMessages = SettingsReader<bool>.Read("ForwardAuditMessages");
+        public static bool? ForwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;
         
