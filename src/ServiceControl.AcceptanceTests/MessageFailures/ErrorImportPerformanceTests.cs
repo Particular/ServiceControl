@@ -9,7 +9,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.ProductionDebugging.Api;
 
     public class ErrorImportPerformanceTests : AcceptanceTest

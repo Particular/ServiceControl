@@ -8,8 +8,9 @@
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Client.Linq;
-    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.ProductionDebugging.Api;
+    using ServiceControl.ProductionDebugging.RavenDB.Api;
+    using ServiceControl.ProductionDebugging.RavenDB.Data;
 
     [TestFixture]
     public class MessagesViewTests 

@@ -10,7 +10,6 @@
     using NServiceBus.Transports;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
-    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.ProductionDebugging.Api;
 

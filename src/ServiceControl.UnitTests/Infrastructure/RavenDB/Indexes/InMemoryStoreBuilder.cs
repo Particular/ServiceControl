@@ -2,7 +2,7 @@ using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using Raven.Client.Embedded;
 using ServiceBus.Management.Infrastructure.Settings;
-using ServiceControl.Infrastructure.RavenDB.Expiration;
+using ServiceControl.ProductionDebugging.RavenDB.Expiration;
 
 public class InMemoryStoreBuilder
 {

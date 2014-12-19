@@ -1,12 +1,12 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.ProductionDebugging.RavenDB.Api
 {
     using System;
     using System.Linq;
-    using Contracts.Operations;
     using Lucene.Net.Analysis.Standard;
-    using MessageAuditing;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
+    using ServiceControl.Contracts.Operations;
+    using ServiceControl.ProductionDebugging.RavenDB.Data;
 
     public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesViewIndex.SortAndFilterOptions>
     {

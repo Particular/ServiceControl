@@ -1,4 +1,4 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.ProductionDebugging.RavenDB.Api
 {
     using System.Linq;
     using Raven.Client.Indexes;

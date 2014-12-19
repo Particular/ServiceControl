@@ -1,12 +1,12 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.ProductionDebugging.RavenDB.Api
 {
     using System.Linq;
-    using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceControl.Infrastructure.Extensions;
     using ServiceControl.ProductionDebugging.Api;
 
     public class GetMessages : BaseModule
