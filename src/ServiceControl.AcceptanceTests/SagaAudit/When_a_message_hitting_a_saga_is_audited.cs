@@ -8,7 +8,8 @@
     using NServiceBus.Saga;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
-  
+    using ServiceControl.ProductionDebugging.Api;
+
     public class When_a_message_hitting_a_saga_is_audited : AcceptanceTest
     {
 

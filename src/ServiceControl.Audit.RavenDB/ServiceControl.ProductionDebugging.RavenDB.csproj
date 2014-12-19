@@ -88,10 +88,8 @@
   <ItemGroup>
     <Compile Include="Expiration\ExpiredDocumentsCleaner.cs" />
     <Compile Include="Expiration\ExpiryProcessedMessageIndex.cs" />
-    <Compile Include="Data\AuditFailedMessage.cs" />
     <Compile Include="Data\Handlers\ImportMessageHandler.cs" />
-    <Compile Include="Data\Handlers\FailedMessageStateUpdateHandler.cs" />
-    <Compile Include="Data\AuditProcessedMessage.cs" />
+    <Compile Include="Data\ProdDebugMessage.cs" />
     <Compile Include="Api\GetBodyById.cs" />
     <Compile Include="Api\GetMessages.cs" />
     <Compile Include="Api\GetMessagesByConversation.cs" />
@@ -106,9 +104,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.Audit.Api.csproj">
+    <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.ProductionDebugging.Api.csproj">
       <Project>{3D470493-002A-41F1-A555-FF84257C4E01}</Project>
-      <Name>ServiceControl.Audit.Api</Name>
+      <Name>ServiceControl.ProductionDebugging.Api</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl.InternalContracts\ServiceControl.InternalContracts.csproj">
       <Project>{d0cf644e-160b-48ba-bc3d-d7fca8234759}</Project>

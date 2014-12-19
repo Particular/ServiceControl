@@ -14,6 +14,7 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using ServiceControl.ProductionDebugging.Api;
 
     public class When_a_message_has_failed : AcceptanceTest
     {

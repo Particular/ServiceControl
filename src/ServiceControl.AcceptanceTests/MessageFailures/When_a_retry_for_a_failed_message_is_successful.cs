@@ -15,6 +15,7 @@
     using ServiceControl.EventLog;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.ProductionDebugging.Api;
 
     public class When_a_retry_for_a_failed_message_is_successful : AcceptanceTest
     {

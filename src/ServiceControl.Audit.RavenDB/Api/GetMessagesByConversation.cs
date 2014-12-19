@@ -7,6 +7,7 @@
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceControl.ProductionDebugging.Api;
 
     public class GetMessagesByConversation : BaseModule
     {

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.SagaAudit
+﻿namespace ServiceControl.ProductionDebugging.Api
 {
     using System;
 

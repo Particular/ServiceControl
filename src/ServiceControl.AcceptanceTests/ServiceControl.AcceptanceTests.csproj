@@ -217,13 +217,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.Audit.Api.csproj">
+    <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.ProductionDebugging.Api.csproj">
       <Project>{3d470493-002a-41f1-a555-ff84257c4e01}</Project>
-      <Name>ServiceControl.Audit.Api</Name>
+      <Name>ServiceControl.ProductionDebugging.Api</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Audit.RavenDB\ServiceControl.Audit.RavenDB.csproj">
+    <ProjectReference Include="..\ServiceControl.Audit.RavenDB\ServiceControl.ProductionDebugging.RavenDB.csproj">
       <Project>{c303c107-7222-4eb4-8af4-d61bcf99f917}</Project>
-      <Name>ServiceControl.Audit.RavenDB</Name>
+      <Name>ServiceControl.ProductionDebugging.RavenDB</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Core\ServiceControl.Core.csproj">
       <Project>{B66B966A-22DA-42C3-8FBC-472DB3B983D3}</Project>

@@ -12,6 +12,7 @@
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.ProductionDebugging.Api;
 
     public class When_a_message_has_been_successfully_processed : AcceptanceTest
     {

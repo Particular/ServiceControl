@@ -15,13 +15,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Install.Cust
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.IntegrationDemo", "ServiceControl.IntegrationDemo\ServiceControl.IntegrationDemo.csproj", "{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Audit.RavenDB", "ServiceControl.Audit.RavenDB\ServiceControl.Audit.RavenDB.csproj", "{C303C107-7222-4EB4-8AF4-D61BCF99F917}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.ProductionDebugging.RavenDB", "ServiceControl.Audit.RavenDB\ServiceControl.ProductionDebugging.RavenDB.csproj", "{C303C107-7222-4EB4-8AF4-D61BCF99F917}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Shell", "ServiceControl.Shell\ServiceControl.Shell.csproj", "{1CF8A2C4-21B5-4826-BCAF-3F0B99B5C3AA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.InternalContracts", "ServiceControl.InternalContracts\ServiceControl.InternalContracts.csproj", "{D0CF644E-160B-48BA-BC3D-D7FCA8234759}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Audit.Api", "ServiceControl.Audit.Api\ServiceControl.Audit.Api.csproj", "{3D470493-002A-41F1-A555-FF84257C4E01}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.ProductionDebugging.Api", "ServiceControl.Audit.Api\ServiceControl.ProductionDebugging.Api.csproj", "{3D470493-002A-41F1-A555-FF84257C4E01}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Shell.Api", "ServiceControl.Shell.Api\ServiceControl.Shell.Api.csproj", "{2CA0B6B2-EAA2-4057-9ED1-B55E30EB20A5}"
 EndProject

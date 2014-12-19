@@ -1,11 +1,10 @@
 namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
     using System.Linq;
-    using Contracts.Operations;
     using MessageAuditing;
     using Raven.Client.Indexes;
 
-    public class ExpiryProcessedMessageIndex : AbstractIndexCreationTask<AuditProcessedMessage>
+    public class ExpiryProcessedMessageIndex : AbstractIndexCreationTask<ProdDebugMessage>
     {  
         public ExpiryProcessedMessageIndex()
         {
@@ -13,8 +12,8 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                 select new 
                 {
                     MessageId = (string) message.MessageMetadata["MessageId"],
-                    Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
-                    ProcessedAt = message.ProcessedAt,
+                    Status = message.Status,
+                    ProcessedAt = message.AttemptedAt,
                 });
 
             DisableInMemoryIndexing = true;

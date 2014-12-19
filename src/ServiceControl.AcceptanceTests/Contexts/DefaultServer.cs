@@ -34,7 +34,7 @@
             "ServiceControl.Audit.RavenDB",
             "ServiceControl.Shell",
             "ServiceControl.Shell.Api",
-            "ServiceControl.InternalContracts",
+            "ServiceControl.InternalContracts"
         };
 
         public virtual void AddMoreConfig()

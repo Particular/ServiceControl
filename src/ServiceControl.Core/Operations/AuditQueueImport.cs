@@ -9,7 +9,6 @@
     using NServiceBus.Pipeline;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
-    using NServiceBus.Transports.Msmq;
     using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
@@ -25,11 +24,6 @@
         public LogicalMessageFactory LogicalMessageFactory { get; set; }
 
 #pragma warning restore 618
-
-        public AuditQueueImport(IDequeueMessages receiver)
-        {
-            disabled = false; //since we commented out the batch importer
-        }
 
         public bool Handle(TransportMessage message)
         {
@@ -79,7 +73,7 @@
 
         public bool Disabled
         {
-            get { return disabled; }
+            get { return false; }
         }
 
         public Action<TransportReceiver> GetReceiverCustomization()
@@ -104,6 +98,5 @@
         SatelliteImportFailuresHandler satelliteImportFailuresHandler;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(AuditQueueImport));
-        bool disabled;
     }
 }
