@@ -1,8 +1,8 @@
-namespace ServiceControl.Infrastructure.RavenDB.Expiration
+namespace ServiceControl.ProductionDebugging.RavenDB.Expiration
 {
     using System.Linq;
-    using MessageAuditing;
     using Raven.Client.Indexes;
+    using ServiceControl.ProductionDebugging.RavenDB.Data;
 
     public class ExpiryProcessedMessageIndex : AbstractIndexCreationTask<ProdDebugMessage>
     {  

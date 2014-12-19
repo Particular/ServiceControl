@@ -166,6 +166,7 @@
     <Compile Include="MessageFailures\Api\FailedMessageViewTransformer.cs" />
     <Compile Include="MessageFailures\Api\FilterByStatusWhereQueriableExtensions.cs" />
     <Compile Include="MessageFailures\Api\GetAllErrors.cs" />
+    <Compile Include="MessageFailures\Api\GetAllErrorsQueryableExtensions.cs" />
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
     <Compile Include="MessageFailures\DetectSuccessfullRetriesEnricher.cs" />
@@ -190,6 +191,7 @@
     <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
+    <Compile Include="Operations\DictionaryExtensions.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Operations\ErrorQueueImport.cs" />
     <Compile Include="Operations\ExceptionExtensions.cs" />
@@ -213,6 +215,7 @@
     <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
     <Compile Include="SagaAudit\SagaUpdatedHandler.cs" />
     <Compile Include="SagaAudit\SageMessageState.cs" />
+    <Compile Include="TransportMessageExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.ProductionDebugging.Api.csproj">

@@ -1,9 +1,9 @@
-﻿namespace ServiceControl.MessageAuditing
+﻿namespace ServiceControl.ProductionDebugging.RavenDB.Data
 {
     using System;
     using System.Collections.Generic;
     using NServiceBus;
-    using Contracts.Operations;
+    using ServiceControl.Contracts.Operations;
 
     public class ProdDebugMessage
     {

@@ -1,10 +1,10 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.ProductionDebugging.RavenDB.Api
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Contracts.Operations;
     using Raven.Client.Indexes;
+    using ServiceControl.Contracts.Operations;
 
     public class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
     {

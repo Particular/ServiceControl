@@ -7,7 +7,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;

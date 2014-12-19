@@ -1,9 +1,8 @@
-﻿namespace ServiceControl.Operations.BodyStorage.Api
+﻿namespace ServiceControl.ProductionDebugging.RavenDB.Api
 {
     using System;
     using System.IO;
     using System.Linq;
-    using CompositeViews.Messages;
     using Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 

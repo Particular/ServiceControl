@@ -1,11 +1,10 @@
-namespace ServiceControl.Infrastructure.Extensions
+namespace ServiceControl.ProductionDebugging.RavenDB.Api
 {
     using System;
+    using System.Linq;
     using System.Linq.Expressions;
     using Nancy;
     using Raven.Client.Linq;
-    using ServiceControl.CompositeViews.Messages;
-    using Enumerable = System.Linq.Enumerable;
 
     public static class QueriableExtensions
     {

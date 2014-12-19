@@ -10,7 +10,8 @@
     using NUnit.Framework;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.RavenDB.Expiration;
+    using ServiceControl.ProductionDebugging.RavenDB.Data;
+    using ServiceControl.ProductionDebugging.RavenDB.Expiration;
     using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
 
     [TestFixture]

@@ -1,10 +1,10 @@
-﻿namespace ServiceControl.MessageAuditing.Handlers
+﻿namespace ServiceControl.ProductionDebugging.RavenDB.Data
 {
     using System;
-    using Contracts.Operations;
     using NServiceBus;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.Contracts.Operations;
 
     class ImportMessageHandler :
         IHandleMessages<ImportSuccessfullyProcessedMessage>,
