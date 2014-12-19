@@ -1,10 +1,9 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.ProductionDebugging.Api
 {
     using System;
     using System.Collections.Generic;
-    using Contracts.Operations;
     using NServiceBus;
-    using SagaAudit;
+    using ServiceControl.Contracts.Operations;
 
     public class MessagesView
     {

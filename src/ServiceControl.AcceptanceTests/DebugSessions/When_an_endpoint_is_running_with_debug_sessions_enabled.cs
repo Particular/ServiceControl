@@ -7,6 +7,7 @@
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.ProductionDebugging.Api;
 
     public class When_an_endpoint_is_running_with_debug_sessions_enabled : AcceptanceTest
     {

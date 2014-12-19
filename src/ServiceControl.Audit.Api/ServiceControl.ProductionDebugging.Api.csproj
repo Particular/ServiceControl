@@ -7,8 +7,8 @@
     <ProjectGuid>{3D470493-002A-41F1-A555-FF84257C4E01}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceControl.Audit.Api</RootNamespace>
-    <AssemblyName>ServiceControl.Audit.Api</AssemblyName>
+    <RootNamespace>ServiceControl.ProductionDebugging.Api</RootNamespace>
+    <AssemblyName>ServiceControl.ProductionDebugging.Api</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

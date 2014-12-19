@@ -1,57 +1,48 @@
 ﻿namespace ServiceControl.MessageAuditing.Handlers
 {
+    using System;
     using Contracts.Operations;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Contracts.MessageFailures;
 
-    class ImportMessageHandler 
-        : IHandleMessages<ImportSuccessfullyProcessedMessage>,
-        IHandleMessages<ImportFailedMessage>
+    class ImportMessageHandler :
+        IHandleMessages<ImportSuccessfullyProcessedMessage>,
+        IHandleMessages<ImportFailedMessage>,
+        IHandleMessages<FailedMessageArchived>
     {
         public IDocumentSession Session { get; set; }
 
-        public void Handle(ImportSuccessfullyProcessedMessage message)
+        public void Handle(ImportSuccessfullyProcessedMessage successfulMessage)
         {
-            var auditMessage = new AuditProcessedMessage(message);
+            var documentId = ProdDebugMessage.MakeDocumentId(successfulMessage.UniqueMessageId);
 
-            Session.Store(auditMessage);
+            var message = Session.Load<ProdDebugMessage>(documentId) ?? new ProdDebugMessage();
+            message.Update(successfulMessage);
+
+            Session.Store(message);
         }
 
-        public void Handle(ImportFailedMessage message)
+        public void Handle(ImportFailedMessage failedMessage)
         {
-            var documentId = AuditFailedMessage.MakeDocumentId(message.UniqueMessageId);
+            var documentId = ProdDebugMessage.MakeDocumentId(failedMessage.UniqueMessageId);
 
-            var failure = Session.Load<AuditFailedMessage>(documentId) ?? new AuditFailedMessage
+            var message = Session.Load<ProdDebugMessage>(documentId) ?? new ProdDebugMessage();
+            message.Update(failedMessage);
+            
+            Session.Store(message);
+        }
+
+        public void Handle(FailedMessageArchived message)
+        {
+            var failedMessage = Session.Load<ProdDebugMessage>(new Guid(message.FailedMessageId));
+
+            if (failedMessage == null)
             {
-                Id = documentId,
-                UniqueMessageId = message.UniqueMessageId
-            };
-
-            failure.Status = failure.LastProcessingAttempt == null 
-                ? MessageStatus.Failed
-                : MessageStatus.RepeatedFailure;
-
-            var timeOfFailure = message.FailureDetails.TimeOfFailure;
-
-            //ingore if we have the most recent failure
-            if (failure.LastProcessingAttempt != null && failure.LastProcessingAttempt.AttemptedAt >= timeOfFailure)
-            {
-                return;
+                return; //No point throwing
             }
 
-            failure.LastProcessingAttempt = new AuditFailedMessage.ProcessingAttempt
-            {
-                AttemptedAt = timeOfFailure,
-                FailureDetails = message.FailureDetails,
-                MessageMetadata = message.Metadata,
-                MessageId = message.PhysicalMessage.MessageId,
-                Headers = message.PhysicalMessage.Headers,
-                ReplyToAddress = message.PhysicalMessage.ReplyToAddress,
-                Recoverable = message.PhysicalMessage.Recoverable,
-                CorrelationId = message.PhysicalMessage.CorrelationId,
-                MessageIntent = message.PhysicalMessage.MessageIntent,
-            };
-            Session.Store(failure);
+            failedMessage.Status = MessageStatus.ArchivedFailure;
         }
     }
 }
