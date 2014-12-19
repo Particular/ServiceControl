@@ -160,6 +160,12 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Hosting\Options.cs" />
+    <Compile Include="Infrastructure\Ingestion\FailedIngestion.cs" />
+    <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
+    <Compile Include="Infrastructure\Ingestion\ImportFailureCircuitBreaker.cs" />
+    <Compile Include="Infrastructure\Ingestion\Ingestion.cs" />
+    <Compile Include="Infrastructure\Ingestion\IngestorRunner.cs" />
+    <Compile Include="Infrastructure\Ingestion\SatelliteImportFailuresHandler.cs" />
     <Compile Include="Infrastructure\Installers\AuditLogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\ErrorLogQueueInstaller.cs" />

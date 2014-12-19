@@ -10,7 +10,9 @@
     {
         static Settings()
         {
-            AuditQueue = GetAuditQueue();
+            var auditQueueName = GetAuditQueue();
+            AuditQueue = auditQueueName != null ? Address.Parse(auditQueueName) : Address.Undefined;
+            AuditQueueName = auditQueueName;
             ErrorQueue = GetErrorQueue();
             ErrorLogQueue = GetErrorLogQueue();
             AuditLogQueue = GetAuditLogQueue();
@@ -65,7 +67,7 @@
             return Address.Parse(value);
         }
 
-        static Address GetAuditQueue()
+        static string GetAuditQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
 
@@ -73,9 +75,9 @@
             {
                 Logger.Warn(
                     "No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
-                return Address.Undefined;
+                return null;
             }
-            return Address.Parse(value);
+            return value;
         }
 
         static Address GetErrorQueue()
@@ -150,6 +152,7 @@
         public static Address ErrorLogQueue;
         public static Address ErrorQueue;
         public static Address AuditQueue;
+        public static string AuditQueueName;
         public static bool ForwardAuditMessages = SettingsReader<bool>.Read("ForwardAuditMessages");
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;

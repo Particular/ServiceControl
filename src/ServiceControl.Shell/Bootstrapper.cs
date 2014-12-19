@@ -1,8 +1,11 @@
 namespace Particular.ServiceControl
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
+    using System.Reflection;
     using System.ServiceProcess;
     using Autofac;
     using Hosting;
@@ -12,6 +15,7 @@ namespace Particular.ServiceControl
     using NLog.Targets;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Hosting.Helpers;
     using NServiceBus.Installation.Environments;
     using NServiceBus.Logging.Loggers.NLogAdapter;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -43,7 +47,7 @@ namespace Particular.ServiceControl
             Configure.ScaleOut(s => s.UseSingleBrokerQueue());
             
             var transportType = DetermineTransportType();
-
+            
             bus = Configure
                 .With(AllAssemblies.Except("ServiceControl.Plugin").And("Nancy.Bootstrappers.Autofac"))
                 .DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t))
@@ -162,5 +166,6 @@ namespace Particular.ServiceControl
             }
             return host.ServiceName;
         }
+
     }
 }

@@ -182,6 +182,10 @@
     <Content Include="Operations.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Particular.AuditIngestion\Particular.AuditIngestion.csproj">
+      <Project>{2c52feb0-8809-48e3-b2e6-4e5442649498}</Project>
+      <Name>Particular.AuditIngestion</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.ProductionDebugging.Api.csproj">
       <Project>{3D470493-002A-41F1-A555-FF84257C4E01}</Project>
       <Name>ServiceControl.ProductionDebugging.Api</Name>
