@@ -81,6 +81,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.Messaging" />
     <Reference Include="System.Spatial, Version=5.6.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\System.Spatial.5.6.2\lib\net40\System.Spatial.dll</HintPath>
@@ -89,6 +90,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuditImport\AuditImportTests.cs" />
     <Compile Include="CompositeViews\FailedMessageTest.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverterTests.cs" />
     <Compile Include="CompositeViews\MessagesViewTests.cs" />

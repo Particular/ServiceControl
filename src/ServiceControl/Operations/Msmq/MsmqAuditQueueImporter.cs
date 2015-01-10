@@ -42,6 +42,10 @@ namespace ServiceControl.Operations
 
         public void Start()
         {
+            // Any messages that fail conversion to a transportmessage is sent to the particular.servicecontrol.errors queue using low level Api
+            // The actual queue name is based on service name to support mulitple instances on same host (particular.servicecontrol.errors is the default)
+            var serviceControlErrorQueueAddress = Address.Parse(string.Format("{0}.errors", Settings.ServiceName));
+            serviceControlErrorQueue = new MessageQueue(MsmqUtilities.GetFullPath(serviceControlErrorQueueAddress), false, true, QueueAccessMode.Send);
 
             if (!enabled)
             {
@@ -308,6 +312,7 @@ namespace ServiceControl.Operations
                             catch (Exception convertException)
                             {
                                 importFailuresHandler.FailedToReceive(convertException); //logs and increments circuit breaker
+                                serviceControlErrorQueue.Send(message, msmqTransaction); // Send unconvertable message to SC's ErrorQueue so it's not lost
                                 commitTransaction = true; // Can't convert the messsage, so commit to get message out of the queue
                                 return;
                             }
@@ -379,6 +384,8 @@ namespace ServiceControl.Operations
         BatchTaskTracker batchTaskTracker = new BatchTaskTracker();
         List<IEnrichImportedMessages> enrichers;
         MessageQueue queuePeeker;
+        MessageQueue serviceControlErrorQueue;
+
         volatile bool stopping;
 
         class BatchTaskTracker
