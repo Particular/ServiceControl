@@ -10,7 +10,7 @@ namespace ServiceControl.ExternalIntegrations
         public static Contracts.MessageFailed ToEvent(this FailedMessage message)
         {
             var last = message.ProcessingAttempts.Last();
-            var sendingEndpoint = (EndpointDetails)last.MessageMetadata["SendingEndpoint"];
+            var sendingEndpoint = GetNullableMetadataValue<EndpointDetails>(last.MessageMetadata, "SendingEndpoint");
             var receivingEndpoint = GetNullableMetadataValue<EndpointDetails>(last.MessageMetadata, "ReceivingEndpoint");
 
             return new Contracts.MessageFailed
@@ -23,12 +23,12 @@ namespace ServiceControl.ExternalIntegrations
                     : message.ProcessingAttempts.Count == 1
                         ? Contracts.MessageFailed.MessageStatus.Failed
                         : Contracts.MessageFailed.MessageStatus.RepeatedFailure,
-                SendingEndpoint = new Contracts.MessageFailed.Endpoint
+                SendingEndpoint = sendingEndpoint != null ? new Contracts.MessageFailed.Endpoint
                 {
                     Host = sendingEndpoint.Host,
                     HostId = sendingEndpoint.HostId,
                     Name = sendingEndpoint.Name
-                },
+                } :null,
                 ProcessingEndpoint = receivingEndpoint != null ? new Contracts.MessageFailed.Endpoint
                 {
                     Host = receivingEndpoint.Host,
