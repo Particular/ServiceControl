@@ -19,10 +19,11 @@ namespace ServiceControl.CompositeViews.Messages
                 return SearchByKeyword(keyword);
             };
 
-            Get["/messages/search/{keyword}"] = parameters =>
+            Get["/messages/search/{keyword*}"] = parameters =>
             {
                 string keyword = parameters.keyword;
-
+                if (keyword != null)
+                    keyword = keyword.Replace("/", @"\");
                 return SearchByKeyword(keyword);
             };
 

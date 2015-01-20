@@ -4,17 +4,22 @@
     using System.IO;
     using System.Linq;
     using CompositeViews.Messages;
+    using System.Text;
     using Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-
+    
     public class GetBodyById : BaseModule
     {
 
         public GetBodyById()
         {
-            Get["/messages/{id}/body"] = parameters =>
+            Get["/messages/{id*}/body"] = parameters =>
             {
                 string messageId = parameters.id;
+                if (messageId != null)
+                {
+                    messageId = messageId.Replace("/", @"\");
+                }
                 Action<Stream> contents;
                 string contentType;
                 int bodySize;
@@ -37,7 +42,7 @@
                         {
                             return HttpStatusCode.NotFound;
                         }
-                        var data = System.Text.Encoding.UTF8.GetBytes(message.Body);
+                        var data = Encoding.UTF8.GetBytes(message.Body);
                         contents = stream => stream.Write(data, 0, data.Length);
                         contentType = message.ContentType;
                         bodySize = message.BodySize;
