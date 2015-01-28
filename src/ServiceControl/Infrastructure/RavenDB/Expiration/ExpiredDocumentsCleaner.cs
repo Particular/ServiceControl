@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
+
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.Composition;
@@ -16,38 +17,40 @@
     using Raven.Database.Plugins;
     using ServiceBus.Management.Infrastructure.Settings;
 
+
     [InheritedExport(typeof(IStartupTask))]
     [ExportMetadata("Bundle", "customDocumentExpiration")]
     public class ExpiredDocumentsCleaner : IStartupTask, IDisposable
     {
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleaner));
-        Timer timer;
+        PeriodicExecutor timer;
         DocumentDatabase Database { get; set; }
         string indexName;
         int deleteFrequencyInSeconds;
         int deletionBatchSize;
-        
+
         public void Execute(DocumentDatabase database)
         {
             Database = database;
             indexName = new ExpiryProcessedMessageIndex().IndexName;
-            
+
             deletionBatchSize = Settings.ExpirationProcessBatchSize;
             deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
-            
+
             if (deleteFrequencyInSeconds == 0)
             {
                 return;
             }
 
-            logger.Info("Expired Documents every {0} seconds",deleteFrequencyInSeconds);
+            logger.Info("Expired Documents every {0} seconds", deleteFrequencyInSeconds);
             logger.Info("Deletion Batch Size: {0}", deletionBatchSize);
             logger.Info("Retention Period: {0}", Settings.HoursToKeepMessagesBeforeExpiring);
 
-            timer = new Timer(TimerCallback, null, TimeSpan.FromSeconds(deleteFrequencyInSeconds), Timeout.InfiniteTimeSpan);
+            timer = new PeriodicExecutor(Delete,TimeSpan.FromSeconds(deleteFrequencyInSeconds));
+            timer.Start(true);
         }
 
-        void TimerCallback(object state)
+        void Delete()
         {
             var currentTime = SystemTime.UtcNow;
             var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
@@ -87,7 +90,9 @@
                 {
                     var documentWithCurrentThresholdTimeReached = false;
                     var items = new List<ICommandData>(deletionBatchSize);
-                    Database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(Database.WorkContext.CancellationToken, cts.Token).Token,
+                    try
+                    {
+                        Database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(Database.WorkContext.CancellationToken, cts.Token).Token,
                        null,
                         doc =>
                         {
@@ -112,10 +117,18 @@
                                 });
                             }
                         });
-                        docsToExpire += items.Count;
-                        var results = Database.Batch(items.ToArray());
-                        deletionCount = results.Count(x => x.Deleted == true);
-                        items.Clear();
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        //Ignore
+                    }
+
+                    logger.Debug("Batching deletion of {0} documents.",items.Count);
+
+                    docsToExpire += items.Count;
+                    var results = Database.Batch(items.ToArray());
+                    deletionCount = results.Count(x => x.Deleted == true);
+                    items.Clear();
                 }
 
                 if (docsToExpire == 0)
@@ -127,24 +140,9 @@
                     logger.Debug("Deleted {0} out of {1} expired documents batch - Execution time:{2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
                 }
             }
-            catch (OperationCanceledException)
-            {
-                //Ignore
-            }
             catch (Exception e)
             {
                 logger.ErrorException("Error when trying to find expired documents", e);
-            }
-            finally
-            {
-                try
-                {
-                    timer.Change(TimeSpan.FromSeconds(deleteFrequencyInSeconds), Timeout.InfiniteTimeSpan);
-                }
-                catch (ObjectDisposedException)
-                {
-                    //Ignore 
-                }
             }
         }
 
@@ -156,12 +154,7 @@
         {
             if (timer != null)
             {
-                using (var waitHandle = new ManualResetEvent(false))
-                {
-                    timer.Dispose(waitHandle);
-
-                    waitHandle.WaitOne();
-                }
+                timer.Stop(CancellationToken.None);
             }
         }
     }
