@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Contexts
+﻿namespace Particular.Backend.Debugging.AcceptanceTests.Contexts
 {
     using System;
     using System.Collections.Generic;
@@ -14,7 +14,7 @@
     using NServiceBus.Features;
     using NServiceBus.Hosting.Helpers;
     using NServiceBus.Logging.Loggers.NLogAdapter;
-    using TransportIntegration;
+    using Particular.Backend.Debugging.AcceptanceTests.Contexts.TransportIntegration;
 
     public class DefaultServerWithoutAudit : DefaultServer
     {
@@ -29,7 +29,9 @@
         static readonly string[] serviceControlAssemblies =
         {
             "ServiceControl",
-            "ServiceControl.Core",
+            "Particular.Backend.Debugging",
+            "Particular.Backend.Debugging.Api",
+            "Particular.Backend.Debugging.RavenDB",
             "ServiceControl.Shell",
             "ServiceControl.Shell.Api",
             "ServiceControl.InternalContracts"
@@ -73,13 +75,12 @@
                 .InMemorySagaPersister();
 
 
-            if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration ||
-                transportToUse is RabbitMqTransportIntegration)
+            if (transportToUse == null || transportToUse is MsmqTransportIntegration)
             {
                 config.UseInMemoryTimeoutPersister();
             }
 
-            if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration)
+            if (transportToUse == null || transportToUse is MsmqTransportIntegration)
             {
                 config.InMemorySubscriptionStorage();
             }

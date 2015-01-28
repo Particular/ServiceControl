@@ -467,10 +467,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Hosting\Help.txt" />
-    <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
     <Content Include="Operations.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -490,17 +486,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-    <Content Include="Operations.ico" />
-  </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.ProductionDebugging.Api.csproj">
-      <Project>{3D470493-002A-41F1-A555-FF84257C4E01}</Project>
-      <Name>ServiceControl.ProductionDebugging.Api</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Audit.RavenDB\ServiceControl.ProductionDebugging.RavenDB.csproj">
-      <Project>{c303c107-7222-4eb4-8af4-d61bcf99f917}</Project>
-      <Name>ServiceControl.ProductionDebugging.RavenDB</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Core\ServiceControl.Core.csproj">
       <Project>{b66b966a-22da-42c3-8fbc-472db3b983d3}</Project>
       <Name>ServiceControl.Core</Name>

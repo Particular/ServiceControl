@@ -210,7 +210,6 @@
     <Compile Include="SagaAudit\ProcessingState.cs" />
     <Compile Include="SagaAudit\ResultingMessage.cs" />
     <Compile Include="SagaAudit\SagaHistory.cs" />
-    <Compile Include="SagaAudit\SagaRelationshipsEnricher.cs" />
     <Compile Include="SagaAudit\SagaStateChange.cs" />
     <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
     <Compile Include="SagaAudit\SagaUpdatedHandler.cs" />
@@ -218,10 +217,6 @@
     <Compile Include="TransportMessageExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.ProductionDebugging.Api.csproj">
-      <Project>{3d470493-002a-41f1-a555-ff84257c4e01}</Project>
-      <Name>ServiceControl.ProductionDebugging.Api</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.InternalContracts\ServiceControl.InternalContracts.csproj">
       <Project>{d0cf644e-160b-48ba-bc3d-d7fca8234759}</Project>
       <Name>ServiceControl.InternalContracts</Name>

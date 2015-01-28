@@ -182,6 +182,7 @@
     <Compile Include="DebugSessions\When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
     <Compile Include="ExternalIntegrations\JsonServer.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_custom_checks.cs" />
+    <Compile Include="ExternalIntegrations\JSonServer.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_failed.cs" />
     <Compile Include="ExternalIntegrations\When_heartbeat_is_restored.cs" />
     <Compile Include="ExternalIntegrations\When_encountered_an_error.cs" />
@@ -199,16 +200,12 @@
     <Compile Include="Contexts\ManagementEndpoint.cs" />
     <Compile Include="Contexts\ManagementEndpointSetup.cs" />
     <Compile Include="SagaAudit\When_multiple_messages_are_emitted_by_a_saga.cs" />
-    <Compile Include="SagaAudit\When_a_message_emitted_by_a_saga_is_audited.cs" />
     <Compile Include="SagaAudit\When_a_message_hitting_a_saga_is_not_a_start_message.cs" />
-    <Compile Include="SagaAudit\When_a_message_hitting_multiple_sagas_is_audited.cs" />
-    <Compile Include="SagaAudit\When_a_message_that_is_handled_by_a_saga.cs" />
     <Compile Include="SagaAudit\When_a_saga_instance_is_being_created.cs" />
     <Compile Include="SagaAudit\When_requesting_timeout_from_a_saga.cs" />
     <Compile Include="SagaAudit\When_publishing_from_a_saga.cs" />
-    <Compile Include="SagaAudit\When_a_message_hitting_a_saga_is_audited.cs" />
+    <Compile Include="When_a_message_has_been_successfully_processed.cs" />
     <Compile Include="When_a_message_is_imported_twice.cs" />
-    <Compile Include="Audit\When_a_message_has_been_successfully_processed.cs" />
     <Compile Include="When_signalr_receives_a_message.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -220,14 +217,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Audit.Api\ServiceControl.ProductionDebugging.Api.csproj">
-      <Project>{3d470493-002a-41f1-a555-ff84257c4e01}</Project>
-      <Name>ServiceControl.ProductionDebugging.Api</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Audit.RavenDB\ServiceControl.ProductionDebugging.RavenDB.csproj">
-      <Project>{c303c107-7222-4eb4-8af4-d61bcf99f917}</Project>
-      <Name>ServiceControl.ProductionDebugging.RavenDB</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Core\ServiceControl.Core.csproj">
       <Project>{B66B966A-22DA-42C3-8FBC-472DB3B983D3}</Project>
       <Name>ServiceControl.Core</Name>

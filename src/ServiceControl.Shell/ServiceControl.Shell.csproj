@@ -140,6 +140,7 @@
     <Compile Include="ConfigErrorQueue.cs" />
     <Compile Include="ConfigTransportConfig.cs" />
     <Compile Include="Hosting\Commands\AbstractCommand.cs" />
+    <Compile Include="Hosting\Commands\CheckMandatoryInstallOptionsCommand.cs" />
     <Compile Include="Hosting\Commands\CommandRunner.cs" />
     <Compile Include="Hosting\Commands\InstallCommand.cs" />
     <Compile Include="Hosting\Commands\MaintCommand.cs" />
@@ -180,6 +181,7 @@
     <Compile Include="Infrastructure\PrepopulateSubscriptionStorage.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
+    <Compile Include="Infrastructure\Settings\CheckSettingsOnStartup.cs" />
     <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
     <Compile Include="Infrastructure\SignalR\Envelope.cs" />

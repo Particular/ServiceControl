@@ -10,9 +10,13 @@
 
         public GetBodyById()
         {
-            Get["/messagebodies/{id}"] = parameters =>
+            Get["/messagebodies/{id*}"] = parameters =>
             {
                 string messageId = parameters.id;
+                if (messageId != null)
+                {
+                    messageId = messageId.Replace("/", @"\");
+                }
                 var attachment = Store.DatabaseCommands.GetAttachment("messagebodies/" + messageId);
                 if (attachment == null)
                 {

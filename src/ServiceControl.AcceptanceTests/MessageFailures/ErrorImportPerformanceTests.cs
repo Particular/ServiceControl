@@ -9,7 +9,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceControl.ProductionDebugging.Api;
+    using ServiceControl.MessageFailures.Api;
 
     public class ErrorImportPerformanceTests : AcceptanceTest
     {
@@ -31,9 +31,9 @@
                 }))
                 .Done(c =>
                 {
-                    List<MessagesView> messages;
+                    List<FailedMessageView> messages;
 
-                    if (!TryGetMany("/api/messages?per_page=150", out messages))
+                    if (!TryGetMany("/api/errors?per_page=150", out messages))
                     {
                         return false;
                     }
