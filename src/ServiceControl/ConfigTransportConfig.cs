@@ -9,7 +9,7 @@ namespace Particular.ServiceControl
         {
             return new TransportConfig
             {
-
+                MaximumMessageThroughputPerSecond = 350,
                 MaximumConcurrencyLevel = 10,
                 MaxRetries = 3,
             };
