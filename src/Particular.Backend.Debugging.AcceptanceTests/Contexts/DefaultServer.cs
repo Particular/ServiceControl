@@ -29,6 +29,7 @@
         static readonly string[] serviceControlAssemblies =
         {
             "ServiceControl",
+            "ServiceControl.Core",
             "Particular.Backend.Debugging",
             "Particular.Backend.Debugging.Api",
             "Particular.Backend.Debugging.RavenDB",
@@ -109,7 +110,7 @@
                 File.Delete(logFile);
             }
 
-            var logLevel = "INFO";
+            var logLevel = "DEBUG";
 
             var nlogConfig = new LoggingConfiguration();
 

@@ -41,7 +41,7 @@
             };
 
             var serviceControlAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-                .Where(x => x.GetName().Name.StartsWith("ServiceControl")).ToArray();
+                .Where(x => x.GetName().Name.StartsWith("ServiceControl") || x.GetName().Name.StartsWith("Particular.Backend")).ToArray();
 
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
             if (File.Exists(localRavenLicense))

@@ -6,22 +6,11 @@
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
 
-    class ImportMessageHandler :
-        IHandleMessages<ImportSuccessfullyProcessedMessage>,
+    class FailedMessageIntegration :
         IHandleMessages<ImportFailedMessage>,
         IHandleMessages<FailedMessageArchived>
     {
         public IDocumentSession Session { get; set; }
-
-        public void Handle(ImportSuccessfullyProcessedMessage successfulMessage)
-        {
-            var documentId = ProdDebugMessage.MakeDocumentId(successfulMessage.UniqueMessageId);
-
-            var message = Session.Load<ProdDebugMessage>(documentId) ?? new ProdDebugMessage();
-            message.Update(successfulMessage);
-
-            Session.Store(message);
-        }
 
         public void Handle(ImportFailedMessage failedMessage)
         {

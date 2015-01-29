@@ -11,7 +11,7 @@
     public class When_an_endpoint_is_running_with_debug_sessions_enabled : AcceptanceTest
     {
 
-        [Test, Explicit("Until we can fixed the missing file raven issue")]
+        [Test]//, Explicit("Until we can fixed the missing file raven issue")]
         public void Debug_session_id_should_be_present_in_header()
         {
             var context = new MyContext();

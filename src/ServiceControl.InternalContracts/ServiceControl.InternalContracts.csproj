@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interfaces\Operations\IEnrichImportedMessages.cs" />
+    <Compile Include="Interfaces\Operations\IHandleAuditMessages.cs" />
     <Compile Include="Interfaces\Operations\ImportEnricher.cs" />
     <Compile Include="Messages\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="Messages\CustomChecks\CustomCheckFailed.cs" />
@@ -87,6 +88,9 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Audit\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

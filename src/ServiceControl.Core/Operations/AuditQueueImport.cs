@@ -9,6 +9,7 @@
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Pipeline;
+    using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
     using NServiceBus.Unicast.Messages;
@@ -40,17 +41,15 @@
 
             using (var childBuilder = Builder.CreateChildBuilder())
             {
-                PipelineExecutor.CurrentContext.Set(childBuilder);
-
                 foreach (var enricher in childBuilder.BuildAll<IEnrichImportedMessages>())
                 {
                     enricher.Enrich(receivedMessage);
                 }
 
-                var logicalMessage = LogicalMessageFactory.Create(typeof(ImportSuccessfullyProcessedMessage),
-                    receivedMessage);
-
-                PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
+                foreach (var auditHandler in childBuilder.BuildAll<IHandleAuditMessages>())
+                {
+                    auditHandler.Handle(receivedMessage);
+                }
             }
 
             if (Settings.ForwardAuditMessages == true)
