@@ -20,14 +20,14 @@
         {
             using (var session = documentStore.OpenSession())
             {
-                var processedMessage = new ProdDebugMessage
+                var processedMessage = new AuditMessageSnapshot
                                        {
                                            Id = "1",
                                        };
 
                 processedMessage.MessageMetadata["IsSystemMessage"] = true;
                 session.Store(processedMessage);
-                var processedMessage2 = new ProdDebugMessage
+                var processedMessage2 = new AuditMessageSnapshot
                                         {
                                             Id = "2",
                                         };
@@ -42,7 +42,7 @@
                 var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Customize(x => x.WaitForNonStaleResults())
                     .Where(x => !x.IsSystemMessage)
-                    .OfType<ProdDebugMessage>()
+                    .OfType<AuditMessageSnapshot>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 Assert.AreNotEqual("1", results.Single().Id);
@@ -54,25 +54,25 @@
         {
             using (var session = documentStore.OpenSession())
             {
-                session.Store(new ProdDebugMessage
+                session.Store(new AuditMessageSnapshot
                 {
                     Id = "1",
                     MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(10) } }
                 });
 
-                session.Store(new ProdDebugMessage
+                session.Store(new AuditMessageSnapshot
                 {
                     Id = "2",
                     MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(20) } }
                 });
 
-                session.Store(new ProdDebugMessage
+                session.Store(new AuditMessageSnapshot
                 {
                     Id = "3",
                     MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
                 });
 
-                session.Store(new ProdDebugMessage
+                session.Store(new AuditMessageSnapshot
                 {
                     Id = "4",
                     Status = MessageStatus.Failed,
@@ -88,14 +88,14 @@
                 var firstByCriticalTime = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.CriticalTime)
                     .Where(x => x.CriticalTime != null)
-                    .AsProjection<ProdDebugMessage>()
+                    .AsProjection<AuditMessageSnapshot>()
                     .First();
                 Assert.AreEqual("1", firstByCriticalTime.Id);
 
                 var firstByCriticalTimeDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.CriticalTime)
                     .Where(x => x.CriticalTime != null)
-                    .AsProjection<ProdDebugMessage>()
+                    .AsProjection<AuditMessageSnapshot>()
                     .First();
                 Assert.AreEqual("2", firstByCriticalTimeDescription.Id);
             }
@@ -105,18 +105,18 @@
         {
             using (var session = documentStore.OpenSession())
             {
-                session.Store(new ProdDebugMessage
+                session.Store(new AuditMessageSnapshot
                 {
                     Id = "1",
                     MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(20) } }
                 });
 
-                session.Store(new ProdDebugMessage
+                session.Store(new AuditMessageSnapshot
                 {
                     Id = "2",
                     MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(10) } }
                 });
-                session.Store(new ProdDebugMessage
+                session.Store(new AuditMessageSnapshot
                 {
                     Id = "3",
                     MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddDays(-1) } }
@@ -130,13 +130,13 @@
             {
                 var firstByTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.TimeSent)
-                    .OfType<ProdDebugMessage>()
+                    .OfType<AuditMessageSnapshot>()
                     .First();
                 Assert.AreEqual("3", firstByTimeSent.Id);
 
                 var firstByTimeSentDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.TimeSent)
-                    .OfType<ProdDebugMessage>()
+                    .OfType<AuditMessageSnapshot>()
                     .First();
                 Assert.AreEqual("1", firstByTimeSentDescription.Id);
             }
@@ -147,7 +147,7 @@
         {
             using (var session = documentStore.OpenSession())
             {
-                session.Store(new ProdDebugMessage()
+                session.Store(new AuditMessageSnapshot()
                 {
                     Id = "1",
                     AttemptedAt = DateTime.Today,
@@ -161,7 +161,7 @@
 
             using (var session = documentStore.OpenSession())
             {
-                var message = session.Query<ProdDebugMessage>()
+                var message = session.Query<AuditMessageSnapshot>()
                     .TransformWith<MessagesViewTransformer, MessagesView>()
                     .Customize(x => x.WaitForNonStaleResults())
                     .Single();

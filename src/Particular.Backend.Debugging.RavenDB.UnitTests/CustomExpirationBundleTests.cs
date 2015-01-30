@@ -2,8 +2,8 @@
 {
     using System;
     using NUnit.Framework;
-    using Particular.Backend.Debugging.RavenDB.Data;
     using Particular.Backend.Debugging.RavenDB.Expiration;
+    using Particular.Backend.Debugging.RavenDB.Storage;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.Operations;
@@ -15,21 +15,21 @@
         public void Processed_messages_older_than_threshold_are_expired()
         {
             var now = DateTime.UtcNow;
-            var processedMessage = new ProdDebugMessage
+            var processedMessage = new MessageSnapshotDocument
             {
                 Id = "1",
                 AttemptedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
                 Status = MessageStatus.Successful
             };
-            
-            var archivedFailure = new ProdDebugMessage
+
+            var archivedFailure = new MessageSnapshotDocument
             {
                 Id = "2",
                 AttemptedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
                 Status = MessageStatus.ArchivedFailure
-            }; 
+            };
 
-            var resolvedFailure = new ProdDebugMessage
+            var resolvedFailure = new MessageSnapshotDocument
             {
                 Id = "3",
                 AttemptedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
@@ -48,9 +48,9 @@
 
             using (var session = documentStore.OpenSession())
             {
-                Assert.IsNull(session.Load<ProdDebugMessage>(processedMessage.Id));
-                Assert.IsNull(session.Load<ProdDebugMessage>(archivedFailure.Id));
-                Assert.IsNull(session.Load<ProdDebugMessage>(resolvedFailure.Id));
+                Assert.IsNull(session.Load<MessageSnapshotDocument>(processedMessage.Id));
+                Assert.IsNull(session.Load<MessageSnapshotDocument>(archivedFailure.Id));
+                Assert.IsNull(session.Load<MessageSnapshotDocument>(resolvedFailure.Id));
             }
         }
 
@@ -59,7 +59,7 @@
         public void Processed_messages_younger_than_threshold_are_not_expired()
         {
             var now = DateTime.UtcNow;
-            var processedMessage = new ProdDebugMessage
+            var processedMessage = new MessageSnapshotDocument
             {
                 Id = "1",
                 AttemptedAt = now.AddMinutes(-5),
@@ -75,7 +75,7 @@
 
             using (var session = documentStore.OpenSession())
             {
-                var msg = session.Load<ProdDebugMessage>(processedMessage.Id);
+                var msg = session.Load<MessageSnapshotDocument>(processedMessage.Id);
                 Assert.IsNotNull(msg);
             }
         }
@@ -84,14 +84,14 @@
         public void Failed_messages_older_than_threshold_are_not_expired()
         {
             var now = DateTime.UtcNow;
-            var failedMessage = new ProdDebugMessage
+            var failedMessage = new MessageSnapshotDocument
             {
                 Id = "1",
                 AttemptedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
                 Status = MessageStatus.Failed
             };
 
-            var repeatedlyFailedMessage = new ProdDebugMessage
+            var repeatedlyFailedMessage = new MessageSnapshotDocument
             {
                 Id = "2",
                 AttemptedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
@@ -109,8 +109,8 @@
 
             using (var session = documentStore.OpenSession())
             {
-                Assert.IsNotNull(session.Load<ProdDebugMessage>(failedMessage.Id));
-                Assert.IsNotNull(session.Load<ProdDebugMessage>(repeatedlyFailedMessage.Id));
+                Assert.IsNotNull(session.Load<MessageSnapshotDocument>(failedMessage.Id));
+                Assert.IsNotNull(session.Load<MessageSnapshotDocument>(repeatedlyFailedMessage.Id));
             }
         }
 

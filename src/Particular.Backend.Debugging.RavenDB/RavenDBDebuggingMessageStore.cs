@@ -2,7 +2,7 @@
 {
     using NServiceBus;
     using NServiceBus.Features;
-    using Particular.Backend.Debugging.RavenDB.Data;
+    using Particular.Backend.Debugging.RavenDB.Storage;
 
     public class RavenDBDebuggingMessageStore : Feature
     {
@@ -13,7 +13,7 @@
 
         public override void Initialize()
         {
-            Configure.Component<AuditImporter>(DependencyLifecycle.InstancePerCall);
+            Configure.Component<MessageSnapshotStore>(DependencyLifecycle.InstancePerCall);
         }
     }
 }

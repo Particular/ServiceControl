@@ -3,7 +3,6 @@ namespace Particular.Backend.Debugging.RavenDB.Api
     using System;
     using System.Linq;
     using Lucene.Net.Analysis.Standard;
-    using Particular.Backend.Debugging.RavenDB.Data;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
     using ServiceControl.Contracts.Operations;
@@ -28,7 +27,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
 
         public MessagesViewIndex()
         {
-            AddMap<ProdDebugMessage>(messages => from message in messages
+            AddMap<AuditMessageSnapshot>(messages => from message in messages
                 select new SortAndFilterOptions
                 {
                     MessageId = (string) message.MessageMetadata["MessageId"],

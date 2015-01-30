@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Threading;
     using Contracts.Operations;
@@ -9,13 +8,13 @@
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Pipeline;
-    using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
     using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Shell.Api.Ingestion;
 
     public class AuditQueueImport : IAdvancedSatellite, IDisposable
     {
@@ -37,18 +36,13 @@
 
         void InnerHandle(TransportMessage message)
         {
-            var receivedMessage = new ImportSuccessfullyProcessedMessage(message, message.UniqueId());
+            var ingestedMessage = new IngestedMessage(message.Headers, message.Body);
 
             using (var childBuilder = Builder.CreateChildBuilder())
             {
-                foreach (var enricher in childBuilder.BuildAll<IEnrichImportedMessages>())
+                foreach (var processor in childBuilder.BuildAll<IProcessIngestedMessages>())
                 {
-                    enricher.Enrich(receivedMessage);
-                }
-
-                foreach (var auditHandler in childBuilder.BuildAll<IHandleAuditMessages>())
-                {
-                    auditHandler.Handle(receivedMessage);
+                    processor.Process(ingestedMessage);
                 }
             }
 

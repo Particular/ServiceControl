@@ -4,7 +4,7 @@ namespace ServiceControl.Operations
 
     public interface IEnrichImportedMessages
     {
-        void Enrich(ImportMessage message);
+        void Enrich(ImportFailedMessage message);
 
     }
 }

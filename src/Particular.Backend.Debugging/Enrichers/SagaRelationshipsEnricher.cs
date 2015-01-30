@@ -1,24 +1,29 @@
-﻿namespace Particular.Backend.Debugging
+﻿namespace Particular.Backend.Debugging.Enrichers
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using Particular.Backend.Debugging.Api;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.Operations;
+    using ServiceControl.Shell.Api.Ingestion;
 
-    public class SagaRelationshipsEnricher : ImportEnricher
+
+    public class BodyEnricher : IEnrichAuditMessageSnapshots
     {
-        public override void Enrich(ImportMessage message)
+        
+    }
+
+    public class SagaRelationshipsEnricher : IEnrichAuditMessageSnapshots
+    {
+        public void Enrich(HeaderCollection headers, SnapshotMetadata metadata)
         {
 
             string sagasInvokedRaw;
 
-            if (message.PhysicalMessage.Headers.TryGetValue("NServiceBus.InvokedSagas", out sagasInvokedRaw))
+            if (headers.TryGet("NServiceBus.InvokedSagas", out sagasInvokedRaw))
             {
                 string sagasChangeRaw;
                 var sagasChanges = new Dictionary<string, string>();
-                if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.SagaStateChange", out sagasChangeRaw))
+                if (headers.TryGet("ServiceControl.SagaStateChange", out sagasChangeRaw))
                 {
                     var multiSagaChanges = sagasChangeRaw.Split(';');
 
@@ -45,29 +50,28 @@
                     })
                     .ToList();
 
-                message.Metadata.Add("InvokedSagas", sagas);
+                metadata.Set("InvokedSagas", sagas);
             }
             else
             {
-                string sagaId;
-
                 //for backwards compatibility
-                if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.SagaId, out sagaId))
+                string sagaId;
+                string sagaType;
+                if (headers.TryGet(NServiceBus.Headers.SagaId, out sagaId)
+                    && headers.TryGet(NServiceBus.Headers.SagaType, out sagaType))
                 {
-                    var sagaType = message.PhysicalMessage.Headers[NServiceBus.Headers.SagaType].Split(',').First();
 
-                    message.Metadata.Add("InvokedSagas", new List<SagaInfo>{new SagaInfo{SagaId = Guid.Parse(sagaId),SagaType =sagaType}});
+                    metadata.Set("InvokedSagas", new List<SagaInfo>{new SagaInfo{SagaId = Guid.Parse(sagaId),SagaType = sagaType.Split(',').First()}});
                 }
             }
 
 
             string originatingSagaId;
-
-            if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.OriginatingSagaId, out originatingSagaId))
+            string originatingsagaType;
+            if (headers.TryGet(NServiceBus.Headers.OriginatingSagaId, out originatingSagaId)
+                && headers.TryGet(NServiceBus.Headers.OriginatingSagaType, out originatingsagaType))
             {
-                var sagaType = message.PhysicalMessage.Headers[NServiceBus.Headers.OriginatingSagaType].Split(',').First();
-
-                message.Metadata.Add("OriginatesFromSaga", new SagaInfo { SagaId = Guid.Parse(originatingSagaId), SagaType = sagaType });
+                metadata.Set("OriginatesFromSaga", new SagaInfo { SagaId = Guid.Parse(originatingSagaId), SagaType = originatingsagaType.Split(',').First() });
             }
         }
     }

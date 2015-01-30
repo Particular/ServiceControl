@@ -89,7 +89,6 @@
     <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
     <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
-    <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
     <Compile Include="CompositeViews\Endpoints\EnableEndpointMonitoring.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
@@ -106,7 +105,6 @@
     <Compile Include="CustomChecks\ReportCustomCheckResultHandler.cs" />
     <Compile Include="CustomChecks\Status.cs" />
     <Compile Include="EndpointControl\DetectNewEndpointsFromImportsEnricher.cs" />
-    <Compile Include="EndpointControl\EnrichWithEndpointDetails.cs" />
     <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
     <Compile Include="EndpointControl\Handlers\KnownEndpointsCache.cs" />
     <Compile Include="EndpointControl\Handlers\RegisterEndpointHandler.cs" />
@@ -158,7 +156,6 @@
     <Compile Include="HeartbeatMonitoring\RegisterPotentiallyMissingHeartbeatsHandler.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
-    <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageFacetsIndex.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
@@ -183,7 +180,6 @@
     <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
     <Compile Include="MessageFailures\InternalMessages\RequestRetryAll.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryMessage.cs" />
-    <Compile Include="MessageTypes\MessageTypeEnricher.cs" />
     <Compile Include="Operations\AttemptToReImportFailedMessages.cs" />
     <Compile Include="Operations\AuditQueueImport.cs" />
     <Compile Include="Operations\BodyStorage\BodyStorageEnricher.cs" />
@@ -192,7 +188,6 @@
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
     <Compile Include="Operations\DictionaryExtensions.cs" />
-    <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Operations\ErrorQueueImport.cs" />
     <Compile Include="Operations\ExceptionExtensions.cs" />
     <Compile Include="Operations\FailedAuditImport.cs" />
@@ -229,6 +224,9 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="MessageFailures\Enrichers\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

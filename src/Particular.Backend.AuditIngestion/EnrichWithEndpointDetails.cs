@@ -7,7 +7,7 @@
     {
         public override void Enrich(ImportMessage message)
         {
-            var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(message.PhysicalMessage.Headers);
+            var sendingEndpoint = EndpointDetailsParser.ParseSendingEndpoint(message.PhysicalMessage.Headers);
             // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
             // have the relevant information via the headers, which were added in v4.
             if (sendingEndpoint != null)
@@ -15,7 +15,7 @@
                 message.Metadata.Add("SendingEndpoint", sendingEndpoint);
             }
 
-            var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
+            var receivingEndpoint = EndpointDetailsParser.ParseProcessingEndpoint(message.PhysicalMessage.Headers);
             // The ReceivingEndpoint will be null for messages from v3.3.x endpoints that were successfully
             // processed because we dont have the information from the relevant headers.
             if (receivingEndpoint != null)

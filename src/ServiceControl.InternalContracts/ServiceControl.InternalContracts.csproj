@@ -47,7 +47,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interfaces\Operations\IEnrichImportedMessages.cs" />
-    <Compile Include="Interfaces\Operations\IHandleAuditMessages.cs" />
     <Compile Include="Interfaces\Operations\ImportEnricher.cs" />
     <Compile Include="Messages\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="Messages\CustomChecks\CustomCheckFailed.cs" />

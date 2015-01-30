@@ -1,13 +1,12 @@
-﻿namespace ServiceControl.MessageAuditing
+﻿namespace Particular.Backend.Debugging.Enrichers
 {
     using System;
-    using Contracts.Operations;
     using NServiceBus;
-    using Operations;
+    using ServiceControl.Shell.Api.Ingestion;
 
-    public class ProcessingStatisticsEnricher : ImportEnricher
+    public class ProcessingStatisticsEnricher : IEnrichAuditMessageSnapshots
     {
-        public override void Enrich(ImportMessage message)
+        public void Enrich(HeaderCollection headers, SnapshotMetadata metadata)
         {
             var processingEnded = DateTime.MinValue;
             var timeSent = DateTime.MinValue;
@@ -15,22 +14,22 @@
 
             string timeSentValue;
 
-            if (message.PhysicalMessage.Headers.TryGetValue(Headers.TimeSent, out timeSentValue))
+            if (headers.TryGet(Headers.TimeSent, out timeSentValue))
             {
                 timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
-                message.Metadata.Add("TimeSent", timeSent);
+                metadata.Set("TimeSent", timeSent);
             }
 
             string processingStartedValue;
 
-            if (message.PhysicalMessage.Headers.TryGetValue(Headers.ProcessingStarted, out processingStartedValue))
+            if (headers.TryGet(Headers.ProcessingStarted, out processingStartedValue))
             {
                 processingStarted = DateTimeExtensions.ToUtcDateTime(processingStartedValue);
             }
 
             string processingEndedValue;
 
-            if (message.PhysicalMessage.Headers.TryGetValue(Headers.ProcessingEnded, out processingEndedValue))
+            if (headers.TryGet(Headers.ProcessingEnded, out processingEndedValue))
             {
                 processingEnded = DateTimeExtensions.ToUtcDateTime(processingEndedValue);
             }
@@ -42,7 +41,7 @@
                 criticalTime = processingEnded - timeSent;
             }
 
-            message.Metadata.Add("CriticalTime", criticalTime);
+            metadata.Set("CriticalTime", criticalTime);
 
             var processingTime = TimeSpan.Zero;
 
@@ -51,7 +50,7 @@
                 processingTime = processingEnded - processingStarted;
             }
 
-            message.Metadata.Add("ProcessingTime", processingTime);
+            metadata.Set("ProcessingTime", processingTime);
 
             var deliveryTime = TimeSpan.Zero;
 
@@ -60,7 +59,7 @@
                 deliveryTime = processingStarted - timeSent;
             }
 
-            message.Metadata.Add("DeliveryTime", deliveryTime);
+            metadata.Set("DeliveryTime", deliveryTime);
         }
     }
 }

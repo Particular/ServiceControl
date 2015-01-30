@@ -45,10 +45,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuditImporter.cs" />
+    <Compile Include="DebuggingBackend.cs" />
+    <Compile Include="SnapshotMetadata.cs" />
+    <Compile Include="SnapshotUpdater.cs" />
+    <Compile Include="Enrichers\TrackingIdsEnricher.cs" />
+    <Compile Include="FailedMessageIntegration.cs" />
+    <Compile Include="Enrichers\IEnrichAuditMessageSnapshots.cs" />
+    <Compile Include="IStoreMessageSnapshots.cs" />
+    <Compile Include="Enrichers\ProcessingStatisticsEnricher.cs" />
+    <Compile Include="AuditMessageSnapshot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SagaRelationshipsEnricher.cs" />
+    <Compile Include="Enrichers\SagaRelationshipsEnricher.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Particular.Backend.AuditIngestion.Api\Particular.Backend.AuditIngestion.Api.csproj">
+      <Project>{8683B0A4-A304-4A1C-9C68-3C59AA9E6A62}</Project>
+      <Name>Particular.Backend.AuditIngestion.Api</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Particular.Backend.Debugging.Api\Particular.Backend.Debugging.Api.csproj">
       <Project>{3d470493-002a-41f1-a555-ff84257c4e01}</Project>
       <Name>Particular.Backend.Debugging.Api</Name>
@@ -56,6 +70,10 @@
     <ProjectReference Include="..\ServiceControl.InternalContracts\ServiceControl.InternalContracts.csproj">
       <Project>{d0cf644e-160b-48ba-bc3d-d7fca8234759}</Project>
       <Name>ServiceControl.InternalContracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Shell.Api\ServiceControl.Shell.Api.csproj">
+      <Project>{2CA0B6B2-EAA2-4057-9ED1-B55E30EB20A5}</Project>
+      <Name>ServiceControl.Shell.Api</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

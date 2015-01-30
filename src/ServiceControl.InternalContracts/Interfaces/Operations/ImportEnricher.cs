@@ -4,6 +4,6 @@ namespace ServiceControl.Operations
 
     public abstract class ImportEnricher : IEnrichImportedMessages
     {
-        public abstract void Enrich(ImportMessage message);
+        public abstract void Enrich(ImportFailedMessage message);
     }
 }
