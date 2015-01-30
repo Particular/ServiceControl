@@ -2,12 +2,12 @@ namespace ServiceControl.Operations
 {
     using Particular.Operations.Ingestion.Api;
 
-    public class LicenseStatusProcessor : IProcessSuccessfulMessages, IProcessFailedMessages
+    public class LicenseStatusMessageProcessor : IProcessSuccessfulMessages, IProcessFailedMessages
     {
         readonly LicenseStatusKeeper licenseStatusKeeper;
         readonly LicenseStatusChecker checker;
 
-        public LicenseStatusProcessor(LicenseStatusKeeper licenseStatusKeeper, LicenseStatusChecker checker)
+        public LicenseStatusMessageProcessor(LicenseStatusKeeper licenseStatusKeeper, LicenseStatusChecker checker)
         {
             this.licenseStatusKeeper = licenseStatusKeeper;
             this.checker = checker;

@@ -14,7 +14,10 @@
         public override void Initialize()
         {
             Configure.Component<SuccessfulMessageImporter>(DependencyLifecycle.InstancePerCall);
+            Configure.Component<FailedMessageImporter>(DependencyLifecycle.InstancePerCall);
+
             Configure.Component<SnapshotUpdater>(DependencyLifecycle.SingleInstance);
+
             Configure.Component<SagaRelationshipsEnricher>(DependencyLifecycle.SingleInstance);
             Configure.Component<TrackingIdsEnricher>(DependencyLifecycle.SingleInstance);
             Configure.Component<ProcessingStatisticsEnricher>(DependencyLifecycle.SingleInstance);

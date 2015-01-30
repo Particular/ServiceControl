@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointControl.Handlers
+﻿namespace ServiceControl.EndpointControl
 {
     using System;
     using Infrastructure;
@@ -6,13 +6,14 @@
     using NServiceBus;
     using Particular.Operations.Ingestion.Api;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.EndpointControl.Handlers;
 
-    class DetectNewEndpointsFromImportsEnricher : IProcessSuccessfulMessages, IProcessFailedMessages
+    class EndpointDetectingMessageProcessor : IProcessSuccessfulMessages, IProcessFailedMessages
     {
         readonly IBus bus;
         readonly KnownEndpointsCache knownEndpointsCache;
 
-        public DetectNewEndpointsFromImportsEnricher(IBus bus, KnownEndpointsCache knownEndpointsCache)
+        public EndpointDetectingMessageProcessor(IBus bus, KnownEndpointsCache knownEndpointsCache)
         {
             this.bus = bus;
             this.knownEndpointsCache = knownEndpointsCache;

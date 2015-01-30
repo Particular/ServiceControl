@@ -61,6 +61,7 @@
     <Compile Include="FailedAuditImport.cs" />
     <Compile Include="FailedErrorImport.cs" />
     <Compile Include="ImportFailureCircuitBreaker.cs" />
+    <Compile Include="IngestionFeature.cs" />
     <Compile Include="SatelliteImportFailuresHandler.cs" />
     <Compile Include="TransportMessageProcessor.cs" />
     <Compile Include="EndpointInstanceParser.cs" />

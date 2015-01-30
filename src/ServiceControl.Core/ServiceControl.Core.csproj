@@ -7,7 +7,7 @@
     <ProjectGuid>{B66B966A-22DA-42C3-8FBC-472DB3B983D3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceControl.Core</RootNamespace>
+    <RootNamespace>ServiceControl</RootNamespace>
     <AssemblyName>ServiceControl.Core</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -104,7 +104,8 @@
     <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
     <Compile Include="CustomChecks\ReportCustomCheckResultHandler.cs" />
     <Compile Include="CustomChecks\Status.cs" />
-    <Compile Include="EndpointControl\DetectNewEndpointsFromImportsEnricher.cs" />
+    <Compile Include="EndpointControl\EndpointDetectingMessageProcessor.cs" />
+    <Compile Include="EndpointControl\EndpointControlFeature.cs" />
     <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
     <Compile Include="EndpointControl\Handlers\KnownEndpointsCache.cs" />
     <Compile Include="EndpointControl\Handlers\RegisterEndpointHandler.cs" />
@@ -165,12 +166,13 @@
     <Compile Include="MessageFailures\Api\GetAllErrorsQueryableExtensions.cs" />
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
+    <Compile Include="MessageFailures\EndpointControlFeature.cs" />
     <Compile Include="MessageFailures\SuccessfulRetryDetector.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
     <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
-    <Compile Include="MessageFailures\Handlers\FailedMessageImporter.cs" />
+    <Compile Include="MessageFailures\FailedMessageImporter.cs" />
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\Handlers\PerformRetryHandler.cs" />
@@ -186,7 +188,7 @@
     <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
     <Compile Include="Operations\LicenseStatusChecker.cs" />
     <Compile Include="Operations\LicenseStatusKeeper.cs" />
-    <Compile Include="Operations\LicenseStatusProcessor.cs" />
+    <Compile Include="Operations\LicenseStatusMessageProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\InitiatingMessage.cs" />

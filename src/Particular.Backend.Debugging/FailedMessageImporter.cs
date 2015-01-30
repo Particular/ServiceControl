@@ -5,7 +5,7 @@
     using Particular.Operations.Ingestion.Api;
     using ServiceControl.Contracts.Operations;
 
-    class FailedMessageImporter : IProcessSuccessfulMessages
+    class FailedMessageImporter : IProcessFailedMessages
     {
         readonly IStoreMessageSnapshots snapshotStore;
         readonly SnapshotUpdater snapshotUpdater;
@@ -16,7 +16,7 @@
             this.snapshotUpdater = snapshotUpdater;
         }
 
-        public void ProcessSuccessful(IngestedMessage message)
+        public void ProcessFailed(IngestedMessage message)
         {
             snapshotStore.StoreOrUpdate(message.UniqueId,
                 @new =>

@@ -29,6 +29,7 @@
         static readonly string[] serviceControlAssemblies =
         {
             "ServiceControl",
+            "Particular.Operations.Ingestion",
             "ServiceControl.Core",
             "ServiceControl.Shell",
             "ServiceControl.Shell.Api",

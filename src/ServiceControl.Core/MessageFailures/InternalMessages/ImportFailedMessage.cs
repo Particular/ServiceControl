@@ -1,8 +1,9 @@
 namespace ServiceControl.MessageFailures.InternalMessages
 {
+    using NServiceBus;
     using ServiceControl.Contracts.Operations;
 
-    public class ImportFailedMessage
+    public class ImportFailedMessage : ICommand
     {
         public string UniqueMessageId { get; set; }
         public string FailingEndpointName { get; set; }
