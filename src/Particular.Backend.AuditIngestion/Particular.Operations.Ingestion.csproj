@@ -7,8 +7,8 @@
     <ProjectGuid>{1C186557-90FD-4E11-8B97-9F034EDDD929}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Particular.Backend.AuditIngestion</RootNamespace>
-    <AssemblyName>Particular.Backend.AuditIngestion</AssemblyName>
+    <RootNamespace>Particular.Operations.Ingestion</RootNamespace>
+    <AssemblyName>Particular.Operations.Ingestion</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,13 +30,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NServiceBus">
-      <HintPath>..\packages\NServiceBus.Interfaces.4.7.5\lib\net40\NServiceBus.dll</HintPath>
+    <Reference Include="NServiceBus, Version=4.6.5.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NServiceBus.Interfaces.4.6.5\lib\net40\NServiceBus.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.Core">
       <HintPath>..\packages\NServiceBus.4.6.5\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Raven.Abstractions">
+      <HintPath>..\packages\RavenDB.Client.2.5.2916\lib\net45\Raven.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Client.Lightweight">
+      <HintPath>..\packages\RavenDB.Client.2.5.2916\lib\net45\Raven.Client.Lightweight.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -45,17 +53,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AuditMessageProcessor.cs" />
-    <Compile Include="EndpointDetailsParser.cs" />
-    <Compile Include="EnrichWithEndpointDetails.cs" />
+    <Compile Include="AttemptToReImportFailedMessages.cs" />
+    <Compile Include="AuditQueueImport.cs" />
+    <Compile Include="EventLogSourceCreator.cs" />
+    <Compile Include="ErrorQueueImport.cs" />
+    <Compile Include="ExceptionExtensions.cs" />
+    <Compile Include="FailedAuditImport.cs" />
+    <Compile Include="FailedErrorImport.cs" />
+    <Compile Include="ImportFailureCircuitBreaker.cs" />
+    <Compile Include="SatelliteImportFailuresHandler.cs" />
+    <Compile Include="TransportMessageProcessor.cs" />
+    <Compile Include="EndpointInstanceParser.cs" />
     <Compile Include="MessageTypeParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IdGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Particular.Backend.AuditIngestion.Api\Particular.Backend.AuditIngestion.Api.csproj">
+    <ProjectReference Include="..\Particular.Backend.AuditIngestion.Api\Particular.Operations.Ingestion.Api.csproj">
       <Project>{8683b0a4-a304-4a1c-9c68-3c59aa9e6a62}</Project>
-      <Name>Particular.Backend.AuditIngestion.Api</Name>
+      <Name>Particular.Operations.Ingestion.Api</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Shell.Api\ServiceControl.Shell.Api.csproj">
       <Project>{2CA0B6B2-EAA2-4057-9ED1-B55E30EB20A5}</Project>

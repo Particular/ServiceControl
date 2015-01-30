@@ -4,43 +4,35 @@
     using Infrastructure;
     using InternalMessages;
     using NServiceBus;
-    using Operations;
+    using Particular.Operations.Ingestion.Api;
     using ServiceControl.Contracts.Operations;
 
-    class DetectNewEndpointsFromImportsEnricher : ImportEnricher
+    class DetectNewEndpointsFromImportsEnricher : IProcessSuccessfulMessages, IProcessFailedMessages
     {
-        public IBus Bus { get; set; }
+        readonly IBus bus;
+        readonly KnownEndpointsCache knownEndpointsCache;
 
-        public KnownEndpointsCache KnownEndpointsCache { get; set; }
-
-        public override void Enrich(ImportMessage message)
+        public DetectNewEndpointsFromImportsEnricher(IBus bus, KnownEndpointsCache knownEndpointsCache)
         {
-            var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(message.PhysicalMessage.Headers);
-
-            // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
-            // have the relevant information via the headers, which were added in v4.
-            if (sendingEndpoint != null)
-            {
-                TryAddEndpoint(sendingEndpoint);
-            }
-
-            var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
-            TryAddEndpoint(receivingEndpoint);
+            this.bus = bus;
+            this.knownEndpointsCache = knownEndpointsCache;
         }
 
-        void TryAddEndpoint(EndpointDetails endpointDetails)
+        void Detect(IngestedMessage message)
         {
-            // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
+            // SendingEndpoint will be unknown for messages that are from v3.3.x endpoints because we don't
             // have the relevant information via the headers, which were added in v4.
-            // The ReceivingEndpoint will be null for messages from v3.3.x endpoints that were successfully
-            // processed because we dont have the information from the relevant headers.
-            if (endpointDetails == null)
+            if (message.SentFrom != EndpointInstance.Unknown)
             {
-                return;
+                TryAddEndpoint(message.SentFrom);
             }
 
-            // for backwards compat with version before 4_5 we might not have a hostid
-            if (endpointDetails.HostId == Guid.Empty)
+            TryAddEndpoint(message.ProcessedAt);
+        }
+
+        void TryAddEndpoint(EndpointInstance endpointDetails)
+        {
+            if (endpointDetails.HostId == null)
             {
                 HandlePre45Endpoint(endpointDetails);
                 return;
@@ -49,35 +41,53 @@
             HandlePost45Endpoint(endpointDetails);
         }
 
-        void HandlePost45Endpoint(EndpointDetails endpointDetails)
+        void HandlePost45Endpoint(EndpointInstance endpointInstance)
         {
-            var endpointInstanceId = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.HostId.ToString());
-            if (KnownEndpointsCache.TryAdd(endpointInstanceId))
+            var endpointInstanceId = DeterministicGuid.MakeId(endpointInstance.EndpointName, endpointInstance.HostId);
+            if (knownEndpointsCache.TryAdd(endpointInstanceId))
             {
                 var registerEndpoint = new RegisterEndpoint
                 {
                     EndpointInstanceId = endpointInstanceId,
-                    Endpoint = endpointDetails,
+                    Endpoint = new EndpointDetails()
+                    {
+                        Name = endpointInstance.EndpointName,
+                        HostId = endpointInstance.HostId
+                    },
                     DetectedAt = DateTime.UtcNow
                 };
-                Bus.SendLocal(registerEndpoint);
+                bus.SendLocal(registerEndpoint);
             }
         }
 
-        void HandlePre45Endpoint(EndpointDetails endpointDetails)
+        void HandlePre45Endpoint(EndpointInstance endpointInstance)
         {
             //since for pre 4.5 endpoints we wont have a hostid then fake one
-            var endpointInstanceId = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.Host);
-            if (KnownEndpointsCache.TryAdd(endpointInstanceId))
+            var endpointInstanceId = DeterministicGuid.MakeId(endpointInstance.EndpointName, endpointInstance.HostId);
+            if (knownEndpointsCache.TryAdd(endpointInstanceId))
             {
                 var registerEndpoint = new RegisterEndpoint
                 {
                     //we don't set then endpoint instance id since we don't have the host id
-                    Endpoint = endpointDetails,
+                    Endpoint = new EndpointDetails()
+                    {
+                        Name = endpointInstance.EndpointName,
+                        HostId = endpointInstance.HostId
+                    },
                     DetectedAt = DateTime.UtcNow
                 };
-                Bus.SendLocal(registerEndpoint);
+                bus.SendLocal(registerEndpoint);
             }
+        }
+
+        public void ProcessSuccessful(IngestedMessage message)
+        {
+            Detect(message);
+        }
+
+        public void ProcessFailed(IngestedMessage message)
+        {
+            Detect(message);
         }
     }
 }

@@ -27,13 +27,13 @@
                 throw new ArgumentException("Received an EndpointHeartbeat message without proper initialization of the Host in the schema", "message.Host");
             }
 
-            if (message.HostId == Guid.Empty)
+            if (message.HostId == null)
             {
                 throw new ArgumentException("Received an EndpointHeartbeat message without proper initialization of the HostId in the schema", "message.HostId");
             }
                 
 
-            var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString());
+            var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId);
 
             var heartbeat = Session.Load<Heartbeat>(id);
           

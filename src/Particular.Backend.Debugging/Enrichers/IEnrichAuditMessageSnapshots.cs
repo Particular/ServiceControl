@@ -1,9 +1,9 @@
 namespace Particular.Backend.Debugging.Enrichers
 {
-    using ServiceControl.Shell.Api.Ingestion;
+    using Particular.Operations.Ingestion.Api;
 
     public interface IEnrichAuditMessageSnapshots
     {
-        void Enrich(HeaderCollection headers, SnapshotMetadata metadata);
+        void Enrich(IngestedMessage message, AuditMessageSnapshot snapshot);
     }
 }

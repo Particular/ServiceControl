@@ -1,20 +1,18 @@
-﻿namespace Particular.Backend.AuditIngestion.Api
+﻿namespace Particular.Operations.Ingestion.Api
 {
-    using System;
-    using System.IO;
-    using ServiceControl.Shell.Api.Ingestion;
-
-    public class IngestedAuditMessage
+    public class IngestedMessage
     {
         readonly string uniqueId;
+        readonly bool recoverable;
         readonly string id;
         readonly byte[] body;
         readonly HeaderCollection headers;
         readonly MessageType messageType;
-        readonly EndpointInstanceId sentFrom;
-        readonly EndpointInstanceId processedAt;
+        readonly EndpointInstance sentFrom;
+        readonly EndpointInstance processedAt;
 
-        public IngestedAuditMessage(string id, string uniqueId, byte[] body, HeaderCollection headers, MessageType messageType, EndpointInstanceId sentFrom, EndpointInstanceId processedAt)
+        public IngestedMessage(string id, string uniqueId, bool recoverable, byte[] body, HeaderCollection headers, MessageType messageType, 
+            EndpointInstance sentFrom, EndpointInstance processedAt)
         {
             this.id = id;
             this.body = body;
@@ -23,6 +21,7 @@
             this.sentFrom = sentFrom;
             this.processedAt = processedAt;
             this.uniqueId = uniqueId;
+            this.recoverable = recoverable;
         }
 
         public string Id
@@ -30,12 +29,12 @@
             get { return id; }
         }
 
-        public EndpointInstanceId SentFrom
+        public EndpointInstance SentFrom
         {
             get { return sentFrom; }
         }
 
-        public EndpointInstanceId ProcessedAt
+        public EndpointInstance ProcessedAt
         {
             get { return processedAt; }
         }
@@ -68,6 +67,11 @@
         public byte[] Body
         {
             get { return body; }
+        }
+
+        public bool Recoverable
+        {
+            get { return recoverable; }
         }
     }
 }

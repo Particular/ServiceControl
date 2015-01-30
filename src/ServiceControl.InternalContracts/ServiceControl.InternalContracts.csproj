@@ -46,8 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Interfaces\Operations\IEnrichImportedMessages.cs" />
-    <Compile Include="Interfaces\Operations\ImportEnricher.cs" />
     <Compile Include="Messages\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="Messages\CustomChecks\CustomCheckFailed.cs" />
     <Compile Include="Messages\CustomChecks\CustomCheckSucceeded.cs" />
@@ -76,9 +74,6 @@
     <Compile Include="Messages\Operations\EndpointPerformanceDataReceived.cs" />
     <Compile Include="Messages\Operations\ExceptionDetails.cs" />
     <Compile Include="Messages\Operations\FailureDetails.cs" />
-    <Compile Include="Messages\Operations\ImportFailedMessage.cs" />
-    <Compile Include="Messages\Operations\ImportMessage.cs" />
-    <Compile Include="Messages\Operations\ImportSuccessfullyProcessedMessage.cs" />
     <Compile Include="Messages\Operations\MessageStatus.cs" />
     <Compile Include="Messages\Operations\PhysicalMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -88,9 +83,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Audit\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

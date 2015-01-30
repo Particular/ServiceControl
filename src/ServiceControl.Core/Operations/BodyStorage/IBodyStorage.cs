@@ -4,7 +4,7 @@
 
     public interface IBodyStorage
     {
-        string Store(string bodyId, string contentType, int bodySize, Stream bodyStream);
-        Stream Fetch(string bodyUrl);
+        void Store(string bodyId, string contentType, int bodySize, Stream bodyStream);
+        Stream Fetch(string bodyId);
     }
 }

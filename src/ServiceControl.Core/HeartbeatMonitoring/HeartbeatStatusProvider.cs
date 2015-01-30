@@ -131,7 +131,7 @@
             }
             else
             {
-                if (existingEndpoint.HostId == Guid.Empty && endpointDetails.HostId != Guid.Empty)
+                if (existingEndpoint.HostId == null && endpointDetails.HostId != null)
                 {
                     existingEndpoint.HostId = endpointDetails.HostId;
                 }
@@ -141,7 +141,7 @@
 
         HeartbeatingEndpoint TryFindEndpoint(EndpointDetails endpointDetails)
         {
-            if (endpointDetails.HostId == Guid.Empty)
+            if (endpointDetails.HostId == null)
             {
                 // Try to match existing ones on host and machine if no host id is present
                 return endpoints.Where(e => e.Host == endpointDetails.Host && e.Name == endpointDetails.Name)
@@ -159,7 +159,7 @@
 
             //try to match on existing ones without host IDs
             return endpoints.SingleOrDefault(e =>
-                e.HostId == Guid.Empty &&
+                e.HostId == null &&
                 e.Host == endpointDetails.Host && e.Name == endpointDetails.Name);
 
         }

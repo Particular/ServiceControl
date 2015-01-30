@@ -9,15 +9,13 @@
     {
         public IDocumentStore DocumentStore { get; set; }
 
-        public string Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+        public void Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
             DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
             {
                 {"ContentType", contentType},
                 {"ContentLength", bodySize}
             });
-
-            return string.Format("/messagebodies/{0}", bodyId);
         }
 
         public Stream Fetch(string bodyId)

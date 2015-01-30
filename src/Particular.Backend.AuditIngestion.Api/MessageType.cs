@@ -1,9 +1,12 @@
-﻿namespace Particular.Backend.AuditIngestion.Api
+﻿namespace Particular.Operations.Ingestion.Api
 {
     public class MessageType
     {
         readonly string name;
         readonly bool isSystem;
+
+        public static MessageType Unknown = new MessageType("Unknown",false);
+        public static MessageType Control = new MessageType("ControlMessage", true);
 
         public MessageType(string name, bool isSystem)
         {

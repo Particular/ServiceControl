@@ -60,7 +60,7 @@
             relatedToLinks.Add(m => string.Format("/machine/{0}", relatedTo(m)));
         }
 
-        protected void RelatesToHost(Func<T, Guid> relatedTo)
+        protected void RelatesToHost(Func<T, string> relatedTo)
         {
             relatedToLinks.Add(m => string.Format("/host/{0}", relatedTo(m)));
         }

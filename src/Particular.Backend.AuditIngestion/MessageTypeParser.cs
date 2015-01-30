@@ -1,29 +1,26 @@
 ﻿namespace ServiceControl.MessageTypes
 {
     using System.Linq;
-    using Particular.Backend.AuditIngestion.Api;
-    using ServiceControl.Shell.Api.Ingestion;
+    using Particular.Operations.Ingestion.Api;
 
     public class MessageTypeParser
     {
         public  MessageType Parse(HeaderCollection headers)
         {
-            var isSystemMessage = false;
-            string messageType = null;
-
-            if (headers.Has("NServiceBus.ControlMessage"))
+            var isControlMessage = headers.Has("NServiceBus.ControlMessage");
+            if (isControlMessage)
             {
-                isSystemMessage = true;
+                return MessageType.Control;
             }
-
             string enclosedMessageTypes;
             if (headers.TryGet("NServiceBus.EnclosedMessageTypes", out enclosedMessageTypes))
             {
-                messageType = GetMessageType(enclosedMessageTypes);
-                isSystemMessage = DetectSystemMessage(messageType);
-                message.Metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
+                var messageType = GetMessageType(enclosedMessageTypes);
+                var isSystemMessage = DetectSystemMessage(messageType);
+                //message.Metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
+                return new MessageType(messageType, isSystemMessage);
             }
-            return new MessageType(messageType, isSystemMessage);
+            return MessageType.Unknown;
         }
 
         static bool DetectSystemMessage(string messageTypeString)

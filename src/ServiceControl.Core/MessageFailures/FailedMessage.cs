@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using Contracts.Operations;
-    using NServiceBus;
 
     public class FailedMessage
     {
@@ -27,7 +26,11 @@
 
         public class ProcessingAttempt
         {
-            public Dictionary<string, object> MessageMetadata { get; set; }
+            public EndpointDetails SendingEndpoint { get; set; }
+            public EndpointDetails ProcessingEndpoint { get; set; }
+            public string MessageType { get; set; }
+            public string ContentType { get; set; }
+            public DateTime TimeSent { get; set; }
             public FailureDetails FailureDetails { get; set; }
             public DateTime AttemptedAt { get; set; }
             public string MessageId { get; set; }
@@ -35,7 +38,9 @@
             public string ReplyToAddress { get; set; }
             public bool Recoverable { get; set; }
             public string CorrelationId { get; set; }
-            public MessageIntentEnum MessageIntent { get; set; }
+            public string MessageIntent { get; set; }
+            public bool IsSystemMessage { get; set; }
+            public string HeadersForSearching { get; set; }
         }
     }
 

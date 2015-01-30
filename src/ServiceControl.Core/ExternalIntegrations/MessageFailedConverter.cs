@@ -1,8 +1,6 @@
 namespace ServiceControl.ExternalIntegrations
 {
-    using System.Collections.Generic;
     using System.Linq;
-    using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageFailures;
 
     public static class MessageFailedConverter
@@ -10,36 +8,35 @@ namespace ServiceControl.ExternalIntegrations
         public static Contracts.MessageFailed ToEvent(this FailedMessage message)
         {
             var last = message.ProcessingAttempts.Last();
-            var sendingEndpoint = GetNullableMetadataValue<EndpointDetails>(last.MessageMetadata, "SendingEndpoint");
-            var receivingEndpoint = GetNullableMetadataValue<EndpointDetails>(last.MessageMetadata, "ReceivingEndpoint");
+            var sendingEndpoint = last.SendingEndpoint;
+            var receivingEndpoint = last.ProcessingEndpoint;
 
             return new Contracts.MessageFailed
             {
                 FailedMessageId = message.UniqueMessageId,
-                MessageType = GetNullableMetadataValue<string>(last.MessageMetadata,"MessageType"),
+                MessageType = last.MessageType,
                 NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
                 Status = message.Status == FailedMessageStatus.Archived
                     ? Contracts.MessageFailed.MessageStatus.ArchivedFailure
                     : message.ProcessingAttempts.Count == 1
                         ? Contracts.MessageFailed.MessageStatus.Failed
                         : Contracts.MessageFailed.MessageStatus.RepeatedFailure,
-                SendingEndpoint = sendingEndpoint != null ? new Contracts.MessageFailed.Endpoint
+                SendingEndpoint = new Contracts.MessageFailed.Endpoint
                 {
                     Host = sendingEndpoint.Host,
-                    HostId = sendingEndpoint.HostId,
+                    //HostId = sendingEndpoint.HostId,TODO
                     Name = sendingEndpoint.Name
-                } :null,
-                ProcessingEndpoint = receivingEndpoint != null ? new Contracts.MessageFailed.Endpoint
+                },
+                ProcessingEndpoint = new Contracts.MessageFailed.Endpoint
                 {
                     Host = receivingEndpoint.Host,
-                    HostId = receivingEndpoint.HostId,
+                    //HostId = receivingEndpoint.HostId,TODO
                     Name = receivingEndpoint.Name
-                } : null,
+                },
                 MessageDetails = new Contracts.MessageFailed.Message
                 {
                     Headers = last.Headers,
-                    ContentType = GetNullableMetadataValue<string>(last.MessageMetadata, "ContentType"),
-                    Body = GetBody(last),
+                    ContentType = last.ContentType,
                     MessageId = last.MessageId,
                 },
                 FailureDetails = new Contracts.MessageFailed.FailureInfo
@@ -55,24 +52,6 @@ namespace ServiceControl.ExternalIntegrations
                     },
                 },
             };
-        }
-
-        static T GetNullableMetadataValue<T>(IReadOnlyDictionary<string, object> metadata, string key)
-            where T : class 
-        {
-            object value;
-            metadata.TryGetValue(key, out value);
-            return (T)value;
-        }
-
-        static string GetBody(FailedMessage.ProcessingAttempt last)
-        {
-            object body;
-            if (last.MessageMetadata.TryGetValue("Body", out body))
-            {
-                return (string)body;
-            }
-            return null;
         }
     }
 }

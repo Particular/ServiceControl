@@ -155,7 +155,6 @@
     <Compile Include="HeartbeatMonitoring\RegisterEndpointStartupHandler.cs" />
     <Compile Include="HeartbeatMonitoring\RegisterPotentiallyMissingHeartbeatsHandler.cs" />
     <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
-    <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageFacetsIndex.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
@@ -166,39 +165,28 @@
     <Compile Include="MessageFailures\Api\GetAllErrorsQueryableExtensions.cs" />
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
-    <Compile Include="MessageFailures\DetectSuccessfullRetriesEnricher.cs" />
+    <Compile Include="MessageFailures\SuccessfulRetryDetector.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
     <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
-    <Compile Include="MessageFailures\Handlers\ImportFailedMessageHandler.cs" />
+    <Compile Include="MessageFailures\Handlers\FailedMessageImporter.cs" />
     <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\Handlers\PerformRetryHandler.cs" />
+    <Compile Include="MessageFailures\InternalMessages\ImportFailedMessage.cs" />
     <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />
     <Compile Include="MessageFailures\InternalMessages\PerformRetry.cs" />
     <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
     <Compile Include="MessageFailures\InternalMessages\RequestRetryAll.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryMessage.cs" />
-    <Compile Include="Operations\AttemptToReImportFailedMessages.cs" />
-    <Compile Include="Operations\AuditQueueImport.cs" />
-    <Compile Include="Operations\BodyStorage\BodyStorageEnricher.cs" />
     <Compile Include="Operations\BodyStorage\BodyStorageFeature.cs" />
     <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
-    <Compile Include="Operations\DictionaryExtensions.cs" />
-    <Compile Include="Operations\ErrorQueueImport.cs" />
-    <Compile Include="Operations\ExceptionExtensions.cs" />
-    <Compile Include="Operations\FailedAuditImport.cs" />
-    <Compile Include="Operations\FailedErrorImport.cs" />
-    <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
-    <Compile Include="Operations\ImportRegistration.cs" />
+    <Compile Include="Operations\LicenseStatusChecker.cs" />
     <Compile Include="Operations\LicenseStatusKeeper.cs" />
-    <Compile Include="Operations\MsmqAuditImporterPerformanceCounters.cs" />
-    <Compile Include="Operations\Msmq\MsmqAuditQueueImporter.cs" />
-    <Compile Include="Operations\SatelliteImportFailuresHandler.cs" />
-    <Compile Include="Operations\UpdateLicenseEnricher.cs" />
+    <Compile Include="Operations\LicenseStatusProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\InitiatingMessage.cs" />
@@ -212,6 +200,10 @@
     <Compile Include="TransportMessageExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Particular.Backend.AuditIngestion.Api\Particular.Operations.Ingestion.Api.csproj">
+      <Project>{8683b0a4-a304-4a1c-9c68-3c59aa9e6a62}</Project>
+      <Name>Particular.Operations.Ingestion.Api</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.InternalContracts\ServiceControl.InternalContracts.csproj">
       <Project>{d0cf644e-160b-48ba-bc3d-d7fca8234759}</Project>
       <Name>ServiceControl.InternalContracts</Name>
@@ -225,9 +217,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="MessageFailures\Enrichers\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

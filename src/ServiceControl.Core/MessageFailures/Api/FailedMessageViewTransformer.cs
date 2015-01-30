@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System;
     using System.Linq;
     using Raven.Client.Indexes;
 
@@ -13,12 +12,12 @@
                 select new
                 {
                     Id = failure.UniqueMessageId,
-                    MessageType = rec.MessageMetadata["MessageType"],
-                    IsSystemMessage = (bool)rec.MessageMetadata["IsSystemMessage"],
-                    SendingEndpoint = rec.MessageMetadata["SendingEndpoint"],
-                    ReceivingEndpoint = rec.MessageMetadata["ReceivingEndpoint"],
-                    TimeSent = (DateTime)rec.MessageMetadata["TimeSent"],
-                    MessageId = rec.MessageMetadata["MessageId"],
+                    MessageType = rec.MessageType,
+                    IsSystemMessage = rec.IsSystemMessage,
+                    SendingEndpoint = rec.SendingEndpoint,
+                    ReceivingEndpoint = rec.ProcessingEndpoint,
+                    TimeSent = rec.TimeSent,
+                    MessageId = rec.MessageId,
                     rec.FailureDetails.Exception,
                     NumberOfProcessingAttempts = failure.ProcessingAttempts.Count(),
                     failure.Status,

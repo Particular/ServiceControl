@@ -25,7 +25,7 @@
                 throw new ArgumentException("Received an custom check message without proper initialization of the Host in the schema", "message.Host");
             }
 
-            if (message.HostId == Guid.Empty)
+            if (message.HostId == null)
             {
                 throw new ArgumentException("Received an custom check message without proper initialization of the HostId in the schema", "message.HostId");
             }

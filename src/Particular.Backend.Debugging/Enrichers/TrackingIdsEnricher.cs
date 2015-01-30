@@ -1,23 +1,24 @@
 ﻿namespace Particular.Backend.Debugging.Enrichers
 {
-    using ServiceControl.Shell.Api.Ingestion;
+    using Particular.Operations.Ingestion.Api;
 
     public class TrackingIdsEnricher : IEnrichAuditMessageSnapshots
     {
-        public void Enrich(HeaderCollection headers, SnapshotMetadata metadata)
+        public void Enrich(IngestedMessage message, AuditMessageSnapshot snapshot)
         {
+            var headers = message.Headers;
             string conversationId;
 
             if (headers.TryGet(NServiceBus.Headers.ConversationId, out conversationId))
             {
-                metadata.Set("ConversationId", conversationId);
+                snapshot.ConversationId = conversationId;
             }
 
             string relatedToId;
 
             if (headers.TryGet(NServiceBus.Headers.RelatedTo, out relatedToId))
             {
-                metadata.Set("RelatedToId", relatedToId);
+                snapshot.RelatedToId = relatedToId;
             }
         }
     }

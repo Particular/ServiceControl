@@ -3,6 +3,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
     using System;
     using System.Linq;
     using Lucene.Net.Analysis.Standard;
+    using Particular.Backend.Debugging.RavenDB.Storage;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
     using ServiceControl.Contracts.Operations;
@@ -27,21 +28,21 @@ namespace Particular.Backend.Debugging.RavenDB.Api
 
         public MessagesViewIndex()
         {
-            AddMap<AuditMessageSnapshot>(messages => from message in messages
+            AddMap<MessageSnapshotDocument>(messages => from message in messages
                 select new SortAndFilterOptions
                 {
-                    MessageId = (string) message.MessageMetadata["MessageId"],
-                    MessageType = (string) message.MessageMetadata["MessageType"],
-                    IsSystemMessage = (bool) message.MessageMetadata["IsSystemMessage"],
+                    MessageId = message.MessageId,
+                    MessageType = message.MessageType,
+                    IsSystemMessage = message.IsSystemMessage,
                     Status = message.Status,
-                    TimeSent = (DateTime) message.MessageMetadata["TimeSent"],
+                    TimeSent = message.Processing.TimeSent,
                     ProcessedAt = message.AttemptedAt,
-                    ReceivingEndpointName = ((EndpointDetails) message.MessageMetadata["ReceivingEndpoint"]).Name,
-                    CriticalTime = (TimeSpan) message.MessageMetadata["CriticalTime"],
-                    ProcessingTime = (TimeSpan) message.MessageMetadata["ProcessingTime"],
-                    DeliveryTime = (TimeSpan) message.MessageMetadata["DeliveryTime"],
-                    Query = message.MessageMetadata.Select(_ => _.Value.ToString()).ToArray(),
-                    ConversationId = (string) message.MessageMetadata["ConversationId"],
+                    ReceivingEndpointName = message.ReceivingEndpointName,
+                    CriticalTime = message.Processing.CriticalTime,
+                    ProcessingTime = message.Processing.ProcessingTime,
+                    DeliveryTime = message.Processing.DeliveryTime,
+                    Query = message.Body != null && message.Body.Text != null ? new[] { message.Body.Text } : new string[0],
+                    ConversationId = message.ConversationId,
                 });
 
             Index(x => x.Query, FieldIndexing.Analyzed);

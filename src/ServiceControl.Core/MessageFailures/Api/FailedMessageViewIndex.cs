@@ -2,7 +2,6 @@ namespace ServiceControl.MessageFailures.Api
 {
     using System;
     using System.Linq;
-    using Contracts.Operations;
     using MessageFailures;
     using Raven.Client.Indexes;
 
@@ -20,14 +19,14 @@ namespace ServiceControl.MessageFailures.Api
         public FailedMessageViewIndex()
         {
             Map = messages => from message in messages
-                              let metadata = message.ProcessingAttempts.Last().MessageMetadata
+                              let last = message.ProcessingAttempts.Last()
            select new
             {
-                MessageId = metadata["MessageId"],
-                MessageType = metadata["MessageType"], 
+                MessageId = last.MessageId,
+                MessageType = last.MessageType, 
                 message.Status,
-                TimeSent = (DateTime)metadata["TimeSent"],
-                ReceivingEndpointName = ((EndpointDetails)metadata["ReceivingEndpoint"]).Name,
+                TimeSent = last.TimeSent,
+                ReceivingEndpointName = last.ProcessingEndpoint.Name,
             };
 
             DisableInMemoryIndexing = true;

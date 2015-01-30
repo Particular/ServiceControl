@@ -30,8 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NServiceBus">
-      <HintPath>..\packages\NServiceBus.Interfaces.4.7.5\lib\net40\NServiceBus.dll</HintPath>
+    <Reference Include="NServiceBus, Version=4.6.5.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NServiceBus.Interfaces.4.6.5\lib\net40\NServiceBus.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.Core">
       <HintPath>..\packages\NServiceBus.4.6.5\lib\net40\NServiceBus.Core.dll</HintPath>
@@ -45,9 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AuditImporter.cs" />
+    <Compile Include="Enrichers\EndpointInformationEnricher.cs" />
+    <Compile Include="Enrichers\MessageTypeEnricher.cs" />
+    <Compile Include="FailedMessageImporter.cs" />
+    <Compile Include="SuccessfulMessageImporter.cs" />
     <Compile Include="DebuggingBackend.cs" />
-    <Compile Include="SnapshotMetadata.cs" />
+    <Compile Include="Enrichers\BodyEnricher.cs" />
     <Compile Include="SnapshotUpdater.cs" />
     <Compile Include="Enrichers\TrackingIdsEnricher.cs" />
     <Compile Include="FailedMessageIntegration.cs" />
@@ -59,9 +63,9 @@
     <Compile Include="Enrichers\SagaRelationshipsEnricher.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Particular.Backend.AuditIngestion.Api\Particular.Backend.AuditIngestion.Api.csproj">
-      <Project>{8683B0A4-A304-4A1C-9C68-3C59AA9E6A62}</Project>
-      <Name>Particular.Backend.AuditIngestion.Api</Name>
+    <ProjectReference Include="..\Particular.Backend.AuditIngestion.Api\Particular.Operations.Ingestion.Api.csproj">
+      <Project>{8683b0a4-a304-4a1c-9c68-3c59aa9e6a62}</Project>
+      <Name>Particular.Operations.Ingestion.Api</Name>
     </ProjectReference>
     <ProjectReference Include="..\Particular.Backend.Debugging.Api\Particular.Backend.Debugging.Api.csproj">
       <Project>{3d470493-002a-41f1-a555-ff84257c4e01}</Project>

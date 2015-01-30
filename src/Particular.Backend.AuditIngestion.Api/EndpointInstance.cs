@@ -1,20 +1,26 @@
-﻿namespace Particular.Backend.AuditIngestion.Api
+﻿namespace Particular.Operations.Ingestion.Api
 {
     using System;
 
     /// <summary>
     /// Identifies a physical endpoint instance.
     /// </summary>
-    public sealed class EndpointInstanceId
+    public sealed class EndpointInstance
     {
         readonly string endpointName;
         readonly string hostId;
 
-        public EndpointInstanceId(string endpointName, string hostId)
+        public static EndpointInstance Unknown = new EndpointInstance("Unknown", "Unknown");
+
+        public EndpointInstance(string endpointName, string hostId)
         {
             if (endpointName == null)
             {
                 throw new ArgumentNullException("endpointName");
+            }
+            if (hostId == null)
+            {
+                throw new ArgumentNullException("hostId");
             }
             this.endpointName = endpointName;
             this.hostId = hostId;
@@ -36,9 +42,9 @@
             get { return hostId; }
         }
 
-        bool Equals(EndpointInstanceId other)
+        bool Equals(EndpointInstance other)
         {
-            return string.Equals(EndpointName, other.EndpointName) && string.Equals(HostId, other.HostId);
+            return string.Equals(endpointName, other.endpointName) && string.Equals(hostId, other.hostId);
         }
 
         public override bool Equals(object obj)
@@ -51,19 +57,30 @@
             {
                 return true;
             }
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-            return Equals((EndpointInstanceId)obj);
+            return obj is EndpointInstance && Equals((EndpointInstance) obj);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                return ((EndpointName != null ? EndpointName.GetHashCode() : 0) * 397) ^ (HostId != null ? HostId.GetHashCode() : 0);
+                return ((endpointName != null ? endpointName.GetHashCode() : 0)*397) ^ (hostId != null ? hostId.GetHashCode() : 0);
             }
+        }
+
+        public static bool operator ==(EndpointInstance left, EndpointInstance right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(EndpointInstance left, EndpointInstance right)
+        {
+            return !Equals(left, right);
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0}/{1}", endpointName, hostId ?? "?");
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System.Linq;
-    using Contracts.Operations;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 
@@ -11,12 +10,12 @@
         {
             Map = failures => from failure in failures
                 where failure.Status == FailedMessageStatus.Unresolved
-                              let t = ((EndpointDetails)failure.ProcessingAttempts.Last().MessageMetadata["ReceivingEndpoint"])
+                              let t = failure.ProcessingAttempts.Last().ProcessingEndpoint
                 select new
                 {
                     t.Name,
                     t.Host,
-                    MessageType = failure.ProcessingAttempts.Last().MessageMetadata["MessageType"]
+                    MessageType = failure.ProcessingAttempts.Last().MessageType
                 };
 
             Index("Name", FieldIndexing.NotAnalyzed); //to avoid lower casing

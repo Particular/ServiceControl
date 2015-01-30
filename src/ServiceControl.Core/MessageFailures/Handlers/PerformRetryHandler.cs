@@ -52,7 +52,7 @@
                     Body = ReadFully(stream),
                     CorrelationId = attempt.CorrelationId,
                     Recoverable = attempt.Recoverable,
-                    MessageIntent = attempt.MessageIntent,
+                    MessageIntent = (MessageIntentEnum)Enum.Parse(typeof(MessageIntentEnum), attempt.MessageIntent, true),
                 };
 
                 if (!String.IsNullOrWhiteSpace(attempt.ReplyToAddress))

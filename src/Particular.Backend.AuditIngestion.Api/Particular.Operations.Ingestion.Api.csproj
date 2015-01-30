@@ -7,8 +7,8 @@
     <ProjectGuid>{8683B0A4-A304-4A1C-9C68-3C59AA9E6A62}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Particular.Backend.AuditIngestion.Api</RootNamespace>
-    <AssemblyName>Particular.Backend.AuditIngestion.Api</AssemblyName>
+    <RootNamespace>Particular.Operations.Ingestion.Api</RootNamespace>
+    <AssemblyName>Particular.Operations.Ingestion.Api</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -39,9 +39,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IngestedAuditMessage.cs" />
-    <Compile Include="EndpointInstanceId.cs" />
-    <Compile Include="IProcessAuditMessages.cs" />
+    <Compile Include="HeaderCollection.cs" />
+    <Compile Include="IngestedMessage.cs" />
+    <Compile Include="EndpointInstance.cs" />
+    <Compile Include="IProcessFailedMessages.cs" />
+    <Compile Include="IProcessSuccessfulMessages.cs" />
     <Compile Include="MessageType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -50,6 +52,9 @@
       <Project>{2CA0B6B2-EAA2-4057-9ED1-B55E30EB20A5}</Project>
       <Name>ServiceControl.Shell.Api</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

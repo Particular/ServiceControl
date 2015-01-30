@@ -4,12 +4,11 @@
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.MessageFailures;
-    using Contracts.Operations;
     using InternalMessages;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Saga;
-    
+
     public class FailedMessagePolicy : Saga<FailedMessagePolicy.FailedMessagePolicyData>,
         IAmStartedByMessages<ImportFailedMessage>,
         IHandleMessages<RetryMessage>,
@@ -18,7 +17,7 @@
         public void Handle(ImportFailedMessage message)
         {
             Data.FailedMessageId = message.UniqueMessageId;
-            Data.FailedMessageType = (string)message.Metadata["MessageType"];
+            Data.FailedMessageType = message.MessageType;
 
             var timeOfFailure = message.FailureDetails.TimeOfFailure;
 
@@ -32,11 +31,11 @@
                 Id = Guid.NewGuid(),
                 AttemptedAt = timeOfFailure,
                 AddressOfFailingEndpoint = Address.Parse(message.FailureDetails.AddressOfFailingEndpoint),
-                FailingEndpoint = message.FailingEndpointId
+                FailingEndpoint = message.FailingEndpointName
             });
 
-            string retryId;
-            if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.RetryId", out retryId))
+            var retryId = message.RetryId;
+            if (retryId != null)
             {
                 var retryAttempt = Data.RetryAttempts.SingleOrDefault(r => r.Id == Guid.Parse(retryId));
                 // If for some reason the user has deleted the RavenDB database and starting fresh and the user
@@ -59,7 +58,7 @@
                 Bus.Publish<MessageFailedRepeatedly>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
-                    m.EndpointId = message.FailingEndpointId;
+                    m.EndpointId = message.FailingEndpointName;
                     m.FailedMessageId = Data.FailedMessageId;
                 });
             }
@@ -68,7 +67,7 @@
                 Bus.Publish<MessageFailed>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
-                    m.EndpointId = message.FailingEndpointId;
+                    m.EndpointId = message.FailingEndpointName;
                     m.FailedMessageId = Data.FailedMessageId;
                 });
             }

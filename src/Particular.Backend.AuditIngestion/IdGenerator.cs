@@ -2,8 +2,8 @@ namespace ServiceControl.MessageTypes
 {
     using System;
     using System.Linq;
+    using Particular.Operations.Ingestion.Api;
     using ServiceControl.Infrastructure;
-    using ServiceControl.Shell.Api.Ingestion;
 
     public class IdGenerator
     {

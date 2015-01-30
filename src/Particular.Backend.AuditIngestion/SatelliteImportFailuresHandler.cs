@@ -91,9 +91,9 @@
         static void WriteEvent(string message)
         {
 #if DEBUG
-            new CreateEventSource().Install(null);
+            new EventLogSourceCreator().Install(null);
 #endif
-            EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
+            EventLog.WriteEntry(EventLogSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
 
         readonly ImportFailureCircuitBreaker failureCircuitBreaker = new ImportFailureCircuitBreaker();

@@ -4,7 +4,7 @@
     using NServiceBus.Installation;
     using NServiceBus.Installation.Environments;
 
-    public class CreateEventSource : INeedToInstallSomething<Windows>
+    public class EventLogSourceCreator : INeedToInstallSomething<Windows>
     {
         public const string SourceName = "ServiceControl";
 

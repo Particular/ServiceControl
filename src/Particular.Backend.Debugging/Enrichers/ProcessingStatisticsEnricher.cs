@@ -2,12 +2,13 @@
 {
     using System;
     using NServiceBus;
-    using ServiceControl.Shell.Api.Ingestion;
+    using Particular.Operations.Ingestion.Api;
 
     public class ProcessingStatisticsEnricher : IEnrichAuditMessageSnapshots
     {
-        public void Enrich(HeaderCollection headers, SnapshotMetadata metadata)
+        public void Enrich(IngestedMessage message, AuditMessageSnapshot snapshot)
         {
+            var headers = message.Headers;
             var processingEnded = DateTime.MinValue;
             var timeSent = DateTime.MinValue;
             var processingStarted = DateTime.MinValue;
@@ -17,7 +18,6 @@
             if (headers.TryGet(Headers.TimeSent, out timeSentValue))
             {
                 timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
-                metadata.Set("TimeSent", timeSent);
             }
 
             string processingStartedValue;
@@ -41,16 +41,12 @@
                 criticalTime = processingEnded - timeSent;
             }
 
-            metadata.Set("CriticalTime", criticalTime);
-
             var processingTime = TimeSpan.Zero;
 
             if (processingEnded != DateTime.MinValue && processingStarted != DateTime.MinValue)
             {
                 processingTime = processingEnded - processingStarted;
             }
-
-            metadata.Set("ProcessingTime", processingTime);
 
             var deliveryTime = TimeSpan.Zero;
 
@@ -59,7 +55,13 @@
                 deliveryTime = processingStarted - timeSent;
             }
 
-            metadata.Set("DeliveryTime", deliveryTime);
+            snapshot.Processing = new ProcessingStatistics
+            {
+                TimeSent = timeSent,
+                CriticalTime = criticalTime,
+                ProcessingTime = processingTime,
+                DeliveryTime = deliveryTime
+            };
         }
     }
 }

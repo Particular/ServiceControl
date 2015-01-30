@@ -4,21 +4,16 @@
     using System.Collections.Generic;
     using System.Linq;
     using Particular.Backend.Debugging.Api;
-    using ServiceControl.Shell.Api.Ingestion;
-
-
-    public class BodyEnricher : IEnrichAuditMessageSnapshots
-    {
-        
-    }
+    using Particular.Operations.Ingestion.Api;
 
     public class SagaRelationshipsEnricher : IEnrichAuditMessageSnapshots
     {
-        public void Enrich(HeaderCollection headers, SnapshotMetadata metadata)
+        public void Enrich(IngestedMessage message, AuditMessageSnapshot snapshot)
         {
-
+            var headers = message.Headers;
             string sagasInvokedRaw;
 
+            var invokedSagas = new List<SagaInfo>();
             if (headers.TryGet("NServiceBus.InvokedSagas", out sagasInvokedRaw))
             {
                 string sagasChangeRaw;
@@ -33,7 +28,7 @@
                     }
                 }
 
-                var sagas = sagasInvokedRaw.Split(';')
+                invokedSagas = sagasInvokedRaw.Split(';')
                     .Select(saga =>
                     {
                         var sagaInvoked = saga.Split(':');
@@ -49,8 +44,6 @@
                         };
                     })
                     .ToList();
-
-                metadata.Set("InvokedSagas", sagas);
             }
             else
             {
@@ -60,19 +53,24 @@
                 if (headers.TryGet(NServiceBus.Headers.SagaId, out sagaId)
                     && headers.TryGet(NServiceBus.Headers.SagaType, out sagaType))
                 {
-
-                    metadata.Set("InvokedSagas", new List<SagaInfo>{new SagaInfo{SagaId = Guid.Parse(sagaId),SagaType = sagaType.Split(',').First()}});
+                   invokedSagas = new List<SagaInfo>{new SagaInfo{SagaId = Guid.Parse(sagaId),SagaType = sagaType.Split(',').First()}};
                 }
             }
 
-
+            SagaInfo originatesFrom = null;
             string originatingSagaId;
             string originatingsagaType;
             if (headers.TryGet(NServiceBus.Headers.OriginatingSagaId, out originatingSagaId)
                 && headers.TryGet(NServiceBus.Headers.OriginatingSagaType, out originatingsagaType))
             {
-                metadata.Set("OriginatesFromSaga", new SagaInfo { SagaId = Guid.Parse(originatingSagaId), SagaType = originatingsagaType.Split(',').First() });
+                originatesFrom = new SagaInfo { SagaId = Guid.Parse(originatingSagaId), SagaType = originatingsagaType.Split(',').First() };
             }
+
+            snapshot.Sagas = new SagaInformation
+            {
+                InvokedSagas = invokedSagas,
+                OriginatesFromSaga = originatesFrom
+            };
         }
     }
 }

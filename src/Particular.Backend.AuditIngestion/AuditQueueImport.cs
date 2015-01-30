@@ -7,49 +7,38 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
-    using NServiceBus.Pipeline;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
-    using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Shell.Api.Ingestion;
+    using ServiceControl.MessageTypes;
 
     public class AuditQueueImport : IAdvancedSatellite, IDisposable
     {
-        public IBuilder Builder { get; set; }
-        public ISendMessages Forwarder { get; set; }
+        static readonly ILog Logger = LogManager.GetLogger(typeof(AuditQueueImport));
 
-#pragma warning disable 618
-        public PipelineExecutor PipelineExecutor { get; set; }
-        public LogicalMessageFactory LogicalMessageFactory { get; set; }
+        readonly IBuilder builder;
+        readonly ISendMessages forwarder;
+        readonly TransportMessageProcessor transportMessageProcessor;
+        SatelliteImportFailuresHandler satelliteImportFailuresHandler;
 
-#pragma warning restore 618
+
+        public AuditQueueImport(IBuilder builder, ISendMessages forwarder, TransportMessageProcessor transportMessageProcessor)
+        {
+            this.builder = builder;
+            this.forwarder = forwarder;
+            this.transportMessageProcessor = transportMessageProcessor;
+        }
 
         public bool Handle(TransportMessage message)
         {
-            InnerHandle(message);
-
-            return true;
-        }
-
-        void InnerHandle(TransportMessage message)
-        {
-            var ingestedMessage = new IngestedMessage(message.Headers, message.Body);
-
-            using (var childBuilder = Builder.CreateChildBuilder())
-            {
-                foreach (var processor in childBuilder.BuildAll<IProcessIngestedMessages>())
-                {
-                    processor.Process(ingestedMessage);
-                }
-            }
-
+            transportMessageProcessor.ProcessSuccessful(message);
             if (Settings.ForwardAuditMessages == true)
             {
-                Forwarder.Send(message, Settings.AuditLogQueue);
+                forwarder.Send(message, Settings.AuditLogQueue);
             }
+            return true;
         }
 
         public void Start()
@@ -99,7 +88,7 @@
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
-            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(Builder.Build<IDocumentStore>(),
+            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(builder.Build<IDocumentStore>(),
                 Path.Combine(Settings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
                 {
                     Message = tm,
@@ -115,9 +104,5 @@
                 satelliteImportFailuresHandler.Dispose();
             }
         }
-
-        SatelliteImportFailuresHandler satelliteImportFailuresHandler;
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(AuditQueueImport));
     }
 }

@@ -37,9 +37,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Debugging", "Debugging", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Audit", "Audit", "{69FBF1CF-C95D-4335-A719-5B7E11BD3EFF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.Backend.AuditIngestion", "Particular.Backend.AuditIngestion\Particular.Backend.AuditIngestion.csproj", "{1C186557-90FD-4E11-8B97-9F034EDDD929}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.Operations.Ingestion", "Particular.Backend.AuditIngestion\Particular.Operations.Ingestion.csproj", "{1C186557-90FD-4E11-8B97-9F034EDDD929}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.Backend.AuditIngestion.Api", "Particular.Backend.AuditIngestion.Api\Particular.Backend.AuditIngestion.Api.csproj", "{8683B0A4-A304-4A1C-9C68-3C59AA9E6A62}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.Operations.Ingestion.Api", "Particular.Backend.AuditIngestion.Api\Particular.Operations.Ingestion.Api.csproj", "{8683B0A4-A304-4A1C-9C68-3C59AA9E6A62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

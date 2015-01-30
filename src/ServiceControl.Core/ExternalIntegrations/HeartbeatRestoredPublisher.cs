@@ -14,7 +14,7 @@ namespace ServiceControl.ExternalIntegrations
             return new DispatchContext
             {
                 EndpointHost = @event.Endpoint.Host,
-                EndpointHostId = @event.Endpoint.HostId,
+                //EndpointHostId = @event.Endpoint.HostId, TODO
                 EndpointName = @event.Endpoint.Name,
                 RestoredAt = @event.RestoredAt,
             };

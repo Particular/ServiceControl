@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
     using Particular.Backend.Debugging.Enrichers;
-    using ServiceControl.Shell.Api.Ingestion;
+    using Particular.Operations.Ingestion.Api;
 
     class SnapshotUpdater
     {
@@ -13,16 +13,17 @@
             this.enrichers = enrichers;
         }
 
-        public void Update(AuditMessageSnapshot snapshot, HeaderCollection newHeaders)
+        public void Update(AuditMessageSnapshot snapshot, IngestedMessage message)
         {
             foreach (var enricher in enrichers)
             {
-                enricher.Enrich(newHeaders, snapshot.MessageMetadata);
+                enricher.Enrich(message, snapshot);
             }
-            foreach (var newHeader in newHeaders)
+            foreach (var newHeader in message.Headers)
             {
                 snapshot.Headers[newHeader.Key] = newHeader.Value;
             }
         }
+
     }
 }

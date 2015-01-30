@@ -38,7 +38,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     Endpoint = new EndpointDetails
                     {
                         Host = "LuckyHost",
-                        HostId = Guid.NewGuid(),
+                        HostId = Guid.NewGuid().ToString(),
                         Name = "LuckyEndpoint"
                     }
                     

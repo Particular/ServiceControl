@@ -138,6 +138,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Particular.Backend.AuditIngestion.Api\Particular.Operations.Ingestion.Api.csproj">
+      <Project>{8683B0A4-A304-4A1C-9C68-3C59AA9E6A62}</Project>
+      <Name>Particular.Operations.Ingestion.Api</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Core\ServiceControl.Core.csproj">
       <Project>{B66B966A-22DA-42C3-8FBC-472DB3B983D3}</Project>
       <Name>ServiceControl.Core</Name>
