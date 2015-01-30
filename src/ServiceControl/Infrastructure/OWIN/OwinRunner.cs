@@ -10,7 +10,10 @@
     {
         public void Start()
         {
-            webApp = WebApp.Start<Startup>(Settings.ApiUrl);
+            webApp = WebApp.Start<Startup>(new StartOptions(Settings.ApiUrl)
+            {
+                ServerFactory = "Nowin"
+            });
             Logger.InfoFormat("Api is now accepting requests on {0}", Settings.ApiUrl);
         }
 
