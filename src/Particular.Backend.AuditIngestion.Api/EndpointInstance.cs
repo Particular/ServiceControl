@@ -2,6 +2,9 @@
 {
     using System;
 
+    //TODO: Add version here
+
+
     /// <summary>
     /// Identifies a physical endpoint instance.
     /// </summary>

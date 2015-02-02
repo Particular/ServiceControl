@@ -3,7 +3,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class MessagesBodyTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
+    public class MessagesBodyTransformer : AbstractTransformerCreationTask<AuditMessageSnapshot>
     {
         public class Result
         {
@@ -16,13 +16,12 @@ namespace Particular.Backend.Debugging.RavenDB.Api
         public MessagesBodyTransformer()
         {
             TransformResults = messages => from message in messages
-                let metadata = message.MessageMetadata
-                select new
+                select new Result
                 {
-                    MessageId = metadata["MessageId"],
-                    Body = metadata["Body"],
-                    BodySize = (int)metadata["ContentLength"],
-                    ContentType = metadata["ContentType"],
+                    MessageId = message.MessageId,
+                    Body = message.Body != null ? message.Body.Text : null,
+                    BodySize = message.Body != null ? message.Body.ContentLenght : 0,
+                    ContentType = message.Body != null ? message.Body.ContentType : null,
                 };
         }
     }

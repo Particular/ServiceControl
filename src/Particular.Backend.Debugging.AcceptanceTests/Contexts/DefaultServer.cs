@@ -30,6 +30,7 @@
         {
             "ServiceControl",
             "ServiceControl.Core",
+            "Particular.Operations.Ingestion",
             "Particular.Backend.Debugging",
             "Particular.Backend.Debugging.Api",
             "Particular.Backend.Debugging.RavenDB",
@@ -40,7 +41,7 @@
 
         public virtual void AddMoreConfig()
         {
-            
+
         }
 
         public virtual void SetSerializer(Configure configure)
@@ -121,7 +122,7 @@
 
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
-            NLogConfigurator.Configure(new object[] {fileTarget}, logLevel);
+            NLogConfigurator.Configure(new object[] { fileTarget }, logLevel);
             LogManager.Configuration = nlogConfig;
         }
 

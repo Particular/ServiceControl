@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using NServiceBus;
     using Particular.Backend.Debugging.Api;
     using ServiceControl.Contracts.Operations;
 
@@ -31,7 +32,9 @@
         public string RelatedToId { get; set; }
         public string MessageType { get; set; }
         public bool IsSystemMessage { get; set; }
-        public string ReceivingEndpointName { get; set; }
+        public EndpointDetails ReceivingEndpoint { get; set; }
+        public EndpointDetails SendingEndpoint { get; set; }
+        public MessageIntentEnum MessageIntent { get; set; }
     }
 
     public class ProcessingStatistics

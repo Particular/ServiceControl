@@ -29,6 +29,15 @@ namespace Particular.Backend.Debugging.RavenDB.Api
         public MessagesViewIndex()
         {
             AddMap<MessageSnapshotDocument>(messages => from message in messages
+                let headerValues = message.Headers.Values.ToArray()
+                let query = new[]
+                {
+                    message.MessageId,
+                    message.MessageType,
+                    message.SendingEndpoint.Name,
+                    message.ReceivingEndpoint.Name,
+                    message.Body != null ? message.Body.Text : ""
+                }.Concat(headerValues).ToArray()
                 select new SortAndFilterOptions
                 {
                     MessageId = message.MessageId,
@@ -37,11 +46,11 @@ namespace Particular.Backend.Debugging.RavenDB.Api
                     Status = message.Status,
                     TimeSent = message.Processing.TimeSent,
                     ProcessedAt = message.AttemptedAt,
-                    ReceivingEndpointName = message.ReceivingEndpointName,
+                    ReceivingEndpointName = message.ReceivingEndpoint.Name,
                     CriticalTime = message.Processing.CriticalTime,
                     ProcessingTime = message.Processing.ProcessingTime,
                     DeliveryTime = message.Processing.DeliveryTime,
-                    Query = message.Body != null && message.Body.Text != null ? new[] { message.Body.Text } : new string[0],
+                    Query = query,
                     ConversationId = message.ConversationId,
                 });
 
