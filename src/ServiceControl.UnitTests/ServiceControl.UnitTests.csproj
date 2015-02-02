@@ -92,6 +92,7 @@
   <ItemGroup>
     <Compile Include="AuditImport\AuditImportTests.cs" />
     <Compile Include="CompositeViews\FailedMessageTest.cs" />
+    <Compile Include="Expiration\PeriodicExecutorTests.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverterTests.cs" />
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Expiration\CustomExpirationBundleTests.cs" />
