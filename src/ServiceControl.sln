@@ -6,6 +6,13 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl", "ServiceControl\ServiceControl.csproj", "{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C303C107-7222-4EB4-8AF4-D61BCF99F917} = {C303C107-7222-4EB4-8AF4-D61BCF99F917}
+		{5D4C8134-EF7E-4493-A7D7-84AB8CABD540} = {5D4C8134-EF7E-4493-A7D7-84AB8CABD540}
+		{1C186557-90FD-4E11-8B97-9F034EDDD929} = {1C186557-90FD-4E11-8B97-9F034EDDD929}
+		{B66B966A-22DA-42C3-8FBC-472DB3B983D3} = {B66B966A-22DA-42C3-8FBC-472DB3B983D3}
+		{1CF8A2C4-21B5-4826-BCAF-3F0B99B5C3AA} = {1CF8A2C4-21B5-4826-BCAF-3F0B99B5C3AA}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTests", "ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
 EndProject
@@ -26,6 +33,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.Backend.Debugging.Api", "Particular.Backend.Debugging.Api\Particular.Backend.Debugging.Api.csproj", "{3D470493-002A-41F1-A555-FF84257C4E01}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.Backend.Debugging.RavenDB", "Particular.Backend.Debugging.RavenDB\Particular.Backend.Debugging.RavenDB.csproj", "{C303C107-7222-4EB4-8AF4-D61BCF99F917}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5D4C8134-EF7E-4493-A7D7-84AB8CABD540} = {5D4C8134-EF7E-4493-A7D7-84AB8CABD540}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.Backend.Debugging.RavenDB.UnitTests", "Particular.Backend.Debugging.RavenDB.UnitTests\Particular.Backend.Debugging.RavenDB.UnitTests.csproj", "{E5AE82D8-0E6B-49A3-9440-86EEBD7AA7D6}"
 EndProject
@@ -38,6 +48,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Audit", "Audit", "{69FBF1CF-C95D-4335-A719-5B7E11BD3EFF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.Operations.Ingestion", "Particular.Backend.AuditIngestion\Particular.Operations.Ingestion.csproj", "{1C186557-90FD-4E11-8B97-9F034EDDD929}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8683B0A4-A304-4A1C-9C68-3C59AA9E6A62} = {8683B0A4-A304-4A1C-9C68-3C59AA9E6A62}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.Operations.Ingestion.Api", "Particular.Backend.AuditIngestion.Api\Particular.Operations.Ingestion.Api.csproj", "{8683B0A4-A304-4A1C-9C68-3C59AA9E6A62}"
 EndProject

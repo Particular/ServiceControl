@@ -38,6 +38,13 @@ namespace ServiceControl.MessageTypes
                 return replyToAddress.Split('@').First();
             }
 
+            // If the ReplyToAddress is null, then the message came from a send-only endpoint. 
+            // This message could be a failed message.  
+            if (headers.TryGet("NServiceBus.FailedQ", out endpoint))
+            {
+                return endpoint;
+            }
+
             string messageTypes;
             if (headers.TryGet("NServiceBus.EnclosedMessageTypes", out messageTypes))
             {

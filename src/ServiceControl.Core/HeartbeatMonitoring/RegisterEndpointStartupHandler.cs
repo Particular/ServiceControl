@@ -18,7 +18,7 @@
                 e.EndpointDetails = new EndpointDetails
                 {
                     Host = message.Host,
-                    HostId = message.HostId,
+                    HostId = message.HostId.ToString("N"),
                     Name = message.Endpoint
                 };
                 e.StartedAt = message.StartedAt;

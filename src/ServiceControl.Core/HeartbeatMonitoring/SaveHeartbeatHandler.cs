@@ -33,7 +33,7 @@
             }
                 
 
-            var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId);
+            var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString("N"));
 
             var heartbeat = Session.Load<Heartbeat>(id);
           
@@ -67,7 +67,7 @@
             heartbeat.LastReportAt = message.ExecutedAt;
             heartbeat.EndpointDetails = new EndpointDetails
             {
-                HostId = message.HostId,
+                HostId = message.HostId.ToString("N"),
                 Host = message.Host,
                 Name = message.EndpointName
             };

@@ -13,7 +13,7 @@
 
         public void Handle(HeartbeatingEndpointDetected message)
         {
-            var id = DeterministicGuid.MakeId(message.Endpoint.Name, message.Endpoint.HostId.ToString());
+            var id = DeterministicGuid.MakeId(message.Endpoint.Name, message.Endpoint.HostId);
 
             if (KnownEndpointsCache.TryAdd(id))
             {
