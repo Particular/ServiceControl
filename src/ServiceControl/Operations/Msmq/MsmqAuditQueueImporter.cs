@@ -58,6 +58,11 @@ namespace ServiceControl.Operations
                 return;
             }
 
+            if (TerminateIfForwardingIsEnabledButQueueNotWritable())
+            {
+                return;
+            }
+            
             performanceCounters.Initialize();
 
             queuePeeker = new MessageQueue(MsmqUtilities.GetFullPath(Settings.AuditQueue), QueueAccessMode.Peek);
@@ -92,6 +97,28 @@ namespace ServiceControl.Operations
             queuePeeker.Dispose();
 
             stopResetEvent.Dispose();
+        }
+
+        bool TerminateIfForwardingIsEnabledButQueueNotWritable()
+        {
+            if (Settings.ForwardAuditMessages != true)
+            {
+                return false;
+            }
+
+            try
+            {
+                //Send a message to test the forwarding queue
+                var testMessage = new TransportMessage(Guid.Empty.ToString("N"), new Dictionary<string, string>());
+                Forwarder.Send(testMessage, Settings.AuditLogQueue);
+                return false;
+            }
+            catch (Exception messageForwardingException)
+            {
+                //This call to RaiseCriticalError has to be on a seperate thread  otherwise it deadlocks and doesn't stop correctly.  
+                ThreadPool.QueueUserWorkItem(state => Configure.Instance.RaiseCriticalError(string.Format("Audit Import cannot start"), messageForwardingException));
+                return true;
+            }
         }
 
         static MessageQueue CreateReceiver()
