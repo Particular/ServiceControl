@@ -8,11 +8,11 @@
     using Particular.Backend.Debugging.AcceptanceTests.Contexts;
     using Particular.Backend.Debugging.Api;
 
-    public class When_an_endpoint_is_running_with_debug_sessions_enabled : AcceptanceTest
+    public class When_a_custom_header_is_added_to_a_message : AcceptanceTest
     {
 
         [Test]//, Explicit("Until we can fixed the missing file raven issue")]
-        public void Debug_session_id_should_be_present_in_header()
+        public void It_is_present_in_the_audit_snapshot()
         {
             var context = new MyContext();
             MessagesView message = null;
@@ -22,14 +22,18 @@
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
-                    bus.Send(new MyMessage());
+                    var messsage = new MyMessage();
+
+                    Headers.SetMessageHeader(messsage, "SomeHeader", "SomeValue");
+
+                    bus.Send(messsage);
                 }))
                 .WithEndpoint<Receiver>()
                 .Done(c => TryGetSingle("/api/messages", out message))
                 .Run(TimeSpan.FromSeconds(40));
 
             Assert.NotNull(message, "No message was returned by the management api");
-            Assert.AreEqual(context.MessageId, message.Headers.SingleOrDefault(_ => _.Key == "ServiceControl.DebugSessionId").Value);
+            Assert.AreEqual("SomeValue", message.Headers.SingleOrDefault(_ => _.Key == "SomeHeader").Value);
 
         }
 

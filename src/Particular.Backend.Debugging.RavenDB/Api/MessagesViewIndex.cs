@@ -29,15 +29,14 @@ namespace Particular.Backend.Debugging.RavenDB.Api
         public MessagesViewIndex()
         {
             AddMap<MessageSnapshotDocument>(messages => from message in messages
-                let headerValues = message.Headers.Values.ToArray()
-                let query = new[]
+                let q = new[]
                 {
                     message.MessageId,
                     message.MessageType,
                     message.SendingEndpoint.Name,
                     message.ReceivingEndpoint.Name,
                     message.Body != null ? message.Body.Text : ""
-                }.Concat(headerValues).ToArray()
+                }
                 select new SortAndFilterOptions
                 {
                     MessageId = message.MessageId,
@@ -50,7 +49,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
                     CriticalTime = message.Processing.CriticalTime,
                     ProcessingTime = message.Processing.ProcessingTime,
                     DeliveryTime = message.Processing.DeliveryTime,
-                    Query = query,
+                    Query = q,
                     ConversationId = message.ConversationId,
                 });
 

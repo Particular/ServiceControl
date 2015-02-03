@@ -5,7 +5,7 @@
     using Particular.Operations.Ingestion.Api;
     using ServiceControl.Contracts.Operations;
 
-    class FailedMessageImporter : IProcessFailedMessages
+    public class FailedMessageImporter : IProcessFailedMessages
     {
         readonly IStoreMessageSnapshots snapshotStore;
         readonly SnapshotUpdater snapshotUpdater;

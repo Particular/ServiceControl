@@ -4,7 +4,7 @@
     using Particular.Backend.Debugging.Enrichers;
     using Particular.Operations.Ingestion.Api;
 
-    class SnapshotUpdater
+    public class SnapshotUpdater
     {
         readonly IEnumerable<IEnrichAuditMessageSnapshots> enrichers;
 
