@@ -99,7 +99,7 @@
     <Compile Include="Heartbeats\HeartbeatStatusProviderTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapperTests.cs" />
-    <Compile Include="Infrastructure\RavenDB\TestWithRavenDB.cs" />
+    <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
   </ItemGroup>

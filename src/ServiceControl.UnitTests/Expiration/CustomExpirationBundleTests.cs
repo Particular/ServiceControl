@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
-    using Infrastructure.RavenDB;
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
@@ -13,7 +12,7 @@
     using ServiceControl.Infrastructure.RavenDB.Expiration;
 
     [TestFixture]
-    public class CustomExpirationBundleTests : TestWithRavenDB
+    public class CustomExpirationBundleTests
     {
         [Test]
         public void Processed_messages_are_being_expired()
@@ -38,7 +37,7 @@
                 session.SaveChanges();
             }
 
-            WaitForIndexing(documentStore);
+            documentStore.WaitForIndexing();
             Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
 
             using (var session = documentStore.OpenSession())
@@ -85,7 +84,7 @@
                 session.SaveChanges();
             }
 
-            WaitForIndexing(documentStore);
+            documentStore.WaitForIndexing();
             Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 10);
             using (var session = documentStore.OpenSession())
             {
@@ -125,7 +124,7 @@
                 session.SaveChanges();
             }
 
-            WaitForIndexing(documentStore);
+            documentStore.WaitForIndexing();
             Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
 
             using (var session = documentStore.OpenSession())
@@ -155,7 +154,7 @@
                 session.SaveChanges();
             }
 
-            WaitForIndexing(documentStore);
+            documentStore.WaitForIndexing();
             Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
 
             using (var session = documentStore.OpenSession())
@@ -191,7 +190,7 @@
                 session.SaveChanges();
             }
 
-            WaitForIndexing(documentStore);
+            documentStore.WaitForIndexing();
             Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
 
             using (var session = documentStore.OpenSession())

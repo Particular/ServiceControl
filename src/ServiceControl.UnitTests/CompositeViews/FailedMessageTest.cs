@@ -4,14 +4,13 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
-    using Infrastructure.RavenDB;
     using MessageFailures;
     using NUnit.Framework;
     using Raven.Client;
     using ServiceControl.MessageFailures.Api;
 
     [TestFixture]
-    public class FailedMessagesTests : TestWithRavenDB
+    public class FailedMessagesTests 
     {
         [Test]
         public void Should_allow_errors_with_no_metadata()

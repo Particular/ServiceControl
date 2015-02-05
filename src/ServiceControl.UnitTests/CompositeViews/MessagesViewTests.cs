@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
-    using Infrastructure.RavenDB;
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
@@ -13,7 +12,7 @@
     using ServiceControl.CompositeViews.Messages;
 
     [TestFixture]
-    public class MessagesViewTests : TestWithRavenDB
+    public class MessagesViewTests 
     {
         [Test]
         public void Filter_out_system_messages()
@@ -82,7 +81,7 @@
                 session.SaveChanges();
             }
 
-            WaitForIndexing(documentStore);
+            documentStore.WaitForIndexing();
 
             using (var session = documentStore.OpenSession())
             {
@@ -125,7 +124,7 @@
                 session.SaveChanges();
             }
 
-            WaitForIndexing(documentStore);
+            documentStore.WaitForIndexing();
 
             using (var session = documentStore.OpenSession())
             {
@@ -161,7 +160,7 @@
                 session.SaveChanges();
             }
 
-            WaitForIndexing(documentStore);
+            documentStore.WaitForIndexing();
 
             using (var session = documentStore.OpenSession())
             {
