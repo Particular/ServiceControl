@@ -1,5 +1,6 @@
 ﻿namespace ServiceBus.Management.Infrastructure.OWIN
 {
+    using System;
     using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
     using Microsoft.Owin;
@@ -15,12 +16,8 @@
 
             app.Use((context, func) =>
             {
-                if (!context.Request.PathBase.HasValue)
-                {
-                    context.Request.Path = new PathString("/");
-                    context.Request.PathBase = new PathString("/api");
-                }
-
+                context.Request.PathBase = new PathString("/api");
+                context.Request.Path = new PathString(context.Request.Path.Value.Replace("/api", String.Empty));
                 return func();
             });
             
