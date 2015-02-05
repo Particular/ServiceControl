@@ -167,7 +167,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Audit\Audit_Messages_Have_Proper_IsSytemMessage_Tests.cs" />
+    <Compile Include="Audit\Audit_Messages_Have_Proper_IsSystemMessage_Tests.cs" />
     <Compile Include="Contexts\ExternalIntegrationsManagementEndpointSetup.cs" />
     <Compile Include="Contexts\TransportIntegration\ActiveMqTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />

@@ -4,13 +4,11 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Transports;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.MessageFailures.Api;
 
-    class Audit_Messages_Have_Proper_IsSytemMessage_Tests: AcceptanceTest
+    class Audit_Messages_Have_Proper_IsSystemMessage_Tests: AcceptanceTest
     {
         [Test]
         public void Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()

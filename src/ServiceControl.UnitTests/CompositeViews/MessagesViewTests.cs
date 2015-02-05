@@ -93,12 +93,12 @@
                     .First();
                 Assert.AreEqual("1", firstByCriticalTime.Id);
 
-                var firstByCriticalTimeDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var firstByCriticalTimeDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.CriticalTime)
                     .Where(x => x.CriticalTime != null)
                     .AsProjection<ProcessedMessage>()
                     .First();
-                Assert.AreEqual("2", firstByCriticalTimeDesc.Id);
+                Assert.AreEqual("2", firstByCriticalTimeDescription.Id);
             }
         }
         [Test]
@@ -135,11 +135,11 @@
                     .First();
                 Assert.AreEqual("3", firstByTimeSent.Id);
 
-                var firstByTimeSentDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var firstByTimeSentDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.TimeSent)
                     .OfType<ProcessedMessage>()
                     .First();
-                Assert.AreEqual("1", firstByTimeSentDesc.Id);
+                Assert.AreEqual("1", firstByTimeSentDescription.Id);
             }
         }
 
