@@ -32,6 +32,15 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ApprovalTests">
+      <HintPath>..\packages\ApprovalTests.3.0.8\lib\net40\ApprovalTests.dll</HintPath>
+    </Reference>
+    <Reference Include="ApprovalUtilities">
+      <HintPath>..\packages\ApprovalUtilities.3.0.8\lib\net45\ApprovalUtilities.dll</HintPath>
+    </Reference>
+    <Reference Include="ApprovalUtilities.Net45">
+      <HintPath>..\packages\ApprovalUtilities.3.0.8\lib\net45\ApprovalUtilities.Net45.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm, Version=5.6.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -59,6 +68,9 @@
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="ObjectApproval">
+      <HintPath>..\packages\ObjectApproval.1.0.0\Lib\NET40\ObjectApproval.dll</HintPath>
     </Reference>
     <Reference Include="Raven.Abstractions">
       <HintPath>..\packages\RavenDB.Client.2.5.2916\lib\net45\Raven.Abstractions.dll</HintPath>
@@ -90,6 +102,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApprovalTestConfig.cs" />
     <Compile Include="AuditImport\AuditImportTests.cs" />
     <Compile Include="CompositeViews\FailedMessageTest.cs" />
     <Compile Include="Expiration\PeriodicExecutorTests.cs" />
@@ -102,6 +115,8 @@
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
+    <Compile Include="SagaAudit\SagaDetailsIndexTests.cs" />
+    <Compile Include="SagaAudit\SagaListIndexTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">

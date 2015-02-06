@@ -10,6 +10,7 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
+    using ServiceControl.SagaAudit;
 
     [TestFixture]
     public class CustomExpirationBundleTests
@@ -18,35 +19,52 @@
         public void Processed_messages_are_being_expired()
         {
             var processedMessage = new ProcessedMessage
-            {
-                Id = "1",
-                ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 3)),
-            };
+                                   {
+                                       Id = "1",
+                                       ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
+                                   };
 
             var processedMessage2 = new ProcessedMessage
-            {
-                Id = "2",
-                ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),                
-            };
-            processedMessage2.MessageMetadata["IsSystemMessage"] = true;
+                                    {
+                                        Id = "2",
+                                        ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring*2)),
+                                        MessageMetadata = new Dictionary<string, object>
+                                                          {
+                                                              {
+                                                                  "IsSystemMessage", true
+                                                              }
+                                                          }
+                                    };
+            var sagaSnapshot1 = new SagaSnapshot
+                                   {
+                                       Id = Guid.NewGuid(),
+                                       ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
+                                   };
+
+            var sagaSnapshot2 = new SagaSnapshot
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring*2)),
+                                    };
 
             using (var session = documentStore.OpenSession())
             {
                 session.Store(processedMessage);
                 session.Store(processedMessage2);
+                session.Store(sagaSnapshot1);
+                session.Store(sagaSnapshot2);
                 session.SaveChanges();
             }
 
             documentStore.WaitForIndexing();
-            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
+            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds*1000*2);
 
             using (var session = documentStore.OpenSession())
             {
-                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
-                Assert.Null(msg);
-
-                msg = session.Load<ProcessedMessage>(processedMessage2.Id);
-                Assert.Null(msg);
+                Assert.Null(session.Load<ProcessedMessage>(processedMessage.Id));
+                Assert.Null(session.Load<ProcessedMessage>(processedMessage2.Id));
+                Assert.Null(session.Load<ProcessedMessage>(sagaSnapshot1.Id));
+                Assert.Null(session.Load<ProcessedMessage>(sagaSnapshot2.Id));
             }
         }
 
