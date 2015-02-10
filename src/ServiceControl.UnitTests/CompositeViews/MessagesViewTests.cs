@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
-    using Infrastructure.RavenDB;
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
@@ -13,7 +12,7 @@
     using ServiceControl.CompositeViews.Messages;
 
     [TestFixture]
-    public class MessagesViewTests : TestWithRavenDB
+    public class MessagesViewTests 
     {
         [Test]
         public void Filter_out_system_messages()
@@ -82,7 +81,7 @@
                 session.SaveChanges();
             }
 
-            WaitForIndexing(documentStore);
+            documentStore.WaitForIndexing();
 
             using (var session = documentStore.OpenSession())
             {
@@ -93,12 +92,12 @@
                     .First();
                 Assert.AreEqual("1", firstByCriticalTime.Id);
 
-                var firstByCriticalTimeDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var firstByCriticalTimeDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.CriticalTime)
                     .Where(x => x.CriticalTime != null)
                     .AsProjection<ProcessedMessage>()
                     .First();
-                Assert.AreEqual("2", firstByCriticalTimeDesc.Id);
+                Assert.AreEqual("2", firstByCriticalTimeDescription.Id);
             }
         }
         [Test]
@@ -125,7 +124,7 @@
                 session.SaveChanges();
             }
 
-            WaitForIndexing(documentStore);
+            documentStore.WaitForIndexing();
 
             using (var session = documentStore.OpenSession())
             {
@@ -135,11 +134,11 @@
                     .First();
                 Assert.AreEqual("3", firstByTimeSent.Id);
 
-                var firstByTimeSentDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var firstByTimeSentDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.TimeSent)
                     .OfType<ProcessedMessage>()
                     .First();
-                Assert.AreEqual("1", firstByTimeSentDesc.Id);
+                Assert.AreEqual("1", firstByTimeSentDescription.Id);
             }
         }
 
@@ -161,7 +160,7 @@
                 session.SaveChanges();
             }
 
-            WaitForIndexing(documentStore);
+            documentStore.WaitForIndexing();
 
             using (var session = documentStore.OpenSession())
             {

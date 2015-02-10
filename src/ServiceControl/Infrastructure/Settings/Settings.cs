@@ -146,11 +146,13 @@
 
         public static int ExternalIntegrationsDispatchingBatchSize = SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
+        public static int MaximumMessageThroughputPerSecond = SettingsReader<int>.Read("MaximumMessageThroughputPerSecond", 350);
+
         public static string DbPath;
         public static Address ErrorLogQueue;
         public static Address ErrorQueue;
         public static Address AuditQueue;
-        public static bool ForwardAuditMessages = SettingsReader<bool>.Read("ForwardAuditMessages");
+        public static bool? ForwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;
         

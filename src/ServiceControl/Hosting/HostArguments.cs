@@ -15,7 +15,6 @@ namespace Particular.ServiceControl.Hosting
         public HostArguments(string[] args)
         {
             var executionMode = ExecutionMode.Run;
-
             commands = new List<Type> { typeof(RunCommand) };
             startMode = StartMode.Automatic;
             ServiceName = "Particular.ServiceControl";
@@ -83,20 +82,20 @@ namespace Particular.ServiceControl.Hosting
                 },
             };
 
-            maintenanceOptions = new OptionSet
-            {
-                {
-                    "m|maint|maintenance",
-                    @"Run RavenDB only - use for DB maintenance", 
-                    s => {
-                        commands = new List<Type>
-                        {
-                            typeof(MaintCommand)
-                        };
-                        executionMode = ExecutionMode.Maintenance;
-                    }
-                }
-            };
+            var maintenanceOptions = new OptionSet
+                                           {
+                                               {
+                                                   "m|maint|maintenance",
+                                                   @"Run RavenDB only - use for DB maintenance", 
+                                                   s => {
+                                                            commands = new List<Type>
+                                                                       {
+                                                                           typeof(MaintCommand)
+                                                                       };
+                                                            executionMode = ExecutionMode.Maintenance;
+                                                   }
+                                               }
+                                           };
 
          
             uninstallOptions = new OptionSet
@@ -135,6 +134,7 @@ namespace Particular.ServiceControl.Hosting
                         commands = new List<Type>
                         {
                             typeof(WriteOptionsCommand),
+                            typeof(CheckMandatoryInstallOptionsCommand),
                             typeof(RunBootstrapperAndNServiceBusInstallers),
                             typeof(InstallCommand)
                         };
@@ -299,7 +299,6 @@ namespace Particular.ServiceControl.Hosting
         readonly OptionSet installOptions;
         readonly OptionSet uninstallOptions;
         readonly OptionSet defaultOptions;
-        readonly OptionSet maintenanceOptions;
         List<Type> commands;
         Dictionary<string, string> options = new Dictionary<string, string>();
         StartMode startMode;

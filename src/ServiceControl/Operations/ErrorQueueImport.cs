@@ -1,7 +1,9 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Threading;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -54,6 +56,11 @@
 
         public void Start()
         {
+
+            if (TerminateIfForwardingQueueNotWritable())
+            {
+                return;
+            }
             Logger.InfoFormat("Error import is now started, feeding error messages from: {0}", InputAddress);
         }
 
@@ -81,6 +88,24 @@
 
             return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
         }
+
+        bool TerminateIfForwardingQueueNotWritable()
+        {
+            try
+            {
+                //Send a message to test the forwarding queue
+                var testMessage = new TransportMessage(Guid.Empty.ToString("N"), new Dictionary<string, string>());
+                Forwarder.Send(testMessage, Settings.ErrorLogQueue);
+                return false;
+            }
+            catch (Exception messageForwardingException)
+            {
+                //This call to RaiseCriticalError has to be on a seperate thread  otherwise it deadlocks and doesn't stop correctly.  
+                ThreadPool.QueueUserWorkItem(state => Configure.Instance.RaiseCriticalError(string.Format("Error Import cannot start"), messageForwardingException));
+                return true;
+            }
+        }
+
 
         public void Dispose()
         {
