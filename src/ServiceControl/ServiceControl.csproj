@@ -444,16 +444,17 @@
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
     <Compile Include="Operations\AttemptToReImportFailedMessages.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
+    <Compile Include="SagaAudit\New\SagaSnapshot.cs" />
+    <Compile Include="SagaAudit\SagaDetailsIndex.cs" />
+    <Compile Include="SagaAudit\SagaListIndex.cs" />
     <Compile Include="SagaAudit\SagaRelationshipsEnricher.cs" />
-    <Compile Include="SagaAudit\ProcessingState.cs" />
     <Compile Include="SagaAudit\SagaInfo.cs" />
     <Compile Include="SagaAudit\SagaUpdatedHandler.cs" />
     <Compile Include="SagaAudit\InitiatingMessage.cs" />
-    <Compile Include="SagaAudit\SagaHistory.cs" />
+    <Compile Include="SagaAudit\Old\SagaHistory.cs" />
     <Compile Include="SagaAudit\ResultingMessage.cs" />
-    <Compile Include="SagaAudit\SagaStateChange.cs" />
+    <Compile Include="SagaAudit\Old\SagaStateChange.cs" />
     <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
-    <Compile Include="SagaAudit\SageMessageState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">

@@ -9,7 +9,7 @@
     using NServiceBus.Saga;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
-  
+
     public class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
     {
         [Test]
