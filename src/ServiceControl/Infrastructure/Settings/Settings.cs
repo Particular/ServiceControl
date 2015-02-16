@@ -69,7 +69,7 @@
         
         static Address GetAuditImportFailureQueue()
         {
-            var value = SettingsReader<string>.Read("ServiceBus", "AuditFailedImportQueue", null);
+            var value = SettingsReader<string>.Read("ServiceBus", "AuditImportFailureQueue", null);
             if (value == null)
             {
                 Logger.Info("No settings found for failed import audit queue, default name will be used");
