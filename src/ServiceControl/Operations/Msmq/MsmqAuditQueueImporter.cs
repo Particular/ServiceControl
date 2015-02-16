@@ -27,12 +27,6 @@ namespace ServiceControl.Operations
             this.store = store;
             this.builder = builder;
             enabled = receiver is MsmqDequeueStrategy;
-
-            importFailuresHandler = new SatelliteImportFailuresHandler(store,
-                Path.Combine(Settings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
-                {
-                    Message = tm,
-                });
         }
 
         public IBus Bus { get; set; }
@@ -42,6 +36,8 @@ namespace ServiceControl.Operations
 
         public void Start()
         {
+            importFailuresHandler = new SatelliteImportFailuresHandler(Forwarder, Settings.AuditImportFailureQueue, Path.Combine(Settings.LogPath, @"FailedImports\Audit"));
+
             // Any messages that fail conversion to a transportmessage is sent to the particular.servicecontrol.errors queue using low level Api
             // The actual queue name is based on service name to support mulitple instances on same host (particular.servicecontrol.errors is the default)
             var serviceControlErrorQueueAddress = Address.Parse(string.Format("{0}.errors", Settings.ServiceName));
@@ -400,7 +396,7 @@ namespace ServiceControl.Operations
         readonly IBuilder builder;
         readonly CountDownEvent countDownEvent = new CountDownEvent();
         readonly bool enabled;
-        readonly SatelliteImportFailuresHandler importFailuresHandler;
+        SatelliteImportFailuresHandler importFailuresHandler;
         readonly object lockObj = new object();
         readonly object batchErrorLockObj = new object();
         readonly MsmqAuditImporterPerformanceCounters performanceCounters = new MsmqAuditImporterPerformanceCounters();

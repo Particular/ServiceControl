@@ -5,16 +5,16 @@
     using System.IO;
     using NServiceBus;
     using NServiceBus.Faults;
-    using Raven.Client;
+    using NServiceBus.Transports;
     using ServiceBus.Management.Infrastructure.Installers;
 
     public class SatelliteImportFailuresHandler : IManageMessageFailures, IDisposable
     {
-        public SatelliteImportFailuresHandler(IDocumentStore store, string logPath, Func<TransportMessage, object> messageBuilder)
+        public SatelliteImportFailuresHandler( ISendMessages forwarder, Address failedImportQueue, string logPath)
         {
-            this.store = store;
+            this.forwarder = forwarder;
+            this.failedImportQueue = failedImportQueue;
             this.logPath = logPath;
-            this.messageBuilder = messageBuilder;
 
             Directory.CreateDirectory(logPath);
         }
@@ -26,12 +26,12 @@
 
         public void SerializationFailedForMessage(TransportMessage message, Exception e)
         {
-            Handle(e, messageBuilder(message), logPath);
+            Handle(e, message, logPath);
         }
 
         public void ProcessingAlwaysFailsForMessage(TransportMessage message, Exception e)
         {
-            Handle(e, messageBuilder(message), logPath);
+            Handle(e, message, logPath);
         }
 
         public void FailedToReceive(Exception exception)
@@ -56,14 +56,14 @@
 
         public void Log(TransportMessage message, Exception e)
         {
-            DoLogging(e, messageBuilder(message), logPath);
+            DoLogging(e, message, logPath);
         }
 
-        void Handle(Exception exception, dynamic failure, string logDirectory)
+        void Handle(Exception exception, TransportMessage message, string logDirectory)
         {
             try
             {
-                DoLogging(exception, failure, logDirectory);
+                DoLogging(exception, message, logDirectory);
             }
             finally
             {
@@ -71,18 +71,11 @@
             }
         }
 
-        void DoLogging(Exception exception, dynamic failure, string logDirectory)
+        void DoLogging(Exception exception, TransportMessage message, string logDirectory)
         {
             var id = Guid.NewGuid();
 
-            using (var session = store.OpenSession())
-            {
-                failure.Id = id;
-
-                session.Store(failure);
-                session.SaveChanges();
-            }
-
+            forwarder.Send(message, failedImportQueue);
             var filePath = Path.Combine(logDirectory, id + ".txt");
             File.WriteAllText(filePath, exception.ToFriendlyString());
             WriteEvent("A message import has failed. A log file has been written to " + filePath);
@@ -97,8 +90,8 @@
         }
 
         readonly ImportFailureCircuitBreaker failureCircuitBreaker = new ImportFailureCircuitBreaker();
+        readonly ISendMessages forwarder;
+        readonly Address failedImportQueue;
         readonly string logPath;
-        readonly Func<TransportMessage, object> messageBuilder;
-        readonly IDocumentStore store;
     }
 }

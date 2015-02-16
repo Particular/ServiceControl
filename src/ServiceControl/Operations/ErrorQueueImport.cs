@@ -80,11 +80,7 @@
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
-            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(Builder.Build<IDocumentStore>(),
-                Path.Combine(Settings.LogPath, @"FailedImports\Error"), tm => new FailedErrorImport
-                {
-                    Message = tm,
-                });
+            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(Forwarder, Settings.ErrorImportFailureQueue, Path.Combine(Settings.LogPath, @"FailedImports\Error"));
 
             return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
         }
