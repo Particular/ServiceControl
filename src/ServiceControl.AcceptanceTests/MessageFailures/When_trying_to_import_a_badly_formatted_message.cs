@@ -17,7 +17,7 @@
         const string spyQueueName = "messagefailures.spy.default";
 
         [Test]
-        public void Should_be_moved_to_the_service_control_error_queue()
+        public void Should_be_moved_to_the_configured_failed_imports_queue()
         {
             var context = new MyContext()
             {
