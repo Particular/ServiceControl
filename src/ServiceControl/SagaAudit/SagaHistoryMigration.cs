@@ -60,16 +60,14 @@
                 .AddOrder("LastModified", true);
 
             QueryHeaderInformation information;
-            var processedRecord = false;
             using (var enumerator = querySession.Advanced.Stream(luceneQuery, out information))
             {
                 while (enumerator.MoveNext())
                 {
-                    processedRecord = true;
                     ProcessHistoryRecord(enumerator.Current);
                 }
             }
-            wasCleanEptyRun = information.IsStable && !processedRecord;
+            wasCleanEptyRun = information.IsStable && information.TotalResults == 0;
         }
 
         void ProcessHistoryRecord(StreamResult<SagaHistory> result)
