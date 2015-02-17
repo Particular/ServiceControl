@@ -27,10 +27,10 @@ class SagaStateMigrationTests
 
             store.WaitForIndexing();
             bool wasCleanEptyRun;
-            var migration = new SagaHistoryMigration(TimeSpan.FromDays(50 * 365), TimeSpan.FromMinutes(5))
-            {
-                Store = store
-            };
+            var migration = new SagaHistoryMigration(TimeSpan.FromDays(50*365), TimeSpan.FromMinutes(5))
+                            {
+                                Store = store
+                            };
             migration.Migrate(out wasCleanEptyRun);
             Assert.IsFalse(wasCleanEptyRun);
             using (var session = store.OpenSession())
@@ -40,7 +40,7 @@ class SagaStateMigrationTests
                 Assert.IsEmpty(sagaHistories);
 
                 var sagaStateMutations = session.Query<SagaSnapshot>()
-                    .OrderBy(x=>x.SagaType)
+                    .OrderBy(x => x.SagaType)
                     .ToList();
                 foreach (var sagaStateMutation in sagaStateMutations)
                 {
@@ -50,6 +50,7 @@ class SagaStateMigrationTests
             }
         }
     }
+
     [Test]
     public void SecondRunShouldResultInClean()
     {
@@ -68,10 +69,10 @@ class SagaStateMigrationTests
 
             store.WaitForIndexing();
             bool wasCleanEmptyRun;
-            var migration = new SagaHistoryMigration(TimeSpan.FromDays(50 * 365), TimeSpan.FromMinutes(5))
-            {
-                Store = store
-            };
+            var migration = new SagaHistoryMigration(TimeSpan.FromDays(50*365), TimeSpan.FromMinutes(5))
+                            {
+                                Store = store
+                            };
             migration.Migrate(out wasCleanEmptyRun);
             Assert.IsFalse(wasCleanEmptyRun);
             migration.Migrate(out wasCleanEmptyRun);
@@ -90,9 +91,9 @@ class SagaStateMigrationTests
                                  new SagaStateChange
                                  {
                                      Endpoint = "MyEndpoint",
-                                     FinishTime = new DateTime(2000, 1, 1, 15, 0, 0),
+                                     FinishTime = new DateTime(2000, 1, 1, 15, 0, 0,DateTimeKind.Utc),
                                      Status = SagaStateChangeStatus.Updated,
-                                     StartTime = new DateTime(2000, 1, 1, 16, 0, 0),
+                                     StartTime = new DateTime(2000, 1, 1, 16, 0, 0,DateTimeKind.Utc),
                                      StateAfterChange = "Completed",
                                      InitiatingMessage = new InitiatingMessage
                                                          {
@@ -102,18 +103,18 @@ class SagaStateMigrationTests
                                                              MessageType = "MyMessage1",
                                                              OriginatingEndpoint = "Endpoint1",
                                                              OriginatingMachine = "Machine1",
-                                                             TimeSent = new DateTime(2000, 1, 1, 17, 0, 0)
+                                                             TimeSent = new DateTime(2000, 1, 1, 17, 0, 0,DateTimeKind.Utc)
                                                          },
                                      OutgoingMessages = new List<ResultingMessage>
                                                         {
                                                             new ResultingMessage
                                                             {
-                                                                DeliverAt = new DateTime(2000, 1, 1, 18, 0, 0),
+                                                                DeliverAt = new DateTime(2000, 1, 1, 18, 0, 0,DateTimeKind.Utc),
                                                                 DeliveryDelay = TimeSpan.FromMinutes(2),
                                                                 Destination = "Endpoint2",
                                                                 Intent = "Send",
                                                                 MessageId = "2",
-                                                                TimeSent = new DateTime(2000, 1, 1, 19, 0, 0),
+                                                                TimeSent = new DateTime(2000, 1, 1, 19, 0, 0,DateTimeKind.Utc),
                                                                 MessageType = "MyMessage2"
                                                             }
                                                         }
@@ -129,9 +130,9 @@ class SagaStateMigrationTests
                                  new SagaStateChange
                                  {
                                      Endpoint = "MyEndpoint",
-                                     FinishTime = new DateTime(2000, 1, 1, 15, 0, 0),
+                                     FinishTime = new DateTime(2000, 1, 1, 15, 0, 0,DateTimeKind.Utc),
                                      Status = SagaStateChangeStatus.Updated,
-                                     StartTime = new DateTime(2000, 1, 1, 16, 0, 0),
+                                     StartTime = new DateTime(2000, 1, 1, 16, 0, 0,DateTimeKind.Utc),
                                      StateAfterChange = "Completed",
                                      InitiatingMessage = new InitiatingMessage
                                                          {
@@ -141,18 +142,18 @@ class SagaStateMigrationTests
                                                              MessageType = "MyMessage1",
                                                              OriginatingEndpoint = "Endpoint1",
                                                              OriginatingMachine = "Machine1",
-                                                             TimeSent = new DateTime(2000, 1, 1, 17, 0, 0)
+                                                             TimeSent = new DateTime(2000, 1, 1, 17, 0, 0,DateTimeKind.Utc)
                                                          },
                                      OutgoingMessages = new List<ResultingMessage>
                                                         {
                                                             new ResultingMessage
                                                             {
-                                                                DeliverAt = new DateTime(2000, 1, 1, 18, 0, 0),
+                                                                DeliverAt = new DateTime(2000, 1, 1, 18, 0, 0,DateTimeKind.Utc),
                                                                 DeliveryDelay = TimeSpan.FromMinutes(2),
                                                                 Destination = "Endpoint2",
                                                                 Intent = "Send",
                                                                 MessageId = "2",
-                                                                TimeSent = new DateTime(2000, 1, 1, 19, 0, 0),
+                                                                TimeSent = new DateTime(2000, 1, 1, 19, 0, 0,DateTimeKind.Utc),
                                                                 MessageType = "MyMessage2"
                                                             }
                                                         }
