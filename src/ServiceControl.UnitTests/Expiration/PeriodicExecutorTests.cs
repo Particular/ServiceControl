@@ -35,8 +35,8 @@
             }, TimeSpan.FromSeconds(1));
             executor.Start(true);
             @event.Wait();
-            executor.Stop(CancellationToken.None);
-            Assert.IsFalse(failure, string.Format("Time between finishing previous execution and starting this longer than {0} ms",delay));
+            executor.Stop();
+            Assert.IsFalse(failure, string.Format("Time between finishing previous execution and starting this longer than {0} ms", delay));
         }
 
         [Test]
@@ -57,7 +57,7 @@
             }, TimeSpan.FromSeconds(1));
             executor.Start(true);
             @event.Wait();
-            executor.Stop(CancellationToken.None);
+            executor.Stop();
             Assert.IsTrue(success);
         }
 
@@ -69,7 +69,7 @@
             executor.Start(false);
             @event.Wait();
             Thread.Sleep(1000);
-            executor.Stop(CancellationToken.None);
+            executor.Stop();
             Assert.Pass();
         }
     }

@@ -8,9 +8,7 @@
     {
         readonly Action action;
         readonly TimeSpan period;
-        DateTime lastStartedAt;
         CancellationTokenSource tokenSource;
-        ManualResetEventSlim resetEvent;
 
         public PeriodicExecutor(Action action, TimeSpan period)
         {
@@ -20,83 +18,48 @@
 
         public void Start(bool delay)
         {
-            lock (this)
+            if (tokenSource != null)
             {
-                if (tokenSource != null)
-                {
-                    throw new InvalidOperationException("Executor has already been started");
-                }
-                tokenSource = new CancellationTokenSource();
-                resetEvent = new ManualResetEventSlim(false);
+                throw new InvalidOperationException("Executor has already been started");
+            }
+            tokenSource = new CancellationTokenSource();
+            Task.Run(async () =>
+            {
+                var cancelToken = tokenSource.Token;
+
                 if (delay)
+                    await Task.Delay(period, cancelToken);
+
+                while (!cancelToken.IsCancellationRequested)
                 {
-                    Task.Delay(period, tokenSource.Token).ContinueWith(task =>
+                    var nextTime = DateTime.Now + period;
+
+                    try
                     {
-                        if (task.Status == TaskStatus.RanToCompletion)
-                        {
-                            Trigger();
-                        }
-                        else
-                        {
-                            resetEvent.Set();
-                        }
-                    });
+                        action();
+                    }
+                    // ReSharper disable once EmptyGeneralCatchClause
+                    catch
+                    {
+                        // We swallow exceptions so the timer keeps going.
+                        // Should we log these?
+                    }
+
+                    var delayPeriod = nextTime - DateTime.Now;
+                    if (delayPeriod > TimeSpan.Zero)
+                        await Task.Delay(delayPeriod, cancelToken);
                 }
-                else
-                {
-                    Trigger();
-                }
-            }
+            }, tokenSource.Token);
         }
 
-        public void Stop(CancellationToken token)
+        public void Stop()
         {
-            lock (this)
+            if (tokenSource == null)
             {
-                if (tokenSource == null)
-                {
-                    throw new InvalidOperationException("Executor has not been started");
-                }
-                tokenSource.Cancel();
-                resetEvent.Wait(token);
+                throw new InvalidOperationException("Executor has not been started");
             }
-        }
 
-        void Trigger()
-        {
-            Task.Factory.StartNew(() =>
-            {
-                lastStartedAt = DateTime.Now;
-                action();
-            })
-                .ContinueWith(x =>
-                {
-                    if (tokenSource.IsCancellationRequested)
-                    {
-                        resetEvent.Set(); 
-                        return;
-                    }
-                    var duration = DateTime.Now - lastStartedAt;
-                    if (duration > period)
-                    {
-                        Trigger();
-                    }
-                    else
-                    {
-                        Task.Delay(period - duration, tokenSource.Token)
-                            .ContinueWith(task =>
-                            {
-                                if (task.Status == TaskStatus.RanToCompletion)
-                                {
-                                    Trigger();
-                                }
-                                else
-                                {
-                                    resetEvent.Set();
-                                }
-                            });
-                    }
-                });
+            tokenSource.Cancel();
         }
     }
 }

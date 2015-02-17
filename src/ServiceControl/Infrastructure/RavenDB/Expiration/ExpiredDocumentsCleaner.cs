@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
-
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.Composition;
@@ -16,7 +15,6 @@
     using Raven.Database.Impl;
     using Raven.Database.Plugins;
     using ServiceBus.Management.Infrastructure.Settings;
-
 
     [InheritedExport(typeof(IStartupTask))]
     [ExportMetadata("Bundle", "customDocumentExpiration")]
@@ -46,7 +44,7 @@
             logger.Info("Deletion Batch Size: {0}", deletionBatchSize);
             logger.Info("Retention Period: {0}", Settings.HoursToKeepMessagesBeforeExpiring);
 
-            timer = new PeriodicExecutor(Delete,TimeSpan.FromSeconds(deleteFrequencyInSeconds));
+            timer = new PeriodicExecutor(Delete, TimeSpan.FromSeconds(deleteFrequencyInSeconds));
             timer.Start(true);
         }
 
@@ -121,7 +119,7 @@
                         //Ignore
                     }
 
-                    logger.Debug("Batching deletion of {0} documents.",items.Count);
+                    logger.Debug("Batching deletion of {0} documents.", items.Count);
 
                     docsToExpire += items.Count;
                     var results = Database.Batch(items.ToArray());
@@ -152,7 +150,7 @@
         {
             if (timer != null)
             {
-                timer.Stop(CancellationToken.None);
+                timer.Stop();
             }
         }
     }
