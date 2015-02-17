@@ -4,57 +4,53 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
-    using NServiceBus.Transports;
+    using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Indexes;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class AttemptToReImportFailedMessages : IWantToRunWhenBusStartsAndStops
     {
-        public AttemptToReImportFailedMessages(IDocumentStore store, ISendMessages messageSender)
+        public AttemptToReImportFailedMessages(IDocumentStore store)
         {
             this.store = store;
-            this.messageSender = messageSender;
         }
 
         public void Start()
         {
             source = new CancellationTokenSource();
-
-            t1 = Task.Factory.StartNew(() => Run<FailedAuditImport, FailedAuditImportIndex>(Settings.AuditQueue, source.Token), source.Token);
-            t2 = Task.Factory.StartNew(() => Run<FailedErrorImport, FailedErrorImportIndex>(Settings.ErrorQueue, source.Token), source.Token);
+            //We skip this logging task for audits as there is no potential message loss there
+            t2 = Task.Factory.StartNew(() => Run<FailedErrorImport, FailedErrorImportIndex>(source.Token), source.Token);
         }
 
         public void Stop()
         {
             source.Cancel();
-            Task.WaitAll(t1, t2);
+            Task.WaitAll(t2);
             source.Dispose();
         }
 
-        void Run<T, I>(Address queue, CancellationToken token) where I : AbstractIndexCreationTask, new()
+        void Run<T, I>(CancellationToken token) where I : AbstractIndexCreationTask, new()
         {
             using (var session = store.OpenSession())
             {
                 var query = session.Query<T, I>();
                 using (var ie = session.Advanced.Stream(query))
                 {
-                    while (!token.IsCancellationRequested && ie.MoveNext())
+                    if (!token.IsCancellationRequested && ie.MoveNext())
                     {
-                        var transportMessage = ((dynamic) ie.Current.Document).Message;
-
-                        messageSender.Send(transportMessage, queue);
-
-                        store.DatabaseCommands.Delete(ie.Current.Key, null);
+                        Logger.Warn(@"One ore more error messages have previously failed to import properly into ServiceControl and have been stored in ServiceControl database.
+ServiceControl however would not be able to automatically reimport them. Please run ServiceControl in the maintenance mode and use embedded RavenStudio available by default at http://localhost:33333/storage to examine the payloads of failed messages to ensure no information has been lost.
+Delete the failed import documents afterwards so that you don't see this warning message again.
+Starting from version 1.5.1 ServiceControl will not store such documents but rather will forward messages that failed to import to `error.failedimports` queue.");
                     }
                 }
             }
         }
 
-        readonly ISendMessages messageSender;
         readonly IDocumentStore store;
         CancellationTokenSource source;
-        Task t1, t2;
+        Task t2;
+        static readonly ILog Logger = LogManager.GetLogger(typeof(AttemptToReImportFailedMessages));
     }
 
     class FailedAuditImportIndex : AbstractIndexCreationTask<FailedAuditImport>
