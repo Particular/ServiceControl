@@ -40,6 +40,7 @@ class SagaStateMigrationTests
                 Assert.IsEmpty(sagaHistories);
 
                 var sagaStateMutations = session.Query<SagaSnapshot>()
+                    .OrderBy(x=>x.SagaType)
                     .ToList();
                 foreach (var sagaStateMutation in sagaStateMutations)
                 {
