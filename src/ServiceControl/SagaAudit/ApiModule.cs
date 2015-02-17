@@ -15,22 +15,18 @@ namespace ServiceControl.SagaAudit
             Get["/sagas/{id}"] = parameters =>
             {
                 Guid sagaId = parameters.id;
-                SagaHistory history;
                 using (var documentSession = Store.OpenSession())
                 {
-                    if (!SagaSnapshotIndex.TryGetSagaHistory(documentSession, sagaId, out history))
+                    SagaHistory history;
+                    DateTime lastModified;
+                    if (!SagaSnapshotIndex.TryGetSagaHistory(documentSession, sagaId, out history, out lastModified))
                     {
                         return HttpStatusCode.NotFound;
                     }
-                }
-
-                var lastModified = history.Changes.OrderByDescending(x => x.FinishTime)
-                        .Select(y => y.FinishTime)
-                        .Single();
                     return Negotiate
                         .WithModel(history)
                         .WithLastModified(lastModified);
-                
+                }
             };
 
 

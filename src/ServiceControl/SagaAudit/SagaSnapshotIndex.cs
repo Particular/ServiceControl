@@ -17,7 +17,7 @@ namespace ServiceControl.SagaAudit
             DisableInMemoryIndexing = true;
         }
 
-        public static bool TryGetSagaHistory(IDocumentSession session, Guid sagaId, out SagaHistory sagaHistory)
+        public static bool TryGetSagaHistory(IDocumentSession session, Guid sagaId, out SagaHistory sagaHistory, out DateTime lastModified)
         {
             var sagaSnapshots = session.Query<SagaSnapshot, SagaSnapshotIndex>()
                 .Where(x => x.SagaId == sagaId)
@@ -25,8 +25,10 @@ namespace ServiceControl.SagaAudit
             if (!sagaSnapshots.Any())
             {
                 sagaHistory = null;
+                lastModified = DateTime.MinValue;
                 return false;
             }
+
 
             var first = sagaSnapshots.First();
             sagaHistory = new SagaHistory
@@ -47,6 +49,9 @@ namespace ServiceControl.SagaAudit
                                                })
                                   .ToList()
                           };
+            lastModified = sagaHistory.Changes.OrderByDescending(x => x.FinishTime)
+                      .Select(y => y.FinishTime)
+                      .First();
             return true;
         }
     }

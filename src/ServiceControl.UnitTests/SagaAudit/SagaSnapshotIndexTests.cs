@@ -27,7 +27,9 @@ class SagaSnapshotIndexTests
             using (var session = store.OpenSession())
             {
                 SagaHistory history;
-                SagaSnapshotIndex.TryGetSagaHistory(session, Guid.Empty, out history);
+                DateTime lastModified;
+                SagaSnapshotIndex.TryGetSagaHistory(session, Guid.Empty, out history, out lastModified);
+                Assert.AreEqual(new DateTime(2002, 4, 1, 1, 1, 1, DateTimeKind.Utc),lastModified);
                 ObjectApprover.VerifyWithJson(history);
             }
         }
@@ -40,7 +42,7 @@ class SagaSnapshotIndexTests
                          SagaId = Guid.Empty,
                          SagaType = "MySaga1",
                          Endpoint = "MyEndpoint",
-                         FinishTime = new DateTime(2001, 1, 1, 1, 1, 1, DateTimeKind.Utc),
+                         FinishTime = new DateTime(2001, 2, 1, 1, 1, 1, DateTimeKind.Utc),
                          Status = SagaStateChangeStatus.Updated,
                          StartTime = new DateTime(2001, 1, 1, 1, 1, 1, DateTimeKind.Utc),
                          StateAfterChange = "Updated"
@@ -50,9 +52,9 @@ class SagaSnapshotIndexTests
                          SagaId = Guid.Empty,
                          SagaType = "MySaga1",
                          Endpoint = "MyEndpoint",
-                         FinishTime = new DateTime(2002, 1, 1, 1, 1, 1, DateTimeKind.Utc),
+                         FinishTime = new DateTime(2002, 4, 1, 1, 1, 1, DateTimeKind.Utc),
                          Status = SagaStateChangeStatus.Completed,
-                         StartTime = new DateTime(2002, 1, 1, 1, 1, 1, DateTimeKind.Utc),
+                         StartTime = new DateTime(2002, 3, 1, 1, 1, 1, DateTimeKind.Utc),
                          StateAfterChange = "Completed"
                      };
     }
