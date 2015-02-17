@@ -7,13 +7,15 @@
     public class PeriodicExecutor
     {
         readonly Action action;
+        readonly Action<Exception> onError;
         readonly TimeSpan period;
         CancellationTokenSource tokenSource;
 
-        public PeriodicExecutor(Action action, TimeSpan period)
+        public PeriodicExecutor(Action action, TimeSpan period, Action<Exception> onError = null)
         {
             this.action = action;
             this.period = period;
+            this.onError = onError ?? (e => { });
         }
 
         public void Start(bool delay)
@@ -38,11 +40,9 @@
                     {
                         action();
                     }
-                    // ReSharper disable once EmptyGeneralCatchClause
-                    catch
+                    catch (Exception ex)
                     {
-                        // We swallow exceptions so the timer keeps going.
-                        // Should we log these?
+                        onError(ex);
                     }
 
                     var delayPeriod = nextTime - DateTime.Now;
