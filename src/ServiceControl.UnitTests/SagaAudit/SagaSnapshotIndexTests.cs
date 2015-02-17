@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using NUnit.Framework;
 using ObjectApproval;
 using ServiceControl.SagaAudit;
 
 [TestFixture]
-class SagaDetailsIndexTests
+class SagaSnapshotIndexTests
 {
     [Test]
     public void RunMapReduce()
     {
         using (var store = InMemoryStoreBuilder.GetInMemoryStore())
         {
-            store.ExecuteIndex(new SagaDetailsIndex());
+            store.ExecuteIndex(new SagaSnapshotIndex());
             using (var session = store.OpenSession())
             {
                 foreach (var sagaHistory in GetFakeHistory())
@@ -27,9 +26,9 @@ class SagaDetailsIndexTests
 
             using (var session = store.OpenSession())
             {
-                var mapReduceResults = session.Query<SagaHistory, SagaDetailsIndex>()
-                    .ToList();
-                ObjectApprover.VerifyWithJson(mapReduceResults);
+                SagaHistory history;
+                SagaSnapshotIndex.TryGetSagaHistory(session, Guid.Empty, out history);
+                ObjectApprover.VerifyWithJson(history);
             }
         }
     }
@@ -45,22 +44,6 @@ class SagaDetailsIndexTests
                          Status = SagaStateChangeStatus.Updated,
                          StartTime = new DateTime(2001, 1, 1, 1, 1, 1, DateTimeKind.Utc),
                          StateAfterChange = "Updated"
-                     };
-        yield return new SagaHistory
-                     {
-                         SagaId = Guid.Empty,
-                         SagaType = "MySaga1",
-                         Changes = new List<SagaStateChange>
-                                   {
-                                       new SagaStateChange
-                                       {
-                                           Endpoint = "MyEndpoint",
-                                           FinishTime = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc),
-                                           Status = SagaStateChangeStatus.Updated,
-                                           StartTime = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc),
-                                           StateAfterChange = "Started"
-                                       }
-                                   }
                      };
         yield return new SagaSnapshot
                      {

@@ -14,25 +14,23 @@ namespace ServiceControl.SagaAudit
         {
             Get["/sagas/{id}"] = parameters =>
             {
-                using (var session = Store.OpenSession())
+                Guid sagaId = parameters.id;
+                SagaHistory history;
+                using (var documentSession = Store.OpenSession())
                 {
-                    Guid sagaId = parameters.id;
-                    var sagaHistory =
-                        session.Query<SagaHistory, SagaDetailsIndex>()
-                            .SingleOrDefault(x => x.SagaId == sagaId);
-
-                    if (sagaHistory == null)
+                    if (!SagaSnapshotIndex.TryGetSagaHistory(documentSession, sagaId, out history))
                     {
                         return HttpStatusCode.NotFound;
                     }
+                }
 
-                    var lastModified = sagaHistory.Changes.OrderByDescending(x => x.FinishTime)
+                var lastModified = history.Changes.OrderByDescending(x => x.FinishTime)
                         .Select(y => y.FinishTime)
                         .Single();
                     return Negotiate
-                        .WithModel(sagaHistory)
+                        .WithModel(history)
                         .WithLastModified(lastModified);
-                }
+                
             };
 
 
@@ -41,8 +39,7 @@ namespace ServiceControl.SagaAudit
                 using (var session = Store.OpenSession())
                 {
                     RavenQueryStatistics stats;
-                    var results =
-                        session.Query<SagaListIndex.Result, SagaListIndex>()
+                    var results = session.Query<SagaListIndex.Result, SagaListIndex>()
                             .Statistics(out stats)
                             .Paging(Request)
                             .ToArray();
@@ -55,6 +52,5 @@ namespace ServiceControl.SagaAudit
             };
 
         }
-
     }
 }

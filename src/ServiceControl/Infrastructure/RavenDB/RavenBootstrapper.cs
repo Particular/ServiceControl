@@ -81,6 +81,12 @@
                     });
             }
 
+            
+            // standard ravendb index. created by studio on first use. used by sagahistory migrations
+            new RavenDocumentsByEntityName()
+                .ExecuteAsync(documentStore.AsyncDatabaseCommands,documentStore.Conventions);
+
+
             Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             Configure.Component(builder =>
             {

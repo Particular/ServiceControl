@@ -1,0 +1,88 @@
+﻿[
+    {
+        "Id": "00000000-0000-0000-0000-000000000000",
+        "SagaId": "00000000-0000-0000-0000-000000000000",
+        "SagaType": "MySaga1",
+        "StartTime": "2000-01-01T05:00:00Z",
+        "FinishTime": "2000-01-01T04:00:00Z",
+        "Status": "Updated",
+        "StateAfterChange": "Completed",
+        "InitiatingMessage": {
+            "MessageId": "1",
+            "IsSagaTimeoutMessage": false,
+            "OriginatingEndpoint": "Endpoint1",
+            "OriginatingMachine": "Machine1",
+            "TimeSent": "2000-01-01T06:00:00Z",
+            "MessageType": "MyMessage1",
+            "Intent": "Send"
+        },
+        "OutgoingMessages": [
+            {
+                "DeliveryDelay": {
+                    "Ticks": 1200000000,
+                    "Days": 0,
+                    "Hours": 0,
+                    "Milliseconds": 0,
+                    "Minutes": 2,
+                    "Seconds": 0,
+                    "TotalDays": 0.0013888888888888887,
+                    "TotalHours": 0.033333333333333333,
+                    "TotalMilliseconds": 120000,
+                    "TotalMinutes": 2,
+                    "TotalSeconds": 120
+                },
+                "Destination": "Endpoint2",
+                "DeliverAt": "2000-01-01T07:00:00Z",
+                "MessageId": "2",
+                "TimeSent": "2000-01-01T08:00:00Z",
+                "MessageType": "MyMessage2",
+                "Intent": "Send"
+            }
+        ],
+        "Endpoint": "MyEndpoint",
+        "ProcessedAt": "0001-01-01T00:00:00Z"
+    },
+    {
+        "Id": "00000000-0000-0000-0000-000000000000",
+        "SagaId": "00000000-0000-0000-0000-000000000000",
+        "SagaType": "MySaga2",
+        "StartTime": "2000-01-01T05:00:00Z",
+        "FinishTime": "2000-01-01T04:00:00Z",
+        "Status": "Updated",
+        "StateAfterChange": "Completed",
+        "InitiatingMessage": {
+            "MessageId": "1",
+            "IsSagaTimeoutMessage": false,
+            "OriginatingEndpoint": "Endpoint1",
+            "OriginatingMachine": "Machine1",
+            "TimeSent": "2000-01-01T06:00:00Z",
+            "MessageType": "MyMessage1",
+            "Intent": "Send"
+        },
+        "OutgoingMessages": [
+            {
+                "DeliveryDelay": {
+                    "Ticks": 1200000000,
+                    "Days": 0,
+                    "Hours": 0,
+                    "Milliseconds": 0,
+                    "Minutes": 2,
+                    "Seconds": 0,
+                    "TotalDays": 0.0013888888888888887,
+                    "TotalHours": 0.033333333333333333,
+                    "TotalMilliseconds": 120000,
+                    "TotalMinutes": 2,
+                    "TotalSeconds": 120
+                },
+                "Destination": "Endpoint2",
+                "DeliverAt": "2000-01-01T07:00:00Z",
+                "MessageId": "2",
+                "TimeSent": "2000-01-01T08:00:00Z",
+                "MessageType": "MyMessage2",
+                "Intent": "Send"
+            }
+        ],
+        "Endpoint": "MyEndpoint",
+        "ProcessedAt": "0001-01-01T00:00:00Z"
+    }
+]

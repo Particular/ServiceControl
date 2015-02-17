@@ -4,7 +4,7 @@ namespace ServiceControl.SagaAudit
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class SagaListIndex : AbstractMultiMapIndexCreationTask<SagaListIndex.Result>
+    public class SagaListIndex : AbstractIndexCreationTask<SagaSnapshot, SagaListIndex.Result>
     {
         public class Result
         {
@@ -15,21 +15,13 @@ namespace ServiceControl.SagaAudit
 
         public SagaListIndex()
         {
-            AddMap<SagaSnapshot>(docs => from doc in docs
+            Map = docs => from doc in docs
                 select new Result
                        {
                            Id = doc.SagaId,
                            Uri = "api/sagas/" + doc.SagaId,
                            SagaType = doc.SagaType,
-                       });
-            AddMap<SagaHistory>(docs => from doc in docs
-                select new Result
-                       {
-                           Id = doc.SagaId,
-                           Uri = "api/sagas/" + doc.SagaId,
-                           SagaType = doc.SagaType,
-                       });
-
+                       };
             Reduce = results => from result in results
                 group result by result.Id
                 into g
@@ -40,6 +32,7 @@ namespace ServiceControl.SagaAudit
                            Uri = first.Uri,
                            SagaType = first.SagaType
                        };
+            DisableInMemoryIndexing = true;
         }
     }
 }

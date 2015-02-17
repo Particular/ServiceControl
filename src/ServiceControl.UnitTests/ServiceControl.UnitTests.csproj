@@ -115,7 +115,8 @@
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
-    <Compile Include="SagaAudit\SagaDetailsIndexTests.cs" />
+    <Compile Include="SagaAudit\SagaStateMigrationTests.cs" />
+    <Compile Include="SagaAudit\SagaSnapshotIndexTests.cs" />
     <Compile Include="SagaAudit\SagaListIndexTests.cs" />
   </ItemGroup>
   <ItemGroup>
