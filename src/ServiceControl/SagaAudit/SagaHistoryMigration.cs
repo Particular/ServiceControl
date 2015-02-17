@@ -54,20 +54,22 @@
 
         public void Migrate(out bool wasCleanEptyRun)
         {
-            var querySession = Store.OpenSession();
-            var luceneQuery = querySession.Advanced.LuceneQuery<SagaHistory>("Raven/DocumentsByEntityName")
-                .WhereEquals("Tag", "SagaHistories")
-                .AddOrder("LastModified", true);
-
-            QueryHeaderInformation information;
-            using (var enumerator = querySession.Advanced.Stream(luceneQuery, out information))
+            using (var querySession = Store.OpenSession())
             {
-                while (enumerator.MoveNext())
+                QueryHeaderInformation information;
+                var luceneQuery = querySession.Advanced.LuceneQuery<SagaHistory>("Raven/DocumentsByEntityName")
+                    .WhereEquals("Tag", "SagaHistories")
+                    .AddOrder("LastModified", true);
+
+                using (var enumerator = querySession.Advanced.Stream(luceneQuery, out information))
                 {
-                    ProcessHistoryRecord(enumerator.Current);
+                    while (enumerator.MoveNext())
+                    {
+                        ProcessHistoryRecord(enumerator.Current);
+                    }
                 }
+                wasCleanEptyRun = information.IsStable && information.TotalResults == 0;
             }
-            wasCleanEptyRun = information.IsStable && information.TotalResults == 0;
         }
 
         void ProcessHistoryRecord(StreamResult<SagaHistory> result)
