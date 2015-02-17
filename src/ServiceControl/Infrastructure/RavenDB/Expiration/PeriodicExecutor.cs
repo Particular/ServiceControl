@@ -47,19 +47,19 @@
 
                     var delayPeriod = nextTime - DateTime.Now;
                     if (delayPeriod > TimeSpan.Zero)
+                    {
                         await Task.Delay(delayPeriod, cancelToken);
+                    }
                 }
             }, tokenSource.Token);
         }
 
         public void Stop()
         {
-            if (tokenSource == null)
+            if (tokenSource != null)
             {
-                throw new InvalidOperationException("Executor has not been started");
+                tokenSource.Cancel();
             }
-
-            tokenSource.Cancel();
         }
     }
 }

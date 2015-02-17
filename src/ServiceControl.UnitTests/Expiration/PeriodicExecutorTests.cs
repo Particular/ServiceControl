@@ -72,5 +72,13 @@
             executor.Stop();
             Assert.Pass();
         }
+
+        [Test]
+        public void Can_shutdown_when_not_started()
+        {
+            var executor = new PeriodicExecutor(() => {}, TimeSpan.FromSeconds(10000));
+            executor.Stop();
+            Assert.Pass();
+        }
     }
 }
