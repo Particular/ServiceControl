@@ -5,7 +5,7 @@
     "Changes": [
         {
             "StartTime": "2001-01-01T01:01:01Z",
-            "FinishTime": "2001-01-01T01:01:01Z",
+            "FinishTime": "2001-02-01T01:01:01Z",
             "Status": "Updated",
             "StateAfterChange": "Updated",
             "InitiatingMessage": null,
@@ -13,8 +13,8 @@
             "Endpoint": "MyEndpoint"
         },
         {
-            "StartTime": "2002-01-01T01:01:01Z",
-            "FinishTime": "2002-01-01T01:01:01Z",
+            "StartTime": "2002-03-01T01:01:01Z",
+            "FinishTime": "2002-04-01T01:01:01Z",
             "Status": "Completed",
             "StateAfterChange": "Completed",
             "InitiatingMessage": null,
