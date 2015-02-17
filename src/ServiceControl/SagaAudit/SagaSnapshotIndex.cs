@@ -13,6 +13,7 @@ namespace ServiceControl.SagaAudit
                 select new
                        {
                           doc.SagaId,
+                          doc.FinishTime
                        };
             DisableInMemoryIndexing = true;
         }
@@ -20,6 +21,7 @@ namespace ServiceControl.SagaAudit
         public static bool TryGetSagaHistory(IDocumentSession session, Guid sagaId, out SagaHistory sagaHistory, out DateTime lastModified)
         {
             var sagaSnapshots = session.Query<SagaSnapshot, SagaSnapshotIndex>()
+                .OrderByDescending(x=>x.FinishTime)
                 .Where(x => x.SagaId == sagaId)
                 .ToList();
             if (!sagaSnapshots.Any())
