@@ -18,7 +18,7 @@
         
         public IDocumentStore Store { get; set; }
         int emptyRunCount;
-        DateTime currentExpiryThresholdTime;
+        DateTime expiryThreshold;
         PeriodicExecutor periodicExecutor;
 
         public SagaHistoryMigration()
@@ -29,7 +29,7 @@
         public SagaHistoryMigration(TimeSpan timeToKeepMessagesBeforeExpiring, TimeSpan timerPeriod)
         {
             periodicExecutor = new PeriodicExecutor(Migrate, timerPeriod);
-            currentExpiryThresholdTime = SystemTime.UtcNow.Add(-timeToKeepMessagesBeforeExpiring);
+            expiryThreshold = SystemTime.UtcNow.Add(-timeToKeepMessagesBeforeExpiring);
         }
 
         public void Start()
@@ -40,7 +40,7 @@
         void Migrate()
         {
             bool wasCleanEmptyRun;
-            Migrate(out wasCleanEmptyRun);
+            Migrate(Store,expiryThreshold,() => periodicExecutor.IsCancellationRequested, out wasCleanEmptyRun);
             if (wasCleanEmptyRun)
             {
                 emptyRunCount++;
@@ -52,37 +52,48 @@
         }
 
 
-        public void Migrate(out bool wasCleanEptyRun)
+        public static void Migrate(IDocumentStore store, DateTime expiryThreshold, Func<bool> shouldCancel, out bool wasCleanEmptyRun)
         {
-            using (var querySession = Store.OpenSession())
+            using (var querySession = store.OpenSession())
             {
                 QueryHeaderInformation information;
                 var luceneQuery = querySession.Advanced.LuceneQuery<SagaHistory>("Raven/DocumentsByEntityName")
                     .WhereEquals("Tag", "SagaHistories")
                     .AddOrder("LastModified", true);
-
+                var processedRecord = false;
                 using (var enumerator = querySession.Advanced.Stream(luceneQuery, out information))
                 {
                     while (enumerator.MoveNext())
                     {
-                        ProcessHistoryRecord(enumerator.Current);
+                        processedRecord = true;
+                        ProcessHistoryRecord(store, enumerator.Current, expiryThreshold, shouldCancel);
                     }
                 }
-                wasCleanEptyRun = information.IsStable && information.TotalResults == 0;
+                if (shouldCancel())
+                {
+                    wasCleanEmptyRun = false;
+                    return;
+                }
+                wasCleanEmptyRun = information.IsStable && !processedRecord;
             }
         }
 
-        void ProcessHistoryRecord(StreamResult<SagaHistory> result)
+        static void ProcessHistoryRecord(IDocumentStore store, StreamResult<SagaHistory> result, DateTime expiryThreshold, Func<bool> shouldCancel)
         {
             var sagaHistory = result.Document;
 
-            using (var updateSession = Store.OpenSession())
+            using (var updateSession = store.OpenSession())
             {
                 try
                 {
                     foreach (var sagaStateChange in sagaHistory.Changes
-                        .Where(x => x.FinishTime > currentExpiryThresholdTime))
+                        .Where(x => x.FinishTime > expiryThreshold))
                     {
+                        if (shouldCancel())
+                        {
+                            logger.Warn("Migration was canceled");
+                            return;
+                        }
                         updateSession.Store(ConvertToSnapshot(sagaHistory, sagaStateChange));
                     }
                     updateSession.Advanced.Defer(new DeleteCommandData

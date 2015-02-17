@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using ObjectApproval;
+using Raven.Abstractions;
 using Raven.Client.Indexes;
 using ServiceControl.SagaAudit;
 
@@ -27,11 +28,8 @@ class SagaStateMigrationTests
 
             store.WaitForIndexing();
             bool wasCleanEptyRun;
-            var migration = new SagaHistoryMigration(TimeSpan.FromDays(50*365), TimeSpan.FromMinutes(5))
-                            {
-                                Store = store
-                            };
-            migration.Migrate(out wasCleanEptyRun);
+            var expiryThreshold = SystemTime.UtcNow.Add(-TimeSpan.FromDays(50 * 365));
+            SagaHistoryMigration.Migrate(store, expiryThreshold, () => false, out wasCleanEptyRun);
             Assert.IsFalse(wasCleanEptyRun);
             using (var session = store.OpenSession())
             {
@@ -68,14 +66,11 @@ class SagaStateMigrationTests
             }
 
             store.WaitForIndexing();
+            var expiryThreshold = SystemTime.UtcNow.Add(-TimeSpan.FromDays(50 * 365));
             bool wasCleanEmptyRun;
-            var migration = new SagaHistoryMigration(TimeSpan.FromDays(50*365), TimeSpan.FromMinutes(5))
-                            {
-                                Store = store
-                            };
-            migration.Migrate(out wasCleanEmptyRun);
+            SagaHistoryMigration.Migrate(store, expiryThreshold, () => false, out wasCleanEmptyRun);
             Assert.IsFalse(wasCleanEmptyRun);
-            migration.Migrate(out wasCleanEmptyRun);
+            SagaHistoryMigration.Migrate(store, expiryThreshold, () => false, out wasCleanEmptyRun);
             Assert.IsTrue(wasCleanEmptyRun);
         }
     }

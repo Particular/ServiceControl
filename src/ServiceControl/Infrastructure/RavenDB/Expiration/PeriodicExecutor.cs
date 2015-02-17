@@ -6,9 +6,9 @@
 
     public class PeriodicExecutor
     {
-        readonly Action action;
-        readonly Action<Exception> onError;
-        readonly TimeSpan period;
+        Action action;
+        Action<Exception> onError;
+        TimeSpan period;
         CancellationTokenSource tokenSource;
 
         public PeriodicExecutor(Action action, TimeSpan period, Action<Exception> onError = null)
@@ -16,6 +16,18 @@
             this.action = action;
             this.period = period;
             this.onError = onError ?? (e => { });
+        }
+
+        public bool IsCancellationRequested
+        {
+            get
+            {
+                if (tokenSource == null)
+                {
+                    return true;
+                }
+                return tokenSource.IsCancellationRequested;
+            }
         }
 
         public void Start(bool delay)
