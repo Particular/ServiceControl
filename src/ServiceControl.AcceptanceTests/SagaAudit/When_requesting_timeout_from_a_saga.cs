@@ -28,7 +28,7 @@
                                       TryGet(url, out sagaHistory,
                                           sh=>sh.Changes.Any(change=>change.Status == SagaStateChangeStatus.Updated));
                 })
-                .Run(TimeSpan.FromMinutes(4));
+                .Run();
 
             Assert.NotNull(sagaHistory);
 
