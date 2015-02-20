@@ -38,7 +38,7 @@
                 {
                     if (!token.IsCancellationRequested && ie.MoveNext())
                     {
-                        Logger.Warn(@"One ore more error messages have previously failed to import properly into ServiceControl and have been stored in ServiceControl database.
+                        Logger.Warn(@"One or more error messages have previously failed to import properly into ServiceControl and have been stored in ServiceControl database.
 Due to a defect however, ServiceControl would not be able to automatically reimport them. Please run ServiceControl in the maintenance mode and use embedded RavenStudio available by default at http://localhost:33333/storage to examine the payloads of failed messages to ensure no information has been lost.
 Delete the failed import documents afterwards so that you don't see this warning message again.");
                     }
