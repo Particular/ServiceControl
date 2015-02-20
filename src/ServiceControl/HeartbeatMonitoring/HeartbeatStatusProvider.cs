@@ -144,7 +144,9 @@
             if (endpointDetails.HostId == Guid.Empty)
             {
                 // Try to match existing ones on host and machine if no host id is present
-                return endpoints.SingleOrDefault(e => e.Host == endpointDetails.Host && e.Name == endpointDetails.Name);
+                return endpoints.Where(e => e.Host == endpointDetails.Host && e.Name == endpointDetails.Name)
+                    .OrderBy(e => e.HostId) // This is a hack because of Issue #448
+                    .FirstOrDefault();
             }
 
             //try to get an exact match
