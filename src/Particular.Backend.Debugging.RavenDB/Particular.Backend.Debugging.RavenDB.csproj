@@ -97,6 +97,10 @@
     <Compile Include="Api\MessagesViewIndex.cs" />
     <Compile Include="Api\MessagesViewTransformer.cs" />
     <Compile Include="Api\QueriableExtensions.cs" />
+    <Compile Include="Migration\FailedMessageConverter.cs" />
+    <Compile Include="Migration\OldFailedMessage.cs" />
+    <Compile Include="Migration\OldProcessedMessage.cs" />
+    <Compile Include="Migration\ProcessedMessageConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RavenDBDebuggingMessageStore.cs" />
     <Compile Include="Storage\MessageSnapshotDocument.cs" />
@@ -124,6 +128,7 @@
       <Name>ServiceControl.Shell.Api</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -167,6 +167,8 @@
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
     <Compile Include="MessageFailures\EndpointControlFeature.cs" />
+    <Compile Include="MessageFailures\Migration\Converter.cs" />
+    <Compile Include="MessageFailures\Migration\OldFailedMessage.cs" />
     <Compile Include="MessageFailures\SuccessfulRetryDetector.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
     <Compile Include="MessageFailures\FailedMessagePolicy.cs" />

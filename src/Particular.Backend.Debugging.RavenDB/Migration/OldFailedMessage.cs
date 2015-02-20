@@ -1,17 +1,18 @@
-﻿namespace ServiceControl.MessageFailures
+﻿namespace Particular.Backend.Debugging.RavenDB.Migration
 {
     using System;
     using System.Collections.Generic;
-    using Contracts.Operations;
+    using NServiceBus;
+    using ServiceControl.Contracts.Operations;
 
-    public class FailedMessage
+    public class OldFailedMessage
     {
         public static string MakeDocumentId(string messageUniqueId)
         {
             return "FailedMessages/" + messageUniqueId;
         }
 
-        public FailedMessage()
+        public OldFailedMessage()
         {
             ProcessingAttempts = new List<ProcessingAttempt>();
         }
@@ -19,18 +20,13 @@
         public string Id { get; set; }
 
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
-        
+
         public FailedMessageStatus Status { get; set; }
 
         public string UniqueMessageId { get; set; }
 
         public class ProcessingAttempt
         {
-            public EndpointDetails SendingEndpoint { get; set; }//new
-            public EndpointDetails ProcessingEndpoint { get; set; }//new
-            public string MessageType { get; set; }//new
-            public string ContentType { get; set; }//new
-            public DateTime TimeSent { get; set; }//new
             public FailureDetails FailureDetails { get; set; }
             public DateTime AttemptedAt { get; set; }
             public string MessageId { get; set; }
@@ -38,13 +34,11 @@
             public string ReplyToAddress { get; set; }
             public bool Recoverable { get; set; }
             public string CorrelationId { get; set; }
-            public string MessageIntent { get; set; }//changed to string from enum
-            public bool IsSystemMessage { get; set; }//new
-            public string HeadersForSearching { get; set; }//new
-
-            //removed public Dictionary<string, object> MessageMetadata { get; set; }
+            public MessageIntentEnum MessageIntent { get; set; }
+            public Dictionary<string, object> MessageMetadata { get; set; }
         }
     }
+
 
     public enum FailedMessageStatus
     {

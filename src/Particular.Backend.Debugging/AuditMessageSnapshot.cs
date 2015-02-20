@@ -20,11 +20,13 @@
             Status = initialStatus;
         }
 
+        public DateTime AttemptedAt { get; set; } //former processed at
+
+        //New
         public MessageStatus Status { get; set; }
         public string MessageId { get; protected set; }
         public string UniqueMessageId { get; protected set; }
         public Dictionary<string, string> Headers { get; protected set; }
-        public DateTime AttemptedAt { get; set; }
         public ProcessingStatistics Processing { get; set; }
         public BodyInformation Body { get; set; }
         public SagaInformation Sagas { get; set; }
