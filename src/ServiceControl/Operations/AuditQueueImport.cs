@@ -14,7 +14,6 @@
     using NServiceBus.Transports.Msmq;
     using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class AuditQueueImport : IAdvancedSatellite, IDisposable
@@ -112,11 +111,7 @@
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
-            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(Builder.Build<IDocumentStore>(),
-                Path.Combine(Settings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
-                {
-                    Message = tm,
-                });
+            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(Forwarder, Settings.AuditImportFailureQueue, Path.Combine(Settings.LogPath, @"FailedImports\Audit"));
 
             return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
         }

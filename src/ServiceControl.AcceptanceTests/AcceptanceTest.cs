@@ -184,8 +184,12 @@
                     connectionStringsElement.Add(new XElement("add", new XAttribute("name", "NServiceBus/Transport"), new XAttribute("connectionString", transportToUse.ConnectionString)));
                 }
             }
-
+            CustomizeAppConfig(doc);
             doc.Save(pathToAppConfig);
+        }
+
+        protected virtual void CustomizeAppConfig(XDocument doc)
+        {
         }
 
         static void Delete(string path)

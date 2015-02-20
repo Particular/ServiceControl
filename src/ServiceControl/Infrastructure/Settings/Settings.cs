@@ -14,6 +14,8 @@
             ErrorQueue = GetErrorQueue();
             ErrorLogQueue = GetErrorLogQueue();
             AuditLogQueue = GetAuditLogQueue();
+            ErrorImportFailureQueue = GetErrorImportFailureQueue();
+            AuditImportFailureQueue = GetAuditImportFailureQueue();
             DbPath = GetDbPath();
             TransportType = SettingsReader<string>.Read("TransportType", typeof(Msmq).AssemblyQualifiedName);
         }
@@ -64,6 +66,17 @@
             }
             return Address.Parse(value);
         }
+        
+        static Address GetAuditImportFailureQueue()
+        {
+            var value = SettingsReader<string>.Read("ServiceBus", "AuditImportFailureQueue", null);
+            if (value == null)
+            {
+                Logger.Info("No settings found for failed import audit queue, default name will be used");
+                return AuditQueue.SubScope("failedimports");
+            }
+            return Address.Parse(value);
+        }
 
         static Address GetAuditQueue()
         {
@@ -100,6 +113,18 @@
             {
                 Logger.Info("No settings found for error log queue to import, default name will be used");
                 return ErrorQueue.SubScope("log");
+            }
+            return Address.Parse(value);
+        }
+        
+        static Address GetErrorImportFailureQueue()
+        {
+            var value = SettingsReader<string>.Read("ServiceBus", "ErrorImportFailureQueue", null);
+
+            if (value == null)
+            {
+                Logger.Info("No settings found for failed import error queue, default name will be used");
+                return ErrorQueue.SubScope("failedimports");
             }
             return Address.Parse(value);
         }
@@ -151,7 +176,9 @@
         public static string DbPath;
         public static Address ErrorLogQueue;
         public static Address ErrorQueue;
+        public static Address ErrorImportFailureQueue;
         public static Address AuditQueue;
+        public static Address AuditImportFailureQueue;
         public static bool? ForwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;
