@@ -5,7 +5,7 @@ namespace ServiceControl.ExternalIntegrations
 
     public static class MessageFailedConverter
     {
-        public static Contracts.MessageFailed ToEvent(this FailedMessage message)
+        public static Contracts.MessageFailed ToEvent(this MessageFailureHistory message)
         {
             var last = message.ProcessingAttempts.Last();
             var sendingEndpoint = last.SendingEndpoint;

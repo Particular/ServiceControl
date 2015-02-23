@@ -14,7 +14,7 @@
 
         public void Handle(ArchiveMessage message)
         {
-            var failedMessage = Session.Load<FailedMessage>(new Guid(message.FailedMessageId));
+            var failedMessage = Session.Load<MessageFailureHistory>(new Guid(message.FailedMessageId));
 
             if (failedMessage == null)
             {

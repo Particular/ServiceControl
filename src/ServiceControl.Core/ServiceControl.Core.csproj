@@ -46,7 +46,7 @@
       <HintPath>..\packages\RavenDB.Client.2.5.2939\lib\net45\Raven.Client.Lightweight.dll</HintPath>
     </Reference>
     <Reference Include="ServiceControl.Contracts">
-      <HintPath>..\packages\ServiceControl.Contracts.1.0.1\lib\net45\ServiceControl.Contracts.dll</HintPath>
+      <HintPath>..\packages\ServiceControl.Contracts.1.1.0\lib\net45\ServiceControl.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -75,15 +75,6 @@
     </Compile>
     <Compile Include="..\servicecontrol.plugin.shared\messages\ReportCustomCheckResult.cs">
       <Link>CustomChecks\InternalMessages\ReportCustomCheckResult.cs</Link>
-    </Compile>
-    <Compile Include="..\servicecontrol.plugin.shared\messages\SagaChangeInitiator.cs">
-      <Link>SagaAudit\Messages\SagaChangeInitiator.cs</Link>
-    </Compile>
-    <Compile Include="..\servicecontrol.plugin.shared\messages\SagaChangeOutput.cs">
-      <Link>SagaAudit\Messages\SagaChangeOutput.cs</Link>
-    </Compile>
-    <Compile Include="..\servicecontrol.plugin.shared\messages\SagaUpdatedMessage.cs">
-      <Link>SagaAudit\Messages\SagaUpdatedMessage.cs</Link>
     </Compile>
     <Compile Include="BusinessMonitoring\ApiModule.cs" />
     <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
@@ -130,6 +121,8 @@
     <Compile Include="EventLog\EventLogMappings.cs" />
     <Compile Include="EventLog\GenericAuditHandler.cs" />
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
+    <Compile Include="ExternalIntegrations\CustomCheckFailedPublisher.cs" />
+    <Compile Include="ExternalIntegrations\CustomCheckSucceededPublisher.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
     <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
     <Compile Include="ExternalIntegrations\EventPublisher.cs" />
@@ -167,10 +160,8 @@
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
     <Compile Include="MessageFailures\EndpointControlFeature.cs" />
-    <Compile Include="MessageFailures\Migration\Converter.cs" />
-    <Compile Include="MessageFailures\Migration\OldFailedMessage.cs" />
     <Compile Include="MessageFailures\SuccessfulRetryDetector.cs" />
-    <Compile Include="MessageFailures\FailedMessage.cs" />
+    <Compile Include="MessageFailures\MessageFailureHistory.cs" />
     <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
@@ -192,15 +183,6 @@
     <Compile Include="Operations\LicenseStatusKeeper.cs" />
     <Compile Include="Operations\LicenseStatusMessageProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SagaAudit\ApiModule.cs" />
-    <Compile Include="SagaAudit\InitiatingMessage.cs" />
-    <Compile Include="SagaAudit\ProcessingState.cs" />
-    <Compile Include="SagaAudit\ResultingMessage.cs" />
-    <Compile Include="SagaAudit\SagaHistory.cs" />
-    <Compile Include="SagaAudit\SagaStateChange.cs" />
-    <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
-    <Compile Include="SagaAudit\SagaUpdatedHandler.cs" />
-    <Compile Include="SagaAudit\SageMessageState.cs" />
     <Compile Include="TransportMessageExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,17 +1,18 @@
-namespace ServiceControl.Infrastructure.RavenDB.Expiration
+namespace Particular.Backend.Debugging.RavenDB.Expiration
 {
     using System;
     using System.Linq;
-    using MessageAuditing;
+    using Particular.Backend.Debugging.RavenDB.Migration;
+    using Particular.Backend.Debugging.RavenDB.Model;
     using Raven.Client.Indexes;
-    using ServiceControl.SagaAudit;
+    using ServiceControl.Contracts.Operations;
 
     public class ExpiryProcessedMessageIndex : AbstractMultiMapIndexCreationTask
     {
         public ExpiryProcessedMessageIndex()
         {
-            AddMap<ProcessedMessage>(messages => from message in messages
-                               where !(bool)message.MessageMetadata["IsRetried"]
+            AddMap<MessageSnapshotDocument>(messages => from message in messages
+                               where message.Status != MessageStatus.Failed && message.Status != MessageStatus.RepeatedFailure
                                select new
                                {
                                    ProcessedAt = message.ProcessedAt,

@@ -52,7 +52,7 @@
             {
                 using (var session = store.OpenSession())
                 {
-                    var failedMessageCount = session.Query<FailedMessage, FailedMessageViewIndex>().Count(p => p.Status == FailedMessageStatus.Unresolved);
+                    var failedMessageCount = session.Query<MessageFailureHistory, FailedMessageViewIndex>().Count(p => p.Status == FailedMessageStatus.Unresolved);
                     if (lastCount == failedMessageCount)
                         return;
                     lastCount = failedMessageCount;

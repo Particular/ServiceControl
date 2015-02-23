@@ -18,7 +18,7 @@
         [Test]
         public void Should_show_up_as_resolved_when_doing_a_multi_retry()
         {
-            FailedMessage failure = null;
+            MessageFailureHistory failure = null;
 
             var context = new MyContext();
 
@@ -48,7 +48,7 @@
         [Test]
         public void Should_show_up_as_resolved_when_doing_a_retry_all()
         {
-            FailedMessage failure = null;
+            MessageFailureHistory failure = null;
 
             var context = new MyContext();
 
@@ -78,7 +78,7 @@
         [Test]
         public void Should_show_up_as_resolved_when_doing_a_retry_all_for_the_given_endpoint()
         {
-            FailedMessage failure = null;
+            MessageFailureHistory failure = null;
 
             var context = new MyContext();
 
@@ -105,7 +105,7 @@
             Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
         }
 
-        bool GetFailedMessage(MyContext c, out FailedMessage failure)
+        bool GetFailedMessage(MyContext c, out MessageFailureHistory failure)
         {
             failure = null;
             if (c.MessageId == null)

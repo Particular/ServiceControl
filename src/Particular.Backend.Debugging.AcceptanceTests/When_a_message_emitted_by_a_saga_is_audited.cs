@@ -1,12 +1,12 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.SagaAudit
+﻿namespace Particular.Backend.Debugging.AcceptanceTests
 {
     using System;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Saga;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
+    using Particular.Backend.Debugging.AcceptanceTests.Contexts;
+    using Particular.Backend.Debugging.Api;
 
     public class When_a_message_emitted_by_a_saga_is_audited : AcceptanceTest
     {
@@ -16,7 +16,7 @@
         {
             var context = new MyContext();
             MessagesView auditedMessage = null;
-           
+
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
@@ -37,11 +37,11 @@
                     .AuditTo(Address.Parse("audit"));
             }
 
-            public class MySaga:Saga<MySagaData>,IAmStartedByMessages<MessageInitiatingSaga>
+            public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
                 public MyContext Context { get; set; }
 
-                
+
                 public void Handle(MessageInitiatingSaga message)
                 {
                     Context.SagaId = Data.Id;
@@ -83,5 +83,5 @@
         }
     }
 
-    
+
 }

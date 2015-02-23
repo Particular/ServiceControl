@@ -167,7 +167,6 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Audit\Audit_Messages_Have_Proper_IsSystemMessage_Tests.cs" />
     <Compile Include="Contexts\ExternalIntegrationsManagementEndpointSetup.cs" />
     <Compile Include="Contexts\TransportIntegration\ActiveMqTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />
@@ -179,10 +178,8 @@
     <Compile Include="CustomChecks\Custom_check_should_only_trigger_events_on_transition.cs" />
     <Compile Include="CustomChecks\When_a_custom_check_fails.cs" />
     <Compile Include="CustomChecks\When_a_periodic_custom_check_fails.cs" />
-    <Compile Include="DebugSessions\When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
-    <Compile Include="ExternalIntegrations\JsonServer.cs" />
-    <Compile Include="ExternalIntegrations\When_a_message_has_custom_checks.cs" />
     <Compile Include="ExternalIntegrations\JSonServer.cs" />
+    <Compile Include="ExternalIntegrations\When_a_message_has_custom_checks.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_failed.cs" />
     <Compile Include="ExternalIntegrations\When_heartbeat_is_restored.cs" />
     <Compile Include="ExternalIntegrations\When_encountered_an_error.cs" />
@@ -199,11 +196,6 @@
     <Compile Include="Contexts\DefaultServer.cs" />
     <Compile Include="Contexts\ManagementEndpoint.cs" />
     <Compile Include="Contexts\ManagementEndpointSetup.cs" />
-    <Compile Include="SagaAudit\When_multiple_messages_are_emitted_by_a_saga.cs" />
-    <Compile Include="SagaAudit\When_a_message_hitting_a_saga_is_not_a_start_message.cs" />
-    <Compile Include="SagaAudit\When_a_saga_instance_is_being_created.cs" />
-    <Compile Include="SagaAudit\When_requesting_timeout_from_a_saga.cs" />
-    <Compile Include="SagaAudit\When_publishing_from_a_saga.cs" />
     <Compile Include="When_a_message_has_been_successfully_processed.cs" />
     <Compile Include="When_a_message_is_imported_twice.cs" />
     <Compile Include="When_signalr_receives_a_message.cs" />

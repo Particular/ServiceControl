@@ -17,15 +17,14 @@
         {
             using (var session = documentStore.OpenSession())
             {
-                var processedMessage = new FailedMessage
+                var processedMessage = new MessageFailureHistory
                                        {
                                            Id = "1",
                                            UniqueMessageId = "xyz",
                                            Status = FailedMessageStatus.Unresolved,
-                                           ProcessingAttempts = new List<FailedMessage.ProcessingAttempt> { new FailedMessage.ProcessingAttempt
+                                           ProcessingAttempts = new List<MessageFailureHistory.ProcessingAttempt> { new MessageFailureHistory.ProcessingAttempt
                                            {
                                                AttemptedAt = DateTime.UtcNow,
-                                               MessageMetadata = new Dictionary<string, object>()
                                            }}
                                        };
 

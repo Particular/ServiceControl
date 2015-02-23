@@ -122,12 +122,9 @@
     <Compile Include="Heartbeats\HeartbeatStatusProviderTests.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapperTests.cs" />
-    <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
+    <Compile Include="MessageFailures\FailedMessageMutationTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
-    <Compile Include="SagaAudit\SagaStateMigrationTests.cs" />
-    <Compile Include="SagaAudit\SagaSnapshotIndexTests.cs" />
-    <Compile Include="SagaAudit\SagaListIndexTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">

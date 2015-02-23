@@ -46,9 +46,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InitiatingMessage.cs" />
     <Compile Include="MessagesView.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResultingMessage.cs" />
+    <Compile Include="SagaHistory.cs" />
     <Compile Include="SagaInfo.cs" />
+    <Compile Include="SagaStateChange.cs" />
+    <Compile Include="SagaStateChangeStatus.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.InternalContracts\ServiceControl.InternalContracts.csproj">

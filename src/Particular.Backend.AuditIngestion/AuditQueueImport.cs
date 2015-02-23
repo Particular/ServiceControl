@@ -2,8 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Threading;
-    using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
@@ -43,34 +41,8 @@
 
         public void Start()
         {
-            if (!TerminateIfForwardingIsEnabledButQueueNotWritable())
-            {
-                Logger.InfoFormat("Audit import is now started, feeding audit messages from: {0}", InputAddress);    
-            }
+            Logger.InfoFormat("Audit import is now started, feeding audit messages from: {0}", InputAddress);
         }
-
-        bool TerminateIfForwardingIsEnabledButQueueNotWritable()
-        {
-            if (Settings.ForwardAuditMessages != true)
-            {
-                return false;
-            }
-
-            try
-            {
-                //Send a message to test the forwarding queue
-                var testMessage = new TransportMessage(Guid.Empty.ToString("N"), new Dictionary<string, string>());
-                Forwarder.Send(testMessage, Settings.AuditLogQueue);
-                return false;
-            }
-            catch (Exception messageForwardingException)
-            {
-                //This call to RaiseCriticalError has to be on a seperate thread  otherwise it deadlocks and doesn't stop correctly.  
-                ThreadPool.QueueUserWorkItem(state => Configure.Instance.RaiseCriticalError(string.Format("Audit Import cannot start"), messageForwardingException));
-                return true;
-            }
-        }
-       
 
         public void Stop()
         {

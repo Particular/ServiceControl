@@ -89,7 +89,7 @@
             private readonly FailedMessageStatus messageStatus;
             string messageType = "SomeMessage";
             string contentType = "application/json";
-            private List<Action<FailedMessage.ProcessingAttempt>> processingAttempts = new List<Action<FailedMessage.ProcessingAttempt>>();
+            private List<Action<MessageFailureHistory.ProcessingAttempt>> processingAttempts = new List<Action<MessageFailureHistory.ProcessingAttempt>>();
 
             public FailedMessageBuilder(FailedMessageStatus messageStatus)
             {
@@ -108,19 +108,19 @@
                 return this;
             }
 
-            public FailedMessageBuilder AddProcessingAttempt(Action<FailedMessage.ProcessingAttempt> callback)
+            public FailedMessageBuilder AddProcessingAttempt(Action<MessageFailureHistory.ProcessingAttempt> callback)
             {
                 processingAttempts.Add(callback);
                 return this;
             }
 
-            public FailedMessage Build()
+            public MessageFailureHistory Build()
             {
-                return new FailedMessage
+                return new MessageFailureHistory
                 {
                     ProcessingAttempts = processingAttempts.Select(x =>
                     {
-                        var attempt = new FailedMessage.ProcessingAttempt
+                        var attempt = new MessageFailureHistory.ProcessingAttempt
                         {
                             SendingEndpoint = new EndpointDetails(),
                             ProcessingEndpoint = new EndpointDetails(),

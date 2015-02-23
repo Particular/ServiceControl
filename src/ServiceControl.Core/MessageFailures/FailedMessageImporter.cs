@@ -30,9 +30,9 @@
                 var contentType = message.Headers.GetOrDefault("NServiceBus.ContentType", "text/xml");
                 StoreBody(message, contentType);
 
-                var documentId = FailedMessage.MakeDocumentId(message.UniqueId);
+                var documentId = MessageFailureHistory.MakeDocumentId(message.UniqueId);
 
-                var failure = session.Load<FailedMessage>(documentId) ?? new FailedMessage
+                var failure = session.Load<MessageFailureHistory>(documentId) ?? new MessageFailureHistory
                 {
                     Id = documentId,
                     UniqueMessageId = message.UniqueId
@@ -48,7 +48,7 @@
                     return;
                 }
 
-                failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
+                failure.ProcessingAttempts.Add(new MessageFailureHistory.ProcessingAttempt
                 {
                     ProcessingEndpoint = new EndpointDetails()
                     {

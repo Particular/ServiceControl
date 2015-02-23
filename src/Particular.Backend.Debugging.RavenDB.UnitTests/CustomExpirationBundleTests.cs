@@ -3,7 +3,7 @@
     using System;
     using NUnit.Framework;
     using Particular.Backend.Debugging.RavenDB.Expiration;
-    using Particular.Backend.Debugging.RavenDB.Storage;
+    using Particular.Backend.Debugging.RavenDB.Model;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.Operations;
@@ -18,21 +18,21 @@
             var processedMessage = new MessageSnapshotDocument
             {
                 Id = "1",
-                AttemptedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
+                ProcessedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
                 Status = MessageStatus.Successful
             };
 
             var archivedFailure = new MessageSnapshotDocument
             {
                 Id = "2",
-                AttemptedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
+                ProcessedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
                 Status = MessageStatus.ArchivedFailure
             };
 
             var resolvedFailure = new MessageSnapshotDocument
             {
                 Id = "3",
-                AttemptedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
+                ProcessedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
                 Status = MessageStatus.ResolvedSuccessfully
             };
 
@@ -62,7 +62,7 @@
             var processedMessage = new MessageSnapshotDocument
             {
                 Id = "1",
-                AttemptedAt = now.AddMinutes(-5),
+                ProcessedAt = now.AddMinutes(-5),
             };
 
             using (var session = documentStore.OpenSession())
@@ -87,14 +87,14 @@
             var failedMessage = new MessageSnapshotDocument
             {
                 Id = "1",
-                AttemptedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
+                ProcessedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
                 Status = MessageStatus.Failed
             };
 
             var repeatedlyFailedMessage = new MessageSnapshotDocument
             {
                 Id = "2",
-                AttemptedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
+                ProcessedAt = now.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
                 Status = MessageStatus.RepeatedFailure
             };
 

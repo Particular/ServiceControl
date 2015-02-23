@@ -66,7 +66,7 @@
             {
                 using (var session = Store.OpenSession())
                 {
-                    var facetResults = session.Query<FailedMessage, FailedMessageFacetsIndex>()
+                    var facetResults = session.Query<MessageFailureHistory, FailedMessageFacetsIndex>()
                         .ToFacets(new List<Facet>
                                     {
                                         new Facet {Name = "Name", DisplayName="Endpoints"},

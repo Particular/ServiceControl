@@ -21,7 +21,7 @@
                 query = query.Where(fm => fm.ReceivingEndpointName == message.Endpoint);
             }
 
-            using (var ie = Session.Advanced.Stream(query.OfType<FailedMessage>()))
+            using (var ie = Session.Advanced.Stream(query.OfType<MessageFailureHistory>()))
             {
                 while (ie.MoveNext())
                 {

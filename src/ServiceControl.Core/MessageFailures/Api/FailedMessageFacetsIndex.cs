@@ -4,7 +4,7 @@
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 
-    public class FailedMessageFacetsIndex : AbstractIndexCreationTask<FailedMessage>
+    public class FailedMessageFacetsIndex : AbstractIndexCreationTask<MessageFailureHistory>
     {
         public FailedMessageFacetsIndex()
         {

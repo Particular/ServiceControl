@@ -22,7 +22,7 @@
         {
             var context = new MyContext();
 
-            FailedMessage failedMessage = null;
+            MessageFailureHistory failedMessage = null;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))

@@ -64,6 +64,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.Operations.Inges
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Particular.Backend.Debugging.UnitTests", "Particular.Backend.Debugging.UnitTests\Particular.Backend.Debugging.UnitTests.csproj", "{3841E27D-939E-43AA-BD23-6D387DE0874F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Migrations", "ServiceControl.Migrations\ServiceControl.Migrations.csproj", "{818EDA22-0301-44B4-B9CE-704099F2930F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,6 +144,10 @@ Global
 		{3841E27D-939E-43AA-BD23-6D387DE0874F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3841E27D-939E-43AA-BD23-6D387DE0874F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3841E27D-939E-43AA-BD23-6D387DE0874F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{818EDA22-0301-44B4-B9CE-704099F2930F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{818EDA22-0301-44B4-B9CE-704099F2930F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{818EDA22-0301-44B4-B9CE-704099F2930F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{818EDA22-0301-44B4-B9CE-704099F2930F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

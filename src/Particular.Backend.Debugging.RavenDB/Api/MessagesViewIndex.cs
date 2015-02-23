@@ -3,6 +3,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
     using System;
     using System.Linq;
     using Lucene.Net.Analysis.Standard;
+    using Particular.Backend.Debugging.RavenDB.Model;
     using Particular.Backend.Debugging.RavenDB.Storage;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;

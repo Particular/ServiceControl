@@ -1,6 +1,7 @@
 ﻿namespace Particular.Backend.Debugging.RavenDB.Storage
 {
     using System;
+    using Particular.Backend.Debugging.RavenDB.Model;
     using Raven.Client;
 
     public class MessageSnapshotStore : IStoreMessageSnapshots
@@ -27,9 +28,10 @@
                 {
                     snapshotDocument = new MessageSnapshotDocument
                     {
-                        Id = documentId
+                        Id = documentId,
                     };
                     initializeNewCallback(snapshotDocument);
+                    snapshotDocument.ProcessedAt = snapshotDocument.AttemptedAt;
                 }
                 session.Store(snapshotDocument);
                 session.SaveChanges();
@@ -48,6 +50,7 @@
                     return;
                 }
                 updateCallback(snapshotDocument);
+                snapshotDocument.ProcessedAt = snapshotDocument.AttemptedAt;
                 session.Store(snapshotDocument);
                 session.SaveChanges();
             }

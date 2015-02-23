@@ -21,7 +21,7 @@ namespace ServiceControl.ExternalIntegrations
         {
             
             var documentIds = contexts.Select(x => x.FailedMessageId).Cast<ValueType>().ToArray();
-            var failedMessageData = session.Load<FailedMessage>(documentIds); 
+            var failedMessageData = session.Load<MessageFailureHistory>(documentIds); 
             return failedMessageData.Where(p => p != null).Select(x => x.ToEvent());
         }
 

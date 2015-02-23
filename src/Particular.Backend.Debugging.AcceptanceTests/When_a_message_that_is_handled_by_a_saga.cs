@@ -1,14 +1,14 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.SagaAudit
+﻿namespace Particular.Backend.Debugging.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Saga;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
+    using Particular.Backend.Debugging.AcceptanceTests.Contexts;
+    using Particular.Backend.Debugging.Api;
 
     public class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
     {
@@ -46,11 +46,11 @@
             AssertInitiatedHas2Sagas(messages, context);
         }
 
-// ReSharper disable once UnusedParameter.Local
+        // ReSharper disable once UnusedParameter.Local
         static void AssertInitiatedHas2Sagas(IEnumerable<MessagesView> messages, MyContext context)
         {
             var m = messages.First(message => message.MessageType == typeof(InitiateSaga).FullName);
-            var value = (string) m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value;
+            var value = (string)m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value;
             var strings = value.Split(';');
 
             Assert.IsTrue(strings.Any(s => s == context.Saga1Id + ":New"));
@@ -91,7 +91,7 @@
                 public void Handle(CompleteSaga1 message)
                 {
                     MarkAsComplete();
-                    Context.Saga1Id = Data.Id; 
+                    Context.Saga1Id = Data.Id;
                     Context.Saga1Complete = true;
                 }
 

@@ -1,38 +1,34 @@
-﻿namespace ServiceControl.UnitTests.CompositeViews
+﻿namespace Particular.Backend.Debugging.RavenDB.UnitTests
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using Contracts.Operations;
-    using MessageAuditing;
     using NUnit.Framework;
+    using Particular.Backend.Debugging.RavenDB.Api;
+    using Particular.Backend.Debugging.RavenDB.Model;
     using Raven.Client;
     using Raven.Client.Linq;
-    using ServiceControl.ProductionDebugging.Api;
-    using ServiceControl.ProductionDebugging.RavenDB.Api;
-    using ServiceControl.ProductionDebugging.RavenDB.Data;
 
     [TestFixture]
-    public class MessagesViewTests 
+    public class MessagesViewTests : TestWithRavenDB
     {
         [Test]
         public void Filter_out_system_messages()
         {
             using (var session = documentStore.OpenSession())
             {
-                var processedMessage = new AuditMessageSnapshot
-                                       {
-                                           Id = "1",
-                                       };
+                var processedMessage = new MessageSnapshotDocument
+                {
+                    Id = "1",
+                    IsSystemMessage = true,
+                };
 
-                processedMessage.MessageMetadata["IsSystemMessage"] = true;
                 session.Store(processedMessage);
-                var processedMessage2 = new AuditMessageSnapshot
-                                        {
-                                            Id = "2",
-                                        };
+                var processedMessage2 = new MessageSnapshotDocument
+                {
+                    Id = "2",
+                    IsSystemMessage = false,
+                };
 
-                processedMessage2.MessageMetadata["IsSystemMessage"] = false;
                 session.Store(processedMessage2);
                 session.SaveChanges();
             }
@@ -42,7 +38,7 @@
                 var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Customize(x => x.WaitForNonStaleResults())
                     .Where(x => !x.IsSystemMessage)
-                    .OfType<AuditMessageSnapshot>()
+                    .OfType<MessageSnapshotDocument>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 Assert.AreNotEqual("1", results.Single().Id);
@@ -54,122 +50,87 @@
         {
             using (var session = documentStore.OpenSession())
             {
-                session.Store(new AuditMessageSnapshot
-                {
-                    Id = "1",
-                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(10) } }
-                });
-
-                session.Store(new AuditMessageSnapshot
-                {
-                    Id = "2",
-                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(20) } }
-                });
-
-                session.Store(new AuditMessageSnapshot
-                {
-                    Id = "3",
-                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
-                });
-
-                session.Store(new AuditMessageSnapshot
-                {
-                    Id = "4",
-                    Status = MessageStatus.Failed,
-                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
-                });
+                session.Store(CreateMessageSnapshotDocumentWithCriticalTime("1", TimeSpan.FromSeconds(10)));
+                session.Store(CreateMessageSnapshotDocumentWithCriticalTime("2", TimeSpan.FromSeconds(20)));
+                session.Store(CreateMessageSnapshotDocumentWithCriticalTime("3", TimeSpan.FromSeconds(15)));
+                session.Store(CreateMessageSnapshotDocumentWithCriticalTime("4", TimeSpan.FromSeconds(15)));
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            WaitForIndexing(documentStore);
 
             using (var session = documentStore.OpenSession())
             {
                 var firstByCriticalTime = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.CriticalTime)
                     .Where(x => x.CriticalTime != null)
-                    .AsProjection<AuditMessageSnapshot>()
+                    .AsProjection<MessageSnapshotDocument>()
                     .First();
                 Assert.AreEqual("1", firstByCriticalTime.Id);
 
-                var firstByCriticalTimeDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var firstByCriticalTimeDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.CriticalTime)
                     .Where(x => x.CriticalTime != null)
-                    .AsProjection<AuditMessageSnapshot>()
+                    .AsProjection<MessageSnapshotDocument>()
                     .First();
-                Assert.AreEqual("2", firstByCriticalTimeDescription.Id);
+                Assert.AreEqual("2", firstByCriticalTimeDesc.Id);
             }
         }
+
+        static MessageSnapshotDocument CreateMessageSnapshotDocumentWithCriticalTime(string id, TimeSpan criticalTime)
+        {
+            var document = new MessageSnapshotDocument
+            {
+                Id = id,
+                Processing = new ProcessingStatistics()
+                {
+                    CriticalTime = criticalTime
+                }
+            };
+            return document;
+        }
+
         [Test]
         public void Order_by_time_sent()
         {
             using (var session = documentStore.OpenSession())
             {
-                session.Store(new AuditMessageSnapshot
-                {
-                    Id = "1",
-                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(20) } }
-                });
-
-                session.Store(new AuditMessageSnapshot
-                {
-                    Id = "2",
-                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(10) } }
-                });
-                session.Store(new AuditMessageSnapshot
-                {
-                    Id = "3",
-                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddDays(-1) } }
-                });
+                session.Store(CreateMessageSnapshotDocumentWithTimeSent("1", DateTime.Today.AddSeconds(20)));
+                session.Store(CreateMessageSnapshotDocumentWithTimeSent("2", DateTime.Today.AddSeconds(10)));
+                session.Store(CreateMessageSnapshotDocumentWithTimeSent("3", DateTime.Today.AddDays(-1)));
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            WaitForIndexing(documentStore);
 
             using (var session = documentStore.OpenSession())
             {
                 var firstByTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.TimeSent)
-                    .OfType<AuditMessageSnapshot>()
+                    .OfType<MessageSnapshotDocument>()
                     .First();
                 Assert.AreEqual("3", firstByTimeSent.Id);
 
-                var firstByTimeSentDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var firstByTimeSentDesc = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.TimeSent)
-                    .OfType<AuditMessageSnapshot>()
+                    .OfType<MessageSnapshotDocument>()
                     .First();
-                Assert.AreEqual("1", firstByTimeSentDescription.Id);
+                Assert.AreEqual("1", firstByTimeSentDesc.Id);
             }
         }
 
-        [Test]
-        public void Correct_status_for_repeated_errors()
+        static MessageSnapshotDocument CreateMessageSnapshotDocumentWithTimeSent(string id, DateTime timeSent)
         {
-            using (var session = documentStore.OpenSession())
+            var document = new MessageSnapshotDocument
             {
-                session.Store(new AuditMessageSnapshot()
+                Id = id,
+                Processing = new ProcessingStatistics()
                 {
-                    Id = "1",
-                    AttemptedAt = DateTime.Today,
-                    MessageMetadata  = new Dictionary<string, object>{{"MessageIntent", "1"} }
-                });
-         
-                session.SaveChanges();
-            }
-
-            documentStore.WaitForIndexing();
-
-            using (var session = documentStore.OpenSession())
-            {
-                var message = session.Query<AuditMessageSnapshot>()
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .Customize(x => x.WaitForNonStaleResults())
-                    .Single();
-
-                Assert.AreEqual(MessageStatus.RepeatedFailure, message.Status);
-            }
+                    TimeSent = timeSent
+                }
+            };
+            return document;
         }
-
 
         [SetUp]
         public void SetUp()

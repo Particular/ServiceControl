@@ -3,7 +3,7 @@
     using System;
     using System.Threading;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure.RavenDB.Expiration;
+    using ServiceControl.Shell.Api;
 
     [TestFixture]
     public class PeriodicExecutorTests
@@ -16,7 +16,7 @@
             var lastEndTime = DateTime.MinValue;
             var @event = new ManualResetEventSlim(false);
             var delay = TimeSpan.Zero;
-            var executor = new PeriodicExecutor(() =>
+            var executor = new PeriodicExecutor(e =>
             {
                 delay = DateTime.Now - lastEndTime;
                 if (lastEndTime != DateTime.MinValue && delay > TimeSpan.FromMilliseconds(100))
@@ -45,7 +45,7 @@
             var first = true;
             var success = false;
             var @event = new ManualResetEventSlim(false);
-            var executor = new PeriodicExecutor(() =>
+            var executor = new PeriodicExecutor(e =>
             {
                 if (first)
                 {
@@ -65,7 +65,7 @@
         public void Can_shutdown_while_waiting()
         {
             var @event = new ManualResetEventSlim(false);
-            var executor = new PeriodicExecutor(@event.Set, TimeSpan.FromSeconds(10000));
+            var executor = new PeriodicExecutor(e => @event.Set(), TimeSpan.FromSeconds(10000));
             executor.Start(false);
             @event.Wait();
             Thread.Sleep(1000);
@@ -76,7 +76,7 @@
         [Test]
         public void Can_shutdown_when_not_started()
         {
-            var executor = new PeriodicExecutor(() => {}, TimeSpan.FromSeconds(10000));
+            var executor = new PeriodicExecutor(e => {}, TimeSpan.FromSeconds(10000));
             executor.Stop();
             Assert.Pass();
         }

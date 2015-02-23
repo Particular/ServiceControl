@@ -3,7 +3,7 @@
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class FailedMessageViewTransformer : AbstractTransformerCreationTask<FailedMessage>
+    public class FailedMessageViewTransformer : AbstractTransformerCreationTask<MessageFailureHistory>
     {
         public FailedMessageViewTransformer()
         {
