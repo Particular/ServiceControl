@@ -8,14 +8,15 @@
 
     public class ProcessedMessageConverter
     {
-        public MessageSnapshotDocument Convert(OldProcessedMessage processedMessage)
+        public MessageSnapshotDocument Convert(ProcessedMessage processedMessage)
         {
             object body;
             processedMessage.MessageMetadata.TryGetValue("Body", out body);
             var result = new MessageSnapshotDocument()
             {
-                Id = processedMessage.Id,
+                Id = MessageSnapshotDocument.MakeDocumentId(processedMessage.UniqueMessageId),
                 AttemptedAt = processedMessage.ProcessedAt,
+                ProcessedAt = processedMessage.ProcessedAt,
                 ConversationId = processedMessage.Headers["NServiceBus.CorrelationId"],
                 IsSystemMessage = (bool)processedMessage.MessageMetadata["IsSystemMessage"],
                 MessageType = (string)processedMessage.MessageMetadata["MessageType"],
@@ -23,16 +24,16 @@
                 {
                     BodyUrl = (string)processedMessage.MessageMetadata["BodyUrl"],
                     ContentType = (string)processedMessage.MessageMetadata["ContentType"],
-                    ContentLenght = (int)processedMessage.MessageMetadata["ContentLength"],
+                    ContentLenght = (int)(long)processedMessage.MessageMetadata["ContentLength"],
                     Text = (string)body
                 },
-                MessageIntent = (MessageIntentEnum)(int)processedMessage.MessageMetadata["MessageIntent"],
+                MessageIntent = (MessageIntentEnum)(long)processedMessage.MessageMetadata["MessageIntent"],
                 Processing = new ProcessingStatistics()
                 {
-                    TimeSent = (DateTime)processedMessage.MessageMetadata["TimeSent"],
-                    CriticalTime = (TimeSpan)processedMessage.MessageMetadata["CriticalTime"],
-                    DeliveryTime = (TimeSpan)processedMessage.MessageMetadata["DeliveryTime"],
-                    ProcessingTime = (TimeSpan)processedMessage.MessageMetadata["ProcessingTime"],
+                    TimeSent = DateTime.Parse((string)processedMessage.MessageMetadata["TimeSent"]),
+                    CriticalTime = TimeSpan.Parse((string)processedMessage.MessageMetadata["CriticalTime"]),
+                    DeliveryTime = TimeSpan.Parse((string)processedMessage.MessageMetadata["DeliveryTime"]),
+                    ProcessingTime = TimeSpan.Parse((string)processedMessage.MessageMetadata["ProcessingTime"]),
                 },
                 ReceivingEndpoint = (EndpointDetails)processedMessage.MessageMetadata["ReceivingEndpoint"],
                 SendingEndpoint = (EndpointDetails)processedMessage.MessageMetadata["SendingEndpoint"],

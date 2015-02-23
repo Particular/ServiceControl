@@ -5,20 +5,17 @@ namespace ServiceControl.Migrations
 
     public class FailedMessageMigration : ExpiredDocumentMigration<FailedMessage>
     {
-        readonly FailedMessageToMessageFailureHistoryConverter historyConverter;
-        readonly FailedMessageToMessageSnapshotDocumentConverter snapshotConverter;
+        readonly FailedMessageToMessageFailureHistoryConverter historyConverter = new FailedMessageToMessageFailureHistoryConverter();
+        readonly FailedMessageToMessageSnapshotDocumentConverter snapshotConverter = new FailedMessageToMessageSnapshotDocumentConverter();
 
-        public FailedMessageMigration(IDocumentStore store, FailedMessageToMessageFailureHistoryConverter historyConverter, FailedMessageToMessageSnapshotDocumentConverter snapshotConverter) : base(store)
+        public FailedMessageMigration(IDocumentStore store) 
+            : base(store)
         {
-            this.historyConverter = historyConverter;
-            this.snapshotConverter = snapshotConverter;
         }
 
-        public FailedMessageMigration(IDocumentStore store, FailedMessageToMessageFailureHistoryConverter historyConverter, FailedMessageToMessageSnapshotDocumentConverter snapshotConverter, TimeSpan timeToKeepMessagesBeforeExpiring, TimeSpan timerPeriod) 
-            : base(store, timeToKeepMessagesBeforeExpiring, timerPeriod)
+        public FailedMessageMigration(IDocumentStore store, TimeSpan timeToKeepMessagesBeforeExpiring) 
+            : base(store, timeToKeepMessagesBeforeExpiring)
         {
-            this.historyConverter = historyConverter;
-            this.snapshotConverter = snapshotConverter;
         }
 
         protected override string EntityName

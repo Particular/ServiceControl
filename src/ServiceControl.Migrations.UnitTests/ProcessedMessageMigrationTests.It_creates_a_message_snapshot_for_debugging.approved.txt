@@ -1,0 +1,95 @@
+﻿{
+    "Id": "AuditMessageSnapshots/e2c66e1c-3167-2d25-e681-3044635fc2f4",
+    "ProcessedAt": "2015-02-20T07:36:11.467349Z",
+    "AttemptedAt": "2015-02-20T07:36:11.467349Z",
+    "Status": "Successful",
+    "MessageId": "5626e4b6-a2e9-40a2-86ae-a445008dc208",
+    "UniqueMessageId": "e2c66e1c-3167-2d25-e681-3044635fc2f4",
+    "Headers": {
+        "NServiceBus.MessageId": "5626e4b6-a2e9-40a2-86ae-a445008dc208",
+        "NServiceBus.CorrelationId": "5626e4b6-a2e9-40a2-86ae-a445008dc208",
+        "NServiceBus.OriginatingEndpoint": "Sender.Default",
+        "$.diagnostics.originating.hostid": "fa2c673600d1e72ad99147355265111d",
+        "NServiceBus.MessageIntent": "Send",
+        "NServiceBus.Version": "4.6.5",
+        "NServiceBus.TimeSent": "2015-02-20 07:36:07:493470 Z",
+        "NServiceBus.OriginatingMachine": "SIMON-MAC",
+        "NServiceBus.ContentType": "text/xml",
+        "NServiceBus.EnclosedMessageTypes": "ServiceBus.Management.AcceptanceTests.When_a_message_has_been_successfully_processed+MyMessage, ServiceBus.Management.AcceptanceTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "CorrId": "5626e4b6-a2e9-40a2-86ae-a445008dc208\\0",
+        "WinIdName": "",
+        "NServiceBus.ConversationId": "3fcb74c3-4405-4649-8f64-a445008dc211",
+        "NServiceBus.ProcessingMachine": "SIMON-MAC",
+        "NServiceBus.ProcessingEndpoint": "Receiver.Default",
+        "$.diagnostics.hostid": "fa2c673600d1e72ad99147355265111d",
+        "$.diagnostics.hostdisplayname": "SIMON-MAC",
+        "NServiceBus.ProcessingStarted": "2015-02-20 07:36:10:959990 Z",
+        "$.diagnostics.license.expired": "false",
+        "NServiceBus.ProcessingEnded": "2015-02-20 07:36:11:467349 Z",
+        "NServiceBus.OriginatingAddress": "Sender.Default@SIMON-MAC"
+    },
+    "Processing": {
+        "TimeSent": "2015-02-20T07:36:07.49347Z",
+        "CriticalTime": {
+            "Ticks": 39738790,
+            "Days": 0,
+            "Hours": 0,
+            "Milliseconds": 973,
+            "Minutes": 0,
+            "Seconds": 3,
+            "TotalDays": 4.5993969907407405E-05,
+            "TotalHours": 0.0011038552777777777,
+            "TotalMilliseconds": 3973.8790000000004,
+            "TotalMinutes": 0.066231316666666665,
+            "TotalSeconds": 3.9738789999999997
+        },
+        "ProcessingTime": {
+            "Ticks": 5073590,
+            "Days": 0,
+            "Hours": 0,
+            "Milliseconds": 507,
+            "Minutes": 0,
+            "Seconds": 0,
+            "TotalDays": 5.8722106481481477E-06,
+            "TotalHours": 0.00014093305555555556,
+            "TotalMilliseconds": 507.35900000000004,
+            "TotalMinutes": 0.0084559833333333334,
+            "TotalSeconds": 0.507359
+        },
+        "DeliveryTime": {
+            "Ticks": 34665200,
+            "Days": 0,
+            "Hours": 0,
+            "Milliseconds": 466,
+            "Minutes": 0,
+            "Seconds": 3,
+            "TotalDays": 4.0121759259259255E-05,
+            "TotalHours": 0.00096292222222222213,
+            "TotalMilliseconds": 3466.52,
+            "TotalMinutes": 0.057775333333333331,
+            "TotalSeconds": 3.46652
+        }
+    },
+    "Body": {
+        "ContentType": "text/xml",
+        "ContentLenght": 237,
+        "BodyUrl": "/messages/5626e4b6-a2e9-40a2-86ae-a445008dc208/body",
+        "Text": "<?xml version=\"1.0\" ?>\r\n<Messages xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"http://tempuri.net/ServiceBus.Management.AcceptanceTests\">\n<MyMessage>\n</MyMessage>\n</Messages>\r\n"
+    },
+    "Sagas": null,
+    "ConversationId": "5626e4b6-a2e9-40a2-86ae-a445008dc208",
+    "RelatedToId": null,
+    "MessageType": "ServiceBus.Management.AcceptanceTests.When_a_message_has_been_successfully_processed+MyMessage",
+    "IsSystemMessage": false,
+    "ReceivingEndpoint": {
+        "Name": "Receiver.Default",
+        "HostId": "fa2c6736-00d1-e72a-d991-47355265111d",
+        "Host": "SIMON-MAC"
+    },
+    "SendingEndpoint": {
+        "Name": "Sender.Default",
+        "HostId": "fa2c6736-00d1-e72a-d991-47355265111d",
+        "Host": "SIMON-MAC"
+    },
+    "MessageIntent": "Send"
+}

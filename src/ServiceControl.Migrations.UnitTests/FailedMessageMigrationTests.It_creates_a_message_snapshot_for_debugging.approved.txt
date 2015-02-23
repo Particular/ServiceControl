@@ -1,0 +1,97 @@
+﻿{
+    "Id": "AuditMessageSnapshots/474ca846-1f38-24db-3cf8-a147632de5ab",
+    "ProcessedAt": "2015-02-20T07:34:32.317585Z",
+    "AttemptedAt": "2015-02-20T07:34:32.317585Z",
+    "Status": "Failed",
+    "MessageId": "dc6b6f1f-d1a3-45bb-8e7c-a445008d48c5",
+    "UniqueMessageId": "474ca846-1f38-24db-3cf8-a147632de5ab",
+    "Headers": {
+        "NServiceBus.MessageId": "dc6b6f1f-d1a3-45bb-8e7c-a445008d48c5",
+        "NServiceBus.CorrelationId": "dc6b6f1f-d1a3-45bb-8e7c-a445008d48c5",
+        "NServiceBus.OriginatingEndpoint": "Receiver.Default",
+        "$.diagnostics.originating.hostid": "fa2c673600d1e72ad99147355265111d",
+        "NServiceBus.MessageIntent": "Send",
+        "NServiceBus.Version": "4.6.5",
+        "NServiceBus.TimeSent": "2015-02-20 07:34:24:016152 Z",
+        "NServiceBus.OriginatingMachine": "SIMON-MAC",
+        "NServiceBus.ContentType": "text/xml",
+        "NServiceBus.EnclosedMessageTypes": "ServiceBus.Management.AcceptanceTests.When_a_message_has_failed+MyMessage, ServiceBus.Management.AcceptanceTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "CorrId": "dc6b6f1f-d1a3-45bb-8e7c-a445008d48c5\\0",
+        "WinIdName": "",
+        "NServiceBus.ConversationId": "96e684f1-74d3-44e2-b1b3-a445008d48cc",
+        "NServiceBus.ProcessingMachine": "SIMON-MAC",
+        "NServiceBus.ProcessingEndpoint": "Receiver.Default",
+        "$.diagnostics.hostid": "fa2c673600d1e72ad99147355265111d",
+        "$.diagnostics.hostdisplayname": "SIMON-MAC",
+        "NServiceBus.ExceptionInfo.ExceptionType": "System.Exception",
+        "NServiceBus.ExceptionInfo.Message": "Simulated exception",
+        "NServiceBus.ExceptionInfo.Source": "ServiceBus.Management.AcceptanceTests",
+        "NServiceBus.ExceptionInfo.StackTrace": "System.Exception: Simulated exception\n   at ServiceBus.Management.AcceptanceTests.When_a_message_has_failed.Receiver.MyMessageHandler.Handle(MyMessage message) in c:\\Particular\\ServiceControl\\src\\ServiceControl.AcceptanceTests\\MessageFailures\\When_a_message_has_failed.cs:line 129\n   at lambda_method(Closure , Object , Object )\n   at NServiceBus.Unicast.HandlerInvocationCache.Invoke(Object handler, Object message, Dictionary`2 dictionary) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Unicast\\HandlerInvocationCache.cs:line 61\n   at NServiceBus.Unicast.HandlerInvocationCache.InvokeHandle(Object handler, Object message) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Unicast\\HandlerInvocationCache.cs:line 22\n   at NServiceBus.Unicast.Behaviors.LoadHandlersBehavior.<Invoke>b__1(Object handlerInstance, Object message) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Unicast\\Behaviors\\LoadHandlersBehavior.cs:line 42\n   at NServiceBus.Unicast.Behaviors.InvokeHandlersBehavior.DispatchMessageToHandlersBasedOnType(IBuilder builder, LogicalMessage toHandle, MessageHandler messageHandler) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Unicast\\Behaviors\\InvokeHandlersBehavior.cs:line 63\n   at NServiceBus.Unicast.Behaviors.InvokeHandlersBehavior.Invoke(HandlerInvocationContext context, Action next) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Unicast\\Behaviors\\InvokeHandlersBehavior.cs:line 29\n   at NServiceBus.Pipeline.BehaviorChain`1.InvokeNext(T context) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Pipeline\\BehaviorChain.cs:line 51   at NServiceBus.Pipeline.BehaviorChain`1.Invoke(T context) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Pipeline\\BehaviorChain.cs:line 36\n   at NServiceBus.Pipeline.PipelineExecutor.Execute[T](BehaviorChain`1 pipelineAction, T context) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Pipeline\\PipelineExecutor.cs:line 139\n   at NServiceBus.Pipeline.PipelineExecutor.InvokeHandlerPipeline(MessageHandler handler) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Pipeline\\PipelineExecutor.cs:line 68\n   at NServiceBus.Unicast.Behaviors.LoadHandlersBehavior.Invoke(ReceiveLogicalMessageContext context, Action next) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Unicast\\Behaviors\\LoadHandlersBehavior.cs:line 45\n   at NServiceBus.Pipeline.BehaviorChain`1.InvokeNext(T context) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Pipeline\\BehaviorChain.cs:line 51   at NServiceBus.Pipeline.BehaviorChain`1.Invoke(T context) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Pipeline\\BehaviorChain.cs:line 36\n   at NServiceBus.Pipeline.PipelineExecutor.Execute[T](BehaviorChain`1 pipelineAction, T context) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Pipeline\\PipelineExecutor.cs:line 139\n   at NServiceBus.Pipeline.PipelineExecutor.InvokeLogicalMessagePipeline(LogicalMessage message) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Pipeline\\PipelineExecutor.cs:line 58\n   at NServiceBus.Unicast.Messages.ExecuteLogicalMessagesBehavior.Invoke(ReceivePhysicalMessageContext context, Action next) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Unicast\\Messages\\ExecuteLogicalMessagesBehavior.cs:line 28\n   at NServiceBus.Pipeline.BehaviorChain`1.InvokeNext(T context) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Pipeline\\BehaviorChain.cs:line 51   at NServiceBus.Pipeline.BehaviorChain`1.InvokeNext(T context) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Pipeline\\BehaviorChain.cs:line 64\n   at NServiceBus.Pipeline.BehaviorChain`1.<>c__DisplayClass2.<InvokeNext>b__0() in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\Pipeline\\BehaviorChain.cs:line 51\n   at NServiceBus.UnitOfWork.UnitOfWorkBehavior.Invoke(ReceivePhysicalMessageContext context, Action next) in c:\\BuildAgent\\work\\1b05a2fea6e4cd32\\src\\NServiceBus.Core\\UnitOfWork\\UnitOfWorkBehavior.cs:line 24",
+        "NServiceBus.FailedQ": "Receiver.Default@SIMON-MAC",
+        "NServiceBus.TimeOfFailure": "2015-02-20 07:34:32:317585 Z"
+    },
+    "Processing": {
+        "TimeSent": "2015-02-20T07:34:24.016152Z",
+        "CriticalTime": {
+            "Ticks": 600000000,
+            "Days": 0,
+            "Hours": 0,
+            "Milliseconds": 0,
+            "Minutes": 1,
+            "Seconds": 0,
+            "TotalDays": 0.00069444444444444436,
+            "TotalHours": 0.016666666666666666,
+            "TotalMilliseconds": 60000,
+            "TotalMinutes": 1,
+            "TotalSeconds": 60
+        },
+        "ProcessingTime": {
+            "Ticks": 1200000000,
+            "Days": 0,
+            "Hours": 0,
+            "Milliseconds": 0,
+            "Minutes": 2,
+            "Seconds": 0,
+            "TotalDays": 0.0013888888888888887,
+            "TotalHours": 0.033333333333333333,
+            "TotalMilliseconds": 120000,
+            "TotalMinutes": 2,
+            "TotalSeconds": 120
+        },
+        "DeliveryTime": {
+            "Ticks": 1800000000,
+            "Days": 0,
+            "Hours": 0,
+            "Milliseconds": 0,
+            "Minutes": 3,
+            "Seconds": 0,
+            "TotalDays": 0.0020833333333333333,
+            "TotalHours": 0.049999999999999996,
+            "TotalMilliseconds": 180000,
+            "TotalMinutes": 3,
+            "TotalSeconds": 180
+        }
+    },
+    "Body": {
+        "ContentType": "text/xml",
+        "ContentLenght": 237,
+        "BodyUrl": "/messages/dc6b6f1f-d1a3-45bb-8e7c-a445008d48c5/body",
+        "Text": "<?xml version=\"1.0\" ?>\r\n<Messages xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"http://tempuri.net/ServiceBus.Management.AcceptanceTests\">\n<MyMessage>\n</MyMessage>\n</Messages>\r\n"
+    },
+    "Sagas": null,
+    "ConversationId": "dc6b6f1f-d1a3-45bb-8e7c-a445008d48c5",
+    "RelatedToId": null,
+    "MessageType": "ServiceBus.Management.AcceptanceTests.When_a_message_has_failed+MyMessage",
+    "IsSystemMessage": false,
+    "ReceivingEndpoint": {
+        "Name": "Receiver.Default",
+        "HostId": "fa2c6736-00d1-e72a-d991-47355265111d",
+        "Host": "SIMON-MAC"
+    },
+    "SendingEndpoint": {
+        "Name": "Sender.Default",
+        "HostId": "fa2c6736-00d1-e72a-d991-47355265111d",
+        "Host": "SIMON-MAC"
+    },
+    "MessageIntent": "Send"
+}

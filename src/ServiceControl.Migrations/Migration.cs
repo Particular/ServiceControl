@@ -18,19 +18,14 @@
         readonly IDocumentStore Store;
 
         protected Migration(IDocumentStore store)
-            : this(store, TimeSpan.FromMinutes(5))
-        {
-        }
-
-        protected Migration(IDocumentStore store, TimeSpan timerPeriod)
         {
             Store = store;
             logger = LogManager.GetLogger(GetType());
-            executor = new PeriodicExecutor(Migrate, timerPeriod);
+            executor = new PeriodicExecutor(Migrate, TimeSpan.FromMinutes(5));
         }
 
         protected abstract string EntityName { get; }
-        protected abstract void Migrate(T document, IDocumentSession updateSession, Func<bool> shouldCancel);
+        public abstract void Migrate(T document, IDocumentSession updateSession, Func<bool> shouldCancel);
 
         public void Start()
         {
@@ -51,7 +46,7 @@
         }
 
 
-        bool Migrate(Func<bool> shouldCancel)
+        public bool Migrate(Func<bool> shouldCancel)
         {
             using (var querySession = Store.OpenSession())
             {

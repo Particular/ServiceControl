@@ -2,7 +2,6 @@ namespace Particular.Backend.Debugging.RavenDB.Expiration
 {
     using System;
     using System.Linq;
-    using Particular.Backend.Debugging.RavenDB.Migration;
     using Particular.Backend.Debugging.RavenDB.Model;
     using Raven.Client.Indexes;
     using ServiceControl.Contracts.Operations;
@@ -21,11 +20,6 @@ namespace Particular.Backend.Debugging.RavenDB.Expiration
                                select new
                                {
                                    ProcessedAt = message.ProcessedAt,
-                               });
-            AddMap<SagaHistory>(messages => from message in messages
-                               select new
-                               {
-                                   ProcessedAt = MetadataFor(message).Value<DateTime>("Last-Modified"),
                                });
 
             DisableInMemoryIndexing = true;

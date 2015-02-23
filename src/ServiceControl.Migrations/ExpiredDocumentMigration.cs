@@ -10,17 +10,17 @@
         DateTime expiryThreshold;
 
         protected ExpiredDocumentMigration(IDocumentStore store)
-            : this(store, TimeSpan.FromHours(Settings.HoursToKeepMessagesBeforeExpiring), TimeSpan.FromMinutes(5))
+            : this(store, TimeSpan.FromHours(Settings.HoursToKeepMessagesBeforeExpiring))
         {
         }
 
-        protected ExpiredDocumentMigration(IDocumentStore store, TimeSpan timeToKeepMessagesBeforeExpiring, TimeSpan timerPeriod)
-            : base(store, timerPeriod)
+        protected ExpiredDocumentMigration(IDocumentStore store, TimeSpan timeToKeepMessagesBeforeExpiring)
+            : base(store)
         {
             expiryThreshold = SystemTime.UtcNow.Add(-timeToKeepMessagesBeforeExpiring);
         }
 
-        protected override void Migrate(T document, IDocumentSession updateSession, Func<bool> shouldCancel)
+        public override void Migrate(T document, IDocumentSession updateSession, Func<bool> shouldCancel)
         {
             Migrate(document, updateSession, expiryThreshold, shouldCancel);
         }

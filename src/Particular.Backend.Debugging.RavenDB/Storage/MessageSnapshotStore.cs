@@ -18,7 +18,7 @@
             using (var session = documentStore.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
-                var documentId = MakeDocumentId(uniqueId);
+                var documentId = MessageSnapshotDocument.MakeDocumentId(uniqueId);
                 var snapshotDocument = session.Load<MessageSnapshotDocument>(documentId);
                 if (snapshotDocument != null)
                 {
@@ -43,7 +43,7 @@
             using (var session = documentStore.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
-                var documentId = MakeDocumentId(uniqueId);
+                var documentId = MessageSnapshotDocument.MakeDocumentId(uniqueId);
                 var snapshotDocument = session.Load<MessageSnapshotDocument>(documentId);
                 if (snapshotDocument == null)
                 {
@@ -56,11 +56,6 @@
             }
         }
 
-
-        static string MakeDocumentId(string messageUniqueId)
-        {
-            return "AuditMessageSnapshots/" + messageUniqueId;
-        }
 
     }
 }

@@ -3,9 +3,9 @@
     using System;
     using System.Collections.Generic;
 
-    public class OldProcessedMessage
+    public class ProcessedMessage
     {
-        public OldProcessedMessage()
+        public ProcessedMessage()
         {
             MessageMetadata = new Dictionary<string, object>();
         }

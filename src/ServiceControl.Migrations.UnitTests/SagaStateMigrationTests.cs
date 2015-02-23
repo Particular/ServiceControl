@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using NUnit.Framework;
-using ObjectApproval;
-using Raven.Abstractions;
-using Raven.Client.Indexes;
-
-namespace Particular.Backend.Debugging.RavenDB.UnitTests
+﻿namespace ServiceControl.Migrations.UnitTests
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using NUnit.Framework;
+    using ObjectApproval;
     using Particular.Backend.Debugging.Api;
-    using Particular.Backend.Debugging.RavenDB.Migration;
     using Particular.Backend.Debugging.RavenDB.Model;
-    using SagaHistory = Particular.Backend.Debugging.RavenDB.Migration.SagaHistory;
-    using SagaStateChange = Particular.Backend.Debugging.RavenDB.Migration.SagaStateChange;
+    using Raven.Client.Indexes;
+    using SagaHistory = ServiceControl.Migrations.SagaHistory;
+    using SagaStateChange = ServiceControl.Migrations.SagaStateChange;
 
     [TestFixture]
     class SagaStateMigrationTests
@@ -34,9 +31,7 @@ namespace Particular.Backend.Debugging.RavenDB.UnitTests
                 }
 
                 store.WaitForIndexing();
-                bool wasCleanEptyRun;
-                var expiryThreshold = SystemTime.UtcNow.Add(-TimeSpan.FromDays(50 * 365));
-                new SagaHistoryMigration(store).Migrate(expiryThreshold, () => false, out wasCleanEptyRun);
+                var wasCleanEptyRun = new SagaHistoryMigration(store, TimeSpan.FromDays(50 * 365)).Migrate(() => false);
                 Assert.IsFalse(wasCleanEptyRun);
                 using (var session = store.OpenSession())
                 {
@@ -72,12 +67,11 @@ namespace Particular.Backend.Debugging.RavenDB.UnitTests
                     session.SaveChanges();
                 }
                 store.WaitForIndexing();
-                var expiryThreshold = SystemTime.UtcNow.Add(-TimeSpan.FromDays(50 * 365));
-                bool wasCleanEmptyRun;
-                var migration = new SagaHistoryMigration(store);
-                migration.Migrate(expiryThreshold, () => false, out wasCleanEmptyRun);
+                var expiryThreshold = TimeSpan.FromDays(50 * 365);
+                var migration = new SagaHistoryMigration(store, expiryThreshold);
+                var wasCleanEmptyRun = migration.Migrate(() => false);
                 Assert.IsFalse(wasCleanEmptyRun);
-                migration.Migrate(expiryThreshold, () => false, out wasCleanEmptyRun);
+                wasCleanEmptyRun = migration.Migrate(() => false);
                 Assert.IsTrue(wasCleanEmptyRun);
             }
         }

@@ -11,8 +11,8 @@
         {
         }
 
-        public SagaHistoryMigration(IDocumentStore store, TimeSpan timeToKeepMessagesBeforeExpiring, TimeSpan timerPeriod) 
-            : base(store, timeToKeepMessagesBeforeExpiring, timerPeriod)
+        public SagaHistoryMigration(IDocumentStore store, TimeSpan timeToKeepMessagesBeforeExpiring) 
+            : base(store, timeToKeepMessagesBeforeExpiring)
         {
         }
 

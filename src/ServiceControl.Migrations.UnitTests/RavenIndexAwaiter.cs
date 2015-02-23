@@ -1,4 +1,4 @@
-﻿namespace Particular.Backend.Debugging.RavenDB.UnitTests
+﻿namespace ServiceControl.Migrations.UnitTests
 {
     using System;
     using System.Threading;

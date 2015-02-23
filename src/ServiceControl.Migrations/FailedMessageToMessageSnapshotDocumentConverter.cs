@@ -9,15 +9,16 @@ namespace ServiceControl.Migrations
 
     public class FailedMessageToMessageSnapshotDocumentConverter
     {
-        public MessageSnapshotDocument Convert(OldFailedMessage failedMessage)
+        public MessageSnapshotDocument Convert(FailedMessage failedMessage)
         {
             var lastAttempt = failedMessage.ProcessingAttempts.Last();
             object body;
             lastAttempt.MessageMetadata.TryGetValue("Body", out body);
             var result = new MessageSnapshotDocument()
             {
-                Id = failedMessage.Id,
+                Id = MessageSnapshotDocument.MakeDocumentId(failedMessage.UniqueMessageId),
                 AttemptedAt = lastAttempt.AttemptedAt,
+                ProcessedAt = lastAttempt.AttemptedAt,
                 ConversationId = lastAttempt.CorrelationId,
                 IsSystemMessage = (bool)lastAttempt.MessageMetadata["IsSystemMessage"],
                 MessageType = (string)lastAttempt.MessageMetadata["MessageType"],
@@ -25,16 +26,16 @@ namespace ServiceControl.Migrations
                 {
                     BodyUrl = (string)lastAttempt.MessageMetadata["BodyUrl"],
                     ContentType = (string)lastAttempt.MessageMetadata["ContentType"],
-                    ContentLenght = (int)lastAttempt.MessageMetadata["ContentLength"],
+                    ContentLenght = (int)(long)lastAttempt.MessageMetadata["ContentLength"],
                     Text = (string)body
                 },
                 MessageIntent = lastAttempt.MessageIntent,
                 Processing = new ProcessingStatistics()
                 {
-                    TimeSent = (DateTime)lastAttempt.MessageMetadata["TimeSent"],
-                    CriticalTime = (TimeSpan)lastAttempt.MessageMetadata["CriticalTime"],
-                    DeliveryTime = (TimeSpan)lastAttempt.MessageMetadata["DeliveryTime"],
-                    ProcessingTime = (TimeSpan)lastAttempt.MessageMetadata["ProcessingTime"],
+                    TimeSent = DateTime.Parse((string)lastAttempt.MessageMetadata["TimeSent"]),
+                    CriticalTime = TimeSpan.Parse((string)lastAttempt.MessageMetadata["CriticalTime"]),
+                    DeliveryTime = TimeSpan.Parse((string)lastAttempt.MessageMetadata["DeliveryTime"]),
+                    ProcessingTime = TimeSpan.Parse((string)lastAttempt.MessageMetadata["ProcessingTime"]),
                 },
                 ReceivingEndpoint = (EndpointDetails)lastAttempt.MessageMetadata["ReceivingEndpoint"],
                 SendingEndpoint = (EndpointDetails)lastAttempt.MessageMetadata["SendingEndpoint"],
