@@ -13,7 +13,7 @@
             {
                 GetEndpoint(endpointDetails);
 
-                return GetHeartbeatsStats();
+                return GetHeartbeatsStatsNoLock();
             }
         }
 
@@ -27,11 +27,9 @@
                 existingEndpoint.Active = true;
                 existingEndpoint.TimeOfLastHeartbeat = timeOfHeartbeat;
 
-                return GetHeartbeatsStats();
+                return GetHeartbeatsStatsNoLock();
             }
         }
-
-       
 
         public HeartbeatsStats RegisterEndpointThatFailedToHeartbeat(EndpointDetails endpointDetails)
         {
@@ -42,7 +40,7 @@
 
                 existingEndpoint.Active = false;
 
-                return GetHeartbeatsStats();
+                return GetHeartbeatsStatsNoLock();
             }
         }
 
@@ -53,10 +51,11 @@
 
         public HeartbeatsStats GetHeartbeatsStats()
         {
-            return new HeartbeatsStats(endpoints.Count(e => !e.MonitoringDisabled && e.Active), endpoints.Count(e =>!e.MonitoringDisabled &&  !e.Active));
+            lock (locker)
+            {
+                return GetHeartbeatsStatsNoLock();
+            }
         }
-
-      
 
         public HeartbeatsStats EnableMonitoring(EndpointDetails endpoint)
         {
@@ -64,7 +63,7 @@
             {
                 var existingEndpoint = GetEndpoint(endpoint);
                 existingEndpoint.MonitoringDisabled = false;
-                return GetHeartbeatsStats();
+                return GetHeartbeatsStatsNoLock();
             }
         }
 
@@ -74,7 +73,7 @@
             {
                 var existingEndpoint = GetEndpoint(endpoint);
                 existingEndpoint.MonitoringDisabled = true;
-                return GetHeartbeatsStats();
+                return GetHeartbeatsStatsNoLock();
             }
         }
 
@@ -92,6 +91,11 @@
             }
         }
 
+        HeartbeatsStats GetHeartbeatsStatsNoLock()
+        {
+            return new HeartbeatsStats(endpoints.Count(e => !e.MonitoringDisabled && e.Active), endpoints.Count(e => !e.MonitoringDisabled && !e.Active));
+        }
+
         bool HasPassedTheGracePeriod(DateTime time,HeartbeatingEndpoint heartbeatingEndpoint)
         {
             if (!heartbeatingEndpoint.TimeOfLastHeartbeat.HasValue)
@@ -103,7 +107,6 @@
             {
                 return false;
             }
-
 
             var timeSinceLastHeartbeat = time - heartbeatingEndpoint.TimeOfLastHeartbeat;
 
@@ -141,7 +144,9 @@
             if (endpointDetails.HostId == Guid.Empty)
             {
                 // Try to match existing ones on host and machine if no host id is present
-                return endpoints.SingleOrDefault(e => e.Host == endpointDetails.Host && e.Name == endpointDetails.Name);
+                return endpoints.Where(e => e.Host == endpointDetails.Host && e.Name == endpointDetails.Name)
+                    .OrderBy(e => e.HostId) // This is a hack because of Issue #448
+                    .FirstOrDefault();
             }
 
             //try to get an exact match
