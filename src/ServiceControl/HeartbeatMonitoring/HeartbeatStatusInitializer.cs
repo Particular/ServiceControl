@@ -1,6 +1,5 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
-    using System;
     using System.Linq;
     using CompositeViews.Endpoints;
     using EndpointControl;
@@ -43,12 +42,9 @@ namespace ServiceControl.HeartbeatMonitoring
 
         void Initialise()
         {
-            Action<IDocumentQueryCustomization> customization = c => { };
-
             using (var session = store.OpenSession())
             {
                 session.Query<KnownEndpoint, KnownEndpointIndex>()
-                    .Customize(customization)
                     .Lazily(endpoints =>
                     {
                         foreach (var knownEndpoint in endpoints.Where(p => p.Monitored))
@@ -58,7 +54,6 @@ namespace ServiceControl.HeartbeatMonitoring
                     });
 
                 session.Query<Heartbeat, HeartbeatsIndex>()
-                    .Customize(customization)
                     .Lazily(heartbeats =>
                     {
                         foreach (var heartbeat in heartbeats)

@@ -67,6 +67,8 @@
                     {
                         knownEndpoint.Id = id;
                     }
+
+                    session.Store(knownEndpoint);
                 }
                 else
                 {
@@ -82,7 +84,6 @@
                     }
                 }
 
-                session.Store(knownEndpoint);
                 session.SaveChanges();
             }
 
