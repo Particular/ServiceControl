@@ -116,6 +116,8 @@
             return new SagaSnapshot
                    {
                        SagaId = sagaHistory.SagaId,
+                       //Finish time of the last saga state change should be close enough to use for ProcessedAt
+                       ProcessedAt = sagaStateChange.FinishTime,
                        Endpoint = sagaStateChange.Endpoint,
                        FinishTime = sagaStateChange.FinishTime,
                        InitiatingMessage = sagaStateChange.InitiatingMessage,
