@@ -40,7 +40,7 @@
             }
         ],
         "Endpoint": "MyEndpoint",
-        "ProcessedAt": "0001-01-01T00:00:00Z"
+        "ProcessedAt": "2000-01-01T15:00:00Z"
     },
     {
         "Id": "00000000-0000-0000-0000-000000000000",
@@ -83,6 +83,6 @@
             }
         ],
         "Endpoint": "MyEndpoint",
-        "ProcessedAt": "0001-01-01T00:00:00Z"
+        "ProcessedAt": "2000-01-01T15:00:00Z"
     }
 ]
