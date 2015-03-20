@@ -272,18 +272,9 @@
     <Compile Include="HeartbeatMonitoring\RegisterPotentiallyMissingHeartbeatsHandler.cs" />
     <Compile Include="Hosting\Commands\AbstractCommand.cs" />
     <Compile Include="Hosting\Commands\CommandRunner.cs" />
-    <Compile Include="Hosting\Commands\CheckMandatoryInstallOptionsCommand.cs" />
-    <Compile Include="Hosting\Commands\InstallCommand.cs" />
     <Compile Include="Hosting\Commands\MaintCommand.cs" />
-    <Compile Include="Hosting\Commands\RestartCommand.cs" />
     <Compile Include="Hosting\Commands\RunBootstrapperAndNServiceBusInstallers.cs" />
     <Compile Include="Hosting\Commands\RunCommand.cs" />
-    <Compile Include="Hosting\Commands\ServiceCommand.cs" />
-    <Compile Include="Hosting\Commands\ServiceUtils.cs" />
-    <Compile Include="Hosting\Commands\StartCommand.cs" />
-    <Compile Include="Hosting\Commands\StopCommand.cs" />
-    <Compile Include="Hosting\Commands\UninstallCommand.cs" />
-    <Compile Include="Hosting\Commands\WriteOptionsCommand.cs" />
     <Compile Include="Hosting\Host.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -375,7 +366,6 @@
     <Compile Include="Infrastructure\SignalR\Envelope.cs" />
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensions.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAclInstaller.cs" />
     <Compile Include="MessageAuditing\Handlers\AuditMessageHandler.cs" />
     <Compile Include="Infrastructure\DictionaryExtensions.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />

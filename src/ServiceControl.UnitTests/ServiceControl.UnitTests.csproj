@@ -114,7 +114,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApprovalTestConfig.cs" />
-    <Compile Include="ArgumentParsing\OptionsTests.cs" />
     <Compile Include="AuditImport\AuditImportTests.cs" />
     <Compile Include="CompositeViews\FailedMessageTest.cs" />
     <Compile Include="Expiration\PeriodicExecutorTests.cs" />
