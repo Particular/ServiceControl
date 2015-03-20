@@ -1054,7 +1054,7 @@ namespace Particular.ServiceControl.Hosting
             if (option != null)
             {
                 foreach (var o in c.Option.ValueSeparators != null
-                    ? option.Split(c.Option.ValueSeparators, StringSplitOptions.None)
+                    ? option.Split(c.Option.ValueSeparators, 2, StringSplitOptions.None)
                     : new[]
                     {
                         option
