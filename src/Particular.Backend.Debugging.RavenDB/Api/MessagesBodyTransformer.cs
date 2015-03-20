@@ -3,7 +3,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class MessagesBodyTransformer : AbstractTransformerCreationTask<AuditMessageSnapshot>
+    public class MessagesBodyTransformer : AbstractTransformerCreationTask<MessageSnapshot>
     {
         public class Result
         {

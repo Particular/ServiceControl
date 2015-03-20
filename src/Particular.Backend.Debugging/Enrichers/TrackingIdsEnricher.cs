@@ -4,7 +4,7 @@
 
     public class TrackingIdsEnricher : IEnrichAuditMessageSnapshots
     {
-        public void Enrich(IngestedMessage message, AuditMessageSnapshot snapshot)
+        public void Enrich(IngestedMessage message, MessageSnapshot snapshot)
         {
             var headers = message.Headers;
             string conversationId;

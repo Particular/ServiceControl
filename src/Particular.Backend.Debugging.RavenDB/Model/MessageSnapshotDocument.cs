@@ -2,7 +2,7 @@
 {
     using System;
 
-    public class MessageSnapshotDocument : AuditMessageSnapshot
+    public class MessageSnapshotDocument : MessageSnapshot
     {
         public string Id { get; set; }
         public DateTime ProcessedAt { get; set; }

@@ -5,7 +5,7 @@
 
     public class EndpointInformationEnricher : IEnrichAuditMessageSnapshots
     {
-        public void Enrich(IngestedMessage message, AuditMessageSnapshot snapshot)
+        public void Enrich(IngestedMessage message, MessageSnapshot snapshot)
         {
             snapshot.ReceivingEndpoint = new EndpointDetails()
             {

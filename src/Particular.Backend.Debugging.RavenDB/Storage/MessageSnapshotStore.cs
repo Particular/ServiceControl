@@ -13,7 +13,7 @@
             this.documentStore = documentStore;
         }
 
-        public void StoreOrUpdate(string uniqueId, Action<AuditMessageSnapshot> initializeNewCallback, Action<AuditMessageSnapshot> updateCallback)
+        public void StoreOrUpdate(string uniqueId, Action<MessageSnapshot> initializeNewCallback, Action<MessageSnapshot> updateCallback)
         {
             using (var session = documentStore.OpenSession())
             {
@@ -38,7 +38,7 @@
             }
         }
 
-        public void UpdateIfExists(string uniqueId, Action<AuditMessageSnapshot> updateCallback)
+        public void UpdateIfExists(string uniqueId, Action<MessageSnapshot> updateCallback)
         {
             using (var session = documentStore.OpenSession())
             {

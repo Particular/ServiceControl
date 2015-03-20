@@ -6,7 +6,7 @@
 
     public class ProcessingStatisticsEnricher : IEnrichAuditMessageSnapshots
     {
-        public void Enrich(IngestedMessage message, AuditMessageSnapshot snapshot)
+        public void Enrich(IngestedMessage message, MessageSnapshot snapshot)
         {
             var headers = message.Headers;
             var processingEnded = DateTime.MinValue;

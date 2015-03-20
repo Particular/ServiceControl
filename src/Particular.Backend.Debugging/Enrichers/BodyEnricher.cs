@@ -5,7 +5,7 @@ namespace Particular.Backend.Debugging.Enrichers
 
     public class BodyEnricher : IEnrichAuditMessageSnapshots
     {
-        public void Enrich(IngestedMessage message, AuditMessageSnapshot snapshot)
+        public void Enrich(IngestedMessage message, MessageSnapshot snapshot)
         {
             const int MaxBodySizeToStore = 1024 * 100; //100 kb
 

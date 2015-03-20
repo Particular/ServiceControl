@@ -40,7 +40,6 @@
             public string CorrelationId { get; set; }
             public string MessageIntent { get; set; }//changed to string from enum
             public bool IsSystemMessage { get; set; }//new
-            public string HeadersForSearching { get; set; }//new
 
             //removed public Dictionary<string, object> MessageMetadata { get; set; }
         }

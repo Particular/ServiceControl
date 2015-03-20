@@ -58,7 +58,7 @@
     <Compile Include="Enrichers\IEnrichAuditMessageSnapshots.cs" />
     <Compile Include="IStoreMessageSnapshots.cs" />
     <Compile Include="Enrichers\ProcessingStatisticsEnricher.cs" />
-    <Compile Include="AuditMessageSnapshot.cs" />
+    <Compile Include="MessageSnapshot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Enrichers\SagaRelationshipsEnricher.cs" />
   </ItemGroup>

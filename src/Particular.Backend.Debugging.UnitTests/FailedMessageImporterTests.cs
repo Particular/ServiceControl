@@ -54,18 +54,18 @@
 
         private class FakeMessageSnapshotStore : IStoreMessageSnapshots
         {
-            AuditMessageSnapshot snapshot;
+            MessageSnapshot snapshot;
 
-            public AuditMessageSnapshot Snapshot
+            public MessageSnapshot Snapshot
             {
                 get { return snapshot; }
             }
 
-            public void StoreOrUpdate(string uniqueId, Action<AuditMessageSnapshot> initializeNewCallback, Action<AuditMessageSnapshot> updateCallback)
+            public void StoreOrUpdate(string uniqueId, Action<MessageSnapshot> initializeNewCallback, Action<MessageSnapshot> updateCallback)
             {
                 if (Snapshot == null)
                 {
-                    snapshot = new AuditMessageSnapshot();
+                    snapshot = new MessageSnapshot();
                     initializeNewCallback(Snapshot);
                 }
                 else
@@ -74,7 +74,7 @@
                 }
             }
 
-            public void UpdateIfExists(string uniqueId, Action<AuditMessageSnapshot> updateCallback)
+            public void UpdateIfExists(string uniqueId, Action<MessageSnapshot> updateCallback)
             {
             }
         }

@@ -4,7 +4,7 @@
 
     public interface IStoreMessageSnapshots
     {
-        void StoreOrUpdate(string uniqueId, Action<AuditMessageSnapshot> initializeNewCallback, Action<AuditMessageSnapshot> updateCallback);
-        void UpdateIfExists(string uniqueId, Action<AuditMessageSnapshot> updateCallback);
+        void StoreOrUpdate(string uniqueId, Action<MessageSnapshot> initializeNewCallback, Action<MessageSnapshot> updateCallback);
+        void UpdateIfExists(string uniqueId, Action<MessageSnapshot> updateCallback);
     }
 }

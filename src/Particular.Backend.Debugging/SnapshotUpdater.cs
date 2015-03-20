@@ -1,6 +1,7 @@
 ﻿namespace Particular.Backend.Debugging
 {
     using System.Collections.Generic;
+    using System.Linq;
     using Particular.Backend.Debugging.Enrichers;
     using Particular.Operations.Ingestion.Api;
 
@@ -13,7 +14,7 @@
             this.enrichers = enrichers;
         }
 
-        public void Update(AuditMessageSnapshot snapshot, IngestedMessage message)
+        public void Update(MessageSnapshot snapshot, IngestedMessage message)
         {
             foreach (var enricher in enrichers)
             {
@@ -23,6 +24,7 @@
             {
                 snapshot.Headers[newHeader.Key] = newHeader.Value;
             }
+            snapshot.HeadersForSearching = string.Join(",", snapshot.Headers.Select(x => x.Value));
         }
 
     }

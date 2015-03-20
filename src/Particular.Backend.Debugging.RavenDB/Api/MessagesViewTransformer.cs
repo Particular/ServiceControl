@@ -6,7 +6,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
     using Particular.Backend.Debugging.Api;
     using Raven.Client.Indexes;
 
-    public class MessagesViewTransformer : AbstractTransformerCreationTask<AuditMessageSnapshot>
+    public class MessagesViewTransformer : AbstractTransformerCreationTask<MessageSnapshot>
     {
         //public class Result
         //{

@@ -35,8 +35,7 @@ namespace ServiceControl.Migrations
                 ContentType = (string) attempt.MessageMetadata["ContentType"],
                 IsSystemMessage = (bool)attempt.MessageMetadata["IsSystemMessage"],
                 MessageType = (string)attempt.MessageMetadata["MessageType"],
-                TimeSent = DateTime.Parse((string)attempt.MessageMetadata["TimeSent"]),
-                HeadersForSearching = (string)attempt.MessageMetadata["HeadersForSearching"]
+                TimeSent = DateTime.Parse((string)attempt.MessageMetadata["TimeSent"]),                
             };
         }
     }

@@ -4,7 +4,6 @@ namespace Particular.Backend.Debugging.RavenDB.Api
     using System.Linq;
     using Lucene.Net.Analysis.Standard;
     using Particular.Backend.Debugging.RavenDB.Model;
-    using Particular.Backend.Debugging.RavenDB.Storage;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
     using ServiceControl.Contracts.Operations;
@@ -36,7 +35,8 @@ namespace Particular.Backend.Debugging.RavenDB.Api
                     message.MessageType,
                     message.SendingEndpoint.Name,
                     message.ReceivingEndpoint.Name,
-                    message.Body != null ? message.Body.Text : ""
+                    message.Body != null ? message.Body.Text : "",
+                    message.HeadersForSearching
                 }
                 select new SortAndFilterOptions
                 {

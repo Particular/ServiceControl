@@ -34,7 +34,7 @@
                 });
         }
 
-        void UpdateSnapshot(IngestedMessage message, AuditMessageSnapshot snapshot)
+        void UpdateSnapshot(IngestedMessage message, MessageSnapshot snapshot)
         {
             snapshot.AttemptedAt = GuessProcessingAttemptTime(message);
             snapshotUpdater.Update(snapshot, message);

@@ -4,6 +4,6 @@ namespace Particular.Backend.Debugging.Enrichers
 
     public interface IEnrichAuditMessageSnapshots
     {
-        void Enrich(IngestedMessage message, AuditMessageSnapshot snapshot);
+        void Enrich(IngestedMessage message, MessageSnapshot snapshot);
     }
 }

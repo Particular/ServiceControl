@@ -6,9 +6,9 @@
     using Particular.Backend.Debugging.Api;
     using ServiceControl.Contracts.Operations;
 
-    public class AuditMessageSnapshot
+    public class MessageSnapshot
     {
-        public AuditMessageSnapshot()
+        public MessageSnapshot()
         {
             Headers = new Dictionary<string, string>();
         }
@@ -37,6 +37,7 @@
         public EndpointDetails ReceivingEndpoint { get; set; }
         public EndpointDetails SendingEndpoint { get; set; }
         public MessageIntentEnum MessageIntent { get; set; }
+        public string HeadersForSearching { get; set; }
     }
 
     public class ProcessingStatistics

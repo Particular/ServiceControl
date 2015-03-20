@@ -131,15 +131,15 @@
                 {
                     var messsage = new MyMessage();
 
-                    Headers.SetMessageHeader(messsage, "ServiceControl.DebugSessionId", "DANCO-WIN8@Application1@2014-01-26T11:33:51"); 
+                    Headers.SetMessageHeader(messsage, "ServiceControl.DebugSessionId", "DANCO"); 
          
                     bus.Send(messsage);
                 }))
                 .WithEndpoint<Receiver>()
                 //.Done(c => c.MessageId != null && TryGetMany("/api/messages/search/4.6.5", out response))
-                .Done(c => c.MessageId != null && TryGetMany("/api/messages/search/DANCO-WIN8@Application1@2014-01-26T11:33:51", out response))
+                .Done(c => c.MessageId != null && TryGetMany("/api/messages/search/DANCO", out response))
                 //.Done(c => c.MessageId != null && TryGetMany("/api/messages/search/" + c.MessageId, out response))
-                .Run(TimeSpan.FromSeconds(40));
+                .Run(TimeSpan.FromSeconds(4000));
         }
 
         [Test]

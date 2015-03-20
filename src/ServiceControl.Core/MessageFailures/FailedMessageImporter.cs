@@ -72,7 +72,7 @@
                     Recoverable = message.Recoverable,
                     CorrelationId = message.Headers.GetOrDefault("NServiceBus.CorrelationId"),
                     MessageIntent = message.Headers.GetOrDefault("NServiceBus.MessageIntent"),
-                    HeadersForSearching = string.Join(",", message.Headers.Select(x => x.Value))
+                    
                 });
 
                 session.Store(failure);
