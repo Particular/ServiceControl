@@ -91,5 +91,6 @@
         "HostId": "fa2c6736-00d1-e72a-d991-47355265111d",
         "Host": "SIMON-MAC"
     },
-    "MessageIntent": "Send"
+    "MessageIntent": "Send",
+    "HeadersForSearching": "5626e4b6-a2e9-40a2-86ae-a445008dc208 5626e4b6-a2e9-40a2-86ae-a445008dc208 Sender.Default fa2c673600d1e72ad99147355265111d Send 4.6.5 2015-02-20 07:36:07:493470 Z SIMON-MAC text/xml ServiceBus.Management.AcceptanceTests.When_a_message_has_been_successfully_processed+MyMessage, ServiceBus.Management.AcceptanceTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null 5626e4b6-a2e9-40a2-86ae-a445008dc208\\0  3fcb74c3-4405-4649-8f64-a445008dc211 SIMON-MAC Receiver.Default fa2c673600d1e72ad99147355265111d SIMON-MAC 2015-02-20 07:36:10:959990 Z false 2015-02-20 07:36:11:467349 Z Sender.Default@SIMON-MAC"
 }

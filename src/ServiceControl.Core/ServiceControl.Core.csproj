@@ -95,6 +95,7 @@
     <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
     <Compile Include="CustomChecks\ReportCustomCheckResultHandler.cs" />
     <Compile Include="CustomChecks\Status.cs" />
+    <Compile Include="EndpointControl\CleanTemporaryIdEndpointsHavingNonTemporaryEquivalent.cs" />
     <Compile Include="EndpointControl\EndpointDetectingMessageProcessor.cs" />
     <Compile Include="EndpointControl\EndpointControlFeature.cs" />
     <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />

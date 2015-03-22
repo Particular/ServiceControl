@@ -36,6 +36,8 @@
                        SagaId = sagaHistory.SagaId,
                        Endpoint = sagaStateChange.Endpoint,
                        FinishTime = sagaStateChange.FinishTime,
+                       //Finish time of the last saga state change should be close enough to use for ProcessedAt
+                       ProcessedAt = sagaStateChange.FinishTime,
                        InitiatingMessage = sagaStateChange.InitiatingMessage,
                        OutgoingMessages = sagaStateChange.OutgoingMessages,
                        SagaType = sagaHistory.SagaType,

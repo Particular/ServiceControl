@@ -39,6 +39,7 @@ namespace ServiceControl.Migrations
                 },
                 ReceivingEndpoint = (EndpointDetails)lastAttempt.MessageMetadata["ReceivingEndpoint"],
                 SendingEndpoint = (EndpointDetails)lastAttempt.MessageMetadata["SendingEndpoint"],
+                HeadersForSearching = (string)lastAttempt.MessageMetadata["HeadersForSearching"]
             };
             result.Initialize(lastAttempt.MessageId, failedMessage.UniqueMessageId, ConvertStatus(failedMessage.Status));
             foreach (var header in lastAttempt.Headers)

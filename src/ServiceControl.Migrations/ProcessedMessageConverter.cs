@@ -37,6 +37,7 @@
                 },
                 ReceivingEndpoint = (EndpointDetails)processedMessage.MessageMetadata["ReceivingEndpoint"],
                 SendingEndpoint = (EndpointDetails)processedMessage.MessageMetadata["SendingEndpoint"],
+                HeadersForSearching = (string) processedMessage.MessageMetadata["HeadersForSearching"]
             };
             result.Initialize((string)processedMessage.MessageMetadata["MessageId"], processedMessage.UniqueMessageId, MessageStatus.Successful);
             foreach (var header in processedMessage.Headers)

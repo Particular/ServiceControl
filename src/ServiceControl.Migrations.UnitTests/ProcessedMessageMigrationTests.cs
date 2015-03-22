@@ -1,6 +1,7 @@
 namespace ServiceControl.Migrations.UnitTests
 {
     using System;
+    using ApprovalTests.Reporters;
     using NUnit.Framework;
     using ObjectApproval;
     using Particular.Backend.Debugging.RavenDB.Model;
@@ -48,6 +49,7 @@ namespace ServiceControl.Migrations.UnitTests
         }
 
         [Test]
+        //[UseReporter(typeof(DiffReporter))]
         public void It_creates_a_message_snapshot_for_debugging()
         {
             using (var session = store.OpenSession())
