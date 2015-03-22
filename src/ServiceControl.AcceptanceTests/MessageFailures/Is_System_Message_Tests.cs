@@ -72,27 +72,6 @@
         }
 
         [Test]
-        public void Should_set_the_IsSystemMessage_when_control_message_header_is_null()
-        {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask",
-                IncludeControlMessageHeader = true, // If hte control message header is present, then its a system message
-                ControlMessageHeaderValue = null
-            };
-
-            FailedMessageView failure = null;
-            Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<ServerEndpoint>()
-                .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
-                .Run();
-            Assert.IsNotNull(failure);
-            Assert.IsTrue(failure.IsSystemMessage);
-        }
-
-        [Test]
         public void Should_set_the_IsSystemMessage_for_integration_scenario()
         {
             var context = new SystemMessageTestContext

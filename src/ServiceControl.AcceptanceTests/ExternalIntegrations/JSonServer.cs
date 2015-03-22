@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
+﻿namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using NServiceBus;
     using ServiceBus.Management.AcceptanceTests.Contexts;

@@ -7,7 +7,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
@@ -23,7 +22,7 @@
         {
             var context = new MyContext();
 
-            FailedMessage failedMessage = null;
+            MessageFailureHistory failedMessage = null;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -63,30 +62,6 @@
             Assert.AreEqual(FailedMessageStatus.Unresolved, failure.Status, "Status of new messages should be failed");
             Assert.AreEqual(1, failure.NumberOfProcessingAttempts, "One attempt should be stored");
         }
-
-
-        [Test]
-        public void Should_be_listed_in_the_messages_list()
-        {
-            var context = new MyContext();
-
-            var failure = new MessagesView();
-
-            Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => TryGetSingle("/api/messages", out failure,m=>m.MessageId == c.MessageId))
-                .Run();
-
-            Assert.AreEqual(context.UniqueMessageId, failure.Id, "The unique id should be returned");
-            
-            Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.SendingEndpoint.Name);
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.ReceivingEndpoint.Name);
-
-        }
-
-      
 
         [Test]
         public void Should_add_an_event_log_item()

@@ -13,7 +13,7 @@
         public void When_A_New_Endpoint_Is_Detected_Should_List_As_Inactive()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
-            var hostId = Guid.NewGuid();
+            var hostId = Guid.NewGuid().ToString();
 
             VerifyHeartbeatStats(currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails{ Host = "Machine", HostId = hostId, Name = "NewEndpoint1" }), 0, 1);
 
@@ -26,7 +26,7 @@
         public void When_A_New_Endpoint_Is_Detected_Should_not_override_if_endpoint_already_exists()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
-            var hostId = Guid.NewGuid();
+            var hostId = Guid.NewGuid().ToString();
 
             VerifyHeartbeatStats(currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint1" },DateTime.UtcNow), 1, 0);
 
@@ -39,7 +39,7 @@
         public void When_heartbeats_are_enabled_should_update_existing_endpoint_host_id_if_needed()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
-            var hostId = Guid.NewGuid();
+            var hostId = Guid.NewGuid().ToString();
 
             VerifyHeartbeatStats(currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails { Host = "Machine", Name = "NewEndpoint1" }), 0, 1); 
             VerifyHeartbeatStats(currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint1" }, DateTime.UtcNow), 1, 0);
@@ -59,7 +59,7 @@
             var endpoint = new EndpointDetails
             {
                 Host = "Machine",
-                HostId = Guid.NewGuid(),
+                HostId = Guid.NewGuid().ToString(),
                 Name = "NewEndpoint"
             };
             currentHeartbeatStatus.RegisterNewEndpoint(endpoint);
@@ -90,7 +90,7 @@
         public void When_Heartbeating_Endpoint_Is_Detected_That_Is_Already_Known()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
-            var hostId = Guid.NewGuid();
+            var hostId = Guid.NewGuid().ToString();
             currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" });
             var stats = currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" }, DateTime.UtcNow);
             VerifyHeartbeatStats(stats, 1, 0);
@@ -100,7 +100,7 @@
         public void When_Heartbeating_Endpoint_Is_Detected_For_A_Known_Endpoint_That_Has_No_Prior_HostId()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
-            var hostId = Guid.NewGuid();
+            var hostId = Guid.NewGuid().ToString();
             var endpointWithNoHostId = new EndpointDetails
             {
                 Host = "Machine", 
@@ -121,7 +121,7 @@
         public void When_Heartbeating_Endpoint_No_Longer_Sends_Heartbeats()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
-            var hostId = Guid.NewGuid();
+            var hostId = Guid.NewGuid().ToString();
             currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" },DateTime.UtcNow);
             var stats = currentHeartbeatStatus.RegisterEndpointThatFailedToHeartbeat(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" });
             VerifyHeartbeatStats(stats, 0, 1);
@@ -131,7 +131,7 @@
         public void When_Endpoint_Heartbeats_Is_Restored()
         {
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
-            var hostId = Guid.NewGuid();
+            var hostId = Guid.NewGuid().ToString();
             currentHeartbeatStatus.RegisterEndpointThatFailedToHeartbeat(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" });
             var stats = currentHeartbeatStatus.RegisterEndpointWhoseHeartbeatIsRestored(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint" },DateTime.UtcNow);
             VerifyHeartbeatStats(stats, 1, 0);
@@ -147,7 +147,7 @@
             {
                 GracePeriod = gracePeriod
             };
-            var hostId = Guid.NewGuid();
+            var hostId = Guid.NewGuid().ToString();
 
             //unknown
             currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "InactiveEndpoint" });

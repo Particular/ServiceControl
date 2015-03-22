@@ -10,55 +10,15 @@
     using NServiceBus.Config;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.EventLog;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
     public class When_a_retry_for_a_failed_message_is_successful : AcceptanceTest
     {
         [Test]
-        public void Should_show_up_as_resolved_when_doing_a_single_retry()
-        {
-            FailedMessage failure = null;
-            MessagesView message = null;
-            List<EventLogItem> eventLogItems = null;
-
-            var context = new MyContext();
-
-            Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c =>
-                {
-                    if (!GetFailedMessage(c, out failure))
-                    {
-                        return false;
-                    }
-                    if (failure.Status == FailedMessageStatus.Resolved)
-                    {
-                        return TryGetSingle("/api/messages", out message, m => m.Status == MessageStatus.ResolvedSuccessfully)
-                            && TryGetMany("/api/eventlogitems", out eventLogItems);
-                    }
-
-                    IssueRetry(c, () => Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId)));
-
-                    return false;
-                })
-                .Run(TimeSpan.FromMinutes(2));
-
-            Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
-            Assert.AreEqual(failure.UniqueMessageId, message.Id);
-            Assert.AreEqual(MessageStatus.ResolvedSuccessfully, message.Status);
-            Assert.IsTrue(eventLogItems.Any(item => item.Description.Equals("Failed message ServiceBus.Management.AcceptanceTests.When_a_retry_for_a_failed_message_is_successful+MyMessage resolved by retry")));
-
-        }
-
-        [Test]
         public void Should_show_up_as_resolved_when_doing_a_multi_retry()
         {
-            FailedMessage failure = null;
+            MessageFailureHistory failure = null;
 
             var context = new MyContext();
 
@@ -88,7 +48,7 @@
         [Test]
         public void Should_show_up_as_resolved_when_doing_a_retry_all()
         {
-            FailedMessage failure = null;
+            MessageFailureHistory failure = null;
 
             var context = new MyContext();
 
@@ -118,7 +78,7 @@
         [Test]
         public void Should_show_up_as_resolved_when_doing_a_retry_all_for_the_given_endpoint()
         {
-            FailedMessage failure = null;
+            MessageFailureHistory failure = null;
 
             var context = new MyContext();
 
@@ -145,7 +105,7 @@
             Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
         }
 
-        bool GetFailedMessage(MyContext c, out FailedMessage failure)
+        bool GetFailedMessage(MyContext c, out MessageFailureHistory failure)
         {
             failure = null;
             if (c.MessageId == null)

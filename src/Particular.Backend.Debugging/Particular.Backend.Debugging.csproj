@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{5D4C8134-EF7E-4493-A7D7-84AB8CABD540}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Particular.Backend.Debugging</RootNamespace>
+    <AssemblyName>Particular.Backend.Debugging</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="NServiceBus, Version=4.6.5.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NServiceBus.Interfaces.4.6.5\lib\net40\NServiceBus.dll</HintPath>
+    </Reference>
+    <Reference Include="NServiceBus.Core">
+      <HintPath>..\packages\NServiceBus.4.6.5\lib\net40\NServiceBus.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Enrichers\EndpointInformationEnricher.cs" />
+    <Compile Include="Enrichers\MessageTypeEnricher.cs" />
+    <Compile Include="FailedMessageImporter.cs" />
+    <Compile Include="SuccessfulMessageImporter.cs" />
+    <Compile Include="DebuggingBackend.cs" />
+    <Compile Include="Enrichers\BodyEnricher.cs" />
+    <Compile Include="SnapshotUpdater.cs" />
+    <Compile Include="Enrichers\TrackingIdsEnricher.cs" />
+    <Compile Include="FailedMessageIntegration.cs" />
+    <Compile Include="Enrichers\IEnrichAuditMessageSnapshots.cs" />
+    <Compile Include="IStoreMessageSnapshots.cs" />
+    <Compile Include="Enrichers\ProcessingStatisticsEnricher.cs" />
+    <Compile Include="MessageSnapshot.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Enrichers\SagaRelationshipsEnricher.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Particular.Backend.AuditIngestion.Api\Particular.Operations.Ingestion.Api.csproj">
+      <Project>{8683b0a4-a304-4a1c-9c68-3c59aa9e6a62}</Project>
+      <Name>Particular.Operations.Ingestion.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Particular.Backend.Debugging.Api\Particular.Backend.Debugging.Api.csproj">
+      <Project>{3d470493-002a-41f1-a555-ff84257c4e01}</Project>
+      <Name>Particular.Backend.Debugging.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.InternalContracts\ServiceControl.InternalContracts.csproj">
+      <Project>{d0cf644e-160b-48ba-bc3d-d7fca8234759}</Project>
+      <Name>ServiceControl.InternalContracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Shell.Api\ServiceControl.Shell.Api.csproj">
+      <Project>{2CA0B6B2-EAA2-4057-9ED1-B55E30EB20A5}</Project>
+      <Name>ServiceControl.Shell.Api</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

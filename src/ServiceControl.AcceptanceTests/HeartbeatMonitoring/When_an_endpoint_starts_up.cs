@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.HeartbeatMonitoring
 {
-    using System;
     using System.Linq;
     using Contexts;
     using NServiceBus.AcceptanceTesting;
@@ -32,7 +31,7 @@
 
         public class MyContext : ScenarioContext
         {
-            public Guid HostId { get; set; }
+            public string HostId { get; set; }
         }
 
         public class StartingEndpoint : EndpointConfigurationBuilder
@@ -55,7 +54,7 @@
                         return;
                     }
 
-                    Context.HostId = UnicastBus.HostInformation.HostId;
+                    Context.HostId = UnicastBus.HostInformation.HostId.ToString("N");
                 }
             }
         }

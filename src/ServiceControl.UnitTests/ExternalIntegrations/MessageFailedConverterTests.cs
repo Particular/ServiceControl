@@ -5,6 +5,7 @@
     using System.Linq;
     using NUnit.Framework;
     using ServiceControl.Contracts;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.MessageFailures;
     using ExceptionDetails = ServiceControl.Contracts.Operations.ExceptionDetails;
@@ -82,24 +83,13 @@
             var result = failedMessage.ToEvent();
             Assert.IsNull(result.MessageDetails.ContentType);
         }
-
-        [Test]
-        public void Body_is_mapped_from_metadata_of_last_processing_attempt()
-        {
-            var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Unresolved)
-                .AddProcessingAttempt(pa => { pa.MessageMetadata["Body"] = "Beautiful Body"; })
-                .Build();
-
-            var result = failedMessage.ToEvent();
-            Assert.AreEqual("Beautiful Body", result.MessageDetails.Body);
-        }
-
+        
         private class FailedMessageBuilder
         {
             private readonly FailedMessageStatus messageStatus;
             string messageType = "SomeMessage";
             string contentType = "application/json";
-            private List<Action<FailedMessage.ProcessingAttempt>> processingAttempts = new List<Action<FailedMessage.ProcessingAttempt>>();
+            private List<Action<MessageFailureHistory.ProcessingAttempt>> processingAttempts = new List<Action<MessageFailureHistory.ProcessingAttempt>>();
 
             public FailedMessageBuilder(FailedMessageStatus messageStatus)
             {
@@ -118,38 +108,28 @@
                 return this;
             }
 
-            public FailedMessageBuilder AddProcessingAttempt(Action<FailedMessage.ProcessingAttempt> callback)
+            public FailedMessageBuilder AddProcessingAttempt(Action<MessageFailureHistory.ProcessingAttempt> callback)
             {
                 processingAttempts.Add(callback);
                 return this;
             }
 
-            public FailedMessage Build()
+            public MessageFailureHistory Build()
             {
-                return new FailedMessage
+                return new MessageFailureHistory
                 {
                     ProcessingAttempts = processingAttempts.Select(x =>
                     {
-                        var messageMetadata = new Dictionary<string, object>
+                        var attempt = new MessageFailureHistory.ProcessingAttempt
                         {
-                            {"SendingEndpoint",new Contracts.Operations.EndpointDetails()},
-                            {"ReceivingEndpoint",new Contracts.Operations.EndpointDetails()},
-                        };
-                        if (messageType != null)
-                        {
-                            messageMetadata["MessageType"] = messageType;
-                        }
-                        if (contentType != null)
-                        {
-                            messageMetadata["ContentType"] = contentType;
-                        }
-                        var attempt = new FailedMessage.ProcessingAttempt
-                        {
+                            SendingEndpoint = new EndpointDetails(),
+                            ProcessingEndpoint = new EndpointDetails(),
+                            MessageType = messageType,
+                            ContentType = contentType,
                             FailureDetails = new FailureDetails
                             {
                                 Exception = new ExceptionDetails()
                             },
-                            MessageMetadata = messageMetadata,
                         };
                         x(attempt);
                         return attempt;

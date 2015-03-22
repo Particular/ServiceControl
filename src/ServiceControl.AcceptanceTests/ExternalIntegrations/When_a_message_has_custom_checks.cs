@@ -38,7 +38,7 @@
                         OriginatingEndpoint = new EndpointDetails
                         {
                             Host = "MyHost",
-                            HostId = Guid.Empty,
+                            HostId = Guid.Empty.ToString(),
                             Name = "Testing"
                         },
                         SucceededAt = DateTime.Now,
@@ -50,7 +50,7 @@
                         OriginatingEndpoint = new EndpointDetails
                         {
                             Host = "MyHost",
-                            HostId = Guid.Empty,
+                            HostId = Guid.Empty.ToString(),
                             Name = "Testing"
                         },
                         FailedAt = DateTime.Now,
