@@ -2,7 +2,6 @@ namespace Particular.Backend.Debugging.RavenDB.Api
 {
     using System.Collections.Generic;
     using System.Linq;
-    using NServiceBus;
     using Particular.Backend.Debugging.Api;
     using Raven.Client.Indexes;
 

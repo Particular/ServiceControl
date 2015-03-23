@@ -9,7 +9,6 @@
     using NServiceBus.Pipeline;
     using NServiceBus.RavenDB;
     using Particular.ServiceControl.Licensing;
-    using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;

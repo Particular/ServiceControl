@@ -83,7 +83,6 @@
     <Compile Include="Contexts\TransportIntegration\ITransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\MsmqTransportIntegration.cs" />
     <Compile Include="Audit_Messages_Have_Proper_IsSytemMessage_Tests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
     <Compile Include="When_a_message_emitted_by_a_saga_is_audited.cs" />
     <Compile Include="When_a_message_has_been_successfully_processed.cs" />
@@ -140,6 +139,9 @@
       <Project>{1cf8a2c4-21b5-4826-bcaf-3f0b99b5c3aa}</Project>
       <Name>ServiceControl.Shell</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -47,7 +47,7 @@
 
             foreach (var failingEndpoint in HeartbeatStatusProvider.GetPotentiallyFailedEndpoints(now))
             {
-                var id = DeterministicGuid.MakeId(failingEndpoint.Details.Name, failingEndpoint.Details.HostId.ToString());
+                var id = DeterministicGuid.MakeId(failingEndpoint.Details.Name, failingEndpoint.Details.HostId);
 
                 Bus.SendLocal(new RegisterPotentiallyMissingHeartbeats
                 {

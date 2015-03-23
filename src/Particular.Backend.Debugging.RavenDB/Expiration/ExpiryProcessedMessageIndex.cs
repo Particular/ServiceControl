@@ -1,6 +1,5 @@
 namespace Particular.Backend.Debugging.RavenDB.Expiration
 {
-    using System;
     using System.Linq;
     using Particular.Backend.Debugging.RavenDB.Model;
     using Raven.Client.Indexes;

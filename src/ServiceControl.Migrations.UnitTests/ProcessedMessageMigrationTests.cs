@@ -1,7 +1,6 @@
 namespace ServiceControl.Migrations.UnitTests
 {
     using System;
-    using ApprovalTests.Reporters;
     using NUnit.Framework;
     using ObjectApproval;
     using Particular.Backend.Debugging.RavenDB.Model;

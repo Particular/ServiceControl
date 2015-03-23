@@ -31,7 +31,7 @@
             }
 
             var publish = false;
-            var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString(), message.CustomCheckId);
+            var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId, message.CustomCheckId);
             var customCheck = Session.Load<CustomCheck>(id);
 
             if (customCheck == null ||

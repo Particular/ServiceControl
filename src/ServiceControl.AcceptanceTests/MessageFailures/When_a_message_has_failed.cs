@@ -8,7 +8,6 @@
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceControl.Contracts.MessageFailures;
-    using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;

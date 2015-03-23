@@ -59,7 +59,7 @@
 
                     if (id == Guid.Empty)
                     {
-                        knownEndpoint.Id = DeterministicGuid.MakeId(message.Endpoint.Name,message.Endpoint.HostId.ToString());
+                        knownEndpoint.Id = DeterministicGuid.MakeId(message.Endpoint.Name,message.Endpoint.HostId);
                         knownEndpoint.HasTemporaryId = true;
                         id = knownEndpoint.Id;
                     }

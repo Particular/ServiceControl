@@ -97,7 +97,6 @@
     <Compile Include="CustomExpirationBundleTests.cs" />
     <Compile Include="InMemoryStoreBuilder.cs" />
     <Compile Include="MessagesViewTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="SagaListIndexTests.cs" />
     <Compile Include="SagaSnapshotIndexTests.cs" />
@@ -128,6 +127,9 @@
       <Project>{2ca0b6b2-eaa2-4057-9ed1-b55e30eb20a5}</Project>
       <Name>ServiceControl.Shell.Api</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
