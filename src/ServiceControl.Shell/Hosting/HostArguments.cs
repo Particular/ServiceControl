@@ -266,12 +266,8 @@ namespace Particular.ServiceControl.Hosting
         public void PrintUsage()
         {
             var sb = new StringBuilder();
-
             var helpText = String.Empty;
-            using (
-                var stream =
-                    Assembly.GetCallingAssembly()
-                        .GetManifestResourceStream("ServiceControl.Hosting.Help.txt"))
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ServiceControl.Shell.Hosting.Help.txt"))
             {
                 if (stream != null)
                 {
