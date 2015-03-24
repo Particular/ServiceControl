@@ -204,7 +204,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml">
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
