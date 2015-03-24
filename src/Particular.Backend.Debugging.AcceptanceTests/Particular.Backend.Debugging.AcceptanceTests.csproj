@@ -52,11 +52,13 @@
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Abstractions">
-      <HintPath>..\packages\RavenDB.Client.2.5.2916\lib\net45\Raven.Abstractions.dll</HintPath>
+    <Reference Include="Raven.Abstractions, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\RavenDB.Client.2.5.2939\lib\net45\Raven.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Client.Lightweight">
-      <HintPath>..\packages\RavenDB.Client.2.5.2916\lib\net45\Raven.Client.Lightweight.dll</HintPath>
+    <Reference Include="Raven.Client.Lightweight, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\RavenDB.Client.2.5.2939\lib\net45\Raven.Client.Lightweight.dll</HintPath>
     </Reference>
     <Reference Include="ServiceControl.Plugin.Nsb4.DebugSession">
       <HintPath>..\packages\ServiceControl.Plugin.Nsb4.DebugSession.1.0.0\lib\net40\ServiceControl.Plugin.Nsb4.DebugSession.dll</HintPath>
