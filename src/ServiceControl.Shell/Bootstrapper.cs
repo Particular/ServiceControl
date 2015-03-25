@@ -37,7 +37,7 @@ namespace Particular.ServiceControl
             Feature.Disable<SecondLevelRetries>();
 
             Configure.Serialization.Json();
-            Configure.Transactions.Advanced(t => t.DisableDistributedTransactions());
+            Configure.Transactions.Advanced(t => t.DisableDistributedTransactions().DoNotWrapHandlersExecutionInATransactionScope());
 
             Feature.EnableByDefault<StorageDrivenPublisher>();
             Configure.ScaleOut(s => s.UseSingleBrokerQueue());
