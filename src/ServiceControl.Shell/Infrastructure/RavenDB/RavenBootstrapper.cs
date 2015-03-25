@@ -4,6 +4,7 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
@@ -38,7 +39,7 @@
             };
 
             var serviceControlAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-                .Where(x => x.GetName().Name.StartsWith("ServiceControl") || x.GetName().Name.StartsWith("Particular.Backend")).ToArray();
+                .Where(x => x.GetName().Name.StartsWith("ServiceControl") || x.GetName().Name.StartsWith("Particular.")).ToArray();
 
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
             if (File.Exists(localRavenLicense))
@@ -91,7 +92,7 @@
                             {
                                 Logger.Error("Index creation failed", c.Exception);
                             }
-                        });
+                        }, TaskContinuationOptions.OnlyOnFaulted);
                 }
             }
 
