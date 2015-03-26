@@ -12,12 +12,14 @@
 
         public static void Add(NancyContext context)
         {
-            context.Response.WithHeader("X-Particular-Version", FileVersion);
+            context.Response
+                .WithHeader("X-Particular-Version", FileVersion);
         }
 
         static string GetFileVersion()
         {
-            var customAttributes = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute),false);
+            var customAttributes = typeof(VersionExtension).Assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute),
+                    false);
 
             if (customAttributes.Length >= 1)
             {
