@@ -27,6 +27,10 @@ logs
 run-git.cmd
 src/Chocolatey/Build/*
 
+installer/[F|f]iles
+installer/[C|c]ustom[A|a]ctions
+installer/ServiceControl-cache
+
 # Created by https://www.gitignore.io
 
 ### VisualStudio ###
@@ -70,4 +74,8 @@ _NCrunch_*
 _ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
-*.jtconfig
+
+src/scaffolding.config
+
+# Approval tests temp file
+*.received.*
