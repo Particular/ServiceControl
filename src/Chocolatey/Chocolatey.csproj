@@ -4,6 +4,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}</ProjectGuid>
+    <NuGetPackageImportStamp>64ed9835</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <ConfigurationName>Debug</ConfigurationName>
@@ -21,6 +22,7 @@
     <None Include="chocolateyInstall.ps1" />
     <None Include="elevatedUninstall.ps1" />
     <None Include="chocolateyUninstall.ps1" />
+    <None Include="packages.config" />
     <None Include="ServiceControl.install.nuspec">
       <SubType>Designer</SubType>
     </None>
@@ -30,7 +32,7 @@
   </ItemGroup>
   <Target Name="Build" DependsOnTargets="Build" />
   <Target Name="ReBuild" DependsOnTargets="Build" />
-  <UsingTask TaskName="GitVersionTask.GetVersion" AssemblyFile="$(SolutionDir)..\buildsupport\GitVersionTask\GitVersionTask.dll" />
+  <UsingTask TaskName="GitVersionTask.GetVersion" AssemblyFile="..\packages\GitVersionTask.2.0.1\GitVersionTask.dll" />
   <UsingTask TaskName="PepitaPackage.CreatePackageTask" AssemblyFile="$(ProjectDir)PepitaPackage.dll" />
   <UsingTask TaskName="MSBuild.Community.Tasks.FileUpdate" AssemblyFile="$(ProjectDir)MSBuild.Community.Tasks.dll" />
   <Target Name="Build">
@@ -57,5 +59,12 @@
     <CreatePackageTask NuGetBuildDirectory="$(ProjectDir)Build" Version="$(ChocoVersion)" TargetDir="$(SolutionDir)..\nugets" />
   </Target>
   <Target Name="Clean">
+  </Target>
+  <Import Project="..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets'))" />
   </Target>
 </Project>
