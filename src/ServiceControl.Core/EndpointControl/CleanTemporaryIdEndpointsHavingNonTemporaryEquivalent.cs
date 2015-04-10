@@ -11,6 +11,11 @@
 
         public void Start()
         {
+            //Ensure Index is created - By default we have async index creation but this is used straight away 
+            //This is effectively the same as fix applied in hotfix 1.5.2
+            //Index was added in 1.5.1 so may not already exist if updating an earlier version
+            DocumentStore.ExecuteIndex(new KnownEndpointIndex());
+
             using (var session = DocumentStore.OpenSession())
             {
                 var endpoints = session.Query<KnownEndpoint, KnownEndpointIndex>().ToList();
@@ -25,7 +30,6 @@
                         foreach (var endpoint in knownEndpoints.Where(e => e.HasTemporaryId))
                         {
                             DocumentStore.DatabaseCommands.Delete(DocumentStore.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(endpoint.Id, typeof(KnownEndpoint), false), null);
-
                         }
                     }
                 }
