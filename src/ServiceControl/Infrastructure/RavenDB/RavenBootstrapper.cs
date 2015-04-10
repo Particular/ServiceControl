@@ -68,7 +68,11 @@
             documentStore.Initialize();
 
             Logger.Info("Index creation started");
-
+            
+            //Create this index synchronously as we are using it straight away
+            //Should be quick as number of endpoints will always be a small number
+            documentStore.ExecuteIndex(new KnownEndpointIndex());
+            
             if (Settings.CreateIndexSync)
             {
                 IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
