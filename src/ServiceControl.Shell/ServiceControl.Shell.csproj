@@ -218,6 +218,10 @@
     <EmbeddedResource Include="Hosting\Help.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Particular.Backend.Debugging.RavenDB\Particular.Backend.Debugging.RavenDB.csproj">
+      <Project>{c303c107-7222-4eb4-8af4-d61bcf99f917}</Project>
+      <Name>Particular.Backend.Debugging.RavenDB</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Shell.Api\ServiceControl.Shell.Api.csproj">
       <Project>{2CA0B6B2-EAA2-4057-9ED1-B55E30EB20A5}</Project>
       <Name>ServiceControl.Shell.Api</Name>

@@ -9,6 +9,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
     using NServiceBus.RavenDB;
+    using Particular.Backend.Debugging.RavenDB.Expiration;
     using Particular.ServiceControl.Licensing;
     using Raven.Client;
     using Raven.Client.Embedded;
@@ -58,8 +59,12 @@
                 documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(serviceControlAssembly));
             }
 
-            
-            if (!Settings.MaintenanceMode) {
+            if (!Settings.MaintenanceMode)
+            {
+                // Without this line the  Raven Bundle won't execute as it won't be found
+                // ReSharper disable once UnusedVariable
+                var expiredDocumentCleanerType = typeof(ExpiredDocumentsCleaner);
+
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
             }
 
