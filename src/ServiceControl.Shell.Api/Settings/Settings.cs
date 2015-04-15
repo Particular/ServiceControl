@@ -207,7 +207,8 @@
         }
 
       
-        static readonly ILog Logger = LogManager.GetLogger(typeof(Settings));
+        public static  ILog Logger = LogManager.GetLogger(typeof(Settings));
+
         public static string ServiceName;
 
         static string DefaultLogPathForInstance()
