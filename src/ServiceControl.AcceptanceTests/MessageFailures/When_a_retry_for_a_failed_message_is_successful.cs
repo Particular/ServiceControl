@@ -35,7 +35,7 @@
                         return true;
                     }
 
-                    IssueRetry(c, () => Post(String.Format("/api/errors/retry"), new List<string> { c.UniqueMessageId }));
+                    IssueRetry(c, () => Post("/api/errors/retry", new List<string> { c.UniqueMessageId }));
 
                     return false;
                 })
@@ -65,7 +65,7 @@
                         return true;
                     }
 
-                    IssueRetry(c, () => Post<object>(String.Format("/api/errors/retry/all")));
+                    IssueRetry(c, () => Post<object>("/api/errors/retry/all"));
 
                     return false;
                 })

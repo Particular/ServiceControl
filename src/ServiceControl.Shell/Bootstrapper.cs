@@ -14,7 +14,6 @@ namespace Particular.ServiceControl
     using NServiceBus.Features;
     using NServiceBus.Installation.Environments;
     using NServiceBus.Logging.Loggers.NLogAdapter;
-    using Raven.Database.Config.Settings;
     using ServiceBus.Management.Infrastructure.Settings;
     using LogManager = NLog.LogManager;
 

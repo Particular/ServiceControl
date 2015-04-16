@@ -1,4 +1,5 @@
 // ReSharper disable IdentifierTypo
+// ReSharper disable ConvertToAutoPropertyWithPrivateSetter
 // ReSharper disable UnusedMethodReturnValue.Local
 // ReSharper disable ConvertToLambdaExpression
 //

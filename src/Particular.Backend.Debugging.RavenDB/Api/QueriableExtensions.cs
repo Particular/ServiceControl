@@ -58,7 +58,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
                 sort = (string) request.Query.sort;
             }
 
-            if (!Enumerable.Contains(sortOptions, sort))
+            if (!sortOptions.Contains(sort))
             {
                 sort = "time_sent";
             }

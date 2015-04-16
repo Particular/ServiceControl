@@ -54,18 +54,13 @@
 
         private class FakeMessageSnapshotStore : IStoreMessageSnapshots
         {
-            MessageSnapshot snapshot;
-
-            public MessageSnapshot Snapshot
-            {
-                get { return snapshot; }
-            }
+            public MessageSnapshot Snapshot { get; private set; }
 
             public void StoreOrUpdate(string uniqueId, Action<MessageSnapshot> initializeNewCallback, Action<MessageSnapshot> updateCallback)
             {
                 if (Snapshot == null)
                 {
-                    snapshot = new MessageSnapshot();
+                    Snapshot = new MessageSnapshot();
                     initializeNewCallback(Snapshot);
                 }
                 else

@@ -77,7 +77,7 @@
             if (transportToUse == null)
                 transportToUse = GetTransportIntegrationFromEnvironmentVar();
 
-            pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+            PathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
             InitialiseAppConfig();
 
             Console.Out.WriteLine("Using transport " + transportToUse.Name);
@@ -94,7 +94,7 @@
         public void Cleanup()
         {
             Delete(ravenPath);
-            File.Delete(pathToAppConfig);
+            File.Delete(PathToAppConfig);
         }
 
         string ravenPath;
@@ -185,7 +185,7 @@
                 }
             }
 
-            doc.Save(pathToAppConfig);
+            doc.Save(PathToAppConfig);
         }
 
         static void Delete(string path)
@@ -434,11 +434,7 @@
         };
 
         int port;
-        string pathToAppConfig;
         ITransportIntegration transportToUse;
-        public string PathToAppConfig
-        {
-            get { return pathToAppConfig; }
-        }
+        public string PathToAppConfig { get; private set; }
     }
 }
