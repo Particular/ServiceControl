@@ -36,7 +36,7 @@
                     {
                         return false;
                     }
-                    if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
+                    if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId,true))
                     {
                         return false;
                     }

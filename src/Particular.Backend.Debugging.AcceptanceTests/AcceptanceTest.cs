@@ -339,7 +339,7 @@
             }
         }
 
-        protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null) where T : class
+        protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null,bool log=false) where T : class
         {
             if (condition == null)
             {
@@ -350,6 +350,11 @@
 
             if (response != null)
             {
+                if (log && response.Count() > 127)
+                {
+                    Console.Out.WriteLine("Received the raven max page count!");
+                }
+
                 var items = response.Where(i => condition(i)).ToList();
 
                 if (items.Count() > 1)
