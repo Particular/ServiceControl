@@ -2,9 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Text;
-    using System.Threading;
     using global::ServiceControl.Contracts.Operations;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -36,7 +36,7 @@
                     {
                         return false;
                     }
-                    if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId,true))
+                    if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
                     {
                         return false;
                     }
@@ -130,15 +130,27 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
+                    var queueCounter = new PerformanceCounter(
+   "MSMQ Queue",
+   "Messages in Queue",
+   string.Format(@"{0}\private$\audit", Environment.MachineName));
+
+                 
+                    c.MessagesAlreadyInAuditQueue =
+                    queueCounter.NextValue();
+
                     var messsage = new MyMessage();
 
                     Headers.SetMessageHeader(messsage, "ServiceControl.DebugSessionId", "DANCO"); 
-         Thread.Sleep(10000);
                     bus.Send(messsage);
                 }))
                 .WithEndpoint<Receiver>()
                 .Done(c => c.MessageId != null && TryGetMany("/api/messages/search/DANCO", out response))
                 .Run(TimeSpan.FromSeconds(40));
+
+
+            Console.WriteLine("Audit Queue contained {0} messages before test",
+                     context.MessagesAlreadyInAuditQueue);
         }
 
         [Test]
@@ -291,6 +303,7 @@
             public string EndpointNameOfSendingEndpoint { get; set; }
 
             public string PropertyToSearchFor { get; set; }
+            public float MessagesAlreadyInAuditQueue { get; set; }
         }
     }
 }

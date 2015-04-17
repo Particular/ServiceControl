@@ -72,6 +72,9 @@
         public void SetUp()
         {
             ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+           
+            Console.Out.WriteLine("Raven path: " + ravenPath);
             port = FindAvailablePort(33333);
 
             if (transportToUse == null)
@@ -313,6 +316,10 @@
             }
 
             response = Get<List<T>>(url);
+            if (response.Count() > 127)
+            {
+                Console.Out.WriteLine("Received the raven max page count!");
+            }
 
             if (response == null || !response.Any(m => condition(m)))
             {
@@ -339,7 +346,7 @@
             }
         }
 
-        protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null,bool log=false) where T : class
+        protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null) where T : class
         {
             if (condition == null)
             {
@@ -350,11 +357,7 @@
 
             if (response != null)
             {
-                if (log && response.Count() > 127)
-                {
-                    Console.Out.WriteLine("Received the raven max page count!");
-                }
-
+               
                 var items = response.Where(i => condition(i)).ToList();
 
                 if (items.Count() > 1)
