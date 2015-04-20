@@ -48,7 +48,7 @@
                 })
                 .Run(TimeSpan.FromSeconds(40));
 
-       
+
             Assert.AreEqual(context.MessageId, auditedMessage.MessageId);
             Assert.AreEqual(MessageStatus.Successful, auditedMessage.Status);
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpoint.Name,
@@ -64,20 +64,20 @@
 
             Assert.NotNull(auditedMessage.ConversationId);
 
-            Assert.AreNotEqual(DateTime.MinValue,auditedMessage.TimeSent, "Time sent should be correctly set");
+            Assert.AreNotEqual(DateTime.MinValue, auditedMessage.TimeSent, "Time sent should be correctly set");
             Assert.AreNotEqual(DateTime.MinValue, auditedMessage.ProcessedAt, "Processed At should be correctly set");
 
             Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
             Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
             Assert.AreEqual(MessageIntentEnum.Send, auditedMessage.MessageIntent, "Message intent should be set");
-            
+
             var bodyAsString = Encoding.UTF8.GetString(body);
 
             Assert.True(bodyAsString.Contains("MyMessage"), bodyAsString);
 
             Assert.AreEqual(body.Length, auditedMessage.BodySize);
 
-            Assert.True(auditedMessage.Headers.Any(_=>_.Key == Headers.MessageId));
+            Assert.True(auditedMessage.Headers.Any(_ => _.Key == Headers.MessageId));
         }
 
         [Test]
@@ -115,7 +115,7 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c =>c.MessageId != null && TryGetMany("/api/messages/search/" + c.MessageId, out response))
+                .Done(c => c.MessageId != null && TryGetMany("/api/messages/search/" + c.MessageId, out response))
                 .Run(TimeSpan.FromSeconds(40));
         }
 
@@ -135,17 +135,33 @@
    "Messages in Queue",
    string.Format(@"{0}\private$\audit", Environment.MachineName));
 
-                 
+
                     c.MessagesAlreadyInAuditQueue =
                     queueCounter.NextValue();
 
                     var messsage = new MyMessage();
 
-                    Headers.SetMessageHeader(messsage, "ServiceControl.DebugSessionId", "DANCO"); 
+                    Headers.SetMessageHeader(messsage, "ServiceControl.DebugSessionId", "DANCO");
                     bus.Send(messsage);
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => c.MessageId != null && TryGetMany("/api/messages/search/DANCO", out response))
+                .Done(c =>
+                {
+                    if (c.MessageId == null)
+                    {
+                        return false;
+                    }
+
+                    var count = Get<List<MessagesView>>("/api/messages").Count;
+                    Console.Out.WriteLine("Messages found:" + count);
+
+                    if (count == 0)
+                    {
+                        return false;
+                    }
+                    
+                    return TryGetMany("/api/messages/search/DANCO", out response);
+                })
                 .Run(TimeSpan.FromSeconds(40));
 
 
@@ -167,7 +183,7 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c =>c.MessageId != null && TryGetMany(string.Format("/api/endpoints/{0}/messages/search/{1}",c.EndpointNameOfReceivingEndpoint, c.MessageId), out response))
+                .Done(c => c.MessageId != null && TryGetMany(string.Format("/api/endpoints/{0}/messages/search/{1}", c.EndpointNameOfReceivingEndpoint, c.MessageId), out response))
                 .Run(TimeSpan.FromSeconds(40));
         }
 
@@ -181,19 +197,19 @@
 
             List<MessagesView> response;
 
-             Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
-                    bus.Send(new MyMessage
-                    {
-                        PropertyToSearchFor = c.PropertyToSearchFor
-                    });
-                }))
-                .WithEndpoint<Receiver>()
-                .Done(c => TryGetMany("/api/messages/search/" + c.PropertyToSearchFor, out response))
-                .Run(TimeSpan.FromSeconds(40));
+            Scenario.Define(context)
+               .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+               .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+               {
+                   c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
+                   bus.Send(new MyMessage
+                   {
+                       PropertyToSearchFor = c.PropertyToSearchFor
+                   });
+               }))
+               .WithEndpoint<Receiver>()
+               .Done(c => TryGetMany("/api/messages/search/" + c.PropertyToSearchFor, out response))
+               .Run(TimeSpan.FromSeconds(40));
         }
 
         [Test]
@@ -235,7 +251,7 @@
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class Foo: IWantToRunWhenBusStartsAndStops
+            class Foo : IWantToRunWhenBusStartsAndStops
             {
                 public ISendMessages SendMessages { get; set; }
 

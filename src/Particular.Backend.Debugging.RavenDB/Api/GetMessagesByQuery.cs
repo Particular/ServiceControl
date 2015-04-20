@@ -72,7 +72,6 @@ namespace Particular.Backend.Debugging.RavenDB.Api
             {
                 RavenQueryStatistics stats;
                 var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Customize(c=>c.WaitForNonStaleResults())
                     .Statistics(out stats)
                     .Search(x => x.Query, keyword)
                     .Sort(Request)

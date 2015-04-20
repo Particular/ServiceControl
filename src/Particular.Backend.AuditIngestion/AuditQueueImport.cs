@@ -31,9 +31,10 @@
 
         public bool Handle(TransportMessage message)
         {
+            Logger.InfoFormat("Starting import for message id: " + message.Headers[Headers.MessageId]);
             transportMessageProcessor.ProcessSuccessful(message);
-
-            Logger.InfoFormat("Imported message id: " +  message.Headers[Headers.MessageId]);
+            Logger.InfoFormat("Done import for message id: " + message.Headers[Headers.MessageId]);
+      
             if (Settings.ForwardAuditMessages == true)
             {
                 forwarder.Send(message, Settings.AuditLogQueue);
