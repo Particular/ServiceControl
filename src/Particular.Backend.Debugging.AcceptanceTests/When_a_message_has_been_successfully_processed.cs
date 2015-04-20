@@ -124,7 +124,7 @@
         public void Should_be_found_in_search_by_debug_session_id()
         {
             var context = new MyContext();
-            List<MessagesView> response;
+          
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -159,6 +159,8 @@
                     {
                         return false;
                     }
+
+                    List<MessagesView> response;
                     
                     return TryGetMany("/api/messages/search/DANCO", out response);
                 })
