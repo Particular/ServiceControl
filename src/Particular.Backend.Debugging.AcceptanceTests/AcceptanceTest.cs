@@ -96,7 +96,7 @@
         [TearDown]
         public void Cleanup()
         {
-            Delete(ravenPath);
+            //Delete(ravenPath);
             File.Delete(PathToAppConfig);
         }
 
