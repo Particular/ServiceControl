@@ -32,6 +32,8 @@
         public bool Handle(TransportMessage message)
         {
             transportMessageProcessor.ProcessSuccessful(message);
+
+            Logger.InfoFormat("Imported message id: " +  message.Headers[Headers.MessageId]);
             if (Settings.ForwardAuditMessages == true)
             {
                 forwarder.Send(message, Settings.AuditLogQueue);

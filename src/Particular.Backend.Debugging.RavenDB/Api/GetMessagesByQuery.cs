@@ -83,7 +83,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
 
                 return Negotiate.WithModel(results)
                     .WithPagingLinksAndTotalCount(stats, Request)
-                    .WithEtagAndLastModified(stats)
+                    //.WithEtagAndLastModified(stats)
                     .WithRavenQueryStats(stats);
             }
         }
