@@ -162,7 +162,13 @@
 
                     List<MessagesView> response;
                     
-                    return TryGetMany("/api/messages/search/DANCO", out response);
+                    var result= TryGetMany("/api/messages/search/DANCO", out response);
+
+                    if (result)
+                    {
+                        Console.Out.WriteLine("Found it!");
+                    }
+                    return result;
                 })
                 .Run(TimeSpan.FromMinutes(5));
 

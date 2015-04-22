@@ -4,7 +4,6 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
-    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
@@ -15,7 +14,6 @@
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
-    using INeedInitialization = NServiceBus.INeedInitialization;
 
     public class RavenBootstrapper : INeedInitialization
     {
