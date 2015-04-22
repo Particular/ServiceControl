@@ -79,27 +79,27 @@
 
             Logger.Info("Index creation started");
 
-            if (Settings.CreateIndexSync)
-            {
+            //if (Settings.CreateIndexSync)
+            //{
                 foreach (var serviceControlAssembly in serviceControlAssemblies)
                 {
                     IndexCreation.CreateIndexes(serviceControlAssembly, documentStore);
                 }
-            }
-            else
-            {
-                foreach (var serviceControlAssembly in serviceControlAssemblies)
-                {
-                    IndexCreation.CreateIndexesAsync(serviceControlAssembly, documentStore)
-                        .ContinueWith(c =>
-                        {
-                            if (c.IsFaulted)
-                            {
-                                Logger.Error("Index creation failed", c.Exception);
-                            }
-                        }, TaskContinuationOptions.OnlyOnFaulted);
-                }
-            }
+            //}
+            //else
+            //{
+            //    foreach (var serviceControlAssembly in serviceControlAssemblies)
+            //    {
+            //        IndexCreation.CreateIndexesAsync(serviceControlAssembly, documentStore)
+            //            .ContinueWith(c =>
+            //            {
+            //                if (c.IsFaulted)
+            //                {
+            //                    Logger.Error("Index creation failed", c.Exception);
+            //                }
+            //            }, TaskContinuationOptions.OnlyOnFaulted);
+            //    }
+            //}
 
             // standard ravendb index. created by studio on first use. used by sagahistory migrations
             new RavenDocumentsByEntityName()
