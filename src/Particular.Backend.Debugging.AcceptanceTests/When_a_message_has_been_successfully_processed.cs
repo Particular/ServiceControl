@@ -164,7 +164,7 @@
                     
                     return TryGetMany("/api/messages/search/DANCO", out response);
                 })
-                .Run(TimeSpan.FromSeconds(40));
+                .Run(TimeSpan.FromMinutes(5));
 
 
             Console.WriteLine("Audit Queue contained {0} messages before test",
