@@ -4,7 +4,6 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
-    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
@@ -15,7 +14,6 @@
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
-    using INeedInitialization = NServiceBus.INeedInitialization;
 
     public class RavenBootstrapper : INeedInitialization
     {
@@ -79,27 +77,27 @@
 
             Logger.Info("Index creation started");
 
-            if (Settings.CreateIndexSync)
-            {
+            //if (Settings.CreateIndexSync)
+            //{
                 foreach (var serviceControlAssembly in serviceControlAssemblies)
                 {
                     IndexCreation.CreateIndexes(serviceControlAssembly, documentStore);
                 }
-            }
-            else
-            {
-                foreach (var serviceControlAssembly in serviceControlAssemblies)
-                {
-                    IndexCreation.CreateIndexesAsync(serviceControlAssembly, documentStore)
-                        .ContinueWith(c =>
-                        {
-                            if (c.IsFaulted)
-                            {
-                                Logger.Error("Index creation failed", c.Exception);
-                            }
-                        }, TaskContinuationOptions.OnlyOnFaulted);
-                }
-            }
+            //}
+            //else
+            //{
+            //    foreach (var serviceControlAssembly in serviceControlAssemblies)
+            //    {
+            //        IndexCreation.CreateIndexesAsync(serviceControlAssembly, documentStore)
+            //            .ContinueWith(c =>
+            //            {
+            //                if (c.IsFaulted)
+            //                {
+            //                    Logger.Error("Index creation failed", c.Exception);
+            //                }
+            //            }, TaskContinuationOptions.OnlyOnFaulted);
+            //    }
+            //}
 
             // standard ravendb index. created by studio on first use. used by sagahistory migrations
             new RavenDocumentsByEntityName()

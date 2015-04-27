@@ -72,6 +72,9 @@
         public void SetUp()
         {
             ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+           
+            Console.Out.WriteLine("Raven path: " + ravenPath);
             port = FindAvailablePort(33333);
 
             if (transportToUse == null)
@@ -93,7 +96,7 @@
         [TearDown]
         public void Cleanup()
         {
-            Delete(ravenPath);
+            //Delete(ravenPath);
             File.Delete(PathToAppConfig);
         }
 
@@ -313,6 +316,12 @@
             }
 
             response = Get<List<T>>(url);
+            if (response.Count() > 127)
+            {
+                Console.Out.WriteLine("Received the raven max page count!");
+            }
+
+
 
             if (response == null || !response.Any(m => condition(m)))
             {
@@ -350,6 +359,7 @@
 
             if (response != null)
             {
+               
                 var items = response.Where(i => condition(i)).ToList();
 
                 if (items.Count() > 1)

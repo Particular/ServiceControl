@@ -77,11 +77,12 @@ namespace Particular.Backend.Debugging.RavenDB.Api
                     .Sort(Request)
                     .Paging(Request)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
+                    
                     .ToArray();
 
                 return Negotiate.WithModel(results)
                     .WithPagingLinksAndTotalCount(stats, Request)
-                    .WithEtagAndLastModified(stats)
+                    //.WithEtagAndLastModified(stats)
                     .WithRavenQueryStats(stats);
             }
         }
