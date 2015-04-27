@@ -24,7 +24,7 @@
             {
                 snapshot.Headers[newHeader.Key] = newHeader.Value;
             }
-            snapshot.HeadersForSearching = string.Join(",", snapshot.Headers.Select(x => x.Value));
+            snapshot.HeadersForSearching = string.Join(" ", snapshot.Headers.Select(x => x.Value));
         }
 
     }
