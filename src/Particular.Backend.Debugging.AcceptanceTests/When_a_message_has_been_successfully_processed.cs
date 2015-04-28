@@ -133,7 +133,6 @@
                     var messsage = new MyMessage();
 
                     Headers.SetMessageHeader(messsage, "ServiceControl.DebugSessionId", "DANCO"); 
-         Thread.Sleep(10000);
                     bus.Send(messsage);
                 }))
                 .WithEndpoint<Receiver>()
