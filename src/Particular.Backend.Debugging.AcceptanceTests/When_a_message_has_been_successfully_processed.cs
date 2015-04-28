@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    using System.Threading;
     using global::ServiceControl.Contracts.Operations;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
