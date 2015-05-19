@@ -122,11 +122,12 @@ namespace Particular.ServiceControl.Hosting
             var externalInstallerOptions = new OptionSet
             {
                 {
-                    "r|runinstallers",
-                    "For internal use - new installer support"
+                    "s|setup",
+                    @"Internal use - for new installer"
                     , s =>
                     {
-                        Commands = new List<Type>{typeof(RunBootstrapperAndNServiceBusInstallers),};
+
+                        Commands = new List<Type>{typeof(RunBootstrapperAndNServiceBusInstallers)};
                         executionMode = ExecutionMode.Install;
                     }
                 },
@@ -136,11 +137,12 @@ namespace Particular.ServiceControl.Hosting
                     , s => { ServiceName = s; }
                 },
                 {
-                    "username=",
+                    "userName=",
                     @"Username for the account the service should run under."
                     , s => { Username = s; }
                 },
             };
+
 
             installOptions = new OptionSet
             {
@@ -241,17 +243,17 @@ namespace Particular.ServiceControl.Hosting
                 }
 
                 externalInstallerOptions.Parse(args);
+                if (executionMode == ExecutionMode.Install)
                 {
-                    if (executionMode == ExecutionMode.Install)
-                        return;
+                    return;
                 }
-
 
                 uninstallOptions.Parse(args);
                 if (executionMode == ExecutionMode.Uninstall)
                 {
                     return;
                 }
+
                 maintenanceOptions.Parse(args);
                 if (executionMode == ExecutionMode.Maintenance)
                 {
