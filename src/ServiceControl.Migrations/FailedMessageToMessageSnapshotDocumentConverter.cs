@@ -26,7 +26,7 @@ namespace ServiceControl.Migrations
                 {
                     BodyUrl = (string)lastAttempt.MessageMetadata["BodyUrl"],
                     ContentType = (string)lastAttempt.MessageMetadata["ContentType"],
-                    ContentLenght = (int)(long)lastAttempt.MessageMetadata["ContentLength"],
+                    ContentLength = (int)(long)lastAttempt.MessageMetadata["ContentLength"],
                     Text = (string)body
                 },
                 MessageIntent = lastAttempt.MessageIntent,

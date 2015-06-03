@@ -20,7 +20,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
                 {
                     MessageId = message.MessageId,
                     Body = message.Body != null ? message.Body.Text : null,
-                    BodySize = message.Body != null ? message.Body.ContentLenght : 0,
+                    BodySize = message.Body != null ? message.Body.ContentLength : 0,
                     ContentType = message.Body != null ? message.Body.ContentType : null,
                 };
         }

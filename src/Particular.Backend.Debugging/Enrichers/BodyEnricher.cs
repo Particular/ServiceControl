@@ -34,7 +34,7 @@ namespace Particular.Backend.Debugging.Enrichers
             snapshot.Body = new BodyInformation
             {
                 ContentType = contentType,
-                ContentLenght = message.BodyLength,
+                ContentLength = message.BodyLength,
                 BodyUrl = bodyUrl,
                 Text = bodyText
             };

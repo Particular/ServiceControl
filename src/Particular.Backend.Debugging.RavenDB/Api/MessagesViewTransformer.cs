@@ -41,7 +41,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
                     Status = message.Status,
                     MessageIntent =  message.MessageIntent,
                     BodyUrl = message.Body != null ? message.Body.BodyUrl : null,
-                    BodySize = message.Body != null ? message.Body.ContentLenght : 0,
+                    BodySize = message.Body != null ? message.Body.ContentLength : 0,
                     InvokedSagas = message.Sagas.InvokedSagas,
                     OriginatesFromSaga = message.Sagas.OriginatesFromSaga
                 };

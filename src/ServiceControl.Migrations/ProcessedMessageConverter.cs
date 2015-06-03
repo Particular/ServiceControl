@@ -24,7 +24,7 @@
                 {
                     BodyUrl = (string)processedMessage.MessageMetadata["BodyUrl"],
                     ContentType = (string)processedMessage.MessageMetadata["ContentType"],
-                    ContentLenght = (int)(long)processedMessage.MessageMetadata["ContentLength"],
+                    ContentLength = (int)(long)processedMessage.MessageMetadata["ContentLength"],
                     Text = (string)body
                 },
                 MessageIntent = (MessageIntentEnum)(long)processedMessage.MessageMetadata["MessageIntent"],
