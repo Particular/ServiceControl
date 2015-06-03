@@ -140,6 +140,17 @@
     <Compile Include="ExternalIntegrations\IEventPublisher.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
+    <Compile Include="Groups\ApiModule.cs" />
+    <Compile Include="Groups\Indexes\FailureGroupsIndex.cs" />
+    <Compile Include="Groups\Indexes\MessageFailuresByFailureGroupsIndex.cs" />
+    <Compile Include="Groups\FailuresGroupsFeature.cs" />
+    <Compile Include="Groups\FailureGroup.cs" />
+    <Compile Include="Groups\Groupers\ExceptionMessageAndExceptionTypeMessageGrouper.cs" />
+    <Compile Include="Groups\Groupers\ExceptionTypeMessageGrouper.cs" />
+    <Compile Include="Groups\Groupers\IFailedMessageGrouper.cs" />
+    <Compile Include="Groups\Groupers\ExceptionTypeAndStackTraceMessageGrouper.cs" />
+    <Compile Include="Groups\Groupers\StackTraceParser.cs" />
+    <Compile Include="Groups\GroupMessageHandler.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatingEndpoint.cs" />
