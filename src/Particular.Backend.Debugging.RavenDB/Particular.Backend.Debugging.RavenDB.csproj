@@ -115,7 +115,7 @@
     <Compile Include="Api\MessagesBodyTransformer.cs" />
     <Compile Include="Api\MessagesViewIndex.cs" />
     <Compile Include="Api\MessagesViewTransformer.cs" />
-    <Compile Include="Api\QueriableExtensions.cs" />
+    <Compile Include="Api\QueryableExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RavenDBDebuggingMessageStore.cs" />
     <Compile Include="Api\GetSagas.cs" />

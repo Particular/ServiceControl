@@ -8,7 +8,7 @@
     using Particular.Backend.Debugging.AcceptanceTests.Contexts;
     using Particular.Backend.Debugging.Api;
 
-    class Audit_Messages_Have_Proper_IsSytemMessage_Tests : AcceptanceTest
+    class Audit_Messages_Have_Proper_IsSystemMessage_Tests : AcceptanceTest
     {
         [Test]
         public void Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()

@@ -6,7 +6,7 @@ namespace Particular.Backend.Debugging.RavenDB.Api
     using Nancy;
     using Raven.Client.Linq;
 
-    public static class QueriableExtensions
+    public static class QueryableExtensions
     {
         public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> IncludeSystemMessagesWhere(
             this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, Request request)

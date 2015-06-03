@@ -158,7 +158,7 @@
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewIndex.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewTransformer.cs" />
-    <Compile Include="MessageFailures\Api\FilterByStatusWhereQueriableExtensions.cs" />
+    <Compile Include="MessageFailures\Api\FilterByStatusWhereQueryableExtensions.cs" />
     <Compile Include="MessageFailures\Api\GetAllErrors.cs" />
     <Compile Include="MessageFailures\Api\GetAllErrorsQueryableExtensions.cs" />
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />

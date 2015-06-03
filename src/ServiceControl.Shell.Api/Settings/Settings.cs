@@ -115,7 +115,7 @@
 
             if (!string.IsNullOrEmpty(VirtualDirectory))
             {
-                dbFolder += String.Format("-{0}", SanitiseFolderName(VirtualDirectory));
+                dbFolder += String.Format("-{0}", SanitizeFolderName(VirtualDirectory));
             }
 
             var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
@@ -123,7 +123,7 @@
             return SettingsReader<string>.Read("DbPath", defaultPath);
         }
 
-        static string SanitiseFolderName(string folderName)
+        static string SanitizeFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
         }

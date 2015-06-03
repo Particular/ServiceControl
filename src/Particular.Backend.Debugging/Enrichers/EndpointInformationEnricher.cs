@@ -7,12 +7,12 @@
     {
         public void Enrich(IngestedMessage message, MessageSnapshot snapshot)
         {
-            snapshot.ReceivingEndpoint = new EndpointDetails()
+            snapshot.ReceivingEndpoint = new EndpointDetails
             {
                 HostId = message.ProcessedAt.HostId,
                 Name = message.ProcessedAt.EndpointName
             };
-            snapshot.SendingEndpoint = new EndpointDetails()
+            snapshot.SendingEndpoint = new EndpointDetails
             {
                 HostId = message.SentFrom.HostId,
                 Name = message.SentFrom.EndpointName

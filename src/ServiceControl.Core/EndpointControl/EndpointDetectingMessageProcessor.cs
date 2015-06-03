@@ -50,7 +50,7 @@
                 var registerEndpoint = new RegisterEndpoint
                 {
                     EndpointInstanceId = endpointInstanceId,
-                    Endpoint = new EndpointDetails()
+                    Endpoint = new EndpointDetails
                     {
                         Name = endpointInstance.EndpointName,
                         HostId = endpointInstance.HostId
@@ -70,7 +70,7 @@
                 var registerEndpoint = new RegisterEndpoint
                 {
                     //we don't set then endpoint instance id since we don't have the host id
-                    Endpoint = new EndpointDetails()
+                    Endpoint = new EndpointDetails
                     {
                         Name = endpointInstance.EndpointName,
                         HostId = endpointInstance.HostId

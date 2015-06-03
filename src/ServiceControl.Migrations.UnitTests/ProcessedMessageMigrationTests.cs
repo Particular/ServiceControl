@@ -27,8 +27,8 @@ namespace ServiceControl.Migrations.UnitTests
 
             store.WaitForIndexing();
             var expiryThreshold = TimeSpan.FromDays(50 * 365);
-            var wasCleanEptyRun = new ProcessedMessageMigration(store, expiryThreshold).Migrate(() => false);
-            Assert.IsFalse(wasCleanEptyRun);
+            var wasCleanEmptyRun = new ProcessedMessageMigration(store, expiryThreshold).Migrate(() => false);
+            Assert.IsFalse(wasCleanEmptyRun);
         }
 
         [TearDown]

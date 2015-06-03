@@ -14,7 +14,7 @@ namespace ServiceControl.Migrations
             var lastAttempt = failedMessage.ProcessingAttempts.Last();
             object body;
             lastAttempt.MessageMetadata.TryGetValue("Body", out body);
-            var result = new MessageSnapshotDocument()
+            var result = new MessageSnapshotDocument
             {
                 Id = MessageSnapshotDocument.MakeDocumentId(failedMessage.UniqueMessageId),
                 AttemptedAt = lastAttempt.AttemptedAt,
@@ -22,7 +22,7 @@ namespace ServiceControl.Migrations
                 ConversationId = lastAttempt.CorrelationId,
                 IsSystemMessage = (bool)lastAttempt.MessageMetadata["IsSystemMessage"],
                 MessageType = (string)lastAttempt.MessageMetadata["MessageType"],
-                Body = new BodyInformation()
+                Body = new BodyInformation
                 {
                     BodyUrl = (string)lastAttempt.MessageMetadata["BodyUrl"],
                     ContentType = (string)lastAttempt.MessageMetadata["ContentType"],
@@ -30,7 +30,7 @@ namespace ServiceControl.Migrations
                     Text = (string)body
                 },
                 MessageIntent = lastAttempt.MessageIntent,
-                Processing = new ProcessingStatistics()
+                Processing = new ProcessingStatistics
                 {
                     TimeSent = DateTime.Parse((string)lastAttempt.MessageMetadata["TimeSent"]),
                     CriticalTime = TimeSpan.Parse((string)lastAttempt.MessageMetadata["CriticalTime"]),

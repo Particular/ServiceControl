@@ -9,7 +9,7 @@ namespace ServiceControl.Migrations
     {
         public MessageFailureHistory Convert(FailedMessage message)
         {
-            return new MessageFailureHistory()
+            return new MessageFailureHistory
             {
                 Id = MessageFailureHistory.MakeDocumentId(message.UniqueMessageId),
                 Status = message.Status,
@@ -20,7 +20,7 @@ namespace ServiceControl.Migrations
 
         static MessageFailureHistory.ProcessingAttempt Convert(FailedMessage.ProcessingAttempt attempt)
         {
-            return new MessageFailureHistory.ProcessingAttempt()
+            return new MessageFailureHistory.ProcessingAttempt
             {
                 FailureDetails = attempt.FailureDetails,
                 CorrelationId = attempt.CorrelationId,

@@ -50,12 +50,12 @@
 
                 failure.ProcessingAttempts.Add(new MessageFailureHistory.ProcessingAttempt
                 {
-                    ProcessingEndpoint = new EndpointDetails()
+                    ProcessingEndpoint = new EndpointDetails
                     {
                         Name = message.ProcessedAt.EndpointName,
                         HostId = message.ProcessedAt.HostId
                     },
-                    SendingEndpoint = new EndpointDetails()
+                    SendingEndpoint = new EndpointDetails
                     {
                         Name = message.SentFrom.EndpointName,
                         HostId = message.SentFrom.HostId
@@ -78,7 +78,7 @@
                 session.Store(failure);
                 session.SaveChanges();
 
-                bus.SendLocal(new ImportFailedMessage()
+                bus.SendLocal(new ImportFailedMessage
                 {
                     FailingEndpointName = message.ProcessedAt.EndpointName,
                     FailureDetails = details,
