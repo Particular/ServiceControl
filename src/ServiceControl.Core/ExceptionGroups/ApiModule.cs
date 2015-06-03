@@ -1,26 +1,57 @@
 ﻿namespace ServiceControl.ExceptionGroups
 {
-    using System;
+    using System.Linq;
     using Nancy;
+    using Raven.Client;
+    using Raven.Client.Linq;
+    using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceControl.Infrastructure.Extensions;
+    using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
 
     public class ApiModule : BaseModule
     {
         public ApiModule()
         {
-            Get["/exceptionGroups"] = _ =>
+            Get["/exceptionGroups"] = 
+                _ => GetAllExceptionGroups();
+
+            Get["/exceptionGroups/{groupId}/errors"] = 
+                parameters => GetExceptionsByGroup(parameters.groupId);
+        }
+
+        dynamic GetAllExceptionGroups()
+        {
+            using (var session = Store.OpenSession())
             {
-                var fakeResponse = new[]
-                {
-                    new ExceptionGroup { Id = "System.Sample", Title = "Sample", Count = 20, First = DateTime.UtcNow.AddHours(-1), Last = DateTime.UtcNow.AddHours(-0.5) }, 
-                    new ExceptionGroup { Id = "System.ArgumentException", Title = "Argument", Count = 5, First = DateTime.UtcNow.AddHours(-4), Last = DateTime.UtcNow.AddHours(-1) }, 
-                    new ExceptionGroup { Id = "System.NullReferenceException", Title = "Null", Count = 15, First = DateTime.UtcNow.AddHours(-3), Last = DateTime.UtcNow.AddHours(-2) }, 
-                    new ExceptionGroup { Id = "System.SomethingElse", Title = "Something Else", Count = 25, First = DateTime.UtcNow.AddHours(-25), Last = DateTime.UtcNow.AddHours(-20) }, 
+                var results = session.Query<ExceptionGroup, ExceptionGroupsIndex>()
+                    .ToArray();
 
-                };
+                return Negotiate
+                    .WithModel(results);
+            }
+        }
 
-                return Negotiate.WithModel(fakeResponse);
-            };
+        dynamic GetExceptionsByGroup(string groupId)
+        {
+            using (var session = Store.OpenSession())
+            {
+                RavenQueryStatistics stats;
+
+                var model = session.Query<MessageFailureHistory>()
+                    .Where(m => m.ProcessingAttempts.Any(attempt => attempt.FailureDetails.Exception.ExceptionType == groupId))
+                    .Statistics(out stats)
+                    //.FilterByStatusWhere(Request)
+                    //.Sort(Request)
+                    .Paging(Request)
+                    .TransformWith<FailedMessageViewTransformer, FailedMessageView>()
+                    .ToArray();
+
+                return Negotiate
+                    .WithModel(model)
+                    .WithPagingLinksAndTotalCount(stats, Request);
+            }
         }
     }
 }
