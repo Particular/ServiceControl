@@ -2,16 +2,15 @@
 {
     using System.Linq;
     using Nancy;
-    using Raven.Client;
     using Raven.Client.Linq;
-    using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.Infrastructure.Extensions;
-    using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
 
     public class ApiModule : BaseModule
     {
+        // TODO: Put this number somewhere
+        const int MINIMUM_GROUP_SIZE = 5;
+
         public ApiModule()
         {
             Get["/exceptionGroups"] = 
@@ -25,7 +24,9 @@
         {
             using (var session = Store.OpenSession())
             {
-                var results = session.Query<ExceptionGroup, ExceptionGroupsIndex>()
+                var results = session.Query<MessageFailureHistory_ByExceptionGroup.ReduceResult, MessageFailureHistory_ByExceptionGroup>()
+                    .Where(result => result.Count >= MINIMUM_GROUP_SIZE) 
+                    .TransformWith<ExceptionGroupResultsTransformer, ExceptionGroup>()
                     .ToArray();
 
                 return Negotiate
@@ -37,20 +38,22 @@
         {
             using (var session = Store.OpenSession())
             {
-                RavenQueryStatistics stats;
+                var model = Enumerable.Empty<FailedMessageView>().ToArray();
 
-                var model = session.Query<MessageFailureHistory>()
-                    .Where(m => m.ProcessingAttempts.Any(attempt => attempt.FailureDetails.Exception.ExceptionType == groupId))
-                    .Statistics(out stats)
-                    //.FilterByStatusWhere(Request)
-                    //.Sort(Request)
-                    .Paging(Request)
-                    .TransformWith<FailedMessageViewTransformer, FailedMessageView>()
-                    .ToArray();
+                var group = session.Query<MessageFailureHistory_ByExceptionGroup.ReduceResult, MessageFailureHistory_ByExceptionGroup>()
+                    .FirstOrDefault(result => result.ExceptionType == groupId);
+
+                if (group != null)
+                {
+                    // TODO: Apply Sorting
+                    // TODO: Apply Paging
+                    model = session.Load<FailedMessageViewTransformer, FailedMessageView>(
+                        group.FailureHistoryIds.ToArray()
+                    ).ToArray();
+                }
 
                 return Negotiate
-                    .WithModel(model)
-                    .WithPagingLinksAndTotalCount(stats, Request);
+                    .WithModel(model);
             }
         }
     }

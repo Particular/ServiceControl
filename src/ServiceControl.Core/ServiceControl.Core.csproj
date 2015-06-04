@@ -127,7 +127,9 @@
     <Compile Include="EventLog\GenericAuditHandler.cs" />
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
     <Compile Include="ExceptionGroups\ExceptionGroup.cs" />
+    <Compile Include="ExceptionGroups\ExceptionGroupResultsTransformer.cs" />
     <Compile Include="ExceptionGroups\ExceptionGroupsIndex.cs" />
+    <Compile Include="ExceptionGroups\MessageFailureHistory_ByExceptionGroup.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckFailedPublisher.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckSucceededPublisher.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
