@@ -20,6 +20,7 @@ namespace ServiceControl.ExceptionGroups
         public MessageFailureHistory_ByExceptionGroup()
         {
             Map = docs => from doc in docs
+                          where doc.Status == FailedMessageStatus.Unresolved
                 let failure = doc.ProcessingAttempts.Last().FailureDetails
                 select new
                 {
