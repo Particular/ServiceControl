@@ -2,23 +2,34 @@
 {
     using System.Linq;
     using Nancy;
+    using NServiceBus;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceControl.ExceptionGroups.Archive;
+    using ServiceControl.ExceptionGroups.Retry;
     using ServiceControl.MessageFailures.Api;
 
     public class ApiModule : BaseModule
     {
-        // TODO: Put this number somewhere
+        // TODO: Put this number somewhere, should this be a parameter sent from SP?
         const int MINIMUM_GROUP_SIZE = 5;
 
         public ApiModule()
         {
+            // TODO: Standardize pluralization for exceptionGroup(s)
+
             Get["/exceptionGroups"] = 
                 _ => GetAllExceptionGroups();
 
             Get["/exceptionGroups/{groupId}/errors"] = 
                 parameters => GetExceptionsByGroup(parameters.groupId);
+
+            Post["/exceptionGroup/{groupId}/errors/archive"] =
+                parameters => ArchiveMessagesForGroup(parameters.groupId);
+
+            Post["/exceptionGroups/{groupId}/errors/retry"] =
+                parameters => RetryMessagesForGroup(parameters.groupId);
         }
 
         dynamic GetAllExceptionGroups()
@@ -61,5 +72,25 @@
                     .WithTotalCount(totalCount);
             }
         }
+
+        dynamic ArchiveMessagesForGroup(string groupId)
+        {
+            Bus.SendLocal(new ArchiveAllForGroup
+            {
+                GroupId = groupId
+            });
+            return HttpStatusCode.Accepted;
+        }
+
+        dynamic RetryMessagesForGroup(string groupId)
+        {
+            Bus.SendLocal(new RetryAllForGroup
+            {
+                GroupId = groupId
+            });
+            return HttpStatusCode.Accepted;
+        }
+
+        public IBus Bus { get; set; }
     }
 }

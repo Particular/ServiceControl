@@ -126,10 +126,16 @@
     <Compile Include="EventLog\EventLogMappings.cs" />
     <Compile Include="EventLog\GenericAuditHandler.cs" />
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
+    <Compile Include="ExceptionGroups\Archive\ArchiveAllForGroup.cs" />
+    <Compile Include="ExceptionGroups\Archive\IssueArchiveAllForGroupHandler.cs" />
     <Compile Include="ExceptionGroups\ExceptionGroup.cs" />
+    <Compile Include="ExceptionGroups\ExceptionGroupQueryableExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ExceptionGroups\ExceptionGroupResultsTransformer.cs" />
-    <Compile Include="ExceptionGroups\ExceptionGroupsIndex.cs" />
     <Compile Include="ExceptionGroups\MessageFailureHistory_ByExceptionGroup.cs" />
+    <Compile Include="ExceptionGroups\Retry\IssueRetryAllForGroupHandler.cs" />
+    <Compile Include="ExceptionGroups\Retry\RetryAllForGroup.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckFailedPublisher.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckSucceededPublisher.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
