@@ -22,10 +22,20 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
         public static Negotiator WithTotalCount(this Negotiator negotiator, RavenQueryStatistics stats)
         {
-            return negotiator.WithHeader("Total-Count", stats.TotalResults.ToString(CultureInfo.InvariantCulture));
+            return negotiator.WithTotalCount(stats.TotalResults);
+        }
+
+        public static Negotiator WithTotalCount(this Negotiator negotiator, int totalCount)
+        {
+            return negotiator.WithHeader("Total-Count", totalCount.ToString(CultureInfo.InvariantCulture));
         }
 
         public static Negotiator WithPagingLinks(this Negotiator negotiator, RavenQueryStatistics stats, Request request)
+        {
+           return negotiator.WithPagingLinks(stats.TotalResults, request);
+        }
+
+        public static Negotiator WithPagingLinks(this Negotiator negotiator, int totalCount, Request request)
         {
             decimal maxResultsPerPage = 50;
 
@@ -52,13 +62,13 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             }
 
             // No need to add a Link header if no paging
-            if (stats.TotalResults <= maxResultsPerPage)
+            if (totalCount <= maxResultsPerPage)
             {
                 return negotiator;
             }
 
             var links = new List<string>();
-            var lastPage = (int) Math.Ceiling(stats.TotalResults/maxResultsPerPage);
+            var lastPage = (int)Math.Ceiling(totalCount / maxResultsPerPage);
 
             // No need to add a Link header if page does not exist!
             if (page > lastPage)

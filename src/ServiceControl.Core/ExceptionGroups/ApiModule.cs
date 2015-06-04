@@ -3,6 +3,7 @@
     using System.Linq;
     using Nancy;
     using Raven.Client.Linq;
+    using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceControl.MessageFailures.Api;
 
@@ -39,6 +40,7 @@
             using (var session = Store.OpenSession())
             {
                 var model = Enumerable.Empty<FailedMessageView>().ToArray();
+                var totalCount = 0;
 
                 var group = session.Query<MessageFailureHistory_ByExceptionGroup.ReduceResult, MessageFailureHistory_ByExceptionGroup>()
                     .FirstOrDefault(result => result.ExceptionType == groupId);
@@ -46,14 +48,17 @@
                 if (group != null)
                 {
                     // TODO: Apply Sorting
-                    // TODO: Apply Paging
                     model = session.Load<FailedMessageViewTransformer, FailedMessageView>(
-                        group.FailureHistoryIds.ToArray()
+                        group.FailureHistoryIds.Paging(Request).ToArray()
                     ).ToArray();
+
+                    totalCount = group.Count;
                 }
 
                 return Negotiate
-                    .WithModel(model);
+                    .WithModel(model)
+                    .WithPagingLinks(totalCount, Request)
+                    .WithTotalCount(totalCount);
             }
         }
     }
