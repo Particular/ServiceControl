@@ -141,6 +141,10 @@
     <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
     <Compile Include="Groups\ApiModule.cs" />
+    <Compile Include="Groups\Archive\ArchiveAllInGroup.cs" />
+    <Compile Include="Groups\Archive\ArchiveAllInGroupHandler.cs" />
+    <Compile Include="Groups\Archive\ArchiveGroupEventLogDefinition.cs" />
+    <Compile Include="Groups\Archive\FailedMessageGroupArchived.cs" />
     <Compile Include="Groups\Indexes\FailureGroupsIndex.cs" />
     <Compile Include="Groups\Indexes\MessageFailuresByFailureGroupsIndex.cs" />
     <Compile Include="Groups\FailuresGroupsFeature.cs" />
