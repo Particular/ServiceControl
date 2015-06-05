@@ -1,11 +1,14 @@
 ﻿namespace ServiceControl.Groups
 {
+    using System;
     using System.Linq;
     using Nancy;
+    using NServiceBus;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceControl.Groups.Archive;
     using ServiceControl.Groups.Indexes;
     using ServiceControl.Infrastructure.Extensions;
     using ServiceControl.MessageFailures;
@@ -20,6 +23,9 @@
 
             Get["/groups/{groupId}/errors"] = 
                 parameters => GetGroupById(parameters.groupId);
+
+            Post["/groups/{groupId}/errors/archive"] =
+                parameters => ArchiveAllInGroup(parameters.groupId);
         }
 
         dynamic GetAllGroups()
@@ -52,5 +58,22 @@
                     .WithPagingLinksAndTotalCount(stats, Request);
             }
         }
+
+        dynamic ArchiveAllInGroup(string groupId)
+        {
+            if (String.IsNullOrWhiteSpace(groupId))
+            {
+                return HttpStatusCode.BadRequest;
+            }
+
+            Bus.SendLocal(new ArchiveAllInGroup
+            {
+                GroupId = groupId
+            });
+
+            return HttpStatusCode.Accepted;
+        }
+
+        public IBus Bus { get; set; }
     }
 }

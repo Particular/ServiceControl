@@ -70,6 +70,11 @@
             relatedToLinks.Add(m => string.Format("/customcheck/{0}", relatedTo(m)));
         }
 
+        protected void RelatesToGroup(Func<T, string> relatedTo)
+        {
+            relatedToLinks.Add(m => string.Format("/group/{0}", relatedTo(m)));
+        }
+
         protected void TreatAsError()
         {
             Severity(EventLog.Severity.Error);
