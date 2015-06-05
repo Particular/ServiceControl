@@ -9,6 +9,7 @@ namespace ServiceControl.Groups.Indexes
         public FailureGroupsIndex()
         {
             Map = failures => from failure in failures
+                              where failure.Status != FailedMessageStatus.Archived
                 let latestAttempt = failure.ProcessingAttempts.Last()
                 let firstAttempt = failure.ProcessingAttempts.First()
                 from failureGroup in failure.FailureGroups
