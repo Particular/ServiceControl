@@ -7,7 +7,7 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.InternalMessages;
 
-    public class ArchiveMessageHandler : IHandleMessages<ImportFailedMessage>
+    public class GroupMessageHandler : IHandleMessages<ImportFailedMessage>
     {
         public IDocumentSession Session { get; set; }
 
@@ -35,7 +35,7 @@
                 {
                     continue;
                 }
-
+                
                 var groupExistsOnFailure = failure.FailureGroups.Exists(g => g.Id == groupId);
                 if (!groupExistsOnFailure)
                 {
