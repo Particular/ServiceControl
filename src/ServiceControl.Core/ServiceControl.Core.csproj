@@ -106,7 +106,6 @@
     <Compile Include="EndpointControl\Handlers\RegisterEndpointHandler.cs" />
     <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />
     <Compile Include="EndpointControl\KnownEndpoint.cs" />
-    <Compile Include="ExceptionGroups\ApiModule.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckDeletedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
@@ -126,8 +125,6 @@
     <Compile Include="EventLog\EventLogMappings.cs" />
     <Compile Include="EventLog\GenericAuditHandler.cs" />
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
-    <Compile Include="ExceptionGroups\ExceptionGroup.cs" />
-    <Compile Include="ExceptionGroups\ExceptionGroupsIndex.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckFailedPublisher.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckSucceededPublisher.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
