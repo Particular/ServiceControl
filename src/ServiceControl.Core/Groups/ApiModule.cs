@@ -19,13 +19,13 @@
     {
         public ApiModule()
         {
-            Get["/groups"] = 
+            Get["/recoverability/groups"] = 
                 _ => GetAllGroups();
 
-            Get["/groups/{groupId}/errors"] = 
+            Get["/recoverability/groups/{groupId}/errors"] = 
                 parameters => GetGroupById(parameters.groupId);
 
-            Post["/groups/{groupId}/errors/archive"] =
+            Post["/recoverability/groups/{groupId}/errors/archive"] =
                 parameters => ArchiveAllInGroup(parameters.groupId);
 
             Post["/groups/{groupId}/errors/retry"] =

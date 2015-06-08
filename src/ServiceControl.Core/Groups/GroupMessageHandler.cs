@@ -1,9 +1,12 @@
 ﻿namespace ServiceControl.Groups
 {
     using System.Collections.Generic;
+    using System.Linq;
     using NServiceBus;
     using Raven.Client;
     using ServiceControl.Groups.Groupers;
+    using ServiceControl.Groups.Indexes;
+    using ServiceControl.InternalContracts.Messages.MessageFailures;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.InternalMessages;
 
@@ -39,6 +42,14 @@
                 var groupExistsOnFailure = failure.FailureGroups.Exists(g => g.Id == groupId);
                 if (!groupExistsOnFailure)
                 {
+                    if (Session.Query<FailureGroup, FailureGroupsIndex>().Any(g => g.Title == groupId) == false)
+                    {
+                        Bus.Publish(new NewFailedMessagesGroupCreated
+                        {
+                            Id = groupId
+                        });
+                    }
+
                     failure.FailureGroups.Add(new MessageFailureHistory.FailureGroup
                     {
                         Id = groupId,

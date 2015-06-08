@@ -70,6 +70,7 @@
     <Compile Include="Messages\MessageFailures\MessageFailureResolvedByRetry.cs" />
     <Compile Include="Messages\MessageFailures\MessageFailuresUpdated.cs" />
     <Compile Include="Messages\MessageFailures\MessageSubmittedForRetry.cs" />
+    <Compile Include="Messages\MessageFailures\NewFailedMessagesGroupCreated.cs" />
     <Compile Include="Messages\Operations\EndpointConfigurationReceived.cs" />
     <Compile Include="Messages\Operations\EndpointDetails.cs" />
     <Compile Include="Messages\Operations\EndpointHeartbeatReceived.cs" />
