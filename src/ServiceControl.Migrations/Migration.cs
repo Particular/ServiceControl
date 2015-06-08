@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Migrations
 {
     using System;
+    using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
@@ -16,12 +17,14 @@
         PeriodicExecutor executor;
 
         readonly IDocumentStore Store;
+        readonly Meter throughputMetric;
 
         protected Migration(IDocumentStore store)
         {
             Store = store;
             logger = LogManager.GetLogger(GetType());
             executor = new PeriodicExecutor(Migrate, TimeSpan.FromMinutes(5));
+            throughputMetric = Metric.Meter(GetType().FullName, "documents");
         }
 
         protected abstract string EntityName { get; }
@@ -62,6 +65,7 @@
                     {
                         processedRecord = true;
                         Migrate(enumerator.Current, shouldCancel);
+                        throughputMetric.Mark();
                     }
                 }
                 if (shouldCancel())

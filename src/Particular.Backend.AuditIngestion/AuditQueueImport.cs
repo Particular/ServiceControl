@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
@@ -20,10 +21,12 @@
         readonly ISendMessages forwarder;
         readonly TransportMessageProcessor transportMessageProcessor;
         SatelliteImportFailuresHandler satelliteImportFailuresHandler;
+        readonly Meter throughputMetric;
 
 
         public AuditQueueImport(IBuilder builder, ISendMessages forwarder, TransportMessageProcessor transportMessageProcessor)
         {
+            throughputMetric = Metric.Meter("Audit queue", "audits");
             this.builder = builder;
             this.forwarder = forwarder;
             this.transportMessageProcessor = transportMessageProcessor;
@@ -36,6 +39,7 @@
             {
                 forwarder.Send(message, Settings.AuditLogQueue);
             }
+            throughputMetric.Mark();
             return true;
         }
 
