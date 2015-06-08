@@ -3,12 +3,12 @@
     using System;
     using NServiceBus;
 
-    class DeleteCustomCheck : ICommand
+    public  class DeleteCustomCheck : ICommand
     {
         public Guid Id { get; set; }
     }
 
-    class CustomCheckDeleted : IEvent
+    public class CustomCheckDeleted : IEvent
     {
         public Guid Id { get; set; }        
     }

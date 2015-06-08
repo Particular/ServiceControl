@@ -2,7 +2,7 @@ namespace ServiceControl.EndpointPlugin.Messages.SagaState
 {
     using System;
 
-    class SagaChangeOutput
+    public class SagaChangeOutput
     {
         public string MessageType { get; set; }
         public DateTime TimeSent { get; set; }
