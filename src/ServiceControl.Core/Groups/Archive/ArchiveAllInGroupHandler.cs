@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Groups.Archive
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using Raven.Abstractions.Data;
     using Raven.Client;
@@ -43,7 +44,7 @@
                 {
                     GroupId = message.GroupId
                 });
-            });
+            }, TaskContinuationOptions.OnlyOnRanToCompletion);
         }
     }
 }
