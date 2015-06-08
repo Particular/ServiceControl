@@ -53,7 +53,8 @@
                     failure.FailureGroups.Add(new MessageFailureHistory.FailureGroup
                     {
                         Id = groupId,
-                        Title = grouper.GetGroupName(message)
+                        Title = grouper.GetGroupName(message),
+                        Type = grouper.GetGroupType(message)
                     });
                 }
             }

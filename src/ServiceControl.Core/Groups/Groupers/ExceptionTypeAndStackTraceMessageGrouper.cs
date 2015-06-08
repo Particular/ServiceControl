@@ -4,6 +4,11 @@
 
     public class ExceptionTypeAndStackTraceMessageGrouper : IFailedMessageGrouper
     {
+        public string GetGroupType(ImportFailedMessage failedMessage)
+        {
+            return "ExceptionTypeAndStackTrace";
+        }
+
         public string GetGroupId(ImportFailedMessage failedMessage)
         {
             var exception = failedMessage.FailureDetails.Exception;
