@@ -4,6 +4,11 @@ namespace ServiceControl.Groups.Groupers
 
     public class ExceptionMessageAndExceptionTypeMessageGrouper : IFailedMessageGrouper
     {
+        public string GetGroupType(ImportFailedMessage failedMessage)
+        {
+            return "ExceptionMessageAndExceptionType";
+        }
+
         public string GetGroupId(ImportFailedMessage failedMessage)
         {
             return failedMessage.FailureDetails.Exception.ExceptionType + failedMessage.FailureDetails.Exception.Message; 

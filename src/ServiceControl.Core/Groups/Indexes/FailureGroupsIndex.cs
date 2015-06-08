@@ -20,6 +20,7 @@ namespace ServiceControl.Groups.Indexes
                     Count = 1,
                     First = firstAttempt.FailureDetails.TimeOfFailure,
                     Last = latestAttempt.FailureDetails.TimeOfFailure,
+                    Type = failureGroup.Type
                 };
 
             Reduce = results => from result in results
@@ -30,7 +31,8 @@ namespace ServiceControl.Groups.Indexes
                     Title = g.First().Title, 
                     Count = g.Sum(x => x.Count), 
                     First = g.Min(x => x.First), 
-                    Last = g.Max(x => x.Last)
+                    Last = g.Max(x => x.Last),
+                    Type = g.First().Type, 
                 };
         }
     }
