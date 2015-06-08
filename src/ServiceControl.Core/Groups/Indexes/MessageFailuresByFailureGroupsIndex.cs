@@ -9,7 +9,7 @@ namespace ServiceControl.Groups.Indexes
         public MessageFailuresByFailureGroupsIndex()
         {
             Map = failures => from failure in failures
-                              where failure.Status != FailedMessageStatus.Archived
+                              where failure.Status == FailedMessageStatus.Unresolved
                 from failureGroup in failure.FailureGroups
                 select new
                 {
