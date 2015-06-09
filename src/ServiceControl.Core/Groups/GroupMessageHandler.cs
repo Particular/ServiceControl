@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using NServiceBus;
     using Raven.Client;
     using ServiceControl.Groups.Groupers;
@@ -38,6 +39,8 @@
                 {
                     continue;
                 }
+
+                groupId = Regex.Replace(groupId, @"[^\w\d\.]+", "_");
                 
                 var groupExistsOnFailure = failure.FailureGroups.Exists(g => g.Id == groupId);
                 if (!groupExistsOnFailure)
