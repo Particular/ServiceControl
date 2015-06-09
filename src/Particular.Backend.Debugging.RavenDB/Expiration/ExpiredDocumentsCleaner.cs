@@ -49,44 +49,40 @@
             var stopwatch = Stopwatch.StartNew();
             int deletionCount;
             using (DocumentCacher.SkipSettingDocumentsInDocumentCache())
+            using (database.DisableAllTriggersForCurrentThread())
+            using (var cts = new CancellationTokenSource())
             {
-                using (database.DisableAllTriggersForCurrentThread())
-                {
-                    using (var cts = new CancellationTokenSource())
+                var documentWithCurrentThresholdTimeReached = false;
+                var items = new List<ICommandData>(deletionBatchSize);
+                database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(database.WorkContext.CancellationToken, cts.Token).Token,
+                    null,
+                    doc =>
                     {
-                        var documentWithCurrentThresholdTimeReached = false;
-                        var items = new List<ICommandData>(deletionBatchSize);
-                        database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(database.WorkContext.CancellationToken, cts.Token).Token,
-                            null,
-                            doc =>
+                        if (documentWithCurrentThresholdTimeReached)
+                        {
+                            return;
+                        }
+
+                        if (doc.Value<DateTime>("ProcessedAt") >= currentExpiryThresholdTime)
+                        {
+                            documentWithCurrentThresholdTimeReached = true;
+                            cts.Cancel();
+                            return;
+                        }
+
+                        var id = doc.Value<string>("__document_id");
+                        if (!string.IsNullOrEmpty(id))
+                        {
+                            items.Add(new DeleteCommandData
                             {
-                                if (documentWithCurrentThresholdTimeReached)
-                                {
-                                    return;
-                                }
-
-                                if (doc.Value<DateTime>("ProcessedAt") >= currentExpiryThresholdTime)
-                                {
-                                    documentWithCurrentThresholdTimeReached = true;
-                                    cts.Cancel();
-                                    return;
-                                }
-
-                                var id = doc.Value<string>("__document_id");
-                                if (!string.IsNullOrEmpty(id))
-                                {
-                                    items.Add(new DeleteCommandData
-                                    {
-                                        Key = id
-                                    });
-                                }
+                                Key = id
                             });
-                        docsToExpire += items.Count;
-                        var results = database.Batch(items.ToArray());
-                        deletionCount = results.Count(x => x.Deleted == true);
-                        items.Clear();
-                    }
-                }
+                        }
+                    });
+                docsToExpire += items.Count;
+                var results = database.Batch(items.ToArray());
+                deletionCount = results.Count(x => x.Deleted == true);
+                items.Clear();
             }
 
             if (docsToExpire == 0)

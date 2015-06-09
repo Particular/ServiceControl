@@ -1,1 +1,1 @@
-creates builk saga audit records to simulate a loaded database from version 1.5.1
+creates bulk saga audit records to simulate a loaded database from version 1.5.1
