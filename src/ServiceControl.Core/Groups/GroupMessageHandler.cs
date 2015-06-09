@@ -45,18 +45,21 @@
                 var groupExistsOnFailure = failure.FailureGroups.Exists(g => g.Id == groupId);
                 if (!groupExistsOnFailure)
                 {
-                    if (Session.Query<FailureGroup, FailureGroupsIndex>().Any(g => g.Title == groupId) == false)
+                    var groupName = grouper.GetGroupName(message);
+
+                    if (Session.Query<FailureGroup, FailureGroupsIndex>().Any(g => g.Id == groupId) == false)
                     {
-                        Bus.Publish(new NewFailedMessagesGroupCreated
+                        Bus.SendLocal(new RaiseNewFailureGroupDetectedEvent
                         {
-                            Id = groupId
+                            GroupId = groupId,
+                            GroupName = groupName
                         });
                     }
 
                     failure.FailureGroups.Add(new MessageFailureHistory.FailureGroup
                     {
                         Id = groupId,
-                        Title = grouper.GetGroupName(message),
+                        Title = groupName,
                         Type = grouper.GetGroupType(message)
                     });
                 }
