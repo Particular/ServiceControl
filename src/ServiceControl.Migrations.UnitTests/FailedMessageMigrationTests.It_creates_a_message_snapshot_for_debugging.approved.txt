@@ -74,7 +74,7 @@
     },
     "Body": {
         "ContentType": "text/xml",
-        "ContentLenght": 237,
+        "ContentLength": 237,
         "BodyUrl": "/messages/dc6b6f1f-d1a3-45bb-8e7c-a445008d48c5/body",
         "Text": "<?xml version=\"1.0\" ?>\r\n<Messages xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"http://tempuri.net/ServiceBus.Management.AcceptanceTests\">\n<MyMessage>\n</MyMessage>\n</Messages>\r\n"
     },

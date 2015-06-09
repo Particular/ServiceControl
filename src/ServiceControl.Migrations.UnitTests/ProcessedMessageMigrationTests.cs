@@ -48,7 +48,6 @@ namespace ServiceControl.Migrations.UnitTests
         }
 
         [Test]
-        //[UseReporter(typeof(DiffReporter))]
         public void It_creates_a_message_snapshot_for_debugging()
         {
             using (var session = store.OpenSession())
