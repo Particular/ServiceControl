@@ -137,6 +137,7 @@
     <Compile Include="ExternalIntegrations\IEventPublisher.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
+    <Compile Include="ExternalIntegrations\NewFailureGroupDetectedPublisher.cs" />
     <Compile Include="Groups\ApiModule.cs" />
     <Compile Include="Groups\Archive\ArchiveAllInGroup.cs" />
     <Compile Include="Groups\Archive\ArchiveAllInGroupHandler.cs" />
