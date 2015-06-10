@@ -87,7 +87,8 @@
 
             Bus.SendLocal(new RetryAllInGroup
             {
-                GroupId = groupId
+                GroupId = groupId, 
+                StartedAt = DateTimeOffset.UtcNow
             });
 
             return HttpStatusCode.Accepted;
