@@ -137,6 +137,7 @@
     <Compile Include="ExternalIntegrations\IEventPublisher.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
+    <Compile Include="ExternalIntegrations\NewFailureGroupDetectedPublisher.cs" />
     <Compile Include="Groups\ApiModule.cs" />
     <Compile Include="Groups\Archive\ArchiveAllInGroup.cs" />
     <Compile Include="Groups\Archive\ArchiveAllInGroupHandler.cs" />
@@ -154,6 +155,8 @@
     <Compile Include="Groups\GroupMessageHandler.cs" />
     <Compile Include="Groups\Retry\BulkRetryPolicy.cs" />
     <Compile Include="Groups\Retry\BulkRetryCompleted.cs" />
+    <Compile Include="Groups\NewFailureGroupSaga.cs" />
+    <Compile Include="Groups\Retry\FailedMessageGroupRetried.cs" />
     <Compile Include="Groups\Retry\RetryAllInGroup.cs" />
     <Compile Include="Groups\Retry\RetryGroupEventLogDefinition.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />

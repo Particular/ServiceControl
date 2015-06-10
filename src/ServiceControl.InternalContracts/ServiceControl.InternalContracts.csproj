@@ -63,6 +63,7 @@
     <Compile Include="Messages\HeartbeatMonitoring\HeartbeatMonitoringEnabled.cs" />
     <Compile Include="Messages\HeartbeatMonitoring\HeartbeatStatusChanged.cs" />
     <Compile Include="Messages\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
+    <Compile Include="Messages\MessageFailures\RaiseNewFailureGroupDetectedEvent.cs" />
     <Compile Include="Messages\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Messages\MessageFailures\MessageFailed.cs" />
     <Compile Include="Messages\MessageFailures\MessageFailedRepeatedly.cs" />
@@ -70,7 +71,7 @@
     <Compile Include="Messages\MessageFailures\MessageFailureResolvedByRetry.cs" />
     <Compile Include="Messages\MessageFailures\MessageFailuresUpdated.cs" />
     <Compile Include="Messages\MessageFailures\MessageSubmittedForRetry.cs" />
-    <Compile Include="Messages\MessageFailures\NewFailedMessagesGroupCreated.cs" />
+    <Compile Include="Messages\MessageFailures\NewFailureGroupDetected.cs" />
     <Compile Include="Messages\Operations\EndpointConfigurationReceived.cs" />
     <Compile Include="Messages\Operations\EndpointDetails.cs" />
     <Compile Include="Messages\Operations\EndpointHeartbeatReceived.cs" />
