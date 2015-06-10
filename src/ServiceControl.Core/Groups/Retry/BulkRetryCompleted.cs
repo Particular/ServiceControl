@@ -2,8 +2,9 @@
 {
     using NServiceBus;
 
-    public class FailedMessageGroupRetried : IEvent
+    public class BulkRetryCompleted : IEvent
     {
         public string GroupId { get; set; }
+        public bool RanToCompletion { get; set; }
     }
 }
