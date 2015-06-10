@@ -156,7 +156,6 @@
     <Compile Include="Groups\Retry\BulkRetryPolicy.cs" />
     <Compile Include="Groups\Retry\BulkRetryCompleted.cs" />
     <Compile Include="Groups\NewFailureGroupSaga.cs" />
-    <Compile Include="Groups\Retry\FailedMessageGroupRetried.cs" />
     <Compile Include="Groups\Retry\RetryAllInGroup.cs" />
     <Compile Include="Groups\Retry\RetryGroupEventLogDefinition.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
