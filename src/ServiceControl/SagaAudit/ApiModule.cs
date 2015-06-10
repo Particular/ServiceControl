@@ -57,10 +57,13 @@ namespace ServiceControl.SagaAudit
         {
             public class Result
             {
+                // ReSharper disable once NotAccessedField.Global
                 public Guid Id;
 
+                // ReSharper disable once NotAccessedField.Global
                 public string Uri;
 
+                // ReSharper disable once NotAccessedField.Global
                 public string SagaType;
             }
             public SagaListView()

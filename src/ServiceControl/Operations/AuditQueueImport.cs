@@ -90,7 +90,7 @@
             catch (Exception messageForwardingException)
             {
                 //This call to RaiseCriticalError has to be on a seperate thread  otherwise it deadlocks and doesn't stop correctly.  
-                ThreadPool.QueueUserWorkItem(state => Configure.Instance.RaiseCriticalError(string.Format("Audit Import cannot start"), messageForwardingException));
+                ThreadPool.QueueUserWorkItem(state => Configure.Instance.RaiseCriticalError("Audit Import cannot start", messageForwardingException));
                 return true;
             }
         }
