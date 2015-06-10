@@ -107,6 +107,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApprovalTestConfig.cs" />
     <Compile Include="CustomExpirationBundleTests.cs" />
     <Compile Include="InMemoryStoreBuilder.cs" />
     <Compile Include="MessagesViewTests.cs" />
