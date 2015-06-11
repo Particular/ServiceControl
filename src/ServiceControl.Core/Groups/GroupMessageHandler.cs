@@ -47,14 +47,11 @@
                 {
                     var groupName = grouper.GetGroupName(message);
 
-                    if (Session.Query<FailureGroup, FailureGroupsIndex>().Any(g => g.Id == groupId) == false)
-                    {
-                        Bus.SendLocal(new RaiseNewFailureGroupDetectedEvent
+                    Bus.SendLocal(new RaiseNewFailureGroupDetectedEvent
                         {
                             GroupId = groupId,
                             GroupName = groupName
                         });
-                    }
 
                     failure.FailureGroups.Add(new MessageFailureHistory.FailureGroup
                     {
