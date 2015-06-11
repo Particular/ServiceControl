@@ -43,7 +43,7 @@
 
             var matches = _regex.Matches(text);
 
-            for (int i = 0; i < matches.Count; i++)
+            for (var i = 0; i < matches.Count; i++)
             {
                 var type = matches[i].Groups["type"].Captures[0].Value;
                 var method = matches[i].Groups["method"].Captures[0].Value;
