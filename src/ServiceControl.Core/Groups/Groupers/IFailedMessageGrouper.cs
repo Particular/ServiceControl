@@ -1,6 +1,5 @@
 namespace ServiceControl.Groups.Groupers
 {
-    using System.Reactive.Linq;
     using ServiceControl.MessageFailures.InternalMessages;
 
     public interface IFailedMessageGrouper
