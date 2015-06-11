@@ -128,6 +128,8 @@
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
         }
 
+        public static bool ExposeMetrics = SettingsReader<bool>.Read("ExposeMetrics");
+
         public static int Port = SettingsReader<int>.Read("Port", 33333);
       
         public static bool ExposeRavenDB = SettingsReader<bool>.Read("ExposeRavenDB");

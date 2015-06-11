@@ -243,6 +243,10 @@
       <Project>{d0cf644e-160b-48ba-bc3d-d7fca8234759}</Project>
       <Name>ServiceControl.InternalContracts</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Migrations\ServiceControl.Migrations.csproj">
+      <Project>{818eda22-0301-44b4-b9ce-704099f2930f}</Project>
+      <Name>ServiceControl.Migrations</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Shell.Api\ServiceControl.Shell.Api.csproj">
       <Project>{2ca0b6b2-eaa2-4057-9ed1-b55e30eb20a5}</Project>
       <Name>ServiceControl.Shell.Api</Name>
