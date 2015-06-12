@@ -16,6 +16,7 @@
             Configure.Component<ExceptionMessageAndExceptionTypeMessageGrouper>(DependencyLifecycle.SingleInstance);
             Configure.Component<ExceptionTypeAndStackTraceMessageGrouper>(DependencyLifecycle.SingleInstance);
             Configure.Component<ExceptionTypeMessageGrouper>(DependencyLifecycle.SingleInstance);
+            Configure.Component<MD5HashGroupIdGenerator>(DependencyLifecycle.SingleInstance);
         }
     }
 }

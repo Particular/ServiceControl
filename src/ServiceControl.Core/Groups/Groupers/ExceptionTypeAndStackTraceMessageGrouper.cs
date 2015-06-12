@@ -9,13 +9,6 @@
             return "ExceptionTypeAndStackTrace";
         }
 
-        public string GetGroupId(ImportFailedMessage failedMessage)
-        {
-            var exception = failedMessage.FailureDetails.Exception;
-            var firstStackTraceFrame = StackTraceParser.Parse(exception.StackTrace)[0];
-            return exception.ExceptionType + "." + firstStackTraceFrame.ToMethodIdentifier();
-        }
-
         public string GetGroupName(ImportFailedMessage failedMessage)
         {
             var exception = failedMessage.FailureDetails.Exception;

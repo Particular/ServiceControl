@@ -17,6 +17,8 @@
 
         public IList<IFailedMessageGrouper> Groupers { get; set; }
 
+        public IGroupIdGenerator GroupIdGenerator { get; set; }
+
         public void Handle(ImportFailedMessage message)
         {
             if (Groupers == null)
@@ -32,19 +34,19 @@
 
             foreach (var grouper in Groupers)
             {
-                var groupId = grouper.GetGroupId(message);
-                if (groupId == null)
+                var groupName = grouper.GetGroupName(message);
+
+                if (groupName == null)
                 {
                     continue;
                 }
 
-                groupId = Regex.Replace(groupId, @"[^\w\d\.]+", "_");
-                
+                var groupType = grouper.GetGroupType(message);
+                var groupId = GroupIdGenerator.GenerateId(groupType, groupName);
+
                 var groupExistsOnFailure = failure.FailureGroups.Exists(g => g.Id == groupId);
                 if (!groupExistsOnFailure)
                 {
-                    var groupName = grouper.GetGroupName(message);
-
                     Bus.SendLocal(new RaiseNewFailureGroupDetectedEvent
                         {
                             GroupId = groupId,
@@ -55,7 +57,7 @@
                     {
                         Id = groupId,
                         Title = groupName,
-                        Type = grouper.GetGroupType(message)
+                        Type = groupType
                     });
                 }
             }

@@ -5,7 +5,6 @@ namespace ServiceControl.Groups.Groupers
     public interface IFailedMessageGrouper
     {
         string GetGroupType(ImportFailedMessage failedMessage);
-        string GetGroupId(ImportFailedMessage failedMessage);
         string GetGroupName(ImportFailedMessage failedMessage);
     }
 }

@@ -9,11 +9,6 @@ namespace ServiceControl.Groups.Groupers
             return "ExceptionType";
         }
 
-        public string GetGroupId(ImportFailedMessage failedMessage)
-        {
-            return failedMessage.FailureDetails.Exception.ExceptionType; 
-        }
-
         public string GetGroupName(ImportFailedMessage failedMessage)
         {
             return failedMessage.FailureDetails.Exception.ExceptionType; 
