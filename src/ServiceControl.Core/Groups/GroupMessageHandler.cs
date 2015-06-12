@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Groups
 {
     using System.Collections.Generic;
-    using System.Text.RegularExpressions;
     using NServiceBus;
     using Raven.Client;
     using ServiceControl.Groups.Groupers;
