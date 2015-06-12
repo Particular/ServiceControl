@@ -42,6 +42,10 @@ installer/ServiceControl-cache
 *.user
 *.userosscache
 *.sln.docstates
+.vs/
+
+# mac temp file ignore
+.DS_Store
 
 # Build results
 [Dd]ebug/
