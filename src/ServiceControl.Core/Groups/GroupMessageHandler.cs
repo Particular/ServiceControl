@@ -1,12 +1,10 @@
 ﻿namespace ServiceControl.Groups
 {
     using System.Collections.Generic;
-    using System.Linq;
     using System.Text.RegularExpressions;
     using NServiceBus;
     using Raven.Client;
     using ServiceControl.Groups.Groupers;
-    using ServiceControl.Groups.Indexes;
     using ServiceControl.InternalContracts.Messages.MessageFailures;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.InternalMessages;

@@ -10,7 +10,6 @@
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceControl.Groups.Archive;
     using ServiceControl.Groups.Indexes;
-    using ServiceControl.Groups.Retry;
     using ServiceControl.Infrastructure.Extensions;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
@@ -27,9 +26,6 @@
 
             Post["/recoverability/groups/{groupId}/errors/archive"] =
                 parameters => ArchiveAllInGroup(parameters.groupId);
-
-            Post["/recoverability/groups/{groupId}/errors/retry"] =
-                parameters => RetryAllInGroup(parameters.groupId);
         }
 
         dynamic GetAllGroups()
@@ -73,22 +69,6 @@
             Bus.SendLocal(new ArchiveAllInGroup
             {
                 GroupId = groupId
-            });
-
-            return HttpStatusCode.Accepted;
-        }
-
-        dynamic RetryAllInGroup(string groupId)
-        {
-            if (String.IsNullOrWhiteSpace(groupId))
-            {
-                return HttpStatusCode.BadRequest;
-            }
-
-            Bus.SendLocal(new RetryAllInGroup
-            {
-                GroupId = groupId, 
-                StartedAt = DateTimeOffset.UtcNow
             });
 
             return HttpStatusCode.Accepted;
