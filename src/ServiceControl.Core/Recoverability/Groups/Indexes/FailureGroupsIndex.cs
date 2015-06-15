@@ -25,7 +25,6 @@ namespace ServiceControl.Recoverability.Groups.Indexes
 
             Reduce = results => from result in results
                 group result by result.Id into g
-                where g.Count() > 1
                 select new FailureGroup
                 {
                     Id = g.Key, 

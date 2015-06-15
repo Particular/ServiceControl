@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Groups
+﻿namespace ServiceControl.Recoverability.Groups
 {
     using System;
     using System.Linq;
@@ -8,8 +8,8 @@
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.Groups.Archive;
-    using ServiceControl.Groups.Indexes;
+    using ServiceControl.Recoverability.Groups.Archive;
+    using ServiceControl.Recoverability.Groups.Indexes;
     using ServiceControl.Infrastructure.Extensions;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
@@ -33,7 +33,8 @@
             using (var session = Store.OpenSession())
             {
                 var results = session.Query<FailureGroup, FailureGroupsIndex>()
-                   .ToArray();
+                    .Where(x => x.Count > 1)
+                    .ToArray();
 
                 return Negotiate
                     .WithModel(results);

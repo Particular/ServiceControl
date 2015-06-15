@@ -1,8 +1,8 @@
-﻿namespace ServiceControl.Groups
+﻿namespace ServiceControl.Recoverability.Groups
 {
     using NServiceBus;
     using NServiceBus.Features;
-    using ServiceControl.Groups.Groupers;
+    using ServiceControl.Recoverability.Groups.Groupers;
 
     public class FailuresGroupsFeature : Feature
     {

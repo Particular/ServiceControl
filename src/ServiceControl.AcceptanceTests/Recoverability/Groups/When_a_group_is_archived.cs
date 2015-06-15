@@ -9,7 +9,7 @@
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.Contexts;
-    using ServiceControl.Groups;
+    using ServiceControl.Recoverability.Groups;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 

@@ -1,9 +1,9 @@
-﻿namespace ServiceControl.Groups
+﻿namespace ServiceControl.Recoverability.Groups
 {
     using System.Collections.Generic;
     using NServiceBus;
     using Raven.Client;
-    using ServiceControl.Groups.Groupers;
+    using ServiceControl.Recoverability.Groups.Groupers;
     using ServiceControl.InternalContracts.Messages.MessageFailures;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.InternalMessages;
