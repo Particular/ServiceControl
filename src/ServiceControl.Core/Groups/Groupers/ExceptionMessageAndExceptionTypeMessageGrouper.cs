@@ -4,14 +4,14 @@ namespace ServiceControl.Groups.Groupers
 
     public class ExceptionMessageAndExceptionTypeMessageGrouper : IFailedMessageGrouper
     {
-        public string GetGroupType(ImportFailedMessage failedMessage)
+        public string GroupType
         {
-            return "ExceptionMessageAndExceptionType";
+            get { return "ExceptionMessageAndExceptionType"; }
         }
 
         public string GetGroupName(ImportFailedMessage failedMessage)
         {
-            return failedMessage.FailureDetails.Exception.ExceptionType + " : " + failedMessage.FailureDetails.Exception.Message; 
+            return failedMessage.FailureDetails.Exception.ExceptionType + " : " + failedMessage.FailureDetails.Exception.Message;
         }
     }
 }

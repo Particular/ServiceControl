@@ -40,7 +40,7 @@
                     continue;
                 }
 
-                var groupType = grouper.GetGroupType(message);
+                var groupType = grouper.GroupType;
                 var groupId = GroupIdGenerator.GenerateId(groupType, groupName);
 
                 var groupExistsOnFailure = failure.FailureGroups.Exists(g => g.Id == groupId);

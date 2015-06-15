@@ -4,9 +4,9 @@
 
     public class ExceptionTypeAndStackTraceMessageGrouper : IFailedMessageGrouper
     {
-        public string GetGroupType(ImportFailedMessage failedMessage)
+        public string GroupType
         {
-            return "ExceptionTypeAndStackTrace";
+            get { return "ExceptionTypeAndStackTrace"; }
         }
 
         public string GetGroupName(ImportFailedMessage failedMessage)
