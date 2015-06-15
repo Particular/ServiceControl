@@ -1,11 +1,11 @@
-﻿namespace ServiceControl.Groups.Archive
+﻿namespace ServiceControl.Recoverability.Groups.Archive
 {
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using ServiceControl.Groups.Indexes;
+    using ServiceControl.Recoverability.Groups.Indexes;
     using ServiceControl.MessageFailures;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>

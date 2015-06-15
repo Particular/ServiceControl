@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Groups.Archive
+﻿namespace ServiceControl.Recoverability.Groups.Archive
 {
     using NServiceBus;
 

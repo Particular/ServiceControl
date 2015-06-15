@@ -1,4 +1,4 @@
-namespace ServiceControl.Groups
+namespace ServiceControl.Recoverability.Groups
 {
     using System;
 

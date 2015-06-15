@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Groups.Groupers
+﻿namespace ServiceControl.Recoverability.Groups.Groupers
 {
     public interface IGroupIdGenerator
     {

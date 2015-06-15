@@ -1,5 +1,5 @@
 ﻿
-namespace ServiceControl.Groups
+namespace ServiceControl.Recoverability.Groups
 {
     using NServiceBus.Saga;
     using ServiceControl.InternalContracts.Messages.MessageFailures;

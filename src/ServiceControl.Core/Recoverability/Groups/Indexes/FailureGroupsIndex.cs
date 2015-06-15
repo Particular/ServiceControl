@@ -1,4 +1,4 @@
-namespace ServiceControl.Groups.Indexes
+namespace ServiceControl.Recoverability.Groups.Indexes
 {
     using System.Linq;
     using Raven.Client.Indexes;

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Groups.Groupers
+﻿namespace ServiceControl.Recoverability.Groups.Groupers
 {
     using System;
     using System.Security.Cryptography;
