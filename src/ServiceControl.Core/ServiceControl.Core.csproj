@@ -106,6 +106,7 @@
     <Compile Include="EndpointControl\Handlers\RegisterEndpointHandler.cs" />
     <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />
     <Compile Include="EndpointControl\KnownEndpoint.cs" />
+    <Compile Include="ExceptionGroups\ApiModule.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckDeletedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
@@ -125,6 +126,16 @@
     <Compile Include="EventLog\EventLogMappings.cs" />
     <Compile Include="EventLog\GenericAuditHandler.cs" />
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
+    <Compile Include="ExceptionGroups\Archive\ArchiveAllForGroup.cs" />
+    <Compile Include="ExceptionGroups\Archive\IssueArchiveAllForGroupHandler.cs" />
+    <Compile Include="ExceptionGroups\ExceptionGroup.cs" />
+    <Compile Include="ExceptionGroups\ExceptionGroupQueryableExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ExceptionGroups\ExceptionGroupResultsTransformer.cs" />
+    <Compile Include="ExceptionGroups\MessageFailureHistory_ByExceptionGroup.cs" />
+    <Compile Include="ExceptionGroups\Retry\IssueRetryAllForGroupHandler.cs" />
+    <Compile Include="ExceptionGroups\Retry\RetryAllForGroup.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckFailedPublisher.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckSucceededPublisher.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
