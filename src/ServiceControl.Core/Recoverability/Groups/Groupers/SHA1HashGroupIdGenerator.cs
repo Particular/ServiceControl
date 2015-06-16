@@ -4,15 +4,15 @@
     using System.Security.Cryptography;
     using System.Text;
 
-    class MD5HashGroupIdGenerator : IGroupIdGenerator
+    class SHA1HashGroupIdGenerator : IGroupIdGenerator
     {
         public string GenerateId(string groupType, string groupName)
         {
-            using(var cryptoProvider = new MD5CryptoServiceProvider())
-            { 
+            using (var cryptoProvider = new SHA1CryptoServiceProvider())
+            {
                 var rawBytes = Encoding.UTF8.GetBytes(groupType + groupName);
                 var hashedBytes = cryptoProvider.ComputeHash(rawBytes);
-                var converted = BitConverter.ToString(hashedBytes);
+                var converted = BitConverter.ToString(hashedBytes).Replace("-", String.Empty);
                 return converted;
             }
         }

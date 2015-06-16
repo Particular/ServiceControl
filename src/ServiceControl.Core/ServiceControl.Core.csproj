@@ -172,7 +172,7 @@
     <Compile Include="Recoverability\Groups\Detection\FailureGroupDetectionSaga.cs" />
     <Compile Include="Recoverability\Groups\Detection\FailureGroupDetectionSagaFinder.cs" />
     <Compile Include="Recoverability\Groups\Detection\StartFailureGroupDetection.cs" />
-    <Compile Include="Recoverability\Groups\Groupers\MD5HashGroupIdGenerator.cs" />
+    <Compile Include="Recoverability\Groups\Groupers\SHA1HashGroupIdGenerator.cs" />
     <Compile Include="Recoverability\Groups\Groupers\IGroupIdGenerator.cs" />
     <Compile Include="Recoverability\Groups\Indexes\FailureGroupsIndex.cs" />
     <Compile Include="Recoverability\Groups\Indexes\MessageFailuresByFailureGroupsIndex.cs" />

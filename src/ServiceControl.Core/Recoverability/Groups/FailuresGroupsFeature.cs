@@ -14,7 +14,7 @@
         public override void Initialize()
         {
             Configure.Component<ExceptionTypeAndStackTraceMessageGrouper>(DependencyLifecycle.SingleInstance);
-            Configure.Component<MD5HashGroupIdGenerator>(DependencyLifecycle.SingleInstance);
+            Configure.Component<SHA1HashGroupIdGenerator>(DependencyLifecycle.SingleInstance);
         }
     }
 }
