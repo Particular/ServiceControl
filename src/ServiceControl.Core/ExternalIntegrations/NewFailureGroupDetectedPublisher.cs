@@ -18,10 +18,10 @@
 
         protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
         {
-            return contexts.Select(r => new NewFailureGroupDetected
+            return contexts.Select(r => new Contracts.NewFailureGroupDetected
             {
-                GroupId = r.GroupId,
-                GroupName = r.GroupTitle
+                Id = r.GroupId,
+                Name = r.GroupTitle
             });
         }
 
