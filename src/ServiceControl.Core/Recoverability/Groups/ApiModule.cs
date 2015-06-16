@@ -34,6 +34,7 @@
             {
                 var results = session.Query<FailureGroup, FailureGroupsIndex>()
                     .Where(x => x.Count > 1)
+                    .OrderByDescending(x => x.Last)
                     .ToArray();
 
                 return Negotiate
