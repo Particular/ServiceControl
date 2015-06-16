@@ -6,6 +6,7 @@ namespace Particular.ServiceControl
     using System.ServiceProcess;
     using Autofac;
     using Hosting;
+    using Metrics;
     using NLog;
     using NLog.Config;
     using NLog.Layouts;
@@ -28,6 +29,7 @@ namespace Particular.ServiceControl
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
             ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
+            containerBuilder.RegisterType<ThroughputMeter>().SingleInstance().AsImplementedInterfaces();
             Container = containerBuilder.Build();
 
             // Disable Auditing for the service control endpoint
@@ -60,6 +62,11 @@ namespace Particular.ServiceControl
                 })
                 .UnicastBus()
                 .CreateBus();
+
+            if (Settings.ExposeMetrics)
+            {
+                Metric.Config.WithReporting(r => r.WithConsoleReport(TimeSpan.FromSeconds(5)));
+            }
         }
 
         static Type DetermineTransportType()
@@ -140,11 +147,14 @@ namespace Particular.ServiceControl
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
 
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Unicast.Messages.ExtractLogicalMessagesBehavior", LogLevel.Error, consoleTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*",                               LogLevel.Error, consoleTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*",     LogLevel.Error, consoleTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*",               LogLevel.Error, consoleTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info,  consoleTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget)); 
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
+
+
             nlogConfig.AddTarget("console", consoleTarget);
 
             NLogConfigurator.Configure(new object[] { fileTarget, consoleTarget }, "Info");

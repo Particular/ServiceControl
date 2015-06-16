@@ -34,6 +34,9 @@
     <Reference Include="Autofac">
       <HintPath>..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="Metrics">
+      <HintPath>..\packages\Metrics.NET.0.2.16\lib\net45\Metrics.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.1.1.3\lib\net40\Microsoft.AspNet.SignalR.Core.dll</HintPath>
     </Reference>
@@ -202,6 +205,7 @@
     <Compile Include="Licensing\ActiveLicense.cs" />
     <Compile Include="Licensing\LicenseDetector.cs" />
     <Compile Include="Licensing\NonLockingFileReader.cs" />
+    <Compile Include="ThroughputMeter.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml">
