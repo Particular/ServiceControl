@@ -3,10 +3,9 @@
     using System.Collections.Generic;
     using NServiceBus;
     using Raven.Client;
-    using ServiceControl.Recoverability.Groups.Groupers;
-    using ServiceControl.InternalContracts.Messages.MessageFailures;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.InternalMessages;
+    using ServiceControl.Recoverability.Groups.Groupers;
 
     public class GroupMessageHandler : IHandleMessages<ImportFailedMessage>
     {
@@ -46,12 +45,6 @@
                 var groupExistsOnFailure = failure.FailureGroups.Exists(g => g.Id == groupId);
                 if (!groupExistsOnFailure)
                 {
-                    Bus.SendLocal(new RaiseNewFailureGroupDetectedEvent
-                        {
-                            GroupId = groupId,
-                            GroupName = groupName
-                        });
-
                     failure.FailureGroups.Add(new MessageFailureHistory.FailureGroup
                     {
                         Id = groupId,

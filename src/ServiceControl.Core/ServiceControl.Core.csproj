@@ -166,6 +166,12 @@
     <Compile Include="Recoverability\Groups\Archive\ArchiveAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Groups\Archive\ArchiveGroupEventLogDefinition.cs" />
     <Compile Include="Recoverability\Groups\Archive\FailedMessageGroupArchived.cs" />
+    <Compile Include="Recoverability\Groups\Detection\DetectNewGroupsHandler.cs" />
+    <Compile Include="Recoverability\Groups\Detection\DetectNewGroups.cs" />
+    <Compile Include="Recoverability\Groups\Detection\FailureGroupDetectionKickOff.cs" />
+    <Compile Include="Recoverability\Groups\Detection\FailureGroupDetectionSaga.cs" />
+    <Compile Include="Recoverability\Groups\Detection\FailureGroupDetectionSagaFinder.cs" />
+    <Compile Include="Recoverability\Groups\Detection\StartFailureGroupDetection.cs" />
     <Compile Include="Recoverability\Groups\Groupers\MD5HashGroupIdGenerator.cs" />
     <Compile Include="Recoverability\Groups\Groupers\IGroupIdGenerator.cs" />
     <Compile Include="Recoverability\Groups\Indexes\FailureGroupsIndex.cs" />
@@ -176,7 +182,6 @@
     <Compile Include="Recoverability\Groups\Groupers\ExceptionTypeAndStackTraceMessageGrouper.cs" />
     <Compile Include="Recoverability\Groups\Groupers\StackTraceParser.cs" />
     <Compile Include="Recoverability\Groups\GroupMessageHandler.cs" />
-    <Compile Include="Recoverability\Groups\NewFailureGroupSaga.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatingEndpoint.cs" />
