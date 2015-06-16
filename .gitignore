@@ -79,3 +79,8 @@ src/scaffolding.config
 
 # Approval tests temp file
 *.received.*
+
+# Deployment
+chocos/
+nugets/
+src/Setup/ServiceControl-cache/

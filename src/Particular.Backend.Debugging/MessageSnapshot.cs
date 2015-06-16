@@ -52,7 +52,7 @@
     public class BodyInformation
     {
         public string ContentType { get; set; }
-        public int ContentLenght { get; set; }
+        public int ContentLength { get; set; }
         public string BodyUrl { get; set; }
         public string Text { get; set; }
     }

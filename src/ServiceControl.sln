@@ -24,8 +24,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTe
 		{1CF8A2C4-21B5-4826-BCAF-3F0B99B5C3AA} = {1CF8A2C4-21B5-4826-BCAF-3F0B99B5C3AA}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chocolatey", "Chocolatey\Chocolatey.csproj", "{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Install.CustomActions", "ServiceControl.Install.CustomActions\ServiceControl.Install.CustomActions.csproj", "{7E47B904-EF48-4F26-AAB5-BE435BCDC696}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.IntegrationDemo", "ServiceControl.IntegrationDemo\ServiceControl.IntegrationDemo.csproj", "{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}"
@@ -68,6 +66,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Migrations",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Migrations.UnitTests", "ServiceControl.Migrations.UnitTests\ServiceControl.Migrations.UnitTests.csproj", "{A1EA01A8-D592-4B03-975C-2A44DBE9BC34}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Setup", "Setup\Setup.csproj", "{FA2792B9-B82D-4936-871E-16812FA60D13}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7E47B904-EF48-4F26-AAB5-BE435BCDC696} = {7E47B904-EF48-4F26-AAB5-BE435BCDC696}
+		{4C6B71B2-74EF-4B9E-88FF-C56532727C6D} = {4C6B71B2-74EF-4B9E-88FF-C56532727C6D}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packaging", "Packaging", "{B09C4A10-2FFA-4324-9951-BF89E91DAF8A}"
+	ProjectSection(SolutionItems) = preProject
+		..\packaging\chocolatey\Setup.install.nuspec = ..\packaging\chocolatey\Setup.install.nuspec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,10 +95,6 @@ Global
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{63786CE5-D899-43DF-AD4E-C2CA3BAC3FC2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7E47B904-EF48-4F26-AAB5-BE435BCDC696}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7E47B904-EF48-4F26-AAB5-BE435BCDC696}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E47B904-EF48-4F26-AAB5-BE435BCDC696}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -154,6 +159,10 @@ Global
 		{A1EA01A8-D592-4B03-975C-2A44DBE9BC34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1EA01A8-D592-4B03-975C-2A44DBE9BC34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1EA01A8-D592-4B03-975C-2A44DBE9BC34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA2792B9-B82D-4936-871E-16812FA60D13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA2792B9-B82D-4936-871E-16812FA60D13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA2792B9-B82D-4936-871E-16812FA60D13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA2792B9-B82D-4936-871E-16812FA60D13}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -167,5 +176,6 @@ Global
 		{1C186557-90FD-4E11-8B97-9F034EDDD929} = {69FBF1CF-C95D-4335-A719-5B7E11BD3EFF}
 		{8683B0A4-A304-4A1C-9C68-3C59AA9E6A62} = {69FBF1CF-C95D-4335-A719-5B7E11BD3EFF}
 		{3841E27D-939E-43AA-BD23-6D387DE0874F} = {4E606E05-6311-40E4-B681-9B095387BA89}
+		{FA2792B9-B82D-4936-871E-16812FA60D13} = {B09C4A10-2FFA-4324-9951-BF89E91DAF8A}
 	EndGlobalSection
 EndGlobal

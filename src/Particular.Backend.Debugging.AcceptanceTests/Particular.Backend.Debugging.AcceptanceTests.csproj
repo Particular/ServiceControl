@@ -87,7 +87,7 @@
     <Compile Include="Contexts\ManagementEndpointSetup.cs" />
     <Compile Include="Contexts\TransportIntegration\ITransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\MsmqTransportIntegration.cs" />
-    <Compile Include="Audit_Messages_Have_Proper_IsSytemMessage_Tests.cs" />
+    <Compile Include="Audit_Messages_Have_Proper_IsSystemMessage_Tests.cs" />
     <Compile Include="When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
     <Compile Include="When_a_message_emitted_by_a_saga_is_audited.cs" />
     <Compile Include="When_a_message_has_been_successfully_processed.cs" />

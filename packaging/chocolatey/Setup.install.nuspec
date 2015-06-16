@@ -14,8 +14,14 @@
     <summary></summary>
     <tags>nservicebus particular chocolatey servicecontrol</tags>
     <dependencies>
+      <dependency id="chocolatey" version="0.9.9" />
       <dependency id="DotNet4.5" version="4.5.20120822"  />
       <dependency id="nservicebus.perfcounters.install" />
     </dependencies>
   </metadata>
+   <files>
+      <file src="Chocolatey\chocolateyInstall.ps1" target="Tools" />
+      <file src="Chocolatey\chocolateyUninstall.ps1" target="Tools" />
+      <file src="Chocolatey\elevatedUninstall.ps1" target="Tools" />
+    </files>
 </package>

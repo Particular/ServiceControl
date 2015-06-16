@@ -12,7 +12,7 @@
         {
             object body;
             processedMessage.MessageMetadata.TryGetValue("Body", out body);
-            var result = new MessageSnapshotDocument()
+            var result = new MessageSnapshotDocument
             {
                 Id = MessageSnapshotDocument.MakeDocumentId(processedMessage.UniqueMessageId),
                 AttemptedAt = processedMessage.ProcessedAt,
@@ -20,15 +20,15 @@
                 ConversationId = processedMessage.Headers["NServiceBus.CorrelationId"],
                 IsSystemMessage = (bool)processedMessage.MessageMetadata["IsSystemMessage"],
                 MessageType = (string)processedMessage.MessageMetadata["MessageType"],
-                Body = new BodyInformation()
+                Body = new BodyInformation
                 {
                     BodyUrl = (string)processedMessage.MessageMetadata["BodyUrl"],
                     ContentType = (string)processedMessage.MessageMetadata["ContentType"],
-                    ContentLenght = (int)(long)processedMessage.MessageMetadata["ContentLength"],
+                    ContentLength = (int)(long)processedMessage.MessageMetadata["ContentLength"],
                     Text = (string)body
                 },
                 MessageIntent = (MessageIntentEnum)(long)processedMessage.MessageMetadata["MessageIntent"],
-                Processing = new ProcessingStatistics()
+                Processing = new ProcessingStatistics
                 {
                     TimeSent = DateTime.Parse((string)processedMessage.MessageMetadata["TimeSent"]),
                     CriticalTime = TimeSpan.Parse((string)processedMessage.MessageMetadata["CriticalTime"]),

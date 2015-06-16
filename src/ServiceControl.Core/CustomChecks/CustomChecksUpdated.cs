@@ -3,7 +3,7 @@
     using System;
     using NServiceBus;
 
-    internal class CustomChecksUpdated : IEvent
+    public class CustomChecksUpdated : IEvent
     {
         public CustomChecksUpdated()
         {

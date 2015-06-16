@@ -129,6 +129,7 @@
 
 
 
+// ReSharper disable LocalVariableHidesMember
 #if LINQ
 using System.Linq;
 #endif

@@ -31,8 +31,8 @@
                 }
 
                 store.WaitForIndexing();
-                var wasCleanEptyRun = new SagaHistoryMigration(store, TimeSpan.FromDays(50 * 365)).Migrate(() => false);
-                Assert.IsFalse(wasCleanEptyRun);
+                var wasCleanEmptyRun = new SagaHistoryMigration(store, TimeSpan.FromDays(50 * 365)).Migrate(() => false);
+                Assert.IsFalse(wasCleanEmptyRun);
                 using (var session = store.OpenSession())
                 {
                     var sagaHistories = session.Query<SagaHistory>()

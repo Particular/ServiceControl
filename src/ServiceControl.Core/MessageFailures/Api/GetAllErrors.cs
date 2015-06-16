@@ -2,7 +2,6 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Infrastructure.Extensions;
     using Nancy;
     using Raven.Abstractions.Data;
     using Raven.Client;

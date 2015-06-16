@@ -191,6 +191,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TypesMovedToInternalContracts.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
@@ -221,6 +222,18 @@
     <ProjectReference Include="..\Particular.Backend.AuditIngestion\Particular.Operations.Ingestion.csproj">
       <Project>{1c186557-90fd-4e11-8b97-9f034eddd929}</Project>
       <Name>Particular.Operations.Ingestion</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Particular.Backend.Debugging.Api\Particular.Backend.Debugging.Api.csproj">
+      <Project>{3d470493-002a-41f1-a555-ff84257c4e01}</Project>
+      <Name>Particular.Backend.Debugging.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Particular.Backend.Debugging.RavenDB\Particular.Backend.Debugging.RavenDB.csproj">
+      <Project>{c303c107-7222-4eb4-8af4-d61bcf99f917}</Project>
+      <Name>Particular.Backend.Debugging.RavenDB</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Particular.Backend.Debugging\Particular.Backend.Debugging.csproj">
+      <Project>{5d4c8134-ef7e-4493-a7d7-84ab8cabd540}</Project>
+      <Name>Particular.Backend.Debugging</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Core\ServiceControl.Core.csproj">
       <Project>{b66b966a-22da-42c3-8fbc-472db3b983d3}</Project>

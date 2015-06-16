@@ -1,9 +1,9 @@
-﻿namespace ServiceControl.EndpointControl
+namespace ServiceControl.CompositeViews.Endpoints
 {
     using System.Linq;
     using NServiceBus;
     using Raven.Client;
-    using ServiceControl.CompositeViews.Endpoints;
+    using ServiceControl.EndpointControl;
 
     public class CleanTemporaryIdEndpointsHavingNonTemporaryEquivalent : IWantToRunWhenBusStartsAndStops
     {

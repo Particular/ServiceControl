@@ -4,7 +4,7 @@ namespace ServiceControl.Infrastructure.Extensions
     using Nancy;
     using Raven.Client.Linq;
 
-    public static class QueriableExtensions
+    public static class QueryableExtensions
     {
         public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, Request request)
         {

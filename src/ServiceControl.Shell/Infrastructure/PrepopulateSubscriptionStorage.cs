@@ -6,7 +6,7 @@ namespace ServiceControl.Infrastructure
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 
-    class PrepopulateSubscriptionStorage:IWantToRunWhenConfigurationIsComplete
+    class PrePopulateSubscriptionStorage:IWantToRunWhenConfigurationIsComplete
     {
         public IManageSubscriptions SubscriptionManager { get; set; }
 

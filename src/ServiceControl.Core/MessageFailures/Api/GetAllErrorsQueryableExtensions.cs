@@ -1,4 +1,4 @@
-namespace ServiceControl.Infrastructure.Extensions
+namespace ServiceControl.MessageFailures.Api
 {
     using System.Linq;
     using Nancy;

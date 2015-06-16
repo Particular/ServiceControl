@@ -1,4 +1,4 @@
-namespace ServiceControl.Infrastructure.Extensions
+namespace ServiceControl.MessageFailures.Api
 {
     using System;
     using System.Collections.Generic;
@@ -6,9 +6,8 @@ namespace ServiceControl.Infrastructure.Extensions
     using Nancy;
     using Raven.Client;
     using ServiceControl.MessageFailures;
-    using ServiceControl.MessageFailures.Api;
 
-    public static class FilterByStatusWhereQueriableExtensions
+    public static class FilterByStatusWhereQueryableExtensions
     {
         public static IDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions> FilterByStatusWhere(this IDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions> source, Request request)
         {

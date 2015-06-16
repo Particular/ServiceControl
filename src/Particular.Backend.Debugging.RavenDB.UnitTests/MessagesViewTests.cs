@@ -82,7 +82,7 @@
             var document = new MessageSnapshotDocument
             {
                 Id = id,
-                Processing = new ProcessingStatistics()
+                Processing = new ProcessingStatistics
                 {
                     CriticalTime = criticalTime
                 }
@@ -124,7 +124,7 @@
             var document = new MessageSnapshotDocument
             {
                 Id = id,
-                Processing = new ProcessingStatistics()
+                Processing = new ProcessingStatistics
                 {
                     TimeSent = timeSent
                 }

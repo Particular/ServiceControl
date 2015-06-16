@@ -83,6 +83,7 @@
     <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
     <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
     <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
+    <Compile Include="CompositeViews\Endpoints\CleanTemporaryIdEndpointsHavingNonTemporaryEquivalent.cs" />
     <Compile Include="CompositeViews\Endpoints\EnableEndpointMonitoring.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
@@ -98,7 +99,6 @@
     <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
     <Compile Include="CustomChecks\ReportCustomCheckResultHandler.cs" />
     <Compile Include="CustomChecks\Status.cs" />
-    <Compile Include="EndpointControl\CleanTemporaryIdEndpointsHavingNonTemporaryEquivalent.cs" />
     <Compile Include="EndpointControl\EndpointDetectingMessageProcessor.cs" />
     <Compile Include="EndpointControl\EndpointControlFeature.cs" />
     <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
@@ -158,7 +158,7 @@
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewIndex.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewTransformer.cs" />
-    <Compile Include="MessageFailures\Api\FilterByStatusWhereQueriableExtensions.cs" />
+    <Compile Include="MessageFailures\Api\FilterByStatusWhereQueryableExtensions.cs" />
     <Compile Include="MessageFailures\Api\GetAllErrors.cs" />
     <Compile Include="MessageFailures\Api\GetAllErrorsQueryableExtensions.cs" />
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
