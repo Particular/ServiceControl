@@ -2,16 +2,15 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.Contexts;
-    using ServiceControl.Recoverability.Groups;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Recoverability.Groups;
 
     public class When_a_group_is_archived : AcceptanceTest
     {
@@ -20,10 +19,8 @@
         {
             var context = new MyContext();
 
-            List<FailureGroup> beforeArchiveGroups;
-            MessageFailureHistory firstFailure;
-            MessageFailureHistory secondFailure;
-
+            MessageFailureHistory firstFailure = null;
+            MessageFailureHistory secondFailure = null;
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -39,7 +36,9 @@
 
                     if (!c.ArchiveIssued)
                     {
-                        if (!(TryGetMany("/api/recoverability/groups/", out beforeArchiveGroups) && beforeArchiveGroups.Any()))
+                        List<FailureGroup> beforeArchiveGroups;
+
+                        if (!TryGetMany("/api/recoverability/groups/", out beforeArchiveGroups))
                             return false;
 
                         Post<object>(String.Format("/api/recoverability/groups/{0}/errors/archive", beforeArchiveGroups[0].Id));
@@ -55,6 +54,9 @@
                     return true;
                 })
                 .Run();
+
+            Assert.AreEqual(FailedMessageStatus.Archived, firstFailure.Status, "First Message should be archived");
+            Assert.AreEqual(FailedMessageStatus.Archived, secondFailure.Status, "Second Message should be archived");
         }
 
         [Test]
@@ -77,7 +79,7 @@
                 {
                     if (c.FirstMessageId == null || c.SecondMessageId == null)
                         return false;
-                    
+
                     if (!c.RetryIssued)
                     {
                         List<FailureGroup> beforeArchiveGroups;
