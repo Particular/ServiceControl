@@ -62,11 +62,9 @@
         {
             var context = new MyContext();
 
-            List<FailureGroup> beforeArchiveGroups;
-            MessageFailureHistory firstFailure;
+            MessageFailureHistory firstFailure = null;
             MessageFailureHistory secondFailure = null;
             string failureGroupId = null;
-
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
@@ -82,6 +80,8 @@
                     
                     if (!c.RetryIssued)
                     {
+                        List<FailureGroup> beforeArchiveGroups;
+
                         // Don't retry until the message has been added to a group
                         if (!TryGetMany("/api/recoverability/groups/", out beforeArchiveGroups))
                             return false;
@@ -115,6 +115,7 @@
                 })
                 .Run();
 
+            Assert.AreEqual(FailedMessageStatus.Archived, firstFailure.Status, "Non retried message should be archived");
             Assert.AreNotEqual(FailedMessageStatus.Archived, secondFailure.Status, "Retried Message should not be set to Archived when group is archived");
         }
 
