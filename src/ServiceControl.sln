@@ -77,6 +77,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packaging", "Packaging", "{
 		..\packaging\chocolatey\Setup.install.nuspec = ..\packaging\chocolatey\Setup.install.nuspec
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Packaging", "Packaging\Packaging.csproj", "{96747420-3A71-4E12-A38D-728E36BCC534}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -163,6 +165,10 @@ Global
 		{FA2792B9-B82D-4936-871E-16812FA60D13}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA2792B9-B82D-4936-871E-16812FA60D13}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA2792B9-B82D-4936-871E-16812FA60D13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96747420-3A71-4E12-A38D-728E36BCC534}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96747420-3A71-4E12-A38D-728E36BCC534}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96747420-3A71-4E12-A38D-728E36BCC534}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96747420-3A71-4E12-A38D-728E36BCC534}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -177,5 +183,6 @@ Global
 		{8683B0A4-A304-4A1C-9C68-3C59AA9E6A62} = {69FBF1CF-C95D-4335-A719-5B7E11BD3EFF}
 		{3841E27D-939E-43AA-BD23-6D387DE0874F} = {4E606E05-6311-40E4-B681-9B095387BA89}
 		{FA2792B9-B82D-4936-871E-16812FA60D13} = {B09C4A10-2FFA-4324-9951-BF89E91DAF8A}
+		{96747420-3A71-4E12-A38D-728E36BCC534} = {B09C4A10-2FFA-4324-9951-BF89E91DAF8A}
 	EndGlobalSection
 EndGlobal
