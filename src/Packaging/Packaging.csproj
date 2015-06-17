@@ -86,16 +86,23 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets'))" />
   </Target>
+  <ItemGroup>
+    <ZipFiles Include="$(OutputPath)*.zip" />
+  </ItemGroup>
+  
   <UsingTask AssemblyFile="..\..\buildsupport\DeploymentZipTask.Dll" TaskName="DeploymentZipTask.AddToZip" />
   <Target Name="ZipTarget" AfterTargets="AfterBuild" Condition=" '$(Configuration)' == 'Release' ">
+        
+    <!-- Ensure Fresh Zip File  -->
+    <Delete Files="@(ZipFiles)" />
 
-    <!-- ServiceControl (force new file) -->
+    <!-- ServiceControl  -->
     <AddToZip IncludeMask="*.*" 
               ExcludeMask="*.config" 
               ZipFolder="ServiceControl" 
               SourceFolder="..\ServiceControl\bin\$(Configuration)" 
               ZipFileName="$(OutputPath)\Particular.ServiceControl-$(GfvMajorMinorPatch).zip" 
-              ForceOverwrite="True" />
+    />
     
     <!-- SQL Server -->
     <AddToZip IncludeMask="NServiceBus.Transports.SQLServer.*"
