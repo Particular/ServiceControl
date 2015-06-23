@@ -25,7 +25,7 @@
             this.morgue = morgue;
             this.bus = bus;
 
-            this.MessageFailureEnrichers = Enumerable.Empty<IEnrichMessageFailureHistory>();
+            MessageFailureEnrichers = Enumerable.Empty<IEnrichMessageFailureHistory>();
         }
 
         public void ProcessFailed(IngestedMessage message)
