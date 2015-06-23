@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using Contracts.Operations;
@@ -16,11 +17,15 @@
         readonly IDocumentStore documentStore;
         readonly IBodyStorage morgue;
 
+        public IEnumerable<IEnrichMessageFailureHistory> MessageFailureEnrichers { get; set; }
+
         public FailedMessageImporter(IDocumentStore documentStore, IBodyStorage morgue, IBus bus)
         {
             this.documentStore = documentStore;
             this.morgue = morgue;
             this.bus = bus;
+
+            this.MessageFailureEnrichers = Enumerable.Empty<IEnrichMessageFailureHistory>();
         }
 
         public void ProcessFailed(IngestedMessage message)
@@ -48,32 +53,8 @@
                     return;
                 }
 
-                failure.ProcessingAttempts.Add(new MessageFailureHistory.ProcessingAttempt
-                {
-                    ProcessingEndpoint = new EndpointDetails
-                    {
-                        Name = message.ProcessedAt.EndpointName,
-                        HostId = message.ProcessedAt.HostId
-                    },
-                    SendingEndpoint = new EndpointDetails
-                    {
-                        Name = message.SentFrom.EndpointName,
-                        HostId = message.SentFrom.HostId
-                    },
-                    ContentType = contentType,
-                    MessageType = message.MessageType.Name,
-                    IsSystemMessage = message.MessageType.IsSystem,
-                    TimeSent = ParseSentTime(message.Headers),
-                    AttemptedAt = details.TimeOfFailure,
-                    FailureDetails = details,
-                    MessageId = message.Id,
-                    Headers = message.Headers.ToDictionary(),
-                    ReplyToAddress = message.Headers.GetOrDefault("NServiceBus.ReplyToAddress"),
-                    Recoverable = message.Recoverable,
-                    CorrelationId = message.Headers.GetOrDefault("NServiceBus.CorrelationId"),
-                    MessageIntent = message.Headers.GetOrDefault("NServiceBus.MessageIntent"),
-                    
-                });
+                foreach(var enricher in MessageFailureEnrichers)
+                    enricher.Enrich(failure, message, details);
 
                 session.Store(failure);
                 session.SaveChanges();
@@ -97,17 +78,6 @@
             }
         }
 
-        static DateTime ParseSentTime(HeaderCollection headers)
-        {
-            string timeSentValue;
-            if (headers.TryGet(Headers.TimeSent, out timeSentValue))
-            {
-                var timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
-                return timeSent;
-            }
-            return DateTime.MinValue;
-        }
-
         static DateTime ParseTimeOfFailure(HeaderCollection headers)
         {
             var timeOfFailure = new DateTime();
@@ -118,7 +88,6 @@
             }
             return timeOfFailure;
         }
-
 
         FailureDetails ParseFailureDetails(HeaderCollection headers)
         {

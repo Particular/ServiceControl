@@ -162,6 +162,8 @@
     <Compile Include="Groups\Retry\BulkRetryCompleted.cs" />
     <Compile Include="Groups\Retry\RetryAllInGroup.cs" />
     <Compile Include="Groups\Retry\RetryGroupEventLogDefinition.cs" />
+    <Compile Include="MessageFailures\IEnrichMessageFailureHistory.cs" />
+    <Compile Include="MessageFailures\ProcessingAttemptMessageFailureHistoryEnricher.cs" />
     <Compile Include="Recoverability\Groups\ApiModule.cs" />
     <Compile Include="Recoverability\Groups\Archive\ArchiveAllInGroup.cs" />
     <Compile Include="Recoverability\Groups\Archive\ArchiveAllInGroupHandler.cs" />
@@ -182,7 +184,7 @@
     <Compile Include="Recoverability\Groups\Groupers\IFailedMessageGrouper.cs" />
     <Compile Include="Recoverability\Groups\Groupers\ExceptionTypeAndStackTraceMessageGrouper.cs" />
     <Compile Include="Recoverability\Groups\Groupers\StackTraceParser.cs" />
-    <Compile Include="Recoverability\Groups\GroupMessageHandler.cs" />
+    <Compile Include="Recoverability\Groups\FailureGroupHistoryEnricher.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatingEndpoint.cs" />

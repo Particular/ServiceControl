@@ -15,6 +15,7 @@
         {
             Configure.Component<ExceptionTypeAndStackTraceMessageGrouper>(DependencyLifecycle.SingleInstance);
             Configure.Component<SHA1HashGroupIdGenerator>(DependencyLifecycle.SingleInstance);
+            Configure.Component<FailureGroupHistoryEnricher>(DependencyLifecycle.SingleInstance);
         }
     }
 }

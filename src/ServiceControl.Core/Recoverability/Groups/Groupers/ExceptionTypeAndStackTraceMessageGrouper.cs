@@ -1,6 +1,9 @@
 ﻿namespace ServiceControl.Recoverability.Groups.Groupers
 {
-    using ServiceControl.MessageFailures.InternalMessages;
+    using System;
+    using System.Linq;
+    using Particular.Operations.Ingestion.Api;
+    using ServiceControl.Contracts.Operations;
 
     public class ExceptionTypeAndStackTraceMessageGrouper : IFailedMessageGrouper
     {
@@ -9,10 +12,16 @@
             get { return "ExceptionTypeAndStackTrace"; }
         }
 
-        public string GetGroupName(ImportFailedMessage failedMessage)
+        public string GetGroupName(IngestedMessage actualMessage, FailureDetails failureDetails)
         {
-            var exception = failedMessage.FailureDetails.Exception;
-            var firstStackTraceFrame = StackTraceParser.Parse(exception.StackTrace)[0];
+            var exception = failureDetails.Exception;
+            if (exception == null || String.IsNullOrWhiteSpace(exception.StackTrace))
+                return null;
+
+            var firstStackTraceFrame = StackTraceParser.Parse(exception.StackTrace).FirstOrDefault();
+            if (firstStackTraceFrame == null)
+                return null;
+
             return exception.ExceptionType + " was thrown at " + firstStackTraceFrame.ToMethodIdentifier();
         }
     }
