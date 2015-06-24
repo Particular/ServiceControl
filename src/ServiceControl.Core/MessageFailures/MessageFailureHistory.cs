@@ -20,9 +20,10 @@
         public string Id { get; set; }
 
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
-        public List<FailureGroup> FailureGroups { get; set; }
+        public List<FailureGroup> FailureGroups { get; set; } //  new
         
         public FailedMessageStatus Status { get; set; }
+        public string RetryId { get; set; } // new
 
         public string UniqueMessageId { get; set; }
 

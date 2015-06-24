@@ -13,6 +13,8 @@ namespace ServiceControl.Recoverability.Groups.Indexes
                 from failureGroup in failure.FailureGroups
                 select new
                 {
+                    failure.RetryId,
+                    failure.Status,
                     FailureGroups_Id = failureGroup.Id
                 };
 
