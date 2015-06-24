@@ -4,11 +4,18 @@
     using System.Threading.Tasks;
     using Raven.Abstractions.Data;
     using Raven.Client;
+    using Raven.Client.Indexes;
     using ServiceControl.MessageFailures;
 
     public class Retryer
     {
         public IDocumentStore Store { get; set; }
+
+        public string StartRetryForIndex<TIndex>(string query = null) where TIndex : AbstractIndexCreationTask , new()
+        {
+            var indexName = new TIndex().IndexName;
+            return StartRetryForIndex(indexName, query);
+        }
 
         public string StartRetryForIndex(string indexName, string query = null)
         {
