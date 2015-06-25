@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System;
+    using System.Linq;
     using NServiceBus;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.MessageFailures.InternalMessages;
@@ -12,13 +12,14 @@
 
         public void Handle(RequestRetryAll message)
         {
-            string query = null;
             if (message.Endpoint != null)
             {
-                query = String.Format("ReceivingEndpointname:{0}", message.Endpoint);
+                Retryer.StartRetryForIndex<FailedMessageViewIndex>(message.BatchId, m => m.ProcessingAttempts.Last().ProcessingEndpoint.Name == message.Endpoint);
             }
-
-            Retryer.StartRetryForIndex<FailedMessageViewIndex>(message.BatchId, query);
+            else
+            {
+                Retryer.StartRetryForIndex<FailedMessageViewIndex>(message.BatchId);
+            }
         }
     }
 }

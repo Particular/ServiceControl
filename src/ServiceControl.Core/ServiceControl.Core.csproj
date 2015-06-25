@@ -214,6 +214,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Recoverability\Groups\Retry\RetryAllInGroup.cs" />
     <Compile Include="Recoverability\Groups\Retry\RetryGroupHandler.cs" />
+    <Compile Include="Recoverability\Retries\MessageFailureRetry.cs" />
     <Compile Include="Recoverability\Retries\Retries.cs" />
     <Compile Include="Recoverability\Retries\RetryBatch.cs" />
     <Compile Include="Recoverability\Retries\RetryBatches_ByStatusAndDateStarted.cs" />

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability.Groups.Retry
 {
     using System;
+    using System.Linq;
     using NServiceBus;
     using ServiceControl.Recoverability.Groups.Indexes;
     using ServiceControl.Recoverability.Retries;
@@ -19,9 +20,7 @@
                 return;
             }
 
-            var query = String.Format("FailureGroups_Id:{0}", message.GroupId);
-
-            Retryer.StartRetryForIndex<MessageFailuresByFailureGroupsIndex>(message.BatchId, query);
+            Retryer.StartRetryForIndex<MessageFailuresByFailureGroupsIndex>(message.BatchId, f => f.FailureGroups.Any(g => g.Id == message.GroupId));
         }
 
         public Retryer Retryer { get; set; }
