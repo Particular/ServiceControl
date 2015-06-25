@@ -58,7 +58,7 @@
                         Value = batchId
                     }
                 },
-                allowStale: true);
+                false);
 
             operation.WaitForCompletionAsync().ContinueWith(result =>
             {
@@ -66,8 +66,11 @@
                 // That way if a shutdown happens we can issue this status change on a timer 
                 using (var session = Store.OpenSession())
                 {
-                    var retryBatch = session.Load<RetryBatch>(batchId);
-                    retryBatch.Status = RetryBatchStatus.Staging;
+                    session.Store(new RetryBatch
+                    {
+                        Id = batchId,
+                        Status = RetryBatchStatus.Staging
+                    });
                     session.SaveChanges();
                 }
             }, TaskContinuationOptions.OnlyOnRanToCompletion);
