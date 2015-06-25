@@ -4,6 +4,7 @@
     using System.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
+    using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceControl.Shell.Api;
 
@@ -28,7 +29,31 @@
                     batchesProcessed = ProcessBatches(session);
                     session.SaveChanges();
                 }
-            } while(batchesProcessed && !e.IsCancellationRequested);
+            } while (batchesProcessed && !e.IsCancellationRequested);
+            UpdateOldBatches();
+        }
+
+        void UpdateOldBatches()
+        {
+            var cutOff = DateTimeOffset.UtcNow.AddMinutes(-5);
+
+            var indexName = new RetryBatches_ByStatusAndDateStarted().IndexName;
+            store.DatabaseCommands.UpdateByIndex(indexName,
+                new IndexQuery
+                {
+                    Query = String.Format("Started:[NULL TO {0:s}]", cutOff)
+                },
+                new[]
+                    {
+                        new PatchRequest
+                        {
+                            Type = PatchCommandType.Set,
+                            Name = "Status",
+                            Value = (int) RetryBatchStatus.Staging, 
+                            PrevVal = (int)RetryBatchStatus.MarkingDocuments
+                        },
+                    },
+                true);
         }
 
         bool ProcessBatches(IDocumentSession session)

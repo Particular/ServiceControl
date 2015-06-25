@@ -18,7 +18,7 @@
                 query = String.Format("ReceivingEndpointname:{0}", message.Endpoint);
             }
 
-            Retryer.StartRetryForIndex<FailedMessageViewIndex>(query);
+            Retryer.StartRetryForIndex<FailedMessageViewIndex>(message.BatchId, query);
         }
     }
 }

@@ -21,7 +21,7 @@
 
             var query = String.Format("FailureGroups_Id:{0}", message.GroupId);
 
-            Retryer.StartRetryForIndex<MessageFailuresByFailureGroupsIndex>(query);
+            Retryer.StartRetryForIndex<MessageFailuresByFailureGroupsIndex>(message.BatchId, query);
         }
 
         public Retryer Retryer { get; set; }

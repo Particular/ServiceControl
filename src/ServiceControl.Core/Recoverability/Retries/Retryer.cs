@@ -11,27 +11,25 @@
     {
         public IDocumentStore Store { get; set; }
 
-        public string StartRetryForIndex<TIndex>(string query = null) where TIndex : AbstractIndexCreationTask , new()
+        public void StartRetryForIndex<TIndex>(string batchId, string query = null) where TIndex : AbstractIndexCreationTask , new()
         {
             var indexName = new TIndex().IndexName;
-            return StartRetryForIndex(indexName, query);
+            StartRetryForIndex(batchId, indexName, query);
         }
 
-        public string StartRetryForIndex(string indexName, string query = null)
+        public void StartRetryForIndex(string batchId, string indexName, string query = null)
         {
-            var batchId = RetryBatch.MakeId(Guid.NewGuid().ToString());
+            CreateBatch(batchId);
 
-            // TODO: Issue a message. Turn Batch into a Saga and let it handle it's state
-            using (var session = Store.OpenSession())
-            {
-                session.Store(new RetryBatch
+            MarkDocumentsInIndexAsPartOfBatch(batchId, indexName, query)
+                .ContinueWith(result =>
                 {
-                    Id = batchId,
-                    Status = RetryBatchStatus.MarkingDocuments
-                });
-                session.SaveChanges();
-            }
+                    MoveBatchToStaging(batchId);
+                }, TaskContinuationOptions.OnlyOnRanToCompletion);
+        }
 
+        Task MarkDocumentsInIndexAsPartOfBatch(string batchId, string indexName, string query)
+        {
             var indexQueryText = String.Format("RetryId:[[NULL_VALUE]] AND Status:{0}", (int) FailedMessageStatus.Unresolved);
             if (query != null)
             {
@@ -50,32 +48,45 @@
                         Type = PatchCommandType.Set,
                         Name = "Status",
                         Value = (int) FailedMessageStatus.RetryIssued
-                    }, 
+                    },
                     new PatchRequest
                     {
-                        Type = PatchCommandType.Set, 
-                        Name = "RetryId", 
+                        Type = PatchCommandType.Set,
+                        Name = "RetryId",
                         Value = batchId
                     }
                 },
                 false);
+            return operation.WaitForCompletionAsync();
+        }
 
-            operation.WaitForCompletionAsync().ContinueWith(result =>
+        void CreateBatch(string batchId)
+        {
+            using (var session = Store.OpenSession())
             {
-                // TODO: Publish a message. Probably make the RetryBatch a saga and have it take care of it's status. 
-                // That way if a shutdown happens we can issue this status change on a timer 
-                using (var session = Store.OpenSession())
+                session.Store(new RetryBatch
                 {
-                    session.Store(new RetryBatch
-                    {
-                        Id = batchId,
-                        Status = RetryBatchStatus.Staging
-                    });
-                    session.SaveChanges();
-                }
-            }, TaskContinuationOptions.OnlyOnRanToCompletion);
+                    Id = RetryBatch.MakeId(batchId), 
+                    Status = RetryBatchStatus.MarkingDocuments, 
+                    Started = DateTimeOffset.UtcNow
+                });
+                session.SaveChanges();
+            }
+        }
 
-            return batchId;
+        void MoveBatchToStaging(string batchId)
+        {
+            Store.DatabaseCommands.Patch(RetryBatch.MakeId(batchId),
+                new[]
+                {
+                    new PatchRequest
+                    {
+                        Type = PatchCommandType.Set,
+                        Name = "Status",
+                        Value = (int) RetryBatchStatus.Staging,
+                        PrevVal = (int) RetryBatchStatus.MarkingDocuments
+                    }
+                });
         }
     }
 }
