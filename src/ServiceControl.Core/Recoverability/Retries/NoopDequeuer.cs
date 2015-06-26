@@ -2,7 +2,7 @@ namespace ServiceControl.Recoverability.Retries
 {
     using NServiceBus;
 
-    class NoopRelocator : Relocator
+    class NoopDequeuer : AdvancedDequeuer
     {
         protected override void HandleMessage(TransportMessage message)
         {

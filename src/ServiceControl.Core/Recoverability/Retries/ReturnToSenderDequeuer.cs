@@ -3,11 +3,11 @@ namespace ServiceControl.Recoverability.Retries
     using NServiceBus;
     using NServiceBus.Transports;
 
-    class SendBackRelocator : Relocator
+    class ReturnToSenderDequeuer : AdvancedDequeuer
     {
         readonly ISendMessages sender;
 
-        public SendBackRelocator(ISendMessages sender)
+        public ReturnToSenderDequeuer(ISendMessages sender)
         {
             this.sender = sender;
         }

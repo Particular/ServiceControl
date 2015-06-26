@@ -14,8 +14,6 @@ namespace ServiceControl.MessageFailures.Api
             public string MessageType { get; set; }
             public FailedMessageStatus Status { get; set; }
             public string ReceivingEndpointName { get; set; }
-            public string RetryId { get; set; }
-
         }
 
         public FailedMessageViewIndex()
@@ -29,7 +27,6 @@ namespace ServiceControl.MessageFailures.Api
                 message.Status,
                 TimeSent = last.TimeSent,
                 ReceivingEndpointName = last.ProcessingEndpoint.Name,
-                message.RetryId
             };
 
             DisableInMemoryIndexing = true;

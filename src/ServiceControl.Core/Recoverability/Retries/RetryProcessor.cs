@@ -16,17 +16,17 @@
     {
         PeriodicExecutor executor;
         IDocumentStore store;
-        readonly NoopRelocator noopRelocator;
-        readonly SendBackRelocator sendBackRelocator;
+        readonly NoopDequeuer noopDequeuer;
+        readonly ReturnToSenderDequeuer returnToSenderDequeuer;
         readonly ISendMessages sender;
         readonly IBodyStorage bodyStorage;
 
-        public RetryProcessor(IDocumentStore store, NoopRelocator noopRelocator, SendBackRelocator sendBackRelocator, ISendMessages sender, IBodyStorage bodyStorage)
+        public RetryProcessor(IDocumentStore store, NoopDequeuer noopDequeuer, ReturnToSenderDequeuer returnToSenderDequeuer, ISendMessages sender, IBodyStorage bodyStorage)
         {
             executor = new PeriodicExecutor(Process, TimeSpan.FromSeconds(30));
             this.store = store;
-            this.noopRelocator = noopRelocator;
-            this.sendBackRelocator = sendBackRelocator;
+            this.noopDequeuer = noopDequeuer;
+            this.returnToSenderDequeuer = returnToSenderDequeuer;
             this.sender = sender;
             this.bodyStorage = bodyStorage;
         }
@@ -46,30 +46,34 @@
 
         bool ProcessBatches(IDocumentSession session)
         {
-            var batches = session.Query<RetryBatch>()
-                .Customize(x => x.Include<RetryBatch, MessageFailureRetry>(b => b.FailureRetries))
-                .Where(x => x.Status == RetryBatchStatus.Forwarding || x.Status == RetryBatchStatus.Staging)
-                .ToArray()
-                .ToLookup(x => x.Status);
-
-            var forwardingBatch = batches[RetryBatchStatus.Forwarding].SingleOrDefault();
+            var forwardingBatch = session
+                .Query<RetryBatch>()
+                .SingleOrDefault(x => x.Status == RetryBatchStatus.Forwarding);
             if (forwardingBatch != null)
             {
                 Forward(forwardingBatch, session);
                 return true;
             }
 
-            var stagingBatch = batches[RetryBatchStatus.Staging].FirstOrDefault();
+            var stagingBatch = session
+                .Query<RetryBatch>()
+                .Customize(x => x.Include<RetryBatch, MessageFailureRetry>(b => b.FailureRetries))
+                .FirstOrDefault(x => x.Status == RetryBatchStatus.Staging);
             if (stagingBatch != null)
             {
                 var messageIds = session.Load<MessageFailureRetry>(stagingBatch.FailureRetries)
                     .Where(x => x != null && x.RetryBatchId == stagingBatch.Id)
-                    .Select(x => x.FailureMessageId)
-                    .ToArray();
+                    .Select(x => x.FailureMessageId);
 
                 var messages = session.Load<MessageFailureHistory>(messageIds);
 
                 Stage(stagingBatch, messages);
+
+                foreach (var failureRetry in stagingBatch.FailureRetries)
+                {
+                    session.Advanced.DocumentStore.DatabaseCommands.Delete(failureRetry, null);
+                }
+
                 return true;
             }
 
@@ -79,9 +83,8 @@
         void Stage(RetryBatch batch, MessageFailureHistory[] messages)
         {
             //Clear Staging Queue
-            noopRelocator.Run();
+            noopDequeuer.Run();
 
-            //Fill it up using the streaming API
             foreach (var message in messages)
             {
                 PutMessageInStagingQueue(message);
@@ -150,14 +153,14 @@
                     transportMessage.ReplyToAddress = Address.Parse(attempt.ReplyToAddress);
                 }
 
-                sender.Send(transportMessage, Relocator.Address);
+                sender.Send(transportMessage, AdvancedDequeuer.Address);
             }
         }
 
         void Forward(RetryBatch batch, IDocumentSession session)
         {
             // Process the staging queue
-            sendBackRelocator.Run();
+            returnToSenderDequeuer.Run();
 
             session.Delete(batch);
 

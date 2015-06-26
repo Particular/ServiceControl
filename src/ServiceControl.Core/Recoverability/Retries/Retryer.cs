@@ -23,7 +23,7 @@
             StartRetryForIndex(batchId, indexName, configure);
         }
 
-        public void StartRetryForIndex(string batchId, string indexName, Expression<Func<MessageFailureHistory, bool>> configure)
+        void StartRetryForIndex(string batchId, string indexName, Expression<Func<MessageFailureHistory, bool>> configure)
         {
             CreateBatch(batchId);
 

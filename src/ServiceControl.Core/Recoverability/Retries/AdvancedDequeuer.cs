@@ -3,17 +3,19 @@ namespace ServiceControl.Recoverability.Retries
     using System;
     using System.Threading;
     using NServiceBus;
+    using NServiceBus.Logging;
     using NServiceBus.Satellites;
     using NServiceBus.Unicast.Transport;
 
-    abstract class Relocator : IAdvancedSatellite
+    abstract class AdvancedDequeuer : IAdvancedSatellite
     {
         public static Address Address = Address.Parse(Configure.EndpointName).SubScope("staging");
         private DequeueMessagesWrapper receiver;
         private Timer timer;
         ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
+        static ILog Log = LogManager.GetLogger(typeof(AdvancedDequeuer));
 
-        protected Relocator()
+        protected AdvancedDequeuer()
         {
             timer = new Timer(state => StopInternal());
         }
@@ -37,7 +39,8 @@ namespace ServiceControl.Recoverability.Retries
             {
                 resetEvent.Reset();
                 receiver.StartInternal();
-                Console.Out.WriteLine("Relocator started");
+                timer.Change(TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
+                Log.InfoFormat("{0} started", GetType().Name);
             }
             finally
             {
@@ -53,7 +56,7 @@ namespace ServiceControl.Recoverability.Retries
         {
             receiver.StopInternal();
             resetEvent.Set();
-            Console.Out.WriteLine("Relocator stopped");
+            Log.InfoFormat("{0} stopped", GetType().Name);
         }
 
         public Address InputAddress { get { return Address; } }

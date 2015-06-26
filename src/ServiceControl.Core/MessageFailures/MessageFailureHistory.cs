@@ -23,7 +23,6 @@
         public List<FailureGroup> FailureGroups { get; set; } //  new
         
         public FailedMessageStatus Status { get; set; }
-        public string RetryId { get; set; } // new
 
         public string UniqueMessageId { get; set; }
 
