@@ -41,7 +41,6 @@
                 }
 
                 var page = 0;
-
                 var skippedResults = 0;
 
                 while (true)
@@ -58,19 +57,29 @@
                         break;
                     }
 
-                    var batchDocumentId = RetryBatch.MakeId(CombGuid.Generate().ToString());
-
-                    RetryDocumentManager.CreateBatch(batchDocumentId);
-
-                    var failureRetryIds = new ConcurrentSet<string>();
-                    Parallel.ForEach(ids, id => failureRetryIds.Add(RetryDocumentManager.MakeFailureRetryDocument(batchDocumentId, id)));
-
-                    RetryDocumentManager.MoveBatchToStaging(batchDocumentId, failureRetryIds.ToArray());
+                    StageRetryByUniqueMessageIds(ids);
 
                     page += 1;
                     skippedResults = stats.SkippedResults;
                 }
             }
+        }
+
+        public void StageRetryByUniqueMessageIds(string[] messageIds)
+        {
+            if (messageIds == null || !messageIds.Any())
+            {
+                return;
+            }
+
+            var batchDocumentId = RetryBatch.MakeId(CombGuid.Generate().ToString());
+
+            RetryDocumentManager.CreateBatch(batchDocumentId);
+
+            var failureRetryIds = new ConcurrentSet<string>();
+            Parallel.ForEach(messageIds, id => failureRetryIds.Add(RetryDocumentManager.MakeFailureRetryDocument(batchDocumentId, id)));
+
+            RetryDocumentManager.MoveBatchToStaging(batchDocumentId, failureRetryIds.ToArray());
         }
     }
 }

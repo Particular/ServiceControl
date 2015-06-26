@@ -14,16 +14,16 @@
         {
             Post["/errors/{messageid}/retry"] = parameters =>
             {
-                var failedMessageId = parameters.MessageId;
+                string failedMessageId = parameters.MessageId;
 
                 if (string.IsNullOrEmpty(failedMessageId))
                 {
                     return HttpStatusCode.BadRequest;
                 }
 
-                Bus.SendLocal<RetryMessage>(m =>
+                Bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = new[]
                 {
-                    m.FailedMessageId = failedMessageId;
+                    failedMessageId
                 });
 
                 return HttpStatusCode.Accepted;
@@ -38,12 +38,7 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                foreach (var id in ids)
-                {
-                    var request = new RetryMessage { FailedMessageId = id };
-
-                    Bus.SendLocal(request);    
-                }
+                Bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = ids.ToArray());
 
                 return HttpStatusCode.Accepted;
             };
