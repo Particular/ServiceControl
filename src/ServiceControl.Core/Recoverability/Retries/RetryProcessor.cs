@@ -54,26 +54,37 @@
 
         void Process(PeriodicExecutor e)
         {
-            bool batchesProcessed;
+            string batchesProcessed = null;
             do
             {
                 using (var session = store.OpenSession())
                 {
-                    batchesProcessed = ProcessBatches(session);
+                    batchesProcessed = ProcessBatches(session, batchesProcessed);
                     session.SaveChanges();
                 }
-            } while (batchesProcessed && !e.IsCancellationRequested);
+            } while (batchesProcessed != null && !e.IsCancellationRequested);
         }
 
-        bool ProcessBatches(IDocumentSession session)
+        string ProcessBatches(IDocumentSession session, string batchId)
         {
-            var forwardingBatch = session
-                .Query<RetryBatch>()
-                .SingleOrDefault(x => x.Status == RetryBatchStatus.Forwarding);
+            RetryBatch forwardingBatch;
+
+            if (batchId == null)
+            {
+                forwardingBatch = session
+                    .Query<RetryBatch>()
+                    .Customize(c => c.WaitForNonStaleResultsAsOfNow())
+                    .SingleOrDefault(x => x.Status == RetryBatchStatus.Forwarding);
+            }
+            else
+            {
+                forwardingBatch = session.Load<RetryBatch>(batchId);
+            }
+
             if (forwardingBatch != null)
             {
                 Forward(forwardingBatch, session);
-                return true;
+                return null;
             }
 
             var stagingBatch = session
@@ -90,15 +101,10 @@
 
                 Stage(stagingBatch, messages);
 
-                foreach (var failureRetry in stagingBatch.FailureRetries)
-                {
-                    session.Advanced.DocumentStore.DatabaseCommands.Delete(failureRetry, null);
-                }
-
-                return true;
+                return stagingBatch.Id;
             }
 
-            return false;
+            return null;
         }
 
         void Stage(RetryBatch batch, MessageFailureHistory[] messages)
@@ -109,6 +115,8 @@
             foreach (var message in messages)
             {
                 PutMessageInStagingQueue(message);
+
+                message.Status = FailedMessageStatus.RetryIssued;
             }
 
             batch.Status = RetryBatchStatus.Forwarding;
@@ -147,6 +155,7 @@
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
 
             headersToRetryWith["ServiceControl.TargetEndpointAddress"] = attempt.FailureDetails.AddressOfFailingEndpoint;
+            headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = failedMessage.UniqueMessageId;
 
             using (var stream = bodyStorage.Fetch(attempt.MessageId))
             {
