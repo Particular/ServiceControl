@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability.Retries
 {
     using System;
+    using System.Threading;
     using NServiceBus;
     using NServiceBus.Transports;
     using NServiceBus.Unicast.Transport;
@@ -9,6 +10,7 @@ namespace ServiceControl.Recoverability.Retries
     {
         private readonly IDequeueMessages _realDequeuer;
         private int maximumConcurrencyLevel;
+        private int disposeSignaled;
 
         public DequeueMessagesWrapper(IDequeueMessages realDequeuer)
         {
@@ -22,6 +24,7 @@ namespace ServiceControl.Recoverability.Retries
 
         public void StartInternal()
         {
+            Interlocked.Exchange(ref disposeSignaled, 0);
             _realDequeuer.Start(maximumConcurrencyLevel);
         }
 
@@ -36,6 +39,10 @@ namespace ServiceControl.Recoverability.Retries
 
         public void StopInternal()
         {
+            if (Interlocked.Exchange(ref disposeSignaled, 1) != 0)
+            {
+                return;
+            }
             _realDequeuer.Stop();
         }
     }
