@@ -14,12 +14,18 @@
 
     class RetryProcessor : IWantToRunWhenBusStartsAndStops, IDisposable
     {
-        PeriodicExecutor executor;
-        IDocumentStore store;
-        readonly NoopDequeuer noopDequeuer;
-        readonly ReturnToSenderDequeuer returnToSenderDequeuer;
-        readonly ISendMessages sender;
-        readonly IBodyStorage bodyStorage;
+        static readonly List<string> KeysToRemoveWhenRetryingAMessage = new List<string>
+        {
+            Headers.Retries,
+            "NServiceBus.FailedQ",
+            "NServiceBus.TimeOfFailure",
+            "NServiceBus.ExceptionInfo.ExceptionType",
+            "NServiceBus.ExceptionInfo.AuditMessage",
+            "NServiceBus.ExceptionInfo.Source",
+            "NServiceBus.ExceptionInfo.StackTrace"
+        };
+
+        static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
         public RetryProcessor(IDocumentStore store, NoopDequeuer noopDequeuer, ReturnToSenderDequeuer returnToSenderDequeuer, ISendMessages sender, IBodyStorage bodyStorage)
         {
@@ -31,7 +37,22 @@
             this.bodyStorage = bodyStorage;
         }
 
-        private void Process(PeriodicExecutor e)
+        public void Dispose()
+        {
+            Stop();
+        }
+
+        public void Start()
+        {
+            executor.Start(false);
+        }
+
+        public void Stop()
+        {
+            executor.Stop();
+        }
+
+        void Process(PeriodicExecutor e)
         {
             bool batchesProcessed;
             do
@@ -96,20 +117,9 @@
             Log.InfoFormat("Retry batch {0} staged", batch.Id);
         }
 
-        static readonly List<string> KeysToRemoveWhenRetryingAMessage = new List<string>
-        {
-            Headers.Retries,
-            "NServiceBus.FailedQ",
-            "NServiceBus.TimeOfFailure",
-            "NServiceBus.ExceptionInfo.ExceptionType",
-            "NServiceBus.ExceptionInfo.AuditMessage",
-            "NServiceBus.ExceptionInfo.Source",
-            "NServiceBus.ExceptionInfo.StackTrace"
-        };
-
         static byte[] ReadFully(Stream input)
         {
-            var buffer = new byte[16 * 1024];
+            var buffer = new byte[16*1024];
             using (var ms = new MemoryStream())
             {
                 int read;
@@ -145,7 +155,7 @@
                     Body = ReadFully(stream),
                     CorrelationId = attempt.CorrelationId,
                     Recoverable = attempt.Recoverable,
-                    MessageIntent = (MessageIntentEnum)Enum.Parse(typeof(MessageIntentEnum), attempt.MessageIntent, true),
+                    MessageIntent = (MessageIntentEnum) Enum.Parse(typeof(MessageIntentEnum), attempt.MessageIntent, true)
                 };
 
                 if (!String.IsNullOrWhiteSpace(attempt.ReplyToAddress))
@@ -167,22 +177,11 @@
             Log.InfoFormat("Retry batch {0} done", batch.Id);
         }
 
-
-        public void Start()
-        {
-            executor.Start(false);
-        }
-
-        public void Stop()
-        {
-            executor.Stop();
-        }
-
-        public void Dispose()
-        {
-            Stop();
-        }
-
-        static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
+        readonly IBodyStorage bodyStorage;
+        readonly NoopDequeuer noopDequeuer;
+        readonly ReturnToSenderDequeuer returnToSenderDequeuer;
+        readonly ISendMessages sender;
+        PeriodicExecutor executor;
+        IDocumentStore store;
     }
 }
