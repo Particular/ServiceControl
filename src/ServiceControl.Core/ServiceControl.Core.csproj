@@ -142,7 +142,9 @@
     <Compile Include="MessageFailures\Handlers\RetryMessagesByIdHandler.cs" />
     <Compile Include="MessageFailures\IEnrichMessageFailureHistory.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryMessagesById.cs" />
+    <Compile Include="MessageFailures\ImportFailedMessageHandler.cs" />
     <Compile Include="MessageFailures\ProcessingAttemptMessageFailureHistoryEnricher.cs" />
+    <Compile Include="MessageFailures\RegisterSuccessfulRetryHandlerForBackwardsCompatibility.cs" />
     <Compile Include="Recoverability\Groups\ApiModule.cs" />
     <Compile Include="Recoverability\Groups\Archive\ArchiveAllInGroup.cs" />
     <Compile Include="Recoverability\Groups\Archive\ArchiveAllInGroupHandler.cs" />

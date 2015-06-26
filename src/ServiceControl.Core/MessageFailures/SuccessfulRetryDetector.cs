@@ -4,6 +4,7 @@
     using InternalMessages;
     using NServiceBus;
     using Particular.Operations.Ingestion.Api;
+    using ServiceControl.Contracts.MessageFailures;
 
     public class SuccessfulRetryDetector : IProcessSuccessfulMessages
     {
@@ -18,16 +19,32 @@
         {
             string retryId;
             var hasBeenRetried = message.Headers.TryGet("ServiceControl.RetryId", out retryId);
+            string uniqueMessageId;
+            hasBeenRetried |= message.Headers.TryGet("ServiceControl.Retry.UniqueMessageId", out uniqueMessageId);
+
             if (!hasBeenRetried)
             {
                 return;
             }
 
-            bus.SendLocal(new RegisterSuccessfulRetry
+            if (retryId != null)
             {
-                FailedMessageId = message.UniqueId,
-                RetryId = Guid.Parse(retryId)
-            });
+                bus.SendLocal(new RegisterSuccessfulRetry
+                {
+                    FailedMessageId = message.UniqueId,
+                    RetryId = Guid.Parse(retryId),
+                    FailedMessageType = message.MessageType.Name,
+                });
+            }
+
+            if (uniqueMessageId != null)
+            {
+                bus.Publish<MessageFailureResolvedByRetry>(m =>
+                {
+                    m.FailedMessageId = uniqueMessageId;
+                    m.FailedMessageType = message.MessageType.Name;
+                });
+            }
         }
     }
 }
