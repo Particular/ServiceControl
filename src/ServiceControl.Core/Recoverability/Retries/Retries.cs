@@ -11,6 +11,7 @@
         {
             Configure.Component<Retryer>(DependencyLifecycle.SingleInstance);
             Configure.Component<RetryProcessor>(DependencyLifecycle.SingleInstance);
+            Configure.Component<RetryDocumentManager>(DependencyLifecycle.SingleInstance);
         }
     }
 }

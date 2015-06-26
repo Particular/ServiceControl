@@ -220,7 +220,7 @@
     <Compile Include="Recoverability\Retries\AdvancedDequeuer.cs" />
     <Compile Include="Recoverability\Retries\Retries.cs" />
     <Compile Include="Recoverability\Retries\RetryBatch.cs" />
-    <Compile Include="Recoverability\Retries\RetryBatches_ByStatusAndDateStarted.cs" />
+    <Compile Include="Recoverability\Retries\RetryDocumentManager.cs" />
     <Compile Include="Recoverability\Retries\RetryBatchStatus.cs" />
     <Compile Include="Recoverability\Retries\Retryer.cs" />
     <Compile Include="Recoverability\Retries\RetryProcessor.cs" />

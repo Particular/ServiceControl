@@ -20,7 +20,7 @@
                 return;
             }
 
-            Retryer.StartRetryForIndex<MessageFailuresByFailureGroupsIndex>(message.BatchId, f => f.FailureGroups.Any(g => g.Id == message.GroupId));
+            Retryer.StartRetryForIndex<MessageFailuresByFailureGroupsIndex>(f => f.FailureGroups.Any(g => g.Id == message.GroupId));
         }
 
         public Retryer Retryer { get; set; }

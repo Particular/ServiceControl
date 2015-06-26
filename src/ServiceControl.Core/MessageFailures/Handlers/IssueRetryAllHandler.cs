@@ -14,11 +14,11 @@
         {
             if (message.Endpoint != null)
             {
-                Retryer.StartRetryForIndex<FailedMessageViewIndex>(message.BatchId, m => m.ProcessingAttempts.Last().ProcessingEndpoint.Name == message.Endpoint);
+                Retryer.StartRetryForIndex<FailedMessageViewIndex>(m => m.ProcessingAttempts.Last().ProcessingEndpoint.Name == message.Endpoint);
             }
             else
             {
-                Retryer.StartRetryForIndex<FailedMessageViewIndex>(message.BatchId);
+                Retryer.StartRetryForIndex<FailedMessageViewIndex>();
             }
         }
     }
