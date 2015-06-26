@@ -114,14 +114,11 @@
 
             foreach (var message in messages)
             {
-                PutMessageInStagingQueue(message);
-
-                message.Status = FailedMessageStatus.RetryIssued;
+                StageMessage(message);
             }
 
             batch.Status = RetryBatchStatus.Forwarding;
 
-            // TODO: Issue a message indicating the status change?
             Log.InfoFormat("Retry batch {0} staged", batch.Id);
         }
 
@@ -139,13 +136,9 @@
             }
         }
 
-        void PutMessageInStagingQueue(MessageFailureHistory failedMessage)
+        void StageMessage(MessageFailureHistory failedMessage)
         {
-            if (failedMessage.Status != FailedMessageStatus.Unresolved)
-            {
-                // We only retry messages that are unresolved
-                return;
-            }
+            failedMessage.Status = FailedMessageStatus.RetryIssued;
 
             var attempt = failedMessage.ProcessingAttempts.Last();
 
