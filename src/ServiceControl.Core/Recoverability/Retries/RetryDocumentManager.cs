@@ -42,6 +42,11 @@ namespace ServiceControl.Recoverability.Retries
             return failureRetryId;
         }
 
+        public void RemoveFailureRetryDocument(string uniqueMessageId)
+        {
+            Store.DatabaseCommands.Delete(MessageFailureRetry.MakeDocumentId(uniqueMessageId), null);
+        }
+
         public void CreateBatch(string batchDocumentId)
         {
             using (var session = Store.OpenSession())

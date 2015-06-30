@@ -3,14 +3,17 @@ namespace ServiceControl.MessageFailures
     using NServiceBus;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.MessageFailures.InternalMessages;
+    using ServiceControl.Recoverability.Retries;
 
     public class ImportFailedMessageHandler : IHandleMessages<ImportFailedMessage>
     {
         readonly IBus bus;
+        readonly RetryDocumentManager retryDocumentManager;
 
-        public ImportFailedMessageHandler(IBus bus)
+        public ImportFailedMessageHandler(IBus bus, RetryDocumentManager retryDocumentManager)
         {
             this.bus = bus;
+            this.retryDocumentManager = retryDocumentManager;
         }
 
         public void Handle(ImportFailedMessage message)
@@ -25,6 +28,7 @@ namespace ServiceControl.MessageFailures
                     m.EndpointId = message.FailingEndpointName;
                     m.FailedMessageId = failedMessageId;
                 });
+                retryDocumentManager.RemoveFailureRetryDocument(failedMessageId);
             }
             else
             {
@@ -35,8 +39,6 @@ namespace ServiceControl.MessageFailures
                     m.FailedMessageId = message.UniqueMessageId;
                 });
             }
-
-            //TODO: Delete retry batch document
         }
     }
 }
