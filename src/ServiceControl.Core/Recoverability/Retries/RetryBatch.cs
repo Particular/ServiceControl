@@ -5,6 +5,7 @@ namespace ServiceControl.Recoverability.Retries
     public class RetryBatch
     {
         public string Id { get; set; }
+        public string RetrySessionId { get; set; }
         public RetryBatchStatus Status { get; set; }
         public IList<string> FailureRetries { get; set; }
 

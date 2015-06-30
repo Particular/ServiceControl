@@ -2,9 +2,13 @@ namespace ServiceControl.Recoverability.Retries
 {
     using System;
     using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
+    using NServiceBus.IdGeneration;
     using Raven.Abstractions.Data;
     using Raven.Client;
+    using Raven.Client.Indexes;
     using Raven.Client.Linq;
     using Raven.Json.Linq;
     using ServiceControl.MessageFailures;
@@ -12,6 +16,8 @@ namespace ServiceControl.Recoverability.Retries
     public class RetryDocumentManager
     {
         public IDocumentStore Store { get; set; }
+
+        static string RetrySessionId = CombGuid.Generate().ToString();
 
         public string MakeFailureRetryDocument(string batchDocumentId, string messageUniqueId)
         {
@@ -56,6 +62,7 @@ namespace ServiceControl.Recoverability.Retries
                 session.Store(new RetryBatch
                 {
                     Id = batchDocumentId,
+                    RetrySessionId = RetrySessionId,
                     Status = RetryBatchStatus.MarkingDocuments
                 });
                 session.SaveChanges();
@@ -87,23 +94,61 @@ namespace ServiceControl.Recoverability.Retries
         {
             using (var session = Store.OpenSession())
             {
-                var batches = session.Query<RetryBatch>()
+                var batches = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
                     .Customize(q => q.WaitForNonStaleResultsAsOfNow())
-                    .Where(b => b.Status == RetryBatchStatus.MarkingDocuments)
+                    .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
                     .ToArray();
 
-                foreach (var batch in batches)
-                {
-                    var batchId = batch.Id;
-                    var retryFailureIds = session.Query<MessageFailureRetry>()
-                        .Customize(q => q.WaitForNonStaleResultsAsOfNow())
-                        .Where(r => r.RetryBatchId == batchId)
-                        .Select(r => r.Id)
-                        .ToArray();
+                AdoptBatches(session, batches.Select(x => x.Id));
+            }
+        }
 
-                    MoveBatchToStaging(batch.Id, retryFailureIds);
+        private void AdoptBatches(IDocumentSession session, IEnumerable<string> batchIds)
+        {
+            Parallel.ForEach(batchIds, batchId => AdoptBatch(session, batchId));
+        }
+
+        private void AdoptBatch(IDocumentSession session, string batchId)
+        {
+            var query = session.Query<MessageFailureRetry, MessageFailureRetries_ByBatch>()
+                .Where(r => r.RetryBatchId == batchId);
+
+            var messageIds = new List<string>();
+
+            using (var stream = session.Advanced.Stream(query))
+            {
+                while (stream.MoveNext())
+                {
+                    messageIds.Add(stream.Current.Document.Id);
                 }
             }
+
+            MoveBatchToStaging(batchId, messageIds.ToArray());
+        }
+    }
+
+    public class RetryBatches_ByStatusAndSession : AbstractIndexCreationTask<RetryBatch>
+    {
+        public RetryBatches_ByStatusAndSession()
+        {
+            Map = docs => from doc in docs
+                select new
+                {
+                    doc.RetrySessionId,
+                    doc.Status 
+                };
+        }
+    }
+
+    public class MessageFailureRetries_ByBatch : AbstractIndexCreationTask<MessageFailureRetry>
+    {
+        public MessageFailureRetries_ByBatch()
+        {
+            Map = docs => from doc in docs
+                select new
+                {
+                    doc.RetryBatchId
+                };
         }
     }
 }

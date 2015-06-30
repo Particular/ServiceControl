@@ -21,7 +21,6 @@
         public RetryDocumentManager RetryDocumentManager { get; set; }
 
         CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        ManualResetEventSlim startupCompleted = new ManualResetEventSlim(false);
 
         public void StartRetryForIndex<TIndex>(Expression<Func<MessageFailureHistory, bool>> configure = null) where TIndex : AbstractIndexCreationTask, new()
         {
@@ -76,8 +75,6 @@
                 return;
             }
 
-            WaitForStartupTasks();
-
             var batchDocumentId = RetryBatch.MakeId(CombGuid.Generate().ToString());
 
             RetryDocumentManager.CreateBatch(batchDocumentId);
@@ -88,21 +85,10 @@
             RetryDocumentManager.MoveBatchToStaging(batchDocumentId, failureRetryIds.ToArray());
         }
 
-        internal void Start()
-        {
-            RetryDocumentManager.AdoptOrphanedBatches();
-            startupCompleted.Set();
-        }
-
-        internal void Stop()
+        internal void StopProcessingOutstandingBatches()
         {
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Dispose();
-        }
-
-        private void WaitForStartupTasks()
-        {
-            startupCompleted.Wait(cancellationTokenSource.Token);
         }
     }
 }

@@ -5,12 +5,13 @@ namespace ServiceControl.Recoverability.Retries
     public class RetryStartupAndShutdownTasks : IWantToRunWhenBusStartsAndStops
     {
         public Retryer Retryer { get; set; }
+        public RetryDocumentManager RetryDocumentManager { get; set; }
 
         public void Start()
         {
-            if (Retryer != null)
+            if (RetryDocumentManager != null)
             {
-                Retryer.Start();
+                RetryDocumentManager.AdoptOrphanedBatches();
             }
         }
 
@@ -18,7 +19,7 @@ namespace ServiceControl.Recoverability.Retries
         {
             if (Retryer != null)
             {
-                Retryer.Stop();
+                Retryer.StopProcessingOutstandingBatches();
             }
         }
     }
