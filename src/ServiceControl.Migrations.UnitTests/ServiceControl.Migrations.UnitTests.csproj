@@ -92,6 +92,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\RavenDB.Database.2.5.2939\lib\net45\Raven.Database.dll</HintPath>
     </Reference>
+    <Reference Include="Raven.Server">
+      <HintPath>..\packages\RavenDB.Tests.Helpers.2.5.2939\lib\net45\Raven.Server.exe</HintPath>
+    </Reference>
+    <Reference Include="Raven.Tests.Helpers">
+      <HintPath>..\packages\RavenDB.Tests.Helpers.2.5.2939\lib\net45\Raven.Tests.Helpers.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
@@ -105,6 +111,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="xunit">
+      <HintPath>..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApprovalTestConfig.cs" />
@@ -112,6 +121,7 @@
     <Compile Include="FailedMessageMigrationTests.cs" />
     <Compile Include="InMemoryStoreBuilder.cs" />
     <Compile Include="RavenIndexAwaiter.cs" />
+    <Compile Include="RunnerTests.cs" />
     <Compile Include="SagaStateMigrationTests.cs" />
   </ItemGroup>
   <ItemGroup>

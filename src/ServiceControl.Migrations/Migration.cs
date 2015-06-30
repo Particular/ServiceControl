@@ -10,6 +10,8 @@
     using Raven.Client;
     using ServiceControl.Shell.Api;
 
+    // Migration could be marked as transactional and when it fails it should not run again
+
     public abstract class Migration<T> : IWantToRunWhenBusStartsAndStops, IDisposable
     {
         readonly ILog logger;
@@ -19,12 +21,15 @@
         readonly IDocumentStore Store;
         readonly Meter throughputMetric;
 
+        readonly Timer timer;
+
         protected Migration(IDocumentStore store)
         {
             Store = store;
             logger = LogManager.GetLogger(GetType());
             executor = new PeriodicExecutor(Migrate, TimeSpan.FromMinutes(5));
             throughputMetric = Metric.Meter(GetType().FullName, "documents");
+            timer = Metric.Timer(GetType().FullName + "Requests", Unit.Requests);
         }
 
         protected abstract string EntityName { get; }
@@ -32,19 +37,22 @@
 
         public void Start()
         {
-            executor.Start(true);
+            executor.Start(false);
         }
 
         void Migrate(PeriodicExecutor e)
         {
-            var wasCleanEmptyRun = Migrate(() => e.IsCancellationRequested);
-            if (wasCleanEmptyRun)
+            using (timer.NewContext())
             {
-                emptyRunCount++;
-            }
-            if (emptyRunCount == 5)
-            {
-                e.Stop();
+                var wasCleanEmptyRun = Migrate(() => e.IsCancellationRequested);
+                if (wasCleanEmptyRun)
+                {
+                    emptyRunCount++;
+                }
+                if (emptyRunCount == 5)
+                {
+                    e.Stop();
+                }
             }
         }
 

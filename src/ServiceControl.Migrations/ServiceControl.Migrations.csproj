@@ -58,6 +58,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Infrastructure\DefaultMigrationResolver.cs" />
+    <Compile Include="Infrastructure\IMigrationResolver.cs" />
+    <Compile Include="Infrastructure\Migration.cs" />
+    <Compile Include="Infrastructure\MigrationAttribute.cs" />
+    <Compile Include="Infrastructure\MigrationDocument.cs" />
+    <Compile Include="Infrastructure\MigrationExtensions.cs" />
+    <Compile Include="Infrastructure\MigrationOptions.cs" />
+    <Compile Include="Infrastructure\MigrationWithAttribute.cs" />
+    <Compile Include="Infrastructure\RavenMigrationHelpers.cs" />
+    <Compile Include="Infrastructure\Runner.cs" />
     <Compile Include="ProcessedMessageMigration.cs" />
     <Compile Include="FailedMessageToMessageFailureHistoryConverter.cs" />
     <Compile Include="ExpiredDocumentMigration.cs" />
