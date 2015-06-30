@@ -54,37 +54,33 @@
 
         void Process(PeriodicExecutor e)
         {
-            string batchesProcessed = null;
+            bool batchesProcessed;
             do
             {
                 using (var session = store.OpenSession())
                 {
-                    batchesProcessed = ProcessBatches(session, batchesProcessed);
+                    batchesProcessed = ProcessBatches(session);
                     session.SaveChanges();
                 }
-            } while (batchesProcessed != null && !e.IsCancellationRequested);
+            } while (batchesProcessed && !e.IsCancellationRequested);
         }
 
-        string ProcessBatches(IDocumentSession session, string batchId)
+        bool ProcessBatches(IDocumentSession session)
         {
-            RetryBatch forwardingBatch;
+            var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
+                                       .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
 
-            if (batchId == null)
+            if (nowForwarding != null)
             {
-                forwardingBatch = session
-                    .Query<RetryBatch>()
-                    .Customize(c => c.WaitForNonStaleResultsAsOfNow())
-                    .SingleOrDefault(x => x.Status == RetryBatchStatus.Forwarding);
-            }
-            else
-            {
-                forwardingBatch = session.Load<RetryBatch>(batchId);
-            }
+                var forwardingBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
 
-            if (forwardingBatch != null)
-            {
-                Forward(forwardingBatch, session);
-                return null;
+                if (forwardingBatch != null)
+                {
+                    Forward(forwardingBatch, session);
+                }
+
+                session.Delete(nowForwarding);
+                return true;
             }
 
             var stagingBatch = session
@@ -100,11 +96,11 @@
                 var messages = session.Load<MessageFailureHistory>(messageIds);
 
                 Stage(stagingBatch, messages);
-
-                return stagingBatch.Id;
+                session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id }, RetryBatchNowForwarding.Id);
+                return true;
             }
 
-            return null;
+            return false;
         }
 
         void Stage(RetryBatch batch, MessageFailureHistory[] messages)
@@ -185,5 +181,11 @@
         readonly ISendMessages sender;
         PeriodicExecutor executor;
         IDocumentStore store;
+    }
+
+    public class RetryBatchNowForwarding
+    {
+        public const string Id = "RetryBatches/NowForwarding";
+        public string RetryBatchId { get; set; }
     }
 }
