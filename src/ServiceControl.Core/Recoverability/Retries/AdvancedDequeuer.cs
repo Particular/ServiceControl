@@ -50,6 +50,7 @@ namespace ServiceControl.Recoverability.Retries
 
         public void Stop()
         {
+            StopInternal();
         }
 
         void StopInternal()
