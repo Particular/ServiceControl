@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability.Retries
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Threading;
@@ -14,7 +15,7 @@
 
     public class Retryer
     {
-        const int PageSize = 1000;
+        const int BatchSize = 1000;
 
         public IDocumentStore Store { get; set; }
         public RetryDocumentManager RetryDocumentManager { get; set; }
@@ -46,33 +47,24 @@
                     qry = qry.Where(configure);
                 }
 
-                startupCompleted.Wait(token);
+                var currentBatch = new List<string>();
 
-                var page = 0;
-                var skippedResults = 0;
-
-                while (true)
+                using (var stream = session.Advanced.Stream(qry))
                 {
-                    if (token.IsCancellationRequested)
+                    while (stream.MoveNext() && !token.IsCancellationRequested)
                     {
-                        return;
+                        currentBatch.Add(stream.Current.Document.UniqueMessageId);
+                        if (currentBatch.Count == BatchSize)
+                        {
+                            StageRetryByUniqueMessageIds(currentBatch.ToArray());
+                            currentBatch.Clear();
+                        }
                     }
-                    RavenQueryStatistics stats;
-                    var ids = qry.Statistics(out stats)
-                                .Skip(page * PageSize + skippedResults)
-                                .Take(PageSize)
-                                .Select(x => x.UniqueMessageId)
-                                .ToArray();
+                }
 
-                    if (!ids.Any())
-                    {
-                        break;
-                    }
-
-                    StageRetryByUniqueMessageIds(ids);
-
-                    page += 1;
-                    skippedResults = stats.SkippedResults;
+                if (currentBatch.Any())
+                {
+                    StageRetryByUniqueMessageIds(currentBatch.ToArray());
                 }
             }
         }
@@ -83,6 +75,8 @@
             {
                 return;
             }
+
+            WaitForStartupTasks();
 
             var batchDocumentId = RetryBatch.MakeId(CombGuid.Generate().ToString());
 
@@ -104,6 +98,11 @@
         {
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Dispose();
+        }
+
+        private void WaitForStartupTasks()
+        {
+            startupCompleted.Wait(cancellationTokenSource.Token);
         }
     }
 }
