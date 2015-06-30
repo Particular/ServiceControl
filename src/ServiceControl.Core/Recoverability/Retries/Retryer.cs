@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Linq.Expressions;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.IdGeneration;
     using Raven.Client;
@@ -18,6 +19,9 @@
         public IDocumentStore Store { get; set; }
         public RetryDocumentManager RetryDocumentManager { get; set; }
 
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        ManualResetEventSlim startupCompleted = new ManualResetEventSlim(false);
+
         public void StartRetryForIndex<TIndex>(Expression<Func<MessageFailureHistory, bool>> configure = null) where TIndex : AbstractIndexCreationTask, new()
         {
             var indexName = new TIndex().IndexName;
@@ -26,10 +30,12 @@
 
         void StartRetryForIndex(string indexName, Expression<Func<MessageFailureHistory, bool>> configure)
         {
-            Task.Factory.StartNew(() => CreateAndStageRetriesForIndex(indexName, configure));
+            Task.Factory.StartNew(
+                () => CreateAndStageRetriesForIndex(indexName, configure, cancellationTokenSource.Token)
+                , cancellationTokenSource.Token);
         }
 
-        void CreateAndStageRetriesForIndex(string indexName, Expression<Func<MessageFailureHistory, bool>> configure)
+        void CreateAndStageRetriesForIndex(string indexName, Expression<Func<MessageFailureHistory, bool>> configure, CancellationToken token)
         {
             using (var session = Store.OpenSession())
             {
@@ -40,11 +46,17 @@
                     qry = qry.Where(configure);
                 }
 
+                startupCompleted.Wait(token);
+
                 var page = 0;
                 var skippedResults = 0;
 
                 while (true)
                 {
+                    if (token.IsCancellationRequested)
+                    {
+                        return;
+                    }
                     RavenQueryStatistics stats;
                     var ids = qry.Statistics(out stats)
                                 .Skip(page * PageSize + skippedResults)
@@ -80,6 +92,18 @@
             Parallel.ForEach(messageIds, id => failureRetryIds.Add(RetryDocumentManager.MakeFailureRetryDocument(batchDocumentId, id)));
 
             RetryDocumentManager.MoveBatchToStaging(batchDocumentId, failureRetryIds.ToArray());
+        }
+
+        internal void Start()
+        {
+            RetryDocumentManager.AdoptOrphanedBatches();
+            startupCompleted.Set();
+        }
+
+        internal void Stop()
+        {
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Dispose();
         }
     }
 }

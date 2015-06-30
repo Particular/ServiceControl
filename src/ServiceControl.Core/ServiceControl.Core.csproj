@@ -228,6 +228,7 @@
     <Compile Include="Recoverability\Retries\RetryBatchStatus.cs" />
     <Compile Include="Recoverability\Retries\Retryer.cs" />
     <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
+    <Compile Include="Recoverability\Retries\RetryStartupAndShutdownTasks.cs" />
     <Compile Include="Recoverability\Retries\ReturnToSenderDequeuer.cs" />
     <Compile Include="TransportMessageExtensions.cs" />
   </ItemGroup>

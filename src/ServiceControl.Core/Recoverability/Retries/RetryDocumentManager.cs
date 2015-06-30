@@ -2,8 +2,10 @@ namespace ServiceControl.Recoverability.Retries
 {
     using System;
     using System.Collections;
+    using System.Linq;
     using Raven.Abstractions.Data;
     using Raven.Client;
+    using Raven.Client.Linq;
     using Raven.Json.Linq;
     using ServiceControl.MessageFailures;
 
@@ -79,6 +81,29 @@ namespace ServiceControl.Recoverability.Retries
                         Value = new RavenJArray((IEnumerable)retryFailureIds)
                     }
                 });
+        }
+
+        public void AdoptOrphanedBatches()
+        {
+            using (var session = Store.OpenSession())
+            {
+                var batches = session.Query<RetryBatch>()
+                    .Customize(q => q.WaitForNonStaleResultsAsOfNow())
+                    .Where(b => b.Status == RetryBatchStatus.MarkingDocuments)
+                    .ToArray();
+
+                foreach (var batch in batches)
+                {
+                    var batchId = batch.Id;
+                    var retryFailureIds = session.Query<MessageFailureRetry>()
+                        .Customize(q => q.WaitForNonStaleResultsAsOfNow())
+                        .Where(r => r.RetryBatchId == batchId)
+                        .Select(r => r.Id)
+                        .ToArray();
+
+                    MoveBatchToStaging(batch.Id, retryFailureIds);
+                }
+            }
         }
     }
 }

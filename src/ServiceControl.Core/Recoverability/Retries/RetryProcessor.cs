@@ -27,9 +27,7 @@
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        bool executedStartupTasks;
-
-        public RetryProcessor(IDocumentStore store, NoopDequeuer noopDequeuer, ReturnToSenderDequeuer returnToSenderDequeuer, ISendMessages sender, IBodyStorage bodyStorage, RetryDocumentManager retryDocumentManager)
+        public RetryProcessor(IDocumentStore store, NoopDequeuer noopDequeuer, ReturnToSenderDequeuer returnToSenderDequeuer, ISendMessages sender, IBodyStorage bodyStorage)
         {
             executor = new PeriodicExecutor(Process, TimeSpan.FromSeconds(30));
             this.store = store;
@@ -37,7 +35,6 @@
             this.returnToSenderDequeuer = returnToSenderDequeuer;
             this.sender = sender;
             this.bodyStorage = bodyStorage;
-            this.retryDocumentManager = retryDocumentManager;
         }
 
         public void Dispose()
@@ -57,12 +54,6 @@
 
         void Process(PeriodicExecutor e)
         {
-            if (!executedStartupTasks)
-            {
-                AdoptOrphanedBatches();
-                executedStartupTasks = true;
-            }
-
             string batchesProcessed = null;
             do
             {
@@ -72,28 +63,6 @@
                     session.SaveChanges();
                 }
             } while (batchesProcessed != null && !e.IsCancellationRequested);
-        }
-
-        void AdoptOrphanedBatches()
-        {
-            using (var session = store.OpenSession())
-            {
-                var batches = session.Query<RetryBatch>()
-                    .Customize(q => q.WaitForNonStaleResultsAsOfNow())
-                    .Where(b => b.Status == RetryBatchStatus.MarkingDocuments)
-                    .ToArray();
-
-                foreach (var batch in batches)
-                {
-                    var retryFailureIds = session.Query<MessageFailureRetry>()
-                        .Customize(q => q.WaitForNonStaleResultsAsOfNow())
-                        .Where(r => r.RetryBatchId == batch.Id)
-                        .Select(r => r.Id)
-                        .ToArray();
-
-                    retryDocumentManager.MoveBatchToStaging(batch.Id, retryFailureIds);
-                }
-            }
         }
 
         string ProcessBatches(IDocumentSession session, string batchId)
@@ -216,6 +185,5 @@
         readonly ISendMessages sender;
         PeriodicExecutor executor;
         IDocumentStore store;
-        RetryDocumentManager retryDocumentManager;
     }
 }
