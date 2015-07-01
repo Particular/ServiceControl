@@ -80,6 +80,7 @@
     <Compile Include="Messages\Operations\FailureDetails.cs" />
     <Compile Include="Messages\Operations\MessageStatus.cs" />
     <Compile Include="Messages\Operations\PhysicalMessage.cs" />
+    <Compile Include="Messages\Recoverability\MessagesSubmittedForRetry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Messages\EventLog\Severity.cs" />
   </ItemGroup>

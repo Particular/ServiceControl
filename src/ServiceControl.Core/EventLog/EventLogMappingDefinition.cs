@@ -27,7 +27,9 @@
                 Description = descriptionFunc(eventMessage),
                 Severity = severityFunc(eventMessage),
                 EventType = typeof(T).Name,
-                RelatedTo = relatedToLinks.Select(f => f(eventMessage)).ToList()
+                RelatedTo = relatedToLinks.Select(f => f(eventMessage))
+                                        .Union(relatedToMultiLinks.SelectMany(f => f(eventMessage)))
+                                        .ToList()
             };
 
 
@@ -47,6 +49,11 @@
         protected void RelatesToMessage(Func<T, string> relatedTo)
         {
             relatedToLinks.Add(m => string.Format("/message/{0}", relatedTo(m)));
+        }
+
+        protected void RelatesToMessages(Func<T, IEnumerable<string>> relatedTo)
+        {
+            relatedToMultiLinks.Add(m => relatedTo(m).Select(x => string.Format("/message/{0}", x)));
         }
 
 
@@ -90,6 +97,7 @@
             severityFunc = severity;
         }
 
+        readonly List<Func<T, IEnumerable<string>>> relatedToMultiLinks = new List<Func<T, IEnumerable<string>>>(); 
         readonly List<Func<T, string>> relatedToLinks = new List<Func<T,string>>();
         Func<T, string> descriptionFunc = m =>  m.ToString();
         Func<T, Severity> severityFunc = arg => EventLog.Severity.Info;

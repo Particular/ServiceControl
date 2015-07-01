@@ -8,6 +8,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Transports;
     using Raven.Client;
+    using ServiceControl.InternalContracts.Messages.Recoverability;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Shell.Api;
@@ -27,7 +28,7 @@
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(IDocumentStore store, NoopDequeuer noopDequeuer, ReturnToSenderDequeuer returnToSenderDequeuer, ISendMessages sender, IBodyStorage bodyStorage)
+        public RetryProcessor(IDocumentStore store, NoopDequeuer noopDequeuer, ReturnToSenderDequeuer returnToSenderDequeuer, ISendMessages sender, IBodyStorage bodyStorage, IBus bus)
         {
             executor = new PeriodicExecutor(Process, TimeSpan.FromSeconds(30));
             this.store = store;
@@ -35,6 +36,7 @@
             this.returnToSenderDequeuer = returnToSenderDequeuer;
             this.sender = sender;
             this.bodyStorage = bodyStorage;
+            this.bus = bus;
         }
 
         public void Dispose()
@@ -113,6 +115,8 @@
                 StageMessage(message);
             }
 
+            bus.Publish<MessagesSubmittedForRetry>(m => m.FailedMessageIds = messages.Select(x => x.UniqueMessageId).ToArray());
+
             batch.Status = RetryBatchStatus.Forwarding;
 
             Log.InfoFormat("Retry batch {0} staged", batch.Id);
@@ -181,6 +185,7 @@
         readonly ISendMessages sender;
         PeriodicExecutor executor;
         IDocumentStore store;
+        IBus bus;
     }
 
     public class RetryBatchNowForwarding

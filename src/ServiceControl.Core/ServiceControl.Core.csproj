@@ -118,6 +118,7 @@
     <Compile Include="EventLog\Definitions\KnownEndpointUpdatedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailureResolvedByRetryDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\NewEndpointDetectedDefinition.cs" />
     <Compile Include="EventLog\EventLogApiModule.cs" />
