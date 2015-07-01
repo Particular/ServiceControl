@@ -28,7 +28,7 @@
             Post["/recoverability/groups/{groupId}/errors/archive"] =
                 parameters => ArchiveAllInGroup(parameters.groupId);
 
-            Post["/recoverability/groups/{groupId}/errors/retryAll"] =
+            Post["/recoverability/groups/{groupId}/errors/retry"] =
                 parameters => RetryAllInGroup(parameters.groupId);
         }
 
