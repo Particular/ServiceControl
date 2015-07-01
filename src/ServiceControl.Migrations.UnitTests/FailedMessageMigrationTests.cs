@@ -29,7 +29,7 @@ namespace ServiceControl.Migrations.UnitTests
             store.WaitForIndexing();
             // TODO: Good way to set the settings
             var expiryThreshold = TimeSpan.FromDays(50 * 365);
-            var migration = new FailedMessageMigration();
+            var migration = new FailedMessageMigrationEx();
             migration.Setup(store);
             migration.Up().Wait();
         }

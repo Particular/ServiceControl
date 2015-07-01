@@ -7,7 +7,7 @@ namespace ServiceControl.Migrations
     using ServiceBus.Management.Infrastructure.Settings;
 
     [Migration(executionOrder: 201507011435)]
-    public class FailedMessageMigration : Migration
+    public class FailedMessageMigrationEx : Migration
     {
         public override async Task Up()
         {
@@ -54,7 +54,7 @@ var historyConverter = function($doc)
                     'Raven-Clr-Type' : 'ServiceControl.MessageFailures.MessageFailureHistory, ServiceControl'
                 }
     );
-}
+};
 historyConverter(this);
 
 var snapshotConverter = function($doc, $expiry)
@@ -65,7 +65,32 @@ var snapshotConverter = function($doc, $expiry)
         PutDocument('AuditMessageSnapshots/' + $doc.UniqueMessageId,
                     { 
                         'AttemptedAt' : lastAttempt.AttemptedAt,
-                        'ProcessedAt' : lastAttempt.AttemptedAt
+                        'ProcessedAt' : lastAttempt.AttemptedAt,
+                        'ConversationId' : lastAttempt.CorrelationId,
+                        'IsSystemMessage' : lastAttempt.MessageMetadata['IsSystemMessage'],
+                        'MessageType' : lastAttempt.MessageMetadata['MessageType'],
+                        'Body' : {
+                            '$type' : 'Particular.Backend.Debugging.BodyInformation, Particular.Backend.Debugging',
+                            'BodyUrl' : lastAttempt.MessageMetadata['BodyUrl'],
+                            'ContentType' : lastAttempt.MessageMetadata['ContentType'],
+                            'ContentLength' : lastAttempt.MessageMetadata['ContentLength'],
+                            'Text' : lastAttempt.MessageMetadata['Body']
+                        },
+                        'MessageIntent' : lastAttempt.MessageIntent,
+                        'Processing' : {
+                            '$type' : 'Particular.Backend.Debugging.ProcessingStatistics, Particular.Backend.Debugging',
+                            'TimeSent' : lastAttempt.MessageMetadata['TimeSent'],
+                            'CriticalTime' : lastAttempt.MessageMetadata['CriticalTime'],
+                            'DeliveryTime' : lastAttempt.MessageMetadata['DeliveryTime'],
+                            'ProcessingTime' : lastAttempt.MessageMetadata['ProcessingTime']
+                        },
+                        'ReceivingEndpoint' : lastAttempt.MessageMetadata['ReceivingEndpoint'],
+                        'SendingEndpoint' : lastAttempt.MessageMetadata['SendingEndpoint'],
+                        'HeadersForSearching' : lastAttempt.MessageMetadata['HeadersForSearching'],
+                        'MessageId' : lastAttempt.MessageId,
+                        'UniqueMessageId' : $doc.UniqueMessageId,
+                        'Status' : 1,
+                        'Headers' : lastAttempt.Headers
                     }, 
                     { 
                         'Raven-Entity-Name' : 'AuditMessageSnapshot',
@@ -73,7 +98,7 @@ var snapshotConverter = function($doc, $expiry)
                     }
         );
     }
-}
+};
 snapshotConverter(this, '" + SystemTime.UtcNow.Add(-TimeSpan.FromHours(Settings.HoursToKeepMessagesBeforeExpiring)) + "');"
                 }
                 , allowStale: true);
