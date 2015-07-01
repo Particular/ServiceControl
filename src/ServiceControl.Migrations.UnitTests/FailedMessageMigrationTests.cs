@@ -27,9 +27,11 @@ namespace ServiceControl.Migrations.UnitTests
             store.DatabaseCommands.Put("FailedMessages/474ca846-1f38-24db-3cf8-a147632de5ab", Etag.Empty, RavenJObject.Parse(OldFailedMessageDocument), metadata);
 
             store.WaitForIndexing();
+            // TODO: Good way to set the settings
             var expiryThreshold = TimeSpan.FromDays(50 * 365);
-            var wasCleanEmptyRun = new FailedMessageMigration(store, expiryThreshold).Migrate(() => false);
-            Assert.IsFalse(wasCleanEmptyRun);
+            var migration = new FailedMessageMigration();
+            migration.Setup(store);
+            migration.Up().Wait();
         }
 
         [TearDown]

@@ -69,7 +69,6 @@
     <Compile Include="Infrastructure\RavenMigrationHelpers.cs" />
     <Compile Include="Infrastructure\Runner.cs" />
     <Compile Include="ProcessedMessageMigration.cs" />
-    <Compile Include="FailedMessageToMessageFailureHistoryConverter.cs" />
     <Compile Include="ExpiredDocumentMigration.cs" />
     <Compile Include="FailedMessageToMessageSnapshotDocumentConverter.cs" />
     <Compile Include="FailedMessageMigration.cs" />

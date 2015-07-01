@@ -1,38 +1,82 @@
 namespace ServiceControl.Migrations
 {
     using System;
-    using Raven.Client;
+    using System.Threading.Tasks;
+    using Raven.Abstractions;
+    using Raven.Abstractions.Data;
+    using ServiceBus.Management.Infrastructure.Settings;
 
-    public class FailedMessageMigration : ExpiredDocumentMigration<FailedMessage>
+    [Migration(executionOrder: 201507011435)]
+    public class FailedMessageMigration : Migration
     {
-        readonly FailedMessageToMessageFailureHistoryConverter historyConverter = new FailedMessageToMessageFailureHistoryConverter();
-        readonly FailedMessageToMessageSnapshotDocumentConverter snapshotConverter = new FailedMessageToMessageSnapshotDocumentConverter();
-
-        public FailedMessageMigration(IDocumentStore store) 
-            : base(store)
+        public override async Task Up()
         {
-        }
+            await DocumentStore.AsyncDatabaseCommands.UpdateByIndex(
+                "Raven/DocumentsByEntityName",
+                new IndexQuery
+                {
+                    Query = "Tag:FailedMessages"
+                },
+                new ScriptedPatchRequest()
+                {
+                    Script = @"
+var historyConverter = function($doc) 
+{
+    var attempts = [];
+    
+    _($doc.ProcessingAttempts).forEach(function(attempt){
+        attempts.push({
+            'FailureDetails' : attempt.FailureDetails,
+            'CorrelationId' : attempt.CorrelationId,
+            'AttemptedAt' : attempt.AttemptedAt,
+            'MessageId' : attempt.MessageId,
+            'Headers' : attempt.Headers,
+            'ReplyToAddress' : attempt.ReplyToAddress,
+            'Recoverable' : attempt.Recoverable,
+            'MessageIntent' : attempt.MessageIntent,
+            'SendingEndpoint' : attempt.MessageMetadata['SendingEndpoint'],
+            'ProcessingEndpoint' : attempt.MessageMetadata['ReceivingEndpoint'],
+            'ContentType' : attempt.MessageMetadata['ContentType'],
+            'IsSystemMessage' : attempt.MessageMetadata['IsSystemMessage'],
+            'MessageType' : attempt.MessageMetadata['MessageType'],
+            'TimeSent' : attempt.MessageMetadata['TimeSent']   
+        });
+    });
+    
+    PutDocument('MessageFailureHistories/' + $doc.UniqueMessageId,
+                { 
+                    'Status' : $doc.Status,
+                    'UniqueMessageId' : $doc.UniqueMessageId,
+                    'ProcessingAttempts' : attempts 
+                }, 
+                { 
+                    'Raven-Entity-Name' : 'MessageFailureHistories',
+                    'Raven-Clr-Type' : 'ServiceControl.MessageFailures.MessageFailureHistory, ServiceControl'
+                }
+    );
+}
+historyConverter(this);
 
-        public FailedMessageMigration(IDocumentStore store, TimeSpan timeToKeepMessagesBeforeExpiring) 
-            : base(store, timeToKeepMessagesBeforeExpiring)
-        {
-        }
-
-        protected override string EntityName
-        {
-            get { return "FailedMessages"; }
-        }
-
-        protected override void Migrate(FailedMessage document, IDocumentSession updateSession, DateTime expiryDate, Func<bool> shouldCancel)
-        {
-            var historyDoc = historyConverter.Convert(document);
-            updateSession.Store(historyDoc);
-
-            var snapshotDoc = snapshotConverter.Convert(document);
-            if (snapshotDoc.AttemptedAt > expiryDate)
-            {
-                updateSession.Store(snapshotDoc);
-            }
+var snapshotConverter = function($doc, $expiry)
+{
+    var lastAttempt = $doc.ProcessingAttempts[$doc.ProcessingAttempts.length - 1];
+    if(Date.parse(lastAttempt.AttemptedAt) > Date.parse($expiry))
+    {
+        PutDocument('AuditMessageSnapshots/' + $doc.UniqueMessageId,
+                    { 
+                        'AttemptedAt' : lastAttempt.AttemptedAt,
+                        'ProcessedAt' : lastAttempt.AttemptedAt
+                    }, 
+                    { 
+                        'Raven-Entity-Name' : 'AuditMessageSnapshot',
+                        'Raven-Clr-Type' : ' Particular.Backend.Debugging.RavenDB.Model,  Particular.Backend.Debugging.RavenDB'
+                    }
+        );
+    }
+}
+snapshotConverter(this, '" + SystemTime.UtcNow.Add(-TimeSpan.FromHours(Settings.HoursToKeepMessagesBeforeExpiring)) + "');"
+                }
+                , allowStale: true);
         }
     }
 }
