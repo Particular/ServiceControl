@@ -20,55 +20,35 @@
             Assert.AreEqual("migrations-first-migration-1", new First_Migration().GetMigrationIdFromName(seperator: '-'));
         }
 
-        //[Test]
-        //public void Document_id_prefix_is_raven_migrations()
-        //{
-        //    RavenMigrationHelpers.RavenMigrationsIdPrefix.Should().Be("ravenmigrations");
-        //}
+        [Test]
+        public void Can_get_migration_id_from_migration()
+        {
+            var id = new First_Migration().GetMigrationIdFromName();
+            Assert.AreEqual("migrations/first/migration/1", id);
+        }
 
-        //[Test]
-        //public void Can_get_migration_id_from_migration()
-        //{
-        //    var id = new First_Migration().GetMigrationIdFromName();
-        //    id.Should().Be("ravenmigrations/first/migration/1");
-        //}
+        [Test]
+        public void Can_get_migration_id_from_migration_and_correct_leading_or_multiple_underscores()
+        {
+            var id = new _has_problems__with_underscores___().GetMigrationIdFromName();
+            Assert.AreEqual("migrations/has/problems/with/underscores/5", id);
+        }
 
-        //[Test]
-        //public void Can_get_migration_id_from_migration_and_correct_leading_or_multiple_underscores()
-        //{
-        //    var id = new _has_problems__with_underscores___().GetMigrationIdFromName();
-        //    id.Should().Be("ravenmigrations/has/problems/with/underscores/5");
-        //}
+        [Test]
+        public void Can_get_migration_attribute_from_migration_type()
+        {
+            var attribute = typeof(First_Migration).GetMigrationAttribute();
 
-        //[Test]
-        //public void Can_get_migration_attribute_from_migration_type()
-        //{
-        //    var attribute = typeof(First_Migration).GetMigrationAttribute();
-        //    attribute.Should().NotBeNull();
-        //    attribute.Version.Should().Be(1);
-        //}
+            Assert.NotNull(attribute);
+            Assert.AreEqual(1, attribute.ExecutionOrder);
+        }
 
-        //[Test]
-        //public void Default_migration_direction_is_up()
-        //{
-        //    var options = new MigrationOptions();
-        //    options.Direction.Should().Be(Directions.Up);
-        //}
-
-        //[Test]
-        //public void Default_resolver_should_be_DefaultMigrationResolver()
-        //{
-        //    var options = new MigrationOptions();
-        //    options.MigrationResolver.Should().NotBeNull();
-        //    options.MigrationResolver.Should().BeOfType<DefaultMigrationResolver>();
-        //}
-
-        //[Test]
-        //public void Default_migration_resolver_can_instantiate_a_migration()
-        //{
-        //    var migration = new DefaultMigrationResolver().Resolve(typeof(First_Migration));
-        //    migration.Should().NotBeNull();
-        //}
+        [Test]
+        public void Default_migration_resolver_can_instantiate_a_migration()
+        {
+            var migration = new MigrationOptions().MigrationResolver.Resolve(typeof(First_Migration));
+            Assert.IsInstanceOf<First_Migration>(migration);
+        }
 
         [Test]
         public async Task Can_run_an_up_migration_against_a_document_store()

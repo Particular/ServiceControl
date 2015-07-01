@@ -10,8 +10,6 @@
     using Raven.Client;
     using ServiceControl.Shell.Api;
 
-    // Migration could be marked as transactional and when it fails it should not run again
-
     public abstract class Migration<T> : IWantToRunWhenBusStartsAndStops, IDisposable
     {
         readonly ILog logger;
