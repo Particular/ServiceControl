@@ -118,6 +118,7 @@
     <Compile Include="EventLog\Definitions\KnownEndpointUpdatedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailureResolvedByRetryDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\NewEndpointDetectedDefinition.cs" />
     <Compile Include="EventLog\EventLogApiModule.cs" />
@@ -139,8 +140,12 @@
     <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
     <Compile Include="ExternalIntegrations\NewFailureGroupDetectedPublisher.cs" />
+    <Compile Include="MessageFailures\Handlers\RetryMessagesByIdHandler.cs" />
     <Compile Include="MessageFailures\IEnrichMessageFailureHistory.cs" />
+    <Compile Include="MessageFailures\InternalMessages\RetryMessagesById.cs" />
+    <Compile Include="MessageFailures\ImportFailedMessageHandler.cs" />
     <Compile Include="MessageFailures\ProcessingAttemptMessageFailureHistoryEnricher.cs" />
+    <Compile Include="MessageFailures\RegisterSuccessfulRetryHandlerForBackwardsCompatibility.cs" />
     <Compile Include="Recoverability\Groups\ApiModule.cs" />
     <Compile Include="Recoverability\Groups\Archive\ArchiveAllInGroup.cs" />
     <Compile Include="Recoverability\Groups\Archive\ArchiveAllInGroupHandler.cs" />
@@ -212,6 +217,20 @@
     <Compile Include="Operations\LicenseStatusKeeper.cs" />
     <Compile Include="Operations\LicenseStatusMessageProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Recoverability\Groups\Retry\RetryAllInGroup.cs" />
+    <Compile Include="Recoverability\Groups\Retry\RetryGroupHandler.cs" />
+    <Compile Include="Recoverability\Retries\MessageFailureRetry.cs" />
+    <Compile Include="Recoverability\Retries\DequeueMessagesWrapper.cs" />
+    <Compile Include="Recoverability\Retries\NoopDequeuer.cs" />
+    <Compile Include="Recoverability\Retries\AdvancedDequeuer.cs" />
+    <Compile Include="Recoverability\Retries\Retries.cs" />
+    <Compile Include="Recoverability\Retries\RetryBatch.cs" />
+    <Compile Include="Recoverability\Retries\RetryDocumentManager.cs" />
+    <Compile Include="Recoverability\Retries\RetryBatchStatus.cs" />
+    <Compile Include="Recoverability\Retries\Retryer.cs" />
+    <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
+    <Compile Include="Recoverability\Retries\RetryStartupAndShutdownTasks.cs" />
+    <Compile Include="Recoverability\Retries\ReturnToSenderDequeuer.cs" />
     <Compile Include="TransportMessageExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

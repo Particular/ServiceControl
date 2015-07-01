@@ -13,6 +13,7 @@
     using ServiceControl.Infrastructure.Extensions;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using ServiceControl.Recoverability.Groups.Retry;
 
     public class ApiModule : BaseModule
     {
@@ -26,6 +27,9 @@
 
             Post["/recoverability/groups/{groupId}/errors/archive"] =
                 parameters => ArchiveAllInGroup(parameters.groupId);
+
+            Post["/recoverability/groups/{groupId}/errors/retry"] =
+                parameters => RetryAllInGroup(parameters.groupId);
         }
 
         dynamic GetAllGroups()
@@ -69,6 +73,21 @@
             }
 
             Bus.SendLocal(new ArchiveAllInGroup
+            {
+                GroupId = groupId
+            });
+
+            return HttpStatusCode.Accepted;
+        }
+
+        dynamic RetryAllInGroup(string groupId)
+        {
+            if (String.IsNullOrWhiteSpace(groupId))
+            {
+                return HttpStatusCode.BadRequest;
+            }
+
+            Bus.SendLocal(new RetryAllInGroup
             {
                 GroupId = groupId
             });

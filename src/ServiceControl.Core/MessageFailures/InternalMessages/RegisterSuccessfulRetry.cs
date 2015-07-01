@@ -7,5 +7,6 @@
     {
         public string FailedMessageId { get; set; }
         public Guid RetryId { get; set; }
+        public string FailedMessageType { get; set; }
     }
 }
