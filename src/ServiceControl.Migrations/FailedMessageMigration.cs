@@ -5,10 +5,25 @@ namespace ServiceControl.Migrations
     using Raven.Abstractions;
     using Raven.Abstractions.Data;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Contracts.Operations;
+    using ServiceControl.MessageFailures;
 
     [Migration(executionOrder: 201507011435)]
-    public class FailedMessageMigrationEx : Migration
+    public class FailedMessageMigration : Migration
     {
+        readonly DateTime expiryThreshold;
+
+        public FailedMessageMigration()
+            : this(TimeSpan.FromHours(Settings.HoursToKeepMessagesBeforeExpiring))
+        {
+        }
+
+
+        public FailedMessageMigration(TimeSpan timeToKeepMessagesBeforeExpiring)
+        {
+            expiryThreshold = SystemTime.UtcNow.Add(-timeToKeepMessagesBeforeExpiring);
+        }
+
         public override async Task Up()
         {
             await DocumentStore.AsyncDatabaseCommands.UpdateByIndex(
@@ -94,14 +109,27 @@ var snapshotConverter = function($doc, $expiry)
                     }, 
                     { 
                         'Raven-Entity-Name' : 'AuditMessageSnapshot',
-                        'Raven-Clr-Type' : ' Particular.Backend.Debugging.RavenDB.Model,  Particular.Backend.Debugging.RavenDB'
+                        'Raven-Clr-Type' : ' Particular.Backend.Debugging.RavenDB.Model.MessageSnapshotDocument,  Particular.Backend.Debugging.RavenDB'
                     }
         );
     }
 };
-snapshotConverter(this, '" + SystemTime.UtcNow.Add(-TimeSpan.FromHours(Settings.HoursToKeepMessagesBeforeExpiring)) + "');"
+snapshotConverter(this, '" + expiryThreshold + "');"
                 }
                 , allowStale: true);
+        }
+
+        MessageStatus ConvertStatus(FailedMessageStatus status)
+        {
+            switch (status)
+            {
+                case FailedMessageStatus.Archived:
+                    return MessageStatus.ArchivedFailure;
+                case FailedMessageStatus.Resolved:
+                    return MessageStatus.ResolvedSuccessfully;
+                default:
+                    return MessageStatus.Failed;
+            }
         }
     }
 }
