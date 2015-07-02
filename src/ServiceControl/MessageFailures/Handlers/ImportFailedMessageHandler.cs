@@ -1,13 +1,16 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
+    using System.Collections.Generic;
     using System.Linq;
-    using Contracts.Operations;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Contracts.Operations;
 
     class ImportFailedMessageHandler : IHandleMessages<ImportFailedMessage>
     {
         public IDocumentSession Session { get; set; }
+        
+        public IEnumerable<IFailedMessageEnricher> Enrichers { get; set; } 
 
         public void Handle(ImportFailedMessage message)
         {
@@ -41,6 +44,11 @@
                 CorrelationId = message.PhysicalMessage.CorrelationId,
                 MessageIntent = message.PhysicalMessage.MessageIntent,
             });
+
+            foreach (var enricher in Enrichers)
+            {
+                enricher.Enrich(failure, message);
+            }
 
             Session.Store(failure);
         }
