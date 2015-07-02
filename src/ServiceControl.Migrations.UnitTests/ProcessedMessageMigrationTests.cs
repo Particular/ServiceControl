@@ -29,7 +29,7 @@ namespace ServiceControl.Migrations.UnitTests
             var expiryThreshold = TimeSpan.FromDays(50 * 365);
             var migration = new ProcessedMessageMigration(expiryThreshold);
             migration.Setup(store);
-            migration.Up().Wait();
+            migration.UpAsync().Wait();
         }
 
         [TearDown]

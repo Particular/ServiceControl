@@ -130,7 +130,7 @@
     [Migration(executionOrder: 1)]
     public class First_Migration : Migration
     {
-        public override async Task Up()
+        protected override async Task UpAsyncInternal()
         {
             using (var session = DocumentStore.OpenAsyncSession())
             {
@@ -143,7 +143,7 @@
     [Migration(executionOrder: 1)]
     public class AnotherMigrationWhichRunsInParallelToFirst_Migration : Migration
     {
-        public override async Task Up()
+        protected override async Task UpAsyncInternal()
         {
             using (var session = DocumentStore.OpenAsyncSession())
             {
@@ -156,7 +156,7 @@
     [Migration(executionOrder: 2)]
     public class Second_Migration : Migration
     {
-        public override async Task Up()
+        protected override async Task UpAsyncInternal()
         {
             using (var session = DocumentStore.OpenAsyncSession())
             {
@@ -169,7 +169,7 @@
     [Migration(executionOrder: 4)]
     public class Subclass_of_BaseMigration : BaseMigration
     {
-        public override async Task Up()
+        protected override async Task UpAsyncInternal()
         {
             using (var session = DocumentStore.OpenAsyncSession())
             {
@@ -182,7 +182,7 @@
     [Migration(5)]
     public class _has_problems__with_underscores___ : Migration
     {
-        public override Task Up()
+        protected override Task UpAsyncInternal()
         {
             return Task.FromResult(true);
         }

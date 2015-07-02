@@ -21,7 +21,7 @@ namespace ServiceControl.Migrations
             expiryThreshold = SystemTime.UtcNow.Add(-timeToKeepMessagesBeforeExpiring);
         }
 
-        public override async Task Up()
+        protected override async Task UpAsyncInternal()
         {
             await DocumentStore.AsyncDatabaseCommands.UpdateByIndex(
                 "Raven/DocumentsByEntityName",

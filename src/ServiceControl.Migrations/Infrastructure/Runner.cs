@@ -39,7 +39,7 @@ namespace ServiceControl.Migrations
                             return;
                         }
 
-                        await m.Up();
+                        await m.UpAsync();
                         await session.StoreAsync(new MigrationDocument
                         {
                             Id = migrationId
