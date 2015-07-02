@@ -5,7 +5,7 @@
     using Particular.Operations.Ingestion.Api;
     using ServiceControl.Contracts.Operations;
 
-    public class ProcessingAttemptMessageFailureHistoryEnricher : IEnrichMessageFailureHistory
+    public class ProcessingAttemptMessageFailureHistoryEnricher
     {
         public void Enrich(MessageFailureHistory history, IngestedMessage actualMessage, FailureDetails failureDetails)
         {

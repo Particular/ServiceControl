@@ -10,22 +10,23 @@
     using Raven.Client;
     using ServiceControl.MessageFailures.InternalMessages;
     using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Recoverability.Groups;
 
     class FailedMessageImporter : IProcessFailedMessages
     {
         readonly IBus bus;
+        readonly ProcessingAttemptMessageFailureHistoryEnricher processingAttemptEnricher;
+        readonly MessageFailureHistoryGrouper grouper;
         readonly IDocumentStore documentStore;
         readonly IBodyStorage morgue;
-
-        public IEnumerable<IEnrichMessageFailureHistory> MessageFailureEnrichers { get; set; }
-
-        public FailedMessageImporter(IDocumentStore documentStore, IBodyStorage morgue, IBus bus)
+        
+        public FailedMessageImporter(IDocumentStore documentStore, IBodyStorage morgue, IBus bus, ProcessingAttemptMessageFailureHistoryEnricher processingAttemptEnricher, MessageFailureHistoryGrouper grouper)
         {
             this.documentStore = documentStore;
             this.morgue = morgue;
             this.bus = bus;
-
-            MessageFailureEnrichers = Enumerable.Empty<IEnrichMessageFailureHistory>();
+            this.processingAttemptEnricher = processingAttemptEnricher;
+            this.grouper = grouper;
         }
 
         public void ProcessFailed(IngestedMessage message)
@@ -53,9 +54,9 @@
                     return;
                 }
 
-                foreach(var enricher in MessageFailureEnrichers)
-                    enricher.Enrich(failure, message, details);
-
+                processingAttemptEnricher.Enrich(failure, message, details);
+                grouper.Group(failure);
+                
                 session.Store(failure);
                 session.SaveChanges();
 

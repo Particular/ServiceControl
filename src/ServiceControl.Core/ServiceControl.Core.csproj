@@ -139,7 +139,6 @@
     <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
     <Compile Include="ExternalIntegrations\NewFailureGroupDetectedPublisher.cs" />
-    <Compile Include="MessageFailures\IEnrichMessageFailureHistory.cs" />
     <Compile Include="MessageFailures\ProcessingAttemptMessageFailureHistoryEnricher.cs" />
     <Compile Include="Recoverability\Groups\ApiModule.cs" />
     <Compile Include="Recoverability\Groups\Archive\ArchiveAllInGroup.cs" />
@@ -155,13 +154,14 @@
     <Compile Include="Recoverability\Groups\Groupers\SHA1HashGroupIdGenerator.cs" />
     <Compile Include="Recoverability\Groups\Groupers\IGroupIdGenerator.cs" />
     <Compile Include="Recoverability\Groups\Indexes\FailureGroupsIndex.cs" />
+    <Compile Include="Recoverability\Groups\Indexes\MessageFailuresWithoutFailureGroupsIndex.cs" />
     <Compile Include="Recoverability\Groups\Indexes\MessageFailuresByFailureGroupsIndex.cs" />
     <Compile Include="Recoverability\Groups\FailuresGroupsFeature.cs" />
     <Compile Include="Recoverability\Groups\FailureGroup.cs" />
     <Compile Include="Recoverability\Groups\Groupers\IFailedMessageGrouper.cs" />
     <Compile Include="Recoverability\Groups\Groupers\ExceptionTypeAndStackTraceMessageGrouper.cs" />
     <Compile Include="Recoverability\Groups\Groupers\StackTraceParser.cs" />
-    <Compile Include="Recoverability\Groups\FailureGroupHistoryEnricher.cs" />
+    <Compile Include="Recoverability\Groups\MessageFailureHistoryGrouper.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatingEndpoint.cs" />
@@ -212,6 +212,9 @@
     <Compile Include="Operations\LicenseStatusKeeper.cs" />
     <Compile Include="Operations\LicenseStatusMessageProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Recoverability\Groups\OldFailureGrouping\GroupOldFailuresHandler.cs" />
+    <Compile Include="Recoverability\Groups\OldFailureGrouping\GroupOldFailuresKickOff.cs" />
+    <Compile Include="Recoverability\Groups\OldFailureGrouping\GroupOldFailures.cs" />
     <Compile Include="TransportMessageExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -2,27 +2,42 @@
 {
     using System;
     using System.Linq;
-    using Particular.Operations.Ingestion.Api;
-    using ServiceControl.Contracts.Operations;
+    using NServiceBus.Logging;
+    using ServiceControl.MessageFailures;
 
     public class ExceptionTypeAndStackTraceMessageGrouper : IFailedMessageGrouper
     {
+        static readonly ILog Logger = LogManager.GetLogger(typeof(ExceptionTypeAndStackTraceMessageGrouper));
+
         public string GroupType
         {
             get { return "ExceptionTypeAndStackTrace"; }
         }
 
-        public string GetGroupName(IngestedMessage actualMessage, FailureDetails failureDetails)
+        public string GetGroupName(MessageFailureHistory messageFailure)
         {
-            var exception = failureDetails.Exception;
+            var defaultName = GroupType;
+
+            if (messageFailure.ProcessingAttempts == null)
+                return defaultName;
+            
+            var lastAttempt = messageFailure.ProcessingAttempts.Last();
+            if (lastAttempt.FailureDetails == null)
+                return defaultName;
+
+            var exception = lastAttempt.FailureDetails.Exception;
             if (exception == null || String.IsNullOrWhiteSpace(exception.StackTrace))
-                return null;
+                return defaultName;
 
             var firstStackTraceFrame = StackTraceParser.Parse(exception.StackTrace).FirstOrDefault();
             if (firstStackTraceFrame == null)
-                return null;
+                return defaultName;
 
-            return exception.ExceptionType + " was thrown at " + firstStackTraceFrame.ToMethodIdentifier();
+
+            var groupName = exception.ExceptionType + " was thrown at " + firstStackTraceFrame.ToMethodIdentifier();
+            Logger.InfoFormat("Grouped message {0} into group with name {1}.", lastAttempt.MessageId, groupName);
+
+            return groupName;
         }
     }
 }
