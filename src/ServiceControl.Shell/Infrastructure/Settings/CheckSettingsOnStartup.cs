@@ -11,7 +11,7 @@
         {
             if (!ServiceBus.Management.Infrastructure.Settings.Settings.ForwardAuditMessages.HasValue)
             {
-                logger.ErrorFormat("The setting ServiceControl/ForwardAuditMessges is not explicitly set. To suppress this error set ServiceControl/ForwardAuditMessges to true or false.");
+                logger.ErrorFormat("The setting ServiceControl/ForwardAuditMessages is not explicitly set. To suppress this error set ServiceControl/ForwardAuditMessges to true or false.");
             }
         }
 
