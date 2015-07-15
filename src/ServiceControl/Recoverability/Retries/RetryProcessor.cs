@@ -106,7 +106,7 @@ namespace ServiceControl.Recoverability
 
             session.Delete(forwardingBatch);
 
-            Log.InfoFormat("Retry batch {0} done");
+            Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
         }
 
         void Stage(RetryBatch stagingBatch, IDocumentSession session)
@@ -124,7 +124,7 @@ namespace ServiceControl.Recoverability
                 StageMessage(message);
             }
 
-            // TODO: Publish a message on the bus stating that batch has been sent
+            bus.Publish<MessagesSubmittedForRetry>(m => m.FailedMessageIds = messages.Select(x => x.UniqueMessageId).ToArray());
 
             stagingBatch.Status = RetryBatchStatus.Forwarding;
 

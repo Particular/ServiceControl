@@ -21,7 +21,7 @@ namespace ServiceControl.Recoverability
 
         CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-        public void StartRetryForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter) where TIndex : AbstractIndexCreationTask, new()
+        public void StartRetryForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter = null) where TIndex : AbstractIndexCreationTask, new()
         {
             Task.Factory.StartNew(
                 () => CreateAndStageRetriesForIndex<TType, TIndex>(filter, cancellationTokenSource.Token),

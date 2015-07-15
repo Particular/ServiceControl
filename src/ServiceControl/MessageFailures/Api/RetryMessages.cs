@@ -7,6 +7,7 @@
     using Nancy.ModelBinding;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceControl.Recoverability;
 
     public class RetryMessages : BaseModule
     {
@@ -38,12 +39,7 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                foreach (var id in ids)
-                {
-                    var request = new RetryMessage { FailedMessageId = id };
-
-                    Bus.SendLocal(request);    
-                }
+                Bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = ids.ToArray());
 
                 return HttpStatusCode.Accepted;
             };

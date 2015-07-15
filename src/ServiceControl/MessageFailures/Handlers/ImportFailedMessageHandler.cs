@@ -4,11 +4,13 @@
     using System.Linq;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
 
     class ImportFailedMessageHandler : IHandleMessages<ImportFailedMessage>
     {
         public IDocumentSession Session { get; set; }
+        public IBus Bus { get; set; }
         
         public IEnumerable<IFailedMessageEnricher> Enrichers { get; set; } 
 
@@ -51,6 +53,27 @@
             }
 
             Session.Store(failure);
+
+            var failedMessageId = message.GetHeader("ServiceControl.Retry.UniqueMessageId");
+
+            if (failedMessageId != null)
+            {
+                Bus.Publish<MessageFailedRepeatedly>(m =>
+                {
+                    m.FailureDetails = message.FailureDetails;
+                    m.EndpointId = message.FailingEndpointId;
+                    m.FailedMessageId = failedMessageId;
+                });
+            }
+            else
+            {
+                Bus.Publish<MessageFailed>(m =>
+                {
+                    m.FailureDetails = message.FailureDetails;
+                    m.EndpointId = message.FailingEndpointId;
+                    m.FailedMessageId = message.UniqueMessageId;
+                });
+            }
         }
     }
 }
