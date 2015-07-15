@@ -20,7 +20,7 @@ namespace ServiceControl.Recoverability
                 while (stream.MoveNext())
                 {
                     Session.Advanced.DocumentStore.DatabaseCommands.Patch(
-                        FailedMessage.MakeDocumentId(stream.Current.Document.MessageId),
+                        FailedMessage.MakeDocumentId(stream.Current.Document.Id),
                         new[]
                         {
                             new PatchRequest
