@@ -142,6 +142,9 @@
 
             Post["/recoverability/groups/{groupId}/errors/archive"] =
                 parameters => ArchiveGroupErrors(parameters.GroupId);
+
+            Post["/recoverability/groups/{groupId}/errors/retry"] =
+                parameters => RetryAllGroupErrors(parameters.GroupId);
         }
 
         dynamic GetAllGroups()
@@ -183,6 +186,18 @@
             }
 
             Bus.SendLocal<ArchiveAllInGroup>(m => m.GroupId = groupId);
+
+            return HttpStatusCode.Accepted;
+        }
+
+        dynamic RetryAllGroupErrors(string groupId)
+        {
+            if (String.IsNullOrWhiteSpace(groupId))
+            {
+                return HttpStatusCode.BadRequest;
+            }
+
+            Bus.SendLocal<RetryAllInGroup>(m => m.GroupId = groupId);
 
             return HttpStatusCode.Accepted;
         }
@@ -302,7 +317,8 @@
         public void Handle(ArchiveAllInGroup message)
         {
             var query = Session.Query<FailureGroupMessageView, FailedMessages_ByGroup>()
-                .Where(m => m.FailureGroupId == message.GroupId && m.Status == FailedMessageStatus.Unresolved);
+                .Where(m => m.FailureGroupId == message.GroupId && m.Status == FailedMessageStatus.Unresolved)
+                .TransformWith<FailedMessageViewTransformer, FailedMessageView>();
 
             using (var stream = Session.Advanced.Stream(query))
             {
@@ -330,8 +346,25 @@
         public IBus Bus { get; set; }
     }
 
+    public class RetryAllInGroup : ICommand
+    {
+        public string GroupId { get; set; }
+    }
+
+    public class RetryAllInGroupHandler : IHandleMessages<RetryAllInGroup>
+    {
+        public void Handle(RetryAllInGroup message)
+        {
+            if (Retries == null)
+            {
+                return;
+            }
+
+            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(x => x.FailureGroupId == message.GroupId);
+        }
+
+        public RetriesGateway Retries { get; set; }
+    }
+
     // TODO: New Group Detection
-
-    // TODO: Retry Group
-
 }

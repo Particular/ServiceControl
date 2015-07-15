@@ -450,6 +450,7 @@
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
     <Compile Include="Operations\AttemptToReImportFailedMessages.cs" />
     <Compile Include="Recoverability\FailedMessageClassification.cs" />
+    <Compile Include="Recoverability\FailedMessageRetries.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\SagaRelationshipsEnricher.cs" />
     <Compile Include="SagaAudit\ProcessingState.cs" />
