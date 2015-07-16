@@ -52,7 +52,7 @@ namespace ServiceControl.Recoverability
                         Name = "RetryBatchId", 
                         Type = PatchCommandType.Set, 
                         Value = batchDocumentId
-                    }, 
+                    }
                 },
                 RavenJObject.Parse(String.Format(@"
                                     {{

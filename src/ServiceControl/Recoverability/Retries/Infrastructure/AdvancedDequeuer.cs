@@ -15,7 +15,7 @@ namespace ServiceControl.Recoverability
         private Timer timer;
         ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
         static ILog Log = LogManager.GetLogger(typeof(AdvancedDequeuer));
-        bool endedPrematurelly = false;
+        bool endedPrematurelly;
 
         protected AdvancedDequeuer()
         {
