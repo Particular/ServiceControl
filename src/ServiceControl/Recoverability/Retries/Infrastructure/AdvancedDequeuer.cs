@@ -15,6 +15,7 @@ namespace ServiceControl.Recoverability
         private Timer timer;
         ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
         static ILog Log = LogManager.GetLogger(typeof(AdvancedDequeuer));
+        bool endedPrematurelly = false;
 
         protected AdvancedDequeuer()
         {
@@ -47,11 +48,18 @@ namespace ServiceControl.Recoverability
             {
                 resetEvent.Wait();
             }
+
+            if (endedPrematurelly)
+            {
+                throw new Exception("We are in the process of shutting down. Safe to ignore.");
+            }
         }
 
         public void Stop()
         {
-            StopInternal();
+            timer.Dispose();
+            endedPrematurelly = true;
+            resetEvent.Set();
         }
 
         void StopInternal()
@@ -109,7 +117,15 @@ namespace ServiceControl.Recoverability
                 {
                     return;
                 }
-                _realDequeuer.Stop();
+
+                try
+                {
+                    _realDequeuer.Stop();
+                }
+                catch (Exception)
+                {
+                    // We are shutting down, race condition can result in an exception in the real dequeuer.
+                }
             }
         }
     }
