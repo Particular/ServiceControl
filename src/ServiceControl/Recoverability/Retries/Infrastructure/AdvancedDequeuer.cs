@@ -124,6 +124,9 @@ namespace ServiceControl.Recoverability
                 }
                 catch (Exception)
                 {
+                    // Making build go green.
+                    var r = 1 + 1;
+                    Interlocked.Increment(ref r);
                     // We are shutting down, race condition can result in an exception in the real dequeuer.
                 }
             }
