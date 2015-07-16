@@ -1,11 +1,9 @@
 ﻿namespace ServiceControl.MessageFailures
 {
-    using System;
-    using Contracts.Operations;
-    using InternalMessages;
     using NServiceBus;
-    using Operations;
     using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.Contracts.Operations;
+    using ServiceControl.Operations;
 
     public class DetectSuccessfullRetriesEnricher : ImportEnricher
     {
