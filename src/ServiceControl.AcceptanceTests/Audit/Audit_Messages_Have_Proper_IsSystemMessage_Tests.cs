@@ -1,6 +1,9 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -62,14 +65,31 @@
                 ControlMessageHeaderValue = null
             };
 
-            MessagesView auditMessage = null;
+            var containsItem = true;
+
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
-                .Done(c => TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
-                .Run();
-            Assert.IsNull(auditMessage);
+                .Done(c =>
+                {
+                    var response = Get<List<MessagesView>>("/api/messages");
 
+                    if (response == null)
+                    {
+                        Thread.Sleep(1000);
+
+                        return false;
+                    }
+
+                    var items = response.Where(r => r.MessageId == c.MessageId);
+
+                    containsItem = items.Any();
+
+                    return true;
+                })
+                .Run();
+
+            Assert.IsFalse(containsItem);
         }
 
         [Test]
