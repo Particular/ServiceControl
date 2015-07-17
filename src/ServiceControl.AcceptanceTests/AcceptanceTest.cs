@@ -26,6 +26,7 @@
     {
         public AcceptanceTest()
         {
+            //Environment.SetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport", "SqlServer", EnvironmentVariableTarget.Process);
         }
 
         public AcceptanceTest(Type typeOfTransport, string connectionString)
@@ -280,16 +281,9 @@
 
             using (var stream = response.GetResponseStream())
             {
-                string json;
-                using (var streamReader = new StreamReader(stream))
-                {
-                    Console.Out.WriteLine("Json output:");
-                    json = streamReader.ReadToEnd();
-                }
-                Console.Out.WriteLine(json);
-                Console.Out.WriteLine("------------------");
+                var serializer = JsonSerializer.Create(serializerSettings);
 
-                return JsonConvert.DeserializeObject<T>(json, serializerSettings);
+                return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
             }
         }
 
