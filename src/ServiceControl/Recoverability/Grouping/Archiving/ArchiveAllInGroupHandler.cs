@@ -1,11 +1,11 @@
 namespace ServiceControl.Recoverability
 {
+    using System.Collections.Generic;
     using NServiceBus;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.MessageFailures;
-    using ServiceControl.MessageFailures.Api;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
@@ -13,14 +13,25 @@ namespace ServiceControl.Recoverability
         {
             var query = Session.Query<FailureGroupMessageView, FailedMessages_ByGroup>()
                 .Where(m => m.FailureGroupId == message.GroupId && m.Status == FailedMessageStatus.Unresolved)
-                .TransformWith<FailedMessageViewTransformer, FailedMessageView>();
+                .ProjectFromIndexFieldsInto<FailureGroupMessageView>();
+
+            string groupName = null;
+            var messageIds = new List<string>();
 
             using (var stream = Session.Advanced.Stream(query))
             {
                 while (stream.MoveNext())
                 {
+                    if (stream.Current.Document.Status != FailedMessageStatus.Unresolved)
+                        continue;
+
+                    if (groupName == null)
+                    {
+                        groupName = stream.Current.Document.FailureGroupName;
+                    }
+
                     Session.Advanced.DocumentStore.DatabaseCommands.Patch(
-                        FailedMessage.MakeDocumentId(stream.Current.Document.Id),
+                        stream.Current.Document.Id,
                         new[]
                         {
                             new PatchRequest
@@ -31,10 +42,17 @@ namespace ServiceControl.Recoverability
                                 PrevVal = (int) FailedMessageStatus.Unresolved
                             }
                         });
+
+                    messageIds.Add(stream.Current.Document.MessageId);
                 }
             }
 
-            Bus.Publish<FailedMessageGroupArchived>(m => m.GroupId = message.GroupId);
+            Bus.Publish<FailedMessageGroupArchived>(m =>
+            {
+                m.GroupId = message.GroupId;
+                m.GroupName = groupName;
+                m.MessageIds = messageIds.ToArray();
+            });
         }
 
         public IDocumentSession Session { get; set; }
