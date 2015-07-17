@@ -26,7 +26,6 @@
     {
         public AcceptanceTest()
         {
-
         }
 
         public AcceptanceTest(Type typeOfTransport, string connectionString)
@@ -281,9 +280,16 @@
 
             using (var stream = response.GetResponseStream())
             {
-                var serializer = JsonSerializer.Create(serializerSettings);
+                string json;
+                using (var streamReader = new StreamReader(stream))
+                {
+                    Console.Out.WriteLine("Json output:");
+                    json = streamReader.ReadToEnd();
+                }
+                Console.Out.WriteLine(json);
+                Console.Out.WriteLine("------------------");
 
-                return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
+                return JsonConvert.DeserializeObject<T>(json, serializerSettings);
             }
         }
 
