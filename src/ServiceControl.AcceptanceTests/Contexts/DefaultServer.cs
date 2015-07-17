@@ -61,21 +61,13 @@
 
             config
                 .DefineTransport(transportToUse)
-                .InMemorySagaPersister();
-
-
-            if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration ||
-                transportToUse is RabbitMqTransportIntegration)
-            {
-                config.UseInMemoryTimeoutPersister();
-            }
+                .InMemorySagaPersister()
+                .UseInMemoryTimeoutPersister();
 
             if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration)
             {
                 config.InMemorySubscriptionStorage();
             }
-
-            config.InMemorySagaPersister();
 
             return config.UnicastBus();
         }
