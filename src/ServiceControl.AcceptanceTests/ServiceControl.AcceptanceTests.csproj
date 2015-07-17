@@ -182,6 +182,7 @@
     <Compile Include="CustomChecks\When_a_periodic_custom_check_fails.cs" />
     <Compile Include="DebugSessions\When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
     <Compile Include="ExternalIntegrations\JsonServer.cs" />
+    <Compile Include="ExternalIntegrations\Subscriptions.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_custom_checks.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_failed.cs" />
     <Compile Include="ExternalIntegrations\When_heartbeat_is_restored.cs" />

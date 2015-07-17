@@ -9,8 +9,6 @@
     using NServiceBus.Config;
     using NServiceBus.Config.ConfigurationSource;
     using NServiceBus.Features;
-    using NServiceBus.Unicast.Subscriptions;
-    using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using NUnit.Framework;
     using ServiceControl.Contracts;
 
@@ -30,7 +28,7 @@
                     {
                         c.ExternalProcessorSubscribed = true;
                     }
-                })).AppConfig(PathToAppConfig))
+                }, () => c.ExternalProcessorSubscribed = true)).AppConfig(PathToAppConfig))
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<HeartbeatStopped>()))
                 .Done(c => c.EventsDelivered.Count >= 1)
@@ -60,7 +58,7 @@
                     {
                         c.ExternalProcessorSubscribed = true;
                     }
-                })).AppConfig(PathToAppConfig))
+                }, () => c.ExternalProcessorSubscribed = true)).AppConfig(PathToAppConfig))
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus =>
                 {
                     for (var i = 0; i < MessageCount; i++)
@@ -73,24 +71,6 @@
                 .Run();
 
             Console.WriteLine("Delivered {0} messages", context.EventsDelivered.Count);
-        }
-
-
-        [Serializable]
-        public class Subscriptions
-        {
-            public static Action<Action<SubscriptionEventArgs>> OnEndpointSubscribed = actionToPerform =>
-            {
-                if (Feature.IsEnabled<MessageDrivenSubscriptions>())
-                {
-                    Configure.Instance.Builder.Build<MessageDrivenSubscriptionManager>().ClientSubscribed +=
-                        (sender, args) =>
-                        {
-                            actionToPerform(args);
-                        };
-                }
-            };
-
         }
 
         public class ExternalIntegrationsManagementEndpoint : EndpointConfigurationBuilder
