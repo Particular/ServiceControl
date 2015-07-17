@@ -5,9 +5,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
     using NServiceBus.Config.ConfigurationSource;
-    using NServiceBus.Features;
-    using NServiceBus.Unicast.Subscriptions;
-    using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Contracts;
