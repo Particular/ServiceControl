@@ -78,7 +78,7 @@
         {
             public ExternalProcessor()
             {
-                EndpointSetup<JSonServer>();
+                EndpointSetup<JsonServer>();
             }
 
             public class CustomCheckSucceededHandler : IHandleMessages<CustomCheckSucceeded>

@@ -59,7 +59,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         {
             public ExternalProcessor()
             {
-                EndpointSetup<JSonServer>();
+                EndpointSetup<JsonServer>();
             }
 
             public class FailureHandler : IHandleMessages<HeartbeatRestored>

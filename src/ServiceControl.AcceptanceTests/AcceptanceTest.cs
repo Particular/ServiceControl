@@ -26,7 +26,7 @@
     {
         public AcceptanceTest()
         {
-            //Environment.SetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport", "SqlServer", EnvironmentVariableTarget.Process);
+            //Environment.SetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport", "RabbitMq", EnvironmentVariableTarget.Process);
         }
 
         public AcceptanceTest(Type typeOfTransport, string connectionString)
