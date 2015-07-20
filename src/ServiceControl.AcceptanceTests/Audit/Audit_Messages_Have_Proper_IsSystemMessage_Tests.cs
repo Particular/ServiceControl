@@ -119,7 +119,7 @@
                 EndpointSetup<DefaultServer>();
             }
 
-            class Foo : IWantToRunWhenBusStartsAndStops
+            class SendMessageLowLevel : IWantToRunWhenBusStartsAndStops
             {
                 public ISendMessages SendMessages { get; set; }
 

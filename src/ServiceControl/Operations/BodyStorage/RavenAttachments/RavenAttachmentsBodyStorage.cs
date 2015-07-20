@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
-    using System;
     using System.IO;
     using Raven.Client;
     using Raven.Json.Linq;
@@ -20,16 +19,18 @@
             return string.Format("/messages/{0}/body", bodyId);
         }
 
-        public Stream Fetch(string bodyId)
+        public bool TryFetch(string bodyId, out Stream stream)
         {
             var attachment = DocumentStore.DatabaseCommands.GetAttachment("messagebodies/" + bodyId);
 
             if (attachment == null)
             {
-                throw new InvalidOperationException("Body with id: '" + bodyId + "' not found in storage");
+                stream = null;
+                return false;
             }
 
-            return attachment.Data();
+            stream = attachment.Data();
+            return true;
         }
     }
 }

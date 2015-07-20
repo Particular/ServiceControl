@@ -147,23 +147,28 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.TargetEndpointAddress"] = attempt.FailureDetails.AddressOfFailingEndpoint;
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
 
-            using (var stream = bodyStorage.Fetch(attempt.MessageId))
+            var transportMessage = new TransportMessage(message.Id, headersToRetryWith)
             {
-                var transportMessage = new TransportMessage(message.Id, headersToRetryWith)
-                {
-                    Body = ReadFully(stream),
-                    CorrelationId = attempt.CorrelationId,
-                    Recoverable = attempt.Recoverable,
-                    MessageIntent = attempt.MessageIntent
-                };
+                CorrelationId = attempt.CorrelationId,
+                Recoverable = attempt.Recoverable,
+                MessageIntent = attempt.MessageIntent
+            };
 
-                if (!String.IsNullOrWhiteSpace(attempt.ReplyToAddress))
+            Stream stream;
+            if (bodyStorage.TryFetch(attempt.MessageId, out stream))
+            {
+                using (stream)
                 {
-                    transportMessage.ReplyToAddress = Address.Parse(attempt.ReplyToAddress);
+                    transportMessage.Body = ReadFully(stream);
                 }
-
-                sender.Send(transportMessage, AdvancedDequeuer.Address);
             }
+
+            if (!String.IsNullOrWhiteSpace(attempt.ReplyToAddress))
+            {
+                transportMessage.ReplyToAddress = Address.Parse(attempt.ReplyToAddress);
+            }
+
+            sender.Send(transportMessage, AdvancedDequeuer.Address);
         }
 
         static byte[] ReadFully(Stream input)

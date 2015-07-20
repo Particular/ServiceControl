@@ -1,6 +1,9 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts
 {
+    using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using NLog;
     using NLog.Config;
@@ -8,6 +11,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
+    using NServiceBus.Hosting.Helpers;
     using NServiceBus.Logging.Loggers.NLogAdapter;
     using Particular.ServiceControl;
 
@@ -18,33 +22,47 @@
         {
             Configure.ScaleOut(_ => _.UseSingleBrokerQueue());
 
-            new Bootstrapper();
-
-            //We need this hack here because by default we include all assemblies minus Plugins but for these tests we need to exclude other tests!
-            for (var index = 0; index < Configure.TypesToScan.Count;)
-            {
-                var type = Configure.TypesToScan[index];
-
-                if (type.Assembly != Assembly.GetExecutingAssembly())
-                {
-                    index++;
-                    continue;
-                }
-
-                if (!(type.DeclaringType == endpointConfiguration.BuilderType.DeclaringType ||
-                      type.DeclaringType == endpointConfiguration.BuilderType))
-                {
-                    Configure.TypesToScan.RemoveAt(index);
-                }
-                else
-                {
-                    index++;
-                }
-            }
+            var configure = Configure.With(GetTypesScopedByTestClass(endpointConfiguration));
+            new Bootstrapper(configure: configure);
 
             LogManager.Configuration = SetupLogging(endpointConfiguration);
 
             return Configure.Instance;
+        }
+
+        static IEnumerable<Type> GetTypesScopedByTestClass(EndpointConfiguration endpointConfiguration)
+        {
+            var assemblies = new AssemblyScanner().GetScannableAssemblies();
+
+            var types = assemblies.Assemblies
+                //exclude all test types by default
+                                  .Where(a => a != Assembly.GetExecutingAssembly())
+                                  .SelectMany(a => a.GetTypes());
+
+
+            types = types.Union(GetNestedTypeRecursive(endpointConfiguration.BuilderType.DeclaringType, endpointConfiguration.BuilderType));
+
+            types = types.Union(endpointConfiguration.TypesToInclude);
+
+            return types;
+        }
+
+        static IEnumerable<Type> GetNestedTypeRecursive(Type rootType, Type builderType)
+        {
+            if (rootType == null)
+            {
+                yield break;
+            }
+
+            yield return rootType;
+
+            if (typeof(IEndpointConfigurationFactory).IsAssignableFrom(rootType) && rootType != builderType)
+                yield break;
+
+            foreach (var nestedType in rootType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).SelectMany(t => GetNestedTypeRecursive(t, builderType)))
+            {
+                yield return nestedType;
+            }
         }
 
         protected virtual LoggingConfiguration SetupLogging(EndpointConfiguration endpointConfiguration)

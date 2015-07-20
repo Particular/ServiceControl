@@ -23,7 +23,7 @@ namespace Particular.ServiceControl
         public static IContainer Container { get; set; }
 
 
-        public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null)
+        public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, Configure configure = null)
         {
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
             ConfigureLogging();
@@ -44,8 +44,13 @@ namespace Particular.ServiceControl
             
             var transportType = DetermineTransportType();
 
-            bus = Configure
-                .With(AllAssemblies.Except("ServiceControl.Plugin"))
+            if (configure == null)
+            {
+                configure = Configure
+                    .With(AllAssemblies.Except("ServiceControl.Plugin"));
+            }
+
+            bus = configure
                 .DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t))
                 .DefineEndpointName(Settings.ServiceName)
                 .AutofacBuilder(Container)
