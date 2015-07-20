@@ -48,17 +48,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
                 public void Start()
                 {
-                    //hack until we can fix the types filtering in default server
-                    if (MyContext == null || string.IsNullOrEmpty(MyContext.MessageId))
-                    {
-                        return;
-                    }
-
-                    if (Configure.EndpointName != "Particular.ServiceControl")
-                    {
-                        return;
-                    }
-
                     var transportMessage = new TransportMessage();
                     transportMessage.Headers[Headers.MessageId] = MyContext.MessageId;
                     transportMessage.Headers[Headers.ProcessingEndpoint] = Configure.EndpointName;

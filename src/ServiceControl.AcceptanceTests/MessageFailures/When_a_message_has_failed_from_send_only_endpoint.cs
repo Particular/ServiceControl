@@ -65,17 +65,6 @@
 
                 public void Start()
                 {
-                    //hack until we can fix the types filtering in default server
-                    if (MyContext == null || string.IsNullOrEmpty(MyContext.MessageId))
-                    {
-                        return;
-                    }
-
-                    if (Configure.EndpointName != "Particular.ServiceControl")
-                    {
-                        return;
-                    }
-
                     // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
                     var transportMessage = new TransportMessage();
                     if (MyContext.IncludeProcessingEndpointHeader)

@@ -51,7 +51,6 @@
                 .Run();
             Assert.IsNotNull(auditMessage);
             Assert.IsTrue(auditMessage.IsSystemMessage);
-
         }
 
         [Test]
@@ -127,17 +126,6 @@
 
                 public void Start()
                 {
-                    //hack until we can fix the types filtering in default server
-                    if (SystemMessageTestContext == null || string.IsNullOrEmpty(SystemMessageTestContext.MessageId))
-                    {
-                        return;
-                    }
-
-                    if (Configure.EndpointName != "Particular.ServiceControl")
-                    {
-                        return;
-                    }
-
                     // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
                     var transportMessage = new TransportMessage();
                     transportMessage.Headers[Headers.ProcessingEndpoint] = "ServerEndpoint";
