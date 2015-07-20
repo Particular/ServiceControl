@@ -6,6 +6,7 @@ namespace ServiceControl.Recoverability
     using System.Linq.Expressions;
     using System.Threading;
     using System.Threading.Tasks;
+    using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Client.Indexes;
     using Raven.Client.Linq;
@@ -21,14 +22,14 @@ namespace ServiceControl.Recoverability
 
         CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-        public void StartRetryForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter = null) where TIndex : AbstractIndexCreationTask, new()
+        public void StartRetryForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter = null, string context = null) where TIndex : AbstractIndexCreationTask, new()
         {
             Task.Factory.StartNew(
-                () => CreateAndStageRetriesForIndex<TType, TIndex>(filter, cancellationTokenSource.Token),
+                () => CreateAndStageRetriesForIndex<TType, TIndex>(filter, cancellationTokenSource.Token, context),
                 cancellationTokenSource.Token);
         }
 
-        void CreateAndStageRetriesForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter, CancellationToken token) where TIndex : AbstractIndexCreationTask, new()
+        void CreateAndStageRetriesForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter, CancellationToken token, string context) where TIndex : AbstractIndexCreationTask, new()
         {
             using (var session = Store.OpenSession())
             {
@@ -40,15 +41,25 @@ namespace ServiceControl.Recoverability
                 }
 
                 var currentBatch = new List<string>();
+                QueryHeaderInformation info;
+                int totalPages;
+                var currentPage = 1;
+                string batchContext = null;
 
-                using (var stream = session.Advanced.Stream(query.As<FailedMessage>()))
+                using (var stream = session.Advanced.Stream(query.As<FailedMessage>(), out info))
                 {
+                    totalPages = (int)Math.Ceiling(info.TotalResults/(decimal)BatchSize);
                     while (stream.MoveNext() && !token.IsCancellationRequested)
                     {
                         currentBatch.Add(stream.Current.Document.UniqueMessageId);
                         if (currentBatch.Count == BatchSize)
                         {
-                            StageRetryByUniqueMessageIds(currentBatch.ToArray());
+                            if (context != null)
+                            {
+                                batchContext = string.Format(context, currentPage, totalPages);
+                            }
+                            StageRetryByUniqueMessageIds(currentBatch.ToArray(), batchContext);
+                            currentPage += 1;
                             currentBatch.Clear();
                         }
                     }
@@ -56,19 +67,23 @@ namespace ServiceControl.Recoverability
 
                 if (currentBatch.Any())
                 {
-                    StageRetryByUniqueMessageIds(currentBatch.ToArray());
+                    if (context != null)
+                    {
+                        batchContext = string.Format(context, currentPage, totalPages);
+                    }
+                    StageRetryByUniqueMessageIds(currentBatch.ToArray(), batchContext);
                 }
             }
         }
 
-        public void StageRetryByUniqueMessageIds(string[] messageIds)
+        public void StageRetryByUniqueMessageIds(string[] messageIds, string context = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
                 return;
             }
 
-            var batchDocumentId = RetryDocumentManager.CreateBatchDocument();
+            var batchDocumentId = RetryDocumentManager.CreateBatchDocument(context);
 
             var retryIds = new ConcurrentSet<string>();
             Parallel.ForEach(messageIds, id => retryIds.Add(RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, id)));

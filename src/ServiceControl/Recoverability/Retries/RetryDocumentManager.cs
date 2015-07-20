@@ -18,7 +18,7 @@ namespace ServiceControl.Recoverability
 
         static string RetrySessionId = CombGuid.Generate().ToString();
 
-        public string CreateBatchDocument()
+        public string CreateBatchDocument(string context = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(CombGuid.Generate().ToString());
             using (var session = Store.OpenSession())
@@ -26,6 +26,7 @@ namespace ServiceControl.Recoverability
                 session.Store(new RetryBatch
                 {
                     Id = batchDocumentId, 
+                    Context = context,
                     RetrySessionId = RetrySessionId, 
                     Status = RetryBatchStatus.MarkingDocuments
                 });

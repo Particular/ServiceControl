@@ -124,7 +124,11 @@ namespace ServiceControl.Recoverability
                 StageMessage(message);
             }
 
-            bus.Publish<MessagesSubmittedForRetry>(m => m.FailedMessageIds = messages.Select(x => x.UniqueMessageId).ToArray());
+            bus.Publish<MessagesSubmittedForRetry>(m =>
+            {
+                m.FailedMessageIds = messages.Select(x => x.UniqueMessageId).ToArray();
+                m.Context = stagingBatch.Context;
+            });
 
             stagingBatch.Status = RetryBatchStatus.Forwarding;
 
