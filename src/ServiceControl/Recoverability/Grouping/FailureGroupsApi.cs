@@ -42,9 +42,9 @@ namespace ServiceControl.Recoverability
                 RavenQueryStatistics stats;
 
                 var results = session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                    .Where(x => x.Count > 1)
                     .Statistics(out stats)
                     .OrderByDescending(x => x.Last)
+                    .Take(200)
                     .ToArray();
 
                 return Negotiate.WithModel(results)
