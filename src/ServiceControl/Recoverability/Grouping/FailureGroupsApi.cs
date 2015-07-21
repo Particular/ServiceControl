@@ -39,12 +39,16 @@ namespace ServiceControl.Recoverability
         {
             using (var session = Store.OpenSession())
             {
+                RavenQueryStatistics stats;
+
                 var results = session.Query<FailureGroupView, FailureGroupsViewIndex>()
                     .Where(x => x.Count > 1)
+                    .Statistics(out stats)
                     .OrderByDescending(x => x.Last)
                     .ToArray();
 
-                return Negotiate.WithModel(results);
+                return Negotiate.WithModel(results)
+                    .WithTotalCount(stats);
             }
         }
 
