@@ -45,11 +45,12 @@ namespace ServiceControl.Recoverability
 
             for (var i = 0; i < matches.Count; i++)
             {
-                var type = matches[i].Groups["type"].Captures[0].Value;
-                var method = matches[i].Groups["method"].Captures[0].Value;
-                var parameters = matches[i].Groups["params"].Captures[0].Value;
-                var file = matches[i].Groups["file"].Captures[0].Value;
-                var line = matches[i].Groups["line"].Captures[0].Value;
+                var match = matches[i];
+                var type = match.Groups["type"].Captures[0].Value;
+                var method = match.Groups["method"].Captures[0].Value;
+                var parameters = match.Groups["params"].Success ? (match.Groups["params"].Captures.Count > 0 ? match.Groups["params"].Captures[0].Value : null) : null;
+                var file = match.Groups["file"].Success ? match.Groups["file"].Captures[0].Value : null;
+                var line = match.Groups["line"].Success ? match.Groups["line"].Captures[0].Value : null;
 
                 stackFrames.Add(new StackFrame
                 {

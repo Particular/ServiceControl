@@ -313,6 +313,7 @@
     <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\Handlers\IFailedMessageEnricher.cs" />
+    <Compile Include="MessageFailures\InternalMessages\ReclassifyErrors.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
@@ -460,6 +461,7 @@
     <Compile Include="Recoverability\Grouping\Archiving\ArchiveAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Grouping\ClassifyFailedMessageEnricher.cs" />
     <Compile Include="Recoverability\Grouping\Archiving\FailureGroupsArchiveApi.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsHandler.cs" />
     <Compile Include="Recoverability\Grouping\Retries\FailureGroupsRetryApi.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ExceptionTypeAndStackTraceMessageGrouper.cs" />
     <Compile Include="Recoverability\Grouping\FailedMessageClassification.cs" />

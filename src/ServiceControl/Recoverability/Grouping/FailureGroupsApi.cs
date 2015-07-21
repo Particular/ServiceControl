@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System.Linq;
     using Nancy;
+    using NServiceBus;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
@@ -9,16 +10,29 @@ namespace ServiceControl.Recoverability
     using ServiceControl.Infrastructure.Extensions;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using ServiceControl.MessageFailures.InternalMessages;
 
     public class FailureGroupsApi : BaseModule
     {
+        public IBus Bus { get; set; }
+
         public FailureGroupsApi()
         {
+            Post["/recoverability/groups/reclassify"] = 
+                _ => ReclassifyErrors();
+
             Get["/recoverability/groups"] =
                 _ => GetAllGroups();
 
             Get["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrors(parameters.GroupId);
+        }
+
+        dynamic ReclassifyErrors()
+        {
+            Bus.SendLocal(new ReclassifyErrors());
+
+            return HttpStatusCode.Accepted;
         }
 
         dynamic GetAllGroups()
