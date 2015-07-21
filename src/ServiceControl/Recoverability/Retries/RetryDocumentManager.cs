@@ -7,6 +7,7 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using NServiceBus.IdGeneration;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using Raven.Client.Linq;
     using Raven.Json.Linq;
@@ -67,23 +68,30 @@ namespace ServiceControl.Recoverability
 
         public void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
         {
-            Store.DatabaseCommands.Patch(batchDocumentId,
-                new[]
-                {
-                    new PatchRequest
+            try
+            {
+                Store.DatabaseCommands.Patch(batchDocumentId,
+                    new[]
                     {
-                        Type = PatchCommandType.Set, 
-                        Name = "Status", 
-                        Value = (int)RetryBatchStatus.Staging, 
-                        PrevVal = (int)RetryBatchStatus.MarkingDocuments
-                    }, 
-                    new PatchRequest
-                    {
-                        Type = PatchCommandType.Set, 
-                        Name = "FailureRetries", 
-                        Value = new RavenJArray((IEnumerable)failedMessageRetryIds)
-                    }
-                });
+                        new PatchRequest
+                        {
+                            Type = PatchCommandType.Set, 
+                            Name = "Status", 
+                            Value = (int)RetryBatchStatus.Staging, 
+                            PrevVal = (int)RetryBatchStatus.MarkingDocuments
+                        }, 
+                        new PatchRequest
+                        {
+                            Type = PatchCommandType.Set, 
+                            Name = "FailureRetries", 
+                            Value = new RavenJArray((IEnumerable)failedMessageRetryIds)
+                        }
+                    });
+            }
+            catch (ConcurrencyException)
+            {
+                // Ignore concurrency exceptions
+            }
         }
 
         public void RemoveFailedMessageRetryDocument(string uniqueMessageId)

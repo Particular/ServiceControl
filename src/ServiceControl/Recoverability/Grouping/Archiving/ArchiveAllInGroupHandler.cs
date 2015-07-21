@@ -3,6 +3,7 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using NServiceBus;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.MessageFailures;
@@ -23,27 +24,37 @@ namespace ServiceControl.Recoverability
                 while (stream.MoveNext())
                 {
                     if (stream.Current.Document.Status != FailedMessageStatus.Unresolved)
+                    {
                         continue;
+                    }
 
                     if (groupName == null)
                     {
                         groupName = stream.Current.Document.FailureGroupName;
                     }
 
-                    Session.Advanced.DocumentStore.DatabaseCommands.Patch(
-                        stream.Current.Document.Id,
-                        new[]
-                        {
-                            new PatchRequest
+                    try { 
+                        Session.Advanced.DocumentStore.DatabaseCommands.Patch(
+                            stream.Current.Document.Id,
+                            new[]
                             {
-                                Type = PatchCommandType.Set,
-                                Name = "Status",
-                                Value = (int) FailedMessageStatus.Archived,
-                                PrevVal = (int) FailedMessageStatus.Unresolved
-                            }
-                        });
+                                new PatchRequest
+                                {
+                                    Type = PatchCommandType.Set,
+                                    Name = "Status",
+                                    Value = (int) FailedMessageStatus.Archived,
+                                    PrevVal = (int) FailedMessageStatus.Unresolved
+                                }
+                            });
 
-                    messageIds.Add(stream.Current.Document.MessageId);
+                        messageIds.Add(stream.Current.Document.MessageId);
+                    }
+                    catch (ConcurrencyException)
+                    {
+                        // Ignore concurrency exceptions
+                    }
+
+                    
                 }
             }
 
