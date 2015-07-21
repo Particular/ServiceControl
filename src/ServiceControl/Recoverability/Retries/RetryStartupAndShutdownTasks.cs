@@ -12,8 +12,10 @@ namespace ServiceControl.Recoverability
 
         public void Stop()
         {
-            if(Retries != null)
+            if (Retries != null)
+            {
                 Retries.StopProcessingOutstandingBatches();
+            }
         }
 
         public RetriesGateway Retries { get; set; }

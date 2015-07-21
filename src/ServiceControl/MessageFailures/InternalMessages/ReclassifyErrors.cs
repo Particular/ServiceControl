@@ -3,5 +3,6 @@
     using NServiceBus;
 
     public class ReclassifyErrors : ICommand
-    { }
+    {
+    }
 }

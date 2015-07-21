@@ -3,6 +3,7 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
     using Raven.Abstractions.Data;
@@ -18,12 +19,15 @@ namespace ServiceControl.Recoverability
 
     class ReclassifyErrorsHandler : IHandleMessages<ReclassifyErrors>
     {
+        readonly IBus bus;
         readonly IDocumentStore store;
         readonly IEnumerable<IFailureClassifier> classifiers;
         const int BatchSize = 1000;
+        int failedMessagesReclassified = 0;
 
-        public ReclassifyErrorsHandler(IDocumentStore store, IEnumerable<IFailureClassifier> classifiers)
+        public ReclassifyErrorsHandler(IBus bus, IDocumentStore store, IEnumerable<IFailureClassifier> classifiers)
         {
+            this.bus = bus;
             this.store = store;
             this.classifiers = classifiers;
         }
@@ -41,6 +45,11 @@ namespace ServiceControl.Recoverability
                 {
                     while (stream.MoveNext())
                     {
+                        if (stream.Current.Document.FailureGroups.Count > 0)
+                        {
+                            continue;
+                        }
+
                         currentBatch.Add(Tuple.Create(stream.Current.Document.Id, stream.Current.Document.ProcessingAttempts.Last().FailureDetails));
 
                         if (currentBatch.Count == BatchSize)
@@ -56,6 +65,8 @@ namespace ServiceControl.Recoverability
                     ReclassifyBatch(currentBatch);
                 }
             }
+
+            bus.Publish(new ReclassificationOfErrorMessageComplete { NumberofMessageReclassified = failedMessagesReclassified });
         }
 
         void ReclassifyBatch(IEnumerable<Tuple<string, FailureDetails>> docs)
@@ -77,6 +88,7 @@ namespace ServiceControl.Recoverability
                                 PrevVal = RavenJObject.Parse("{'a': undefined}")["a"]
                             }
                         });
+                    Interlocked.Increment(ref failedMessagesReclassified);
                 }
                 catch (ConcurrencyException)
                 {

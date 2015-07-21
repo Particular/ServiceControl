@@ -265,6 +265,7 @@
     <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
     <Compile Include="CustomChecks\CustomChecksIndex.cs" />
+    <Compile Include="EventLog\Definitions\ReclassificationOfErrorMessageCompleteDefinition.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckSucceededPublisher.cs" />
     <Compile Include="ExternalIntegrations\EventPublisher.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationDispatchRequest.cs" />
@@ -313,6 +314,7 @@
     <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\Handlers\IFailedMessageEnricher.cs" />
+    <Compile Include="MessageFailures\InternalMessages\ReclassificationOfErrorMessageComplete.cs" />
     <Compile Include="MessageFailures\InternalMessages\ReclassifyErrors.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
@@ -461,6 +463,7 @@
     <Compile Include="Recoverability\Grouping\Archiving\ArchiveAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Grouping\ClassifyFailedMessageEnricher.cs" />
     <Compile Include="Recoverability\Grouping\Archiving\FailureGroupsArchiveApi.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsAtStartup.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsHandler.cs" />
     <Compile Include="Recoverability\Grouping\Retries\FailureGroupsRetryApi.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ExceptionTypeAndStackTraceMessageGrouper.cs" />
