@@ -6,7 +6,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;

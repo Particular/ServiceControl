@@ -204,6 +204,7 @@
     <Compile Include="Contexts\ManagementEndpoint.cs" />
     <Compile Include="Contexts\ManagementEndpointSetup.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_archived.cs" />
+    <Compile Include="Recoverability\Groups\When_a_message_fails_twice_with_different_exceptions.cs" />
     <Compile Include="Recoverability\Groups\When_a_message_has_failed.cs" />
     <Compile Include="Recoverability\Groups\When_two_similar_messages_have_failed.cs" />
     <Compile Include="SagaAudit\When_multiple_messages_are_emitted_by_a_saga.cs" />

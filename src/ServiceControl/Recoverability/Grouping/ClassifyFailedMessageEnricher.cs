@@ -12,23 +12,23 @@ namespace ServiceControl.Recoverability
 
         public void Enrich(FailedMessage message, ImportFailedMessage source)
         {
+            var classifications = new List<FailedMessage.FailureGroup>();
+
             foreach (var classifier in Classifiers)
             {
                 var classification = classifier.ClassifyFailure(source.FailureDetails);
                 if (classification == null)
                     continue;
 
-                var id = DeterministicGuid.MakeId(classifier.Name, classification).ToString();
-                if (!message.FailureGroups.Exists(g => g.Id == id))
+                classifications.Add(new FailedMessage.FailureGroup
                 {
-                    message.FailureGroups.Add(new FailedMessage.FailureGroup
-                    {
-                        Id = id,
-                        Title = classification,
-                        Type = classifier.Name
-                    });
-                }
+                    Id = DeterministicGuid.MakeId(classifier.Name, classification).ToString(),
+                    Title = classification,
+                    Type = classifier.Name
+                });
             }
+
+            message.FailureGroups = classifications;
         }
     }
 }
