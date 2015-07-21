@@ -306,7 +306,7 @@
     <Compile Include="Infrastructure\Settings\CheckSettingsOnStartup.cs" />
     <Compile Include="Infrastructure\Settings\NullableRegistryReader.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryProcessedMessageIndex.cs" />
-    <Compile Include="Infrastructure\RavenDB\Expiration\PeriodicExecutor.cs" />
+    <Compile Include="Infrastructure\PeriodicExecutor.cs" />
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />

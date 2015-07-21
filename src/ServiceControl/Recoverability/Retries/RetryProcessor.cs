@@ -4,12 +4,11 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Threading;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transports;
     using Raven.Client;
-    using ServiceControl.Infrastructure.RavenDB.Expiration;
+    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
 
@@ -30,8 +29,7 @@ namespace ServiceControl.Recoverability
 
         public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IBus bus, NoopDequeuer stagingQueueCleaner, ReturnToSenderDequeuer returnToSender)
         {
-            executor = new PeriodicExecutor(Process
-                , TimeSpan.FromSeconds(30));
+            executor = new PeriodicExecutor(Process, TimeSpan.FromSeconds(30), ex => Log.Error("Error during retry batch processing", ex));
             this.bodyStorage = bodyStorage;
             this.sender = sender;
             this.store = store;
@@ -47,7 +45,7 @@ namespace ServiceControl.Recoverability
 
         public void Stop()
         {
-            executor.Stop(CancellationToken.None);
+            executor.Stop();
         }
 
         public void Dispose()
@@ -55,7 +53,7 @@ namespace ServiceControl.Recoverability
             Stop();
         }
 
-        void Process()
+        void Process(PeriodicExecutor e)
         {
             bool batchesProcessed;
             do
@@ -65,7 +63,7 @@ namespace ServiceControl.Recoverability
                     batchesProcessed = ProcessBatches(session);
                     session.SaveChanges();
                 }
-            } while (batchesProcessed);
+            } while (batchesProcessed && !e.IsCancellationRequested);
         }
 
         bool ProcessBatches(IDocumentSession session)
