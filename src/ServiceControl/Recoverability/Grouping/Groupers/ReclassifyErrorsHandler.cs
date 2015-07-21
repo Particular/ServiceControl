@@ -6,6 +6,7 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using NServiceBus;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using Raven.Client.Linq;
     using Raven.Json.Linq;
@@ -63,17 +64,24 @@ namespace ServiceControl.Recoverability
             {
                 var failureGroups = GetClassificationGroups(doc.Item2).Select(RavenJObject.FromObject);
 
-                store.DatabaseCommands.Patch(doc.Item1,
-                    new[]
-                    {
-                        new PatchRequest
+                try
+                {
+                    store.DatabaseCommands.Patch(doc.Item1,
+                        new[]
                         {
-                            Type = PatchCommandType.Set,
-                            Name = "FailureGroups",
-                            Value = new RavenJArray(failureGroups),
-                            PrevVal = RavenJObject.Parse("{'a': undefined}")["a"]
-                        }
-                    });
+                            new PatchRequest
+                            {
+                                Type = PatchCommandType.Set,
+                                Name = "FailureGroups",
+                                Value = new RavenJArray(failureGroups),
+                                PrevVal = RavenJObject.Parse("{'a': undefined}")["a"]
+                            }
+                        });
+                }
+                catch (ConcurrencyException)
+                {
+                    // Ignore concurrency exceptions
+                }
             });
         }
 
