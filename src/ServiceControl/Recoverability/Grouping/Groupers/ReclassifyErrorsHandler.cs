@@ -66,7 +66,13 @@ namespace ServiceControl.Recoverability
                 }
             }
 
-            bus.Publish(new ReclassificationOfErrorMessageComplete { NumberofMessageReclassified = failedMessagesReclassified });
+            if (failedMessagesReclassified > 0)
+            {
+                bus.Publish(new ReclassificationOfErrorMessageComplete
+                {
+                    NumberofMessageReclassified = failedMessagesReclassified
+                });
+            }
         }
 
         void ReclassifyBatch(IEnumerable<Tuple<string, FailureDetails>> docs)
