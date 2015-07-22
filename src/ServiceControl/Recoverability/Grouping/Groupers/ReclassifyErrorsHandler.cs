@@ -23,7 +23,7 @@ namespace ServiceControl.Recoverability
         readonly IDocumentStore store;
         readonly IEnumerable<IFailureClassifier> classifiers;
         const int BatchSize = 1000;
-        int failedMessagesReclassified = 0;
+        int failedMessagesReclassified;
 
         public ReclassifyErrorsHandler(IBus bus, IDocumentStore store, IEnumerable<IFailureClassifier> classifiers)
         {
