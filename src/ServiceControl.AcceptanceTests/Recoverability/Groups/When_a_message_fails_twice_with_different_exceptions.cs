@@ -6,6 +6,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using System.Web;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Config;
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
@@ -74,7 +75,11 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             public MeowReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => Configure.Features.Disable<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithoutAudit>(c => Configure.Features.Disable<SecondLevelRetries>())
+                    .WithConfig<TransportConfig>(c =>
+                    {
+                        c.MaxRetries = 1;
+                    });
             }
 
             public class FailingMessageHandler : IHandleMessages<Meow>

@@ -85,7 +85,11 @@
         {
             public FailingReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => Configure.Features.Disable<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithoutAudit>(c => Configure.Features.Disable<SecondLevelRetries>())
+                    .WithConfig<TransportConfig>(c =>
+                    {
+                        c.MaxRetries = 1;
+                    });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

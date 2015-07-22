@@ -64,7 +64,7 @@
                 .InMemorySagaPersister()
                 .UseInMemoryTimeoutPersister();
 
-            if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration)
+            if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration || transportToUse is AzureStorageQueuesTransportIntegration)
             {
                 config.InMemorySubscriptionStorage();
             }

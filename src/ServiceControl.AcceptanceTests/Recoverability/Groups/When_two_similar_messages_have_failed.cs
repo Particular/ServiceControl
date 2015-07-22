@@ -6,6 +6,7 @@
     using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Config;
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
@@ -69,6 +70,10 @@
             public Receiver()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c => Configure.Features.Disable<SecondLevelRetries>())
+                    .WithConfig<TransportConfig>(c =>
+                    {
+                        c.MaxRetries = 1;
+                    })
                     .AuditTo(Address.Parse("audit"));
             }
 

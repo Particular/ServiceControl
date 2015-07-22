@@ -5,6 +5,7 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Config;
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
@@ -17,7 +18,6 @@
 
     public class When_a_message_has_failed : AcceptanceTest
     {
-
         [Test]
         public void Should_be_imported_and_accessible_via_the_rest_api()
         {
@@ -40,7 +40,6 @@
             Assert.AreEqual(1, failedMessage.ProcessingAttempts.Count(), "Failed count should be 1");
             Assert.AreEqual("Simulated exception", failedMessage.ProcessingAttempts.Single().FailureDetails.Exception.Message,
                 "Exception message should be captured");
-
         }
 
         [Test]
@@ -64,7 +63,6 @@
             Assert.AreEqual(1, failure.NumberOfProcessingAttempts, "One attempt should be stored");
         }
 
-
         [Test]
         public void Should_be_listed_in_the_messages_list()
         {
@@ -83,10 +81,7 @@
             Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.SendingEndpoint.Name);
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.ReceivingEndpoint.Name);
-
         }
-
-      
 
         [Test]
         public void Should_add_an_event_log_item()
@@ -101,7 +96,7 @@
                 .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name))
                 .Run();
 
-            Assert.AreEqual(Severity.Error,entry.Severity, "Failures shoudl be treated as errors");
+            Assert.AreEqual(Severity.Error, entry.Severity, "Failures should be treated as errors");
             Assert.IsTrue(entry.Description.Contains("exception"), "For failed messages, the description should contain the exception information");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/message/" + context.UniqueMessageId), "Should contain the api url to retrieve additional details about the failed message");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), "Should contain the api url to retrieve additional details about the endpoint where the message failed");
@@ -112,7 +107,10 @@
             public Receiver()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c=>Configure.Features.Disable<SecondLevelRetries>())
-                    .AuditTo(Address.Parse("audit"));
+                    .WithConfig<TransportConfig>(c =>
+                    {
+                        c.MaxRetries = 1;
+                    });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
