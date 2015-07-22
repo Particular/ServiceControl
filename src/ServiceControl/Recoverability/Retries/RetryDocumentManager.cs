@@ -99,17 +99,22 @@ namespace ServiceControl.Recoverability
             Store.DatabaseCommands.Delete(FailedMessage.MakeDocumentId(uniqueMessageId), null);
         }
 
-        internal void AdoptOrphanedBatches(DateTimeOffset startupTime)
+        internal bool AdoptOrphanedBatches()
         {
             using (var session = Store.OpenSession())
             {
+                RavenQueryStatistics stats;
+
                 var orphanedBatchIds = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-                    .Customize(q => q.WaitForNonStaleResultsAsOf(startupTime.DateTime, TimeSpan.FromMinutes(20)))
                     .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
+                    .Statistics(out stats)
                     .Select(b => b.Id)
                     .ToArray();
 
                 AdoptBatches(session, orphanedBatchIds);
+
+                var moreToDo = stats.IsStale || orphanedBatchIds.Any();
+                return !moreToDo;
             }
         }
 
