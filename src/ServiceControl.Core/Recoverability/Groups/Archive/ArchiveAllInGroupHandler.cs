@@ -20,7 +20,7 @@
                 return;
             }
 
-            var indexName = new MessageFailuresByFailureGroupsIndex().IndexName;
+            var indexName = new MessageFailuresByFailureGroupIdIndex().IndexName;
 
             var operation = Store.DatabaseCommands.UpdateByIndex(indexName, 
                 new IndexQuery

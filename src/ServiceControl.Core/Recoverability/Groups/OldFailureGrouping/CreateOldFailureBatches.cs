@@ -2,8 +2,7 @@ namespace ServiceControl.Recoverability.Groups.OldFailureGrouping
 {
     using NServiceBus;
 
-    public class GroupOldFailures : ICommand
+    public class CheckForOldFailures : ICommand
     {
-        public string BatchId { get; set; }
     }
 }

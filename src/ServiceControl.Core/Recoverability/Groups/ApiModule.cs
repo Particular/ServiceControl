@@ -48,7 +48,7 @@
             {
                 RavenQueryStatistics stats;
 
-                var model = session.Query<MessageFailureHistory, MessageFailuresByFailureGroupsIndex>()
+                var model = session.Query<MessageFailureHistory, MessageFailuresByFailureGroupIdIndex>()
                     .Where(m => m.FailureGroups.Any(g => g.Id == groupId))
                     .Statistics(out stats)
                     .Paging(Request)

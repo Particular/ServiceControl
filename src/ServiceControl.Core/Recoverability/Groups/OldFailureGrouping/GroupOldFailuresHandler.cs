@@ -5,11 +5,9 @@
     using NServiceBus.Logging;
     using Raven.Client;
     using ServiceControl.MessageFailures;
-    using ServiceControl.Recoverability.Groups.Indexes;
 
     public class GroupOldFailuresHandler : IHandleMessages<GroupOldFailures>
     {
-        const int BatchSize = 500;
         IBus bus;
         IDocumentSession session;
         MessageFailureHistoryGrouper grouper;
@@ -25,58 +23,35 @@
 
         public void Handle(GroupOldFailures message)
         {
-            var numberOfGroupers = grouper.NumberOfAvailableGroupers();
-            
-            int totaltNumberOfFailuresAvailable;
-            var failures = GetFailuresMissingOneOrMoreGroupers(numberOfGroupers, out totaltNumberOfFailuresAvailable);
+            var batchDocument = session.Load<GroupOldFailureBatch>(message.BatchId);
+            if (batchDocument == null)
+            {
+                return;
+            }
 
-            Logger.InfoFormat("Started grouping {0} messages failures.", failures.Length);
-            
+            if (batchDocument.ContainsMoreBatches() == false)
+            {
+                return;
+            }
+
+            var batch = batchDocument.ConsumeBatch();
+
+            var failures = session.Load<MessageFailureHistory>(batch.Select(MessageFailureHistory.MakeDocumentId).ToArray());
+
+            Logger.InfoFormat("Grouping batch of {0} message failure(s).", failures.Length);
+
             foreach (var failure in failures)
             {
                 grouper.Group(failure);
             }
             session.SaveChanges();
 
-            Logger.InfoFormat("Done batching {0} messages failures.", failures.Length);
+            Logger.InfoFormat("Grouped {0} message failure(s) successfully.", failures.Length);
 
-
-            if (totaltNumberOfFailuresAvailable > failures.Length)
+            if (batchDocument.ContainsMoreBatches())
             {
-                Logger.InfoFormat("Still {0} messages failures that need grouping. Kicking of new batch.", totaltNumberOfFailuresAvailable - failures.Length);
-                bus.SendLocal(new GroupOldFailures());
+                bus.SendLocal<GroupOldFailures>(g => { g.BatchId = message.BatchId; });
             }
-        }
-
-        MessageFailureHistory[] GetFailuresMissingOneOrMoreGroupers(int numberOfGroupers, out int totaltNumberOfFailuresAvailable)
-        {
-            RavenQueryStatistics withoufFailureGroupsStats;
-            var withoutFailureGroupsFailures = GetFailuresWithoutFailureGroups(BatchSize, out withoufFailureGroupsStats);
-            var leftInBatch = BatchSize - withoutFailureGroupsFailures.Length;
-
-            RavenQueryStatistics notGroupedByAllGroupersStats;
-            var notGroupedByAllGroupersFailures = GetFailuresNotGroupedByAllGroupers(numberOfGroupers, leftInBatch, out notGroupedByAllGroupersStats);
-
-            var failures = withoutFailureGroupsFailures.Concat(notGroupedByAllGroupersFailures).ToArray();
-            totaltNumberOfFailuresAvailable = withoufFailureGroupsStats.TotalResults + notGroupedByAllGroupersStats.TotalResults;
-            return failures;
-        }
-
-        MessageFailureHistory[] GetFailuresWithoutFailureGroups(int batchSize, out RavenQueryStatistics stats)
-        {
-            return session.Query<MessageFailureHistory, MessageFailuresWithoutFailureGroupsIndex>()
-                .Statistics(out stats)
-                .Take(batchSize)
-                .ToArray();
-        }
-
-        MessageFailureHistory[] GetFailuresNotGroupedByAllGroupers(int numberOfGroupers, int batchSize, out RavenQueryStatistics stats)
-        {
-            return session.Query<MessageFailureHistory, MessageFailuresByFailureGroupsIndex>()
-                .Statistics(out stats)
-                .Where(f => f.FailureGroups.Count < numberOfGroupers)
-                .Take(batchSize)
-                .ToArray();
         }
     }
 }

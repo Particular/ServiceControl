@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability.Groups
 {
     using System.Collections.Generic;
+    using System.Linq;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability.Groups.Groupers;
 
@@ -17,27 +18,30 @@
 
         public void Group(MessageFailureHistory history)
         {
+            if (groupers == null)
+                return;
+
+            history.FailureGroups = new List<MessageFailureHistory.FailureGroup>();
+
             foreach (var grouper in groupers)
             {
                 var groupName = grouper.GetGroupName(history);
                 var groupType = grouper.GroupType;
                 var groupId = groupIdGenerator.GenerateId(groupType, groupName);
-                var groupExistsOnFailure = history.FailureGroups.Exists(g => g.Id == groupId);
-                if (!groupExistsOnFailure)
+                
+                history.FailureGroups.Add(new MessageFailureHistory.FailureGroup
                 {
-                    history.FailureGroups.Add(new MessageFailureHistory.FailureGroup
-                    {
-                        Id = groupId, 
-                        Title = groupName, 
-                        Type = groupType
-                    });
-                }
+                    Id = groupId, 
+                    Title = groupName, 
+                    Type = groupType
+                });
             }
         }
 
-        public int NumberOfAvailableGroupers()
+        public string GetGrouperSetId()
         {
-            return groupers.Count;
+            var groupersOrderedByType = groupers.OrderBy(f => f.GroupType).Select(i => i.GroupType);
+            return string.Join(";", groupersOrderedByType);
         }
     }
 }

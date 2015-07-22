@@ -35,7 +35,7 @@
 
 
             var groupName = exception.ExceptionType + " was thrown at " + firstStackTraceFrame.ToMethodIdentifier();
-            Logger.InfoFormat("Grouped message {0} into group with name {1}.", lastAttempt.MessageId, groupName);
+            Logger.InfoFormat("Grouped message {0} into group with name \"{1}\".", lastAttempt.MessageId, groupName);
 
             return groupName;
         }
