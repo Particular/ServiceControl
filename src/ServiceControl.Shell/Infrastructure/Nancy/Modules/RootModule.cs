@@ -24,6 +24,8 @@
                         "/endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
                     EndpointsMessagesUrl =
                         BaseUrl + "/endpoints/{name}/messages/{?page,per_page,direction,sort}",
+                    RecoverabilityGroupUrl = BaseUrl + "/recoverability/groups",
+                    RecoverabilityGroupErrorsUrl = BaseUrl + "/recoverability/groups/{groupId}/errors/{?page,per_page,direction,sort}",
                     Name = SettingsReader<string>.Read("Name", "ServiceControl"),
                     Description = SettingsReader<string>.Read("Description", "The management backend for the Particular Service Platform"),
                     LicenseStatus = License.IsValid ? "valid" : "invalid",
@@ -59,6 +61,8 @@
             public string LicenseStatus { get; set; }
             public string Name { get; set; }
             public string SagasUrl { get; set; }
+            public string RecoverabilityGroupUrl { get; set; }
+            public string RecoverabilityGroupErrorsUrl { get; set; }
         }
     }
 }

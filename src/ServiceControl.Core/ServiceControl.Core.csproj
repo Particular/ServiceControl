@@ -48,8 +48,9 @@
     <Reference Include="Raven.Client.Lightweight">
       <HintPath>..\packages\RavenDB.Client.2.5.2939\lib\net45\Raven.Client.Lightweight.dll</HintPath>
     </Reference>
-    <Reference Include="ServiceControl.Contracts">
-      <HintPath>..\packages\ServiceControl.Contracts.1.1.0\lib\net45\ServiceControl.Contracts.dll</HintPath>
+    <Reference Include="ServiceControl.Contracts, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ServiceControl.Contracts.1.2.0\lib\net45\ServiceControl.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -137,6 +138,31 @@
     <Compile Include="ExternalIntegrations\IEventPublisher.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
+    <Compile Include="ExternalIntegrations\NewFailureGroupDetectedPublisher.cs" />
+    <Compile Include="MessageFailures\ProcessingAttemptMessageFailureHistoryEnricher.cs" />
+    <Compile Include="Recoverability\Groups\ApiModule.cs" />
+    <Compile Include="Recoverability\Groups\Archive\ArchiveAllInGroup.cs" />
+    <Compile Include="Recoverability\Groups\Archive\ArchiveAllInGroupHandler.cs" />
+    <Compile Include="Recoverability\Groups\Archive\ArchiveGroupEventLogDefinition.cs" />
+    <Compile Include="Recoverability\Groups\Archive\FailedMessageGroupArchived.cs" />
+    <Compile Include="Recoverability\Groups\Detection\DetectNewGroupsHandler.cs" />
+    <Compile Include="Recoverability\Groups\Detection\DetectNewGroups.cs" />
+    <Compile Include="Recoverability\Groups\Detection\FailureGroupDetectionKickOff.cs" />
+    <Compile Include="Recoverability\Groups\Detection\FailureGroupDetectionSaga.cs" />
+    <Compile Include="Recoverability\Groups\Detection\FailureGroupDetectionSagaFinder.cs" />
+    <Compile Include="Recoverability\Groups\Detection\StartFailureGroupDetection.cs" />
+    <Compile Include="Recoverability\Groups\OldFailureGrouping\GroupOldFailuresBatch.cs" />
+    <Compile Include="Recoverability\Groups\Groupers\SHA1HashGroupIdGenerator.cs" />
+    <Compile Include="Recoverability\Groups\Groupers\IGroupIdGenerator.cs" />
+    <Compile Include="Recoverability\Groups\Indexes\FailureGroupsIndex.cs" />
+    <Compile Include="Recoverability\Groups\Indexes\MessageFailuresByGrouperSetIndex.cs" />
+    <Compile Include="Recoverability\Groups\Indexes\MessageFailuresByFailureGroupIdIndex.cs" />
+    <Compile Include="Recoverability\Groups\FailuresGroupsFeature.cs" />
+    <Compile Include="Recoverability\Groups\FailureGroup.cs" />
+    <Compile Include="Recoverability\Groups\Groupers\IFailedMessageGrouper.cs" />
+    <Compile Include="Recoverability\Groups\Groupers\ExceptionTypeAndStackTraceMessageGrouper.cs" />
+    <Compile Include="Recoverability\Groups\Groupers\StackTraceParser.cs" />
+    <Compile Include="Recoverability\Groups\MessageFailureHistoryGrouper.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatingEndpoint.cs" />
@@ -187,6 +213,11 @@
     <Compile Include="Operations\LicenseStatusKeeper.cs" />
     <Compile Include="Operations\LicenseStatusMessageProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Recoverability\Groups\OldFailureGrouping\CreateOldFailureBatches.cs" />
+    <Compile Include="Recoverability\Groups\OldFailureGrouping\CheckForOldFailuresHandler.cs" />
+    <Compile Include="Recoverability\Groups\OldFailureGrouping\GroupOldFailuresHandler.cs" />
+    <Compile Include="Recoverability\Groups\OldFailureGrouping\GroupOldFailuresKickOff.cs" />
+    <Compile Include="Recoverability\Groups\OldFailureGrouping\GroupOldFailures.cs" />
     <Compile Include="TransportMessageExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -15,6 +15,7 @@
         {
             Configure.Component<FailedMessageImporter>(DependencyLifecycle.SingleInstance);
             Configure.Component<SuccessfulRetryDetector>(DependencyLifecycle.SingleInstance);
+            Configure.Component<ProcessingAttemptMessageFailureHistoryEnricher>(DependencyLifecycle.SingleInstance);
         }
     }
 }

@@ -59,6 +59,7 @@
             "IsSystemMessage": false
         }
     ],
+    "FailureGroups": [],
     "Status": "Unresolved",
     "UniqueMessageId": "474ca846-1f38-24db-3cf8-a147632de5ab"
 }

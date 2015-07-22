@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using Contracts.Operations;
@@ -9,18 +10,23 @@
     using Raven.Client;
     using ServiceControl.MessageFailures.InternalMessages;
     using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Recoverability.Groups;
 
     class FailedMessageImporter : IProcessFailedMessages
     {
         readonly IBus bus;
+        readonly ProcessingAttemptMessageFailureHistoryEnricher processingAttemptEnricher;
+        readonly MessageFailureHistoryGrouper grouper;
         readonly IDocumentStore documentStore;
         readonly IBodyStorage morgue;
-
-        public FailedMessageImporter(IDocumentStore documentStore, IBodyStorage morgue, IBus bus)
+        
+        public FailedMessageImporter(IDocumentStore documentStore, IBodyStorage morgue, IBus bus, ProcessingAttemptMessageFailureHistoryEnricher processingAttemptEnricher, MessageFailureHistoryGrouper grouper)
         {
             this.documentStore = documentStore;
             this.morgue = morgue;
             this.bus = bus;
+            this.processingAttemptEnricher = processingAttemptEnricher;
+            this.grouper = grouper;
         }
 
         public void ProcessFailed(IngestedMessage message)
@@ -48,33 +54,9 @@
                     return;
                 }
 
-                failure.ProcessingAttempts.Add(new MessageFailureHistory.ProcessingAttempt
-                {
-                    ProcessingEndpoint = new EndpointDetails
-                    {
-                        Name = message.ProcessedAt.EndpointName,
-                        HostId = message.ProcessedAt.HostId
-                    },
-                    SendingEndpoint = new EndpointDetails
-                    {
-                        Name = message.SentFrom.EndpointName,
-                        HostId = message.SentFrom.HostId
-                    },
-                    ContentType = contentType,
-                    MessageType = message.MessageType.Name,
-                    IsSystemMessage = message.MessageType.IsSystem,
-                    TimeSent = ParseSentTime(message.Headers),
-                    AttemptedAt = details.TimeOfFailure,
-                    FailureDetails = details,
-                    MessageId = message.Id,
-                    Headers = message.Headers.ToDictionary(),
-                    ReplyToAddress = message.Headers.GetOrDefault("NServiceBus.ReplyToAddress"),
-                    Recoverable = message.Recoverable,
-                    CorrelationId = message.Headers.GetOrDefault("NServiceBus.CorrelationId"),
-                    MessageIntent = message.Headers.GetOrDefault("NServiceBus.MessageIntent"),
-                    
-                });
-
+                processingAttemptEnricher.Enrich(failure, message, details);
+                grouper.Group(failure);
+                
                 session.Store(failure);
                 session.SaveChanges();
 
@@ -97,17 +79,6 @@
             }
         }
 
-        static DateTime ParseSentTime(HeaderCollection headers)
-        {
-            string timeSentValue;
-            if (headers.TryGet(Headers.TimeSent, out timeSentValue))
-            {
-                var timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
-                return timeSent;
-            }
-            return DateTime.MinValue;
-        }
-
         static DateTime ParseTimeOfFailure(HeaderCollection headers)
         {
             var timeOfFailure = new DateTime();
@@ -118,7 +89,6 @@
             }
             return timeOfFailure;
         }
-
 
         FailureDetails ParseFailureDetails(HeaderCollection headers)
         {

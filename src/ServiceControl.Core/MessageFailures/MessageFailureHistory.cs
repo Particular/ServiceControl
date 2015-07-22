@@ -14,11 +14,13 @@
         public MessageFailureHistory()
         {
             ProcessingAttempts = new List<ProcessingAttempt>();
+            FailureGroups = new List<FailureGroup>();
         }
 
         public string Id { get; set; }
 
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
+        public List<FailureGroup> FailureGroups { get; set; }
         
         public FailedMessageStatus Status { get; set; }
 
@@ -42,6 +44,13 @@
             public bool IsSystemMessage { get; set; }//new
 
             //removed public Dictionary<string, object> MessageMetadata { get; set; }
+        }
+
+        public class FailureGroup
+        {
+            public string Id { get; set; }
+            public string Title { get; set; }
+            public string Type { get; set; }
         }
     }
 
