@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Migrations
 {
     using System;
+    using System.Collections.Generic;
+    using System.Reflection;
     using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -9,6 +11,37 @@
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using ServiceControl.Shell.Api;
+
+    // Let's start super simple
+    public class Migrations : IWantToRunWhenBusStartsAndStops
+    {
+        static readonly ILog Log = LogManager.GetLogger(typeof(Migration));
+        IDocumentStore documentStore;
+
+        public Migrations(IDocumentStore store)
+        {
+            documentStore = store;
+        }
+
+        public void Start()
+        {
+            var migrationOptions = new MigrationOptions
+            {
+                Assemblies = new List<Assembly>
+                {
+                    GetType().Assembly
+                }
+            };
+
+            Log.Info("Starting migration of documents");
+            Runner.Run(documentStore, migrationOptions).Wait();
+            Log.Info("Finished migration of documents");
+        }
+
+        public void Stop()
+        {
+        }
+    }
 
     public abstract class Migration<T> : IWantToRunWhenBusStartsAndStops, IDisposable
     {
@@ -19,12 +52,15 @@
         readonly IDocumentStore Store;
         readonly Meter throughputMetric;
 
+        readonly Timer timer;
+
         protected Migration(IDocumentStore store)
         {
             Store = store;
             logger = LogManager.GetLogger(GetType());
             executor = new PeriodicExecutor(Migrate, TimeSpan.FromMinutes(5));
             throughputMetric = Metric.Meter(GetType().FullName, "documents");
+            timer = Metric.Timer(GetType().FullName + "Requests", Unit.Requests);
         }
 
         protected abstract string EntityName { get; }
@@ -32,19 +68,22 @@
 
         public void Start()
         {
-            executor.Start(true);
+            executor.Start(false);
         }
 
         void Migrate(PeriodicExecutor e)
         {
-            var wasCleanEmptyRun = Migrate(() => e.IsCancellationRequested);
-            if (wasCleanEmptyRun)
+            using (timer.NewContext())
             {
-                emptyRunCount++;
-            }
-            if (emptyRunCount == 5)
-            {
-                e.Stop();
+                var wasCleanEmptyRun = Migrate(() => e.IsCancellationRequested);
+                if (wasCleanEmptyRun)
+                {
+                    emptyRunCount++;
+                }
+                if (emptyRunCount == 5)
+                {
+                    e.Stop();
+                }
             }
         }
 

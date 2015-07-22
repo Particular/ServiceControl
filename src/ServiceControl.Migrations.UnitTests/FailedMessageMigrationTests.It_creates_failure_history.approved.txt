@@ -55,7 +55,7 @@
             "ReplyToAddress": "Receiver.Default@SIMON-MAC",
             "Recoverable": true,
             "CorrelationId": "dc6b6f1f-d1a3-45bb-8e7c-a445008d48c5",
-            "MessageIntent": "Send",
+            "MessageIntent": "1",
             "IsSystemMessage": false
         }
     ],
