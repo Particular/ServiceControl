@@ -99,12 +99,12 @@ namespace ServiceControl.Recoverability
             Store.DatabaseCommands.Delete(FailedMessage.MakeDocumentId(uniqueMessageId), null);
         }
 
-        internal void AdoptOrphanedBatches()
+        internal void AdoptOrphanedBatches(DateTimeOffset startupTime)
         {
             using (var session = Store.OpenSession())
             {
                 var orphanedBatchIds = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-                    .Customize(q => q.WaitForNonStaleResultsAsOfNow())
+                    .Customize(q => q.WaitForNonStaleResultsAsOf(startupTime.DateTime, TimeSpan.FromMinutes(20)))
                     .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
                     .Select(b => b.Id)
                     .ToArray();

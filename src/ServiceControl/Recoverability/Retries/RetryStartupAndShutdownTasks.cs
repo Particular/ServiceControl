@@ -1,13 +1,13 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using NServiceBus;
 
     class RetryStartupAndShutdownTasks : IWantToRunWhenBusStartsAndStops
     {
         public void Start()
         {
-            if(RetryDocumentManager != null)
-                RetryDocumentManager.AdoptOrphanedBatches();
+            Bus.SendLocal<AdoptOrphanedBatches>(m => m.StartupTime = DateTimeOffset.UtcNow);
         }
 
         public void Stop()
@@ -17,6 +17,6 @@ namespace ServiceControl.Recoverability
         }
 
         public RetriesGateway Retries { get; set; }
-        public RetryDocumentManager RetryDocumentManager { get; set; }
+        public IBus Bus { get; set; }
     }
 }
