@@ -85,7 +85,7 @@
             var fileTarget = new FileTarget
             {
                 FileName = logFile,
-                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}|${exception}"
+                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:inner=${newline}${exception}${newline}${stacktrace:format=DetailedFlat}}"
             };
 
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, fileTarget) { Final = true });
