@@ -37,6 +37,7 @@
             var types = assemblies.Assemblies
                 //exclude all test types by default
                                   .Where(a => a != Assembly.GetExecutingAssembly())
+                                  .Where(a => !a.GetName().Name.StartsWith("ServiceControl.Plugin"))
                                   .SelectMany(a => a.GetTypes());
 
 
