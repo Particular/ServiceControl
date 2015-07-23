@@ -1,7 +1,6 @@
 namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
-    using System.Linq;
     using System.Text.RegularExpressions;
 
     static class StackTraceParser // "stolen" from https://code.google.com/p/elmah/source/browse/src/Elmah.AspNet/StackTraceParser.cs
@@ -76,19 +75,7 @@ namespace ServiceControl.Recoverability
 
             public string ToMethodIdentifier()
             {
-                var simpleTypeName = Type.Split('.').LastOrDefault() ?? "";
-                if (simpleTypeName != "")
-                {
-                    simpleTypeName += ".";
-                }
-
-                var niceParams = Params.TrimStart('(').TrimEnd(')')
-                                       .Split(',')
-                                       .Select(
-                                            x => x.Split(' ').LastOrDefault() ?? ""
-                                        );
-
-                return simpleTypeName + Method + "(" + string.Join(", ", niceParams.Select(x => x.Trim())) + ")";
+                return Type + "." + Method + Params;
             }
         }
     }

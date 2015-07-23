@@ -16,7 +16,7 @@ namespace ServiceControl.Recoverability
             if (firstStackTraceFrame == null)
                 return null;
 
-            return exception.ExceptionType.Split('.').LastOrDefault() + ": " + firstStackTraceFrame.ToMethodIdentifier();
+            return exception.ExceptionType + " was thrown at " + firstStackTraceFrame.ToMethodIdentifier();
         }
     }
 }
