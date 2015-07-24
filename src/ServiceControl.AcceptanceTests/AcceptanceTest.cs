@@ -24,6 +24,8 @@
     [TestFixture]
     public abstract class AcceptanceTest
     {
+        protected Dictionary<string, string> AppConfigurationSettings = new Dictionary<string, string>();
+
         public AcceptanceTest()
         {
 
@@ -77,9 +79,7 @@
             if (transportToUse == null)
                 transportToUse = GetTransportIntegrationFromEnvironmentVar();
 
-            pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
-            InitialiseAppConfig();
-
+       
             Console.Out.WriteLine("Using transport " + transportToUse.Name);
 
             Conventions.EndpointNamingConvention = t =>
@@ -94,10 +94,15 @@
         public void Cleanup()
         {
             Delete(ravenPath);
-            File.Delete(pathToAppConfig);
+            if (!string.IsNullOrWhiteSpace(pathToAppConfig))
+            {
+                File.Delete(pathToAppConfig);
+            }
         }
 
         string ravenPath;
+
+        
 
         static int FindAvailablePort(int startPort)
         {
@@ -158,6 +163,12 @@
             else
             {
                 appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/CreateIndexSync"), new XAttribute("value", true)));
+            }
+
+            // Mash any user defined settings into the config
+            foreach (var configSetting in AppConfigurationSettings)
+            {
+                appSettingsElement.Add(new XElement("add", new XAttribute("key", configSetting.Key), new XAttribute("value", configSetting.Value)));
             }
 
             // transport specification
@@ -438,7 +449,15 @@
         ITransportIntegration transportToUse;
         public string PathToAppConfig
         {
-            get { return pathToAppConfig; }
+            get
+            {
+                if (String.IsNullOrWhiteSpace(pathToAppConfig))
+                {
+                    pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+                    InitialiseAppConfig();
+                }
+                return pathToAppConfig;
+            }
         }
     }
 }
