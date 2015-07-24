@@ -38,7 +38,7 @@
                     if (!c.FirstDone || !c.SecondDone)
                         return false;
 
-                    if (!(TryGetMany("/api/recoverability/groups/", out groups) && groups.Any()))
+                    if (!(TryGetMany("/api/recoverability/groups/", out groups) && groups.Any(x => x.Count == 2)))
                         return false;
 
                     if (!TryGet("/api/errors/" + c.FirstMessageId, out firstFailure))
