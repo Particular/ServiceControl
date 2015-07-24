@@ -59,7 +59,7 @@
                     bus.Subscribe<CustomCheckSucceeded>();
                     bus.Subscribe<CustomCheckFailed>();
                 }))
-                .Done(c => c.CustomCheckFailedReceived && c.CustomCheckFailedReceived)
+                .Done(c => c.CustomCheckFailedReceived && c.CustomCheckSucceededReceived)
                 .Run();
 
             Assert.IsTrue(context.CustomCheckFailedReceived);
