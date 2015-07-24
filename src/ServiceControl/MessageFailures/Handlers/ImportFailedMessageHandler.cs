@@ -23,6 +23,7 @@
 
             var timeOfFailure = message.FailureDetails.TimeOfFailure;
 
+
             //check for duplicate
             if (failure.ProcessingAttempts.Any(a => a.AttemptedAt == timeOfFailure))
             {
