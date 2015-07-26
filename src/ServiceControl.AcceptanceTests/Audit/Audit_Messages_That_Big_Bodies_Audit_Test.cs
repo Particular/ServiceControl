@@ -10,12 +10,8 @@
     class Audit_Messages_That_Big_Bodies_Audit_Test : AcceptanceTest
     {
 
-
-
-
-
         [Test]
-        public void Should_get_an_empty_audit_message_body_when_configured_for_200K()
+        public void Should_not_get_an_empty_audit_message_body_when_configured_for_200K()
         {
             //Arrange
             AppConfigurationSettings.Clear();
@@ -108,7 +104,7 @@
                 .Run();
 
             //Assert
-            Assert.IsNull(body);
+            Assert.AreEqual(body.Length, 0);
 
         }
 
@@ -136,7 +132,7 @@
             }
         }
 
-        public class BigFatMessage : IMessage
+        class BigFatMessage : IMessage
         {
             public string MessageId { get; set; }
             public byte[] BigFatBody { get; set; }
