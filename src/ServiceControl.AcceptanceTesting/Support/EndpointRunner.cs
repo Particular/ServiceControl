@@ -161,11 +161,10 @@
 
         void Cleanup()
         {
-            
             if (SettingsHolder.HasSetting("CleanupTransport"))
             {
-                dynamic transportCleaner = SettingsHolder.Get("CleanupTransport");
-                transportCleaner.Cleanup();
+                var transportCleaner = SettingsHolder.Get<Action>("CleanupTransport");
+                transportCleaner();
             }
         }
 

@@ -29,7 +29,8 @@
                 connectionString = transport.ConnectionString;
             }
 
-            SettingsHolder.Set("CleanupTransport", transport);
+            Action action = () => transport.Cleanup(transport);
+            SettingsHolder.Set("CleanupTransport", action);
 
             if (connectionString == null)
             {

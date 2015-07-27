@@ -15,7 +15,7 @@
         public string TypeName { get { return "NServiceBus.SqlServer, NServiceBus.Transports.SqlServer"; } }
         public string ConnectionString { get; set; }
 
-        public void Cleanup()
+        public void Cleanup(ITransportIntegration transport)
         {
         }
     }

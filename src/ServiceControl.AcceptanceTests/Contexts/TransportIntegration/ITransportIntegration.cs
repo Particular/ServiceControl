@@ -8,6 +8,6 @@
         Type Type  { get; }
         string TypeName { get; }
         string ConnectionString { get; set; }
-        void Cleanup();
+        void Cleanup(ITransportIntegration transport);
     }
 }

@@ -17,7 +17,7 @@
         public string TypeName { get { return "NServiceBus.Msmq, NServiceBus.Core"; }}
         public string ConnectionString { get; set; }
 
-        public void Cleanup()
+        public void Cleanup(ITransportIntegration transport)
         {
             var name = Configure.EndpointName;
             var nameFilter = @"private$\" + name;
