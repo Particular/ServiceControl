@@ -17,6 +17,9 @@
 
         public void Cleanup(ITransportIntegration transport)
         {
+            // It is not possible to delete all queues and exchanges over the C# client
+            // we need the management plugin and call the proper HTTP apis to get all queues
+            // and exchanges for the given vhost
         }
     }
 }
