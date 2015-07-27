@@ -88,6 +88,8 @@
                 var testName = GetType().Name;
                 return t.FullName.Replace(baseNs + ".", String.Empty).Replace(testName + "+", String.Empty);
             };
+
+            Conventions.DefaultConfigForEndpoints = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
         }
 
         [TearDown]

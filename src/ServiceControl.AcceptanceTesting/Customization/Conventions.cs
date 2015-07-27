@@ -18,5 +18,7 @@ namespace NServiceBus.AcceptanceTesting.Customization
         {
             return EndpointNamingConvention(typeof(T));
         }
+
+        public static string DefaultConfigForEndpoints { get; set; }
     }
 }
