@@ -1,8 +1,7 @@
-﻿using System;
-using System.Linq;
-
-namespace ServiceBus.Management.AcceptanceTests.CustomChecks
+﻿namespace ServiceBus.Management.AcceptanceTests.CustomChecks
 {
+    using System;
+    using System.Linq;
     using System.Threading;
     using Contexts;
     using NServiceBus.AcceptanceTesting;
