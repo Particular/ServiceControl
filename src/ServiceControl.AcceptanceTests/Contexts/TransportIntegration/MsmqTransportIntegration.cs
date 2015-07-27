@@ -28,6 +28,18 @@
             {
                 using (messageQueue)
                 {
+                    if (messageQueue.QueueName == @"private$\error")
+                    {
+                        queuesToBeDeleted.Add(messageQueue.Path);
+                        continue;
+                    }
+
+                    if (messageQueue.QueueName == @"private$\audit")
+                    {
+                        queuesToBeDeleted.Add(messageQueue.Path);
+                        continue;
+                    }
+
                     if (messageQueue.QueueName.StartsWith(nameFilter, StringComparison.OrdinalIgnoreCase))
                     {
                         queuesToBeDeleted.Add(messageQueue.Path);
@@ -37,8 +49,15 @@
 
             foreach (var queuePath in queuesToBeDeleted)
             {
-                MessageQueue.Delete(queuePath);
-                Console.WriteLine("Deleted '{0}' queue", queuePath);
+                try
+                {
+                    MessageQueue.Delete(queuePath);
+                    Console.WriteLine("Deleted '{0}' queue", queuePath);
+                }
+                catch (MessageQueueException)
+                {
+                    //There could be a concurrency problem deleting error and audit queues
+                }
             }
 
             MessageQueue.ClearConnectionCache();
