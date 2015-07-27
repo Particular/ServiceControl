@@ -27,7 +27,8 @@
 
             var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
 
-            SettingsHolder.Set("CleanupTransport", transportToUse);
+            Action action = () => transportToUse.Cleanup(transportToUse);
+            SettingsHolder.Set("CleanupTransport", action);
 
             new Bootstrapper(configure: configure);
 
