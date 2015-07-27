@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration
 {
     using System;
+    using System.Net;
     using Microsoft.ServiceBus;
     using NServiceBus;
 
@@ -26,21 +27,45 @@
                 var subscriptions = namespaceManager.GetSubscriptions(topic.Path);
                 foreach (var subscription in subscriptions)
                 {
-                    namespaceManager.DeleteSubscription(topic.Path, subscription.Name);
-                    Console.WriteLine("Deleted subscription '{0}' for topic {1}", subscription.Name, topic.Path);
+                    var topic1 = topic;
+                    var subscription1 = subscription;
+                    IgnoreWebExceptionsForConcurrencyReasons(() =>
+                    {
+                        namespaceManager.DeleteSubscription(topic1.Path, subscription1.Name);
+                        Console.WriteLine("Deleted subscription '{0}' for topic {1}", subscription1.Name, topic1.Path);
+                    });
                 }
 
-                namespaceManager.DeleteTopic(topic.Path);
-                Console.WriteLine("Deleted '{0}' topic", topic.Path);
+                var topic2 = topic;
+                IgnoreWebExceptionsForConcurrencyReasons(() =>
+                {
+                    namespaceManager.DeleteTopic(topic2.Path);
+                    Console.WriteLine("Deleted '{0}' topic", topic2.Path);
+                });
             }
 
             var queues = namespaceManager.GetQueues();
             foreach (var queue in queues)
             {
-                namespaceManager.DeleteQueue(queue.Path);
-                Console.WriteLine("Deleted '{0}' queue", queue.Path);
+                var queue1 = queue;
+                IgnoreWebExceptionsForConcurrencyReasons(() =>
+                {
+                    namespaceManager.DeleteQueue(queue1.Path);
+                    Console.WriteLine("Deleted '{0}' queue", queue1.Path);
+                });
             }
+        }
 
+        private void IgnoreWebExceptionsForConcurrencyReasons(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (WebException)
+            {
+                // Concurrency exception
+            }
         }
     }
 }
