@@ -13,6 +13,7 @@
     using NServiceBus.Config.ConfigurationSource;
     using NServiceBus.Hosting.Helpers;
     using NServiceBus.Logging.Loggers.NLogAdapter;
+    using NServiceBus.Settings;
     using Particular.ServiceControl;
 
     public class ManagementEndpointSetup : IEndpointSetupTemplate
@@ -23,6 +24,11 @@
             Configure.ScaleOut(_ => _.UseSingleBrokerQueue());
 
             var configure = Configure.With(GetTypesScopedByTestClass(endpointConfiguration));
+
+            var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
+
+            SettingsHolder.Set("CleanupTransport", transportToUse);
+
             new Bootstrapper(configure: configure);
 
             LogManager.Configuration = SetupLogging(endpointConfiguration);

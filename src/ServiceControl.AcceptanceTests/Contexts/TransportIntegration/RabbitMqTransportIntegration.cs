@@ -15,11 +15,7 @@
         public string TypeName { get { return "NServiceBus.RabbitMQ, NServiceBus.Transports.RabbitMQ"; } }
         public string ConnectionString { get; set; }
 
-        public void SetUp()
-        {
-        }
-
-        public void TearDown()
+        public void Cleanup()
         {
         }
     }

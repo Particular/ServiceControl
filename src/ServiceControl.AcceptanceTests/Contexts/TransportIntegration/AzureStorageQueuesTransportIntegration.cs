@@ -7,7 +7,7 @@
     {
         public AzureStorageQueuesTransportIntegration()
         {
-            ConnectionString = ""; // empty on purpse
+            ConnectionString = ""; // empty on purpose
         }
 
         public string Name { get { return "AzureStorageQueues"; } }
@@ -15,12 +15,7 @@
         public string TypeName { get { return "NServiceBus.AzureStorageQueue, NServiceBus.Azure.Transports.WindowsAzureStorageQueues"; } }
         public string ConnectionString { get; set; }
 
-        public void SetUp()
-        {
-
-        }
-
-        public void TearDown()
+        public void Cleanup()
         {
 
         }
