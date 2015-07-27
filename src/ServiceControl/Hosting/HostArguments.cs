@@ -119,6 +119,30 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
+            var externalInstallerOptions = new OptionSet
+            {
+                {
+                    "s|setup",
+                    @"Internal use - for new installer"
+                    , s =>
+                    {
+
+                        commands = new List<Type>{typeof(RunBootstrapperAndNServiceBusInstallers)};
+                        executionMode = ExecutionMode.Install;
+                    }
+                },
+                {
+                    "serviceName=",
+                    @"Specify the service name for the installed service."
+                    , s => { ServiceName = s; }
+                },
+                {
+                    "userName=",
+                    @"Username for the account the service should run under."
+                    , s => { Username = s; }
+                },
+            };
+
             installOptions = new OptionSet
             {
                 {
@@ -212,6 +236,12 @@ namespace Particular.ServiceControl.Hosting
             try
             {
                 installOptions.Parse(args);
+                if (executionMode == ExecutionMode.Install)
+                {
+                    return;
+                }
+
+                externalInstallerOptions.Parse(args);
                 if (executionMode == ExecutionMode.Install)
                 {
                     return;
