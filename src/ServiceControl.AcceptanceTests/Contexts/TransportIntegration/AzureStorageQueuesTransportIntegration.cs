@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration
 {
     using System;
+    using Microsoft.WindowsAzure.Storage;
     using NServiceBus;
 
     public class AzureStorageQueuesTransportIntegration : ITransportIntegration
@@ -17,7 +18,13 @@
 
         public void Cleanup(ITransportIntegration transport)
         {
-
+            var storageAccount = CloudStorageAccount.Parse(ConnectionString);
+            var queueClient = storageAccount.CreateCloudQueueClient();
+            foreach (var queue in queueClient.ListQueues())
+            {
+                queue.Delete();
+                Console.WriteLine("Deleted '{0}' queue", queue.Name);
+            }
         }
     }
 }
