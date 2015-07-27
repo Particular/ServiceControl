@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration
 {
     using System;
+    using System.Net;
     using Microsoft.WindowsAzure.Storage;
     using NServiceBus;
 
@@ -22,8 +23,21 @@
             var queueClient = storageAccount.CreateCloudQueueClient();
             foreach (var queue in queueClient.ListQueues())
             {
-                queue.Delete();
+                var localQueue = queue;
+                IgnoreWebExceptionsForConcurrencyReasons(() => localQueue.Delete());
                 Console.WriteLine("Deleted '{0}' queue", queue.Name);
+            }
+        }
+
+        private void IgnoreWebExceptionsForConcurrencyReasons(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (WebException)
+            {
+                // Concurrency exception
             }
         }
     }
