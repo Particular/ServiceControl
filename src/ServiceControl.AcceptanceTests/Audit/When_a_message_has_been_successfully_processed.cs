@@ -17,6 +17,7 @@
         [Test]
         public void Should_be_imported_and_accessible_via_the_rest_api()
         {
+            const string Payload = "PAYLOAD";
             var context = new MyContext();
             MessagesView auditedMessage = null;
             byte[] body = null;
@@ -26,7 +27,10 @@
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
-                    bus.Send(new MyMessage());
+                    bus.Send(new MyMessage
+                    {
+                        PropertyToSearchFor = Payload
+                    });
                 }))
                 .WithEndpoint<Receiver>()
                 .Done(c =>
@@ -72,7 +76,7 @@
             
             var bodyAsString = Encoding.UTF8.GetString(body);
 
-            Assert.True(bodyAsString.Contains("MyMessage"), bodyAsString);
+            Assert.True(bodyAsString.Contains(Payload), bodyAsString);
 
             Assert.AreEqual(body.Length, auditedMessage.BodySize);
 
