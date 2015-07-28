@@ -57,7 +57,7 @@
 
             var failureGroup = groups.First();
             Assert.AreEqual(2, failureGroup.Count, "Group should have both messages in it");
-            var firstFailureAttempt = firstFailure.ProcessingAttempts.Last();
+            var firstFailureAttempt = firstFailure.ProcessingAttempts.First();
             var lastFailureAttempt = secondFailure.ProcessingAttempts.Last();
 
             Assert.AreNotEqual(firstFailureAttempt.AttemptedAt, lastFailureAttempt.AttemptedAt, "Failures should have occurred at different times");

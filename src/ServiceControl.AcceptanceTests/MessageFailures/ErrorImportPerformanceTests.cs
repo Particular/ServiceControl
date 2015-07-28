@@ -50,7 +50,7 @@
 
                     return messages.Count() >= 100;
                 })
-                .Run();
+                .Run(TimeSpan.FromMinutes(2));
 
         }
 
