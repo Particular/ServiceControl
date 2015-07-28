@@ -10,16 +10,15 @@ namespace ServiceControl.Recoverability
         {
             Map = docs => from doc in docs
                 where doc.Status == FailedMessageStatus.Unresolved
-                let latestAttempt = doc.ProcessingAttempts.Last()
-                let firstAttempt = doc.ProcessingAttempts.First()
+                let failureTimes = doc.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure)
                 from failureGroup in doc.FailureGroups
                 select new FailureGroupView
                 {
                     Id = failureGroup.Id,
                     Title = failureGroup.Title,
                     Count = 1,
-                    First = firstAttempt.FailureDetails.TimeOfFailure,
-                    Last = latestAttempt.FailureDetails.TimeOfFailure,
+                    First = failureTimes.Min(),
+                    Last = failureTimes.Max(),
                     Type = failureGroup.Type
                 };
 
