@@ -1,10 +1,8 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Microsoft.WindowsAzure.Storage;
-    using Microsoft.WindowsAzure.Storage.Queue;
     using NServiceBus;
 
     public class AzureStorageQueuesTransportIntegration : ITransportIntegration
