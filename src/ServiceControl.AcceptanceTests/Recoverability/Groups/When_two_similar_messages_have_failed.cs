@@ -60,9 +60,9 @@
             var firstFailureAttempt = firstFailure.ProcessingAttempts.First();
             var lastFailureAttempt = secondFailure.ProcessingAttempts.Last();
 
-            Assert.AreNotEqual(firstFailureAttempt.AttemptedAt, lastFailureAttempt.AttemptedAt, "Failures should have occurred at different times");
-            Assert.AreEqual(firstFailureAttempt.AttemptedAt, failureGroup.First, "Failure Group should start when the first message arrived");
-            Assert.AreEqual(lastFailureAttempt.AttemptedAt, failureGroup.Last, "Failure Group should end when the last message arrived");
+            Assert.AreNotEqual(firstFailureAttempt.FailureDetails.TimeOfFailure, lastFailureAttempt.FailureDetails.TimeOfFailure, "Failures should have occurred at different times");
+            Assert.AreEqual(firstFailureAttempt.FailureDetails.TimeOfFailure, failureGroup.First, "Failure Group should start when the first message arrived");
+            Assert.AreEqual(lastFailureAttempt.FailureDetails.TimeOfFailure, failureGroup.Last, "Failure Group should end when the last message arrived");
         }
 
         public class Receiver : EndpointConfigurationBuilder
