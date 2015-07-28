@@ -29,7 +29,7 @@
                 connectionString = transport.ConnectionString;
             }
 
-            Action action = () => transport.Cleanup(transport);
+            Action action = transport.OnEndpointShutdown;
             SettingsHolder.Set("CleanupTransport", action);
 
             if (connectionString == null)

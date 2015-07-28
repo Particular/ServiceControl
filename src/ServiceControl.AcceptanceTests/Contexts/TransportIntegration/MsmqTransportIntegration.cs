@@ -17,9 +17,19 @@
         public string TypeName { get { return "NServiceBus.Msmq, NServiceBus.Core"; }}
         public string ConnectionString { get; set; }
 
-        public void Cleanup(ITransportIntegration transport)
+        public void OnEndpointShutdown()
         {
-            var name = Configure.EndpointName;
+            DeleteQueues(Configure.EndpointName);
+        }
+
+        public void TearDown()
+        {
+            DeleteQueues("error");
+            DeleteQueues("audit");
+        }
+
+        static void DeleteQueues(string name)
+        {
             var nameFilter = @"private$\" + name;
             var allQueues = MessageQueue.GetPrivateQueuesByMachine("localhost");
             var queuesToBeDeleted = new List<string>();
@@ -28,18 +38,6 @@
             {
                 using (messageQueue)
                 {
-                    if (messageQueue.QueueName == @"private$\error")
-                    {
-                        queuesToBeDeleted.Add(messageQueue.Path);
-                        continue;
-                    }
-
-                    if (messageQueue.QueueName == @"private$\audit")
-                    {
-                        queuesToBeDeleted.Add(messageQueue.Path);
-                        continue;
-                    }
-
                     if (messageQueue.QueueName.StartsWith(nameFilter, StringComparison.OrdinalIgnoreCase))
                     {
                         queuesToBeDeleted.Add(messageQueue.Path);

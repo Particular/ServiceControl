@@ -26,7 +26,6 @@
     {
         public AcceptanceTest()
         {
-            //Environment.SetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport", "RabbitMq", EnvironmentVariableTarget.Process);
         }
 
         public AcceptanceTest(Type typeOfTransport, string connectionString)
@@ -42,7 +41,9 @@
         {
             ITransportIntegration transportToUse;
             if ((transportToUse = GetOverrideTransportIntegration()) != null)
+            {
                 return transportToUse;
+            }
 
             var transportToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport");
             if (transportToUseString != null)
@@ -60,6 +61,7 @@
             {
                 transportToUse.ConnectionString = connectionString;
             }
+
             return transportToUse;
         }
 
@@ -75,7 +77,9 @@
             port = FindAvailablePort(33333);
 
             if (transportToUse == null)
+            {
                 transportToUse = GetTransportIntegrationFromEnvironmentVar();
+            }
 
             pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
             InitialiseAppConfig();
@@ -97,6 +101,7 @@
         {
             Delete(ravenPath);
             File.Delete(pathToAppConfig);
+            transportToUse.TearDown();
         }
 
         string ravenPath;

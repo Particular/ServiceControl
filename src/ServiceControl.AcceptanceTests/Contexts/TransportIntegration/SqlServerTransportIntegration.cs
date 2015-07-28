@@ -18,12 +18,22 @@
         public string TypeName { get { return "NServiceBus.SqlServer, NServiceBus.Transports.SqlServer"; } }
         public string ConnectionString { get; set; }
 
-        public void Cleanup(ITransportIntegration transport)
+        public void OnEndpointShutdown()
         {
-            var name = Configure.EndpointName;
+            DeleteTables(Configure.EndpointName);
+        }
+
+        public void TearDown()
+        {
+            DeleteTables("error");
+            DeleteTables("audit");
+        }
+
+        void DeleteTables(string name)
+        {
             var queuesToBeDeleted = new List<string>();
 
-            var connection = new SqlConnection(transport.ConnectionString);
+            var connection = new SqlConnection(ConnectionString);
             connection.Open();
 
             using (var transaction = connection.BeginTransaction(IsolationLevel.Serializable))
@@ -36,25 +46,13 @@
                         allQueues = new List<string>();
                         while (reader.Read())
                         {
-                            allQueues.Add((string)reader[0]);
+                            allQueues.Add((string) reader[0]);
                         }
                     }
                 }
 
                 foreach (var messageQueue in allQueues)
                 {
-                    if (messageQueue.Equals("error", StringComparison.OrdinalIgnoreCase))
-                    {
-                        queuesToBeDeleted.Add(messageQueue);
-                        continue;
-                    }
-
-                    if (messageQueue.Equals("audit", StringComparison.OrdinalIgnoreCase))
-                    {
-                        queuesToBeDeleted.Add(messageQueue);
-                        continue;
-                    }
-
                     if (messageQueue.StartsWith(name, StringComparison.OrdinalIgnoreCase))
                     {
                         queuesToBeDeleted.Add(messageQueue);
@@ -71,6 +69,5 @@
                 transaction.Commit();
             }
         }
-
     }
 }

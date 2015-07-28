@@ -15,11 +15,16 @@
         public string TypeName { get { return "NServiceBus.RabbitMQ, NServiceBus.Transports.RabbitMQ"; } }
         public string ConnectionString { get; set; }
 
-        public void Cleanup(ITransportIntegration transport)
+        public void OnEndpointShutdown()
         {
             // It is not possible to delete all queues and exchanges over the C# client
             // we need the management plugin and call the proper HTTP apis to get all queues
             // and exchanges for the given vhost
+        }
+
+        public void TearDown()
+        {
+            
         }
     }
 }
