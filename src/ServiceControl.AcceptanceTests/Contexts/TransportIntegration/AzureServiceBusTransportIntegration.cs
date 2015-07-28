@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration
 {
     using System;
-    using System.Linq;
     using Microsoft.ServiceBus;
     using NServiceBus;
 
@@ -36,8 +35,8 @@
         public void TearDown()
         {
             var namespaceManager = NamespaceManager.CreateFromConnectionString(ConnectionString);
-
-            var topics = namespaceManager.GetTopics().ToList();
+            
+            var topics = namespaceManager.GetTopics();
             foreach (var topic in topics)
             {
                 var subscriptions = namespaceManager.GetSubscriptions(topic.Path);
