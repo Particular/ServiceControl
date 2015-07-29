@@ -61,7 +61,7 @@
                 {
                     responseMessage.EnsureSuccessStatusCode();
                 }
-                catch (WebException)
+                catch (HttpRequestException)
                 {
                     // TC has some weird problems when this code is executed inside the NUnit runner. It works on the agents as a 
                     // seperate console executed with the same credentials as the agent, it also works when executed inside VS on the agents
