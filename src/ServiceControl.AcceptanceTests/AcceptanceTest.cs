@@ -350,23 +350,6 @@
             }
         }
 
-        //protected byte[] DownloadData(string url)
-        //{
-        //    using (var client = new WebClient())
-        //    {
-        //        var urlToMessageBody = url;
-        //        if (!url.StartsWith("http"))
-        //        {
-        //            urlToMessageBody = string.Format("http://localhost:{0}/api{1}", port, url);
-        //        }
-
-        //        Console.Out.Write(urlToMessageBody);
-
-        //        return client.DownloadData(urlToMessageBody);
-        //    }
-        //}
-
-
         protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null) where T : class
         {
             if (condition == null)
