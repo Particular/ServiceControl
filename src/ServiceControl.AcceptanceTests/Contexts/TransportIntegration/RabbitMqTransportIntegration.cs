@@ -70,7 +70,8 @@
             queueDeletionTasks.AddRange(queues.Select(queue =>
             {
                 var deletionTask = httpClient.DeleteAsync(string.Format("/api/queues/{0}/{1}", virtualHost, queue.Name));
-                deletionTask.ContinueWith((t, o) => { Console.WriteLine("Deleted queue {0}.", queue.Name); }, null, TaskContinuationOptions.ExecuteSynchronously);
+                deletionTask.ContinueWith((t, o) => { Console.WriteLine("Deleted queue {0}.", queue.Name); }, null, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion);
+                deletionTask.ContinueWith((t, o) => { Console.WriteLine("Failed to delete queue {0}.", queue.Name); }, null, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted);
                 return deletionTask;
             }));
             return queueDeletionTasks;
@@ -88,7 +89,8 @@
             exchangeDeletionTasks.AddRange(exchanges.Select(exchange =>
             {
                 var deletionTask = httpClient.DeleteAsync(string.Format("/api/exchanges/{0}/{1}", virtualHost, exchange.Name));
-                deletionTask.ContinueWith((t, o) => { Console.WriteLine("Deleted exchange {0}.", exchange.Name); }, null, TaskContinuationOptions.ExecuteSynchronously);
+                deletionTask.ContinueWith((t, o) => { Console.WriteLine("Deleted exchange {0}.", exchange.Name); }, null, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion);
+                deletionTask.ContinueWith((t, o) => { Console.WriteLine("Failed to delete exchange {0}.", exchange.Name); }, null, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted);
                 return deletionTask;
             }));
             return exchangeDeletionTasks;
