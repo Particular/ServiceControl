@@ -56,7 +56,18 @@
 
             foreach (var cleanup in cleanupTasks)
             {
-                cleanup.Result.EnsureSuccessStatusCode();
+                var responseMessage = cleanup.Result;
+                try
+                {
+                    responseMessage.EnsureSuccessStatusCode();
+                }
+                catch (WebException)
+                {
+                    // TC has some weird problems when this code is executed inside the NUnit runner. It works on the agents as a 
+                    // seperate console executed with the same credentials as the agent, it also works when executed inside VS on the agents
+                    var requerstMessage = responseMessage.RequestMessage;
+                    Console.WriteLine("Cleanup task failed for {0} {1}", requerstMessage.Method, requerstMessage.RequestUri);
+                }
             }
         }
 
