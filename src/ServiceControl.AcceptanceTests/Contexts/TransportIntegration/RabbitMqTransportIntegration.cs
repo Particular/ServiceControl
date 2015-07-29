@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
@@ -37,7 +38,7 @@
 
             var username = match.Groups["UserName"].Success ? match.Groups["UserName"].Value : "guest";
             var password = match.Groups["Password"].Success ? match.Groups["Password"].Value : "guest";
-            var virtualHost = match.Groups["VirtualHost"].Success ? match.Groups["VirtualHost"].Value : "%2f"; // %2f is the name of the default virtual host
+            var virtualHost = match.Groups["VirtualHost"].Success ? match.Groups["VirtualHost"].Value : Uri.EscapeDataString("/"); // %2F is the name of the default virtual host
 
             var handler = new HttpClientHandler
             {
@@ -45,7 +46,7 @@
             };
             var httpClient = new HttpClient(handler)
             {
-                BaseAddress = new Uri(string.Format("http://{0}:15672/", match.Groups["host"].Value))
+                BaseAddress = new Uri(string.Format(CultureInfo.InvariantCulture, "http://{0}:15672/", match.Groups["host"].Value))
             };
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -65,22 +66,22 @@
                 {
                     // TC has some weird problems when this code is executed inside the NUnit runner. It works on the agents as a 
                     // seperate console executed with the same credentials as the agent, it also works when executed inside VS on the agents
-                    var requerstMessage = responseMessage.RequestMessage;
-                    Console.WriteLine("Cleanup task failed for {0} {1}", requerstMessage.Method, requerstMessage.RequestUri);
+                    var requestMessage = responseMessage.RequestMessage;
+                    Console.WriteLine("Cleanup task failed for {0} {1}", requestMessage.Method, requestMessage.RequestUri);
                 }
             }
         }
 
         static IEnumerable<Task<HttpResponseMessage>> DeleteQueues(HttpClient httpClient, string virtualHost)
         {
-            var queueResult = httpClient.GetAsync(string.Format("api/queues/{0}", virtualHost)).Result;
+            var queueResult = httpClient.GetAsync(string.Format(CultureInfo.InvariantCulture, "api/queues/{0}", virtualHost)).Result;
             queueResult.EnsureSuccessStatusCode();
             var queues = JsonConvert.DeserializeObject<List<Queue>>(queueResult.Content.ReadAsStringAsync().Result);
 
             var queueDeletionTasks = new List<Task<HttpResponseMessage>>(queues.Count);
             queueDeletionTasks.AddRange(queues.Select(queue =>
             {
-                var deletionTask = httpClient.DeleteAsync(string.Format("/api/queues/{0}/{1}", virtualHost, queue.Name));
+                var deletionTask = httpClient.DeleteAsync(string.Format(CultureInfo.InvariantCulture, "/api/queues/{0}/{1}", virtualHost, queue.Name));
                 deletionTask.ContinueWith((t, o) => { Console.WriteLine("Deleted queue {0}.", queue.Name); }, null, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion);
                 deletionTask.ContinueWith((t, o) => { Console.WriteLine("Failed to delete queue {0}.", queue.Name); }, null, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted);
                 return deletionTask;
@@ -91,7 +92,7 @@
         static IEnumerable<Task<HttpResponseMessage>> DeleteExchanges(HttpClient httpClient, string virtualHost)
         {
             // Delete exchanges
-            var exchangeResult = httpClient.GetAsync(string.Format("api/exchanges/{0}", virtualHost)).Result;
+            var exchangeResult = httpClient.GetAsync(string.Format(CultureInfo.InvariantCulture, "api/exchanges/{0}", virtualHost)).Result;
             exchangeResult.EnsureSuccessStatusCode();
             var allExchanges = JsonConvert.DeserializeObject<List<Exchange>>(exchangeResult.Content.ReadAsStringAsync().Result);
             var exchanges = FilterAllExchangesByExcludingInternalTheDefaultAndAmq(allExchanges);
@@ -99,7 +100,7 @@
             var exchangeDeletionTasks = new List<Task<HttpResponseMessage>>(exchanges.Count);
             exchangeDeletionTasks.AddRange(exchanges.Select(exchange =>
             {
-                var deletionTask = httpClient.DeleteAsync(string.Format("/api/exchanges/{0}/{1}", virtualHost, exchange.Name));
+                var deletionTask = httpClient.DeleteAsync(string.Format(CultureInfo.InvariantCulture, "/api/exchanges/{0}/{1}", virtualHost, exchange.Name));
                 deletionTask.ContinueWith((t, o) => { Console.WriteLine("Deleted exchange {0}.", exchange.Name); }, null, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion);
                 deletionTask.ContinueWith((t, o) => { Console.WriteLine("Failed to delete exchange {0}.", exchange.Name); }, null, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted);
                 return deletionTask;
