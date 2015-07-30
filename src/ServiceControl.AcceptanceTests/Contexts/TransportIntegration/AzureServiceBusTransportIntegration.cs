@@ -1,12 +1,18 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.ServiceBus;
+    using Microsoft.ServiceBus.Messaging;
     using NServiceBus;
 
     public class AzureServiceBusTransportIntegration : ITransportIntegration
     {
+        const int BATCH_SIZE_FOR_CLEARING = 1000;
+        const int SECONDS_TO_WAIT_FOR_BATCH = 10;
+
         public AzureServiceBusTransportIntegration()
         {
             ConnectionString = String.Empty; // empty on purpose
@@ -42,27 +48,35 @@
             {
                 var subscriptions = namespaceManager.GetSubscriptions(topic.Path);
 
-                Parallel.ForEach(subscriptions, subscription =>
-                {
-                    var topic1 = topic;
-                    var subscription1 = subscription;
-
-                    namespaceManager.DeleteSubscription(topic1.Path, subscription1.Name);
-                    Console.WriteLine("Deleted subscription '{0}' for topic {1}", subscription1.Name, topic1.Path);
-                });
-
-                var topic2 = topic;
-                namespaceManager.DeleteTopic(topic2.Path);
-                Console.WriteLine("Deleted '{0}' topic", topic2.Path);
+                Task.WaitAll(subscriptions.Select(x => ClearSubscription(topic.Path, x.Name)).ToArray());
             });
 
-            var queues = namespaceManager.GetQueues();
-            Parallel.ForEach(queues, queue =>
+            Task.WaitAll(namespaceManager.GetQueues().Select(q => ClearQueue(q.Path)).ToArray());
+        }
+
+        async Task ClearQueue(string queuePath)
+        {
+	        var client = QueueClient.CreateFromConnectionString(ConnectionString, queuePath, ReceiveMode.ReceiveAndDelete);
+	        IEnumerable<BrokeredMessage> messages;
+	        do
+	        {
+	    	    messages = await client.ReceiveBatchAsync(BATCH_SIZE_FOR_CLEARING, TimeSpan.FromSeconds(SECONDS_TO_WAIT_FOR_BATCH));
+	        } while(messages.Any());
+		
+	        Console.WriteLine("Cleared '{0}' queue", queuePath);
+        }
+
+        async Task ClearSubscription(string topicPath, string name)
+        {
+            var client = SubscriptionClient.CreateFromConnectionString(ConnectionString, topicPath, name, ReceiveMode.ReceiveAndDelete);
+            IEnumerable<BrokeredMessage> messages;
+            do
             {
-                var queue1 = queue;
-                namespaceManager.DeleteQueue(queue1.Path);
-                Console.WriteLine("Deleted '{0}' queue", queue1.Path);
-            });
+                messages = await client.ReceiveBatchAsync(BATCH_SIZE_FOR_CLEARING, TimeSpan.FromSeconds(SECONDS_TO_WAIT_FOR_BATCH));
+            } while (messages.Any());
+
+            Console.WriteLine("Cleared '{0}->{1}' subscription", topicPath, name);
         }
     }
+
 }
