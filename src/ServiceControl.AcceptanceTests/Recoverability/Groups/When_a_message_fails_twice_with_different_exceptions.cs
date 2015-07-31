@@ -50,7 +50,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
                     return false;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(TimeSpan.FromMinutes(3));
 
             Assert.IsNotNull(originalMessage, "Original message was not receieved");
             Assert.IsNotNull(retriedMessage, "Retried message was not received");

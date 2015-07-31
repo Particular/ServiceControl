@@ -27,7 +27,7 @@ namespace ServiceControl.Recoverability
         public bool Handle(TransportMessage message)
         {
             HandleMessage(message);
-            timer.Change(TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
+            timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
             return true;
         }
 
@@ -41,7 +41,7 @@ namespace ServiceControl.Recoverability
             {
                 resetEvent.Reset();
                 receiver.StartInternal();
-                timer.Change(TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
+                timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
                 Log.InfoFormat("{0} started", GetType().Name);
             }
             finally
