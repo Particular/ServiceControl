@@ -39,16 +39,16 @@
                         return false;
                     }
 
-                    return c.Done && GetFailedMessage(c, out failure);
+                    return c.Done && GetFailedMessage(c, out failure, x => x.Status == FailedMessageStatus.RetryIssued);
                 })
-                .Run();
+                .Run(TimeSpan.FromMinutes(2));
 
             Assert.AreEqual(FailedMessageStatus.RetryIssued, failure.Status);
         }
 
-        bool GetFailedMessage(MyContext c, out FailedMessage failure)
+        bool GetFailedMessage(MyContext c, out FailedMessage failure, Predicate<FailedMessage> condition = null)
         {
-            if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure))
+            if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure, condition))
             {
                 return false;
             }
