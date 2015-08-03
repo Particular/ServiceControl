@@ -75,6 +75,10 @@ The error queue name to use for forwarding error messages. Default <ErrorQueue>.
 ServiceBus/AuditLogQueue string
 The audit queue name to use for forwarding audit messages. This only works if ServiceControl/ForwardAuditMessages is true. Default <AuditQueue>.log
 
+ServiceControl/MaxBodySizeToStore int (representing amount in bytes)
+By default ServiceControl only stores bodies of audit messages that are smaller than 100Kb. Increase this number to store messages with larger bodies.  Default 102400 bytes
+Messages that have a large message body are not stored. This is to ensure that the majority of our users enjoy the best level of performance. For users with special analysis needs, edit MaxBodySizeToStore in ServiceControl.exe.config to increase the size of storeable messages.
+
 EXAMPLES:
    ServiceControl.exe --restart 
      -d="ServiceControl/LogPath==c:\MyLogs Files"

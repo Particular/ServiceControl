@@ -169,6 +169,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audit\Audit_Messages_Have_Proper_IsSystemMessage_Tests.cs" />
+    <Compile Include="Audit\Audit_Messages_That_Big_Bodies_Audit_Test.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Contexts\ExternalIntegrationsManagementEndpointSetup.cs" />
     <Compile Include="Contexts\TransportIntegration\ActiveMqTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />
