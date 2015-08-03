@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -23,10 +24,9 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {
-                    for (var i = 0; i < 100; i++)
-                    {
-                        bus.SendLocal(new MyMessage());
-                    }
+                    Parallel.For(0, 100, i =>
+                        bus.SendLocal(new MyMessage())
+                    );
                 }))
                 .Done(c =>
                 {
@@ -37,9 +37,7 @@
                         return false;
                     }
 
-                    var resultCount = messages.Count;
-
-                    if (resultCount < 100)
+                    if (messages.Count < 100)
                     {
                         Console.Out.WriteLine("Messages found: " + messages.Count);
                   
@@ -49,7 +47,6 @@
                     return messages.Count >= 100;
                 })
                 .Run(TimeSpan.FromMinutes(2));
-
         }
 
         public class Receiver : EndpointConfigurationBuilder
