@@ -212,8 +212,9 @@
         {
             get
             {
-                if (maxBodySizeToStore < MaxBodySizeToStoreDefault)
+                if (maxBodySizeToStore <= 0)
                 {
+                    Logger.ErrorFormat("MaxBodySizeToStore settings is invalid, {0} is the minimum value. Defaulting to {1}", 1, MaxBodySizeToStoreDefault);
                     return MaxBodySizeToStoreDefault;
                 }
                 return maxBodySizeToStore;
