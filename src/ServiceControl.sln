@@ -26,6 +26,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Chocolatey", "Chocolatey", 
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTesting", "ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj", "{758357F6-CD31-4337-80C4-BA377FC257AF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Packaging", "Packaging\Packaging.csproj", "{15F811B7-314C-4E9E-B5E9-35596045BBC4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4C6B71B2-74EF-4B9E-88FF-C56532727C6D} = {4C6B71B2-74EF-4B9E-88FF-C56532727C6D}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,11 +65,16 @@ Global
 		{758357F6-CD31-4337-80C4-BA377FC257AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{758357F6-CD31-4337-80C4-BA377FC257AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{758357F6-CD31-4337-80C4-BA377FC257AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15F811B7-314C-4E9E-B5E9-35596045BBC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15F811B7-314C-4E9E-B5E9-35596045BBC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15F811B7-314C-4E9E-B5E9-35596045BBC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15F811B7-314C-4E9E-B5E9-35596045BBC4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{FA2792B9-B82D-4936-871E-16812FA60D13} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
+		{15F811B7-314C-4E9E-B5E9-35596045BBC4} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 	EndGlobalSection
 EndGlobal
