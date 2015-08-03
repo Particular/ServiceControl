@@ -14,7 +14,6 @@
         public void Should_not_get_an_empty_audit_message_body_when_configured_for_200K()
         {
             //Arrange
-            AppConfigurationSettings.Clear();
             AppConfigurationSettings.Add("ServiceControl/MaxBodySizeToStore", "204800");
           
 
@@ -63,7 +62,6 @@
         public void Should_get_an_empty_audit_message_body_when_configured_for_100K()
         {
             //Arrange
-            AppConfigurationSettings.Clear();
             AppConfigurationSettings.Add("ServiceControl/MaxBodySizeToStore", "102400");
 
 
@@ -105,7 +103,6 @@
 
             //Assert
             Assert.AreEqual(body.Length, 0);
-
         }
 
         class ServerEndpoint : EndpointConfigurationBuilder
