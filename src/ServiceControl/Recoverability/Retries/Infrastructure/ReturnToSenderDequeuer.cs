@@ -17,6 +17,7 @@ namespace ServiceControl.Recoverability
             var destinationAddress = Address.Parse(message.Headers["ServiceControl.TargetEndpointAddress"]);
 
             message.Headers.Remove("ServiceControl.TargetEndpointAddress");
+            message.Headers.Remove("ServiceControl.Retry.StagingId");
 
             sender.Send(message, destinationAddress);
         }

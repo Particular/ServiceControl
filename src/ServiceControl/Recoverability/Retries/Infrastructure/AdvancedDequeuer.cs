@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
@@ -16,6 +17,9 @@ namespace ServiceControl.Recoverability
         ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
         static ILog Log = LogManager.GetLogger(typeof(AdvancedDequeuer));
         bool endedPrematurelly;
+        int? targetMessageCount;
+        int actualMessageCount;
+        Predicate<TransportMessage> shouldProcess; 
 
         protected AdvancedDequeuer()
         {
@@ -26,22 +30,54 @@ namespace ServiceControl.Recoverability
 
         public bool Handle(TransportMessage message)
         {
-            HandleMessage(message);
-            timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
+            if (shouldProcess(message))
+            {
+                HandleMessage(message);
+                if (IsCounting)
+                {
+                    CountMessageAndStopIfReachedTarget();
+                }
+            }
+            if (!IsCounting)
+            {
+                timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
+            }
             return true;
+        }
+
+        bool IsCounting
+        {
+            get { return targetMessageCount.HasValue; }
+        }
+
+        void CountMessageAndStopIfReachedTarget()
+        {
+            var currentMessageCount = Interlocked.Increment(ref actualMessageCount);
+            Log.DebugFormat("Handling message {0} of {1}", currentMessageCount, targetMessageCount);
+            if (currentMessageCount >= targetMessageCount.GetValueOrDefault())
+            {
+                // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
+                Task.Factory.StartNew(StopInternal);
+            }
         }
 
         public void Start()
         {
         }
 
-        public void Run()
+        public void Run(Predicate<TransportMessage> filter, int? expectedMessageCount = null)
         {
             try
             {
+                shouldProcess = filter;
                 resetEvent.Reset();
+                targetMessageCount = expectedMessageCount;
+                actualMessageCount = 0;
                 receiver.StartInternal();
-                timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
+                if (!expectedMessageCount.HasValue)
+                {
+                    timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
+                }
                 Log.InfoFormat("{0} started", GetType().Name);
             }
             finally

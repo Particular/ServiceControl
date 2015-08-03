@@ -27,14 +27,13 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IBus bus, NoopDequeuer stagingQueueCleaner, ReturnToSenderDequeuer returnToSender)
+        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IBus bus, ReturnToSenderDequeuer returnToSender)
         {
             executor = new PeriodicExecutor(Process, TimeSpan.FromSeconds(30), ex => Log.Error("Error during retry batch processing", ex));
             this.bodyStorage = bodyStorage;
             this.sender = sender;
             this.store = store;
             this.bus = bus;
-            this.stagingQueueCleaner = stagingQueueCleaner;
             this.returnToSender = returnToSender;
         }
 
@@ -84,6 +83,8 @@ namespace ServiceControl.Recoverability
                 return true;
             }
 
+            isRecoveringFromPrematureShutdown = false;
+
             var stagingBatch = session.Query<RetryBatch>()
                 .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
                 .FirstOrDefault(b => b.Status == RetryBatchStatus.Staging);
@@ -100,16 +101,32 @@ namespace ServiceControl.Recoverability
 
         void Forward(RetryBatch forwardingBatch, IDocumentSession session)
         {
-            returnToSender.Run();
+            if (isRecoveringFromPrematureShutdown)
+            {
+                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId));
+            }
+            else
+            {
+                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), forwardingBatch.FailureRetries.Count());
+            }
 
             session.Delete(forwardingBatch);
 
             Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
         }
 
+        static Predicate<TransportMessage> IsPartOfStagedBatch(string stagingId)
+        {
+            return m =>
+            {
+                var messageStagingId = m.Headers["ServiceControl.Retry.StagingId"];
+                return messageStagingId == stagingId;
+            };
+        }
+
         void Stage(RetryBatch stagingBatch, IDocumentSession session)
         {
-            stagingQueueCleaner.Run();
+            var stagingId = Guid.NewGuid().ToString();
 
             var messageIds = session.Load<FailedMessageRetry>(stagingBatch.FailureRetries)
                 .Where(r => r != null && r.RetryBatchId == stagingBatch.Id)
@@ -119,7 +136,7 @@ namespace ServiceControl.Recoverability
 
             foreach (var message in messages)
             {
-                StageMessage(message);
+                StageMessage(message, stagingId);
             }
 
             bus.Publish<MessagesSubmittedForRetry>(m =>
@@ -129,11 +146,12 @@ namespace ServiceControl.Recoverability
             });
 
             stagingBatch.Status = RetryBatchStatus.Forwarding;
+            stagingBatch.StagingId = stagingId;
 
             Log.InfoFormat("Retry batch {0} staged {1} messages", stagingBatch.Id, messages.Count());
         }
 
-        void StageMessage(FailedMessage message)
+        void StageMessage(FailedMessage message, string stagingId)
         {
             message.Status = FailedMessageStatus.RetryIssued;
 
@@ -144,6 +162,7 @@ namespace ServiceControl.Recoverability
 
             headersToRetryWith["ServiceControl.TargetEndpointAddress"] = attempt.FailureDetails.AddressOfFailingEndpoint;
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
+            headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
 
             var transportMessage = new TransportMessage(message.Id, headersToRetryWith)
             {
@@ -188,7 +207,7 @@ namespace ServiceControl.Recoverability
         PeriodicExecutor executor;
         IDocumentStore store;
         IBus bus;
-        NoopDequeuer stagingQueueCleaner;
         ReturnToSenderDequeuer returnToSender;
+        bool isRecoveringFromPrematureShutdown = true;
     }
 }
