@@ -46,7 +46,7 @@
 
                     return messages.Count >= 100;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(TimeSpan.FromMinutes(3));
         }
 
         public class Receiver : EndpointConfigurationBuilder
