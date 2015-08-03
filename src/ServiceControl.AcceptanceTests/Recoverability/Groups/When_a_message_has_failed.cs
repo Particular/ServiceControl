@@ -23,7 +23,15 @@
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => c.MessageId != null && TryGet("/api/errors/" + c.UniqueMessageId, out failedMessage, msg => msg.FailureGroups.Any()))
+                .Done(c =>
+                {
+                    if (c.MessageId == null)
+                    {
+                        return false;
+                    }
+
+                    return TryGet("/api/errors/" + c.UniqueMessageId, out failedMessage, msg => msg.FailureGroups.Any());
+                })
                 .Run();
 
             Assert.AreEqual(context.UniqueMessageId, failedMessage.UniqueMessageId);
@@ -38,8 +46,7 @@
                     .WithConfig<TransportConfig>(c =>
                     {
                         c.MaxRetries = 1;
-                    })
-                    .AuditTo(Address.Parse("audit"));
+                    });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
