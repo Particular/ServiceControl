@@ -9,12 +9,13 @@
 
     class Audit_Messages_That_Big_Bodies_Audit_Test : AcceptanceTest
     {
+        const int MAX_BODY_SIZE = 30536;
 
         [Test]
-        public void Should_not_get_an_empty_audit_message_body_when_configured_for_200K()
+        public void Should_not_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_greater_then_message_size()
         {
             //Arrange
-            AppConfigurationSettings.Add("ServiceControl/MaxBodySizeToStore", "204800");
+            AppConfigurationSettings.Add("ServiceControl/MaxBodySizeToStore", MAX_BODY_SIZE.ToString());
           
 
             var context = new Context();
@@ -26,7 +27,7 @@
                 .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
-                        BigFatBody = new byte[(1024 * 100) + 1] //100K + 1 byte
+                        BigFatBody = new byte[MAX_BODY_SIZE - 1000]
                     }))
                 )
                 .Done(
@@ -59,10 +60,10 @@
         }
 
         [Test]
-        public void Should_get_an_empty_audit_message_body_when_configured_for_100K()
+        public void Should_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_less_then_message_size()
         {
             //Arrange
-            AppConfigurationSettings.Add("ServiceControl/MaxBodySizeToStore", "102400");
+            AppConfigurationSettings.Add("ServiceControl/MaxBodySizeToStore", MAX_BODY_SIZE.ToString());
 
 
             var context = new Context();
@@ -74,7 +75,7 @@
                 .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
-                        BigFatBody = new byte[(1024 * 100) + 1] //100K + 1 byte
+                        BigFatBody = new byte[MAX_BODY_SIZE + 1000]
                     }))
                 )
                 .Done(
@@ -102,7 +103,7 @@
                 .Run();
 
             //Assert
-            Assert.AreEqual(body.Length, 0);
+            Assert.AreEqual(0, body.Length);
         }
 
         class ServerEndpoint : EndpointConfigurationBuilder
