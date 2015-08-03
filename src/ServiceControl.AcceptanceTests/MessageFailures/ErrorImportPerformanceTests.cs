@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using Contexts;
     using NServiceBus;
@@ -14,7 +13,6 @@
 
     public class ErrorImportPerformanceTests : AcceptanceTest
     {
-
         [Test]
         public void Should_import_all_messages()
         {
@@ -39,16 +37,16 @@
                         return false;
                     }
 
-                    var resultCount = messages.Count();
+                    var resultCount = messages.Count;
 
                     if (resultCount < 100)
                     {
-                        Console.Out.WriteLine("Messages found: " + messages.Count());
+                        Console.Out.WriteLine("Messages found: " + messages.Count);
                   
                         Thread.Sleep(2000);
                     }
 
-                    return messages.Count() >= 100;
+                    return messages.Count >= 100;
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
