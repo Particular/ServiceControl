@@ -7,7 +7,7 @@
     {
         public string Id { get; set; }
         public string MessageType { get; set; }
-        public DateTime? TimeSent { get; set; }
+        public DateTime TimeSent { get; set; }
         public bool IsSystemMessage { get; set; }
         public ExceptionDetails Exception { get; set; }
         public string MessageId { get; set; }
