@@ -3,6 +3,7 @@
     using System.IO;
     using Contracts.Operations;
     using NServiceBus;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class BodyStorageEnricher : ImportEnricher
     {
@@ -29,28 +30,33 @@
 
             var bodyId = message.MessageId;
 
-            if (message is ImportFailedMessage)
+            if (message is ImportFailedMessage || bodySize <= Settings.MaxBodySizeToStore)
             {
-                using (var bodyStream = new MemoryStream(message.PhysicalMessage.Body))
-                {
-                    var bodyUrl = BodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
-                    message.Metadata.Add("BodyUrl", bodyUrl);
-                }                
+                StoreBody(message, bodyId, contentType, bodySize);  
             }
             else
             {
                 var bodyUrl = string.Format("/messages/{0}/body", bodyId);
                 message.Metadata.Add("BodyUrl", bodyUrl);
+                message.Metadata.Add("BodyNotStored", true);
             }
 
-            if (!contentType.Contains("binary") && bodySize <= MaxBodySizeToStore)
+            // Issue #296 Body Storage Enricher config
+            if (!contentType.Contains("binary") && bodySize <= Settings.MaxBodySizeToStore)
             {
                 message.Metadata.Add("Body", System.Text.Encoding.UTF8.GetString(message.PhysicalMessage.Body));
             }
-
+          
             message.Metadata.Add("ContentLength", bodySize);
         }
 
-        const int MaxBodySizeToStore = 1024 * 100; //100 kb
+        void StoreBody(ImportMessage message, string bodyId, string contentType, int bodySize)
+        {
+            using (var bodyStream = new MemoryStream(message.PhysicalMessage.Body))
+            {
+                var bodyUrl = BodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
+                message.Metadata.Add("BodyUrl", bodyUrl);
+            }
+        }
     }
 }

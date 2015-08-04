@@ -206,7 +206,23 @@
             set { expirationProcessBatchSize = value; }
         }
 
-      
+        const int MaxBodySizeToStoreDefault = 102400; //100 kb
+        static int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
+        public static int MaxBodySizeToStore
+        {
+            get
+            {
+                if (maxBodySizeToStore <= 0)
+                {
+                    Logger.ErrorFormat("MaxBodySizeToStore settings is invalid, {0} is the minimum value. Defaulting to {1}", 1, MaxBodySizeToStoreDefault);
+                    return MaxBodySizeToStoreDefault;
+                }
+                return maxBodySizeToStore;
+            }
+            set { maxBodySizeToStore = value; }
+        }
+
+
         static readonly ILog Logger = LogManager.GetLogger(typeof(Settings));
         public static string ServiceName;
 

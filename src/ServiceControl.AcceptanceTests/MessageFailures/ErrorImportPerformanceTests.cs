@@ -2,18 +2,18 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Config;
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
     public class ErrorImportPerformanceTests : AcceptanceTest
     {
-
         [Test]
         public void Should_import_all_messages()
         {
@@ -24,10 +24,9 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {
-                    for (var i = 0; i < 100; i++)
-                    {
-                        bus.SendLocal(new MyMessage());
-                    }
+                    Parallel.For(0, 100, i =>
+                        bus.SendLocal(new MyMessage())
+                    );
                 }))
                 .Done(c =>
                 {
@@ -38,19 +37,16 @@
                         return false;
                     }
 
-                    var resultCount = messages.Count();
-
-                    if (resultCount < 100)
+                    if (messages.Count < 100)
                     {
-                        Console.Out.WriteLine("Messages found: " + messages.Count());
+                        Console.Out.WriteLine("Messages found: " + messages.Count);
                   
                         Thread.Sleep(2000);
                     }
 
-                    return messages.Count() >= 100;
+                    return messages.Count >= 100;
                 })
-                .Run();
-
+                .Run(TimeSpan.FromMinutes(3));
         }
 
         public class Receiver : EndpointConfigurationBuilder
@@ -58,6 +54,10 @@
             public Receiver()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c=>Configure.Features.Disable<SecondLevelRetries>())
+                    .WithConfig<TransportConfig>(c =>
+                    {
+                        c.MaxRetries = 1;
+                    })
                     .AuditTo(Address.Parse("audit"));
             }
 

@@ -5,6 +5,6 @@
     public interface IBodyStorage
     {
         string Store(string bodyId, string contentType, int bodySize, Stream bodyStream);
-        Stream Fetch(string bodyUrl);
+        bool TryFetch(string bodyId, out Stream stream);
     }
 }

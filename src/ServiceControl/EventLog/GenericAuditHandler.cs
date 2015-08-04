@@ -17,8 +17,6 @@
 
         public void Handle(IEvent message)
         {
-            Logger.InfoFormat("Event: {0} emitted", message.GetType().Name);
-
             //to prevent a infinite loop
             if (message is EventLogItemAdded)
             {
@@ -28,6 +26,9 @@
             {
                 return;
             }
+
+            Logger.InfoFormat("Event: {0} emitted", message.GetType().Name);
+
             var logItem = EventLogMappings.ApplyMapping(message);
 
             Session.Store(logItem);

@@ -3,7 +3,7 @@
     using System;
     using System.Threading;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure.RavenDB.Expiration;
+    using ServiceControl.Infrastructure;
 
     [TestFixture]
     public class PeriodicExecutorTests
@@ -16,7 +16,7 @@
             var lastEndTime = DateTime.MinValue;
             var @event = new ManualResetEventSlim(false);
             var delay = TimeSpan.Zero;
-            var executor = new PeriodicExecutor(() =>
+            var executor = new PeriodicExecutor(ex =>
             {
                 delay = DateTime.Now - lastEndTime;
                 if (lastEndTime != DateTime.MinValue && delay > TimeSpan.FromMilliseconds(100))
@@ -35,7 +35,7 @@
             }, TimeSpan.FromSeconds(1));
             executor.Start(true);
             @event.Wait();
-            executor.Stop(CancellationToken.None);
+            executor.Stop();
             Assert.IsFalse(failure, string.Format("Time between finishing previous execution and starting this longer than {0} ms",delay));
         }
 
@@ -45,7 +45,7 @@
             var first = true;
             var success = false;
             var @event = new ManualResetEventSlim(false);
-            var executor = new PeriodicExecutor(() =>
+            var executor = new PeriodicExecutor(ex =>
             {
                 if (first)
                 {
@@ -57,7 +57,7 @@
             }, TimeSpan.FromSeconds(1));
             executor.Start(true);
             @event.Wait();
-            executor.Stop(CancellationToken.None);
+            executor.Stop();
             Assert.IsTrue(success);
         }
 
@@ -65,11 +65,11 @@
         public void Can_shutdown_while_waiting()
         {
             var @event = new ManualResetEventSlim(false);
-            var executor = new PeriodicExecutor(@event.Set, TimeSpan.FromSeconds(10000));
+            var executor = new PeriodicExecutor(ex => @event.Set(), TimeSpan.FromSeconds(10000));
             executor.Start(false);
             @event.Wait();
             Thread.Sleep(1000);
-            executor.Stop(CancellationToken.None);
+            executor.Stop();
             Assert.Pass();
         }
     }

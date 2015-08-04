@@ -7,7 +7,6 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Transports;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.CompositeViews.Messages;
@@ -18,6 +17,7 @@
         [Test]
         public void Should_be_imported_and_accessible_via_the_rest_api()
         {
+            const string Payload = "PAYLOAD";
             var context = new MyContext();
             MessagesView auditedMessage = null;
             byte[] body = null;
@@ -27,7 +27,10 @@
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
-                    bus.Send(new MyMessage());
+                    bus.Send(new MyMessage
+                    {
+                        PropertyToSearchFor = Payload
+                    });
                 }))
                 .WithEndpoint<Receiver>()
                 .Done(c =>
@@ -73,7 +76,7 @@
             
             var bodyAsString = Encoding.UTF8.GetString(body);
 
-            Assert.True(bodyAsString.Contains("MyMessage"), bodyAsString);
+            Assert.True(bodyAsString.Contains(Payload), bodyAsString);
 
             Assert.AreEqual(body.Length, auditedMessage.BodySize);
 
@@ -207,73 +210,12 @@
             Assert.AreEqual(Environment.MachineName, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);
         }
 
-        [Test]
-        public void Should_import_messages_from_sendonly_endpoint()
-        {
-            var context = new MyContext
-            {
-                MessageId = Guid.NewGuid().ToString()
-            };
-
-            Scenario.Define(context)
-               .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-               .WithEndpoint<SendOnlyEndpoint>()
-               .Done(c =>
-               {
-                   MessagesView auditedMessage;
-                   if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
-                   {
-                       return false;
-                   }
-                   return true;
-               })
-               .Run(TimeSpan.FromSeconds(40));
-        }
-
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
             {
                 EndpointSetup<DefaultServerWithoutAudit>()
                     .AddMapping<MyMessage>(typeof(Receiver));
-            }
-        }
-
-        public class SendOnlyEndpoint : EndpointConfigurationBuilder
-        {
-            public SendOnlyEndpoint()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>();
-            }
-
-            class Foo: IWantToRunWhenBusStartsAndStops
-            {
-                public ISendMessages SendMessages { get; set; }
-
-                public MyContext MyContext { get; set; }
-
-                public void Start()
-                {
-                    //hack until we can fix the types filtering in default server
-                    if (MyContext == null || string.IsNullOrEmpty(MyContext.MessageId))
-                    {
-                        return;
-                    }
-
-                    if (Configure.EndpointName != "Particular.ServiceControl")
-                    {
-                        return;
-                    }
-
-                    var transportMessage = new TransportMessage();
-                    transportMessage.Headers[Headers.MessageId] = MyContext.MessageId;
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = Configure.EndpointName;
-                    SendMessages.Send(transportMessage, Address.Parse("audit"));
-                }
-
-                public void Stop()
-                {
-                }
             }
         }
 

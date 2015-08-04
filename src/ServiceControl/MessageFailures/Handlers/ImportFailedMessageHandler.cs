@@ -1,13 +1,18 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
+    using System.Collections.Generic;
     using System.Linq;
-    using Contracts.Operations;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.Contracts.Operations;
 
     class ImportFailedMessageHandler : IHandleMessages<ImportFailedMessage>
     {
         public IDocumentSession Session { get; set; }
+        public IBus Bus { get; set; }
+        
+        public IEnumerable<IFailedMessageEnricher> Enrichers { get; set; } 
 
         public void Handle(ImportFailedMessage message)
         {
@@ -22,6 +27,7 @@
             failure.Status = FailedMessageStatus.Unresolved;
 
             var timeOfFailure = message.FailureDetails.TimeOfFailure;
+
 
             //check for duplicate
             if (failure.ProcessingAttempts.Any(a => a.AttemptedAt == timeOfFailure))
@@ -42,7 +48,33 @@
                 MessageIntent = message.PhysicalMessage.MessageIntent,
             });
 
+            foreach (var enricher in Enrichers)
+            {
+                enricher.Enrich(failure, message);
+            }
+
             Session.Store(failure);
+
+            var failedMessageId = message.GetHeader("ServiceControl.Retry.UniqueMessageId");
+
+            if (failedMessageId != null)
+            {
+                Bus.Publish<MessageFailedRepeatedly>(m =>
+                {
+                    m.FailureDetails = message.FailureDetails;
+                    m.EndpointId = message.FailingEndpointId;
+                    m.FailedMessageId = failedMessageId;
+                });
+            }
+            else
+            {
+                Bus.Publish<MessageFailed>(m =>
+                {
+                    m.FailureDetails = message.FailureDetails;
+                    m.EndpointId = message.FailingEndpointId;
+                    m.FailedMessageId = message.UniqueMessageId;
+                });
+            }
         }
     }
 }

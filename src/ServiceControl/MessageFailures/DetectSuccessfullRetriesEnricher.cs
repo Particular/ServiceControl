@@ -1,10 +1,9 @@
 ﻿namespace ServiceControl.MessageFailures
 {
-    using System;
-    using Contracts.Operations;
-    using InternalMessages;
     using NServiceBus;
-    using Operations;
+    using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.Contracts.Operations;
+    using ServiceControl.Operations;
 
     public class DetectSuccessfullRetriesEnricher : ImportEnricher
     {
@@ -17,9 +16,13 @@
                 return;
             }
 
-            string retryId;
+            string oldRetryId;
+            string newRetryMessageId;
             
-            var hasBeenRetried = message.PhysicalMessage.Headers.TryGetValue("ServiceControl.RetryId", out retryId);
+            var isOldRetry = message.PhysicalMessage.Headers.TryGetValue("ServiceControl.RetryId", out oldRetryId);
+            var isNewRetry = message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out newRetryMessageId);
+            
+            var hasBeenRetried = isOldRetry || isNewRetry;
                 
             message.Metadata.Add("IsRetried", hasBeenRetried);
             
@@ -28,11 +31,15 @@
                 return;
             }
 
-            Bus.SendLocal(new RegisterSuccessfulRetry
+            if (isOldRetry)
             {
-                FailedMessageId = message.UniqueMessageId,
-                RetryId = Guid.Parse(retryId)
-            });
+                Bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = message.UniqueMessageId);
+            }
+
+            if (isNewRetry)
+            {
+                Bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = newRetryMessageId);
+            }
         }
     }
 }

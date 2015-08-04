@@ -41,7 +41,7 @@
         {
             var settings = runDescriptor.Settings;
 
-            var types = GetTypesToUse(endpointConfiguration);
+            var types = GetTypesScopedByTestClass(endpointConfiguration);
 
             var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
             SetupLogging(endpointConfiguration);
@@ -61,21 +61,13 @@
 
             config
                 .DefineTransport(transportToUse)
-                .InMemorySagaPersister();
+                .InMemorySagaPersister()
+                .UseInMemoryTimeoutPersister();
 
-
-            if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration ||
-                transportToUse is RabbitMqTransportIntegration)
-            {
-                config.UseInMemoryTimeoutPersister();
-            }
-
-            if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration)
+            if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration || transportToUse is AzureStorageQueuesTransportIntegration)
             {
                 config.InMemorySubscriptionStorage();
             }
-
-            config.InMemorySagaPersister();
 
             return config.UnicastBus();
         }
@@ -106,6 +98,7 @@
             var fileTarget = new FileTarget
             {
                 FileName = logFile,
+                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:inner=${newline}${exception}${newline}${stacktrace:format=DetailedFlat}}"
             };
 
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
@@ -114,7 +107,7 @@
             LogManager.Configuration = nlogConfig;
         }
 
-        static IEnumerable<Type> GetTypesToUse(EndpointConfiguration endpointConfiguration)
+        static IEnumerable<Type> GetTypesScopedByTestClass(EndpointConfiguration endpointConfiguration)
         {
             var assemblies = new AssemblyScanner().GetScannableAssemblies();
 
@@ -124,11 +117,13 @@
                                   .Where(a => a.GetName().Name != "ServiceControl")
                                   .SelectMany(a => a.GetTypes());
 
+
             types = types.Union(GetNestedTypeRecursive(endpointConfiguration.BuilderType.DeclaringType, endpointConfiguration.BuilderType));
 
             types = types.Union(endpointConfiguration.TypesToInclude);
 
-            return types.Where(t => !endpointConfiguration.TypesToExclude.Contains(t)).ToList();
+            var typesScopedByTestClass = types.Where(t => !endpointConfiguration.TypesToExclude.Contains(t)).ToList();
+            return typesScopedByTestClass;
         }
 
         static IEnumerable<Type> GetNestedTypeRecursive(Type rootType, Type builderType)

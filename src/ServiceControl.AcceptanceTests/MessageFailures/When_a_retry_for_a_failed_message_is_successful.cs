@@ -51,7 +51,7 @@
             Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
             Assert.AreEqual(failure.UniqueMessageId, message.Id);
             Assert.AreEqual(MessageStatus.ResolvedSuccessfully, message.Status);
-            Assert.IsTrue(eventLogItems.Any(item => item.Description.Equals("Failed message ServiceBus.Management.AcceptanceTests.When_a_retry_for_a_failed_message_is_successful+MyMessage resolved by retry")));
+            Assert.IsTrue(eventLogItems.Any(item => item.Description.Equals("Failed message resolved by retry") && item.RelatedTo.Contains("/message/" + failure.UniqueMessageId)));
 
         }
 

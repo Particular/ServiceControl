@@ -14,8 +14,13 @@ namespace ServiceControl.HeartbeatMonitoring
 
         public void Handle(RegisterPotentiallyMissingHeartbeats message)
         {
-
             var heartbeat = Session.Load<Heartbeat>(message.EndpointInstanceId);
+
+            if (heartbeat == null)
+            {
+                Logger.DebugFormat("Heartbeat not saved in database yet, will retry again.");
+                return;
+            }
 
             if (message.LastHeartbeatAt < heartbeat.LastReportAt)
             {

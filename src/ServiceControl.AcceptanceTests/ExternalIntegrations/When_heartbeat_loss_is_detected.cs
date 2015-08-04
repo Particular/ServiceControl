@@ -5,9 +5,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
     using NServiceBus.Config.ConfigurationSource;
-    using NServiceBus.Features;
-    using NServiceBus.Unicast.Subscriptions;
-    using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Contracts;
@@ -33,7 +30,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     {
                         c.ExternalProcessorSubscribed = true;
                     }
-                })).When(c => c.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointFailedToHeartbeat
+                }, () => c.ExternalProcessorSubscribed = true)).When(c => c.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointFailedToHeartbeat
                 {
                     DetectedAt = new DateTime(2013,09,13,13,14,13),
                     LastReceivedAt = new DateTime(2013, 09, 13, 13, 13, 13),
@@ -52,23 +49,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
             Assert.IsTrue(context.NotificationDelivered);
         }
 
-        [Serializable]
-        public class Subscriptions
-        {
-            public static Action<Action<SubscriptionEventArgs>> OnEndpointSubscribed = actionToPerform =>
-            {
-                if (Feature.IsEnabled<MessageDrivenSubscriptions>())
-                {
-                    Configure.Instance.Builder.Build<MessageDrivenSubscriptionManager>().ClientSubscribed +=
-                        (sender, args) =>
-                        {
-                            actionToPerform(args);
-                        };
-                }
-            };
-
-        }
-
         public class ExternalIntegrationsManagementEndpoint : EndpointConfigurationBuilder
         {
             public ExternalIntegrationsManagementEndpoint()
@@ -81,7 +61,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         {
             public ExternalProcessor()
             {
-                EndpointSetup<JSonServer>();
+                EndpointSetup<JsonServer>();
             }
 
             public class FailureHandler : IHandleMessages<HeartbeatStopped>

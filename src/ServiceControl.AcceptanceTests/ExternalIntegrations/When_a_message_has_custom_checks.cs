@@ -6,9 +6,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
     using NServiceBus.Config.ConfigurationSource;
-    using NServiceBus.Features;
-    using NServiceBus.Unicast.Subscriptions;
-    using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using NUnit.Framework;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.Operations;
@@ -62,31 +59,11 @@
                     bus.Subscribe<CustomCheckSucceeded>();
                     bus.Subscribe<CustomCheckFailed>();
                 }))
-                .Done(c => c.CustomCheckFailedReceived && c.CustomCheckFailedReceived)
+                .Done(c => c.CustomCheckFailedReceived && c.CustomCheckSucceededReceived)
                 .Run();
 
             Assert.IsTrue(context.CustomCheckFailedReceived);
             Assert.IsTrue(context.CustomCheckSucceededReceived);
-        }
-
-        [Serializable]
-        public class Subscriptions
-        {
-            public static Action<Action<SubscriptionEventArgs>, Action> OnEndpointSubscribed = (actionToPerformIfMessageDrivenSubscriptions, actionToPerformIfMessageDrivenSubscriptionsNotRequired) =>
-            {
-                if (Feature.IsEnabled<MessageDrivenSubscriptions>())
-                {
-                    Configure.Instance.Builder.Build<MessageDrivenSubscriptionManager>().ClientSubscribed +=
-                        (sender, args) =>
-                        {
-                            actionToPerformIfMessageDrivenSubscriptions(args);
-                        };
-
-                    return;
-                }
-
-                actionToPerformIfMessageDrivenSubscriptionsNotRequired();
-            };
         }
 
         public class ExternalIntegrationsManagementEndpoint : EndpointConfigurationBuilder
@@ -101,7 +78,7 @@
         {
             public ExternalProcessor()
             {
-                EndpointSetup<JSonServer>();
+                EndpointSetup<JsonServer>();
             }
 
             public class CustomCheckSucceededHandler : IHandleMessages<CustomCheckSucceeded>

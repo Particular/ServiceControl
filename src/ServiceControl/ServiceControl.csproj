@@ -12,7 +12,6 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <NuGetPackageImportStamp>fecce876</NuGetPackageImportStamp>
     <PublishUrl>publish\</PublishUrl>
@@ -40,6 +39,7 @@
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>5</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -49,6 +49,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>5</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Particular.ServiceControl.Program</StartupObject>
@@ -100,8 +101,13 @@
     <Reference Include="Microsoft.Owin.Hosting">
       <HintPath>..\packages\Microsoft.Owin.Hosting.2.0.0\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.ServiceBus, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAzure.ServiceBus.2.2.0.0\lib\net40-full\Microsoft.ServiceBus.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.2.0.3\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+      <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.2.0.1.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Storage, Version=2.1.0.4, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAzure.Storage.2.1.0.4\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
@@ -179,7 +185,9 @@
     <Reference Include="System.Reactive.PlatformServices">
       <HintPath>..\packages\Rx-PlatformServices.2.2.5\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Spatial, Version=5.6.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -253,8 +261,11 @@
     <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
     <Compile Include="Contracts\Operations\FailureDetails.cs" />
     <Compile Include="CustomChecks\CustomCheckNotifications.cs" />
+    <Compile Include="EventLog\Definitions\FailedMessageGroupArchivedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
     <Compile Include="CustomChecks\CustomChecksIndex.cs" />
+    <Compile Include="EventLog\Definitions\ReclassificationOfErrorMessageCompleteDefinition.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckSucceededPublisher.cs" />
     <Compile Include="ExternalIntegrations\EventPublisher.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationDispatchRequest.cs" />
@@ -297,11 +308,14 @@
     <Compile Include="Infrastructure\Settings\CheckSettingsOnStartup.cs" />
     <Compile Include="Infrastructure\Settings\NullableRegistryReader.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryProcessedMessageIndex.cs" />
-    <Compile Include="Infrastructure\RavenDB\Expiration\PeriodicExecutor.cs" />
+    <Compile Include="Infrastructure\PeriodicExecutor.cs" />
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
+    <Compile Include="MessageFailures\Handlers\IFailedMessageEnricher.cs" />
+    <Compile Include="MessageFailures\InternalMessages\ReclassificationOfErrorMessageComplete.cs" />
+    <Compile Include="MessageFailures\InternalMessages\ReclassifyErrors.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
@@ -388,7 +402,6 @@
     <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
     <Compile Include="MessageFailures\Handlers\ImportFailedMessageHandler.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
-    <Compile Include="MessageFailures\FailedMessagePolicy.cs" />
     <Compile Include="MessageFailures\DetectSuccessfullRetriesEnricher.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />
@@ -405,8 +418,6 @@
     <Compile Include="Infrastructure\Nancy\VersionExtension.cs" />
     <Compile Include="Infrastructure\Nancy\StringListBinder.cs" />
     <Compile Include="MessageFailures\InternalMessages\RequestRetryAll.cs" />
-    <Compile Include="MessageFailures\Handlers\IssueRetryAllHandler.cs" />
-    <Compile Include="MessageFailures\Handlers\PerformRetryHandler.cs" />
     <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
     <Compile Include="Infrastructure\Installers\ErrorLogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
@@ -448,6 +459,43 @@
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
     <Compile Include="Operations\AttemptToReImportFailedMessages.cs" />
+    <Compile Include="Recoverability\Grouping\Archiving\ArchiveAllInGroup.cs" />
+    <Compile Include="Recoverability\Grouping\Archiving\ArchiveAllInGroupHandler.cs" />
+    <Compile Include="Recoverability\Grouping\ClassifyFailedMessageEnricher.cs" />
+    <Compile Include="Recoverability\Grouping\Archiving\FailureGroupsArchiveApi.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsAtStartup.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsHandler.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\FailureGroupsRetryApi.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\ExceptionTypeAndStackTraceMessageGrouper.cs" />
+    <Compile Include="Recoverability\Grouping\FailedMessageClassification.cs" />
+    <Compile Include="Recoverability\Grouping\Archiving\FailedMessageGroupArchived.cs" />
+    <Compile Include="Recoverability\Grouping\Raven\FailedMessages_ByGroup.cs" />
+    <Compile Include="Recoverability\Grouping\Raven\FailureGroupMessageView.cs" />
+    <Compile Include="Recoverability\Grouping\FailureGroupsApi.cs" />
+    <Compile Include="Recoverability\Grouping\Raven\FailureGroupsViewIndex.cs" />
+    <Compile Include="Recoverability\Grouping\Raven\FailureGroupView.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\IFailureClassifier.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroup.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroupHandler.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\StackTraceParser.cs" />
+    <Compile Include="Recoverability\Retries\Infrastructure\AdvancedDequeuer.cs" />
+    <Compile Include="Recoverability\Retries\FailedMessageRetries.cs" />
+    <Compile Include="Recoverability\Retries\MessagesSubmittedForRetry.cs" />
+    <Compile Include="Recoverability\Retries\Raven\FailedMessageRetries_ByBatch.cs" />
+    <Compile Include="Recoverability\Retries\FailedMessageRetry.cs" />
+    <Compile Include="Recoverability\Retries\Infrastructure\NoopDequeuer.cs" />
+    <Compile Include="Recoverability\Retries\RetriesGateway.cs" />
+    <Compile Include="Recoverability\Retries\Handlers\RetriesHandler.cs" />
+    <Compile Include="Recoverability\Retries\RetryBatch.cs" />
+    <Compile Include="Recoverability\Retries\Raven\RetryBatches_ByStatusAndSession.cs" />
+    <Compile Include="Recoverability\Retries\Raven\RetryBatchNowForwarding.cs" />
+    <Compile Include="Recoverability\Retries\RetryBatchStatus.cs" />
+    <Compile Include="Recoverability\Retries\RetryDocumentManager.cs" />
+    <Compile Include="Recoverability\Retries\Handlers\RetryHandlerForBackwardsCompatability.cs" />
+    <Compile Include="Recoverability\Retries\RetryMessagesById.cs" />
+    <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
+    <Compile Include="Recoverability\Retries\RetryStartupAndShutdownTasks.cs" />
+    <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\SagaRelationshipsEnricher.cs" />
     <Compile Include="SagaAudit\ProcessingState.cs" />
@@ -489,6 +537,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

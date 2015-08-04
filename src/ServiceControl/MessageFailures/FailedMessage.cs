@@ -15,11 +15,13 @@
         public FailedMessage()
         {
             ProcessingAttempts = new List<ProcessingAttempt>();
+            FailureGroups = new List<FailureGroup>();
         }
 
         public string Id { get; set; }
 
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
+        public List<FailureGroup> FailureGroups { get; set; } 
         
         public FailedMessageStatus Status { get; set; }
 
@@ -36,6 +38,13 @@
             public bool Recoverable { get; set; }
             public string CorrelationId { get; set; }
             public MessageIntentEnum MessageIntent { get; set; }
+        }
+
+        public class FailureGroup
+        {
+            public string Id { get; set; }
+            public string Title { get; set; }
+            public string Type { get; set; }
         }
     }
 

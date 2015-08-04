@@ -1,6 +1,9 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -48,7 +51,6 @@
                 .Run();
             Assert.IsNotNull(auditMessage);
             Assert.IsTrue(auditMessage.IsSystemMessage);
-
         }
 
         [Test]
@@ -62,14 +64,31 @@
                 ControlMessageHeaderValue = null
             };
 
-            MessagesView auditMessage = null;
+            var containsItem = true;
+
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
-                .Done(c => TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
-                .Run();
-            Assert.IsNull(auditMessage);
+                .Done(c =>
+                {
+                    var response = Get<List<MessagesView>>("/api/messages");
 
+                    if (response == null)
+                    {
+                        Thread.Sleep(1000);
+
+                        return false;
+                    }
+
+                    var items = response.Where(r => r.MessageId == c.MessageId);
+
+                    containsItem = items.Any();
+
+                    return true;
+                })
+                .Run();
+
+            Assert.IsFalse(containsItem);
         }
 
         [Test]
@@ -99,7 +118,7 @@
                 EndpointSetup<DefaultServer>();
             }
 
-            class Foo : IWantToRunWhenBusStartsAndStops
+            class SendMessageLowLevel : IWantToRunWhenBusStartsAndStops
             {
                 public ISendMessages SendMessages { get; set; }
 
@@ -107,17 +126,6 @@
 
                 public void Start()
                 {
-                    //hack until we can fix the types filtering in default server
-                    if (SystemMessageTestContext == null || string.IsNullOrEmpty(SystemMessageTestContext.MessageId))
-                    {
-                        return;
-                    }
-
-                    if (Configure.EndpointName != "Particular.ServiceControl")
-                    {
-                        return;
-                    }
-
                     // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
                     var transportMessage = new TransportMessage();
                     transportMessage.Headers[Headers.ProcessingEndpoint] = "ServerEndpoint";

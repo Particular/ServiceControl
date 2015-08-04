@@ -43,10 +43,16 @@
                             return HttpStatusCode.NotFound;
                         }
 
+                        if (message.BodyNotStored)
+                        {
+                            return HttpStatusCode.NoContent;
+                        }
+
                         if (message.Body == null)
                         {
                             return HttpStatusCode.NotFound;
                         }
+
                         var data = Encoding.UTF8.GetBytes(message.Body);
                         contents = stream => stream.Write(data, 0, data.Length);
                         contentType = message.ContentType;

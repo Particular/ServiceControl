@@ -2,6 +2,7 @@ namespace ServiceControl.EventLog.Definitions
 {
     using CustomChecks;
 
+
     class CustomCheckDeletedDefinition : EventLogMappingDefinition<CustomCheckDeleted>
     {
         public CustomCheckDeletedDefinition()

@@ -50,7 +50,7 @@
             timer.Start(true);
         }
 
-        void Delete()
+        void Delete(PeriodicExecutor executor)
         {
             var currentTime = SystemTime.UtcNow;
             var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
@@ -154,7 +154,7 @@
         {
             if (timer != null)
             {
-                timer.Stop(CancellationToken.None);
+                timer.Stop();
             }
         }
     }

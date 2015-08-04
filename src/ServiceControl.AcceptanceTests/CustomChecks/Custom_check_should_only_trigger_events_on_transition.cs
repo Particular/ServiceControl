@@ -1,8 +1,7 @@
-﻿using System;
-using System.Linq;
-
-namespace ServiceBus.Management.AcceptanceTests.CustomChecks
+﻿namespace ServiceBus.Management.AcceptanceTests.CustomChecks
 {
+    using System;
+    using System.Linq;
     using System.Threading;
     using Contexts;
     using NServiceBus.AcceptanceTesting;
@@ -14,11 +13,10 @@ namespace ServiceBus.Management.AcceptanceTests.CustomChecks
     [TestFixture]
     public class Custom_check_should_only_trigger_events_on_transition : AcceptanceTest
     {
-        [Ignore]
         [Test]
         public void Should_result_in_a_custom_check_failed_event()
         {
-            var context = new When_a_periodic_custom_check_fails.MyContext();
+            var context = new MyContext();
 
             EventLogItem entry = null;
 
@@ -28,12 +26,9 @@ namespace ServiceBus.Management.AcceptanceTests.CustomChecks
                 .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.EventType == typeof(CustomCheckFailed).Name))
                 .Run();
 
-            Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as info");
+            Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as error");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/EventuallyFailingCustomCheck"));
-            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/CustomChecks.EndpointWithFailingCustomCheck")));
-
         }
-
 
         public class MyContext : ScenarioContext
         {
@@ -53,7 +48,7 @@ namespace ServiceBus.Management.AcceptanceTests.CustomChecks
                 private static int counter;
 
                 public EventuallyFailingCustomCheck()
-                    : base("A test check", "Testing", TimeSpan.FromSeconds(1)) { }
+                    : base("EventuallyFailingCustomCheck", "Testing", TimeSpan.FromSeconds(1)) { }
 
                 public override CheckResult PerformCheck()
                 {
