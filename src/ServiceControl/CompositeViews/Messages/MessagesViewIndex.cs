@@ -24,7 +24,7 @@ namespace ServiceControl.CompositeViews.Messages
             public TimeSpan? DeliveryTime { get; set; }
             public string ConversationId { get; set; }
             public string[] Query { get; set; }
-            public DateTime TimeSent { get; set; }
+            public DateTime? TimeSent { get; set; }
         }
 
         public MessagesViewIndex()
