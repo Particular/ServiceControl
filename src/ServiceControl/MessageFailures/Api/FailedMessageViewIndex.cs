@@ -11,7 +11,7 @@ namespace ServiceControl.MessageFailures.Api
         public class SortAndFilterOptions
         {
             public string MessageId { get; set; }
-            public DateTime? TimeSent { get; set; }
+            public DateTime TimeSent { get; set; }
             public string MessageType { get; set; }
             public FailedMessageStatus Status { get; set; }
             public string ReceivingEndpointName { get; set; }
@@ -26,7 +26,7 @@ namespace ServiceControl.MessageFailures.Api
                 MessageId = metadata["MessageId"],
                 MessageType = metadata["MessageType"], 
                 message.Status,
-                TimeSent = (DateTime?)metadata["TimeSent"],
+                TimeSent = (DateTime)metadata["TimeSent"],
                 ReceivingEndpointName = ((EndpointDetails)metadata["ReceivingEndpoint"]).Name,
             };
 

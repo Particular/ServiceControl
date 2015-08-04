@@ -13,7 +13,7 @@ namespace ServiceControl.CompositeViews.Messages
         public string MessageType { get; set; }
         public EndpointDetails SendingEndpoint { get; set; }
         public EndpointDetails ReceivingEndpoint { get; set; }
-        public DateTime? TimeSent { get; set; }
+        public DateTime TimeSent { get; set; }
         public DateTime ProcessedAt { get; set; }
         public TimeSpan CriticalTime { get; set; }
         public TimeSpan ProcessingTime { get; set; }

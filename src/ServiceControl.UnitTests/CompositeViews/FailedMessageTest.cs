@@ -13,7 +13,7 @@
     public class FailedMessagesTests 
     {
         [Test]
-        public void Should_not_provide_defaults_for_missing_metadata()
+        public void Should_allow_errors_with_no_metadata()
         {
             using (var session = documentStore.OpenSession())
             {
@@ -54,10 +54,7 @@
                         Console.Out.WriteLine("Checking result");
                         Assert.AreEqual(1, results.Count);
 
-                        Assert.AreEqual(null, results.First().TimeSent);
-                        Assert.AreEqual(null, results.First().MessageType);
-                        Assert.AreEqual(null, results.First().ReceivingEndpoint);
-                        Assert.AreEqual(null, results.First().SendingEndpoint);
+                        Assert.AreEqual(DateTime.MinValue,results.First().TimeSent);
                     }
                 }
 
