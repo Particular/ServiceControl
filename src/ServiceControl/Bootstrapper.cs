@@ -138,19 +138,24 @@ namespace Particular.ServiceControl
                 UseDefaultRowHighlightingRules = true,
             };
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*", LogLevel.Error, fileTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, fileTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*", LogLevel.Error, consoleTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Warn, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget)); 
-            
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*",                               LogLevel.Error, fileTarget)  { Final = true });
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*",     LogLevel.Error, fileTarget)  { Final = true });
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*",               LogLevel.Error, fileTarget)  { Final = true });
+            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info,  fileTarget)  { Final = true });
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
+
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*",                               LogLevel.Error, consoleTarget) { Final = true });
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*",     LogLevel.Error, consoleTarget) { Final = true });
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*",               LogLevel.Error, consoleTarget) { Final = true });
+            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info,  consoleTarget) { Final = true });
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget)); 
             nlogConfig.AddTarget("console", consoleTarget);
+
             NLogConfigurator.Configure(new object[] { fileTarget, consoleTarget }, "Info");
             LogManager.Configuration = nlogConfig;
+
+            Settings.Logger = NServiceBus.Logging.LogManager.GetLogger(typeof(Settings));
         }
    
         string DetermineServiceName(ServiceBase host, HostArguments hostArguments)
