@@ -20,7 +20,7 @@ namespace ServiceControl.Recoverability
 
             if (group != null && group.Title != null)
             {
-                context = group.Title + " batch {0} of {1}";
+                context = group.Title;
             }
 
             Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(x => x.FailureGroupId == message.GroupId, context);
