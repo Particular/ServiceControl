@@ -56,7 +56,7 @@ namespace ServiceControl.Recoverability
                         {
                             if (context != null)
                             {
-                                batchContext = string.Format(context, currentPage, totalPages);
+                                batchContext = string.Format("Retry '{0}' batch {1} of {2}", context, currentPage, totalPages);
                             }
                             StageRetryByUniqueMessageIds(currentBatch.ToArray(), batchContext);
                             currentPage += 1;
@@ -69,7 +69,7 @@ namespace ServiceControl.Recoverability
                 {
                     if (context != null)
                     {
-                        batchContext = string.Format(context, currentPage, totalPages);
+                        batchContext = string.Format("Retry '{0}' batch {1} of {2}", context, currentPage, totalPages);
                     }
                     StageRetryByUniqueMessageIds(currentBatch.ToArray(), batchContext);
                 }
