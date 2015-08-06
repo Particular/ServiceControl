@@ -18,11 +18,11 @@ namespace ServiceControl.Recoverability
         {
             if (message.Endpoint != null)
             {
-                Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(m => m.ReceivingEndpointName == message.Endpoint, "Retry all for endpoint '" + message.Endpoint + "' batch {0} of {1}");
+                Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(m => m.ReceivingEndpointName == message.Endpoint, "all messages for endpoint " + message.Endpoint);
             }
             else
             {
-                Retries.StartRetryForIndex<FailedMessage, FailedMessageViewIndex>(context: "Retry all batch {0} of {1}");
+                Retries.StartRetryForIndex<FailedMessage, FailedMessageViewIndex>(context: "all messages");
             }
         }
 

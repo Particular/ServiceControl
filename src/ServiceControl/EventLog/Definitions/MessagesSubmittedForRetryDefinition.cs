@@ -7,8 +7,8 @@ namespace ServiceControl.EventLog.Definitions
         public MessagesSubmittedForRetryDefinition()
         {
             Description(m => string.IsNullOrWhiteSpace(m.Context) 
-                ? string.Format("{0} failed messages submitted for retry", m.FailedMessageIds.Length)
-                : string.Format("{0} failed messages submitted for retry: {1}", m.FailedMessageIds.Length, m.Context)
+                ? string.Format("{0} failed message(s) submitted for retry", m.FailedMessageIds.Length)
+                : string.Format("{0} containing {1} message(s)", m.Context, m.FailedMessageIds.Length)
             );
             RelatesToMessages(m => m.FailedMessageIds);
         }
