@@ -189,6 +189,7 @@
     <Compile Include="MessageFailures\When_a_message_has_failed.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed_from_send_only_endpoint.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_empty_body_message_is_successful.cs" />
+    <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_fails.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_is_successful.cs" />
     <Compile Include="AcceptanceTest.cs" />
     <Compile Include="Contexts\ConfigureExtensions.cs" />
