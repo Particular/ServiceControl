@@ -30,7 +30,7 @@
                         (bus, ctx) => IssueRetry(ctx))
                 )  
                 .Done(ctx => GetFailedMessage(ctx, out failure, f => f.ProcessingAttempts.Count == 3))
-                .Run(TimeSpan.FromMinutes(3));
+                .Run(TimeSpan.FromMinutes(4));
 
             Assert.IsNotNull(failure, "Failure should not be null");
             Assert.AreEqual(FailedMessageStatus.Unresolved, failure.Status);
@@ -59,7 +59,7 @@
                          })
                     )
                 .Done(ctx => GetFailedMessage(ctx, out failure, f => f.Status == FailedMessageStatus.Resolved))
-                .Run(TimeSpan.FromMinutes(3));
+                .Run(TimeSpan.FromMinutes(4));
 
             Assert.IsNotNull(failure, "Failure should not be null");
             Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
