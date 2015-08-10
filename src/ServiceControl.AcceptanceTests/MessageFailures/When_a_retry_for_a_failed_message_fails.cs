@@ -10,6 +10,7 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
+    [Serializable]
     public class When_a_retry_for_a_failed_message_fails : AcceptanceTest
     {
         [Test]
@@ -21,21 +22,14 @@
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c =>
-                {
-                    FailedMessage localFailure;
-                    if (!GetFailedMessage(c, out localFailure))
-                        return false;
-
-                    if (localFailure.ProcessingAttempts.Count == 3)
-                        failure = localFailure;
-
-                    if (c.RetryCount < 2 && (localFailure.ProcessingAttempts.Count - 1) == c.RetryCount)
-                        IssueRetry(c);
-
-                    return failure != null;
-                })
+                .WithEndpoint<FailureEndpoint>(b => 
+                    b.Given(bus => bus.SendLocal(new MyMessage()))
+                     .When(ctx => CheckProcessingAttemptsIs(ctx, 1),
+                        (bus, ctx) => IssueRetry(ctx))
+                     .When(ctx => CheckProcessingAttemptsIs(ctx, 2),
+                        (bus, ctx) => IssueRetry(ctx))
+                )  
+                .Done(ctx => GetFailedMessage(ctx, out failure, f => f.ProcessingAttempts.Count == 3))
                 .Run(TimeSpan.FromMinutes(3));
 
             Assert.IsNotNull(failure, "Failure should not be null");
@@ -51,65 +45,46 @@
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c =>
-                {
-                    FailedMessage localFailure;
-                    if (!GetFailedMessage(c, out localFailure))
-                        return false;
-
-                    if (localFailure.Status == FailedMessageStatus.Resolved) // can't use processing attempts as they don't get updated on success
-                        failure = localFailure;
-
-                    if (localFailure.ProcessingAttempts.Count == 3 && c.RetryCount == 2)
-                    {
-                        c.Succeed = true;
-                        IssueRetry(c);
-                        return false;
-                    }
-
-                    if (c.RetryCount < 2 && (localFailure.ProcessingAttempts.Count - 1) == c.RetryCount)
-                        IssueRetry(c);
-
-                    return failure != null;
-                })
+                .WithEndpoint<FailureEndpoint>(b => 
+                    b.Given(bus => bus.SendLocal(new MyMessage()))
+                     .When(ctx => CheckProcessingAttemptsIs(ctx, 1),
+                          (bus, ctx) => IssueRetry(ctx))
+                     .When(ctx => CheckProcessingAttemptsIs(ctx, 2),
+                          (bus, ctx) => IssueRetry(ctx))
+                     .When(ctx => CheckProcessingAttemptsIs(ctx, 3),
+                         (bus, ctx) =>
+                         {
+                             ctx.Succeed = true;
+                             IssueRetry(ctx);
+                         })
+                    )
+                .Done(ctx => GetFailedMessage(ctx, out failure, f => f.Status == FailedMessageStatus.Resolved))
                 .Run(TimeSpan.FromMinutes(3));
 
             Assert.IsNotNull(failure, "Failure should not be null");
             Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
         }
 
-        bool GetFailedMessage(MyContext c, out FailedMessage failure)
+        bool CheckProcessingAttemptsIs(MyContext ctx, int count)
         {
-            failure = null;
-            if (c.MessageId == null)
-            {
-                return false;
-            }
-
-            if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure))
-            {
-                return false;
-            }
-            return true;
+            FailedMessage failure;
+            return GetFailedMessage(ctx, out failure, f => f.ProcessingAttempts.Count == count);
         }
 
-        static object lockObj = new object();
+        bool GetFailedMessage(MyContext c, out FailedMessage failure, Predicate<FailedMessage> condition)
+        {
+            failure = null;
+            if (c.UniqueMessageId == null)
+            {
+                return false;
+            }
+
+            return TryGet("/api/errors/" + c.UniqueMessageId, out failure, condition);
+        }
 
         void IssueRetry(MyContext c)
         {
-            lock (lockObj)
-            {
-                var now = DateTimeOffset.UtcNow;
-                if (now - c.LastRetry < TimeSpan.FromSeconds(1))
-                {
-                    return;
-                }
-                c.LastRetry = now;
-                c.RetryCount = c.RetryCount + 1;
-                Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId));
-                Console.WriteLine("Retry {0} issued", c.RetryCount);
-            }
+            Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId));
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder
@@ -149,6 +124,7 @@
         {
         }
 
+        [Serializable]
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
