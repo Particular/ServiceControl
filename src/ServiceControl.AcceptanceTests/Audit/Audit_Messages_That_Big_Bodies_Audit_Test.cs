@@ -9,14 +9,13 @@
 
     class Audit_Messages_That_Big_Bodies_Audit_Test : AcceptanceTest
     {
-        const int MAX_BODY_SIZE = 30536;
+        const int MAX_BODY_SIZE = 20536;
 
         [Test]
         public void Should_not_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_greater_then_message_size()
         {
             //Arrange
             AppConfigurationSettings.Add("ServiceControl/MaxBodySizeToStore", MAX_BODY_SIZE.ToString());
-          
 
             var context = new Context();
             byte[] body = null;
@@ -56,7 +55,6 @@
 
             //Assert
             Assert.IsNotNull(body);
-
         }
 
         [Test]
@@ -64,7 +62,6 @@
         {
             //Arrange
             AppConfigurationSettings.Add("ServiceControl/MaxBodySizeToStore", MAX_BODY_SIZE.ToString());
-
 
             var context = new Context();
             byte[] body = null;
