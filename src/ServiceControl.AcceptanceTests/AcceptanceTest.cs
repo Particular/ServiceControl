@@ -21,7 +21,7 @@
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
     using ServiceControl.Infrastructure.SignalR;
 
-    [TestFixture]
+    [TestFixture, Serializable]
     public abstract class AcceptanceTest
     {
         static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
@@ -46,6 +46,7 @@
         string pathToAppConfig;
         int port;
         string ravenPath;
+        [NonSerialized]
         ITransportIntegration transportToUse;
 
         public AcceptanceTest()
