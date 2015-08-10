@@ -55,9 +55,8 @@
 
             Session.Store(failure);
 
-            var failedMessageId = message.GetHeader("ServiceControl.Retry.UniqueMessageId");
-
-            if (failedMessageId != null)
+            string failedMessageId;
+            if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
             {
                 Bus.Publish<MessageFailedRepeatedly>(m =>
                 {

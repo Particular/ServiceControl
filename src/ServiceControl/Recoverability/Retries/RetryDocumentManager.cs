@@ -96,7 +96,7 @@ namespace ServiceControl.Recoverability
 
         public void RemoveFailedMessageRetryDocument(string uniqueMessageId)
         {
-            Store.DatabaseCommands.Delete(FailedMessage.MakeDocumentId(uniqueMessageId), null);
+            Store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
         internal bool AdoptOrphanedBatches()
