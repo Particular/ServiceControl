@@ -25,9 +25,10 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ThridPartyEndpoint>()
                 .Done(c => TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
-                .Run(TimeSpan.FromSeconds(5));
+                .Run(TimeSpan.FromMinutes(1));
 
-            Assert.AreEqual(null, auditedMessage.TimeSent);
+            Assert.IsNotNull(auditedMessage);
+            Assert.IsNull(auditedMessage.TimeSent);
         }
 
         public class ThridPartyEndpoint : EndpointConfigurationBuilder
