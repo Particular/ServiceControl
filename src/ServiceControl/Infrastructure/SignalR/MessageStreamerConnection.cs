@@ -9,15 +9,20 @@
     using Newtonsoft.Json.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
+    using NServiceBus.Settings;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
 
     public class MessageStreamerConnection : PersistentConnection
     {
-        public MessageStreamerConnection()
+        public MessageStreamerConnection(ISendMessages sender, ReadOnlySettings settings, Conventions conventions)
         {
-            sender = NServiceBus.Configure.Instance.Builder.Build<ISendMessages>();
+            this.sender = sender;
 
-            messageTypes = NServiceBus.Configure.TypesToScan.Where(MessageConventionExtensions.IsMessageType).ToList();
+            this.messageTypes = settings.GetAvailableTypes()
+                                        .Where(conventions.IsMessageType)
+                                        .ToList();
+            this.localAddress = settings.LocalAddress();
         }
 
         static Task MakeEmptyTask()
@@ -40,7 +45,7 @@
                 message.Headers[Headers.EnclosedMessageTypes] = MapMessageType(messageType);
                 message.Body = Encoding.UTF8.GetBytes(jsonMessage);
 
-                sender.Send(message, Address.Local);
+                sender.Send(message, new SendOptions(localAddress));
 
                 return EmptyTask;
             }
@@ -60,5 +65,6 @@
         static readonly ILog Log = LogManager.GetLogger(typeof(MessageStreamerConnection));
         readonly List<Type> messageTypes;
         readonly ISendMessages sender;
+        Address localAddress;
     }
 }

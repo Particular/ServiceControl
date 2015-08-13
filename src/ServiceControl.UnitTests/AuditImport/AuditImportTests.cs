@@ -2,9 +2,9 @@
 {
     using System.Messaging;
     using NServiceBus;
-    using NServiceBus.Transports.Msmq;
     using NUnit.Framework;
-    
+    using ServiceControl.Operations;
+
     [TestFixture]
     public class AuditImportTests
     {

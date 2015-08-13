@@ -28,8 +28,8 @@
             }
 
             Logger.InfoFormat("Event: {0} emitted", message.GetType().Name);
-
-            var logItem = EventLogMappings.ApplyMapping(message);
+            var messageId = Bus.GetMessageHeader(message, Headers.MessageId);
+            var logItem = EventLogMappings.ApplyMapping(messageId, message);
 
             Session.Store(logItem);
 

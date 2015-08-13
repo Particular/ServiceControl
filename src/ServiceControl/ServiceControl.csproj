@@ -73,9 +73,6 @@
     <Reference Include="Microsoft.AspNet.SignalR.Owin">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Owin.1.1.3\lib\net45\Microsoft.AspNet.SignalR.Owin.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CompilerServices.AsyncTargetingPack.Net45">
-      <HintPath>..\packages\Microsoft.CompilerServices.AsyncTargetingPack.1.0.1\lib\net45\Microsoft.CompilerServices.AsyncTargetingPack.Net45.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm, Version=5.6.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -126,21 +123,20 @@
       <HintPath>..\packages\Newtonsoft.Json.5.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NLog">
-      <HintPath>..\packages\NLog.2.0.1.2\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.0.1\lib\net45\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus, Version=4.6.5.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+    <Reference Include="NServiceBus.Core, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NServiceBus.Interfaces.4.6.5\lib\net40\NServiceBus.dll</HintPath>
+      <HintPath>..\packages\NServiceBus.5.2.4\lib\net45\NServiceBus.Core.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus.Core, Version=4.6.5.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NServiceBus.4.6.5\lib\net40\NServiceBus.Core.dll</HintPath>
+    <Reference Include="NServiceBus.NLog">
+      <HintPath>..\packages\NServiceBus.NLog.1.1.0\lib\net45\NServiceBus.NLog.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.ObjectBuilder.Autofac">
       <HintPath>..\packages\NServiceBus.Autofac.4.6.5\lib\net40\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.RavenDB">
-      <HintPath>..\packages\NServiceBus.RavenDB.0.2.0\lib\net40\NServiceBus.RavenDB.dll</HintPath>
+      <HintPath>..\packages\NServiceBus.RavenDB.2.2.1\lib\net45\NServiceBus.RavenDB.dll</HintPath>
     </Reference>
     <Reference Include="Owin">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
@@ -266,6 +262,7 @@
     <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
     <Compile Include="CustomChecks\CustomChecksIndex.cs" />
     <Compile Include="EventLog\Definitions\ReclassificationOfErrorMessageCompleteDefinition.cs" />
+    <Compile Include="EventLog\EventLogMappingsFeature.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckSucceededPublisher.cs" />
     <Compile Include="ExternalIntegrations\EventPublisher.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationDispatchRequest.cs" />
@@ -311,7 +308,6 @@
     <Compile Include="Infrastructure\PeriodicExecutor.cs" />
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
-    <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\Handlers\IFailedMessageEnricher.cs" />
     <Compile Include="MessageFailures\InternalMessages\ReclassificationOfErrorMessageComplete.cs" />
@@ -453,6 +449,7 @@
     <Compile Include="Operations\SatelliteImportFailuresHandler.cs" />
     <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
     <Compile Include="Operations\ImportRegistration.cs" />
+    <Compile Include="Infrastructure\TypeExtensions.cs" />
     <Compile Include="Operations\UpdateLicenseEnricher.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -483,7 +480,6 @@
     <Compile Include="Recoverability\Retries\MessagesSubmittedForRetry.cs" />
     <Compile Include="Recoverability\Retries\Raven\FailedMessageRetries_ByBatch.cs" />
     <Compile Include="Recoverability\Retries\FailedMessageRetry.cs" />
-    <Compile Include="Recoverability\Retries\Infrastructure\NoopDequeuer.cs" />
     <Compile Include="Recoverability\Retries\RetriesGateway.cs" />
     <Compile Include="Recoverability\Retries\Handlers\RetriesHandler.cs" />
     <Compile Include="Recoverability\Retries\RetryBatch.cs" />
@@ -509,6 +505,7 @@
     <Compile Include="SagaAudit\SageMessageState.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

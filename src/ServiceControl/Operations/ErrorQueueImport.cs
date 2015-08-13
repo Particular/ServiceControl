@@ -3,14 +3,17 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Threading;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Pipeline;
+    using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
@@ -20,11 +23,9 @@
     {
         public ISendMessages Forwarder { get; set; }
         public IBuilder Builder { get; set; }
-
-#pragma warning disable 618
         public PipelineExecutor PipelineExecutor { get; set; }
         public LogicalMessageFactory LogicalMessageFactory { get; set; }
-#pragma warning restore 618
+        public CriticalError CriticalError { get; set; }
 
         public bool Handle(TransportMessage message)
         {
@@ -37,7 +38,7 @@
         {
             var errorMessageReceived = new ImportFailedMessage(message);
 
-            var logicalMessage = LogicalMessageFactory.Create(typeof(ImportFailedMessage), errorMessageReceived);
+            var logicalMessage = LogicalMessageFactory.Create(errorMessageReceived);
 
             using (var childBuilder = Builder.CreateChildBuilder())
             {
@@ -48,10 +49,18 @@
                     enricher.Enrich(errorMessageReceived);
                 }
 
-                PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
+                var context = new IncomingContext(PipelineExecutor.CurrentContext, message)
+                {
+                    LogicalMessages = new List<LogicalMessage>
+                    {
+                        logicalMessage
+                    }
+                };
+
+                PipelineExecutor.InvokePipeline(PipelineExecutor.Incoming.Select(r => r.BehaviorType), context);
             }
 
-            Forwarder.Send(message, Settings.ErrorLogQueue);
+            Forwarder.Send(message, new SendOptions(Settings.ErrorLogQueue));
         }
 
         public void Start()
@@ -84,7 +93,7 @@
                 Path.Combine(Settings.LogPath, @"FailedImports\Error"), tm => new FailedErrorImport
                 {
                     Message = tm,
-                });
+                }, CriticalError);
 
             return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
         }
@@ -95,13 +104,13 @@
             {
                 //Send a message to test the forwarding queue
                 var testMessage = new TransportMessage(Guid.Empty.ToString("N"), new Dictionary<string, string>());
-                Forwarder.Send(testMessage, Settings.ErrorLogQueue);
+                Forwarder.Send(testMessage, new SendOptions(Settings.ErrorLogQueue));
                 return false;
             }
             catch (Exception messageForwardingException)
             {
                 //This call to RaiseCriticalError has to be on a seperate thread  otherwise it deadlocks and doesn't stop correctly.  
-                ThreadPool.QueueUserWorkItem(state => Configure.Instance.RaiseCriticalError("Error Import cannot start", messageForwardingException));
+                ThreadPool.QueueUserWorkItem(state => CriticalError.Raise("Error Import cannot start", messageForwardingException));
                 return true;
             }
         }

@@ -7,6 +7,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using Raven.Client;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
@@ -178,6 +179,10 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.TargetEndpointAddress"] = attempt.FailureDetails.AddressOfFailingEndpoint;
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
+            if (!string.IsNullOrWhiteSpace(attempt.ReplyToAddress))
+            {
+                headersToRetryWith[Headers.ReplyToAddress] = attempt.ReplyToAddress;
+            }
 
             var transportMessage = new TransportMessage(message.Id, headersToRetryWith)
             {
@@ -195,12 +200,7 @@ namespace ServiceControl.Recoverability
                 }
             }
 
-            if (!String.IsNullOrWhiteSpace(attempt.ReplyToAddress))
-            {
-                transportMessage.ReplyToAddress = Address.Parse(attempt.ReplyToAddress);
-            }
-
-            sender.Send(transportMessage, AdvancedDequeuer.Address);
+            sender.Send(transportMessage, new SendOptions(returnToSender.InputAddress));
         }
 
         static byte[] ReadFully(Stream input)

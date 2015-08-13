@@ -15,13 +15,13 @@
             }
         }
 
-        public EventLogItem Apply(IEvent @event)
+        public EventLogItem Apply(string messageId, IEvent @event)
         {
             var eventMessage = (T) @event;
 
             var item = new EventLogItem
             {
-                Id = string.Format("EventLogItem/{0}/{1}/{2}", Category, typeof(T).Name, Headers.GetMessageHeader(@event, Headers.MessageId)),
+                Id = string.Format("EventLogItem/{0}/{1}/{2}", Category, typeof(T).Name, messageId),
                 Category = Category,
                 RaisedAt = raisedAtFunc(eventMessage),
                 Description = descriptionFunc(eventMessage),

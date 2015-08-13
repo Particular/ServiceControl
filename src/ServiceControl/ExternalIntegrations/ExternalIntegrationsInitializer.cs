@@ -4,13 +4,16 @@ namespace ServiceControl.ExternalIntegrations
 
     public class ExternalIntegrationsInitializer : INeedInitialization
     {
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
-            Configure.Component<MessageFailedPublisher>(DependencyLifecycle.SingleInstance);
-            Configure.Component<HeartbeatStoppedPublisher>(DependencyLifecycle.SingleInstance);
-            Configure.Component<HeartbeatRestoredPublisher>(DependencyLifecycle.SingleInstance);
-            Configure.Component<CustomCheckFailedPublisher>(DependencyLifecycle.SingleInstance);
-            Configure.Component<CustomCheckSucceededPublisher>(DependencyLifecycle.SingleInstance);
+            configuration.RegisterComponents(c =>
+            {
+                c.ConfigureComponent<MessageFailedPublisher>(DependencyLifecycle.SingleInstance);
+                c.ConfigureComponent<HeartbeatStoppedPublisher>(DependencyLifecycle.SingleInstance);
+                c.ConfigureComponent<HeartbeatRestoredPublisher>(DependencyLifecycle.SingleInstance);
+                c.ConfigureComponent<CustomCheckFailedPublisher>(DependencyLifecycle.SingleInstance);
+                c.ConfigureComponent<CustomCheckSucceededPublisher>(DependencyLifecycle.SingleInstance);
+            });        
         }
     }
 }

@@ -5,12 +5,15 @@
 
     public class FailedMessageRetries : Feature
     {
-        public override bool IsEnabledByDefault { get { return true; } }
-
         public FailedMessageRetries()
         {
-            Configure.Component<RetryDocumentManager>(DependencyLifecycle.SingleInstance);
-            Configure.Component<RetriesGateway>(DependencyLifecycle.SingleInstance);
+            EnableByDefault();
+        }
+
+        protected override void Setup(FeatureConfigurationContext context)
+        {
+            context.Container.ConfigureComponent<RetryDocumentManager>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<RetriesGateway>(DependencyLifecycle.SingleInstance);
         }
     }
 }

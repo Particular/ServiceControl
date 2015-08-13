@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.MessageTypes
 {
     using System.Linq;
-    using Contracts.Operations;
-    using Operations;
-    using NServiceBus.Scheduling.Messages;
+    using NServiceBus;
+    using ServiceControl.Contracts.Operations;
+    using ServiceControl.Operations;
 
     public class MessageTypeEnricher:ImportEnricher
     {
@@ -12,13 +12,13 @@
             var isSystemMessage = false;
             string messageType = null;
           
-            if (message.PhysicalMessage.Headers.ContainsKey(NServiceBus.Headers.ControlMessageHeader))
+            if (message.PhysicalMessage.Headers.ContainsKey(Headers.ControlMessageHeader))
             {
                 isSystemMessage = true;
             }
 
             string enclosedMessageTypes;
-            if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.EnclosedMessageTypes, out enclosedMessageTypes))
+            if (message.PhysicalMessage.Headers.TryGetValue(Headers.EnclosedMessageTypes, out enclosedMessageTypes))
             {
                 messageType = GetMessageType(enclosedMessageTypes);
                 isSystemMessage = DetectSystemMessage(messageType);
@@ -31,7 +31,8 @@
 
         bool DetectSystemMessage(string messageTypeString)
         {
-            return messageTypeString.Contains(typeof(ScheduledTask).FullName);
+            // TODO: Hardcoded to type name. Grab all other message types
+            return messageTypeString.Contains("NServiceBus.Scheduling.Messages.ScheduledTask");
         }
 
         string GetMessageType(string messageTypeString)

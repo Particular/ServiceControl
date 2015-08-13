@@ -21,11 +21,6 @@ namespace ServiceControl.EndpointControl.Handlers
 
         }
 
-        public void Init()
-        {
-            Configure.Component<KnownEndpointsCache>(DependencyLifecycle.SingleInstance);
-        }
-
         readonly ConcurrentDictionary<Guid, CachedEntry> processed = new ConcurrentDictionary<Guid, CachedEntry>();
 
         class CachedEntry
@@ -33,7 +28,11 @@ namespace ServiceControl.EndpointControl.Handlers
             public bool Processed { get; set; }
             public DateTime TimeAdded { get; set; }
         }
-    
+
+        public void Customize(BusConfiguration configuration)
+        {
+            configuration.RegisterComponents(c => c.ConfigureComponent<KnownEndpointsCache>(DependencyLifecycle.SingleInstance));
+        }
     }
 
 

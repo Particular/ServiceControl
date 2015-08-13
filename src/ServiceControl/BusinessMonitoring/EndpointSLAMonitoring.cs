@@ -12,9 +12,9 @@ namespace ServiceControl.BusinessMonitoring
     {
         public IBus Bus { get; set; }
 
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
-            Configure.Component<EndpointSLAMonitoring>(DependencyLifecycle.SingleInstance);
+            configuration.RegisterComponents(c => c.ConfigureComponent<EndpointSLAMonitoring>(DependencyLifecycle.SingleInstance));
         }
 
         public TimeSpan GetSLAFor(string endpoint)
@@ -40,16 +40,18 @@ namespace ServiceControl.BusinessMonitoring
 
         public void ReportCriticalTimeMeasurements(string endpoint, List<DataPoint> dataPoints)
         {
-            var currentStatus = endpointsBeingMonitored.AddOrUpdate(endpoint, new SLAStatus(dataPoints), (name, e) =>
-            {
-                e.CriticalTimeValues.AddRange(dataPoints);
-                return e;
-            });
+            // TODO: Turn this on or remove it
+            //var currentStatus = endpointsBeingMonitored.AddOrUpdate(endpoint, new SLAStatus(dataPoints), (name, e) =>
+            //{
+            //    e.CriticalTimeValues.AddRange(dataPoints);
+            //    return e;
+            //});
 
-            if (currentStatus.SLABreached()) //todo: debounce
-            {
-                Bus.InMemory.Raise<EndpointSLABreached>(e => e.Endpoint = endpoint);
-            }
+
+            //if (currentStatus.SLABreached()) //todo: debounce
+            //{
+            //    Bus.InMemory.Raise<EndpointSLABreached>(e => e.Endpoint = endpoint);
+            //}
         }
 
         readonly ConcurrentDictionary<string, SLAStatus> endpointsBeingMonitored =
@@ -90,5 +92,6 @@ namespace ServiceControl.BusinessMonitoring
                 return CurrentSLA < TimeSpan.FromSeconds(CriticalTimeValues.Last().Value);
             }
         }
+
     }
 }

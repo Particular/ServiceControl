@@ -3,15 +3,18 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Threading;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Pipeline;
+    using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
     using NServiceBus.Transports.Msmq;
+    using NServiceBus.Unicast;
     using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
@@ -21,12 +24,10 @@
     {
         public IBuilder Builder { get; set; }
         public ISendMessages Forwarder { get; set; }
-
-#pragma warning disable 618
         public PipelineExecutor PipelineExecutor { get; set; }
         public LogicalMessageFactory LogicalMessageFactory { get; set; }
+        public CriticalError CriticalError { get; set; }
 
-#pragma warning restore 618
 
         public AuditQueueImport(IDequeueMessages receiver)
         {
@@ -53,15 +54,22 @@
                     enricher.Enrich(receivedMessage);
                 }
 
-                var logicalMessage = LogicalMessageFactory.Create(typeof(ImportSuccessfullyProcessedMessage),
-                    receivedMessage);
+                var logicalMessage = LogicalMessageFactory.Create(receivedMessage);
 
-                PipelineExecutor.InvokeLogicalMessagePipeline(logicalMessage);
+                var context = new IncomingContext(PipelineExecutor.CurrentContext, message)
+                {
+                    LogicalMessages = new List<LogicalMessage>
+                    {
+                        logicalMessage
+                    }
+                };
+
+                PipelineExecutor.InvokePipeline(PipelineExecutor.Incoming.Select(r => r.BehaviorType), context);
             }
 
             if (Settings.ForwardAuditMessages == true)
             {
-                Forwarder.Send(message, Settings.AuditLogQueue);
+                Forwarder.Send(message, new SendOptions(Settings.AuditLogQueue));
             }
         }
 
@@ -84,13 +92,13 @@
             {
                 //Send a message to test the forwarding queue
                 var testMessage = new TransportMessage(Guid.Empty.ToString("N"), new Dictionary<string, string>());
-                Forwarder.Send(testMessage, Settings.AuditLogQueue);
+                Forwarder.Send(testMessage, new SendOptions(Settings.AuditLogQueue));
                 return false;
             }
             catch (Exception messageForwardingException)
             {
                 //This call to RaiseCriticalError has to be on a seperate thread  otherwise it deadlocks and doesn't stop correctly.  
-                ThreadPool.QueueUserWorkItem(state => Configure.Instance.RaiseCriticalError("Audit Import cannot start", messageForwardingException));
+                ThreadPool.QueueUserWorkItem(state => CriticalError.Raise("Audit Import cannot start", messageForwardingException));
                 return true;
             }
         }
@@ -116,7 +124,8 @@
                 Path.Combine(Settings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
                 {
                     Message = tm,
-                });
+                }, 
+                CriticalError);
 
             return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
         }

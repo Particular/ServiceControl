@@ -68,9 +68,9 @@
             }
         }
 
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
-            Configure.Component<FailedMessageViewIndexNotifications>(DependencyLifecycle.SingleInstance);
+            configuration.RegisterComponents(c => c.ConfigureComponent<FailedMessageViewIndexNotifications>(DependencyLifecycle.SingleInstance));
         }
 
         public void Start()

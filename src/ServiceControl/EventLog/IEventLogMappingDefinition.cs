@@ -5,6 +5,6 @@
 
     public interface IEventLogMappingDefinition
     {
-        EventLogItem Apply(IEvent @event);
+        EventLogItem Apply(string messageId, IEvent @event);
     }
 }

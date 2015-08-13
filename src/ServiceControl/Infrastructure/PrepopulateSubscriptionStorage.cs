@@ -2,24 +2,28 @@ namespace ServiceControl.Infrastructure
 {
     using NServiceBus;
     using NServiceBus.Config;
-    using NServiceBus.Transports;
+    using NServiceBus.Settings;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 
     class PrepopulateSubscriptionStorage:IWantToRunWhenConfigurationIsComplete
     {
-        public IManageSubscriptions SubscriptionManager { get; set; }
+        public ISubscriptionStorage SubscriptionStorage { get; set; }
 
-        public void Run()
+        public ReadOnlySettings Settings { get; set; }
+
+        public void Run(Configure configure)
         {
             // Setup storage for transports using message driven subscriptions
-            var messageDrivenSubscriptionManager = SubscriptionManager as MessageDrivenSubscriptionManager;
-            if (messageDrivenSubscriptionManager != null)
+            if (SubscriptionStorage != null)
             {
-                Configure.Instance.ForAllTypes<IEvent>(eventType => messageDrivenSubscriptionManager.SubscriptionStorage.Subscribe(Address.Local, new[]
+                foreach (var eventType in Settings.GetAvailableTypes().Implementing<IEvent>())
                 {
-                    new MessageType(eventType)
-                }));
+                    SubscriptionStorage.Subscribe(Settings.LocalAddress(), new[]
+                    {
+                        new MessageType(eventType)
+                    });
+                }
             }
         }
     }

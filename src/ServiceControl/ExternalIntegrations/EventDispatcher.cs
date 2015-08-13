@@ -16,13 +16,14 @@
         public IDocumentStore DocumentStore { get; set; }
         public IBus Bus { get; set; }
         public IEnumerable<IEventPublisher> EventPublishers { get; set; }
+        public CriticalError CriticalError { get; set; }
 
         public void Start()
         {
             tokenSource = new CancellationTokenSource();
             circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventDispatcher",
                 TimeSpan.FromMinutes(2),
-                ex => Configure.Instance.RaiseCriticalError("Repeated failures when dispatching external integration events.", ex),
+                ex => CriticalError.Raise("Repeated failures when dispatching external integration events.", ex),
                 TimeSpan.FromSeconds(20));
             StartDispatcher();
         }

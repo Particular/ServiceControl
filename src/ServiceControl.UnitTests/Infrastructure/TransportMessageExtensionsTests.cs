@@ -50,10 +50,9 @@
         [Test]
         public void With_ReplyToAddress_should_return_ReplyToAddress()
         {
-            var message = new TransportMessage
-                          {
-                              ReplyToAddress = new Address("TheEndpoint", "")
-                          };
+           var headers = new Dictionary<string, string>();
+            headers[Headers.ReplyToAddress] = new Address("TheEndpoint", "").ToString();
+            var message = new TransportMessage(null, headers);
             Assert.AreEqual("TheEndpoint",message.ProcessingEndpointName());
         }
     }

@@ -1,14 +1,23 @@
 namespace ServiceControl.Operations
 {
     using NServiceBus;
+    using NServiceBus.Features;
 
-    class ImportRegistration:INeedInitialization
+    class ImportRegistrationFeature : Feature
     {
-        public void Init()
+        public ImportRegistrationFeature()
         {
-            Configure.Instance.ForAllTypes<IEnrichImportedMessages>(
-                t => Configure.Component(t, DependencyLifecycle.SingleInstance));
-        
+            EnableByDefault();
+        }
+
+        protected override void Setup(FeatureConfigurationContext context)
+        {
+            var types = context.Settings.GetAvailableTypes().Implementing<IEnrichImportedMessages>();
+
+            foreach (var type in types)
+            {
+                context.Container.ConfigureComponent(type, DependencyLifecycle.SingleInstance);
+            }
         }
     }
 }

@@ -9,7 +9,7 @@
 
     public class Configure : INeedInitialization
     {
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
             var serializer = new JsonNetSerializer(new JsonSerializerSettings
             {

@@ -11,7 +11,7 @@ namespace ServiceControl.Recoverability
 
     abstract class AdvancedDequeuer : IAdvancedSatellite
     {
-        public static Address Address = Address.Parse(Configure.EndpointName).SubScope("staging");
+        private Address Address;
         private DequeueMessagesWrapper receiver;
         private Timer timer;
         ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
@@ -21,9 +21,10 @@ namespace ServiceControl.Recoverability
         int actualMessageCount;
         Predicate<TransportMessage> shouldProcess; 
 
-        protected AdvancedDequeuer()
+        protected AdvancedDequeuer(Configure configure)
         {
             timer = new Timer(state => StopInternal());
+            Address = Address.Parse(configure.Settings.EndpointName()).SubScope("staging");
         }
 
         protected abstract void HandleMessage(TransportMessage message);

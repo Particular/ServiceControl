@@ -29,9 +29,9 @@
             this.store = store;
         }
 
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
-            Configure.Component<CustomCheckNotifications>(DependencyLifecycle.SingleInstance);
+            configuration.RegisterComponents(c => c.ConfigureComponent<CustomCheckNotifications>(DependencyLifecycle.SingleInstance));
         }
 
         public void OnNext(IndexChangeNotification value)
