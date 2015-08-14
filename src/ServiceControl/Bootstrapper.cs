@@ -40,8 +40,7 @@ namespace Particular.ServiceControl
             configuration.DisableFeature<AutoSubscribe>();
             configuration.DisableFeature<SecondLevelRetries>();
 
-            configuration.DisableFeature<XmlSerialization>();
-            configuration.EnableFeature<JsonSerialization>();
+            configuration.UseSerialization<JsonSerializer>();
 
             configuration.Transactions()
                 .DisableDistributedTransactions()
