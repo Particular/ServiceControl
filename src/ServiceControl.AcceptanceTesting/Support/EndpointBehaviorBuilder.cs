@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus.AcceptanceTesting.Customization;
 
     public class EndpointBehaviorBuilder<TContext> where TContext:ScenarioContext
     {
@@ -12,8 +11,7 @@
             behavior = new EndpointBehavior(type)
                 {
                     Givens = new List<IGivenDefinition>(),
-                    Whens = new List<IWhenDefinition>(), 
-                    AppConfig = Conventions.DefaultConfigForEndpoints
+                    Whens = new List<IWhenDefinition>()
                 };
         }
 
@@ -52,20 +50,19 @@
             return this;
         }
 
-        public EndpointBehaviorBuilder<TContext> CustomConfig(Action<Configure> action)
+        public EndpointBehaviorBuilder<TContext> CustomConfig(Action<BusConfiguration> action)
         {
             behavior.CustomConfig.Add(action);
 
             return this;
         }
 
-        public EndpointBehaviorBuilder<TContext> AppConfig(string appConfigPath)
+        public EndpointBehaviorBuilder<TContext> AppConfig(string appConfig)
         {
-            behavior.AppConfig = appConfigPath;
+            behavior.AppConfig = appConfig;
 
             return this;
         }
-
 
         public EndpointBehavior Build()
         {

@@ -58,8 +58,9 @@
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Autofac">
-      <HintPath>..\packages\Autofac.3.1.1\lib\net40\Autofac.dll</HintPath>
+    <Reference Include="Autofac, Version=3.5.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
@@ -132,8 +133,9 @@
     <Reference Include="NServiceBus.NLog">
       <HintPath>..\packages\NServiceBus.NLog.1.1.0\lib\net45\NServiceBus.NLog.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus.ObjectBuilder.Autofac">
-      <HintPath>..\packages\NServiceBus.Autofac.4.6.5\lib\net40\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
+    <Reference Include="NServiceBus.ObjectBuilder.Autofac, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.Autofac.5.0.0\lib\net45\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="NServiceBus.RavenDB">
       <HintPath>..\packages\NServiceBus.RavenDB.2.2.1\lib\net45\NServiceBus.RavenDB.dll</HintPath>
@@ -505,7 +507,6 @@
     <Compile Include="SagaAudit\SageMessageState.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

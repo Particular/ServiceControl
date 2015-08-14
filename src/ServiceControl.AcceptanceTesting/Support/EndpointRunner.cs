@@ -5,34 +5,36 @@
     using System.Runtime.Remoting.Lifetime;
     using System.Threading;
     using System.Threading.Tasks;
-    using Installation.Environments;
     using Logging;
-    using NServiceBus.Settings;
     using NServiceBus.Support;
+    using NServiceBus.Unicast;
+    using Transports;
 
     [Serializable]
     public class EndpointRunner : MarshalByRefObject
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof (EndpointRunner));
-        private readonly SemaphoreSlim contextChanged = new SemaphoreSlim(0);
-        private EndpointBehavior behavior;
-        private IStartableBus bus;
-        private Configure config;
-        private EndpointConfiguration configuration;
-        private Task executeWhens;
-        private ScenarioContext scenarioContext;
-        readonly CancellationTokenSource stopSource = new CancellationTokenSource();
-        CancellationToken stopToken;
+        static ILog Logger = LogManager.GetLogger<EndpointRunner>();
+        readonly SemaphoreSlim contextChanged = new SemaphoreSlim(0);
+        readonly IList<Guid> executedWhens = new List<Guid>();
+        EndpointBehavior behavior;
+        IStartableBus bus;
+        ISendOnlyBus sendOnlyBus;
+        EndpointConfiguration configuration;
+        Task executeWhens;
+        ScenarioContext scenarioContext;
+        bool stopped;
+        RunDescriptor runDescriptor;
 
         public Result Initialize(RunDescriptor run, EndpointBehavior endpointBehavior,
             IDictionary<Type, string> routingTable, string endpointName)
         {
             try
             {
+                runDescriptor = run;
                 behavior = endpointBehavior;
                 scenarioContext = run.ScenarioContext;
                 configuration =
-                    ((IEndpointConfigurationFactory) Activator.CreateInstance(endpointBehavior.EndpointBuilderType))
+                    ((IEndpointConfigurationFactory)Activator.CreateInstance(endpointBehavior.EndpointBuilderType))
                         .Get();
                 configuration.EndpointName = endpointName;
 
@@ -42,44 +44,34 @@
                 }
 
                 //apply custom config settings
-                endpointBehavior.CustomConfig.ForEach(customAction => customAction(config));
-                config = configuration.GetConfiguration(run, routingTable);
+                var busConfiguration = configuration.GetConfiguration(run, routingTable);
 
-                if (scenarioContext != null)
+                scenarioContext.ContextPropertyChanged += scenarioContext_ContextPropertyChanged;
+
+                endpointBehavior.CustomConfig.ForEach(customAction => customAction(busConfiguration));
+
+                if (configuration.SendOnly)
                 {
-                    config.Configurer.RegisterSingleton(scenarioContext.GetType(), scenarioContext);
-                    scenarioContext.ContextPropertyChanged += scenarioContext_ContextPropertyChanged;
-                }
-
-                bus = config.CreateBus();
-
-                Configure.Instance.ForInstallationOn<Windows>().Install();
-
-                stopToken = stopSource.Token;
-
-                if (behavior.Whens.Count == 0)
-                {
-                    executeWhens = Task.FromResult(0);
+                    sendOnlyBus = Bus.CreateSendOnly(busConfiguration);
                 }
                 else
                 {
-                    executeWhens = Task.Factory.StartNew(async () =>
+                    bus = Bus.Create(busConfiguration);
+                    var transportDefinition = ((UnicastBus)bus).Settings.Get<TransportDefinition>();
+
+                    scenarioContext.HasNativePubSubSupport = transportDefinition.HasNativePubSubSupport;
+                }
+
+
+                executeWhens = Task.Factory.StartNew(() =>
+                {
+                    while (!stopped)
                     {
-                        var executedWhens = new List<Guid>();
+                        //we spin around each 5s since the callback mechanism seems to be shaky
+                        contextChanged.Wait(TimeSpan.FromSeconds(5));
 
-                        while (!stopToken.IsCancellationRequested)
+                        lock (behavior)
                         {
-                            if (executedWhens.Count == behavior.Whens.Count)
-                            {
-                                break;
-                            }
-
-                            //we spin around each 5s since the callback mechanism seems to be shaky
-                            await contextChanged.WaitAsync(TimeSpan.FromSeconds(5), stopToken);
-
-                            if (stopToken.IsCancellationRequested)
-                                break;
-
                             foreach (var when in behavior.Whens)
                             {
                                 if (executedWhens.Contains(when.Id))
@@ -93,8 +85,8 @@
                                 }
                             }
                         }
-                    }, stopToken).Unwrap();
-                }
+                    }
+                });
 
                 return Result.Success();
             }
@@ -118,11 +110,21 @@
                 {
                     var action = given.GetAction(scenarioContext);
 
-                    action(bus);
+                    if (configuration.SendOnly)
+                    {
+                        action(new IBusAdapter(sendOnlyBus));
+                    }
+                    else
+                    {
+
+                        action(bus);
+                    }
                 }
 
-                bus.Start();
-
+                if (!configuration.SendOnly)
+                {
+                    bus.Start();
+                }
 
                 return Result.Success();
             }
@@ -138,16 +140,22 @@
         {
             try
             {
-                stopSource.Cancel();
+                stopped = true;
 
                 scenarioContext.ContextPropertyChanged -= scenarioContext_ContextPropertyChanged;
 
                 executeWhens.Wait();
                 contextChanged.Dispose();
 
-                bus.Dispose();
-                
-                Cleanup();
+                if (configuration.SendOnly)
+                {
+                    sendOnlyBus.Dispose();
+                }
+                else
+                {
+                    bus.Dispose();
+
+                }
 
                 return Result.Success();
             }
@@ -159,18 +167,19 @@
             }
         }
 
-        void Cleanup()
+        public string Name()
         {
-            if (SettingsHolder.HasSetting("CleanupTransport"))
+            if (runDescriptor.UseSeparateAppdomains)
             {
-                var transportCleaner = SettingsHolder.Get<Action>("CleanupTransport");
-                transportCleaner();
+                return AppDomain.CurrentDomain.FriendlyName;
             }
+
+            return configuration.EndpointName;
         }
 
         public override object InitializeLifetimeService()
         {
-            var lease = (ILease) base.InitializeLifetimeService();
+            var lease = (ILease)base.InitializeLifetimeService();
             if (lease.CurrentState == LeaseState.Initial)
             {
                 lease.InitialLeaseTime = TimeSpan.FromMinutes(2);
@@ -180,13 +189,8 @@
             return lease;
         }
 
-        public string Name()
-        {
-            return AppDomain.CurrentDomain.FriendlyName;
-        }
-
         [Serializable]
-        public class Result : MarshalByRefObject
+        public class Result
         {
             public Exception Exception { get; set; }
 

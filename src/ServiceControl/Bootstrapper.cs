@@ -55,7 +55,7 @@ namespace Particular.ServiceControl
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) && IsExternalContract(t));
             configuration.EndpointName(Settings.ServiceName);
-            configuration.UseContainer(new AutofacObjectBuilder(Container));
+            configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(Container));
             configuration.UseTransport(transportType);
             configuration.DefineCriticalErrorAction((s, exception) =>
             {
