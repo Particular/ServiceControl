@@ -32,38 +32,34 @@
                 new ConnectionConfiguration
                 {
                     EnableCrossDomain = true,
-                    Resolver = new Foo()
+                    Resolver = new AutofacDependencyResolver()
                 });
 
             app.UseNancy(new NancyOptions { Bootstrapper = new NServiceBusContainerBootstrapper() });
         }
     }
 
-    class Foo : IDependencyResolver
+    class AutofacDependencyResolver : DefaultDependencyResolver
     {
-        public void Dispose()
+        public override object GetService(Type serviceType)
         {
-           
+            object service;
+            if (Bootstrapper.Container.TryResolve(serviceType, out service))
+            {
+                return service;
+            }
+            return base.GetService(serviceType);
         }
 
-        public object GetService(Type serviceType)
+        public override IEnumerable<object> GetServices(Type serviceType)
         {
-            return Bootstrapper.Container.Resolve(serviceType);
-        }
+            object services;
+            if (Bootstrapper.Container.TryResolve(typeof(IEnumerable<>).MakeGenericType(serviceType), out services))
+            {
+                return (IEnumerable<object>) services;
+            }
 
-        public IEnumerable<object> GetServices(Type serviceType)
-        {
-            return (IEnumerable<object>)Bootstrapper.Container.Resolve(typeof(IEnumerable<>).MakeGenericType(serviceType));
-        }
-
-        public void Register(Type serviceType, Func<object> activator)
-        {
-            throw new Exception();
-        }
-
-        public void Register(Type serviceType, IEnumerable<Func<object>> activators)
-        {
-            throw new Exception();
+            return base.GetServices(serviceType);
         }
     }
 }
