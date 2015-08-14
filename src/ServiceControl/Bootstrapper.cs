@@ -7,6 +7,7 @@ namespace Particular.ServiceControl
     using Autofac;
     using global::ServiceControl.Infrastructure.SignalR;
     using NLog.Config;
+    using NLog.Filters;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
@@ -137,23 +138,39 @@ namespace Particular.ServiceControl
                 UseDefaultRowHighlightingRules = true,
             };
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*",                               LogLevel.Error, fileTarget)  { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*",     LogLevel.Error, fileTarget)  { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*",               LogLevel.Error, fileTarget)  { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info,  fileTarget)  { Final = true });
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "Raven.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "NServiceBus.RavenDB.Persistence.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "NServiceBus.Licensing.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Info, "Particular.ServiceControl.Licensing.*"));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*",                               LogLevel.Error, consoleTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*",     LogLevel.Error, consoleTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*",               LogLevel.Error, consoleTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info,  consoleTarget) { Final = true });
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "Raven.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "NServiceBus.RavenDB.Persistence.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "NServiceBus.Licensing.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Info, "Particular.ServiceControl.Licensing.*"));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget)); 
             nlogConfig.AddTarget("console", consoleTarget);
 
             NLog.LogManager.Configuration = nlogConfig;
 
             Settings.Logger = LogManager.GetLogger(typeof(Settings));
+        }
+
+        private static LoggingRule MakeFilteredLoggingRule(Target target, LogLevel logLevel, string text)
+        {
+            var rule = new LoggingRule(text, LogLevel.Info, target)
+            {
+                Final = true
+            };
+
+            rule.Filters.Add(new ConditionBasedFilter
+            {
+                Action = FilterResult.Ignore, 
+                Condition = string.Format("level < LogLevel.{0}", logLevel.Name)
+            });
+
+            return rule;
         }
    
         string DetermineServiceName(ServiceBase host, HostArguments hostArguments)
