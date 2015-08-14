@@ -5,13 +5,13 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.ServiceProcess;
     using Autofac;
+    using global::ServiceControl.Infrastructure.SignalR;
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
-    using NServiceBus.ObjectBuilder.Autofac;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
     using LogLevel = NLog.LogLevel;
@@ -26,6 +26,7 @@ namespace Particular.ServiceControl
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
             ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
+            containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             Container = containerBuilder.Build();
 
             if (configuration == null)
