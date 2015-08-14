@@ -14,7 +14,7 @@
 
         public string Name { get { return "Msmq"; } }
         public Type Type { get { return typeof(MsmqTransport); } }
-        public string TypeName { get { return "NServiceBus.Msmq, NServiceBus.Core"; }}
+        public string TypeName { get { return "NServiceBus.MsmqTransport, NServiceBus.Core"; }}
         public string ConnectionString { get; set; }
 
         public void OnEndpointShutdown(string endpointName)

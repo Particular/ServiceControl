@@ -16,7 +16,6 @@
     {
         static ILog Logger = LogManager.GetLogger<EndpointRunner>();
         readonly SemaphoreSlim contextChanged = new SemaphoreSlim(0);
-        readonly IList<Guid> executedWhens = new List<Guid>();
         EndpointBehavior behavior;
         IStartableBus bus;
         ISendOnlyBus sendOnlyBus;

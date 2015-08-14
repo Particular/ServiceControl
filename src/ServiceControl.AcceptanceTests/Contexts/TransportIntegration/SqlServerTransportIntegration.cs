@@ -15,7 +15,7 @@
 
         public string Name { get { return "SqlServer"; } }
         public Type Type { get { return typeof(SqlServerTransport); } }
-        public string TypeName { get { return "NServiceBus.SqlServer, NServiceBus.Transports.SqlServer"; } }
+        public string TypeName { get { return "NServiceBus.SqlServerTransport, NServiceBus.Transports.SqlServer"; } }
         public string ConnectionString { get; set; }
 
         public void OnEndpointShutdown(string endpointName)

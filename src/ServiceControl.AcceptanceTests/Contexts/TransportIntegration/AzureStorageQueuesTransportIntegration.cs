@@ -14,7 +14,7 @@
 
         public string Name { get { return "AzureStorageQueues"; } }
         public Type Type { get { return typeof(AzureStorageQueueTransport); } }
-        public string TypeName { get { return "NServiceBus.AzureStorageQueue, NServiceBus.Azure.Transports.WindowsAzureStorageQueues"; } }
+        public string TypeName { get { return "NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues"; } }
         public string ConnectionString { get; set; }
 
         public void OnEndpointShutdown(string endpointName)

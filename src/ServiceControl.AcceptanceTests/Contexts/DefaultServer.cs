@@ -87,7 +87,7 @@
                 File.Delete(logFile);
             }
 
-            var logLevel = "INFO";
+            var logLevel = "WARN";
 
             var nlogConfig = new LoggingConfiguration();
 

@@ -84,7 +84,7 @@
                 File.Delete(logFile);
             }
 
-            var logLevel = "INFO";
+            var logLevel = "WARN";
 
             var nlogConfig = new LoggingConfiguration();
 
@@ -94,7 +94,6 @@
                 Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:inner=${newline}${exception}${newline}${stacktrace:format=DetailedFlat}}"
             };
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, fileTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
 
