@@ -60,6 +60,10 @@
             {
                 Context.ReceivedTimeoutMessage = true;
             }
+
+            protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
+            {
+            }
         }
 
         public class MySagaData : ContainSagaData

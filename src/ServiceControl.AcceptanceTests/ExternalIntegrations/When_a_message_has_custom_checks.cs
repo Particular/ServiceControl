@@ -19,14 +19,7 @@
             var context = new MyContext();
 
             Scenario.Define(context)
-                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.Given((bus, c) => Subscriptions.OnEndpointSubscribed(s =>
-                {
-                    if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
-                    {
-                        c.ExternalProcessorSubscribed = true;
-                    }
-                }, () => c.ExternalProcessorSubscribed = true))
-                .When(c => c.ExternalProcessorSubscribed, bus =>
+                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.When(c => c.ExternalProcessorSubscribed, bus =>
                 {
                     bus.Publish(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded
                     {
@@ -56,6 +49,12 @@
                 }).AppConfig(PathToAppConfig))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
+                    if (c.HasNativePubSubSupport)
+                    {
+                        c.ExternalProcessorSubscribed = true;
+                        return;
+                    }
+
                     bus.Subscribe<CustomCheckSucceeded>();
                     bus.Subscribe<CustomCheckFailed>();
                 }))
@@ -70,7 +69,13 @@
         {
             public ExternalIntegrationsManagementEndpoint()
             {
-                EndpointSetup<ExternalIntegrationsManagementEndpointSetup>();
+                EndpointSetup<ExternalIntegrationsManagementEndpointSetup>(b => b.OnEndpointSubscribed<MyContext>((s, context) =>
+                {
+                    if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
+                    {
+                        context.ExternalProcessorSubscribed = true;
+                    }
+                }));
             }
         }
 

@@ -20,11 +20,11 @@
         }
 
         public string Name { get { return "RabbitMq"; } }
-        public Type Type { get { return typeof(RabbitMQ); } }
+        public Type Type { get { return typeof(RabbitMQTransport); } }
         public string TypeName { get { return "NServiceBus.RabbitMQ, NServiceBus.Transports.RabbitMQ"; } }
         public string ConnectionString { get; set; }
 
-        public void OnEndpointShutdown()
+        public void OnEndpointShutdown(string endpointName)
         {
             // It is not possible to delete all queues and exchanges over the C# client
             // we need the management plugin and call the proper HTTP apis to get all queues

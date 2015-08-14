@@ -8,6 +8,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
@@ -141,8 +142,8 @@
                     {
                         transportMessage.Headers[Headers.ControlMessageHeader] = SystemMessageTestContext.ControlMessageHeaderValue != null && (bool) SystemMessageTestContext.ControlMessageHeaderValue ? SystemMessageTestContext.ControlMessageHeaderValue.ToString() : null;
                     }
-                    transportMessage.ReplyToAddress = null;
-                    SendMessages.Send(transportMessage, Address.Parse("audit"));
+
+                    SendMessages.Send(transportMessage, new SendOptions(Address.Parse("audit")));
                 }
 
                 public void Stop()

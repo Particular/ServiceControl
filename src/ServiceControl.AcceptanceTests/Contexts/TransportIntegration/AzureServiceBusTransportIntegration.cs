@@ -25,7 +25,7 @@
 
         public Type Type
         {
-            get { return typeof(AzureServiceBus); }
+            get { return typeof(AzureServiceBusTransport); }
         }
 
         public string TypeName
@@ -35,7 +35,7 @@
 
         public string ConnectionString { get; set; }
 
-        public void OnEndpointShutdown()
+        public void OnEndpointShutdown(string endpointName)
         {
         }
 

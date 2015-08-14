@@ -6,7 +6,6 @@ namespace ServiceControl.BusinessMonitoring
     using System.Linq;
     using Contracts.Operations;
     using NServiceBus;
-    using Contracts.BusinessMonitoring;
 
     public class EndpointSLAMonitoring : INeedInitialization
     {

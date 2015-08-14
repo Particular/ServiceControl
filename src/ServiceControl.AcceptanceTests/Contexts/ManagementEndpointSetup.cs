@@ -11,30 +11,28 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Hosting.Helpers;
-    using NServiceBus.Logging.Loggers.NLogAdapter;
-    using NServiceBus.Settings;
     using Particular.ServiceControl;
 
     public class ManagementEndpointSetup : IEndpointSetupTemplate
     {
-        public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration,
-            IConfigurationSource configSource)
+        public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
-            Configure.ScaleOut(_ => _.UseSingleBrokerQueue());
-
-            var configure = Configure.With(GetTypesScopedByTestClass(endpointConfiguration));
+            var builder = new BusConfiguration();
+            builder.TypesToScan(GetTypesScopedByTestClass(endpointConfiguration));
 
             var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
 
-            Action action = transportToUse.OnEndpointShutdown;
-            SettingsHolder.Set("CleanupTransport", action);
+            Action action = () => transportToUse.OnEndpointShutdown(builder.GetSettings().EndpointName());
+            builder.GetSettings().Set("CleanupTransport", action);
+            builder.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
 
-            new Bootstrapper(configure: configure);
+            new Bootstrapper(configuration: builder);
 
             LogManager.Configuration = SetupLogging(endpointConfiguration);
 
-            return Configure.Instance;
+            return builder;
         }
 
         static IEnumerable<Type> GetTypesScopedByTestClass(EndpointConfiguration endpointConfiguration)
@@ -99,7 +97,7 @@
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, fileTarget) { Final = true });
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
-            NLogConfigurator.Configure(new object[] {fileTarget}, logLevel);
+
             return nlogConfig;
         }
     }

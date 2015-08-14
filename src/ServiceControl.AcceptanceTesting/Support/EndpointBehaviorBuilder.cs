@@ -11,7 +11,8 @@
             behavior = new EndpointBehavior(type)
                 {
                     Givens = new List<IGivenDefinition>(),
-                    Whens = new List<IWhenDefinition>()
+                    Whens = new List<IWhenDefinition>(),
+                    AppConfig = Customization.Conventions.DefaultConfigForEndpoints
                 };
         }
 

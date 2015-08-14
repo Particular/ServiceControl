@@ -5,6 +5,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
     using NServiceBus.Features;
+    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
@@ -91,7 +92,7 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<SecondLevelRetries>())
+                EndpointSetup<DefaultServer>(c => c.DisableFeature<SecondLevelRetries>())
                     .WithConfig<TransportConfig>(c =>
                         {
                             c.MaxRetries = 1;
@@ -104,11 +105,12 @@
                 public MyContext Context { get; set; }
 
                 public IBus Bus { get; set; }
+                public ReadOnlySettings Settings { get; set; }
 
                 public void Handle(MyMessage message)
                 {
                     Console.Out.WriteLine("Handling message");
-                    Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
                     if (!Context.Succeed) //simulate that the exception will be resolved with the retry

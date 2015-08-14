@@ -5,7 +5,6 @@
     using NLog.Config;
     using NLog.Targets;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Logging.Loggers.NLogAdapter;
 
     public class ExternalIntegrationsManagementEndpointSetup : ManagementEndpointSetup
     {
@@ -35,7 +34,6 @@
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("ServiceControl.ExternalIntegrations.*", LogLevel.Debug, fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
-            NLogConfigurator.Configure(new object[] { fileTarget }, logLevel);
             return nlogConfig;
         }
     }

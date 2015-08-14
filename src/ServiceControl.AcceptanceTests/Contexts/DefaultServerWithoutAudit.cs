@@ -1,18 +1,18 @@
-namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
+﻿namespace ServiceBus.Management.AcceptanceTests.Contexts
 {
     using System;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using NServiceBus.Features;
 
-    public class JsonServer : IEndpointSetupTemplate
+    public class DefaultServerWithoutAudit : IEndpointSetupTemplate
     {
         public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
             return new DefaultServer().GetConfiguration(runDescriptor, endpointConfiguration, configSource, b =>
             {
-                b.UseSerialization<JsonSerializer>();
+                b.DisableFeature<Audit>();
                 configurationBuilderCustomization(b);
             });
         }

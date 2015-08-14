@@ -3,7 +3,9 @@ namespace ServiceBus.Management.AcceptanceTests
     using System;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Settings;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.CompositeViews.Messages;
@@ -46,12 +48,14 @@ namespace ServiceBus.Management.AcceptanceTests
 
                 public MyContext MyContext { get; set; }
 
+                public ReadOnlySettings Settings { get; set; }
+
                 public void Start()
                 {
                     var transportMessage = new TransportMessage();
                     transportMessage.Headers[Headers.MessageId] = MyContext.MessageId;
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = Configure.EndpointName;
-                    SendMessages.Send(transportMessage, Address.Parse("audit"));
+                    transportMessage.Headers[Headers.ProcessingEndpoint] = Settings.EndpointName();
+                    SendMessages.Send(transportMessage, new SendOptions(Address.Parse("audit")));
                 }
 
                 public void Stop()

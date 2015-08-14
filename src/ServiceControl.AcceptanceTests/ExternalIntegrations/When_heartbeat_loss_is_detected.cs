@@ -24,13 +24,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
             var context = new MyContext();
 
             Scenario.Define(context)
-                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.Given((bus, c) => Subscriptions.OnEndpointSubscribed(s =>
-                {
-                    if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
-                    {
-                        c.ExternalProcessorSubscribed = true;
-                    }
-                }, () => c.ExternalProcessorSubscribed = true)).When(c => c.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointFailedToHeartbeat
+                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointFailedToHeartbeat
                 {
                     DetectedAt = new DateTime(2013,09,13,13,14,13),
                     LastReceivedAt = new DateTime(2013, 09, 13, 13, 13, 13),
@@ -42,7 +36,20 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     }
                     
                 })).AppConfig(PathToAppConfig))
-                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) => bus.Subscribe<HeartbeatStopped>()))
+                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
+                {
+                    if (c.HasNativePubSubSupport)
+                    {
+                        c.ExternalProcessorSubscribed = true;
+                        return;
+                    }
+                    if (c.HasNativePubSubSupport)
+                    {
+                        c.ExternalProcessorSubscribed = true;
+                        return;
+                    }
+                    bus.Subscribe<HeartbeatStopped>();
+                }))
                 .Done(c => c.NotificationDelivered)
                 .Run();
 
@@ -53,7 +60,13 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         {
             public ExternalIntegrationsManagementEndpoint()
             {
-                EndpointSetup<ExternalIntegrationsManagementEndpointSetup>();
+                EndpointSetup<ExternalIntegrationsManagementEndpointSetup>(b => b.OnEndpointSubscribed<MyContext>((s, context) =>
+                {
+                    if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
+                    {
+                        context.ExternalProcessorSubscribed = true;
+                    }
+                }));
             }
         }
 

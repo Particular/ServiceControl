@@ -3,20 +3,20 @@
     using System;
     using System.Linq;
     using Contexts;
+    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Unicast;
     using NUnit.Framework;
     using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.EventLog;
 
     public class When_an_endpoint_starts_up : AcceptanceTest
     {
+        static Guid hostIdentifier = Guid.NewGuid();
+
         [Test]
         public void Should_result_in_a_startup_event()
         {
             var context = new MyContext();
-
             EventLogItem entry = null;
 
             Scenario.Define(context)
@@ -26,37 +26,18 @@
                 .Run();
 
             Assert.AreEqual(Severity.Info, entry.Severity, "Endpoint startup should be treated as info");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/host/" + context.HostId));           
+            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/host/" + hostIdentifier));           
         }
-
 
         public class MyContext : ScenarioContext
         {
-            public Guid HostId { get; set; }
         }
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
             public StartingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
-            }
-
-            class HostIdFinder:IWantToRunWhenConfigurationIsComplete
-            {
-                public UnicastBus UnicastBus { get; set; }
-
-                public MyContext Context { get; set; }
-
-                public void Run()
-                {
-                    if (Context == null)
-                    {
-                        return;
-                    }
-
-                    Context.HostId = UnicastBus.HostInformation.HostId;
-                }
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.UniquelyIdentifyRunningInstance().UsingCustomIdentifier(hostIdentifier));
             }
         }
     }

@@ -49,15 +49,18 @@
                     .AuditTo(Address.Parse("audit"));
             }
 
-            public class MySaga:Saga<MySagaData>,IAmStartedByMessages<MessageInitiatingSaga>
+            public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
                 public MyContext Context { get; set; }
 
-                
                 public void Handle(MessageInitiatingSaga message)
                 {
                     Context.SagaId = Data.Id;
                     Context.MessageId = Bus.CurrentMessageContext.Id;
+                }
+
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
+                {
                 }
             }
 

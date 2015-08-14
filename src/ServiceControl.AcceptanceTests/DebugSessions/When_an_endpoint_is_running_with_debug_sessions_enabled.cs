@@ -21,7 +21,6 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
-                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
@@ -59,7 +58,6 @@
 
                 public void Handle(MyMessage message)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
                     Context.MessageId = Bus.CurrentMessageContext.Id;
                 }
             }
@@ -73,11 +71,6 @@
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-
-    
-            public string EndpointNameOfReceivingEndpoint { get; set; }
-
-            public string EndpointNameOfSendingEndpoint { get; set; }
         }
 
 

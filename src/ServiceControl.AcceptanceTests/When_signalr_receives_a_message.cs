@@ -12,6 +12,7 @@
     using NUnit.Framework;
     using ServiceControl.Infrastructure.SignalR;
     using ServiceControl.MessageFailures.InternalMessages;
+    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     public class When_signalr_receives_a_message : AcceptanceTest
     {
