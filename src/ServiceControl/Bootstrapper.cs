@@ -115,6 +115,8 @@ namespace Particular.ServiceControl
 
         static void ConfigureLogging()
         {
+            LogManager.Use<NLogFactory>();
+
             if (NLog.LogManager.Configuration != null)
             {
                 return;

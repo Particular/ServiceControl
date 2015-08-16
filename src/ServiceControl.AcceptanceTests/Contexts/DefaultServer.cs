@@ -33,6 +33,8 @@
         {
             var settings = runDescriptor.Settings;
 
+            NServiceBus.Logging.LogManager.Use<NLogFactory>();
+
             SetupLogging(endpointConfiguration);
 
             var types = GetTypesScopedByTestClass(endpointConfiguration);
