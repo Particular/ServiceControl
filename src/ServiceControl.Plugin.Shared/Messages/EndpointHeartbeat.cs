@@ -2,8 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using NServiceBus;
 
-    class EndpointHeartbeat
+    class EndpointHeartbeat : ICommand
     {
         public DateTime ExecutedAt { get; set; }
 
@@ -14,7 +15,7 @@
         public string Host { get; set; }
     }
 
-    class RegisterEndpointStartup
+    class RegisterEndpointStartup : ICommand
     {
         public Guid HostId { get; set; }
         public string Endpoint { get; set; }
