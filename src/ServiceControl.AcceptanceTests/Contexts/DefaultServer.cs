@@ -7,6 +7,7 @@
     using System.Reflection;
     using NLog;
     using NLog.Config;
+    using NLog.Filters;
     using NLog.Targets;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -89,7 +90,7 @@
                 File.Delete(logFile);
             }
 
-            var logLevel = "WARN";
+            var logLevel = "INFO";
 
             var nlogConfig = new LoggingConfiguration();
 
@@ -99,9 +100,37 @@
                 Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:inner=${newline}${exception}${newline}${stacktrace:format=DetailedFlat}}"
             };
 
+            var consoleTarget = new ColoredConsoleTarget
+            {
+                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:inner=${newline}${exception}${newline}${stacktrace:format=DetailedFlat}}",
+                UseDefaultRowHighlightingRules = true,
+            };
+
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "Raven.*"));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
+
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "Raven.*"));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
+            nlogConfig.AddTarget("console", consoleTarget);
+
             LogManager.Configuration = nlogConfig;
+        }
+
+        private static LoggingRule MakeFilteredLoggingRule(Target target, LogLevel logLevel, string text)
+        {
+            var rule = new LoggingRule(text, LogLevel.Info, target)
+            {
+                Final = true
+            };
+
+            rule.Filters.Add(new ConditionBasedFilter
+            {
+                Action = FilterResult.Ignore,
+                Condition = string.Format("level < LogLevel.{0}", logLevel.Name)
+            });
+
+            return rule;
         }
 
         static IEnumerable<Type> GetTypesScopedByTestClass(EndpointConfiguration endpointConfiguration)

@@ -10,7 +10,7 @@
 
         public override void Execute(HostArguments args)
         {
-            bootstrapper = new Bootstrapper(null, args);
+            bootstrapper = new Bootstrapper(hostArguments: args);
             bootstrapper.Start();
         }
     }

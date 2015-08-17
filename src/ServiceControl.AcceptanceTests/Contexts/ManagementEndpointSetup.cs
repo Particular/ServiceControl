@@ -7,6 +7,7 @@
     using System.Reflection;
     using NLog;
     using NLog.Config;
+    using NLog.Filters;
     using NLog.Targets;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
@@ -21,6 +22,7 @@
         {
             var builder = new BusConfiguration();
             builder.TypesToScan(GetTypesScopedByTestClass(endpointConfiguration));
+            builder.EnableInstallers();
 
             var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
 
@@ -28,7 +30,9 @@
             builder.GetSettings().Set("CleanupTransport", action);
             builder.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
 
-            new Bootstrapper(configuration: builder);
+            var startableBus = new Bootstrapper(configuration: builder).Bus;
+
+            endpointConfiguration.SelfHost(() => startableBus);
 
             LogManager.Configuration = SetupLogging(endpointConfiguration);
 
@@ -84,7 +88,7 @@
                 File.Delete(logFile);
             }
 
-            var logLevel = "WARN";
+            var logLevel = "INFO";
 
             var nlogConfig = new LoggingConfiguration();
 
@@ -94,10 +98,37 @@
                 Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:inner=${newline}${exception}${newline}${stacktrace:format=DetailedFlat}}"
             };
 
+            var consoleTarget = new ColoredConsoleTarget
+            {
+                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:inner=${newline}${exception}${newline}${stacktrace:format=DetailedFlat}}",
+                UseDefaultRowHighlightingRules = true,
+            };
+
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "Raven.*"));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
 
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "Raven.*"));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
+            nlogConfig.AddTarget("console", consoleTarget);
+
             return nlogConfig;
+        }
+
+        private static LoggingRule MakeFilteredLoggingRule(Target target, LogLevel logLevel, string text)
+        {
+            var rule = new LoggingRule(text, LogLevel.Info, target)
+            {
+                Final = true
+            };
+
+            rule.Filters.Add(new ConditionBasedFilter
+            {
+                Action = FilterResult.Ignore,
+                Condition = string.Format("level < LogLevel.{0}", logLevel.Name)
+            });
+
+            return rule;
         }
     }
 }

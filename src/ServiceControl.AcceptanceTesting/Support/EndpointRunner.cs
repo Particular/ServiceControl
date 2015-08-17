@@ -56,9 +56,9 @@
                 {
                     sendOnlyBus = Bus.CreateSendOnly(busConfiguration);
                 }
-                else
+                else 
                 {
-                    bus = Bus.Create(busConfiguration);
+                    bus = configuration.GetBus() ?? Bus.Create(busConfiguration);
                     var transportDefinition = ((UnicastBus)bus).Settings.Get<TransportDefinition>();
 
                     scenarioContext.HasNativePubSubSupport = transportDefinition.HasNativePubSubSupport;

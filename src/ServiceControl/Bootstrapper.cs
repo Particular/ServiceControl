@@ -22,6 +22,11 @@ namespace Particular.ServiceControl
         IStartableBus bus;
         public static IContainer Container { get; set; }
 
+        public IStartableBus Bus
+        {
+            get { return bus; }
+        }
+
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
@@ -71,7 +76,7 @@ namespace Particular.ServiceControl
                 configuration.EnableInstallers();
             }
 
-            bus = Bus.Create(configuration);
+            bus = NServiceBus.Bus.Create(configuration);
         }
 
         static Type DetermineTransportType()
@@ -105,12 +110,12 @@ namespace Particular.ServiceControl
                 return;
             }
             
-            bus.Start();
+            Bus.Start();
         }
 
         public void Stop()
         {
-            bus.Dispose();
+            Bus.Dispose();
         }
 
         static void ConfigureLogging()
