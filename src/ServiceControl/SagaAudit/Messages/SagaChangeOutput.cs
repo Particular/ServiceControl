@@ -1,8 +1,9 @@
 namespace ServiceControl.EndpointPlugin.Messages.SagaState
 {
     using System;
+    using NServiceBus;
 
-    class SagaChangeOutput
+    class SagaChangeOutput : ICommand
     {
         public string MessageType { get; set; }
         public DateTime TimeSent { get; set; }

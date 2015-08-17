@@ -196,21 +196,6 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\EndpointHeartbeat.cs">
-      <Link>HeartbeatMonitoring\InternalMessages\EndpointHeartbeat.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\ReportCustomCheckResult.cs">
-      <Link>CustomChecks\InternalMessages\ReportCustomCheckResult.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\SagaChangeInitiator.cs">
-      <Link>SagaAudit\Messages\SagaChangeInitiator.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\SagaChangeOutput.cs">
-      <Link>SagaAudit\Messages\SagaChangeOutput.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceControl.Plugin.Shared\Messages\SagaUpdatedMessage.cs">
-      <Link>SagaAudit\Messages\SagaUpdatedMessage.cs</Link>
-    </Compile>
     <Compile Include="App_Packages\Particular.Licensing\License.cs" />
     <Compile Include="App_Packages\Particular.Licensing\LicenseDeserializer.cs" />
     <Compile Include="App_Packages\Particular.Licensing\LicenseExpirationChecker.cs" />
@@ -260,6 +245,7 @@
     <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
     <Compile Include="Contracts\Operations\FailureDetails.cs" />
     <Compile Include="CustomChecks\CustomCheckNotifications.cs" />
+    <Compile Include="CustomChecks\InternalMessages\ReportCustomCheckResult.cs" />
     <Compile Include="EventLog\Definitions\FailedMessageGroupArchivedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
@@ -279,6 +265,8 @@
     <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatsStats.cs" />
+    <Compile Include="HeartbeatMonitoring\InternalMessages\EndpointHeartbeat.cs" />
+    <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterEndpointStartup.cs" />
     <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterPotentiallyMissingHeartbeats.cs" />
     <Compile Include="HeartbeatMonitoring\MonitoringDisabledForEndpointHandler.cs" />
     <Compile Include="HeartbeatMonitoring\MonitoringEnabledForEndpointHandler.cs" />
@@ -496,6 +484,9 @@
     <Compile Include="Recoverability\Retries\RetryStartupAndShutdownTasks.cs" />
     <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
+    <Compile Include="SagaAudit\Messages\SagaChangeInitiator.cs" />
+    <Compile Include="SagaAudit\Messages\SagaChangeOutput.cs" />
+    <Compile Include="SagaAudit\Messages\SagaUpdatedMessage.cs" />
     <Compile Include="SagaAudit\SagaRelationshipsEnricher.cs" />
     <Compile Include="SagaAudit\ProcessingState.cs" />
     <Compile Include="SagaAudit\SagaInfo.cs" />
