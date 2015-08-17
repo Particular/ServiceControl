@@ -32,8 +32,7 @@
         public RavenRegisterStep()
             : base("Custom Raven Behavior", typeof(RavenUnitOfWorkBehavior), "Raven Behavior")
         {
-            InsertAfter(WellKnownStep.ExecuteUnitOfWork);
-            InsertBeforeIfExists(WellKnownStep.InvokeSaga);
+            InsertBefore(WellKnownStep.ExecuteUnitOfWork);
         }
     }
 
