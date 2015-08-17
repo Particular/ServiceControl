@@ -19,6 +19,7 @@
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.RavenDB;
 
     public class AuditQueueImport : IAdvancedSatellite, IDisposable
     {
@@ -61,10 +62,15 @@
                     LogicalMessages = new List<LogicalMessage>
                     {
                         logicalMessage
-                    }
+                    },
+                    IncomingLogicalMessage = logicalMessage
                 };
 
-                PipelineExecutor.InvokePipeline(PipelineExecutor.Incoming.Select(r => r.BehaviorType), context);
+                context.Set("NServiceBus.CallbackInvocationBehavior.CallbackWasInvoked", false);
+
+                var behaviors = behavioursToAddFirst.Concat(PipelineExecutor.Incoming.SkipWhile(r => r.StepId != WellKnownStep.LoadHandlers).Select(r => r.BehaviorType));
+
+                PipelineExecutor.InvokePipeline(behaviors, context);
             }
 
             if (Settings.ForwardAuditMessages == true)
@@ -72,6 +78,8 @@
                 Forwarder.Send(message, new SendOptions(Settings.AuditLogQueue));
             }
         }
+
+        Type[] behavioursToAddFirst = new[] { typeof(RavenUnitOfWorkBehavior) };
 
         public void Start()
         {

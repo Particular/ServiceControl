@@ -32,16 +32,8 @@
         public RavenRegisterStep()
             : base("Custom Raven Behavior", typeof(RavenUnitOfWorkBehavior), "Raven Behavior")
         {
+            InsertAfter(WellKnownStep.CreateChildContainer);
             InsertBefore(WellKnownStep.ExecuteUnitOfWork);
         }
     }
-
-
-    //class RavenUnitOfWorkBehaviorPipelineOverride:PipelineOverride
-    //{
-    //   public override void Override(BehaviorList<ReceiveLogicalMessageContext> behaviorList)
-    //   {
-    //       behaviorList.InnerList.Insert(0,typeof(RavenUnitOfWorkBehavior));
-    //   }
-    //}
 }

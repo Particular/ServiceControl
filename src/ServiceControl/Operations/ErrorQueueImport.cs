@@ -18,6 +18,7 @@
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.RavenDB;
 
     public class ErrorQueueImport : IAdvancedSatellite, IDisposable
     {
@@ -38,8 +39,6 @@
         {
             var errorMessageReceived = new ImportFailedMessage(message);
 
-            var logicalMessage = LogicalMessageFactory.Create(errorMessageReceived);
-
             using (var childBuilder = Builder.CreateChildBuilder())
             {
                 PipelineExecutor.CurrentContext.Set(childBuilder);
@@ -49,19 +48,28 @@
                     enricher.Enrich(errorMessageReceived);
                 }
 
+                var logicalMessage = LogicalMessageFactory.Create(errorMessageReceived);
+
                 var context = new IncomingContext(PipelineExecutor.CurrentContext, message)
                 {
                     LogicalMessages = new List<LogicalMessage>
                     {
                         logicalMessage
-                    }
+                    },
+                    IncomingLogicalMessage = logicalMessage
                 };
 
-                PipelineExecutor.InvokePipeline(PipelineExecutor.Incoming.Select(r => r.BehaviorType), context);
+                context.Set("NServiceBus.CallbackInvocationBehavior.CallbackWasInvoked", false);
+               
+                var behaviors = behavioursToAddFirst.Concat(PipelineExecutor.Incoming.SkipWhile(r => r.StepId != WellKnownStep.LoadHandlers).Select(r => r.BehaviorType));
+
+                PipelineExecutor.InvokePipeline(behaviors, context);
             }
 
             Forwarder.Send(message, new SendOptions(Settings.ErrorLogQueue));
         }
+
+        Type[] behavioursToAddFirst = new[] { typeof(RavenUnitOfWorkBehavior) };
 
         public void Start()
         {
