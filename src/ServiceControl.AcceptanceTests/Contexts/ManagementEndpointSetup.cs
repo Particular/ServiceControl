@@ -29,12 +29,13 @@
             Action action = () => transportToUse.OnEndpointShutdown(builder.GetSettings().EndpointName());
             builder.GetSettings().Set("CleanupTransport", action);
             builder.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
+            
+            LogManager.Configuration = SetupLogging(endpointConfiguration);
 
             var startableBus = new Bootstrapper(configuration: builder).Bus;
 
             endpointConfiguration.SelfHost(() => startableBus);
 
-            LogManager.Configuration = SetupLogging(endpointConfiguration);
 
             return builder;
         }
@@ -98,19 +99,9 @@
                 Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:inner=${newline}${exception}${newline}${stacktrace:format=DetailedFlat}}"
             };
 
-            var consoleTarget = new ColoredConsoleTarget
-            {
-                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:inner=${newline}${exception}${newline}${stacktrace:format=DetailedFlat}}",
-                UseDefaultRowHighlightingRules = true,
-            };
-
             nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "Raven.*"));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
-
-            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "Raven.*"));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
-            nlogConfig.AddTarget("console", consoleTarget);
 
             return nlogConfig;
         }
