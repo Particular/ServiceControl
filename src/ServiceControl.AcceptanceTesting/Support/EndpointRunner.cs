@@ -87,7 +87,9 @@
                             await contextChanged.WaitAsync(TimeSpan.FromSeconds(5), stopToken);
 
                             if (stopToken.IsCancellationRequested)
+                            {
                                 break;
+                            }
 
                             foreach (var when in behavior.Whens)
                             {

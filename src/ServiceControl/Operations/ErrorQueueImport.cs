@@ -123,7 +123,6 @@
             }
         }
 
-
         public void Dispose()
         {
             if (satelliteImportFailuresHandler != null)
