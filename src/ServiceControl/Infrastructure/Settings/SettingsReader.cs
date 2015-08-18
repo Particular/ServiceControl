@@ -19,7 +19,6 @@
                 return (T) Convert.ChangeType(ConfigurationManager.AppSettings[fullKey], typeof(T));
             }
 
-            //todo: Pass in "Particular" as the root key when the core has been updated to allow for it
             return RegistryReader<T>.Read(root, name, defaultValue);
         }
     }

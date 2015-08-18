@@ -31,7 +31,6 @@
 
         bool DetectSystemMessage(string messageTypeString)
         {
-            // TODO: Hardcoded to type name. Grab all other message types
             return messageTypeString.Contains("NServiceBus.Scheduling.Messages.ScheduledTask");
         }
 
