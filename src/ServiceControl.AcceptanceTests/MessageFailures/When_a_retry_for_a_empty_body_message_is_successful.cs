@@ -56,7 +56,7 @@
         {
             if (c.RetryIssued)
             {
-                Thread.Sleep(1000); //todo: add support for a "default" delay when Done() returns false
+                Thread.Sleep(1000);
             }
             else
             {
@@ -65,7 +65,6 @@
                 retryAction();
             }
         }
-
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
@@ -83,23 +82,6 @@
                     .AuditTo(Address.Parse("audit"));
             }
 
-            class SetEndpointName : IWantToRunWhenBusStartsAndStops
-            {
-                public ReadOnlySettings Settings { get; set; }
-                public MyContext Context { get; set; }
-
-                public void Start()
-                {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = Guid.NewGuid().ToString();
-                    Context.UniqueMessageId = DeterministicGuid.MakeId(Context.MessageId, Context.EndpointNameOfReceivingEndpoint).ToString();
-                }
-
-                public void Stop()
-                {
-                }
-            }
-
             public class SendControlMessage : IWantToRunWhenBusStartsAndStops
             {
                 readonly ISendMessages sendMessages;
@@ -115,6 +97,10 @@
 
                 public void Start()
                 {
+                    context.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    context.MessageId = Guid.NewGuid().ToString();
+                    context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
+
                     var transportMessage = new TransportMessage();
                     transportMessage.Headers[Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint;
                     transportMessage.Headers[Headers.MessageId] = context.MessageId;
