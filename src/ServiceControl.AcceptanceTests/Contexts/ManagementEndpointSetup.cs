@@ -10,6 +10,7 @@
     using NLog.Filters;
     using NLog.Targets;
     using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
     using NServiceBus.Configuration.AdvanceExtensibility;
@@ -29,7 +30,15 @@
             Action action = () => transportToUse.OnEndpointShutdown(builder.GetSettings().EndpointName());
             builder.GetSettings().Set("CleanupTransport", action);
             builder.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
-            
+
+            builder.RegisterComponents(r =>
+            {
+                r.RegisterSingleton(runDescriptor.ScenarioContext.GetType(), runDescriptor.ScenarioContext);
+                r.RegisterSingleton(typeof(ScenarioContext), runDescriptor.ScenarioContext);
+            });
+
+            configurationBuilderCustomization(builder);
+
             LogManager.Configuration = SetupLogging(endpointConfiguration);
 
             var startableBus = new Bootstrapper(configuration: builder).Bus;
