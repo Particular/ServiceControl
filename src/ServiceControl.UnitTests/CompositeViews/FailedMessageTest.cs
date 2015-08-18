@@ -54,7 +54,7 @@
                         Console.Out.WriteLine("Checking result");
                         Assert.AreEqual(1, results.Count);
 
-                        Assert.AreEqual(DateTime.MinValue,results.First().TimeSent);
+                        Assert.AreEqual(null, results.First().TimeSent);
                     }
                 }
 
