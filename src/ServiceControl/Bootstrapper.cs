@@ -59,7 +59,7 @@ namespace Particular.ServiceControl
             
             var transportType = DetermineTransportType();
 
-            configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) && IsExternalContract(t));
+            configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
             configuration.EndpointName(Settings.ServiceName);
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(Container));
             configuration.UseTransport(transportType);
