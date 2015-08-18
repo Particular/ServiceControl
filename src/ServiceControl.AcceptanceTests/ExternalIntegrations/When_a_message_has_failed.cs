@@ -142,7 +142,7 @@
                     var config = new UnicastBusConfig();
                     var serviceControlMapping = new MessageEndpointMapping
                     {
-                        Messages = "ServiceControl.Contracts",
+                        AssemblyName = "ServiceControl.Contracts",
                         Endpoint = "Particular.ServiceControl"
                     };
                     config.MessageEndpointMappings.Add(serviceControlMapping);

@@ -26,7 +26,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
             Scenario.Define(context)
                 .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointFailedToHeartbeat
                 {
-                    DetectedAt = new DateTime(2013,09,13,13,14,13),
+                    DetectedAt = new DateTime(2013, 09, 13, 13, 14, 13),
                     LastReceivedAt = new DateTime(2013, 09, 13, 13, 13, 13),
                     Endpoint = new EndpointDetails
                     {
@@ -34,15 +34,10 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                         HostId = Guid.NewGuid(),
                         Name = "UnluckyEndpoint"
                     }
-                    
+
                 })).AppConfig(PathToAppConfig))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
-                    if (c.HasNativePubSubSupport)
-                    {
-                        c.ExternalProcessorSubscribed = true;
-                        return;
-                    }
                     if (c.HasNativePubSubSupport)
                     {
                         c.ExternalProcessorSubscribed = true;
@@ -94,7 +89,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     var config = new UnicastBusConfig();
                     var serviceControlMapping = new MessageEndpointMapping
                     {
-                        Messages = "ServiceControl.Contracts",
+                        AssemblyName = "ServiceControl.Contracts",
                         Endpoint = "Particular.ServiceControl"
                     };
                     config.MessageEndpointMappings.Add(serviceControlMapping);

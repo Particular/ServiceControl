@@ -27,9 +27,7 @@
             Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as info");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/MyCustomCheckId"));
             Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/CustomChecks.EndpointWithFailingCustomCheck")));
-
         }
-
 
         public class MyContext : ScenarioContext
         {
