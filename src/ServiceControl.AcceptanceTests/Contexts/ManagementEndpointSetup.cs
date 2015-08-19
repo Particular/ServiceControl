@@ -39,9 +39,9 @@
 
             configurationBuilderCustomization(builder);
 
-            LogManager.Configuration = SetupLogging(endpointConfiguration);
-
             var startableBus = new Bootstrapper(configuration: builder).Bus;
+
+            LogManager.Configuration = SetupLogging(endpointConfiguration);
 
             endpointConfiguration.SelfHost(() => startableBus);
 

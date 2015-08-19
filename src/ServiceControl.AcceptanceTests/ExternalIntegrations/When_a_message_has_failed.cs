@@ -20,7 +20,7 @@
             var context = new MyContext();
 
             Scenario.Define(context)
-                .WithEndpoint<ExternalIntegrationsManagementEndpoint>()
+                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(builder => builder.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
