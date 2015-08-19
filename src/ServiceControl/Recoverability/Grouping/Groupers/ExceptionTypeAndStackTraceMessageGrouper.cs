@@ -9,14 +9,14 @@ namespace ServiceControl.Recoverability
         public string ClassifyFailure(FailureDetails failureDetails)
         {
             var exception = failureDetails.Exception;
-            if (exception == null || string.IsNullOrWhiteSpace(exception.StackTrace))
+            if (exception == null)
                 return null;
 
             var firstStackTraceFrame = StackTraceParser.Parse(exception.StackTrace).FirstOrDefault();
-            if (firstStackTraceFrame == null)
-                return null;
+            if (firstStackTraceFrame != null)
+                return exception.ExceptionType + ": " + firstStackTraceFrame.ToMethodIdentifier();
 
-            return exception.ExceptionType + ": " + firstStackTraceFrame.ToMethodIdentifier();
+            return exception.ExceptionType + ": 0";
         }
     }
 }
