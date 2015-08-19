@@ -91,7 +91,6 @@ namespace ServiceControl.Recoverability
                                 Type = PatchCommandType.Set,
                                 Name = "FailureGroups",
                                 Value = new RavenJArray(failureGroups),
-                                PrevVal = RavenJObject.Parse("{'a': undefined}")["a"]
                             }
                         });
                     Interlocked.Increment(ref failedMessagesReclassified);
