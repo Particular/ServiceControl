@@ -32,7 +32,7 @@
 
         public AuditQueueImport(IDequeueMessages receiver)
         {
-            disabled = receiver is MsmqDequeueStrategy;
+            disabled = false;
         }
 
         public bool Handle(TransportMessage message)

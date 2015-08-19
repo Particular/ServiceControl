@@ -10,7 +10,7 @@ namespace Particular.ServiceControl
         {
             return new TransportConfig
             {
-                MaximumMessageThroughputPerSecond = Settings.MaximumMessageThroughputPerSecond,
+               // MaximumMessageThroughputPerSecond = Settings.MaximumMessageThroughputPerSecond,
                 MaximumConcurrencyLevel = 10,
                 MaxRetries = 3,
             };

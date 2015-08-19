@@ -6,6 +6,7 @@ namespace Particular.ServiceControl
     using System.ServiceProcess;
     using Autofac;
     using global::ServiceControl.Infrastructure.SignalR;
+    using Metrics;
     using NLog.Config;
     using NLog.Filters;
     using NLog.Layouts;
@@ -19,6 +20,9 @@ namespace Particular.ServiceControl
 
     public class Bootstrapper
     {
+        string CSV_REPORTS_PATH = @"C:\SC_tests\19_08_2015";
+        string HTML_REPORTS_URL = "http://localhost:1234/";
+
         IStartableBus bus;
         public static IContainer Container { get; set; }
 
@@ -74,6 +78,9 @@ namespace Particular.ServiceControl
             }
 
             bus = NServiceBus.Bus.Create(configuration);
+
+            Metric.Config.WithHttpEndpoint(HTML_REPORTS_URL);
+            Metric.Config.WithReporting(report => report.WithCSVReports(CSV_REPORTS_PATH, TimeSpan.FromSeconds(1)));
         }
 
         static Type DetermineTransportType()

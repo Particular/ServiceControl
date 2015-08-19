@@ -68,6 +68,10 @@
     <Reference Include="Lucene.Net">
       <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
     </Reference>
+    <Reference Include="Metrics, Version=0.2.16.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Metrics.NET.0.2.16\lib\net45\Metrics.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.1.1.3\lib\net40\Microsoft.AspNet.SignalR.Core.dll</HintPath>
     </Reference>
