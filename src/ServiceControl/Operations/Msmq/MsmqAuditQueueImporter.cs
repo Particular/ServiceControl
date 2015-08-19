@@ -23,7 +23,7 @@ namespace ServiceControl.Operations
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class MsmqAuditQueueImporter : IWantToRunWhenBusStartsAndStops
+    class MsmqAuditQueueImporter //: IWantToRunWhenBusStartsAndStops
     {
         public MsmqAuditQueueImporter(IDocumentStore store, IBuilder builder, IDequeueMessages receiver, CriticalError criticalError)
         {

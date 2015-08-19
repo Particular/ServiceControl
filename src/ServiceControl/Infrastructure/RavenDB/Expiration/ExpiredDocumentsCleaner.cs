@@ -8,6 +8,7 @@
     using System.Globalization;
     using System.Linq;
     using System.Threading;
+    using Metrics;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -29,13 +30,17 @@
         int deleteFrequencyInSeconds;
         int deletionBatchSize;
 
+        static readonly Meter deletedMessages = Metric.Meter("[RavenDb] Deleted messages", Unit.Items);
+        static readonly Meter expiredMessages = Metric.Meter("[RavenDb] Expired messages", Unit.Items);
+        static readonly Meter expMinDel = Metric.Meter("[RavenDb] Expired - Deleted messages", Unit.Items);
+
         public void Execute(DocumentDatabase database)
         {
             Database = database;
             indexName = new ExpiryProcessedMessageIndex().IndexName;
 
             deletionBatchSize = Settings.ExpirationProcessBatchSize;
-            deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
+            deleteFrequencyInSeconds = 15;
 
             if (deleteFrequencyInSeconds == 0)
             {
@@ -53,7 +58,7 @@
         void Delete(PeriodicExecutor executor)
         {
             var currentTime = SystemTime.UtcNow;
-            var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
+            var currentExpiryThresholdTime = currentTime.AddSeconds(-30);
             logger.Debug("Trying to find expired documents to delete (with threshold {0})", currentExpiryThresholdTime.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
             const string queryString = "Status:3 OR Status:4";
             var query = new IndexQuery
@@ -129,6 +134,9 @@
                     var results = Database.Batch(items.ToArray());
                     deletionCount = results.Count(x => x.Deleted == true);
                     items.Clear();
+                    expiredMessages.Mark(docsToExpire);
+                    deletedMessages.Mark(deletionCount);
+                    expMinDel.Mark(docsToExpire - deletionCount);
                 }
 
                 if (docsToExpire == 0)
