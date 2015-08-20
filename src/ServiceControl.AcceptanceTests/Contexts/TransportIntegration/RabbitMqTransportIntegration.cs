@@ -6,11 +6,9 @@
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
-    using System.ServiceModel.Description;
     using System.Text.RegularExpressions;
     using Newtonsoft.Json;
     using NServiceBus;
-    using NServiceBus.Logging;
     using RabbitMQ.Client;
 
     public class RabbitMqTransportIntegration : ITransportIntegration
@@ -101,8 +99,6 @@
 
             return httpClient;
         }
-
-        static ILog Log = LogManager.GetLogger<RabbitMqTransportIntegration>();
 
         private class Queue
         {
