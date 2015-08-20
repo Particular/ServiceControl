@@ -143,6 +143,40 @@
         }
 
         [Test]
+        public void TimeSent_is_not_cast_to_DateTimeMin_if_null()
+        {
+            using (var session = documentStore.OpenSession())
+            {
+                session.Store(new ProcessedMessage
+                {
+                    MessageMetadata = new Dictionary<string, object> { {"MessageIntent", "1"}, { "TimeSent", null } }
+                });
+                session.Store(new FailedMessage
+                {
+                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                    {
+                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"}, { "TimeSent", null }}},
+                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"}, { "TimeSent", null }} }
+                    },
+                });
+
+                session.SaveChanges();
+            }
+
+            documentStore.WaitForIndexing();
+
+            using (var session = documentStore.OpenSession())
+            {
+                var messageWithNoTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                        .TransformWith<MessagesViewTransformer, MessagesView>()
+                        .Customize(x => x.WaitForNonStaleResults())
+                        .ToArray();
+                Assert.AreEqual(null, messageWithNoTimeSent[0].TimeSent);
+                Assert.AreEqual(null, messageWithNoTimeSent[1].TimeSent);
+            }
+        }
+
+        [Test]
         public void Correct_status_for_repeated_errors()
         {
             using (var session = documentStore.OpenSession())

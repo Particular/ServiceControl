@@ -100,11 +100,13 @@
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Expiration\CustomExpirationBundleTests.cs" />
     <Compile Include="Heartbeats\HeartbeatStatusProviderTests.cs" />
+    <Compile Include="Infrastructure\PreventReindexing.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapperTests.cs" />
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
+    <Compile Include="Recoverability\ExceptionTypeAndStackTraceMessageGrouperTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">
