@@ -48,7 +48,7 @@ namespace ServiceControl.CompositeViews.Messages
                     MessageType = metadata["MessageType"],
                     SendingEndpoint = metadata["SendingEndpoint"],
                     ReceivingEndpoint = metadata["ReceivingEndpoint"],
-                    TimeSent = (DateTime) metadata["TimeSent"],
+                    TimeSent = (DateTime?) metadata["TimeSent"],
                     ProcessedAt = processedAt,
                     CriticalTime = (TimeSpan) metadata["CriticalTime"],
                     ProcessingTime = (TimeSpan) metadata["ProcessingTime"],
