@@ -109,6 +109,7 @@
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
+    <Compile Include="Recoverability\ExceptionTypeAndStackTraceMessageGrouperTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
