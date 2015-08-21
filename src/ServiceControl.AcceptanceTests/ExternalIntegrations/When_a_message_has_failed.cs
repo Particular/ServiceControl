@@ -27,10 +27,7 @@
                     if (c.HasNativePubSubSupport)
                     {
                         c.ExternalProcessorSubscribed = true;
-                        return;
                     }
-
-                    bus.Subscribe<MessageFailed>();
                 }))
                 .Done(c => c.EventDelivered)
                 .Run();

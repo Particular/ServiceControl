@@ -8,9 +8,9 @@
     {
         public IManageSubscriptions SubscriptionManager { get; set; }
 
-        public TransportDefinition TransportDefinition { get; set; }
-
         public ReadOnlySettings Settings { get; set; }
+
+        public TransportDefinition TransportDefinition { get; set; }
 
         public void Stop()
         {
@@ -19,7 +19,7 @@
         public void Start()
         {
             // Subscribe to events for brokers
-            if (TransportDefinition.HasSupportForCentralizedPubSub)
+            if(TransportDefinition.HasNativePubSubSupport)
             {
                 foreach (var eventType in Settings.GetAvailableTypes().Implementing<IEvent>())
                 {

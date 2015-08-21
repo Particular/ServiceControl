@@ -43,7 +43,6 @@ namespace Particular.ServiceControl
 
             // Disable Auditing for the service control endpoint
             configuration.DisableFeature<Audit>();
-            configuration.EnableFeature<Sagas>();
             configuration.DisableFeature<AutoSubscribe>();
             configuration.DisableFeature<SecondLevelRetries>();
 
@@ -52,8 +51,6 @@ namespace Particular.ServiceControl
             configuration.Transactions()
                 .DisableDistributedTransactions()
                 .DoNotWrapHandlersExecutionInATransactionScope();
-
-            configuration.EnableFeature<StorageDrivenPublishing>();
             
             configuration.ScaleOut().UseSingleBrokerQueue();
             

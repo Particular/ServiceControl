@@ -44,10 +44,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     if (c.HasNativePubSubSupport)
                     {
                         c.ExternalProcessorSubscribed = true;
-                        return;
                     }
-
-                    bus.Subscribe<HeartbeatStopped>();
                 }))
                 .Done(c => c.NotificationDelivered)
                 .Run();

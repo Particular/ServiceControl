@@ -4,7 +4,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
-    using NServiceBus.Features;
     using ServiceBus.Management.AcceptanceTests.Contexts;
 
     public class JsonServer : IEndpointSetupTemplate
@@ -14,7 +13,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
             return new DefaultServer().GetConfiguration(runDescriptor, endpointConfiguration, configSource, b =>
             {
                 b.UseSerialization<JsonSerializer>();
-                b.DisableFeature<AutoSubscribe>();
                 configurationBuilderCustomization(b);
             });
         }

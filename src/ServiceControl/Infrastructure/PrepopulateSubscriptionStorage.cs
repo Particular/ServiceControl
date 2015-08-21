@@ -3,6 +3,7 @@ namespace ServiceControl.Infrastructure
     using NServiceBus;
     using NServiceBus.Config;
     using NServiceBus.Settings;
+    using NServiceBus.Transports;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 
@@ -12,10 +13,11 @@ namespace ServiceControl.Infrastructure
 
         public ReadOnlySettings Settings { get; set; }
 
+        public TransportDefinition TransportDefinition { get; set; }
+
         public void Run(Configure configure)
         {
-            // Setup storage for transports using message driven subscriptions
-            if (SubscriptionStorage != null)
+            if(!TransportDefinition.HasNativePubSubSupport)
             {
                 foreach (var eventType in Settings.GetAvailableTypes().Implementing<IEvent>())
                 {

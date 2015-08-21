@@ -52,11 +52,7 @@
                     if (c.HasNativePubSubSupport)
                     {
                         c.ExternalProcessorSubscribed = true;
-                        return;
                     }
-
-                    bus.Subscribe<CustomCheckSucceeded>();
-                    bus.Subscribe<CustomCheckFailed>();
                 }))
                 .Done(c => c.CustomCheckFailedReceived && c.CustomCheckSucceededReceived)
                 .Run();
