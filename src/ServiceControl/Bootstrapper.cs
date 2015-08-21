@@ -20,7 +20,7 @@ namespace Particular.ServiceControl
 
     public class Bootstrapper
     {
-        string CSV_REPORTS_PATH = @"C:\SC_tests\19_08_2015";
+        string CSV_REPORTS_PATH = @"C:\temp\SC_tests\19_08_2015";
         string HTML_REPORTS_URL = "http://localhost:1234/";
 
         IStartableBus bus;
@@ -80,7 +80,7 @@ namespace Particular.ServiceControl
             bus = NServiceBus.Bus.Create(configuration);
 
             Metric.Config.WithHttpEndpoint(HTML_REPORTS_URL);
-            Metric.Config.WithReporting(report => report.WithCSVReports(CSV_REPORTS_PATH, TimeSpan.FromSeconds(1)));
+            Metric.Config.WithReporting(report => report.WithCSVReports(CSV_REPORTS_PATH, TimeSpan.FromSeconds(1), "|"));
         }
 
         static Type DetermineTransportType()
