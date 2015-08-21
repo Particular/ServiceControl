@@ -15,32 +15,32 @@
     class Program
     {
         static string SOURCE_DB_PATH = @"C:\ProgramData\Particular\ServiceControl\nsbscstg-H1-33333";
+        const int PAGE_SIZE = 1000;
+        static int PAGES_PER_ITERATION = 75;
+        static int ITERATIONS = 4;
 
         static void Main()
         {
             var messageQueue = new MessageQueue(@".\Private$\audit", false, true, QueueAccessMode.Send);
-            const int pageSize = 1000;
-
 
             using (var raven = GetRaven(SOURCE_DB_PATH))
             {
-                for (int iteration = 0; iteration < 4; iteration++)
+                for (int iteration = 0; iteration < ITERATIONS; iteration++)
                 {
-                    for (int page = 1; page < 76; page++)
+                    for (int page = 1; page < PAGES_PER_ITERATION + 1; page++)
                     {
                         using (var session = raven.OpenSession())
                         {
                             var messages = session.Query<ProcessedMessage>()
-                                .Skip((page - 1) * pageSize)
-                                .Take(pageSize)
+                                .Skip((page - 1) * PAGE_SIZE)
+                                .Take(PAGE_SIZE)
                                 .OrderByDescending(m => m.ProcessedAt)
                                 .ToArray();
 
                             InsertMessageToQueue(messageQueue, messages);
                             session.Advanced.Clear();
                         }
-                        Console.WriteLine("Messages added to the queue - page " + (iteration * pageSize + page) + " out of 150.");
-
+                        Console.WriteLine("Messages added to the queue - page " + (iteration * PAGES_PER_ITERATION + page) + " out of 150.");
                     }
                 }
             }
