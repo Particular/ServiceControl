@@ -2,27 +2,32 @@
 {
     using System.Globalization;
     using Microsoft.AspNet.SignalR;
-    using Microsoft.AspNet.SignalR.Json;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
-    using NServiceBus;
 
-    public class Configure : INeedInitialization
+    public class Configure : NServiceBus.INeedInitialization
     {
-        public void Customize(BusConfiguration configuration)
+        public void Customize( NServiceBus.BusConfiguration configuration )
         {
-            var serializer = new JsonNetSerializer(new JsonSerializerSettings
-            {
-                ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
-                Formatting = Formatting.None,
-                NullValueHandling = NullValueHandling.Ignore,
-                Converters = { 
-                    new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind }, 
-                    new StringEnumConverter { CamelCaseText = true }
-                }
-            });
+            //WARN: needs a fix
+            //var serializer = new JsonNetSerializer(new JsonSerializerSettings
+            //{
+            //    ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
+            //    Formatting = Formatting.None,
+            //    NullValueHandling = NullValueHandling.Ignore,
+            //    Converters = { 
+            //        new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind }, 
+            //        new StringEnumConverter { CamelCaseText = true }
+            //    }
+            //});
 
-            GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => serializer); 
+            //var settings = new JsonSerializerSettings
+            //{
+            //    ContractResolver = new SignalRContractResolver()
+            //};
+            //var serializer = JsonSerializer.Create( settings );
+
+            //GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => serializer); 
         }
     }
 }

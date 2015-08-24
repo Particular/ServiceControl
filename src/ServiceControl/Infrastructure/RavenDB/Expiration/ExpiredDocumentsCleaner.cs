@@ -8,7 +8,7 @@
     using System.Globalization;
     using System.Linq;
     using System.Threading;
-    using Metrics;
+    //using Metrics;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -16,6 +16,7 @@
     using Raven.Database;
     using Raven.Database.Impl;
     using Raven.Database.Plugins;
+    using Raven.Database.Queries;
     using ServiceBus.Management.Infrastructure.Settings;
 
 
@@ -30,9 +31,9 @@
         int deleteFrequencyInSeconds;
         int deletionBatchSize;
 
-        static readonly Meter deletedMessages = Metric.Meter("[RavenDb] Deleted messages", Unit.Items);
-        static readonly Meter expiredMessages = Metric.Meter("[RavenDb] Expired messages", Unit.Items);
-        static readonly Meter expMinDel = Metric.Meter("[RavenDb] Expired - Deleted messages", Unit.Items);
+        //static readonly Meter deletedMessages = Metric.Meter("[RavenDb] Deleted messages", Unit.Items);
+        //static readonly Meter expiredMessages = Metric.Meter("[RavenDb] Expired messages", Unit.Items);
+        //static readonly Meter expMinDel = Metric.Meter("[RavenDb] Expired - Deleted messages", Unit.Items);
 
         public void Execute(DocumentDatabase database)
         {
@@ -97,31 +98,31 @@
                     var items = new List<ICommandData>(deletionBatchSize);
                     try
                     {
-                        Database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(Database.WorkContext.CancellationToken, cts.Token).Token,
-                       null,
-                        doc =>
+                        var queryResult = Database.Queries.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(Database.WorkContext.CancellationToken, cts.Token).Token);
+
+                        foreach( var doc in queryResult.Results )
                         {
-                            if (documentWithCurrentThresholdTimeReached)
+                            if( documentWithCurrentThresholdTimeReached )
                             {
                                 return;
                             }
 
-                            if (doc.Value<DateTime>("ProcessedAt") >= currentExpiryThresholdTime)
+                            if( doc.Value<DateTime>( "ProcessedAt" ) >= currentExpiryThresholdTime )
                             {
                                 documentWithCurrentThresholdTimeReached = true;
                                 cts.Cancel();
                                 return;
                             }
 
-                            var id = doc.Value<string>("__document_id");
-                            if (!string.IsNullOrEmpty(id))
+                            var id = doc.Value<string>( "__document_id" );
+                            if( !string.IsNullOrEmpty( id ) )
                             {
-                                items.Add(new DeleteCommandData
+                                items.Add( new DeleteCommandData
                                 {
                                     Key = id
-                                });
-                            }
-                        });
+                                } );
+                            }   
+                        }
                     }
                     catch (OperationCanceledException)
                     {
@@ -131,12 +132,12 @@
                     logger.Debug("Batching deletion of {0} documents.",items.Count);
 
                     docsToExpire += items.Count;
-                    var results = Database.Batch(items.ToArray());
+                    var results = Database.Batch(items.ToArray(), cts.Token);
                     deletionCount = results.Count(x => x.Deleted == true);
                     items.Clear();
-                    expiredMessages.Mark(docsToExpire);
-                    deletedMessages.Mark(deletionCount);
-                    expMinDel.Mark(docsToExpire - deletionCount);
+                    //expiredMessages.Mark(docsToExpire);
+                    //deletedMessages.Mark(deletionCount);
+                    //expMinDel.Mark(docsToExpire - deletionCount);
                 }
 
                 if (docsToExpire == 0)
