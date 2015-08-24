@@ -10,6 +10,7 @@
     using Particular.ServiceControl;
     using ServiceControl.Infrastructure.SignalR;
     using Autofac;
+    using Microsoft.Owin.Cors;
 
     public class Startup
     {
@@ -27,13 +28,15 @@
 
                 return func();
             });
-            
-            app.MapConnection<MessageStreamerConnection>("/messagestream",
-                new ConnectionConfiguration
-                {
-                    EnableCrossDomain = true,
-                    Resolver = new AutofacDependencyResolver()
-                });
+
+            app.MapSignalR<MessageStreamerConnection>( "/messagestream", new HubConfiguration
+            {
+                //EnableDetailedErrors = true,
+                //EnableJavaScriptProxies = false
+                Resolver = new AutofacDependencyResolver(),
+            } );
+
+            app.UseCors(new CorsOptions());
 
             app.UseNancy(new NancyOptions { Bootstrapper = new NServiceBusContainerBootstrapper() });
         }

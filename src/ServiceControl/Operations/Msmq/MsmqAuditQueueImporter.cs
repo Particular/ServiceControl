@@ -227,7 +227,8 @@ namespace ServiceControl.Operations
                         using (var msmqTransaction = new MessageQueueTransaction())
                         {
                             msmqTransaction.Begin();
-                            using (var bulkInsert =store.BulkInsert(options:new BulkInsertOptions {CheckForUpdates = true}))
+                            //using( var bulkInsert = store.BulkInsert( options: new BulkInsertOptions { CheckForUpdates = true } ) )
+                            using( var bulkInsert = store.BulkInsert( options: new BulkInsertOptions() { SkipOverwriteIfUnchanged = true } ) )
                             {
                                 for (var idx = 0; idx < BatchSize; idx++)
                                 {

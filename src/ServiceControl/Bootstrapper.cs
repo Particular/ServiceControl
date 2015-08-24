@@ -79,8 +79,8 @@ namespace Particular.ServiceControl
 
             bus = NServiceBus.Bus.Create(configuration);
 
-            Metric.Config.WithHttpEndpoint(HTML_REPORTS_URL);
-            Metric.Config.WithReporting(report => report.WithCSVReports(CSV_REPORTS_PATH, TimeSpan.FromSeconds(1), "|"));
+            Metric.Config.WithHttpEndpoint( HTML_REPORTS_URL );
+            Metric.Config.WithReporting( report => report.WithCSVReports( CSV_REPORTS_PATH, TimeSpan.FromSeconds( 1 ), "|" ) );
         }
 
         static Type DetermineTransportType()
