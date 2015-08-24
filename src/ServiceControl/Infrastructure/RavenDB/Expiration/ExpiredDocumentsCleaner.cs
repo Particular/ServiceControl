@@ -8,7 +8,7 @@
     using System.Globalization;
     using System.Linq;
     using System.Threading;
-    //using Metrics;
+    using Metrics;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -31,9 +31,9 @@
         int deleteFrequencyInSeconds;
         int deletionBatchSize;
 
-        //static readonly Meter deletedMessages = Metric.Meter("[RavenDb] Deleted messages", Unit.Items);
-        //static readonly Meter expiredMessages = Metric.Meter("[RavenDb] Expired messages", Unit.Items);
-        //static readonly Meter expMinDel = Metric.Meter("[RavenDb] Expired - Deleted messages", Unit.Items);
+        static readonly Meter deletedMessages = Metric.Meter( "[RavenDb] Deleted messages", Unit.Items );
+        static readonly Meter expiredMessages = Metric.Meter( "[RavenDb] Expired messages", Unit.Items );
+        static readonly Meter expMinDel = Metric.Meter( "[RavenDb] Expired - Deleted messages", Unit.Items );
 
         public void Execute(DocumentDatabase database)
         {
@@ -135,9 +135,9 @@
                     var results = Database.Batch(items.ToArray(), cts.Token);
                     deletionCount = results.Count(x => x.Deleted == true);
                     items.Clear();
-                    //expiredMessages.Mark(docsToExpire);
-                    //deletedMessages.Mark(deletionCount);
-                    //expMinDel.Mark(docsToExpire - deletionCount);
+                    expiredMessages.Mark( docsToExpire );
+                    deletedMessages.Mark( deletionCount );
+                    expMinDel.Mark( docsToExpire - deletionCount );
                 }
 
                 if (docsToExpire == 0)
