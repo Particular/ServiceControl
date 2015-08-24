@@ -20,7 +20,7 @@ namespace Particular.ServiceControl
 
     public class Bootstrapper
     {
-        string CSV_REPORTS_PATH = @"C:\temp\SC_tests\19_08_2015";
+        string CSV_REPORTS_PATH = @"C:\temp\SC_tests\" + DateTime.UtcNow.ToString("yyyyMMdd");
         string HTML_REPORTS_URL = "http://localhost:1234/";
 
         IStartableBus bus;

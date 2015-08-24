@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Threading;
     using Contracts.Operations;
+    using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
@@ -13,7 +14,6 @@
     using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
-    using NServiceBus.Transports.Msmq;
     using NServiceBus.Unicast;
     using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
@@ -23,6 +23,8 @@
 
     public class AuditQueueImport : IAdvancedSatellite, IDisposable
     {
+        private readonly Metrics.Timer auditQueueImportTimer = Metric.Timer( "AuditQueueImport time", Unit.Requests );
+
         public IBuilder Builder { get; set; }
         public ISendMessages Forwarder { get; set; }
         public PipelineExecutor PipelineExecutor { get; set; }
@@ -37,7 +39,10 @@
 
         public bool Handle(TransportMessage message)
         {
-            InnerHandle(message);
+            using (auditQueueImportTimer.NewContext())
+            {
+                InnerHandle( message );   
+            }
 
             return true;
         }
