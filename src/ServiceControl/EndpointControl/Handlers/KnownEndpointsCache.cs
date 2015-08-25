@@ -6,21 +6,18 @@ namespace ServiceControl.EndpointControl.Handlers
 
     public class KnownEndpointsCache : INeedInitialization
     {
+        static object marker = new object();
+
         public bool TryAdd(Guid key)
         {
             // We are adding the key right away to prevent Raven Concurrency exceptions.
             // If we add after the message is processed, before the value could be added in the 
             // dictionary,  we try to process the same message again causing the concurrency exception. 
-            return processed.TryAdd(key, new CachedEntry{TimeAdded = DateTime.UtcNow});
+
+            return processed.TryAdd(key, marker);
         }
 
-        readonly ConcurrentDictionary<Guid, CachedEntry> processed = new ConcurrentDictionary<Guid, CachedEntry>();
-
-        class CachedEntry
-        {
-            public bool Processed { get; set; }
-            public DateTime TimeAdded { get; set; }
-        }
+        readonly ConcurrentDictionary<Guid, object> processed = new ConcurrentDictionary<Guid, object>();
 
         public void Customize(BusConfiguration configuration)
         {
