@@ -16,12 +16,11 @@
     using Raven.Database;
     using Raven.Database.Impl;
     using Raven.Database.Plugins;
-    using Raven.Database.Queries;
     using ServiceBus.Management.Infrastructure.Settings;
 
 
     [InheritedExport(typeof(IStartupTask))]
-    [ExportMetadata("Bundle", "customDocumentExpiration")]
+    [ExportMetadata("Bundle", "CustomDocumentExpiration")]
     public class ExpiredDocumentsCleaner : IStartupTask, IDisposable
     {
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleaner));
