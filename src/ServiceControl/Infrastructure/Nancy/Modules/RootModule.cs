@@ -40,7 +40,7 @@
                                       WindowsService = Settings.ServiceName,
                                       LogfilePath = Path.Combine(Settings.LogPath, "logfile.txt"),
                                       Settings.TransportType,
-                                      RavenDBPath = Settings.DbPath
+                                      RavenDBPath = Settings.SystemDbPath
                                   });
         }
 
