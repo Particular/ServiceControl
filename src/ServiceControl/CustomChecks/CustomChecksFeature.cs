@@ -15,7 +15,7 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<CustomCheckNotifications>(DependencyLifecycle.SingleInstance)
+            context.Container.ConfigureComponent<CustomCheckNotifications>(DependencyLifecycle.SingleInstance);
         }
 
         class WireUpCustomCheckNotifications : FeatureStartupTask
