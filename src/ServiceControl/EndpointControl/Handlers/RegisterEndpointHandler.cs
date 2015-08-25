@@ -12,7 +12,6 @@
     public class RegisterEndpointHandler : IHandleMessages<RegisterEndpoint>
     {
         public IDocumentStore Store { get; set; }
-        public KnownEndpointsCache EndpointsCache { get; set; }
         public IBus Bus { get; set; }
 
         public void Handle(RegisterEndpoint message)
@@ -61,7 +60,6 @@
                     {
                         knownEndpoint.Id = DeterministicGuid.MakeId(message.Endpoint.Name,message.Endpoint.HostId.ToString());
                         knownEndpoint.HasTemporaryId = true;
-                        id = knownEndpoint.Id;
                     }
                     else
                     {
@@ -86,8 +84,6 @@
 
                 session.SaveChanges();
             }
-
-            EndpointsCache.MarkAsProcessed(id);
         }
     }
 }
