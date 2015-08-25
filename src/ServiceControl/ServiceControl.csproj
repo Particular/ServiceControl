@@ -207,7 +207,6 @@
     <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UserSidChecker.cs" />
-    <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
     <Compile Include="CompositeViews\Endpoints\HeartbeatInformation.cs" />
@@ -241,7 +240,6 @@
     <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailuresUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\MessageSubmittedForRetry.cs" />
-    <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointDetails.cs" />
     <Compile Include="Contracts\EndpointControl\MonitoringDisabledForEndpoint.cs" />
     <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
@@ -308,7 +306,6 @@
     <Compile Include="MessageFailures\InternalMessages\ReclassifyErrors.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
-    <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
     <Compile Include="Contracts\Operations\ImportFailedMessage.cs" />
     <Compile Include="Contracts\Operations\ImportMessage.cs" />
     <Compile Include="Contracts\Operations\ImportSuccessfullyProcessedMessage.cs" />
@@ -341,9 +338,6 @@
     <Compile Include="EventLog\EventLogMappings.cs" />
     <Compile Include="EventLog\GenericAuditHandler.cs" />
     <Compile Include="EventLog\Severity.cs" />
-    <Compile Include="BusinessMonitoring\ApiModule.cs" />
-    <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
-    <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="CustomChecks\CustomCheck.cs" />
     <Compile Include="CustomChecks\CustomChecksModule.cs" />
     <Compile Include="CustomChecks\ReportCustomCheckResultHandler.cs" />
@@ -408,7 +402,6 @@
     <Compile Include="Infrastructure\Nancy\VersionExtension.cs" />
     <Compile Include="Infrastructure\Nancy\StringListBinder.cs" />
     <Compile Include="MessageFailures\InternalMessages\RequestRetryAll.cs" />
-    <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
     <Compile Include="Infrastructure\Installers\ErrorLogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryMessage.cs" />
