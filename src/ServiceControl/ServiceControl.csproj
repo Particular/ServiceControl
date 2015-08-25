@@ -302,6 +302,7 @@
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
+    <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\IFailedMessageEnricher.cs" />
     <Compile Include="MessageFailures\InternalMessages\ReclassificationOfErrorMessageComplete.cs" />
     <Compile Include="MessageFailures\InternalMessages\ReclassifyErrors.cs" />

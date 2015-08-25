@@ -2,8 +2,6 @@
 {
     using System;
     using System.Linq;
-    using System.Reactive.Concurrency;
-    using System.Reactive.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
@@ -11,12 +9,11 @@
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.MessageFailures.Api;
 
-    public class FailedMessageViewIndexNotifications : IWantToRunWhenBusStartsAndStops, IObserver<IndexChangeNotification>
+    class FailedMessageViewIndexNotifications : IObserver<IndexChangeNotification>
     {
         IBus bus;
         IDocumentStore store;
         int lastCount;
-        IDisposable subscription;
         ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
 
         public FailedMessageViewIndexNotifications(IDocumentStore store, IBus bus)
@@ -27,7 +24,14 @@
 
         public void OnNext(IndexChangeNotification value)
         {
-            UpdatedCount();
+            try
+            {
+                UpdatedCount();
+            }
+            catch (Exception ex)
+            {
+                logging.WarnFormat("Failed to emit MessageFailuresUpdated - {0}", ex);
+            }
         }
 
         public void OnError(Exception error)
@@ -42,34 +46,17 @@
 
         void UpdatedCount()
         {
-            try
+            using (var session = store.OpenSession())
             {
-                using (var session = store.OpenSession())
+                var failedMessageCount = session.Query<FailedMessage, FailedMessageViewIndex>().Count(p => p.Status == FailedMessageStatus.Unresolved);
+                if (lastCount == failedMessageCount)
+                    return;
+                lastCount = failedMessageCount;
+                bus.Publish(new MessageFailuresUpdated
                 {
-                    var failedMessageCount = session.Query<FailedMessage, FailedMessageViewIndex>().Count(p => p.Status == FailedMessageStatus.Unresolved);
-                    if (lastCount == failedMessageCount)
-                        return;
-                    lastCount = failedMessageCount;
-                    bus.Publish(new MessageFailuresUpdated
-                    {
-                        Total = failedMessageCount
-                    });
-                }
+                    Total = failedMessageCount
+                });
             }
-            catch(Exception ex)
-            {
-                logging.WarnFormat("Failed to emit MessageFailuresUpdated - {0}", ex);
-            }
-        }
-
-        public void Start()
-        {
-            subscription = store.Changes().ForIndex("FailedMessageViewIndex").SubscribeOn(Scheduler.Default).Subscribe(this);
-        }
-
-        public void Stop()
-        {
-            subscription.Dispose();
         }
     }
 }
