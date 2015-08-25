@@ -8,6 +8,7 @@ namespace ServiceControl.ExternalIntegrations
         public ExternalIntegrationsFeature()
         {
             EnableByDefault();
+            RegisterStartupTask<EventDispatcher>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)

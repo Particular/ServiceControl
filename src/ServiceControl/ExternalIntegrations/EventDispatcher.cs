@@ -7,18 +7,19 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.CircuitBreakers;
+    using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class EventDispatcher : IWantToRunWhenBusStartsAndStops
+    public class EventDispatcher : FeatureStartupTask
     {
         public IDocumentStore DocumentStore { get; set; }
         public IBus Bus { get; set; }
         public IEnumerable<IEventPublisher> EventPublishers { get; set; }
         public CriticalError CriticalError { get; set; }
 
-        public void Start()
+        protected override void OnStart()
         {
             tokenSource = new CancellationTokenSource();
             circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventDispatcher",
@@ -49,7 +50,7 @@
                 }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        public void Stop()
+        protected override void OnStop()
         {
             tokenSource.Cancel();
         }
