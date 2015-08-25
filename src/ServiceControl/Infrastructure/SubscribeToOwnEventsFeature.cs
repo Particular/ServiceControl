@@ -7,19 +7,16 @@ namespace ServiceControl.Infrastructure
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 
-    class PrepopulatedSubscriptionStorageFeature : Feature
+    class SubscribeToOwnEventsFeature : Feature
     {
-        public PrepopulatedSubscriptionStorageFeature()
+        public SubscribeToOwnEventsFeature()
         {
             EnableByDefault();
-            DependsOn<MessageDrivenSubscriptions>();
             RegisterStartupTask<PrepopulateSubscriptionStorage>();
+            RegisterStartupTask<SubscribeToAllEventsForBrokers>();
         }
 
-        protected override void Setup(FeatureConfigurationContext context)
-        {
-
-        }
+        protected override void Setup(FeatureConfigurationContext context) { }
 
         class PrepopulateSubscriptionStorage : FeatureStartupTask
         {
@@ -38,6 +35,24 @@ namespace ServiceControl.Infrastructure
             }
 
             public ISubscriptionStorage SubscriptionStorage { get; set; }
+            public ReadOnlySettings Settings { get; set; }
+            public TransportDefinition TransportDefinition { get; set; }
+        }
+
+        class SubscribeToAllEventsForBrokers : FeatureStartupTask
+        {
+            protected override void OnStart()
+            {
+                if (TransportDefinition.HasNativePubSubSupport)
+                {
+                    foreach (var eventType in Settings.GetAvailableTypes().Implementing<IEvent>())
+                    {
+                        SubscriptionManager.Subscribe(eventType, Settings.LocalAddress());
+                    }
+                }
+            }
+
+            public IManageSubscriptions SubscriptionManager { get; set; }
             public ReadOnlySettings Settings { get; set; }
             public TransportDefinition TransportDefinition { get; set; }
         }
