@@ -58,13 +58,14 @@
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
             }
 
-            documentStore.Configuration.Port = Settings.Port;
+            documentStore.Configuration.Port = 44444;// Settings.Port;
             documentStore.Configuration.HostName = (Settings.Hostname == "*" || Settings.Hostname == "+")
                 ? "localhost"
                 : Settings.Hostname;
             documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
-            documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
+            //documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
             documentStore.Conventions.SaveEnumsAsIntegers = true;
+            documentStore.DefaultDatabase = "ServiceControl";
             documentStore.Initialize();
 
             Logger.Info("Index creation started");
