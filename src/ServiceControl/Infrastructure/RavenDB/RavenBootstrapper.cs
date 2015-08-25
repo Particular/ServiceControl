@@ -108,8 +108,7 @@
                  }, DependencyLifecycle.InstancePerCall));
 
             configuration.UsePersistence<RavenDBPersistence>()
-                         .SetDefaultDocumentStore(documentStore)
-                         ;
+                         .SetDefaultDocumentStore(documentStore);
 
             configuration.Pipeline.Register<RavenRegisterStep>();
         }
