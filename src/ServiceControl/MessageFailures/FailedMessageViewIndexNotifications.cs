@@ -10,20 +10,14 @@
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.MessageFailures.Api;
-    using INeedInitialization = NServiceBus.INeedInitialization;
 
-    public class FailedMessageViewIndexNotifications : INeedInitialization, IWantToRunWhenBusStartsAndStops, IObserver<IndexChangeNotification>
+    public class FailedMessageViewIndexNotifications : IWantToRunWhenBusStartsAndStops, IObserver<IndexChangeNotification>
     {
         IBus bus;
         IDocumentStore store;
         int lastCount;
         IDisposable subscription;
         ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
-        
-        public FailedMessageViewIndexNotifications()
-        {
-            // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
-        }
 
         public FailedMessageViewIndexNotifications(IDocumentStore store, IBus bus)
         {
@@ -66,11 +60,6 @@
             {
                 logging.WarnFormat("Failed to emit MessageFailuresUpdated - {0}", ex);
             }
-        }
-
-        public void Customize(BusConfiguration configuration)
-        {
-            configuration.RegisterComponents(c => c.ConfigureComponent<FailedMessageViewIndexNotifications>(DependencyLifecycle.SingleInstance));
         }
 
         public void Start()
