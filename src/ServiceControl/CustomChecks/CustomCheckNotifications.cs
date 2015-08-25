@@ -8,30 +8,19 @@
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using INeedInitialization = NServiceBus.INeedInitialization;
 
-    public class CustomCheckNotifications : INeedInitialization, IWantToRunWhenBusStartsAndStops, IObserver<IndexChangeNotification>
+    public class CustomCheckNotifications : IWantToRunWhenBusStartsAndStops, IObserver<IndexChangeNotification>
     {
         IDocumentStore store;
         IBus bus;
         int lastCount;
         IDisposable subscription;
         ILog logging = LogManager.GetLogger(typeof(CustomCheckNotifications));
-    
-        public CustomCheckNotifications()
-        {
-            // Need this because INeedInitialization does not use DI instead use Activator.CreateInstance
-        }
 
         public CustomCheckNotifications(IDocumentStore store, IBus bus)
         {
             this.bus = bus;
             this.store = store;
-        }
-
-        public void Customize(BusConfiguration configuration)
-        {
-            configuration.RegisterComponents(c => c.ConfigureComponent<CustomCheckNotifications>(DependencyLifecycle.SingleInstance));
         }
 
         public void OnNext(IndexChangeNotification value)
@@ -59,7 +48,6 @@
             {
                 logging.WarnFormat("Failed to emit CustomCheckUpdated - {0}", ex);
             }
-
         }
 
         public void OnError(Exception error)
