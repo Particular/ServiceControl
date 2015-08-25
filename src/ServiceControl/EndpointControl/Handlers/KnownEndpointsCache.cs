@@ -14,13 +14,6 @@ namespace ServiceControl.EndpointControl.Handlers
             return processed.TryAdd(key, new CachedEntry{TimeAdded = DateTime.UtcNow});
         }
 
-        public void MarkAsProcessed(Guid key)
-        {
-            //processed.TryAdd(key, true);
-            //TODO: Because we are adding to the dictionary rightaway, if the RegisterEndpoint message gets rolled back, we need to add a timer that checks and removes unprocessed items after a while -- coz message couldve rolled back.
-
-        }
-
         readonly ConcurrentDictionary<Guid, CachedEntry> processed = new ConcurrentDictionary<Guid, CachedEntry>();
 
         class CachedEntry
