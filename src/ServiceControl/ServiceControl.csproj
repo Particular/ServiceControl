@@ -241,6 +241,7 @@
     <Compile Include="Contracts\MessageFailures\MessageSubmittedForRetry.cs" />
     <Compile Include="Contracts\Operations\EndpointDetails.cs" />
     <Compile Include="Contracts\EndpointControl\MonitoringDisabledForEndpoint.cs" />
+    <Compile Include="Contracts\Operations\EnrichWithTrackingIds.cs" />
     <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
     <Compile Include="Contracts\Operations\FailureDetails.cs" />
     <Compile Include="CustomChecks\CustomCheckNotifications.cs" />
