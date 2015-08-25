@@ -243,6 +243,7 @@
     <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
     <Compile Include="Contracts\Operations\FailureDetails.cs" />
     <Compile Include="CustomChecks\CustomCheckNotifications.cs" />
+    <Compile Include="CustomChecks\CustomChecksFeature.cs" />
     <Compile Include="CustomChecks\InternalMessages\ReportCustomCheckResult.cs" />
     <Compile Include="EventLog\Definitions\FailedMessageGroupArchivedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryDefinition.cs" />
