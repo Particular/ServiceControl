@@ -254,7 +254,7 @@
     <Compile Include="ExternalIntegrations\ExternalIntegrationDispatchRequest.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
     <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
-    <Compile Include="ExternalIntegrations\ExternalIntegrationsInitializer.cs" />
+    <Compile Include="ExternalIntegrations\ExternalIntegrationsFeature.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckFailedPublisher.cs" />
     <Compile Include="ExternalIntegrations\HeartbeatRestoredPublisher.cs" />
     <Compile Include="ExternalIntegrations\HeartbeatStoppedPublisher.cs" />
