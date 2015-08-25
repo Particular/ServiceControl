@@ -367,7 +367,6 @@
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageFacetsIndex.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewIndex.cs" />
-    <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
     <Compile Include="Infrastructure\SignalR\GlobalEventHandler.cs" />
     <Compile Include="Infrastructure\SignalR\MessageStreamerConnection.cs" />
@@ -406,7 +405,7 @@
     <Compile Include="MessageFailures\InternalMessages\RetryMessage.cs" />
     <Compile Include="CompositeViews\Messages\GetMessages.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\RootModule.cs" />
-    <Compile Include="Infrastructure\OWIN\OwinRunner.cs" />
+    <Compile Include="Infrastructure\OWIN\ApiFeature.cs" />
     <Compile Include="Infrastructure\OWIN\Startup.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
