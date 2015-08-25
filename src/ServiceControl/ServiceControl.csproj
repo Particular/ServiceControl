@@ -474,9 +474,8 @@
     <Compile Include="Recoverability\Retries\RetryDocumentManager.cs" />
     <Compile Include="Recoverability\Retries\Handlers\RetryHandlerForBackwardsCompatability.cs" />
     <Compile Include="Recoverability\Retries\RetryMessagesById.cs" />
-    <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
-    <Compile Include="Recoverability\Retries\RetryStartupAndShutdownTasks.cs" />
     <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
+    <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeInitiator.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeOutput.cs" />
