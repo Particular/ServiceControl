@@ -23,7 +23,8 @@
 
     public class AuditQueueImport : IAdvancedSatellite, IDisposable
     {
-        private readonly Metrics.Timer auditQueueImportTimer = Metric.Timer( "AuditQueueImport time", Unit.Requests );
+        static readonly Metrics.Timer auditQueueImportTimer = Metric.Timer( "AuditQueueImport time", Unit.Requests );
+        static readonly Metrics.Timer invokePipelineTimer = Metric.Timer( "InvokePipeline time", Unit.Requests );
 
         public IBuilder Builder { get; set; }
         public ISendMessages Forwarder { get; set; }
@@ -46,8 +47,6 @@
 
             return true;
         }
-
-        private readonly Metrics.Timer invokePipelineTimer = Metric.Timer( "InvokePipeline time", Unit.Requests );
 
         void InnerHandle(TransportMessage message)
         {
