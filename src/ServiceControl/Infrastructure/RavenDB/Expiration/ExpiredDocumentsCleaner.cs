@@ -70,7 +70,8 @@
                 FieldsToFetch = new[]
                 {
                     "__document_id",
-                    "ProcessedAt"
+                    "ProcessedAt",
+                    "MessageMetadata"
                 },
                 SortedFields = new[]
                 {
@@ -95,6 +96,7 @@
                 {
                     var documentWithCurrentThresholdTimeReached = false;
                     var items = new List<ICommandData>(deletionBatchSize);
+                    var attachments = new List<string>( deletionBatchSize );
                     try
                     {
                         var queryResult = Database.Queries.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(Database.WorkContext.CancellationToken, cts.Token).Token);
@@ -114,12 +116,24 @@
                             }
 
                             var id = doc.Value<string>( "__document_id" );
-                            if( !string.IsNullOrEmpty( id ) )
+                            if (!string.IsNullOrEmpty(id))
                             {
-                                items.Add( new DeleteCommandData
+                                items.Add(new DeleteCommandData
                                 {
                                     Key = id
-                                } );
+                                });
+
+                                var bodyNotStored = doc.SelectToken("MessageMetadata.BodyNotStored", errorWhenNoMatch: false);
+                                if (bodyNotStored == null || bodyNotStored.Value<bool>() == false)
+                                {
+                                    //we should have an attachement
+                                    var messageId = doc.SelectToken( "MessageMetadata.MessageId", errorWhenNoMatch: false );
+                                    if (messageId != null)
+                                    {
+                                        var attachmentId = "messagebodies/" + messageId.Value<string>();
+                                        attachments.Add(attachmentId);
+                                    }
+                                }
                             }
                         }
                     }
@@ -132,6 +146,14 @@
 
                     docsToExpire += items.Count;
                     var results = Database.Batch(items.ToArray(), cts.Token);
+                    Database.TransactionalStorage.Batch(accessor =>
+                    {
+                        foreach (var attachmentKey in attachments)
+                        {
+                            Database.Attachments.DeleteStatic(attachmentKey, null);
+                        }
+                    });
+
                     deletionCount = results.Count(x => x.Deleted == true);
                     items.Clear();
                     expiredMessages.Mark( docsToExpire );
