@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Contexts;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -41,21 +42,24 @@
                 .WithEndpoint<Endpoint1>()
                 .WithEndpoint<Endpoint2>()
                 .Done(c =>
+                {
+                    List<EndpointsView> endpoints;
+                    if (!TryGetMany("/api/endpoints", out endpoints))
                     {
-                        if (!TryGet("/api/heartbeats/stats", out summary, m => m.Active >= 2))
-                        {
-                            return false;
-                        }
+                        return false;
+                    }
 
-                        List<EndpointsView> endpoints;
+                    if (!endpoints.All(view => view.Name.Contains("Endpoint1") || view.Name.Contains("Endpoint2")))
+                    {
+                        return false;
+                    }
 
-                        return TryGetMany("/api/endpoints", out endpoints, e => e.Name.Contains("Endpoint1") );
-
-                    })
+                    return TryGet("/api/heartbeats/stats", out summary);
+                })
                 .Run(TimeSpan.FromMinutes(2));
 
-
             Assert.AreEqual(0, summary.Failing);
+            Assert.AreEqual(2, summary.Active);
         }
 
         public class HeartbeatSummary
