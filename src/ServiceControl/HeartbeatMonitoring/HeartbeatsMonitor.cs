@@ -3,6 +3,7 @@ namespace ServiceControl.HeartbeatMonitoring
     using System;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using CompositeViews.Endpoints;
     using EndpointControl;
     using NServiceBus;
@@ -86,6 +87,7 @@ namespace ServiceControl.HeartbeatMonitoring
         {
             readonly IDocumentStore store;
             readonly HeartbeatStatusProvider statusProvider;
+            Task task;
 
             public StatusInitialiser(IDocumentStore store, HeartbeatStatusProvider statusProvider)
             {
@@ -94,7 +96,15 @@ namespace ServiceControl.HeartbeatMonitoring
             }
             protected override void OnStart()
             {
-                Initialise();
+                task = Task.Factory.StartNew(Initialise);
+            }
+
+            protected override void OnStop()
+            {
+                if (task != null && !task.IsCompleted)
+                {                   
+                    task.Wait();
+                }
             }
 
             void Initialise()
