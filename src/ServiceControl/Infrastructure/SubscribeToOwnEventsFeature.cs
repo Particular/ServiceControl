@@ -2,6 +2,7 @@ namespace ServiceControl.Infrastructure
 {
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Config;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NServiceBus.Transports;
@@ -13,13 +14,13 @@ namespace ServiceControl.Infrastructure
         public SubscribeToOwnEventsFeature()
         {
             EnableByDefault();
-            RegisterStartupTask<PrepopulateSubscriptionStorage>();
-            RegisterStartupTask<SubscribeToAllEventsForBrokers>();
+            //RegisterStartupTask<PrepopulateSubscriptionStorage>();
+            //RegisterStartupTask<SubscribeToAllEventsForBrokers>();
         }
 
         protected override void Setup(FeatureConfigurationContext context) { }
 
-        class PrepopulateSubscriptionStorage : FeatureStartupTask
+        class PrepopulateSubscriptionStorage : FeatureStartupTask, IWantToRunWhenConfigurationIsComplete
         {
             protected override void OnStart()
             {
@@ -52,9 +53,17 @@ namespace ServiceControl.Infrastructure
             public ISubscriptionStorage SubscriptionStorage { get; set; }
             public ReadOnlySettings Settings { get; set; }
             public TransportDefinition TransportDefinition { get; set; }
+            
+            public void Run(Configure config)
+            {
+                if (!TransportDefinition.HasNativePubSubSupport)
+                {
+                    SubscribeToLocalEvents();
+                }
+            }
         }
 
-        class SubscribeToAllEventsForBrokers : FeatureStartupTask
+        class SubscribeToAllEventsForBrokers : FeatureStartupTask, IWantToRunWhenBusStartsAndStops
         {
             protected override void OnStart()
             {
@@ -84,6 +93,17 @@ namespace ServiceControl.Infrastructure
             public IManageSubscriptions SubscriptionManager { get; set; }
             public ReadOnlySettings Settings { get; set; }
             public TransportDefinition TransportDefinition { get; set; }
+            public void Start()
+            {
+                if (TransportDefinition.HasNativePubSubSupport)
+                {
+                    SubscribeToAllEvents();
+                }
+            }
+
+            public void Stop()
+            {
+            }
         }
     }
 }
