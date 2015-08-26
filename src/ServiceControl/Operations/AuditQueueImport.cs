@@ -39,7 +39,7 @@
 
         public bool Handle(TransportMessage message)
         {
-            using (auditQueueImportTimer.NewContext())
+            using (auditQueueImportTimer.NewContext(message.Id))
             {
                 InnerHandle( message );   
             }
@@ -47,11 +47,13 @@
             return true;
         }
 
+        private readonly Metrics.Timer invokePipelineTimer = Metric.Timer( "InvokePipeline time", Unit.Requests );
+
         void InnerHandle(TransportMessage message)
         {
             var receivedMessage = new ImportSuccessfullyProcessedMessage(message);
-
-            using (var childBuilder = Builder.CreateChildBuilder())
+            
+            using( var childBuilder = Builder.CreateChildBuilder() )
             {
                 PipelineExecutor.CurrentContext.Set(childBuilder);
 
@@ -60,7 +62,7 @@
                     enricher.Enrich(receivedMessage);
                 }
 
-                var logicalMessage = LogicalMessageFactory.Create(receivedMessage);
+                var logicalMessage = LogicalMessageFactory.Create( receivedMessage );
 
                 var context = new IncomingContext(PipelineExecutor.CurrentContext, message)
                 {
@@ -75,7 +77,10 @@
 
                 var behaviors = behavioursToAddFirst.Concat(PipelineExecutor.Incoming.SkipWhile(r => r.StepId != WellKnownStep.LoadHandlers).Select(r => r.BehaviorType));
 
-                PipelineExecutor.InvokePipeline(behaviors, context);
+                using (invokePipelineTimer.NewContext())
+                {
+                    PipelineExecutor.InvokePipeline(behaviors, context);
+                }
             }
 
             if (Settings.ForwardAuditMessages == true)
