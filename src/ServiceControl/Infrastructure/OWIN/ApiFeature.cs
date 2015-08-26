@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.Infrastructure.OWIN
 {
     using System.Globalization;
+    using System.Threading.Tasks;
     using Microsoft.AspNet.SignalR;
     using Microsoft.AspNet.SignalR.Json;
     using Microsoft.Owin.Hosting;
@@ -45,10 +46,24 @@
         {
             protected override void OnStart()
             {
-                WebApp.Start<Startup>(Settings.ApiUrl);
-                Logger.InfoFormat("Api is now accepting requests on {0}", Settings.ApiUrl);
+                task = Task.Factory.StartNew(StartWebApp);
             }
 
+            protected override void OnStop()
+            {
+                if (task != null && !task.IsCompleted)
+                {
+                    task.Wait();
+                }
+            }
+
+            void StartWebApp()
+            {
+                WebApp.Start<Startup>(Settings.ApiUrl);
+                Logger.InfoFormat("Api is now accepting requests on {0}", Settings.ApiUrl);                
+            }
+
+            Task task;
             static readonly ILog Logger = LogManager.GetLogger(typeof(ApiFeature));
         }
     }
