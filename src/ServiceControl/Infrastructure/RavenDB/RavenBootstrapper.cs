@@ -91,7 +91,8 @@
             {
                 DataDirectory = Settings.SystemDbPath,
                 UseEmbeddedHttpServer = Settings.MaintenanceMode || Settings.ExposeRavenDB,
-                EnlistInDistributedTransactions = false,
+                //getting better number without this
+                //EnlistInDistributedTransactions = false,
                 DefaultDatabase = Settings.StorageDbName
             };
 
