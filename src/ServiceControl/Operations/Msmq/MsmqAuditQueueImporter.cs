@@ -12,7 +12,6 @@ namespace ServiceControl.Operations
     using System.Threading.Tasks;
     using System.Xml;
     using Contracts.Operations;
-    using EndpointControl.Handlers;
     using MessageAuditing;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -40,8 +39,6 @@ namespace ServiceControl.Operations
                 }, CriticalError);
         }
 
-        public IBus Bus { get; set; }
-        public KnownEndpointsCache KnownEndpointsCache { get; set; }
         public UnicastBus UnicastBus { get; set; }
         public ISendMessages Forwarder { get; set; }
         CriticalError CriticalError;

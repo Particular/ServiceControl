@@ -207,7 +207,6 @@
     <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UserSidChecker.cs" />
-    <Compile Include="BusinessMonitoring\EnrichWithTrackingIds.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
     <Compile Include="CompositeViews\Endpoints\HeartbeatInformation.cs" />
@@ -221,7 +220,6 @@
     <Compile Include="CompositeViews\Messages\MessagesViewTransformer.cs" />
     <Compile Include="ConfigErrorQueue.cs" />
     <Compile Include="ConfigTransportConfig.cs" />
-    <Compile Include="Contracts\BusinessMonitoring\EndpointSLABreached.cs" />
     <Compile Include="Contracts\CustomChecks\CustomCheckFailed.cs" />
     <Compile Include="Contracts\CustomChecks\CustomCheckSucceeded.cs" />
     <Compile Include="Contracts\EndpointControl\NewEndpointDetected.cs" />
@@ -241,12 +239,13 @@
     <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailuresUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\MessageSubmittedForRetry.cs" />
-    <Compile Include="Contracts\Operations\EndpointConfigurationReceived.cs" />
     <Compile Include="Contracts\Operations\EndpointDetails.cs" />
     <Compile Include="Contracts\EndpointControl\MonitoringDisabledForEndpoint.cs" />
+    <Compile Include="Contracts\Operations\EnrichWithTrackingIds.cs" />
     <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
     <Compile Include="Contracts\Operations\FailureDetails.cs" />
     <Compile Include="CustomChecks\CustomCheckNotifications.cs" />
+    <Compile Include="CustomChecks\CustomChecksFeature.cs" />
     <Compile Include="CustomChecks\InternalMessages\ReportCustomCheckResult.cs" />
     <Compile Include="EventLog\Definitions\FailedMessageGroupArchivedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryDefinition.cs" />
@@ -259,7 +258,7 @@
     <Compile Include="ExternalIntegrations\ExternalIntegrationDispatchRequest.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
     <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
-    <Compile Include="ExternalIntegrations\ExternalIntegrationsInitializer.cs" />
+    <Compile Include="ExternalIntegrations\ExternalIntegrationsFeature.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckFailedPublisher.cs" />
     <Compile Include="ExternalIntegrations\HeartbeatRestoredPublisher.cs" />
     <Compile Include="ExternalIntegrations\HeartbeatStoppedPublisher.cs" />
@@ -295,20 +294,19 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Hosting\Options.cs" />
-    <Compile Include="Infrastructure\Settings\CheckSettingsOnStartup.cs" />
+    <Compile Include="Infrastructure\Settings\CheckSettingsFeature.cs" />
     <Compile Include="Infrastructure\Settings\NullableRegistryReader.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryProcessedMessageIndex.cs" />
     <Compile Include="Infrastructure\PeriodicExecutor.cs" />
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
-    <Compile Include="Infrastructure\SubscribeToAllEvents.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
+    <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\IFailedMessageEnricher.cs" />
     <Compile Include="MessageFailures\InternalMessages\ReclassificationOfErrorMessageComplete.cs" />
     <Compile Include="MessageFailures\InternalMessages\ReclassifyErrors.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
-    <Compile Include="Contracts\Operations\EndpointPerformanceDataReceived.cs" />
     <Compile Include="Contracts\Operations\ImportFailedMessage.cs" />
     <Compile Include="Contracts\Operations\ImportMessage.cs" />
     <Compile Include="Contracts\Operations\ImportSuccessfullyProcessedMessage.cs" />
@@ -341,9 +339,6 @@
     <Compile Include="EventLog\EventLogMappings.cs" />
     <Compile Include="EventLog\GenericAuditHandler.cs" />
     <Compile Include="EventLog\Severity.cs" />
-    <Compile Include="BusinessMonitoring\ApiModule.cs" />
-    <Compile Include="BusinessMonitoring\EndpointPerformanceDataReceivedHandler.cs" />
-    <Compile Include="BusinessMonitoring\EndpointSLAMonitoring.cs" />
     <Compile Include="CustomChecks\CustomCheck.cs" />
     <Compile Include="CustomChecks\CustomChecksModule.cs" />
     <Compile Include="CustomChecks\ReportCustomCheckResultHandler.cs" />
@@ -352,8 +347,7 @@
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogItem.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatingEndpoint.cs" />
-    <Compile Include="HeartbeatMonitoring\HeartbeatMonitor.cs" />
-    <Compile Include="HeartbeatMonitoring\HeartbeatStatusInitializer.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatsMonitor.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatsIndex.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatStatusProvider.cs" />
@@ -366,7 +360,7 @@
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleaner.cs" />
-    <Compile Include="Infrastructure\PrepopulateSubscriptionStorage.cs" />
+    <Compile Include="Infrastructure\SubscribeToOwnEvents.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
     <Compile Include="Licensing\ActiveLicense.cs" />
     <Compile Include="Licensing\LicenseDetector.cs" />
@@ -374,7 +368,6 @@
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageFacetsIndex.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewIndex.cs" />
-    <Compile Include="Infrastructure\SignalR\Configure.cs" />
     <Compile Include="Infrastructure\SignalR\CustomSignalRContractResolverBecauseOfIssue500InSignalR.cs" />
     <Compile Include="Infrastructure\SignalR\GlobalEventHandler.cs" />
     <Compile Include="Infrastructure\SignalR\MessageStreamerConnection.cs" />
@@ -408,13 +401,12 @@
     <Compile Include="Infrastructure\Nancy\VersionExtension.cs" />
     <Compile Include="Infrastructure\Nancy\StringListBinder.cs" />
     <Compile Include="MessageFailures\InternalMessages\RequestRetryAll.cs" />
-    <Compile Include="BusinessMonitoring\EndpointConfigurationReceivedHandler.cs" />
     <Compile Include="Infrastructure\Installers\ErrorLogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\BaseModule.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryMessage.cs" />
     <Compile Include="CompositeViews\Messages\GetMessages.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\RootModule.cs" />
-    <Compile Include="Infrastructure\OWIN\OwinRunner.cs" />
+    <Compile Include="Infrastructure\OWIN\ApiFeature.cs" />
     <Compile Include="Infrastructure\OWIN\Startup.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
@@ -449,12 +441,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatisticsEnricher.cs" />
-    <Compile Include="Operations\AttemptToReImportFailedMessages.cs" />
+    <Compile Include="Operations\DetectFailedMessageImportsFeature.cs" />
     <Compile Include="Recoverability\Grouping\Archiving\ArchiveAllInGroup.cs" />
     <Compile Include="Recoverability\Grouping\Archiving\ArchiveAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Grouping\ClassifyFailedMessageEnricher.cs" />
     <Compile Include="Recoverability\Grouping\Archiving\FailureGroupsArchiveApi.cs" />
-    <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsAtStartup.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsHandler.cs" />
     <Compile Include="Recoverability\Grouping\Retries\FailureGroupsRetryApi.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ExceptionTypeAndStackTraceMessageGrouper.cs" />
@@ -483,9 +474,8 @@
     <Compile Include="Recoverability\Retries\RetryDocumentManager.cs" />
     <Compile Include="Recoverability\Retries\Handlers\RetryHandlerForBackwardsCompatability.cs" />
     <Compile Include="Recoverability\Retries\RetryMessagesById.cs" />
-    <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
-    <Compile Include="Recoverability\Retries\RetryStartupAndShutdownTasks.cs" />
     <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
+    <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeInitiator.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeOutput.cs" />

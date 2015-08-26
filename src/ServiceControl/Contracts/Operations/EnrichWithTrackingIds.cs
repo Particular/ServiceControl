@@ -1,7 +1,7 @@
-﻿namespace ServiceControl.BusinessMonitoring
+﻿namespace ServiceControl.Contracts.Operations
 {
-    using Contracts.Operations;
-    using Operations;
+    using NServiceBus;
+    using ServiceControl.Operations;
 
     public class EnrichWithTrackingIds : ImportEnricher
     {
@@ -9,14 +9,14 @@
         {
             string conversationId;
 
-            if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.ConversationId, out conversationId))
+            if (message.PhysicalMessage.Headers.TryGetValue(Headers.ConversationId, out conversationId))
             {
                 message.Metadata.Add("ConversationId", conversationId);
             }
 
             string relatedToId;
 
-            if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.RelatedTo, out relatedToId))
+            if (message.PhysicalMessage.Headers.TryGetValue(Headers.RelatedTo, out relatedToId))
             {
                 message.Metadata.Add("RelatedToId", relatedToId);
             }
