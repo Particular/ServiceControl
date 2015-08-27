@@ -4,79 +4,121 @@
     using Infrastructure;
     using InternalMessages;
     using NServiceBus;
+    using NServiceBus.Features;
     using Operations;
     using ServiceControl.Contracts.Operations;
 
-    class DetectNewEndpointsFromImportsEnricher : ImportEnricher
+    public class EndpointDetectionFeature : Feature
     {
-        public IBus Bus { get; set; }
-
-        public KnownEndpointsCache KnownEndpointsCache { get; set; }
-
-        public override void Enrich(ImportMessage message)
+        public EndpointDetectionFeature()
         {
-            var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(message.PhysicalMessage.Headers);
-
-            // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
-            // have the relevant information via the headers, which were added in v4.
-            if (sendingEndpoint != null)
-            {
-                TryAddEndpoint(sendingEndpoint);
-            }
-
-            var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
-            TryAddEndpoint(receivingEndpoint);
+            EnableByDefault();
         }
 
-        void TryAddEndpoint(EndpointDetails endpointDetails)
+        protected override void Setup(FeatureConfigurationContext context)
         {
-            // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
-            // have the relevant information via the headers, which were added in v4.
-            // The ReceivingEndpoint will be null for messages from v3.3.x endpoints that were successfully
-            // processed because we dont have the information from the relevant headers.
-            if (endpointDetails == null)
-            {
-                return;
-            }
-
-            // for backwards compat with version before 4_5 we might not have a hostid
-            if (endpointDetails.HostId == Guid.Empty)
-            {
-                HandlePre45Endpoint(endpointDetails);
-                return;
-            }
-
-            HandlePost45Endpoint(endpointDetails);
+            context.Container.ConfigureComponent<DetectNewEndpointsFromImportsEnricher>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<EnrichWithEndpointDetails>(DependencyLifecycle.SingleInstance);
         }
 
-        void HandlePost45Endpoint(EndpointDetails endpointDetails)
+        class EnrichWithEndpointDetails : ImportEnricher
         {
-            var endpointInstanceId = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.HostId.ToString());
-            if (KnownEndpointsCache.TryAdd(endpointInstanceId))
+            public override void Enrich(ImportMessage message)
             {
-                var registerEndpoint = new RegisterEndpoint
+                var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(message.PhysicalMessage.Headers);
+                // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
+                // have the relevant information via the headers, which were added in v4.
+                if (sendingEndpoint != null)
                 {
-                    EndpointInstanceId = endpointInstanceId,
-                    Endpoint = endpointDetails,
-                    DetectedAt = DateTime.UtcNow
-                };
-                Bus.SendLocal(registerEndpoint);
+                    message.Metadata.Add("SendingEndpoint", sendingEndpoint);
+                }
+
+                var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
+                // The ReceivingEndpoint will be null for messages from v3.3.x endpoints that were successfully
+                // processed because we dont have the information from the relevant headers.
+                if (receivingEndpoint != null)
+                {
+                    message.Metadata.Add("ReceivingEndpoint", receivingEndpoint);
+                }
             }
         }
 
-        void HandlePre45Endpoint(EndpointDetails endpointDetails)
+        class DetectNewEndpointsFromImportsEnricher : ImportEnricher
         {
-            //since for pre 4.5 endpoints we wont have a hostid then fake one
-            var endpointInstanceId = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.Host);
-            if (KnownEndpointsCache.TryAdd(endpointInstanceId))
+            IBus bus;
+            KnownEndpointsCache knownEndpointsCache;
+
+            public DetectNewEndpointsFromImportsEnricher(IBus bus, KnownEndpointsCache knownEndpointsCache)
             {
-                var registerEndpoint = new RegisterEndpoint
+                this.bus = bus;
+                this.knownEndpointsCache = knownEndpointsCache;
+            }
+
+            public override void Enrich(ImportMessage message)
+            {
+                var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(message.PhysicalMessage.Headers);
+
+                // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
+                // have the relevant information via the headers, which were added in v4.
+                if (sendingEndpoint != null)
                 {
-                    //we don't set then endpoint instance id since we don't have the host id
-                    Endpoint = endpointDetails,
-                    DetectedAt = DateTime.UtcNow
-                };
-                Bus.SendLocal(registerEndpoint);
+                    TryAddEndpoint(sendingEndpoint);
+                }
+
+                var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
+                TryAddEndpoint(receivingEndpoint);
+            }
+
+            void TryAddEndpoint(EndpointDetails endpointDetails)
+            {
+                // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
+                // have the relevant information via the headers, which were added in v4.
+                // The ReceivingEndpoint will be null for messages from v3.3.x endpoints that were successfully
+                // processed because we dont have the information from the relevant headers.
+                if (endpointDetails == null)
+                {
+                    return;
+                }
+
+                // for backwards compat with version before 4_5 we might not have a hostid
+                if (endpointDetails.HostId == Guid.Empty)
+                {
+                    HandlePre45Endpoint(endpointDetails);
+                    return;
+                }
+
+                HandlePost45Endpoint(endpointDetails);
+            }
+
+            void HandlePost45Endpoint(EndpointDetails endpointDetails)
+            {
+                var endpointInstanceId = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.HostId.ToString());
+                if (knownEndpointsCache.TryAdd(endpointInstanceId))
+                {
+                    var registerEndpoint = new RegisterEndpoint
+                    {
+                        EndpointInstanceId = endpointInstanceId,
+                        Endpoint = endpointDetails,
+                        DetectedAt = DateTime.UtcNow
+                    };
+                    bus.SendLocal(registerEndpoint);
+                }
+            }
+
+            void HandlePre45Endpoint(EndpointDetails endpointDetails)
+            {
+                //since for pre 4.5 endpoints we wont have a hostid then fake one
+                var endpointInstanceId = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.Host);
+                if (knownEndpointsCache.TryAdd(endpointInstanceId))
+                {
+                    var registerEndpoint = new RegisterEndpoint
+                    {
+                        //we don't set then endpoint instance id since we don't have the host id
+                        Endpoint = endpointDetails,
+                        DetectedAt = DateTime.UtcNow
+                    };
+                    bus.SendLocal(registerEndpoint);
+                }
             }
         }
     }
