@@ -88,14 +88,14 @@
                 Context = context,
                 DestinationType = modelType,
                 Model = CreateModel(modelType, genericType, instance),
-                ValidModelProperties = GetProperties(modelType, genericType, blackList),
+                ValidModelBindingMembers = GetProperties(modelType, genericType, blackList),
                 RequestData = GetDataFields(context),
                 GenericType = genericType,
                 TypeConverters = typeConverters.Concat(defaults.DefaultTypeConverters),
             };
         }
 
-        private static IEnumerable<PropertyInfo> GetProperties(Type modelType, Type genericType,
+        private static IEnumerable<BindingMemberInfo> GetProperties(Type modelType, Type genericType,
             IEnumerable<string> blackList)
         {
             if (genericType != null)
@@ -103,12 +103,14 @@
                 return genericType
                     .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                     .Where(p => p.CanWrite && !blackList.Contains(p.Name, StringComparer.InvariantCulture))
-                    .Where(property => !property.GetIndexParameters().Any());
+                    .Where(property => !property.GetIndexParameters().Any())
+                    .Select(pi=> new BindingMemberInfo(pi));
             }
             return modelType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => p.CanWrite && !blackList.Contains(p.Name, StringComparer.InvariantCulture))
-                .Where(property => !property.GetIndexParameters().Any());
+                .Where( property => !property.GetIndexParameters().Any() )
+                .Select( pi => new BindingMemberInfo( pi ) );
         }
 
         private IDictionary<string, string> GetDataFields(NancyContext context)

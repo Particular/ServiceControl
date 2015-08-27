@@ -56,7 +56,7 @@
 
             if (
                 context.DestinationType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Except(context.ValidModelProperties)
+                    .Except( context.ValidModelBindingMembers.Select( x => ( PropertyInfo )x.MemberInfo ) )
                     .Any())
             {
                 return CreateObjectWithBlacklistExcluded(context, deserializedObject);
@@ -89,7 +89,7 @@
                 return ConvertCollection(deserializedObject, context.DestinationType, context);
             }
 
-            foreach (var property in context.ValidModelProperties)
+            foreach( var property in context.ValidModelBindingMembers.Select( x => ( PropertyInfo )x.MemberInfo ) )
             {
                 CopyPropertyValue(property, deserializedObject, returnObject);
             }

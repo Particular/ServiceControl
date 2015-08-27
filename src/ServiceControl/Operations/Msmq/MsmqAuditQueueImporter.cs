@@ -23,7 +23,7 @@ namespace ServiceControl.Operations
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class MsmqAuditQueueImporter : IWantToRunWhenBusStartsAndStops
+    class MsmqAuditQueueImporter //: IWantToRunWhenBusStartsAndStops
     {
         public MsmqAuditQueueImporter(IDocumentStore store, IBuilder builder, IDequeueMessages receiver, CriticalError criticalError)
         {
@@ -227,7 +227,8 @@ namespace ServiceControl.Operations
                         using (var msmqTransaction = new MessageQueueTransaction())
                         {
                             msmqTransaction.Begin();
-                            using (var bulkInsert =store.BulkInsert(options:new BulkInsertOptions {CheckForUpdates = true}))
+                            //using( var bulkInsert = store.BulkInsert( options: new BulkInsertOptions { CheckForUpdates = true } ) )
+                            using( var bulkInsert = store.BulkInsert( options: new BulkInsertOptions() { SkipOverwriteIfUnchanged = true } ) )
                             {
                                 for (var idx = 0; idx < BatchSize; idx++)
                                 {

@@ -14,7 +14,8 @@
             ErrorQueue = GetErrorQueue();
             ErrorLogQueue = GetErrorLogQueue();
             AuditLogQueue = GetAuditLogQueue();
-            DbPath = GetDbPath();
+            SystemDbPath = GetSystemDbPath();
+            StorageDbPath = GetStorageDbPath();
             TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
         }
 
@@ -104,7 +105,7 @@
             return Address.Parse(value);
         }
 
-        static string GetDbPath()
+        static string GetSystemDbPath()
         {
             var host = Hostname;
             if (host == "*")
@@ -120,7 +121,26 @@
 
             var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
 
-            return SettingsReader<string>.Read("DbPath", defaultPath);
+            return SettingsReader<string>.Read( "SystemDbPath", defaultPath );
+        }
+
+        static string GetStorageDbPath()
+        {
+            var host = Hostname;
+            if( host == "*" )
+            {
+                host = "%";
+            }
+            var dbFolder = String.Format( "Storage-{0}-{1}", host, Port );
+
+            if( !string.IsNullOrEmpty( VirtualDirectory ) )
+            {
+                dbFolder += String.Format( "-{0}", SanitiseFolderName( VirtualDirectory ) );
+            }
+
+            var defaultPath = Path.Combine( Environment.GetFolderPath( Environment.SpecialFolder.CommonApplicationData ), "Particular", "ServiceControl", "Databases", dbFolder );
+
+            return SettingsReader<string>.Read( "StorageDbPath", defaultPath );
         }
 
         static string SanitiseFolderName(string folderName)
@@ -129,6 +149,7 @@
         }
 
         public static int Port = SettingsReader<int>.Read("Port", 33333);
+        public static int DbPort = SettingsReader<int>.Read( "DbPort", 44444 );
       
         public static bool ExposeRavenDB = SettingsReader<bool>.Read("ExposeRavenDB");
         public static string Hostname = SettingsReader<string>.Read("Hostname", "localhost");
@@ -148,7 +169,9 @@
 
         public static int MaximumMessageThroughputPerSecond = SettingsReader<int>.Read("MaximumMessageThroughputPerSecond", 350);
 
-        public static string DbPath;
+        public static string SystemDbPath;
+        public static string StorageDbPath;
+        public static string StorageDbName = SettingsReader<String>.Read( "StorageDbName", "ServiceControl" );
         public static Address ErrorLogQueue;
         public static Address ErrorQueue;
         public static Address AuditQueue;

@@ -10,6 +10,7 @@
 
         public string Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
+            //this is outside of the transaction meaning that we may end up with orphan attachments.
             DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
             {
                 {"ContentType", contentType},
