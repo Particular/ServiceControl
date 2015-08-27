@@ -1,9 +1,8 @@
 namespace ServiceControl.Operations
 {
     using System.Collections.Concurrent;
-    using NServiceBus;
 
-    public class LicenseStatusKeeper : INeedInitialization
+    public class LicenseStatusKeeper
     {
         ConcurrentDictionary<string, string> cache = new ConcurrentDictionary<string, string>(); 
 
@@ -17,11 +16,6 @@ namespace ServiceControl.Operations
             string value;
 
             return cache.TryGetValue(key, out value) ? value : "unknown";
-        }
-
-        public void Customize(BusConfiguration configuration)
-        {
-            configuration.RegisterComponents(c => c.ConfigureComponent<LicenseStatusKeeper>(DependencyLifecycle.SingleInstance));
         }
     }
 }

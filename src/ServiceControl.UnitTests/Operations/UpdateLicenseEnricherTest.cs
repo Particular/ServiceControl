@@ -16,7 +16,7 @@
             var headers = new Dictionary<string, string>();
             const string hasLicenseExpiredKey = "$.diagnostics.license.expired";
             headers.Add(hasLicenseExpiredKey, hasLicenseExpired);
-            var licenseEnricher = new UpdateLicenseEnricher();
+            var licenseEnricher = new LicenseReporter.UpdateLicenseEnricher(new LicenseStatusKeeper());
             var status = licenseEnricher.GetLicenseStatus(headers);
             Assert.IsTrue(status.Equals(expectedResult));
         }
@@ -25,7 +25,7 @@
         public void Status_Should_Be_Unknown_When_Header_Does_Not_Contain_License_Expiration()
         {
             var headers = new Dictionary<string, string>();
-            var licenseEnricher = new UpdateLicenseEnricher();
+            var licenseEnricher = new LicenseReporter.UpdateLicenseEnricher(new LicenseStatusKeeper());
             var status = licenseEnricher.GetLicenseStatus(headers);
             Assert.IsTrue(status.Equals("unknown"));
         }
