@@ -150,7 +150,8 @@
                     {
                         foreach (var attachmentKey in attachments)
                         {
-                            Database.Attachments.DeleteStatic(attachmentKey, null);
+                            //Database.Attachments.DeleteStatic(attachmentKey, null);
+                            accessor.Attachments.DeleteAttachment(attachmentKey, null);
                         }
                     });
 
