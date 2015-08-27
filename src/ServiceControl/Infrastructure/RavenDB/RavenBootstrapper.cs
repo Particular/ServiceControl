@@ -6,8 +6,8 @@
     using System.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
+    using NServiceBus.Persistence;
     using NServiceBus.Pipeline;
-    using NServiceBus.RavenDB;
     using Particular.ServiceControl.Licensing;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
@@ -29,7 +29,7 @@
             }
         }
 
-        public void Init()
+        public void Customize(BusConfiguration configuration)
         {
             Directory.CreateDirectory(Settings.DbPath);
 
@@ -91,28 +91,26 @@
 
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
 
-            Configure.Instance.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
-            Configure.Component(builder =>
-            {
-#pragma warning disable 618
-                var context = builder.Build<PipelineExecutor>().CurrentContext;
-#pragma warning restore 618
+            configuration.RegisterComponents(c => 
+                c.RegisterSingleton<IDocumentStore>(documentStore)
+                 .ConfigureComponent(builder =>
+                 {
+                     var context = builder.Build<PipelineExecutor>().CurrentContext;
 
-                IDocumentSession session;
+                     IDocumentSession session;
 
-                if (context.TryGet(out session))
-                {
-                    return session;
-                }
+                     if (context.TryGet(out session))
+                     {
+                         return session;
+                     }
 
-                throw new InvalidOperationException("No session available");
-            }, DependencyLifecycle.InstancePerCall);
+                     throw new InvalidOperationException("No session available");
+                 }, DependencyLifecycle.InstancePerCall));
 
-            Configure.Instance.RavenDBStorageWithSelfManagedSession(documentStore, false,
-                () => Configure.Instance.Builder.Build<IDocumentSession>())
-                .UseRavenDBSagaStorage()
-                .UseRavenDBSubscriptionStorage()
-                .UseRavenDBTimeoutStorage();
+            configuration.UsePersistence<RavenDBPersistence>()
+                         .SetDefaultDocumentStore(documentStore);
+
+            configuration.Pipeline.Register<RavenRegisterStep>();
         }
 
         static void PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(IDocumentStore documentStore)

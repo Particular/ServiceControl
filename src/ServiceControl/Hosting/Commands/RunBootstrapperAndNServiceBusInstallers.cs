@@ -1,15 +1,16 @@
 ﻿namespace Particular.ServiceControl.Commands
 {
     using Hosting;
-    using NServiceBus.Config;
+    using NServiceBus;
 
     class RunBootstrapperAndNServiceBusInstallers : AbstractCommand
     {
         public override void Execute(HostArguments args)
         {
-            WindowsInstallerRunner.RunInstallers = true;
-            WindowsInstallerRunner.RunAs = args.Username;
-            new Bootstrapper(null, args);
+            var configuration = new BusConfiguration();
+            configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+            configuration.EnableInstallers(args.Username);
+            new Bootstrapper(hostArguments: args, configuration:configuration);
         }
     }
 }

@@ -1,12 +1,18 @@
-﻿namespace ServiceControl.IntegrationDemo
+
+namespace ServiceControl.IntegrationDemo
 {
     using NServiceBus;
 
-    public class EndpointConfig:IConfigureThisEndpoint,AsA_Server
+    /*
+		This class configures this endpoint as a Server. More information about how to configure the NServiceBus host
+		can be found here: http://particular.net/articles/the-nservicebus-host
+	*/
+    public class EndpointConfig : IConfigureThisEndpoint, AsA_Server
     {
-        public EndpointConfig()
+        public void Customize(BusConfiguration configuration)
         {
-            Configure.Serialization.Json();
+            configuration.UsePersistence<InMemoryPersistence>();
+            configuration.UseSerialization<JsonSerializer>();
         }
     }
 }

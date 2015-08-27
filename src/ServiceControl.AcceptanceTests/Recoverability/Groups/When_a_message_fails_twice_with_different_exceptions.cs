@@ -8,6 +8,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
     using NServiceBus.Features;
+    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
@@ -75,7 +76,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             public MeowReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => Configure.Features.Disable<SecondLevelRetries>())
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
                     .WithConfig<TransportConfig>(c =>
                     {
                         c.MaxRetries = 1;
@@ -85,14 +86,14 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
             public class FailingMessageHandler : IHandleMessages<Meow>
             {
                 public MeowContext Context { get; set; }
-
                 public IBus Bus { get; set; }
-                
+                public ReadOnlySettings Settings { get; set; }
+
                 public void Handle(Meow message)
                 {
                     var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Configure.EndpointName).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
                     Context.UniqueMessageId = uniqueMessageId;
 
                     if (Context.Retrying)

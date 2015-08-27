@@ -8,7 +8,9 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
     using NServiceBus.Features;
+    using NServiceBus.Settings;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
@@ -25,19 +27,13 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<FailureEndpoint>(b => b.Given((bus, c) =>
-                {
-                    c.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
-                    c.MessageId = Guid.NewGuid().ToString();
-                    c.UniqueMessageId = DeterministicGuid.MakeId(c.MessageId, c.EndpointNameOfReceivingEndpoint).ToString();
-                }))
+                .WithEndpoint<FailureEndpoint>()
                 .Done(c => TryGetSingle("/api/errors/", out failure, m => m.Id == c.UniqueMessageId))
-                .Run(TimeSpan.FromMinutes(1));
+                .Run();
 
             Assert.IsNotNull(failure);
             Assert.IsNull(failure.TimeSent);
         }
-
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
@@ -45,28 +41,32 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    Configure.Features.Disable<SecondLevelRetries>();
-                })
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    })
-                    .AuditTo(Address.Parse("audit"));
+                    c.DisableFeature<SecondLevelRetries>();
+                }).WithConfig<TransportConfig>(c =>
+                {
+                    c.MaxRetries = 1;
+                }).AuditTo(Address.Parse("audit"));
             }
 
             public class SendFailedMessage : IWantToRunWhenBusStartsAndStops
             {
                 readonly ISendMessages sendMessages;
                 readonly MyContext context;
+                readonly ReadOnlySettings settings;
 
-                public SendFailedMessage(ISendMessages sendMessages, MyContext context)
+                public SendFailedMessage(ISendMessages sendMessages, MyContext context, ReadOnlySettings settings)
                 {
                     this.sendMessages = sendMessages;
                     this.context = context;
+                    this.settings = settings;
                 }
 
                 public void Start()
                 {
+                    context.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    context.MessageId = Guid.NewGuid().ToString();
+                    context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
+
                     var transportMessage = new TransportMessage(context.MessageId, new Dictionary<string, string>());
                     transportMessage.Headers[Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint;
                     transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z";
@@ -74,10 +74,10 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                     transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = "";
-                    transportMessage.Headers["NServiceBus.FailedQ"] = Address.Local.ToString();
+                    transportMessage.Headers["NServiceBus.FailedQ"] = settings.LocalAddress().ToString();
                     transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
                     
-                    sendMessages.Send(transportMessage, Address.Parse("error"));
+                    sendMessages.Send(transportMessage, new SendOptions("error"));
                 }
 
                 public void Stop()

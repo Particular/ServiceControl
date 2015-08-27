@@ -41,7 +41,7 @@
         {
             public EndpointThatIsHostingTheSaga()
             {
-                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<AutoSubscribe>())
+                EndpointSetup<DefaultServer>(c => c.DisableFeature<AutoSubscribe>())
                     .AuditTo(Address.Parse("audit"))
                     .AddMapping<MyEvent>(typeof(EndpointThatIsHostingTheSaga));
             }
@@ -62,6 +62,10 @@
             public void Handle(MyEvent message)
             {
                 Context.ReceivedEvent = true;
+            }
+
+            protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
+            {
             }
         }
 

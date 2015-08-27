@@ -5,6 +5,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
+    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
 
@@ -20,7 +21,6 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
-                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
@@ -47,6 +47,21 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>()
                     .AddMapping<MyMessage>(typeof(Receiver));
+            }
+
+            class SetEndpointName : IWantToRunWhenBusStartsAndStops
+            {
+                public ReadOnlySettings Settings { get; set; }
+                public MyContext Context { get; set; }
+
+                public void Start()
+                {
+                    Context.EndpointNameOfSendingEndpoint = Settings.EndpointName();
+                }
+
+                public void Stop()
+                {
+                }
             }
         }
 

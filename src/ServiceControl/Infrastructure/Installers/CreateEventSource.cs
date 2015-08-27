@@ -1,14 +1,14 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Installers
 {
     using System.Diagnostics;
+    using NServiceBus;
     using NServiceBus.Installation;
-    using NServiceBus.Installation.Environments;
 
-    public class CreateEventSource : INeedToInstallSomething<Windows>
+    public class CreateEventSource : INeedToInstallSomething
     {
         public const string SourceName = "ServiceControl";
-
-        public void Install(string identity)
+        
+        public void Install(string identity, Configure config)
         {
             if (!EventLog.SourceExists(SourceName))
             {

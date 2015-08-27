@@ -11,7 +11,7 @@
 
         public void Handle(IEvent @event)
         {
-            var metadata = MessageMetadataRegistry.GetMessageDefinition(@event.GetType());
+            var metadata = MessageMetadataRegistry.GetMessageMetadata(@event.GetType());
             var context = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
 
             context.Connection.Broadcast(new Envelope { Types = metadata.MessageHierarchy.Select(t=>t.Name).ToList(), Message = @event })

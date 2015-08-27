@@ -114,15 +114,17 @@
             public class BigFatMessageHandler : IHandleMessages<BigFatMessage>
             {
                 readonly Context _context;
+                readonly IBus bus;
 
-                public BigFatMessageHandler(Context context)
+                public BigFatMessageHandler(Context context, IBus bus)
                 {
                     _context = context;
+                    this.bus = bus;
                 }
 
                 public void Handle(BigFatMessage message)
                 {
-                    _context.MessageId = message.GetHeader("NServiceBus.MessageId");
+                    _context.MessageId = bus.GetMessageHeader(message, "NServiceBus.MessageId");
                 }
             }
         }

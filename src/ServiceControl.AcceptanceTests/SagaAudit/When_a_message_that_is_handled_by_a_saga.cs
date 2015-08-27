@@ -95,10 +95,10 @@
                     Context.Saga1Complete = true;
                 }
 
-                public override void ConfigureHowToFindSaga()
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga1Data> mapper)
                 {
-                    ConfigureMapping<UpdateSaga1>(d => d.MyId).ToSaga(s => s.MyId);
-                    ConfigureMapping<CompleteSaga1>(d => d.MyId).ToSaga(s => s.MyId);
+                    mapper.ConfigureMapping<UpdateSaga1>(d => d.MyId).ToSaga(s => s.MyId);
+                    mapper.ConfigureMapping<CompleteSaga1>(d => d.MyId).ToSaga(s => s.MyId);
                 }
 
                 public class Saga1Data : ContainSagaData
@@ -132,16 +132,16 @@
                     Context.Saga2Complete = true;
                 }
 
-                public override void ConfigureHowToFindSaga()
-                {
-                    ConfigureMapping<UpdateSaga2>(d => d.MyId).ToSaga(s => s.MyId);
-                    ConfigureMapping<CompleteSaga2>(d => d.MyId).ToSaga(s => s.MyId);
-                }
-
                 public class Saga2Data : ContainSagaData
                 {
                     [Unique]
                     public Guid MyId { get; set; }
+                }
+
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga2Data> mapper)
+                {
+                    mapper.ConfigureMapping<UpdateSaga2>(d => d.MyId).ToSaga(s => s.MyId);
+                    mapper.ConfigureMapping<CompleteSaga2>(d => d.MyId).ToSaga(s => s.MyId);
                 }
             }
         }

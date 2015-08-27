@@ -2,12 +2,13 @@ namespace ServiceControl.Recoverability
 {
     using NServiceBus;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
 
     class ReturnToSenderDequeuer : AdvancedDequeuer
     {
         readonly ISendMessages sender;
 
-        public ReturnToSenderDequeuer(ISendMessages sender)
+        public ReturnToSenderDequeuer(ISendMessages sender, Configure configure) : base(configure)
         {
             this.sender = sender;
         }
@@ -19,7 +20,7 @@ namespace ServiceControl.Recoverability
             message.Headers.Remove("ServiceControl.TargetEndpointAddress");
             message.Headers.Remove("ServiceControl.Retry.StagingId");
 
-            sender.Send(message, destinationAddress);
+            sender.Send(message, new SendOptions(destinationAddress));
         }
     }
 }

@@ -14,13 +14,13 @@
         }
 
         public string Name { get { return "SqlServer"; } }
-        public Type Type { get { return typeof(SqlServer); } }
-        public string TypeName { get { return "NServiceBus.SqlServer, NServiceBus.Transports.SqlServer"; } }
+        public Type Type { get { return typeof(SqlServerTransport); } }
+        public string TypeName { get { return "NServiceBus.SqlServerTransport, NServiceBus.Transports.SqlServer"; } }
         public string ConnectionString { get; set; }
 
-        public void OnEndpointShutdown()
+        public void OnEndpointShutdown(string endpointName)
         {
-            DeleteTables(Configure.EndpointName);
+            DeleteTables(endpointName);
         }
 
         public void TearDown()

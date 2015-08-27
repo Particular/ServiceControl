@@ -6,14 +6,14 @@ namespace ServiceBus.Management.Infrastructure.Installers
 
     public class AuditQueueInstaller : IWantQueueCreated
     {
+        public bool ShouldCreateQueue()
+        {
+            return Settings.AuditQueue != Address.Undefined;
+        }
+
         public Address Address
         {
             get { return Settings.AuditQueue; }
-        }
-
-        public bool IsDisabled
-        {
-            get { return Settings.AuditQueue == Address.Undefined; }
         }
     }
 }

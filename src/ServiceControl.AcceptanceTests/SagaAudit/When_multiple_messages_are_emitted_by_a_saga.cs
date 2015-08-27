@@ -49,7 +49,7 @@
         {
             public EndpointThatIsHostingTheSaga()
             {
-                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<AutoSubscribe>())
+                EndpointSetup<DefaultServer>(c => c.DisableFeature<AutoSubscribe>())
                     .AuditTo(Address.Parse("audit"))
                     .AddMapping<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga));
             }
@@ -66,6 +66,10 @@
                     ReplyToOriginator(new MessageReplyToOriginatorBySaga());
                     Bus.SendLocal(new MessageSentBySaga());
                     Bus.Publish(new MessagePublishedBySaga());
+                }
+
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
+                {
                 }
             }
 

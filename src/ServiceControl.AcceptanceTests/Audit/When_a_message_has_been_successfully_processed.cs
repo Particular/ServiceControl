@@ -7,6 +7,7 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.CompositeViews.Messages;
@@ -26,7 +27,6 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
-                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
                     bus.Send(new MyMessage
                     {
                         PropertyToSearchFor = Payload
@@ -96,7 +96,6 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
-                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
@@ -114,7 +113,6 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
-                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
@@ -133,11 +131,11 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
-                    var messsage = new MyMessage();
+                    var message = new MyMessage();
 
-                    Headers.SetMessageHeader(messsage, "ServiceControl.DebugSessionId", "DANCO-WIN8@Application1@2014-01-26T11:33:51"); 
+                    bus.SetMessageHeader(message, "ServiceControl.DebugSessionId", "DANCO-WIN8@Application1@2014-01-26T11:33:51"); 
          
-                    bus.Send(messsage);
+                    bus.Send(message);
                 }))
                 .WithEndpoint<Receiver>()
                 .Done(c => c.MessageId != null && TryGetMany("/api/messages/search/DANCO-WIN8@Application1@2014-01-26T11:33:51", out response))
@@ -154,7 +152,6 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
-                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
@@ -176,7 +173,6 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
-                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
                     bus.Send(new MyMessage
                     {
                         PropertyToSearchFor = c.PropertyToSearchFor
@@ -199,7 +195,6 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
-                    c.EndpointNameOfSendingEndpoint = Configure.EndpointName;
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
@@ -233,9 +228,11 @@
 
                 public IBus Bus { get; set; }
 
+                public ReadOnlySettings Settings { get; set; }
+
                 public void Handle(MyMessage message)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MessageId = Bus.CurrentMessageContext.Id;
                 }
             }
@@ -252,8 +249,6 @@
             public string MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
-
-            public string EndpointNameOfSendingEndpoint { get; set; }
 
             public string PropertyToSearchFor { get; set; }
         }

@@ -7,34 +7,46 @@
     using System.Reflection;
     using NLog;
     using NLog.Config;
+    using NLog.Filters;
     using NLog.Targets;
     using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Hosting.Helpers;
-    using NServiceBus.Logging.Loggers.NLogAdapter;
-    using NServiceBus.Settings;
     using Particular.ServiceControl;
 
     public class ManagementEndpointSetup : IEndpointSetupTemplate
     {
-        public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration,
-            IConfigurationSource configSource)
+        public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
-            Configure.ScaleOut(_ => _.UseSingleBrokerQueue());
-
-            var configure = Configure.With(GetTypesScopedByTestClass(endpointConfiguration));
+            var builder = new BusConfiguration();
+            builder.TypesToScan(GetTypesScopedByTestClass(endpointConfiguration));
+            builder.EnableInstallers();
 
             var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
 
-            Action action = transportToUse.OnEndpointShutdown;
-            SettingsHolder.Set("CleanupTransport", action);
+            Action action = () => transportToUse.OnEndpointShutdown(builder.GetSettings().EndpointName());
+            builder.GetSettings().Set("CleanupTransport", action);
+            builder.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
 
-            new Bootstrapper(configure: configure);
+            builder.RegisterComponents(r =>
+            {
+                r.RegisterSingleton(runDescriptor.ScenarioContext.GetType(), runDescriptor.ScenarioContext);
+                r.RegisterSingleton(typeof(ScenarioContext), runDescriptor.ScenarioContext);
+            });
+
+            configurationBuilderCustomization(builder);
+
+            var startableBus = new Bootstrapper(configuration: builder).Bus;
 
             LogManager.Configuration = SetupLogging(endpointConfiguration);
 
-            return Configure.Instance;
+            endpointConfiguration.SelfHost(() => startableBus);
+
+
+            return builder;
         }
 
         static IEnumerable<Type> GetTypesScopedByTestClass(EndpointConfiguration endpointConfiguration)
@@ -93,14 +105,30 @@
             var fileTarget = new FileTarget
             {
                 FileName = logFile,
-                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:inner=${newline}${exception}${newline}${stacktrace:format=DetailedFlat}}"
+                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}"
             };
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Warn, fileTarget) { Final = true });
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "Raven.*"));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
-            NLogConfigurator.Configure(new object[] {fileTarget}, logLevel);
+
             return nlogConfig;
+        }
+
+        private static LoggingRule MakeFilteredLoggingRule(Target target, LogLevel logLevel, string text)
+        {
+            var rule = new LoggingRule(text, LogLevel.Info, target)
+            {
+                Final = true
+            };
+
+            rule.Filters.Add(new ConditionBasedFilter
+            {
+                Action = FilterResult.Ignore,
+                Condition = string.Format("level < LogLevel.{0}", logLevel.Name)
+            });
+
+            return rule;
         }
     }
 }

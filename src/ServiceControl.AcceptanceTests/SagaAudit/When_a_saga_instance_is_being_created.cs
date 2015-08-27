@@ -55,6 +55,10 @@
                 Context.SagaId = Data.Id;
                 Context.InitiatingMessageReceived = true;
             }
+
+            protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
+            {
+            }
         }
 
         public class MySagaData : ContainSagaData

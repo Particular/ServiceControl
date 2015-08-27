@@ -1,6 +1,8 @@
 ﻿namespace NServiceBus.AcceptanceTesting
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.Remoting.Activation;
     using System.Runtime.Remoting.Contexts;
     using System.Runtime.Remoting.Messaging;
@@ -10,7 +12,7 @@
     public abstract class ScenarioContext : ContextBoundObject
     {
         public event EventHandler ContextPropertyChanged;
-      
+
         [AttributeUsage(AttributeTargets.Class)]
         sealed class InterceptAttribute : ContextAttribute, IContributeObjectSink
         {
@@ -48,7 +50,7 @@
                 {
                     var method = call.MethodName;
 
-                  
+
                     if (Target.ContextPropertyChanged != null && method.StartsWith("set"))
                     {
                         Target.ContextPropertyChanged(Target, EventArgs.Empty);
@@ -61,5 +63,40 @@
 
         public bool EndpointsStarted { get; set; }
         public string Exceptions { get; set; }
+
+        public bool HasNativePubSubSupport { get; set; }
+
+        public string Trace { get; set; }
+
+        public void AddTrace(string trace)
+        {
+            Trace += DateTime.Now.ToString("HH:mm:ss.ffffff") + " - " + trace + Environment.NewLine;
+        }
+
+        public void RecordEndpointLog(string endpointName,string level ,string message)
+        {
+            endpointLogs.Add(new EndpointLogItem
+            {
+                Endpoint = endpointName,
+                Level = level,
+                Message = message
+            });
+        }
+
+
+        public List<EndpointLogItem> GetAllLogs()
+        {
+            return endpointLogs.ToList();
+        }
+
+
+        List<EndpointLogItem> endpointLogs = new List<EndpointLogItem>();
+
+        public class EndpointLogItem
+        {
+            public string Endpoint { get; set; }
+            public string Message { get; set; }
+            public string Level { get; set; }
+        }
     }
 }

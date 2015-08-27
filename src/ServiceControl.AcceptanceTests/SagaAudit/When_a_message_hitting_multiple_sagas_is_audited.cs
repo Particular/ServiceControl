@@ -66,6 +66,10 @@
                 public class MySagaData : ContainSagaData
                 {
                 }
+
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
+                {
+                }
             }
 
             public class MyOtherSaga : Saga<MyOtherSaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
@@ -81,6 +85,10 @@
                 }
 
                 public class MySagaData : ContainSagaData
+                {
+                }
+
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
                 {
                 }
             }

@@ -5,34 +5,38 @@
     using System.Runtime.Remoting.Lifetime;
     using System.Threading;
     using System.Threading.Tasks;
-    using Installation.Environments;
     using Logging;
-    using NServiceBus.Settings;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Support;
+    using NServiceBus.Unicast;
+    using Transports;
 
     [Serializable]
     public class EndpointRunner : MarshalByRefObject
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof (EndpointRunner));
-        private readonly SemaphoreSlim contextChanged = new SemaphoreSlim(0);
-        private EndpointBehavior behavior;
-        private IStartableBus bus;
-        private Configure config;
-        private EndpointConfiguration configuration;
-        private Task executeWhens;
-        private ScenarioContext scenarioContext;
-        readonly CancellationTokenSource stopSource = new CancellationTokenSource();
+        static ILog Logger = LogManager.GetLogger<EndpointRunner>();
+        readonly SemaphoreSlim contextChanged = new SemaphoreSlim(0);
+        EndpointBehavior behavior;
+        IStartableBus bus;
+        ISendOnlyBus sendOnlyBus;
+        EndpointConfiguration configuration;
+        Task executeWhens;
+        ScenarioContext scenarioContext;
+        BusConfiguration busConfiguration;
         CancellationToken stopToken;
+        readonly CancellationTokenSource stopSource = new CancellationTokenSource();
+        RunDescriptor runDescriptor;
 
         public Result Initialize(RunDescriptor run, EndpointBehavior endpointBehavior,
             IDictionary<Type, string> routingTable, string endpointName)
         {
             try
             {
+                runDescriptor = run;
                 behavior = endpointBehavior;
                 scenarioContext = run.ScenarioContext;
                 configuration =
-                    ((IEndpointConfigurationFactory) Activator.CreateInstance(endpointBehavior.EndpointBuilderType))
+                    ((IEndpointConfigurationFactory)Activator.CreateInstance(endpointBehavior.EndpointBuilderType))
                         .Get();
                 configuration.EndpointName = endpointName;
 
@@ -42,18 +46,23 @@
                 }
 
                 //apply custom config settings
-                endpointBehavior.CustomConfig.ForEach(customAction => customAction(config));
-                config = configuration.GetConfiguration(run, routingTable);
+                busConfiguration = configuration.GetConfiguration(run, routingTable);
 
-                if (scenarioContext != null)
+                scenarioContext.ContextPropertyChanged += scenarioContext_ContextPropertyChanged;
+
+                endpointBehavior.CustomConfig.ForEach(customAction => customAction(busConfiguration));
+
+                if (configuration.SendOnly)
                 {
-                    config.Configurer.RegisterSingleton(scenarioContext.GetType(), scenarioContext);
-                    scenarioContext.ContextPropertyChanged += scenarioContext_ContextPropertyChanged;
+                    sendOnlyBus = Bus.CreateSendOnly(busConfiguration);
                 }
+                else 
+                {
+                    bus = configuration.GetBus() ?? Bus.Create(busConfiguration);
+                    var transportDefinition = ((UnicastBus)bus).Settings.Get<TransportDefinition>();
 
-                bus = config.CreateBus();
-
-                Configure.Instance.ForInstallationOn<Windows>().Install();
+                    scenarioContext.HasNativePubSubSupport = transportDefinition.HasNativePubSubSupport;
+                }
 
                 stopToken = stopSource.Token;
 
@@ -78,7 +87,9 @@
                             await contextChanged.WaitAsync(TimeSpan.FromSeconds(5), stopToken);
 
                             if (stopToken.IsCancellationRequested)
+                            {
                                 break;
+                            }
 
                             foreach (var when in behavior.Whens)
                             {
@@ -95,7 +106,6 @@
                         }
                     }, stopToken).Unwrap();
                 }
-
                 return Result.Success();
             }
             catch (Exception ex)
@@ -118,11 +128,21 @@
                 {
                     var action = given.GetAction(scenarioContext);
 
-                    action(bus);
+                    if (configuration.SendOnly)
+                    {
+                        action(new IBusAdapter(sendOnlyBus));
+                    }
+                    else
+                    {
+
+                        action(bus);
+                    }
                 }
 
-                bus.Start();
-
+                if (!configuration.SendOnly)
+                {
+                    bus.Start();
+                }
 
                 return Result.Success();
             }
@@ -145,8 +165,15 @@
                 executeWhens.Wait();
                 contextChanged.Dispose();
 
-                bus.Dispose();
-                
+                if (configuration.SendOnly)
+                {
+                    sendOnlyBus.Dispose();
+                }
+                else
+                {
+                    bus.Dispose();
+                }
+
                 Cleanup();
 
                 return Result.Success();
@@ -161,16 +188,27 @@
 
         void Cleanup()
         {
-            if (SettingsHolder.HasSetting("CleanupTransport"))
+            Action transportCleaner;
+
+            if (busConfiguration.GetSettings().TryGet("CleanupTransport", out transportCleaner))
             {
-                var transportCleaner = SettingsHolder.Get<Action>("CleanupTransport");
                 transportCleaner();
             }
         }
 
+        public string Name()
+        {
+            if (runDescriptor.UseSeparateAppdomains)
+            {
+                return AppDomain.CurrentDomain.FriendlyName;
+            }
+
+            return configuration.EndpointName;
+        }
+
         public override object InitializeLifetimeService()
         {
-            var lease = (ILease) base.InitializeLifetimeService();
+            var lease = (ILease)base.InitializeLifetimeService();
             if (lease.CurrentState == LeaseState.Initial)
             {
                 lease.InitialLeaseTime = TimeSpan.FromMinutes(2);
@@ -180,13 +218,8 @@
             return lease;
         }
 
-        public string Name()
-        {
-            return AppDomain.CurrentDomain.FriendlyName;
-        }
-
         [Serializable]
-        public class Result : MarshalByRefObject
+        public class Result
         {
             public Exception Exception { get; set; }
 

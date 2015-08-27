@@ -8,7 +8,9 @@
     using NServiceBus.Config;
     using NServiceBus.Features;
     using NServiceBus.MessageMutator;
+    using NServiceBus.Settings;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
@@ -24,12 +26,7 @@
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<FailureEndpoint>(b => b.Given((bus, c) =>
-                {
-                    c.EndpointNameOfReceivingEndpoint = Configure.EndpointName;
-                    c.MessageId = Guid.NewGuid().ToString();
-                    c.UniqueMessageId = DeterministicGuid.MakeId(c.MessageId, c.EndpointNameOfReceivingEndpoint).ToString();
-                }))
+                .WithEndpoint<FailureEndpoint>()
                 .Done(c =>
                 {
                     if (!c.RetryIssued && GetFailedMessage(c, out failure))
@@ -59,7 +56,7 @@
         {
             if (c.RetryIssued)
             {
-                Thread.Sleep(1000); //todo: add support for a "default" delay when Done() returns false
+                Thread.Sleep(1000);
             }
             else
             {
@@ -69,15 +66,14 @@
             }
         }
 
-
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint()
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    Configure.Features.Disable<SecondLevelRetries>();
-                    c.Configurer.ConfigureComponent<LookForControlMessage>(DependencyLifecycle.SingleInstance);
+                    c.DisableFeature<SecondLevelRetries>();
+                    c.RegisterComponents(cc=> cc.ConfigureComponent<LookForControlMessage>(DependencyLifecycle.SingleInstance));
                 })
                     .WithConfig<TransportConfig>(c =>
                         {
@@ -90,15 +86,21 @@
             {
                 readonly ISendMessages sendMessages;
                 readonly MyContext context;
+                readonly ReadOnlySettings settings;
 
-                public SendControlMessage(ISendMessages sendMessages, MyContext context)
+                public SendControlMessage(ISendMessages sendMessages, MyContext context, ReadOnlySettings settings)
                 {
                     this.sendMessages = sendMessages;
                     this.context = context;
+                    this.settings = settings;
                 }
 
                 public void Start()
                 {
+                    context.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    context.MessageId = Guid.NewGuid().ToString();
+                    context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
+
                     var transportMessage = new TransportMessage();
                     transportMessage.Headers[Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint;
                     transportMessage.Headers[Headers.MessageId] = context.MessageId;
@@ -111,13 +113,13 @@
                     transportMessage.Headers["NServiceBus.ExceptionInfo.HelpLink"] = "";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = "";
-                    transportMessage.Headers["NServiceBus.FailedQ"] = Address.Local.ToString();
+                    transportMessage.Headers["NServiceBus.FailedQ"] = settings.LocalAddress().ToString();
                     transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
                     transportMessage.Headers["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z";
                     transportMessage.Headers[Headers.ControlMessageHeader] = Boolean.TrueString;
-                    transportMessage.ReplyToAddress = Address.Local;
+                    transportMessage.Headers[Headers.ReplyToAddress] = settings.LocalAddress().ToString();
 
-                    sendMessages.Send(transportMessage, Address.Parse("error"));
+                    sendMessages.Send(transportMessage, new SendOptions(Address.Parse("error")));
                 }
 
                 public void Stop()

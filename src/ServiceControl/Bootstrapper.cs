@@ -5,71 +5,80 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.ServiceProcess;
     using Autofac;
-    using Hosting;
-    using NLog;
+    using global::ServiceControl.Infrastructure.SignalR;
     using NLog.Config;
+    using NLog.Filters;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
     using NServiceBus.Features;
-    using NServiceBus.Installation.Environments;
-    using NServiceBus.Logging.Loggers.NLogAdapter;
+    using NServiceBus.Logging;
+    using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
-    using LogManager = NLog.LogManager;
+    using LogLevel = NLog.LogLevel;
 
     public class Bootstrapper
     {
         IStartableBus bus;
         public static IContainer Container { get; set; }
 
+        public IStartableBus Bus
+        {
+            get { return bus; }
+        }
 
-        public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, Configure configure = null)
+        public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
             ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
+            containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             Container = containerBuilder.Build();
 
+            if (configuration == null)
+            {
+                configuration = new BusConfiguration();
+                configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+            }
+
             // Disable Auditing for the service control endpoint
-            Configure.Features.Disable<Audit>();
-            Configure.Features.Enable<Sagas>();
-            Feature.Disable<AutoSubscribe>();
-            Feature.Disable<SecondLevelRetries>();
+            configuration.DisableFeature<Audit>();
+            configuration.DisableFeature<AutoSubscribe>();
+            configuration.DisableFeature<SecondLevelRetries>();
 
-            Configure.Serialization.Json();
-            Configure.Transactions.Advanced(t => t.DisableDistributedTransactions().DoNotWrapHandlersExecutionInATransactionScope());
+            configuration.UseSerialization<JsonSerializer>();
 
-            Feature.EnableByDefault<StorageDrivenPublisher>();
-            Configure.ScaleOut(s => s.UseSingleBrokerQueue());
+            configuration.Transactions()
+                .DisableDistributedTransactions()
+                .DoNotWrapHandlersExecutionInATransactionScope();
+            
+            configuration.ScaleOut().UseSingleBrokerQueue();
             
             var transportType = DetermineTransportType();
 
-            if (configure == null)
+            configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
+            configuration.EndpointName(Settings.ServiceName);
+            configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(Container));
+            configuration.UseTransport(transportType);
+            configuration.DefineCriticalErrorAction((s, exception) =>
             {
-                configure = Configure
-                    .With(AllAssemblies.Except("ServiceControl.Plugin"));
+                if (host != null)
+                {
+                    host.Stop();
+                }
+            });
+
+            if (Environment.UserInteractive && Debugger.IsAttached)
+            {
+                configuration.EnableInstallers();
             }
 
-            bus = configure
-                .DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t))
-                .DefineEndpointName(Settings.ServiceName)
-                .AutofacBuilder(Container)
-                .UseTransport(transportType)
-                .MessageForwardingInCaseOfFault()
-                .DefineCriticalErrorAction((s, exception) =>
-                {
-                    if (host != null)
-                    {
-                        host.Stop();
-                    }
-                })
-                .UnicastBus()
-                .CreateBus();
+            bus = NServiceBus.Bus.Create(configuration);
         }
 
         static Type DetermineTransportType()
         {
-            var Logger = NServiceBus.Logging.LogManager.GetLogger(typeof(Bootstrapper));
+            var Logger = LogManager.GetLogger(typeof(Bootstrapper));
             var transportType = Type.GetType(Settings.TransportType);
             if (transportType != null)
             {
@@ -87,7 +96,7 @@ namespace Particular.ServiceControl
 
         public void Start()
         {
-             var Logger = NServiceBus.Logging.LogManager.GetLogger(typeof(Bootstrapper));
+             var Logger = LogManager.GetLogger(typeof(Bootstrapper));
             if (Settings.MaintenanceMode)
             {
                 Logger.InfoFormat("RavenDB is now accepting requests on {0}", Settings.StorageUrl);
@@ -97,25 +106,20 @@ namespace Particular.ServiceControl
                 }
                 return;
             }
-
             
-            bus.Start(() =>
-            {
-                if (Environment.UserInteractive && Debugger.IsAttached)
-                {
-                    Configure.Instance.ForInstallationOn<Windows>().Install();
-                }
-            });
+            Bus.Start();
         }
 
         public void Stop()
         {
-            bus.Dispose();
+            Bus.Dispose();
         }
 
         static void ConfigureLogging()
         {
-            if (LogManager.Configuration != null)
+            LogManager.Use<NLogFactory>();
+
+            if (NLog.LogManager.Configuration != null)
             {
                 return;
             }
@@ -138,24 +142,39 @@ namespace Particular.ServiceControl
                 UseDefaultRowHighlightingRules = true,
             };
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*",                               LogLevel.Error, fileTarget)  { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*",     LogLevel.Error, fileTarget)  { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*",               LogLevel.Error, fileTarget)  { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info,  fileTarget)  { Final = true });
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "Raven.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "NServiceBus.RavenDB.Persistence.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "NServiceBus.Licensing.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Info, "Particular.ServiceControl.Licensing.*"));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
 
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*",                               LogLevel.Error, consoleTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*",     LogLevel.Error, consoleTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.Licensing.*",               LogLevel.Error, consoleTarget) { Final = true });
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info,  consoleTarget) { Final = true });
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "Raven.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "NServiceBus.RavenDB.Persistence.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "NServiceBus.Licensing.*"));
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Info, "Particular.ServiceControl.Licensing.*"));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget)); 
             nlogConfig.AddTarget("console", consoleTarget);
 
-            NLogConfigurator.Configure(new object[] { fileTarget, consoleTarget }, "Info");
-            LogManager.Configuration = nlogConfig;
+            NLog.LogManager.Configuration = nlogConfig;
 
-            Settings.Logger = NServiceBus.Logging.LogManager.GetLogger(typeof(Settings));
+            Settings.Logger = LogManager.GetLogger(typeof(Settings));
+        }
+
+        private static LoggingRule MakeFilteredLoggingRule(Target target, LogLevel logLevel, string text)
+        {
+            var rule = new LoggingRule(text, LogLevel.Info, target)
+            {
+                Final = true
+            };
+
+            rule.Filters.Add(new ConditionBasedFilter
+            {
+                Action = FilterResult.Ignore, 
+                Condition = string.Format("level < LogLevel.{0}", logLevel.Name)
+            });
+
+            return rule;
         }
    
         string DetermineServiceName(ServiceBase host, HostArguments hostArguments)

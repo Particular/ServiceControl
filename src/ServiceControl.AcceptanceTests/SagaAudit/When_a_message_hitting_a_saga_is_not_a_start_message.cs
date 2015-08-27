@@ -43,10 +43,10 @@
                     MarkAsComplete();
                 }
 
-                public override void ConfigureHowToFindSaga()
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
                 {
-                    ConfigureMapping<MessageInitiatingSaga>(s => s.OrderId).ToSaga(d => d.OrderId);
-                    ConfigureMapping<MyMessage>(s => s.OrderId).ToSaga(d => d.OrderId);
+                    mapper.ConfigureMapping<MessageInitiatingSaga>(s => s.OrderId).ToSaga(d => d.OrderId);
+                    mapper.ConfigureMapping<MyMessage>(s => s.OrderId).ToSaga(d => d.OrderId);
                 }
             }
 
