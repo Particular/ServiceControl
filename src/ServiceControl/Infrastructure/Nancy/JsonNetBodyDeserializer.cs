@@ -52,12 +52,17 @@
         public object Deserialize(string contentType, Stream bodyStream, BindingContext context)
         {
             var deserializedObject =
-                serializer.Deserialize(new StreamReader(bodyStream), context.DestinationType);
+                this.serializer.Deserialize(new StreamReader(bodyStream), context.DestinationType);
 
-            if (
+            var properties =
                 context.DestinationType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Except(context.ValidModelProperties)
-                    .Any())
+                    .Select(p => new BindingMemberInfo(p));
+
+            var fields =
+                context.DestinationType.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                    .Select(f => new BindingMemberInfo(f));
+
+            if (properties.Concat(fields).Except(context.ValidModelBindingMembers).Any())
             {
                 return CreateObjectWithBlacklistExcluded(context, deserializedObject);
             }
@@ -65,31 +70,31 @@
             return deserializedObject;
         }
 
-        static object ConvertCollection(object items, Type destinationType, BindingContext context)
+        private static object ConvertCollection(object items, Type destinationType, BindingContext context)
         {
             var returnCollection = Activator.CreateInstance(destinationType);
 
             var collectionAddMethod =
                 destinationType.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
 
-            foreach (var item in (IEnumerable) items)
+            foreach (var item in (IEnumerable)items)
             {
-                collectionAddMethod.Invoke(returnCollection, new[] {item});
+                collectionAddMethod.Invoke(returnCollection, new[] { item });
             }
 
             return returnCollection;
         }
 
-        static object CreateObjectWithBlacklistExcluded(BindingContext context, object deserializedObject)
+        private static object CreateObjectWithBlacklistExcluded(BindingContext context, object deserializedObject)
         {
-            var returnObject = Activator.CreateInstance(context.DestinationType);
+            var returnObject = Activator.CreateInstance(context.DestinationType, true);
 
             if (context.DestinationType.IsCollection())
             {
                 return ConvertCollection(deserializedObject, context.DestinationType, context);
             }
 
-            foreach (var property in context.ValidModelProperties)
+            foreach (var property in context.ValidModelBindingMembers)
             {
                 CopyPropertyValue(property, deserializedObject, returnObject);
             }
@@ -97,9 +102,9 @@
             return returnObject;
         }
 
-        static void CopyPropertyValue(PropertyInfo property, object sourceObject, object destinationObject)
+        private static void CopyPropertyValue(BindingMemberInfo property, object sourceObject, object destinationObject)
         {
-            property.SetValue(destinationObject, property.GetValue(sourceObject, null), null);
+            property.SetValue(destinationObject, property.GetValue(sourceObject));
         }
 
         readonly JsonSerializer serializer;
