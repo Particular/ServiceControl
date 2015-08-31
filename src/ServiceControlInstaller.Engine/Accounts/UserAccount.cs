@@ -66,12 +66,14 @@
         {
             var systemAliases = new[]
             {
+                null,
                 "system",
                 "local system",
                 "system",
                 "localsystem"
             };
 
+            
             var userAccount = new UserAccount();
             if (systemAliases.Contains(accountName, StringComparer.OrdinalIgnoreCase))
             {

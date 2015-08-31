@@ -8,6 +8,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Xml.Serialization;
+    using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Queues;
@@ -58,7 +59,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void CopyFiles(string zipFilePath)
         {
-            var account = new NTAccount(ServiceAccount);
+            var account = new NTAccount(UserAccount.ParseAccountName(ServiceAccount).QualifiedName);
             var readExecuteAccessRule = new FileSystemAccessRule(account, FileSystemRights.ReadAndExecute | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
             FileUtils.CreateDirectoryAndSetAcl(InstallPath, readExecuteAccessRule);
 

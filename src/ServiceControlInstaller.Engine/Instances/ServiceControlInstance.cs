@@ -123,11 +123,10 @@ namespace ServiceControlInstaller.Engine.Instances
             get { return string.Format("{0} - {1} - {2}", Name, Url, Version); }
         }
 
-
         string DetermineTransportPackage()
         {
             var transportAppSetting = ReadAppSetting("ServiceControl/TransportType", "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
-            var transport = Transports.All.FirstOrDefault(p => p.TypeName.StartsWith(transportAppSetting, StringComparison.OrdinalIgnoreCase));
+            var transport = Transports.All.FirstOrDefault(p => transportAppSetting.StartsWith(p.MatchOn , StringComparison.OrdinalIgnoreCase));
             if (transport != null)
             {
                 return transport.Name;
@@ -137,7 +136,6 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void ApplyConfigChange()
         {
-
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = FindByName(Name);
             var urlaclChanged = !(oldSettings.Port == Port
