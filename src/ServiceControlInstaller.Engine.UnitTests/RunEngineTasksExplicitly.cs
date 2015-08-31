@@ -7,12 +7,13 @@
     using System.ServiceProcess;
     using NUnit.Framework;
     using ServiceControlInstaller.Engine.Instances;
+    using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Unattended;
 
     [TestFixture]
     public class RunEngine
     {
-        const string deploymentCache = @"..\..\Zip";
+        const string deploymentCache = @"..\..\..\..\Zip";
 
         [Test, Explicit]
         public void DeleteInstance()
@@ -40,7 +41,7 @@
             var installer = new UnattendInstaller(new TestLogger(), deploymentCache);
             var instanceName = "Test.ServiceControl.Msmq";
             var root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Test", instanceName);
-            Assert.DoesNotThrow( () => installer.Add(new ServiceControlInstanceMetadata
+            var details = new ServiceControlInstanceMetadata
             {
                 DisplayName = instanceName.Replace(".", " "),
                 Name = instanceName,
@@ -57,35 +58,15 @@
                 ErrorQueue = "error",
                 ErrorLogQueue = "error.log",
                 TransportPackage = "MSMQ",
-                ConnectionString = null
-            }));
-          
-        }
+                ReportCard = new ReportCard()
+            };
 
-        [Test, Explicit]
-        public void CreateInstanceASQ()
-        {
-            var installer = new UnattendInstaller(new TestLogger(), deploymentCache);
-            var instanceName = "Test.ServiceControl.AzureStorageQueue";
-            var root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Test", instanceName);
-            Assert.DoesNotThrow(() => installer.Add(new ServiceControlInstanceMetadata
+            details.Validate();
+            if (details.ReportCard.HasErrors)
             {
-                DisplayName = instanceName.Replace(".", " "),
-                Name = instanceName,
-                ServiceDescription = "Test SC Instance",
-                DBPath = Path.Combine(root, "Database"),
-                LogPath = Path.Combine(root, "Logs"),
-                InstallPath = Path.Combine(root, "Binaries"),
-                HostName = "localhost",
-                Port = 33336,
-                VirtualDirectory = null,
-                AuditQueue = "asqaudit",
-                ErrorQueue = "asqerror",
-                ForwardAuditMessages = false,
-                TransportPackage = "AzureStorageQueue",
-                ConnectionString = "DefaultEndpointsProtocol=https;AccountName=gregbielleman;AccountKey=U4oOjbyXNAyAR55tsR1HAQGUz/l/ngRC2zaS+hKS4//q6u35W4KeHGmMUV2/hW4k10E7JvAZM6kNRz2pVpxILw==;"
-            }));
-            
+                throw new Exception(string.Format("Validation errors:  {0}", string.Join("\r\n", details.ReportCard.Errors)));
+            }
+            Assert.DoesNotThrow(() => installer.Add(details));
         }
 
         [Test, Explicit]
