@@ -126,7 +126,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         string DetermineTransportPackage()
         {
-            var transportAppSetting = ReadAppSetting("ServiceControl/TransportType", "NServiceBus.Msmq").Split(",".ToCharArray())[0].Trim();
+            var transportAppSetting = ReadAppSetting("ServiceControl/TransportType", "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
             var transport = Transports.All.FirstOrDefault(p => p.TypeName.StartsWith(transportAppSetting, StringComparison.OrdinalIgnoreCase));
             if (transport != null)
             {

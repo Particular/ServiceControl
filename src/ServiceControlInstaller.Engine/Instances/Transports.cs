@@ -33,7 +33,7 @@
                     new TransportInfo
                     {
                         Name = "MSMQ",
-                        TypeName = "NServiceBus.Msmq, NServiceBus.Core",
+                        TypeName = "NServiceBus.MsmqTransport, NServiceBus.Core",
                         SampleConnectionString = @"",
                         Default = true
                     },

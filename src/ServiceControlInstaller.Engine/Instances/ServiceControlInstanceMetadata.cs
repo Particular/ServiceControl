@@ -96,7 +96,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 ServiceDescription = ServiceDescription
             };
             var dependencies = new List<string>();
-            if (TransportPackage.Equals("NServiceBus.MSMQ", StringComparison.OrdinalIgnoreCase))
+            if (TransportPackage.Equals("NServiceBus.MsmqTransport", StringComparison.OrdinalIgnoreCase))
             {
                 dependencies.Add("MSMQ");
             }

@@ -58,7 +58,7 @@ ServiceControl/DbPath string
 The path where the internal RavenDB is located. Default %SystemDrive\ProgramData\Particular\ServiceControl\
 
 ServiceControl/TransportType string (.Net type)
-The transport type to run ServiceControl with. Default NServiceBus.Msmq, NServiceBus.Core
+The transport type to run ServiceControl with. Default NServiceBus.MsmqTransport, NServiceBus.Core
 
 NServiceBus/Transport string
 The connection string for the transport.
