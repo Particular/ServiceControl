@@ -1,0 +1,380 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Styles/Palette.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Styles/Icons.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <Style x:Key="BasicButton" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{StaticResource LightBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="Margin" Value="1" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Padding" Value="40,10" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                            TextElement.Foreground="{TemplateBinding Foreground}">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True" />
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+
+                                <VisualState Name="Normal" />
+
+                                <VisualState Name="MouseOver">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray90Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <VisualState Name="Pressed">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray70Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <VisualState Name="Disabled">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray60Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray50Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="(TextElement.Foreground)">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray70Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="HiliteButton"
+           BasedOn="{StaticResource BasicButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{StaticResource ThemeBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DarkThemeBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                            TextElement.Foreground="{TemplateBinding Foreground}">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True" />
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+
+                                <VisualState Name="Normal" />
+
+                                <VisualState Name="MouseOver">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource LightThemeBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <VisualState Name="Pressed">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource DarkThemeBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <VisualState Name="Disabled">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray60Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray50Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="(TextElement.Foreground)">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray70Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ErrorButton"
+           BasedOn="{StaticResource BasicButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{StaticResource ErrorBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DarkErrorBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                            TextElement.Foreground="{TemplateBinding Foreground}">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True" />
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+
+                                <VisualState Name="Normal" />
+
+                                <VisualState Name="MouseOver">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource LightErrorBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <VisualState Name="Pressed">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource DarkErrorBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <VisualState Name="Disabled">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray60Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray50Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="border"
+                                                                       Storyboard.TargetProperty="(TextElement.Foreground)">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray70Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="IconButton" TargetType="{x:Type Button}">
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="SnapsToDevicePixels" Value="False" />
+        <Setter Property="Width" Value="25" />
+        <Setter Property="Height" Value="25" />
+        <Setter Property="Margin" Value="1" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{StaticResource ThemeBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ThemeBrush}" />
+        <Setter Property="ContentTemplate" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Margin="{TemplateBinding Margin}"
+                            Background="Transparent"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                        <ContentControl x:Name="Icon"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        ContentTemplate="{TemplateBinding ContentTemplate}"
+                                        Foreground="{TemplateBinding Foreground}" />
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+
+                                <VisualState Name="Normal" />
+
+                                <VisualState Name="MouseOver">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="Icon"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource ThemeBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="Icon"
+                                                                       Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource WhiteBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <VisualState Name="Pressed">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="Icon"
+                                                                       Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource DarkThemeBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="Icon"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource DarkThemeBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="Icon"
+                                                                       Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource WhiteBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <VisualState Name="Disabled">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="Icon"
+                                                                       Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray60Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
+                                                                       Storyboard.TargetName="Icon"
+                                                                       Storyboard.TargetProperty="Foreground">
+                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray60Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ConfigurationButton"
+           BasedOn="{StaticResource IconButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="ContentTemplate" Value="{StaticResource ConfigurationIcon}" />
+    </Style>
+
+    <Style x:Key="RemoveButton"
+           BasedOn="{StaticResource IconButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="ContentTemplate" Value="{StaticResource RemoveIcon}" />
+    </Style>
+
+    <Style x:Key="SaveButton"
+           BasedOn="{StaticResource IconButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="ContentTemplate" Value="{StaticResource SaveIcon}" />
+    </Style>
+
+    <Style x:Key="ClipboardButton"
+           BasedOn="{StaticResource BasicButton}"
+           TargetType="{x:Type Button}" />
+
+    <Style x:Key="StartButton"
+           BasedOn="{StaticResource IconButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="ContentTemplate" Value="{StaticResource StartIcon}" />
+    </Style>
+
+    <Style x:Key="StopButton"
+           BasedOn="{StaticResource IconButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="ContentTemplate" Value="{StaticResource StopIcon}" />
+    </Style>
+
+    <Style x:Key="HelpButton"
+           BasedOn="{StaticResource IconButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="ContentTemplate" Value="{StaticResource HelpIcon}" />
+    </Style>
+
+    <Style x:Key="LicenseButton"
+           BasedOn="{StaticResource IconButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="ContentTemplate" Value="{StaticResource LicenseIcon}" />
+    </Style>
+
+    <Style x:Key="NewButton"
+           BasedOn="{StaticResource IconButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="ContentTemplate" Value="{StaticResource NewIcon}" />
+    </Style>
+
+    <Style x:Key="OpenFolderButton"
+           BasedOn="{StaticResource IconButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="ContentTemplate" Value="{StaticResource OpenFolderIcon}" />
+    </Style>
+
+    <Style x:Key="RefreshButton"
+           BasedOn="{StaticResource IconButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="ContentTemplate" Value="{StaticResource RefreshIcon}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource BasicButton}" TargetType="{x:Type Button}" />
+</ResourceDictionary>

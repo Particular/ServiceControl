@@ -1,0 +1,109 @@
+﻿<controls:CleanWindow x:Class="ServiceControl.Config.UI.DeleteInstanceConfirmation.DeleteInstanceConfirmationView"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls"
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      Title="DeleteInstanceConfirmationView"
+                      Width="500"
+                      Height="370"
+                      Background="{StaticResource Gray10Brush}"
+                      Foreground="{StaticResource WhiteBrush}"
+                      Padding="0"
+                      ResizeMode="NoResize"
+                      WindowStartupLocation="CenterOwner"
+                      d:DataContext="{d:DesignData /UI/DeleteInstanceConfirmation/SampleData.xaml}"
+                      mc:Ignorable="d">
+    <controls:CleanWindow.Resources>
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        <Style TargetType="{x:Type CheckBox}">
+            <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0,5" />
+        </Style>
+    </controls:CleanWindow.Resources>
+
+    <Grid Margin="40,35">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="35" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Margin="-40,0"
+                BorderBrush="{StaticResource Gray20Brush}"
+                BorderThickness="0,0,0,1" />
+        <Grid Margin="0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock FontWeight="Bold"
+                       Foreground="{StaticResource Gray60Brush}"
+                       Text="REMOVE" />
+            <TextBlock Grid.Column="1"
+                       Margin="5,0"
+                       FontWeight="Bold"
+                       Text="{Binding InstanceName}" />
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ContentControl Grid.Column="0"
+                            Width="60"
+                            Height="60"
+                            Margin="0,0,10,0"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Content="{StaticResource WarningIcon}" />
+            <TextBlock Grid.Column="1"
+                       VerticalAlignment="Center"
+                       Text="Warning: you're about to remove this instance. This action cannot be reversed."
+                       TextWrapping="Wrap" />
+        </Grid>
+
+        <TextBlock Grid.Row="2"
+                   FontWeight="Bold"
+                   Text="Optional - remove associated data:" />
+
+        <CheckBox Grid.Row="3"
+                  Content="Remove associated DB data"
+                  IsChecked="{Binding RemoveDatabase}" />
+        <CheckBox Grid.Row="4"
+                  Content="Remove associated Logs"
+                  IsChecked="{Binding RemoveLogs}" />
+
+        <Grid Grid.Row="5"
+              Margin="0,25,0,0"
+              VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1"
+                    Command="{Binding RemoveCommand}"
+                    Content="Remove"
+                    Style="{StaticResource ErrorButton}" />
+            <Button Grid.Column="2"
+                    Command="{Binding CancelCommand}"
+                    Content="Cancel"
+                    IsCancel="True"
+                    Style="{StaticResource BasicButton}" />
+        </Grid>
+
+        <TextBlock Grid.Row="6"
+                   Foreground="Transparent"
+                   Text="Invisible element to fix WPF layout bug. DO NOT REMOVE" />
+    </Grid>
+</controls:CleanWindow>

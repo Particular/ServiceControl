@@ -1,0 +1,490 @@
+// ReSharper disable MemberCanBePrivate.Global
+
+namespace ServiceControlInstaller.Engine.Instances
+{
+    using System;
+    using System.Collections.ObjectModel;
+    using System.Configuration;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
+    using System.Security.AccessControl;
+    using System.Security.Principal;
+    using System.ServiceProcess;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using ServiceControlInstaller.Engine.Accounts;
+    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.FileSystem;
+    using ServiceControlInstaller.Engine.Queues;
+    using ServiceControlInstaller.Engine.ReportCard;
+    using ServiceControlInstaller.Engine.Services;
+    using ServiceControlInstaller.Engine.UrlAcl;
+    using ServiceControlInstaller.Engine.Validation;
+    using TimeoutException = System.ServiceProcess.TimeoutException;
+
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    public class ServiceControlInstance : IServiceControlInstance
+    {
+        public ServiceControlInstance(WindowsServiceController service)
+        {
+            Service = service;
+            ReadConfiguration();
+        }
+
+        public string InstallPath
+        {
+            get { return Path.GetDirectoryName(Service.ExePath); }
+        }
+
+        public ReportCard ReportCard { get; set; }
+        public WindowsServiceController Service { get; set; }
+        public string LogPath { get; set; }
+        public string DBPath { get; set; }
+        public string HostName { get; set; }
+        public int Port { get; set; }
+        public string VirtualDirectory { get; set; }
+        public string ErrorQueue { get; set; }
+        public string AuditQueue { get; set; }
+        public string ErrorLogQueue { get; set; }
+        public string AuditLogQueue { get; set; }
+        public bool ForwardAuditMessages { get; set; }
+        public string TransportPackage { get; set; }
+        public string ConnectionString { get; set; }
+        public string Description { get; set; }
+        public string ServiceAccount { get; set; }
+        public string ServiceAccountPwd { get; set; }
+
+        public string Name
+        {
+            get { return Service.ServiceName; }
+        }
+
+        public void Reload()
+        {
+            ReadConfiguration();
+        }
+
+        public Version Version
+        {
+            get
+            {
+                // Service Can be registered but file deleted!
+                if (File.Exists(Service.ExePath))
+                {
+                    var fileVersion = FileVersionInfo.GetVersionInfo(Service.ExePath);
+                    return new Version(fileVersion.ProductMajorPart, fileVersion.ProductMinorPart, fileVersion.ProductBuildPart);
+                }
+                return new Version(0, 0, 0);
+            }
+        }
+
+        public string Url
+        {
+            get
+            {
+                var baseUrl = string.Format("http://{0}:{1}/api/", HostName, Port);
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return baseUrl;
+                }
+                return string.Format("{0}{1}{2}api/", baseUrl, VirtualDirectory, VirtualDirectory.EndsWith("/") ? "" : "/");
+            }
+        }
+
+        string ReadConnectionString()
+        {
+            if (File.Exists(Service.ExePath))
+            {
+                var configManager = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
+                var namedConnectionString = configManager.ConnectionStrings.ConnectionStrings["NServiceBus/Transport"];
+                if (namedConnectionString != null)
+                {
+                    return namedConnectionString.ConnectionString;
+                }
+            }
+            return null;
+        }
+
+        string GetDescription()
+        {
+            try
+            {
+                return Service.Description;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        string DebuggerDisplay
+        {
+            get { return string.Format("{0} - {1} - {2}", Name, Url, Version); }
+        }
+
+
+        string DetermineTransportPackage()
+        {
+            var transportAppSetting = ReadAppSetting("ServiceControl/TransportType", "NServiceBus.Msmq").Split(",".ToCharArray())[0].Trim();
+            var transport = Transports.All.FirstOrDefault(p => p.TypeName.StartsWith(transportAppSetting, StringComparison.OrdinalIgnoreCase));
+            if (transport != null)
+            {
+                return transport.Name;
+            }
+            return Transports.All.First(p => p.Default).Name;
+        }
+
+        public void ApplyConfigChange()
+        {
+
+            var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
+            var oldSettings = FindByName(Name);
+            var urlaclChanged = !(oldSettings.Port == Port
+                                  && string.Equals(oldSettings.Name, Name, StringComparison.OrdinalIgnoreCase)
+                                  && string.Equals(oldSettings.VirtualDirectory, VirtualDirectory, StringComparison.OrdinalIgnoreCase));
+
+            var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
+
+            var queueNamesChanged = !(string.Equals(oldSettings.AuditQueue, AuditQueue, StringComparison.OrdinalIgnoreCase)
+                                      && string.Equals(oldSettings.ErrorQueue, ErrorQueue, StringComparison.OrdinalIgnoreCase)
+                                      && string.Equals(oldSettings.AuditLogQueue, AuditLogQueue, StringComparison.OrdinalIgnoreCase)
+                                      && string.Equals(oldSettings.ErrorLogQueue, ErrorLogQueue, StringComparison.OrdinalIgnoreCase));
+
+            if (urlaclChanged)
+            {
+                oldSettings.RemoveUrlAcl();
+                var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+                reservation.Create();
+            }
+
+            if (fileSystemChanged)
+            {
+                var account = new NTAccount(accountName);
+                var modifyAccessRule = new FileSystemAccessRule(account, FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+                FileUtils.CreateDirectoryAndSetAcl(LogPath, modifyAccessRule);
+            }
+
+            Service.Description = Description;
+
+            var configuration = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
+            var settings = configuration.AppSettings.Settings;
+            settings.Set("ServiceControl/Port", Port.ToString());
+            settings.Set("ServiceControl/HostName", HostName);
+            settings.Set("ServiceControl/LogPath", LogPath);
+            settings.Set("ServiceControl/ForwardAuditMessages", ForwardAuditMessages.ToString());
+            settings.Set("ServiceBus/AuditQueue", AuditQueue);
+            settings.Set("ServiceBus/ErrorQueue", ErrorQueue);
+            settings.Set("ServiceBus/ErrorLogQueue", ErrorLogQueue);
+            settings.Set("ServiceBus/AuditLogQueue", AuditLogQueue);
+            configuration.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", ConnectionString);
+            configuration.Save();
+
+            var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
+            var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
+
+            //have to save config prior to creating queues (if needed)
+            if (queueNamesChanged || accountChanged)
+            {
+                QueueCreation.RunQueueCreation(this, accountName);
+            }
+
+            if (passwordSet || accountChanged)
+            {
+                Service.ChangeAccountDetails(accountName, ServiceAccountPwd);
+            }
+        }
+
+        string DefaultDBPath()
+        {
+            var host = (HostName == "*") ? "%" : HostName;
+            var dbFolder = String.Format("{0}-{1}", host, Port);
+            if (!string.IsNullOrEmpty(VirtualDirectory))
+            {
+                dbFolder += String.Format("-{0}", FileUtils.SanitizeFolderName(VirtualDirectory));
+            }
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
+        }
+
+        string DefaultLogPath()
+        {
+            // The default Logging folder in ServiceControl uses the env vae"%LocalApplicationData%".  Since this is env user specific we'll determine it based on profile path instead.
+            // This only works for a user that has already logged in, which is fine for existing instances
+            var userAccountName = UserAccount.ParseAccountName(Service.Account);
+
+            var profilePath = userAccountName.RetrieveProfilePath();
+            if (profilePath == null)
+            {
+                //TODO - Is null valid
+                return null;
+            }
+
+            return Path.Combine(profilePath, @"AppData\Local\Particular\ServiceControl\logs");
+        }
+
+        T ReadAppSetting<T>(string key, T defaultValue)
+        {
+            if (File.Exists(Service.ExePath))
+            {
+                var configManager = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
+                if (configManager.AppSettings.Settings.AllKeys.Contains(key))
+                {
+                    return (T) Convert.ChangeType(configManager.AppSettings.Settings[key].Value, typeof(T));
+                }
+
+                
+            }
+            try
+            {
+                var parts = key.Split("/".ToCharArray(), 2);
+                return RegistryReader<T>.Read(parts[0], parts[1], defaultValue);
+            }
+            catch (Exception)
+            {
+                // Fall through to default
+            }
+
+            return defaultValue;
+        }
+
+        public void RemoveUrlAcl()
+        {
+            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.Equals(Url, StringComparison.OrdinalIgnoreCase)))
+            {
+                try
+                {
+                    urlReservation.Delete();
+                }
+                catch
+                {
+                    ReportCard.Warnings.Add(string.Format("Failed to remove the URLACL for {0} - Please remove manually via Netsh.exe", Url));
+                }
+            }
+        }
+
+        public bool TryStopService()
+        {
+            Service.Refresh();
+            if (Service.Status != ServiceControllerStatus.Stopped)
+            {
+                Service.Stop();
+            }
+
+            try
+            {
+                Service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
+                var t = new Task(() =>
+                {
+                    while (!HasUnderlyingProcessExited())
+                    {
+                        Thread.Sleep(100);
+                    }
+                });
+                t.Wait(5000);
+            }
+            catch (TimeoutException)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public bool TryStartService()
+        {
+            Service.Refresh();
+            if (Service.Status != ServiceControllerStatus.Running)
+            {
+                Service.Start();
+            }
+
+            try
+            {
+                Service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
+            }
+            catch (TimeoutException)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        ///     Returns false if a reboot is required to complete deletion
+        /// </summary>
+        /// <returns></returns>
+        public void RemoveBinFolder()
+        {
+            try
+            {
+                FileUtils.DeleteDirectory(InstallPath, true, false);
+            }
+            catch
+            {
+                ReportCard.Warnings.Add(string.Format("Could not delete the logs directory '{0}'. Please remove manually", LogPath));
+            }
+        }
+
+        public void RemoveLogsFolder()
+        {
+            try
+            {
+                FileUtils.DeleteDirectory(LogPath, true, false);
+            }
+            catch
+            {
+                ReportCard.Warnings.Add(string.Format("Could not delete the logs directory '{0}'. Please remove manually", LogPath));
+            }
+        }
+
+        public void RemoveDataBaseFolder()
+        {
+            try
+            {
+                FileUtils.DeleteDirectory(DBPath, true, false);
+            }
+            catch
+            {
+                ReportCard.Warnings.Add(string.Format("Could not delete the database directory '{0}'. Please remove manually", DBPath));
+            }
+        }
+
+        public string BackupAppConfig()
+        {
+            var backupDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControlInstaller", "ConfigBackups", FileUtils.SanitizeFolderName(Service.ServiceName));
+            if (!Directory.Exists(backupDirectory))
+            {
+                Directory.CreateDirectory(backupDirectory);
+            }
+            var configFile = string.Format("{0}.config", Service.ExePath);
+            if (!File.Exists(configFile))
+            {
+                return null;
+            }
+
+            var destinationFile = Path.Combine(backupDirectory, string.Format("{0:N}.config", Guid.NewGuid()));
+            File.Copy(configFile, destinationFile);
+            return destinationFile;
+        }
+
+        public void RestoreAppConfig(string sourcePath)
+        {
+            if (sourcePath == null)
+            {
+                return;
+            }
+            var configFile = string.Format("{0}.config", Service.ExePath);
+            File.Copy(sourcePath, configFile, true);
+        }
+
+        public void UpgradeFiles(string zipFilePath)
+        {
+            FileUtils.DeleteDirectory(InstallPath, true, true, "license", "servicecontrol.exe.config");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, string.Format(@"Transports\{0}", TransportPackage));
+        }
+
+        public static ReadOnlyCollection<ServiceControlInstance> Instances()
+        {
+            return new ReadOnlyCollection<ServiceControlInstance>(WindowsServiceController.FindInstancesByExe("ServiceControl.exe").Select(p => new ServiceControlInstance(p)).ToList());
+        }
+
+        public static ServiceControlInstance FindByName(string InstanceName)
+        {
+            try
+            {
+                return Instances().Single(p => p.Name.Equals(InstanceName, StringComparison.OrdinalIgnoreCase));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Instance does not exists", ex);
+            }
+        }
+
+        public static void CheckIfServiceNameTaken(string InstanceName)
+        {
+            if (ServiceController.GetServices().SingleOrDefault(p => p.ServiceName.Equals(InstanceName, StringComparison.OrdinalIgnoreCase)) != null)
+                throw new Exception(string.Format("Invalid Service Name. There is already a windows service called '{0}'", InstanceName));
+        }
+
+        public void RunInstanceToCreateQueues()
+        {
+            QueueCreation.RunQueueCreation(this);
+        }
+
+        bool HasUnderlyingProcessExited()
+        {
+            try
+            {
+                if (Service.ExePath != null)
+                {
+                    var process = Process.GetProcesses().FirstOrDefault(p => p.MainModule.FileName == Service.ExePath);
+                    return (process == null);
+                }
+            }
+            catch
+            {
+                //Service isn't accessible 
+            }
+            return true;
+        }
+
+        void ReadConfiguration()
+        {
+            Service.Refresh();
+            HostName = ReadAppSetting("ServiceControl/HostName", "localhost");
+            Port = ReadAppSetting("ServiceControl/Port", 33333);
+            VirtualDirectory = ReadAppSetting("ServiceControl/VirtualDirectory", (string) null);
+            LogPath = ReadAppSetting("ServiceControl/LogPath", DefaultLogPath());
+            DBPath = ReadAppSetting("ServiceControl/DBPath", DefaultDBPath());
+            AuditQueue = ReadAppSetting("ServiceBus/AuditQueue", "audit");
+            AuditLogQueue = ReadAppSetting("ServiceBus/AuditLogQueue", string.Format("{0}.log", AuditQueue));
+            ForwardAuditMessages = ReadAppSetting("ServiceControl/ForwardAuditMessages", false);
+            ErrorQueue = ReadAppSetting("ServiceBus/ErrorQueue", "error");
+            ErrorLogQueue = ReadAppSetting("ServiceBus/ErrorLogQueue", string.Format("{0}.log", ErrorQueue));
+            TransportPackage = DetermineTransportPackage();
+            ConnectionString = ReadConnectionString();
+            Description = GetDescription();
+            ServiceAccount = Service.Account;
+        }
+
+        public void ValidateChanges()
+        {
+            try
+            {
+                PathsValidator.Validate(this);
+            }
+            catch (EngineValidationException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+
+            try
+            {
+                QueueNameValidator.Validate(this);
+            }
+            catch (EngineValidationException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+
+            var oldSettings = FindByName(Name);
+            var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
+            var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
+            if (passwordSet || accountChanged)
+            {
+                try
+                {
+                    ServiceAccountValidation.Validate(this);
+                }
+                catch (IdentityNotMappedException)
+                {
+                    ReportCard.Errors.Add("The service account specified does not exist");
+                }
+                catch (EngineValidationException ex)
+                {
+                    ReportCard.Errors.Add(ex.Message);
+                }
+            }
+        }
+    }
+}

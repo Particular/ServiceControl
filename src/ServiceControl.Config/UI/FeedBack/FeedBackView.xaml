@@ -1,0 +1,108 @@
+﻿<controls:CleanWindow x:Class="ServiceControl.Config.UI.FeedBack.FeedBackView"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls"
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      Title="Send Feedback"
+                      Width="400"
+                      Height="320"
+                      Background="{StaticResource Gray10Brush}"
+                      Foreground="{StaticResource WhiteBrush}"
+                      Padding="0"
+                      ResizeMode="NoResize"
+                      WindowStartupLocation="CenterOwner"
+                      mc:Ignorable="d">
+
+    <controls:CleanWindow.Resources>
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        <Style TargetType="{x:Type CheckBox}">
+            <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0,5" />
+        </Style>
+    </controls:CleanWindow.Resources>
+
+    <Grid Margin="15,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Margin="5"
+                   VerticalAlignment="Center"
+                   FontWeight="Bold"
+                   Foreground="{StaticResource Gray60Brush}"
+                   Text="SEND FEEDBACK" />
+
+        <Border Grid.Row="1"
+                Margin="-15,0"
+                BorderBrush="{StaticResource Gray20Brush}"
+                BorderThickness="0,1,0,0" />
+
+        <TextBlock Grid.Row="2"
+                   Margin="5"
+                   FontSize="12"
+                   Foreground="White">
+            Your input can only help us make the product better.
+        </TextBlock>
+
+        <TextBlock Grid.Row="3"
+                   Margin="5"
+                   VerticalAlignment="Center"
+                   FontSize="12"
+                   Foreground="{StaticResource Gray60Brush}"
+                   Text="MESSAGE" />
+
+        <TextBox Grid.Row="4"
+                 BorderBrush="{StaticResource WhiteBrush}"
+                 MaxLength="500"
+                 MinLines="5"
+                 Style="{StaticResource MultiLineTextBox}"
+                 Text="{Binding Message}"
+                 TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Auto" />
+
+        <controls:FormTextBox Grid.Row="5"
+                              Grid.Column="0"
+                              BorderBrush="{StaticResource WhiteBrush}"
+                              FontSize="12"
+                              Header="YOUR EMAIL ADDRESS (Optional)"
+                              Text="{Binding EmailAddress}" />
+
+        <CheckBox Grid.Row="6"
+                  Margin="0,5"
+                  HorizontalAlignment="Left"
+                  Content="Include information about my configuration"
+                  FontSize="12"
+                  Foreground="White"
+                  IsChecked="{Binding IncludeSystemInfo}" />
+
+        <Grid Grid.Row="7"
+              Margin="5"
+              VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1"
+                    Command="{Binding SendFeedBack}"
+                    Content="Send"
+                    Style="{StaticResource HiliteButton}" />
+            <Button Grid.Column="2"
+                    Command="{Binding Cancel}"
+                    Content="Cancel" />
+        </Grid>
+    </Grid>
+</controls:CleanWindow>

@@ -1,0 +1,443 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C0EEF6D1-5DF7-4A26-9964-6376F465B085}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ServiceControl.Config</RootNamespace>
+    <AssemblyName>ServiceControlConfig</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>5</LangVersion>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>5</LangVersion>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>App.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Caliburn.Micro">
+      <HintPath>..\packages\Caliburn.Micro.Core.2.0.2\lib\net45\Caliburn.Micro.dll</HintPath>
+    </Reference>
+    <Reference Include="Caliburn.Micro.Platform">
+      <HintPath>..\packages\Caliburn.Micro.2.0.2\lib\net45\Caliburn.Micro.Platform.dll</HintPath>
+    </Reference>
+    <Reference Include="FluentValidation, Version=5.6.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentValidation.5.6.2.0\lib\Net45\FluentValidation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack">
+      <HintPath>..\packages\Windows7APICodePack-Core.1.1.0.0\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.Shell">
+      <HintPath>..\packages\Windows7APICodePack-Shell.1.1.0.0\lib\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+    </Reference>
+    <Reference Include="Mindscape.Raygun4Net, Version=5.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mindscape.Raygun4Net.5.0.2\lib\net40\Mindscape.Raygun4Net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Mindscape.Raygun4Net4, Version=5.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mindscape.Raygun4Net.5.0.2\lib\net40\Mindscape.Raygun4Net4.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PropertyChanged">
+      <HintPath>..\packages\PropertyChanged.Fody.1.49.0\Lib\portable-net4+sl4+wp8+win8+wpa81+MonoAndroid16+MonoTouch40\PropertyChanged.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="PropertyChanging">
+      <HintPath>..\packages\PropertyChanging.Fody.1.27.0.0\Lib\portable-net4+sl4+wp8+win8+wpa81+MonoAndroid16+MonoTouch40\PropertyChanging.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ReactiveUI">
+      <HintPath>..\packages\reactiveui-core.5.5.1\lib\Portable-Net45+WinRT45+WP8\ReactiveUI.dll</HintPath>
+    </Reference>
+    <Reference Include="ReactiveUI.Blend">
+      <HintPath>..\packages\reactiveui-platforms.5.5.1\lib\net45\ReactiveUI.Blend.dll</HintPath>
+    </Reference>
+    <Reference Include="ReactiveUI.Xaml">
+      <HintPath>..\packages\reactiveui-platforms.5.5.1\lib\net45\ReactiveUI.Xaml.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Reactive.Core">
+      <HintPath>..\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Interfaces">
+      <HintPath>..\packages\Rx-Interfaces.2.2.5\lib\net45\System.Reactive.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Linq">
+      <HintPath>..\packages\Rx-Linq.2.2.5\lib\net45\System.Reactive.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.PlatformServices">
+      <HintPath>..\packages\Rx-PlatformServices.2.2.5\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Windows.Threading">
+      <HintPath>..\packages\Rx-XAML.2.2.5\lib\net45\System.Reactive.Windows.Threading.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="Validar">
+      <HintPath>..\packages\Validar.Fody.1.4.7.0\Lib\portable-net4+sl4+wp7+win8+MonoAndroid16+MonoTouch40\Validar.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="AppBootstrapper.cs" />
+    <Compile Include="Commands\AddInstanceCommand.cs" />
+    <Compile Include="Commands\EditInstanceCommand.cs" />
+    <Compile Include="Commands\OpenURLCommand.cs" />
+    <Compile Include="Commands\DeleteInstanceCommand.cs" />
+    <Compile Include="Commands\OpenViewModelCommand.cs" />
+    <Compile Include="Commands\SelectPathCommand.cs" />
+    <Compile Include="Commands\UpgradeInstanceCommand.cs" />
+    <Compile Include="Events\RefreshInstances.cs" />
+    <Compile Include="Extensions\CollectionExtensions.cs" />
+    <Compile Include="Extensions\GuidExtensions.cs" />
+    <Compile Include="Extensions\DictionaryExtensions.cs" />
+    <Compile Include="Extensions\ReflectionHelper.cs" />
+    <Compile Include="Extensions\CommandExtensions.cs" />
+    <Compile Include="Extensions\DeactivateExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Extensions\ValidatorExtensions.cs" />
+    <Compile Include="Framework\Commands\AwaitableAbstractCommand.cs" />
+    <Compile Include="Framework\IProgressViewModel.cs" />
+    <Compile Include="Framework\Modules\InstallerModule.cs" />
+    <Compile Include="Framework\Modules\MiscModule.cs" />
+    <Compile Include="Framework\RaygunFeedback.cs" />
+    <Compile Include="Framework\RaygunReporter.cs" />
+    <Compile Include="Framework\Rx\RxProgressScreen.cs" />
+    <Compile Include="UI\MessageBox\ExceptionMessageBox.xaml.cs">
+      <DependentUpon>ExceptionMessageBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MessageBox\ReportCardView.xaml.cs">
+      <DependentUpon>ReportCardView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MessageBox\ReportCardViewModel.cs" />
+    <Compile Include="UI\SharedInstanceEditor\SharedInstanceEditorView.xaml.cs">
+      <DependentUpon>SharedInstanceEditorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\SharedInstanceEditor\SharedInstanceEditorViewModel.cs" />
+    <Compile Include="UI\InstanceEdit\InstanceEditViewModelValidator.cs" />
+    <Compile Include="UI\SharedInstanceEditor\ServiceInstanceViewlValidator.cs" />
+    <Compile Include="Validation\Validations.cs" />
+    <Compile Include="Validation\ValidationTemplate.cs" />
+    <Compile Include="Framework\Command.cs" />
+    <Compile Include="Framework\Commands\AbstractCommand.cs" />
+    <Compile Include="Framework\Commands\BaseCommand.cs" />
+    <Compile Include="Framework\Commands\AwaitableDelegateCommand.cs" />
+    <Compile Include="Framework\Commands\ICommand.cs" />
+    <Compile Include="Framework\Commands\IAsyncCommand.cs" />
+    <Compile Include="Framework\Commands\DelegateCommand.cs" />
+    <Compile Include="Framework\Commands\IRaiseCanExecuteChanged.cs" />
+    <Compile Include="Framework\IModalResult.cs" />
+    <Compile Include="Framework\WindowManagerEx.cs" />
+    <Compile Include="Framework\Rx\RxConductorWithCollectionOneActive.cs" />
+    <Compile Include="Framework\Rx\RxConductor.cs" />
+    <Compile Include="Framework\Rx\RxConductorBase.cs" />
+    <Compile Include="Framework\Rx\RxConductorBaseWithActiveItem.cs" />
+    <Compile Include="UI\InstanceAdd\InstanceAddAttachment.cs" />
+    <Compile Include="UI\InstanceAdd\InstanceAddViewModelValidator.cs" />
+    <Compile Include="UI\DeleteInstanceConfirmation\DeleteInstanceConfirmationView.xaml.cs">
+      <DependentUpon>DeleteInstanceConfirmationView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\DeleteInstanceConfirmation\DeleteInstanceConfirmationViewModel.cs" />
+    <Compile Include="UI\FeedBack\FeedBackView.xaml.cs">
+      <DependentUpon>FeedBackView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FeedBack\FeedBackViewModel.cs" />
+    <Compile Include="UI\FeedBack\NoInternet\FeedBackNoticeViewModel.cs" />
+    <Compile Include="UI\FeedBack\NoInternet\FeedBackNoticeView.xaml.cs">
+      <DependentUpon>FeedBackNoticeView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FeedBack\ResultMessage\FeedBackResultView.xaml.cs">
+      <DependentUpon>FeedBackResultView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FeedBack\ResultMessage\FeedBackResultViewModel.cs" />
+    <Compile Include="UI\InstanceEdit\InstanceEditAttachment.cs" />
+    <Compile Include="UI\InstanceEdit\InstanceEditView.xaml.cs">
+      <DependentUpon>InstanceEditView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\InstanceEdit\InstanceEditViewModel.cs" />
+    <Compile Include="UI\License\LicenseView.xaml.cs">
+      <DependentUpon>LicenseView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\License\LicenseViewModel.cs" />
+    <Compile Include="UI\MessageBox\MessageBoxView.xaml.cs">
+      <DependentUpon>MessageBoxView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MessageBox\MessageBoxViewModel.cs" />
+    <Compile Include="UI\Shell\FeedBackAttachment.cs" />
+    <Compile Include="Xaml\Behaviours\RichTextBoxHelper.cs" />
+    <Compile Include="Xaml\Controls\FormCheckBox.cs" />
+    <Compile Include="Xaml\Controls\FormPasswordBox.cs" />
+    <Compile Include="Xaml\Controls\FormToggleButton.cs" />
+    <Compile Include="Xaml\Controls\FormPathTextBox.cs" />
+    <Compile Include="Xaml\Controls\CleanWindow.cs" />
+    <Compile Include="Xaml\Controls\FormComboBox.cs" />
+    <Compile Include="Xaml\Controls\FormTextBox.cs" />
+    <Compile Include="Xaml\Native\UnsafeNativeMethods.cs" />
+    <Compile Include="Xaml\Native\NativeConstants.cs" />
+    <Compile Include="Xaml\Native\ShowWindowCommands.cs" />
+    <Compile Include="Xaml\Native\Structures.cs" />
+    <Compile Include="Extensions\ReactiveUIExtensions.cs" />
+    <Compile Include="Extensions\EnumerableExtensions.cs" />
+    <Compile Include="Framework\Attachments.cs" />
+    <Compile Include="Framework\Modules\CaliburnModule.cs" />
+    <Compile Include="Framework\Modules\AutoAttachmentModule.cs" />
+    <Compile Include="Framework\Modules\EventAggregationAutoSubscriptionModule.cs" />
+    <Compile Include="Framework\Rx\RxPropertyChanged.cs" />
+    <Compile Include="Framework\Rx\RxScreen.cs" />
+    <Compile Include="Framework\Rx\WeakValueDictionary.cs" />
+    <Compile Include="Framework\Rx\RxViewAware.cs" />
+    <Compile Include="UI\InstanceAdd\InstanceAddView.xaml.cs">
+      <DependentUpon>InstanceAddView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\InstanceAdd\InstanceAddViewModel.cs" />
+    <Compile Include="UI\InstanceDetails\InstanceDetailsView.xaml.cs">
+      <DependentUpon>InstanceDetailsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\InstanceDetails\InstanceDetailsViewModel.cs" />
+    <Compile Include="UI\ListInstances\ListInstancesView.xaml.cs">
+      <DependentUpon>ListInstancesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ListInstances\ListInstancesViewModel.cs" />
+    <Compile Include="UI\NoInstances\NoInstancesView.xaml.cs">
+      <DependentUpon>NoInstancesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\NoInstances\NoInstancesViewModel.cs" />
+    <Compile Include="UI\Shell\ShellView.xaml.cs">
+      <DependentUpon>ShellView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Shell\ShellViewModel.cs" />
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Xaml\Behaviours\BorderlessWindowBehavior.cs" />
+    <Compile Include="Xaml\Behaviours\StylizedBehaviors.cs" />
+    <Compile Include="Xaml\Converters\BoolToVisibilityConverter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="app.manifest" />
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="FodyWeavers.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="ParticularIcons.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\CleanWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\Converters.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Styles\Button.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\GroupBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\Hyperlink.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\Icons.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\Palette.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\ProgressBar.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\TextBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\Generic.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\InstanceAdd\InstanceAddView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\DeleteInstanceConfirmation\DeleteInstanceConfirmationView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <DesignData Include="UI\DeleteInstanceConfirmation\SampleData.xaml">
+      <SubType>Designer</SubType>
+    </DesignData>
+    <Page Include="UI\FeedBack\FeedBackView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\FeedBack\NoInternet\FeedBackNoticeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\FeedBack\ResultMessage\FeedBackResultView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\InstanceDetails\InstanceDetailsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\InstanceEdit\InstanceEditView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\License\LicenseView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\ListInstances\ListInstancesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\MessageBox\ExceptionMessageBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\MessageBox\MessageBoxView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\MessageBox\ReportCardView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\NoInstances\NoInstancesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\SharedInstanceEditor\SharedInstanceEditorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Shell\ShellView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="App.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj">
+      <Project>{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}</Project>
+      <Name>ServiceControlInstaller.Engine</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets'))" />
+    <Error Condition="!Exists('..\packages\Fody.1.29.2\build\dotnet\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.1.29.2\build\dotnet\Fody.targets'))" />
+  </Target>
+  <Import Project="..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  -->
+  <Target Name="AfterBuild">
+    <ItemGroup>
+      <OutputFiles Include="..\..\zip\*.zip" />
+      <ExistingZipsToRemove Include="$(OutputPath)*.zip" />
+    </ItemGroup>
+    <Delete Files="@(ExistingZipsToRemove)" />
+    <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="false" />
+  </Target>
+  <Import Project="..\packages\Fody.1.29.2\build\dotnet\Fody.targets" Condition="Exists('..\packages\Fody.1.29.2\build\dotnet\Fody.targets')" />
+</Project>

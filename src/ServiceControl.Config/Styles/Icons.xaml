@@ -1,0 +1,189 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ControlTemplate x:Key="MinimizeIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="16" Height="16">
+                <Path Data="M4,10 H13 V13 H4" Fill="{TemplateBinding Foreground}" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="MaximizeIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="16" Height="16">
+                <Path Data="M4,5 V14 H13 V5 M5,8 V13 H12 V8" Fill="{TemplateBinding Foreground}" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="MaximizedIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="16" Height="16">
+                <Path Data="M3,7 V14 H10 V7 M4,9 V13 H9 V9 M6,4 H13 V11 H10 V7 H6 M7,6 H12 V10 H10 V7 H7" Fill="{TemplateBinding Foreground}" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="CloseIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="16" Height="16">
+                <Path Data="M3,5 5,5 8,8 11,5 13,5 9,9 13,13 11,13 8,10 5,13 3,13 7,9" Fill="{TemplateBinding Foreground}" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
+
+    <Viewbox x:Key="WarningIcon" Stretch="Uniform">
+        <Canvas Width="60" Height="60">
+            <Path Data="M30,0 60,30 30,60 0,30" Fill="{StaticResource ErrorBrush}" />
+            <Path Data="M25,15 h10 v20 h-10" Fill="{StaticResource WhiteBrush}" />
+            <Path Data="M25,40 h10 v5 h-10" Fill="{StaticResource WhiteBrush}" />
+        </Canvas>
+    </Viewbox>
+
+    <Viewbox x:Key="RunningIcon" Stretch="Uniform">
+        <Canvas Width="10" Height="10">
+            <Path Data="M10,4.738l-10,5.262l-0.03,-10l10.03,4.738Z" Fill="{StaticResource Gray70Brush}" />
+        </Canvas>
+    </Viewbox>
+
+    <Viewbox x:Key="StoppedIcon" Stretch="Uniform">
+        <Canvas Width="10" Height="10">
+            <Rectangle Width="10"
+                       Height="10"
+                       Fill="{StaticResource Gray70Brush}" />
+        </Canvas>
+    </Viewbox>
+
+    <DataTemplate x:Key="ConfigurationIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="24" Height="24">
+                <Ellipse Width="24"
+                         Height="24"
+                         Fill="{Binding Background,
+                                        RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         Stroke="{Binding BorderBrush,
+                                          RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         StrokeThickness="1" />
+
+                <Path Data="M18.544,12.757L18.544,11.011L17.601,10.675C17.241,10.547 16.951,10.272 16.805,9.92C16.805,9.92 16.805,9.919 16.805,9.919C16.658,9.566 16.669,9.167 16.833,8.821L17.263,7.917L16.028,6.682L15.124,7.112C14.778,7.276 14.379,7.286 14.025,7.14C14.025,7.14 14.025,7.14 14.025,7.139C13.672,6.993 13.398,6.704 13.27,6.344L12.934,5.4L11.188,5.4L10.852,6.344C10.724,6.704 10.449,6.993 10.097,7.139C10.097,7.139 10.096,7.14 10.096,7.14C9.743,7.286 9.344,7.276 8.998,7.112L8.094,6.682L6.859,7.917L7.289,8.821C7.453,9.166 7.463,9.566 7.317,9.919C7.317,9.919 7.317,9.92 7.316,9.92C7.17,10.273 6.881,10.547 6.521,10.675L5.577,11.011L5.577,12.757L6.521,13.092C6.881,13.22 7.17,13.495 7.316,13.848C7.317,13.848 7.317,13.848 7.317,13.848C7.463,14.202 7.453,14.601 7.289,14.947L6.859,15.851L8.094,17.086L8.998,16.656C9.343,16.492 9.743,16.481 10.096,16.628C10.097,16.628 10.097,16.628 10.097,16.628C10.45,16.774 10.724,17.064 10.852,17.424L11.188,18.367L12.934,18.367L13.267,17.43C13.397,17.066 13.674,16.774 14.03,16.626C14.03,16.626 14.03,16.626 14.03,16.626C14.38,16.48 14.776,16.49 15.118,16.653L16.028,17.086L17.263,15.851L16.833,14.946C16.669,14.601 16.658,14.202 16.805,13.849C16.805,13.849 16.805,13.848 16.805,13.848C16.952,13.495 17.241,13.22 17.601,13.092L18.544,12.757ZM12.061,14.261C10.748,14.261 9.683,13.197 9.683,11.884C9.683,10.571 10.748,9.506 12.061,9.506C13.374,9.506 14.439,10.571 14.439,11.884C14.439,13.197 13.374,14.261 12.061,14.261Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+
+    <DataTemplate x:Key="RemoveIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="24" Height="24">
+                <Ellipse Width="24"
+                         Height="24"
+                         Fill="{Binding Background,
+                                        RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         Stroke="{Binding BorderBrush,
+                                          RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         StrokeThickness="1" />
+
+                <Path Data="M16,9L8,9L8,19L16,19L16,9ZM14,10L13,10L13,17L14,17L14,10ZM11,10L10,10L10,17L11,17L11,10ZM17,6L17,8L7,8L7,6L11,6L11,5L13,5L13,6L17,6Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+
+    <DataTemplate x:Key="SaveIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="24" Height="24">
+                <Ellipse Width="24"
+                         Height="24"
+                         Fill="{Binding Background,
+                                        RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         Stroke="{Binding BorderBrush,
+                                          RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         StrokeThickness="1" />
+
+                <Path Data="M18,16L18,18L6,18L6,16L6,14L7,14L7,16L17,16L17,14L18,14L18,16ZM14,10L16,10L12,15L8,10L10,10L10,6L14,6L14,10Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+
+    <DataTemplate x:Key="StartIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="24" Height="24">
+                <Ellipse Width="24"
+                         Height="24"
+                         Fill="{Binding Background,
+                                        RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         Stroke="{Binding BorderBrush,
+                                          RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         StrokeThickness="1" />
+
+                <Path Data="M17,12L9,8L9,16L17,12Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+
+    <DataTemplate x:Key="StopIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="24" Height="24">
+                <Ellipse Width="24"
+                         Height="24"
+                         Fill="{Binding Background,
+                                        RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         Stroke="{Binding BorderBrush,
+                                          RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         StrokeThickness="1" />
+
+                <Rectangle Canvas.Left="8"
+                           Canvas.Top="8"
+                           Width="8"
+                           Height="8"
+                           Fill="{Binding Foreground,
+                                          RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+
+    <DataTemplate x:Key="HelpIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="14" Height="14">
+                <Ellipse Width="14"
+                         Height="14"
+                         Fill="{Binding Background,
+                                        RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         Stroke="{Binding BorderBrush,
+                                          RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                         StrokeThickness="0.583333" />
+
+                <Path Data="M7.069,11.197C6.575,11.197 6.174,10.796 6.174,10.302C6.174,9.807 6.575,9.407 7.069,9.407C7.563,9.407 7.964,9.807 7.964,10.302C7.964,10.796 7.563,11.197 7.069,11.197ZM7.773,8.551L7.773,8.712C7.773,8.712 6.431,8.712 6.297,8.712L6.297,8.551C6.297,8.095 6.363,7.511 6.892,7.003C7.421,6.494 8.083,6.075 8.083,5.44C8.083,4.738 7.595,4.367 6.981,4.367C5.958,4.367 5.891,5.428 5.866,5.662L4.431,5.662C4.469,4.555 4.937,3.007 6.99,3.007C8.769,3.007 9.569,4.199 9.569,5.316C9.569,7.095 7.773,7.404 7.773,8.551Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+
+    <DataTemplate x:Key="LicenseIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="12" Height="12">
+                <Path Data="M6.889,7.879l-1.32,1.319l-1.277,0l0,1.278l-1.333,0l0,1.204l-2.959,0l0,-2.052l4.245,-4.244c0.479,1.141 1.426,2.064 2.644,2.495ZM10.941,1.088c1.412,1.412 1.412,3.701 0,5.113c-1.412,1.412 -3.701,1.412 -5.113,0c-1.411,-1.412 -1.412,-3.701 0,-5.113c1.412,-1.412 3.701,-1.412 5.113,0ZM10.215,1.811c-0.35,-0.35 -0.917,-0.35 -1.268,0c-0.35,0.35 -0.35,0.918 0,1.268c0.351,0.35 0.918,0.35 1.268,0c0.351,-0.35 0.351,-0.918 0,-1.268Z" Fill="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+
+    <DataTemplate x:Key="NewIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="12" Height="12">
+                <Path Data="M7,7l0,5l-1.99,0.005l-0.01,-5.005l-5,0l0,-2l5,0l0,-5l2,0l0,5l5,0l0,2l-5,0Z" Fill="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+
+    <DataTemplate x:Key="OpenFolderIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="16" Height="14">
+                <Path Data="M0.932,13.58L0,6.286L16,6.286L14.858,13.58L0.932,13.58ZM1.812,12.58L14.002,12.58L14.831,7.286L1.136,7.286L1.812,12.58ZM1.204,4.928L1.204,0.66L5.101,0.66L5.993,1.547L6.016,1.569L6.04,1.591L6.064,1.612L6.089,1.633L6.114,1.653L6.139,1.672L6.165,1.691L6.192,1.709L6.219,1.726L6.246,1.742L6.273,1.758L6.301,1.774L6.329,1.788L6.358,1.802L6.387,1.815L6.416,1.828L6.445,1.839L6.475,1.85L6.505,1.861L6.535,1.87L6.566,1.879L6.596,1.887L6.627,1.894L6.659,1.901L6.69,1.907L6.721,1.912L6.753,1.916L6.785,1.92L6.817,1.923L6.849,1.925L6.881,1.926L6.913,1.926L14.757,1.926L14.757,4.928L1.204,4.928ZM13.757,3.928L13.757,2.926L6.907,2.926L6.856,2.926L6.8,2.923L6.743,2.92L6.687,2.915L6.63,2.909L6.574,2.901L6.519,2.892L6.463,2.882L6.408,2.87L6.354,2.857L6.299,2.843L6.245,2.827L6.192,2.81L6.139,2.792L6.087,2.773L6.034,2.752L5.983,2.73L5.932,2.707L5.882,2.682L5.832,2.657L5.783,2.63L5.734,2.602L5.686,2.572L5.639,2.542L5.592,2.51L5.547,2.477L5.501,2.443L5.457,2.408L5.414,2.372L5.371,2.334L5.329,2.296L5.293,2.26L4.689,1.66L2.204,1.66L2.204,3.928L13.757,3.928Z" Fill="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+
+    <DataTemplate x:Key="RefreshIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="68" Height="42">
+                <Path Data="M14,0l-14,14h9v23h32l-9,-9h-14v-14h9zM54,42l14,-14h-9v-23h-32l9,9h14v14h-9z" Fill="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+</ResourceDictionary>

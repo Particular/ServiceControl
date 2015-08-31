@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DOCUMENT Type="Advanced Installer" CreateVersion="10.6" version="10.6" Modules="enterprise" RootPath="." Language="en" Id="{D5FBDAF4-B426-436A-ABC2-D10F5C54F8FF}">
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
+    <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
+    <ROW Property="AI_EXTERNALUIUNINSTALLERNAME" MultiBuildValue="DefaultBuild:aiui"/>
+    <ROW Property="AI_FINDEXE_TITLE" Value="Select the installation package for [|ProductName]" ValueLocId="AI.Property.FindExeTitle"/>
+    <ROW Property="AI_MINDOTNETVERSION" MultiBuildValue="DefaultBuild:4.5" ValueLocId="-"/>
+    <ROW Property="AI_PRODUCTNAME_ARP" Value="Particular Software ServiceControl Management"/>
+    <ROW Property="AI_UNINSTALLER" Value="msiexec.exe"/>
+    <ROW Property="ALLUSERS" Value="1"/>
+    <ROW Property="ARPCOMMENTS" Value="Particular Software ServiceControl version [|ProductVersion] for NServiceBus" ValueLocId="*"/>
+    <ROW Property="ARPHELPLINK" Value="http://particular.net/support"/>
+    <ROW Property="ARPNOREMOVE" Value="1"/>
+    <ROW Property="ARPNOREPAIR" Value="1"/>
+    <ROW Property="ARPPRODUCTICON" Value="Operations.exe" Type="8"/>
+    <ROW Property="ARPSYSTEMCOMPONENT" Value="1"/>
+    <ROW Property="ARPURLUPDATEINFO" Value="http://particular.net/downloads"/>
+    <ROW Property="AiSkipExitDlg" Value="1"/>
+    <ROW Property="CTRLS" Value="2"/>
+    <ROW Property="Manufacturer" Value="Particular Software"/>
+    <ROW Property="ProductCode" Value="1033:{E81799B3-F7D0-4EDE-8BB8-92E7590BEAA2} " Type="16"/>
+    <ROW Property="ProductLanguage" Value="1033"/>
+    <ROW Property="ProductName" Value="ServiceControl Management"/>
+    <ROW Property="ProductVersion" Value="1.6.0" Type="32"/>
+    <ROW Property="SCINSTANCESPRESENT" Value="NO"/>
+    <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
+    <ROW Property="TEXT_1_PROP" Value="[SC_INSTANCE_COUNT]" Type="4"/>
+    <ROW Property="UpgradeCode" Value="{2D065BDE-CBF7-4AC7-BD0E-6FFF22DDE120}"/>
+    <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
+    <ROW Property="WindowsType9XDisplay" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT" MultiBuildValue="DefaultBuild:Windows 2000, Windows 2000 Service Pack 1, Windows 2000 Service Pack 2, Windows 2000 Service Pack 3, Windows 2000 Service Pack 4, Windows XP x86, Windows XP x86 Service Pack 1, Windows XP x86 Service Pack 2, Windows XP x86 Service Pack 3, Windows Server 2003 x86, Windows Server 2003 x86 Service Pack 1, Windows Server 2003 x86 Service Pack 2, Windows Vista x86, Windows Vista x86 Service Pack 1, Windows Vista x86 Service Pack 2" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT40" MultiBuildValue="DefaultBuild:Windows NT 4.0" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT40Display" MultiBuildValue="DefaultBuild:Windows NT 4.0" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT64" MultiBuildValue="DefaultBuild:Windows XP x64, Windows XP x64 Service Pack 1, Windows XP x64 Service Pack 2, Windows Server 2003 x64, Windows Server 2003 x64 Service Pack 1, Windows Server 2003 x64 Service Pack 2, Windows Vista x64, Windows Vista x64 Service Pack 1, Windows Vista x64 Service Pack 2" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT64Display" MultiBuildValue="DefaultBuild:Windows XP x64, Windows Server 2003 x64, Windows Vista x64" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNTDisplay" MultiBuildValue="DefaultBuild:Windows 2000, Windows XP x86, Windows Server 2003 x86, Windows Vista x86" ValueLocId="-"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
+    <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1"/>
+    <ROW Directory="POWERSHELLDIR" Directory_Parent="APPDIR" DefaultDir=".:PowerS~1|PowerShellModule"/>
+    <ROW Directory="ProgramMenuFolder" Directory_Parent="TARGETDIR" DefaultDir="Progra~1|ProgramMenuFolder" IsPseudoRoot="1"/>
+    <ROW Directory="SHORTCUTDIR" Directory_Parent="TARGETDIR" DefaultDir="SHORTC~1|SHORTCUTDIR" IsPseudoRoot="1"/>
+    <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
+    <ROW Component="AI_CustomARPName" ComponentId="{86B714D7-9C86-41C8-9C3F-D3988F63F047}" Directory_="APPDIR" Attributes="4" KeyPath="DisplayName" Options="1"/>
+    <ROW Component="AI_ExePath" ComponentId="{6C6931FD-7DD0-4009-AEA7-4C564B4C21B9}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
+    <ROW Component="Autofac.dll" ComponentId="{09882536-8209-44A4-9300-FC61C770EF4B}" Directory_="APPDIR" Attributes="0" KeyPath="Autofac.dll"/>
+    <ROW Component="Autofac.xml" ComponentId="{6DAD4F2D-AF0F-4FD1-96AE-7057B9EB3BFB}" Directory_="APPDIR" Attributes="0" KeyPath="Autofac.xml" Type="0"/>
+    <ROW Component="Caliburn.Micro.Platform.dll" ComponentId="{155A121E-9B02-43FF-A17B-23D386D34974}" Directory_="APPDIR" Attributes="0" KeyPath="Caliburn.Micro.Platform.dll"/>
+    <ROW Component="Caliburn.Micro.dll" ComponentId="{A2EC7FBE-72A8-4A1C-BAD7-980D374A73EE}" Directory_="APPDIR" Attributes="0" KeyPath="Caliburn.Micro.dll"/>
+    <ROW Component="Microsoft.WindowsAPICodePack.Shell.dll" ComponentId="{34531AEC-D30B-4A3B-B2CB-623C213B292D}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.WindowsAPICodePack.Shell.dll"/>
+    <ROW Component="Microsoft.WindowsAPICodePack.dll" ComponentId="{4AC9E4BA-F387-4B03-BD96-668FB2DE6045}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.WindowsAPICodePack.dll"/>
+    <ROW Component="Mindscape.Raygun4Net.dll" ComponentId="{6F5C23E9-AC10-4E4E-9D48-2595CBE702F0}" Directory_="APPDIR" Attributes="0" KeyPath="Mindscape.Raygun4Net.dll"/>
+    <ROW Component="Mindscape.Raygun4Net4.dll" ComponentId="{8F2AE4F7-F65D-44A7-9AF9-340314F37FD0}" Directory_="APPDIR" Attributes="0" KeyPath="Mindscape.Raygun4Net4.dll"/>
+    <ROW Component="ProductInformation" ComponentId="{96301A6D-FC4F-494F-A3EA-7B3A1F48D26B}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
+    <ROW Component="ReactiveUI.Blend.dll" ComponentId="{124C229A-A7C9-4861-8EA0-B4776E75ED05}" Directory_="APPDIR" Attributes="0" KeyPath="ReactiveUI.Blend.dll"/>
+    <ROW Component="ReactiveUI.Xaml.dll" ComponentId="{6A3E9209-22C3-4882-8D8C-FFA0234B0E79}" Directory_="APPDIR" Attributes="0" KeyPath="ReactiveUI.Xaml.dll"/>
+    <ROW Component="ReactiveUI.dll" ComponentId="{AC1EE6A4-F9C0-4A44-96F5-054D499A62B5}" Directory_="APPDIR" Attributes="0" KeyPath="ReactiveUI.dll"/>
+    <ROW Component="SHORTCUTDIR" ComponentId="{A34B0A89-3EB3-443B-9DD8-ACA01E02839A}" Directory_="SHORTCUTDIR" Attributes="0"/>
+    <ROW Component="ServiceControlConfig.exe" ComponentId="{03FCB25B-BB80-4956-B6E8-5FF9479F6FC9}" Directory_="APPDIR" Attributes="0" KeyPath="ServiceControlConfig.exe"/>
+    <ROW Component="ServiceControlInstaller.Engine.dll" ComponentId="{BA7E9D61-906F-4FD1-99FA-EE87C1177D4D}" Directory_="APPDIR" Attributes="0" KeyPath="ServiceControlInstaller.Engine.dll"/>
+    <ROW Component="ServiceControlInstaller.Engine.dll_1" ComponentId="{45AB652A-E21E-476B-AE58-EA04E6E1F026}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="ServiceControlInstaller.Engine.dll_1"/>
+    <ROW Component="ServiceControlInstaller.PowerShell.dll" ComponentId="{639D961D-FC56-4A96-AC19-64E31970578A}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="ServiceControlInstaller.PowerShell.dll"/>
+    <ROW Component="ServiceControlMgmt.psd1" ComponentId="{E8D17CC8-9A07-495C-8A7E-0A0264CB2B3D}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="ServiceControlMgmt.psd1" Type="0"/>
+    <ROW Component="System.Reactive.Core.dll" ComponentId="{53347D2E-A40D-404B-A4A3-1659BE775798}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Core.dll"/>
+    <ROW Component="System.Reactive.Interfaces.dll" ComponentId="{40A9AF7F-8B3C-4649-93B6-59BC71504E99}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Interfaces.dll"/>
+    <ROW Component="System.Reactive.Linq.dll" ComponentId="{6C6E73C4-C5CC-4B08-B9C6-21420178A3C1}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Linq.dll"/>
+    <ROW Component="System.Reactive.PlatformServices.dll" ComponentId="{7021EE82-4185-4812-88E5-828A171CB63B}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.PlatformServices.dll"/>
+    <ROW Component="System.Reactive.Windows.Threading.dll" ComponentId="{A00A875C-3FB9-4B0F-8701-9F76F72FD69B}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Windows.Threading.dll"/>
+    <ROW Component="System.Windows.Interactivity.dll" ComponentId="{F06A376D-084D-4A73-A277-6F78EF9E8463}" Directory_="APPDIR" Attributes="0" KeyPath="System.Windows.Interactivity.dll"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
+    <ROW Feature="ServiceControlManagment" Title="ServiceControlManagement" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="AI_CustomARPName AI_ExePath Autofac.dll Autofac.xml Caliburn.Micro.Platform.dll Caliburn.Micro.dll Microsoft.WindowsAPICodePack.Shell.dll Microsoft.WindowsAPICodePack.dll Mindscape.Raygun4Net.dll Mindscape.Raygun4Net4.dll ProductInformation ReactiveUI.Blend.dll ReactiveUI.Xaml.dll ReactiveUI.dll SHORTCUTDIR ServiceControlConfig.exe ServiceControlInstaller.Engine.dll ServiceControlInstaller.Engine.dll_1 ServiceControlInstaller.PowerShell.dll ServiceControlMgmt.psd1 System.Reactive.Core.dll System.Reactive.Interfaces.dll System.Reactive.Linq.dll System.Reactive.PlatformServices.dll System.Reactive.Windows.Threading.dll System.Windows.Interactivity.dll"/>
+    <ATTRIBUTE name="CurrentFeature" value="ServiceControlManagment"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
+    <ROW File="Autofac.dll" Component_="Autofac.dll" FileName="Autofac.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Autofac.dll" SelfReg="false" NextFile="Autofac.xml"/>
+    <ROW File="Autofac.xml" Component_="Autofac.xml" FileName="Autofac.xml" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Autofac.xml" SelfReg="false" NextFile="Caliburn.Micro.dll"/>
+    <ROW File="Caliburn.Micro.Platform.dll" Component_="Caliburn.Micro.Platform.dll" FileName="Calibu~2.dll|Caliburn.Micro.Platform.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.Platform.dll" SelfReg="false" NextFile="Caliburn.Micro.Platform.xml"/>
+    <ROW File="Caliburn.Micro.Platform.xml" Component_="Autofac.xml" FileName="Calibu~1.xml|Caliburn.Micro.Platform.xml" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.Platform.xml" SelfReg="false" NextFile="Caliburn.Micro.xml"/>
+    <ROW File="Caliburn.Micro.dll" Component_="Caliburn.Micro.dll" FileName="Calibu~1.dll|Caliburn.Micro.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.dll" SelfReg="false" NextFile="Caliburn.Micro.Platform.dll"/>
+    <ROW File="Caliburn.Micro.xml" Component_="Autofac.xml" FileName="Calibu~2.xml|Caliburn.Micro.xml" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.xml" SelfReg="false" NextFile="Microsoft.WindowsAPICodePack.dll"/>
+    <ROW File="Microsoft.WindowsAPICodePack.Shell.dll" Component_="Microsoft.WindowsAPICodePack.Shell.dll" FileName="Micros~2.dll|Microsoft.WindowsAPICodePack.Shell.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.WindowsAPICodePack.Shell.dll" SelfReg="false" NextFile="Microsoft.WindowsAPICodePack.Shell.pdb"/>
+    <ROW File="Microsoft.WindowsAPICodePack.Shell.pdb" Component_="Microsoft.WindowsAPICodePack.Shell.dll" FileName="Micros~2.pdb|Microsoft.WindowsAPICodePack.Shell.pdb" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.WindowsAPICodePack.Shell.pdb" SelfReg="false" NextFile="Mindscape.Raygun4Net.dll"/>
+    <ROW File="Microsoft.WindowsAPICodePack.dll" Component_="Microsoft.WindowsAPICodePack.dll" FileName="Micros~1.dll|Microsoft.WindowsAPICodePack.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.WindowsAPICodePack.dll" SelfReg="false" NextFile="Microsoft.WindowsAPICodePack.pdb"/>
+    <ROW File="Microsoft.WindowsAPICodePack.pdb" Component_="Microsoft.WindowsAPICodePack.dll" FileName="Micros~1.pdb|Microsoft.WindowsAPICodePack.pdb" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.WindowsAPICodePack.pdb" SelfReg="false" NextFile="Microsoft.WindowsAPICodePack.Shell.dll"/>
+    <ROW File="Mindscape.Raygun4Net.dll" Component_="Mindscape.Raygun4Net.dll" FileName="Mindsc~1.dll|Mindscape.Raygun4Net.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Mindscape.Raygun4Net.dll" SelfReg="false" NextFile="Mindscape.Raygun4Net.pdb"/>
+    <ROW File="Mindscape.Raygun4Net.pdb" Component_="Mindscape.Raygun4Net.dll" FileName="Mindsc~1.pdb|Mindscape.Raygun4Net.pdb" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Mindscape.Raygun4Net.pdb" SelfReg="false" NextFile="Mindscape.Raygun4Net4.dll"/>
+    <ROW File="Mindscape.Raygun4Net4.dll" Component_="Mindscape.Raygun4Net4.dll" FileName="Mindsc~2.dll|Mindscape.Raygun4Net4.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Mindscape.Raygun4Net4.dll" SelfReg="false" NextFile="Mindscape.Raygun4Net4.pdb"/>
+    <ROW File="Mindscape.Raygun4Net4.pdb" Component_="Mindscape.Raygun4Net4.dll" FileName="Mindsc~2.pdb|Mindscape.Raygun4Net4.pdb" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Mindscape.Raygun4Net4.pdb" SelfReg="false" NextFile="Particular.ServiceControl1.6.0.zip"/>
+    <ROW File="Particular.ServiceControl1.6.0.zip" Component_="Autofac.xml" FileName="Partic~1.zip|Particular.ServiceControl-1.6.0.zip" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Particular.ServiceControl-1.6.0.zip" SelfReg="false" NextFile="ReactiveUI.Blend.dll"/>
+    <ROW File="ReactiveUI.Blend.dll" Component_="ReactiveUI.Blend.dll" FileName="Reacti~1.dll|ReactiveUI.Blend.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.Blend.dll" SelfReg="false" NextFile="ReactiveUI.Blend.xml"/>
+    <ROW File="ReactiveUI.Blend.xml" Component_="Autofac.xml" FileName="Reacti~1.xml|ReactiveUI.Blend.xml" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.Blend.xml" SelfReg="false" NextFile="ReactiveUI.dll"/>
+    <ROW File="ReactiveUI.Xaml.dll" Component_="ReactiveUI.Xaml.dll" FileName="Reacti~3.dll|ReactiveUI.Xaml.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.Xaml.dll" SelfReg="false" NextFile="ReactiveUI.Xaml.xml"/>
+    <ROW File="ReactiveUI.Xaml.xml" Component_="Autofac.xml" FileName="Reacti~2.xml|ReactiveUI.Xaml.xml" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.Xaml.xml" SelfReg="false" NextFile="ReactiveUI.xml"/>
+    <ROW File="ReactiveUI.dll" Component_="ReactiveUI.dll" FileName="Reacti~2.dll|ReactiveUI.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.dll" SelfReg="false" NextFile="ReactiveUI.Xaml.dll"/>
+    <ROW File="ReactiveUI.xml" Component_="Autofac.xml" FileName="Reacti~3.xml|ReactiveUI.xml" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.xml" SelfReg="false" NextFile="ServiceControlConfig.exe.config"/>
+    <ROW File="ServiceControlConfig.exe" Component_="ServiceControlConfig.exe" FileName="Servic~1.exe|ServiceControlConfig.exe" Attributes="0" SourcePath="&lt;WPF_PATH&gt;\ServiceControlConfig.exe" SelfReg="false" NextFile="Autofac.dll" DigSign="true"/>
+    <ROW File="ServiceControlConfig.exe.config" Component_="Autofac.xml" FileName="Servic~1.con|ServiceControlConfig.exe.config" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ServiceControlConfig.exe.config" SelfReg="false" NextFile="ServiceControlConfig.pdb"/>
+    <ROW File="ServiceControlConfig.pdb" Component_="ServiceControlConfig.exe" FileName="Servic~1.pdb|ServiceControlConfig.pdb" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ServiceControlConfig.pdb" SelfReg="false" NextFile="ServiceControlInstaller.Engine.dll"/>
+    <ROW File="ServiceControlInstaller.Engine.dll" Component_="ServiceControlInstaller.Engine.dll" FileName="Servic~1.dll|ServiceControlInstaller.Engine.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ServiceControlInstaller.Engine.dll" SelfReg="false" NextFile="ServiceControlInstaller.Engine.pdb"/>
+    <ROW File="ServiceControlInstaller.Engine.dll_1" Component_="ServiceControlInstaller.Engine.dll_1" FileName="Servic~1.dll|ServiceControlInstaller.Engine.dll" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlInstaller.Engine.dll" SelfReg="false" NextFile="ServiceControlInstaller.Engine.pdb_1"/>
+    <ROW File="ServiceControlInstaller.Engine.pdb" Component_="ServiceControlInstaller.Engine.dll" FileName="Servic~2.pdb|ServiceControlInstaller.Engine.pdb" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ServiceControlInstaller.Engine.pdb" SelfReg="false" NextFile="System.Reactive.Core.dll"/>
+    <ROW File="ServiceControlInstaller.Engine.pdb_1" Component_="ServiceControlInstaller.Engine.dll_1" FileName="Servic~1.pdb|ServiceControlInstaller.Engine.pdb" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlInstaller.Engine.pdb" SelfReg="false" NextFile="ServiceControlInstaller.PowerShell.dll"/>
+    <ROW File="ServiceControlInstaller.PowerShell.dll" Component_="ServiceControlInstaller.PowerShell.dll" FileName="Servic~2.dll|ServiceControlInstaller.PowerShell.dll" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlInstaller.PowerShell.dll" SelfReg="false" NextFile="ServiceControlInstaller.PowerShell.pdb"/>
+    <ROW File="ServiceControlInstaller.PowerShell.pdb" Component_="ServiceControlInstaller.PowerShell.dll" FileName="Servic~2.pdb|ServiceControlInstaller.PowerShell.pdb" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlInstaller.PowerShell.pdb" SelfReg="false" NextFile="ServiceControlMgmt.psd1"/>
+    <ROW File="ServiceControlMgmt.psd1" Component_="ServiceControlMgmt.psd1" FileName="Servic~1.psd|ServiceControlMgmt.psd1" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlMgmt.psd1" SelfReg="false" NextFile="ServiceControlMgmt.psm1"/>
+    <ROW File="ServiceControlMgmt.psm1" Component_="ServiceControlMgmt.psd1" FileName="Servic~1.psm|ServiceControlMgmt.psm1" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlMgmt.psm1" SelfReg="false" NextFile="ShortcutStartup.ps1"/>
+    <ROW File="ShortcutStartup.ps1" Component_="ServiceControlMgmt.psd1" FileName="Shortc~1.ps1|ShortcutStartup.ps1" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ShortcutStartup.ps1" SelfReg="false"/>
+    <ROW File="System.Reactive.Core.dll" Component_="System.Reactive.Core.dll" FileName="System~1.dll|System.Reactive.Core.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Core.dll" SelfReg="false" NextFile="System.Reactive.Core.xml"/>
+    <ROW File="System.Reactive.Core.xml" Component_="Autofac.xml" FileName="System~1.xml|System.Reactive.Core.xml" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Core.xml" SelfReg="false" NextFile="System.Reactive.Interfaces.dll"/>
+    <ROW File="System.Reactive.Interfaces.dll" Component_="System.Reactive.Interfaces.dll" FileName="System~2.dll|System.Reactive.Interfaces.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Interfaces.dll" SelfReg="false" NextFile="System.Reactive.Interfaces.xml"/>
+    <ROW File="System.Reactive.Interfaces.xml" Component_="Autofac.xml" FileName="System~2.xml|System.Reactive.Interfaces.xml" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Interfaces.xml" SelfReg="false" NextFile="System.Reactive.Linq.dll"/>
+    <ROW File="System.Reactive.Linq.dll" Component_="System.Reactive.Linq.dll" FileName="System~3.dll|System.Reactive.Linq.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Linq.dll" SelfReg="false" NextFile="System.Reactive.Linq.xml"/>
+    <ROW File="System.Reactive.Linq.xml" Component_="Autofac.xml" FileName="System~3.xml|System.Reactive.Linq.xml" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Linq.xml" SelfReg="false" NextFile="System.Reactive.PlatformServices.dll"/>
+    <ROW File="System.Reactive.PlatformServices.dll" Component_="System.Reactive.PlatformServices.dll" FileName="System~4.dll|System.Reactive.PlatformServices.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.PlatformServices.dll" SelfReg="false" NextFile="System.Reactive.PlatformServices.xml"/>
+    <ROW File="System.Reactive.PlatformServices.xml" Component_="Autofac.xml" FileName="System~4.xml|System.Reactive.PlatformServices.xml" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.PlatformServices.xml" SelfReg="false" NextFile="System.Reactive.Windows.Threading.dll"/>
+    <ROW File="System.Reactive.Windows.Threading.dll" Component_="System.Reactive.Windows.Threading.dll" FileName="System~5.dll|System.Reactive.Windows.Threading.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Windows.Threading.dll" SelfReg="false" NextFile="System.Reactive.Windows.Threading.xml"/>
+    <ROW File="System.Reactive.Windows.Threading.xml" Component_="Autofac.xml" FileName="System~5.xml|System.Reactive.Windows.Threading.xml" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Windows.Threading.xml" SelfReg="false" NextFile="System.Windows.Interactivity.dll"/>
+    <ROW File="System.Windows.Interactivity.dll" Component_="System.Windows.Interactivity.dll" FileName="System~6.dll|System.Windows.Interactivity.dll" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Windows.Interactivity.dll" SelfReg="false" NextFile="ServiceControlInstaller.Engine.dll_1"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.AiBinaryAliasComponent">
+    <ROW AliasRowId="banner" AliasRowOperation="2" Data="Res\banner.jpg"/>
+    <ROW AliasRowId="dialog" AliasRowOperation="2" Data="Res\dialog.jpg"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.AppPathsComponent">
+    <ROW Name="CUSTOMACTIONS_PATH" Path="..\ServiceControlInstaller.CustomActions\bin\Release" Type="2" Content="0"/>
+    <ROW Name="POSH_PATH" Path="..\ServiceControlInstaller.PowerShell\bin\Release" Type="2" Content="0"/>
+    <ROW Name="PROJECT_PATH" Path="." Type="2" Content="0"/>
+    <ROW Name="WPF_PATH" Path="..\ServiceControl.Config\bin\Release" Type="2" Content="0"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
+    <ROW BootstrOptKey="GlobalOptions" GeneralOptions="hq" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" PackageFileName="Particular.ServiceControl" Languages="en" InstallationType="4" CabsLocation="1" PackageType="1" FilesInsideExe="true" ExeIconPath="Res\Operations.ico" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName] [|ProductVersion]\install" ExtUI="true" UseLargeSchema="true" ExeName="Particular.ServiceControl.TestBuild" UACExecutionLevel="2"/>
+    <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
+    <ROW Path="&lt;AI_DICTS&gt;ui.ail"/>
+    <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
+    <ROW TimeStampUrl="http://timestamp.verisign.com/scripts/timstamp.dll" SignerDescription="[|ProductName]" SignOptions="0" SignTool="0" Thumbprint="acfab957ce84ba76b9cddcbc7d901ae8983b6536 Subject: NServiceBus Ltd.&#10;Issuer: VeriSign Class 3 Code Signing 2010 CA&#10;Valid from 08/27/2013 to 11/11/2015"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
+    <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
+    <ROW Fragment="FolderDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\FolderDlg.aip"/>
+    <ROW Fragment="LicenseAgreementDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\LicenseAgreementDlg.aip"/>
+    <ROW Fragment="MaintenanceTypeDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\MaintenanceTypeDlg.aip"/>
+    <ROW Fragment="SequenceDialogs.aip" Path="&lt;AI_THEMES&gt;classic\fragments\SequenceDialogs.aip"/>
+    <ROW Fragment="Sequences.aip" Path="&lt;AI_FRAGS&gt;Sequences.aip"/>
+    <ROW Fragment="StaticUIStrings.aip" Path="&lt;AI_FRAGS&gt;StaticUIStrings.aip"/>
+    <ROW Fragment="UI.aip" Path="&lt;AI_THEMES&gt;classic\fragments\UI.aip"/>
+    <ROW Fragment="Validation.aip" Path="&lt;AI_FRAGS&gt;Validation.aip"/>
+    <ROW Fragment="VerifyRemoveDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\VerifyRemoveDlg.aip"/>
+    <ROW Fragment="WelcomeDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\WelcomeDlg.aip"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiActionTextComponent">
+    <ROW Action="AI_DeleteLzma" Description="Deleting files extracted from archive" DescriptionLocId="ActionText.Description.AI_DeleteLzma" TemplateLocId="-"/>
+    <ROW Action="AI_DeleteRLzma" Description="Deleting files extracted from archive" DescriptionLocId="ActionText.Description.AI_DeleteLzma" TemplateLocId="-"/>
+    <ROW Action="AI_ExtractFiles" Description="Extracting files from archive" DescriptionLocId="ActionText.Description.AI_ExtractLzma" TemplateLocId="-"/>
+    <ROW Action="AI_ExtractLzma" Description="Extracting files from archive" DescriptionLocId="ActionText.Description.AI_ExtractLzma" TemplateLocId="-"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiAppSearchComponent">
+    <ROW Property="AI_DOTNET45_SEARCH" Signature_="AI_DotNet45SearchSgn" Builds="DefaultBuild"/>
+    <ROW Property="AI_SETUPEXEPATH" Signature_="AI_EXE_PATH_CU" Builds="DefaultBuild"/>
+    <ROW Property="AI_SETUPEXEPATH" Signature_="AI_EXE_PATH_LM" Builds="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiBinaryComponent">
+    <ROW Name="ExternalUICleaner.dll" SourcePath="&lt;AI_CUSTACTS&gt;ExternalUICleaner.dll"/>
+    <ROW Name="Prereq.dll" SourcePath="&lt;AI_CUSTACTS&gt;Prereq.dll"/>
+    <ROW Name="ServiceControlInstaller.CustomActions.CA.dll" SourcePath="&lt;CUSTOMACTIONS_PATH&gt;\ServiceControlInstaller.CustomActions.CA.dll"/>
+    <ROW Name="ShortcutFlags.dll" SourcePath="&lt;AI_CUSTACTS&gt;ShortcutFlags.dll"/>
+    <ROW Name="aicustact.dll" SourcePath="&lt;AI_CUSTACTS&gt;aicustact.dll"/>
+    <ROW Name="exclamation.ico" SourcePath="Res\exclamation.ico"/>
+    <ROW Name="lzmaextractor.dll" SourcePath="&lt;AI_CUSTACTS&gt;lzmaextractor.dll"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlComponent">
+    <ROW Dialog_="LicenseAgreementDlg" Control="AgreementText" Type="ScrollableText" X="20" Y="60" Width="330" Height="120" Attributes="7" Text="Res\License.rtf" Order="400" TextLocId="Control.Text.LicenseAgreementDlg#AgreementText" MsiKey="LicenseAgreementDlg#AgreementText"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="ChangeLabel" Type="Text" X="107" Y="163" Width="100" Height="10" Attributes="0" Text="&amp;Modify" TextStyle="[DlgTitleFont]" Order="100" TextLocId="Control.Text.MaintenanceTypeDlg#ChangeLabel" MsiKey="MaintenanceTypeDlg#ChangeLabel"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="ChangeButton" Type="PushButton" X="52" Y="163" Width="38" Height="38" Attributes="5767168" Text="[CustomSetupIcon]" Help="Modify Installation|" Order="200" HelpLocId="Control.Help.MaintenanceTypeDlg#ChangeButton" MsiKey="MaintenanceTypeDlg#ChangeButton"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RepairLabel" Type="Text" X="107" Y="66" Width="100" Height="10" Attributes="3" Text="Re&amp;pair" TextStyle="[DlgTitleFont]" Order="300" TextLocId="Control.Text.MaintenanceTypeDlg#RepairLabel" MsiKey="MaintenanceTypeDlg#RepairLabel"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RepairButton" Type="PushButton" X="52" Y="66" Width="38" Height="38" Attributes="5767171" Text="[RepairIcon]" Help="Repair Installation|" Order="400" HelpLocId="Control.Help.MaintenanceTypeDlg#RepairButton" MsiKey="MaintenanceTypeDlg#RepairButton"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RemoveLabel" Type="Text" X="107" Y="115" Width="100" Height="10" Attributes="3" Text="&amp;Remove" TextStyle="[DlgTitleFont]" Order="500" TextLocId="Control.Text.MaintenanceTypeDlg#RemoveLabel" MsiKey="MaintenanceTypeDlg#RemoveLabel"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RemoveButton" Type="PushButton" X="52" Y="115" Width="38" Height="38" Attributes="5767171" Text="[RemoveIcon]" Help="Remove Installation|" Order="600" HelpLocId="Control.Help.MaintenanceTypeDlg#RemoveButton" MsiKey="MaintenanceTypeDlg#RemoveButton"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="ChangeText" Type="Text" X="107" Y="176" Width="230" Height="20" Attributes="0" Text="Allows users to change the way features are installed." Order="1400" TextLocId="Control.Text.MaintenanceTypeDlg#ChangeText" MsiKey="MaintenanceTypeDlg#ChangeText"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="Title" Type="Text" X="15" Y="6" Width="240" Height="15" Attributes="196611" Text="Repair or Remove installation" TextStyle="[DlgTitleFont]" Order="1600" TextLocId="Control.Text.MaintenanceTypeDlg#Title" MsiKey="MaintenanceTypeDlg#Title"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RepairText" Type="Text" X="107" Y="79" Width="230" Height="30" Attributes="3" Text="Repairs errors in the most recent installation state - fixes missing or corrupt files, shortcuts and registry entries." Order="1700" TextLocId="Control.Text.MaintenanceTypeDlg#RepairText" MsiKey="MaintenanceTypeDlg#RepairText"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RemoveText" Type="Text" X="107" Y="128" Width="230" Height="20" Attributes="3" Text="Removes [ProductName] from your computer." Order="1800" TextLocId="Control.Text.MaintenanceTypeDlg#RemoveText" MsiKey="MaintenanceTypeDlg#RemoveText"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="Text_1" Type="Text" X="5" Y="52" Width="90" Height="14" Attributes="65539" Property="TEXT_1_PROP" Order="1900"/>
+    <ROW Dialog_="RemoveInstances" Control="RemoveInstancesDialogInitializer" Type="DialogInitializer" X="0" Y="0" Width="0" Height="0" Attributes="0" Order="-1" TextLocId="-" HelpLocId="-" ExtDataLocId="-"/>
+    <ROW Dialog_="RemoveInstances" Control="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Attributes="3" Text="[ButtonText_Next]" Order="100" TextLocId="-" Options="1"/>
+    <ROW Dialog_="RemoveInstances" Control="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Attributes="3" Text="[ButtonText_Cancel]" Order="200" TextLocId="-" Options="1"/>
+    <ROW Dialog_="RemoveInstances" Control="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Attributes="1" Text="[ButtonText_Back]" Order="300" TextLocId="-" Options="1"/>
+    <ROW Dialog_="RemoveInstances" Control="Description" Type="Text" X="70" Y="68" Width="272" Height="14" Attributes="196611" Text="[SCINSTANCECOUNT] ServiceControl service instance(s) found" TextStyle="DlgFontBold8" Order="400"/>
+    <ROW Dialog_="RemoveInstances" Control="BottomLine" Type="Line" X="0" Y="234" Width="372" Height="0" Attributes="1" Order="500"/>
+    <ROW Dialog_="RemoveInstances" Control="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" Attributes="1048577" Text="[BannerBitmap]" Order="600"/>
+    <ROW Dialog_="RemoveInstances" Control="Text_1" Type="Text" X="15" Y="6" Width="240" Height="15" Attributes="196611" Text="ServiceControl Instances" TextStyle="[DlgTitleFont]" Order="700" TextLocId="Control.Text.MaintenanceTypeDlg#Title"/>
+    <ROW Dialog_="RemoveInstances" Control="PushButton_1" Type="PushButton" X="105" Y="159" Width="160" Height="37" Attributes="3" Text="Run ServiceControl Management Tool" Order="800"/>
+    <ROW Dialog_="RemoveInstances" Control="Text_3" Type="Text" X="32" Y="96" Width="311" Height="31" Attributes="65539" Property="TEXT_3_PROP" Text="WARNING: This uninstallation process does not remove any deployed instances of the ServiceControl service. If you have any  instances you want to remove please do so via the management tool." TextStyle="DlgFontBold8" Order="900"/>
+    <ROW Dialog_="RemoveInstances" Control="Text_2" Type="Text" X="25" Y="23" Width="280" Height="15" Attributes="196611" Text="Review configured ServiceControl instances before uninstalling" Order="1000" TextLocId="Control.Text.VerifyRemoveDlg#Description"/>
+    <ROW Dialog_="RemoveInstances" Control="Icon_1" Type="Icon" X="37" Y="62" Width="21" Height="21" Attributes="5242881" Text="exclamation.ico" Order="1100"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlEventComponent">
+    <ROW Dialog_="WelcomeDlg" Control_="Next" Event="NewDialog" Argument="LicenseAgreementDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_INSTALL" Ordering="197"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="FolderDlg" Condition="AI_INSTALL" Ordering="201"/>
+    <ROW Dialog_="FolderDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_INSTALL" Ordering="201"/>
+    <ROW Dialog_="FolderDlg" Control_="Back" Event="NewDialog" Argument="LicenseAgreementDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="CustomizeDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_MAINT" Ordering="101"/>
+    <ROW Dialog_="CustomizeDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT" Ordering="1"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_MAINT" Ordering="198"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="CustomizeDlg" Condition="AI_MAINT" Ordering="202"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="ChangeButton" Event="NewDialog" Argument="CustomizeDlg" Condition="AI_MAINT" Ordering="501"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="RemoveButton" Event="NewDialog" Argument="RemoveInstances" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="601"/>
+    <ROW Dialog_="VerifyRemoveDlg" Control_="Back" Event="NewDialog" Argument="RemoveInstances" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="1"/>
+    <ROW Dialog_="VerifyRemoveDlg" Control_="Remove" Event="EndDialog" Argument="Return" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="299" Options="1"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_PATCH" Ordering="201"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_PATCH" Ordering="199"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="PatchWelcomeDlg" Condition="AI_PATCH" Ordering="203"/>
+    <ROW Dialog_="ResumeDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_RESUME" Ordering="299"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control_="Next" Event="NewDialog" Argument="FolderDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control_="Back" Event="NewDialog" Argument="WelcomeDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="RemoveInstances" Control_="Cancel" Event="SpawnDialog" Argument="CancelDlg" Condition="1" Ordering="100"/>
+    <ROW Dialog_="RemoveInstances" Control_="PushButton_1" Event="DoAction" Argument="ServiceControlConfig.exe" Condition="AI_MAINT" Ordering="0"/>
+    <ROW Dialog_="RemoveInstances" Control_="Next" Event="[NewDialog_Cond]" Argument="1" Condition="(Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ))" Ordering="2"/>
+    <ROW Dialog_="RemoveInstances" Control_="Next" Event="[NewDialog_Cond]" Argument="{}" Condition="1" Ordering="1"/>
+    <ROW Dialog_="RemoveInstances" Control_="RemoveInstancesDialogInitializer" Event="DoAction" Argument="ReadServiceControltInstanceCount" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="0"/>
+    <ROW Dialog_="RemoveInstances" Control_="Next" Event="NewDialog" Argument="VerifyRemoveDlg" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="3"/>
+    <ROW Dialog_="RemoveInstances" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="1"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCreateFolderComponent">
+    <ROW Directory_="SHORTCUTDIR" Component_="SHORTCUTDIR"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
+    <ROW Action="AI_AppSearchEx" Type="1" Source="Prereq.dll" Target="DoAppSearchEx"/>
+    <ROW Action="AI_ApplyShortcutFlags" Type="3073" Source="ShortcutFlags.dll" Target="UpdateShortcutFlags" WithoutSeq="true"/>
+    <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Type="51" Source="AI_SETUPEXEPATH_ORIGINAL" Target="[AI_SETUPEXEPATH]"/>
+    <ROW Action="AI_DATA_SETTER" Type="51" Source="AI_ExtractFiles" Target="[AI_SETUPEXEPATH]"/>
+    <ROW Action="AI_DOWNGRADE" Type="19" Target="4010"/>
+    <ROW Action="AI_DeleteCadLzma" Type="51" Source="AI_DeleteLzma" Target="[AI_SETUPEXEPATH]"/>
+    <ROW Action="AI_DeleteLzma" Type="1025" Source="lzmaextractor.dll" Target="DeleteLZMAFiles"/>
+    <ROW Action="AI_DeleteRCadLzma" Type="51" Source="AI_DeleteRLzma" Target="[AI_SETUPEXEPATH]"/>
+    <ROW Action="AI_DeleteRLzma" Type="1281" Source="lzmaextractor.dll" Target="DeleteLZMAFiles"/>
+    <ROW Action="AI_DoRemoveExternalUIStub" Type="3585" Source="ExternalUICleaner.dll" Target="DoRemoveExternalUIStub" WithoutSeq="true"/>
+    <ROW Action="AI_DpiContentScale" Type="1" Source="aicustact.dll" Target="DpiContentScale"/>
+    <ROW Action="AI_EstimateExtractFiles" Type="1" Source="Prereq.dll" Target="EstimateExtractFiles"/>
+    <ROW Action="AI_ExtractCadLzma" Type="51" Source="AI_ExtractLzma" Target="[AI_SETUPEXEPATH]"/>
+    <ROW Action="AI_ExtractFiles" Type="1025" Source="Prereq.dll" Target="ExtractSourceFiles" AdditionalSeq="AI_DATA_SETTER"/>
+    <ROW Action="AI_ExtractLzma" Type="1025" Source="lzmaextractor.dll" Target="ExtractLZMAFiles"/>
+    <ROW Action="AI_FindExeLzma" Type="1" Source="lzmaextractor.dll" Target="FindEXE"/>
+    <ROW Action="AI_FinishActions" Type="1" Source="aicustact.dll" Target="RunAllExitActions"/>
+    <ROW Action="AI_GetArpIconPath" Type="1" Source="aicustact.dll" Target="GetArpIconPath"/>
+    <ROW Action="AI_InstallModeCheck" Type="1" Source="aicustact.dll" Target="UpdateInstallMode" WithoutSeq="true"/>
+    <ROW Action="AI_LaunchApp" Type="1" Source="aicustact.dll" Target="[#ServiceControlConfig.exe]"/>
+    <ROW Action="AI_PREPARE_UPGRADE" Type="65" Source="aicustact.dll" Target="PrepareUpgrade"/>
+    <ROW Action="AI_PrepareShortcutFlags" Type="1" Source="ShortcutFlags.dll" Target="PrepareActionData"/>
+    <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Type="51" Source="AI_SETUPEXEPATH" Target="[AI_SETUPEXEPATH_ORIGINAL]"/>
+    <ROW Action="AI_RESTORE_LOCATION" Type="65" Source="aicustact.dll" Target="RestoreLocation"/>
+    <ROW Action="AI_RemoveExternalUIStub" Type="1" Source="ExternalUICleaner.dll" Target="RemoveExternalUIStub"/>
+    <ROW Action="AI_ResolveKnownFolders" Type="1" Source="aicustact.dll" Target="AI_ResolveKnownFolders"/>
+    <ROW Action="AI_ResolveLocalizedCredentials" Type="1" Source="aicustact.dll" Target="GetLocalizedCredentials"/>
+    <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
+    <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
+    <ROW Action="MigrationInstallationWithoutUninstall" Type="1" Source="ServiceControlInstaller.CustomActions.CA.dll" Target="ServiceControlMigration"/>
+    <ROW Action="ReadServiceControltInstanceCount" Type="1" Source="ServiceControlInstaller.CustomActions.CA.dll" Target="ServiceControlInstanceCount" WithoutSeq="true"/>
+    <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[ProgramFilesFolder]\Particular Software\ServiceControl Management\"/>
+    <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]" MultiBuildTarget="DefaultBuild:[ProgramMenuFolder][Manufacturer]"/>
+    <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
+    <ROW Action="ServiceControlConfig.exe" Type="18" Source="ServiceControlConfig.exe" WithoutSeq="true"/>
+    <ROW Action="ServiceControlUnattendedInstall" Type="257" Source="ServiceControlInstaller.CustomActions.CA.dll" Target="ServiceControlUnattendedInstall"/>
+    <ROW Action="ServiceControlUnattendedRemoval" Type="65" Source="ServiceControlInstaller.CustomActions.CA.dll" Target="ServiceControlUnattendedRemoval"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiDialogComponent">
+    <ROW Dialog="RemoveInstances" HCentering="50" VCentering="50" Width="370" Height="270" Attributes="3" Title="[ProductName] [Setup]" Control_Default="Next" Control_Cancel="Cancel"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
+    <ROW Name="Operations.exe" SourcePath="Res\Operations.ico" Index="0"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
+    <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
+    <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
+    <ROW Action="AI_STORE_LOCATION" Condition="(Not Installed) OR REINSTALL" Sequence="1502"/>
+    <ROW Action="AI_PREPARE_UPGRADE" Condition="AI_UPGRADE=&quot;No&quot; AND (Not Installed)" Sequence="1399"/>
+    <ROW Action="AI_ResolveKnownFolders" Sequence="53"/>
+    <ROW Action="AI_ResolveLocalizedCredentials" Sequence="52"/>
+    <ROW Action="InstallFinalize" Sequence="6596" SeqType="0" MsiKey="InstallFinalize"/>
+    <ROW Action="AI_AppSearchEx" Sequence="102"/>
+    <ROW Action="AI_GetArpIconPath" Sequence="51"/>
+    <ROW Action="AI_RemoveExternalUIStub" Condition="(REMOVE=&quot;ALL&quot;) AND ((VersionNT &gt; 500) OR((VersionNT = 500) AND (ServicePackLevel &gt;= 4)))" Sequence="1501"/>
+    <ROW Action="MigrationInstallationWithoutUninstall" Condition="( NOT Installed )" Sequence="6598"/>
+    <ROW Action="ServiceControlUnattendedInstall" Condition="( NOT Installed )" Sequence="6597"/>
+    <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Sequence="99" Builds="DefaultBuild"/>
+    <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Condition="AI_SETUPEXEPATH_ORIGINAL" Sequence="101" Builds="DefaultBuild"/>
+    <ROW Action="AI_DeleteCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="199" Builds="DefaultBuild"/>
+    <ROW Action="AI_DeleteRCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="198" Builds="DefaultBuild"/>
+    <ROW Action="AI_ExtractCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="197" Builds="DefaultBuild"/>
+    <ROW Action="AI_FindExeLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="196" Builds="DefaultBuild"/>
+    <ROW Action="AI_ExtractLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="1549" Builds="DefaultBuild"/>
+    <ROW Action="AI_DeleteRLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="1548" Builds="DefaultBuild"/>
+    <ROW Action="AI_DeleteLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="6594" Builds="DefaultBuild"/>
+    <ROW Action="AI_ExtractFiles" Sequence="3998" Builds="DefaultBuild"/>
+    <ROW Action="AI_DATA_SETTER" Sequence="3997"/>
+    <ROW Action="AI_EstimateExtractFiles" Sequence="3999" Builds="DefaultBuild"/>
+    <ROW Action="AI_PrepareShortcutFlags" Condition="(VersionNT &gt; 501) AND ((NOT Installed) OR (Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;)))" Sequence="4501"/>
+    <ROW Action="ServiceControlUnattendedRemoval" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) AND NOT UPGRADINGPRODUCTCODE )" Sequence="6595"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
+    <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
+    <ROW Action="AI_ResolveKnownFolders" Sequence="53"/>
+    <ROW Action="AI_ResolveLocalizedCredentials" Sequence="52"/>
+    <ROW Action="AI_DpiContentScale" Sequence="51"/>
+    <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Sequence="99"/>
+    <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Condition="AI_SETUPEXEPATH_ORIGINAL" Sequence="102"/>
+    <ROW Action="ExecuteAction" Sequence="1298" SeqType="0" MsiKey="ExecuteAction"/>
+    <ROW Action="AI_AppSearchEx" Sequence="101"/>
+    <ROW Action="AI_FinishActions" Condition="AI_INSTALL AND AiSkipExitDlg" Sequence="1299"/>
+    <ROW Action="MaintenanceTypeDlg" Condition="AI_MAINT" Sequence="1250" SeqType="3" MsiKey="MaintenanceWelcomeDlg"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiLaunchConditionsComponent">
+    <ROW Condition="( Version9X OR ( NOT VersionNT64 ) OR ( VersionNT64 AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &lt;&gt; 2)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR ((VersionNT64 = 502) AND ((MsiNTProductType = 1) OR (ServicePackLevel &gt;= 1)))) AND ((VersionNT64 &lt;&gt; 502) OR ((VersionNT64 = 502) AND ((MsiNTProductType = 1) OR (ServicePackLevel &lt;&gt; 1)))) AND ((VersionNT64 &lt;&gt; 502) OR ((VersionNT64 = 502) AND ((MsiNTProductType = 1) OR (ServicePackLevel &lt;&gt; 2)))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &lt;&gt; 2)) OR (MsiNTProductType &lt;&gt; 1))) ) )" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNT64Display]" DescriptionLocId="AI.LaunchCondition.NoSpecificNT64" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="( Version9X OR VersionNT64 OR ( VersionNT AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &gt;= 1))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 1))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 2))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 3))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 4))) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &gt;= 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &lt;&gt; 2))) OR VersionNT64) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &lt;&gt; 3))) OR VersionNT64) AND (((VersionNT &lt;&gt; 502) OR ((VersionNT = 502) AND (ServicePackLevel &gt;= 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 502) OR ((VersionNT = 502) AND (ServicePackLevel &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 502) OR ((VersionNT = 502) AND (ServicePackLevel &lt;&gt; 2))) OR VersionNT64) AND (((VersionNT &lt;&gt; 600) OR (((VersionNT = 600) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 600) OR (((VersionNT = 600) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 600) OR (((VersionNT = 600) AND (ServicePackLevel &lt;&gt; 2)) OR (MsiNTProductType &lt;&gt; 1))) OR VersionNT64) ) )" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNTDisplay]" DescriptionLocId="AI.LaunchCondition.NoSpecificNT" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="(AI_DOTNET45_SEARCH &gt;= &quot;4.5&quot;)" Description="[ProductName] cannot be installed on systems with .NET Framework version lower than [AI_MINDOTNETVERSION]" DescriptionLocId="AI.LaunchCondition.DotNET" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="(VersionNT &lt;&gt; 400)" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNT40Display]" DescriptionLocId="AI.LaunchCondition.NoNT40" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="Privileged" Description="[ProductName] requires administrative privileges to install." DescriptionLocId="AI.LaunchCondition.Privileged" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="VersionNT" Description="[ProductName] cannot be installed on [WindowsType9XDisplay]" DescriptionLocId="AI.LaunchCondition.No9X" IsPredefined="true" Builds="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiRegLocatorComponent">
+    <ROW Signature_="AI_DotNet45SearchSgn" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Version" Type="2"/>
+    <ROW Signature_="AI_EXE_PATH_CU" Root="1" Key="Software\Caphyon\Advanced Installer\LZMA\[ProductCode]\[ProductVersion]" Name="AI_ExePath" Type="2"/>
+    <ROW Signature_="AI_EXE_PATH_LM" Root="2" Key="Software\Caphyon\Advanced Installer\LZMA\[ProductCode]\[ProductVersion]" Name="AI_ExePath" Type="2"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiRegsComponent">
+    <ROW Registry="AI_ExePath" Root="-1" Key="Software\Caphyon\Advanced Installer\LZMA\[ProductCode]\[ProductVersion]" Name="AI_ExePath" Value="[AI_SETUPEXEPATH]" Component_="AI_ExePath"/>
+    <ROW Registry="Comments" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Comments" Value="[ARPCOMMENTS]" Component_="AI_CustomARPName"/>
+    <ROW Registry="Contact" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Contact" Value="[ARPCONTACT]" Component_="AI_CustomARPName"/>
+    <ROW Registry="DisplayIcon" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="DisplayIcon" Value="[ARP_ICON_PATH]" Component_="AI_CustomARPName"/>
+    <ROW Registry="DisplayName" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="DisplayName" Value="[AI_PRODUCTNAME_ARP]" Component_="AI_CustomARPName"/>
+    <ROW Registry="DisplayVersion" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="DisplayVersion" Value="[ProductVersion]" Component_="AI_CustomARPName"/>
+    <ROW Registry="HelpLink" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="HelpLink" Value="[ARPHELPLINK]" Component_="AI_CustomARPName"/>
+    <ROW Registry="HelpTelephone" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="HelpTelephone" Value="[ARPHELPTELEPHONE]" Component_="AI_CustomARPName"/>
+    <ROW Registry="InstallLocation" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="InstallLocation" Value="[APPDIR]" Component_="AI_CustomARPName"/>
+    <ROW Registry="ModifyPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="ModifyPath" Value="[AI_UNINSTALLER] /I [ProductCode]" Component_="AI_CustomARPName"/>
+    <ROW Registry="NoRemove" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="NoRemove" Value="#1" Component_="AI_CustomARPName"/>
+    <ROW Registry="NoRepair" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="NoRepair" Value="#1" Component_="AI_CustomARPName"/>
+    <ROW Registry="Path" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Path" Value="[APPDIR]" Component_="ProductInformation"/>
+    <ROW Registry="Publisher" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Publisher" Value="[Manufacturer]" Component_="AI_CustomARPName"/>
+    <ROW Registry="URLInfoAbout" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLInfoAbout" Value="[ARPURLINFOABOUT]" Component_="AI_CustomARPName"/>
+    <ROW Registry="URLUpdateInfo" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLUpdateInfo" Value="[ARPURLUPDATEINFO]" Component_="AI_CustomARPName"/>
+    <ROW Registry="UninstallPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallPath" Value="[AI_UNINSTALLER] /x [ProductCode]" Component_="AI_CustomARPName"/>
+    <ROW Registry="UninstallString" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallString" Value="[AI_UNINSTALLER] /x [ProductCode]" Component_="AI_CustomARPName"/>
+    <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
+    <ROW Registry="VersionMajor" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="VersionMajor" Value="#1" Component_="AI_CustomARPName"/>
+    <ROW Registry="VersionMinor" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="VersionMinor" Value="#6" Component_="AI_CustomARPName"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
+    <ROW Shortcut="ServiceControlManagementPowershell" Directory_="SHORTCUTDIR" Name="Servic~2|ServiceControl Management Powershell" Component_="AI_ExePath" Target="[SystemFolder]WindowsPowerShell\v1.0\powershell.exe" Arguments="-NoExit -ExecutionPolicy Bypass -File &quot;[APPDIR]ShortcutStartup.ps1&quot;" Hotkey="0" IconIndex="0" ShowCmd="1" CustomFlags="1"/>
+    <ROW Shortcut="ServiceControlManagment" Directory_="SHORTCUTDIR" Name="Servic~3|ServiceControl Management" Component_="ServiceControlConfig.exe" Target="[#ServiceControlConfig.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="APPDIR"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiTextStyleComponent">
+    <ROW TextStyle="RedWarning" FaceName="Tahoma" Size="8" Color="255" StyleBits="1"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
+    <ATTRIBUTE name="UsedTheme" value="classic"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiUpgradeComponent">
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMax="[|ProductVersion]" Attributes="1025" ActionProperty="OLDPRODUCTS"/>
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMin="[|ProductVersion]" Attributes="2" ActionProperty="AI_NEWERPRODUCTFOUND"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.PreReqComponent">
+    <ROW PrereqKey="E9BFB0D602DD498F96473C9BBCDDEC89" DisplayName=".NET Framework 4.5" VersionMin="4.5" SetupFileUrl="Prerequisites\.NET Framework 4.5\dotNetFx45_Full_setup.exe" Location="0" ExactSize="0" Win9xVersions="Windows 9x/ME" WinNTVersions="Windows NT 4.0, Windows NT 4.0 Service Pack 1, Windows NT 4.0 Service Pack 2, Windows NT 4.0 Service Pack 3, Windows NT 4.0 Service Pack 4, Windows NT 4.0 Service Pack 5, Windows NT 4.0 Service Pack 6, Windows 2000, Windows 2000 Service Pack 1, Windows 2000 Service Pack 2, Windows 2000 Service Pack 3, Windows 2000 Service Pack 4, Windows XP x86, Windows XP x86 Service Pack 1, Windows XP x86 Service Pack 2, Windows XP x86 Service Pack 3, Windows Server 2003 x86, Windows Server 2003 x86 Service Pack 1, Windows Server 2003 x86 Service Pack 2, Windows Vista x86, Windows Vista x86 Service Pack 1, Windows Server 2008 x86" WinNT64Versions="Windows XP x64, Windows XP x64 Service Pack 1, Windows XP x64 Service Pack 2, Windows Server 2003 x64, Windows Server 2003 x64 Service Pack 1, Windows Server 2003 x64 Service Pack 2, Windows Vista x64, Windows Vista x64 Service Pack 1, Windows Server 2008 x64" Operator="1" TargetName="dotNetFx45_Full_setup.exe"/>
+    <ATTRIBUTE name="PrereqsOrder" value="E9BFB0D602DD498F96473C9BBCDDEC89"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.PreReqSearchComponent">
+    <ROW SearchKey="E9BFB0D602DD498F96473C9BBCDDEC89_NET_45_SEARCH" Prereq="E9BFB0D602DD498F96473C9BBCDDEC89" SearchType="2" SearchString="HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\Version" VerMin="4.5" Order="1" Property="AI_NET_45_ORIGINAL_PREREQSEARCH_PROP"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.SynchronizedFolderComponent">
+    <ROW Directory_="APPDIR" SourcePath="&lt;WPF_PATH&gt;" Feature="ServiceControlManagment" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store|\*|*.vshost.*" ExcludeFlags="6"/>
+    <ROW Directory_="POWERSHELLDIR" SourcePath="&lt;POSH_PATH&gt;" Feature="ServiceControlManagment" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store" ExcludeFlags="6"/>
+  </COMPONENT>
+</DOCUMENT>

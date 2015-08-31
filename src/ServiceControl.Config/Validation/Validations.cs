@@ -1,0 +1,60 @@
+﻿namespace ServiceControl.Config.Validation
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using FluentValidation;
+    using UI.SharedInstanceEditor;
+
+    public static class Validations
+    {
+        public const string MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING = "Transport '{0}' requires a connection string.";
+        public const string MSG_CANTCONTAINWHITESPACE = "Cannot contain white space.";
+
+        public const string MSG_SELECTAUDITFORWARDING = "Must select audit forwarding.";
+
+        public const string MSG_UNIQUEQUEUENAME = "Must not equal {0} queue name.";
+
+        public const string MSG_USE_PORTS_IN_RANGE = "Use Ports in range 1 - 49151. Ephemeral port range should not be used (49152 to 65535).";
+
+        public const string MSG_MUST_BE_UNIQUE = "{0} must be unique across all instances.";
+
+        public const string WRN_HOSTNAME_SHOULD_BE_LOCALHOST = "Not using localhost can expose ServiceControl to anonymous access.";
+
+        public static IRuleBuilderOptions<T, string> ValidPort<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            return ruleBuilder.Must((t, port) =>
+            {
+                int result;
+                if (int.TryParse(port, out result))
+                {
+                    return (result >= 1 && result <= 49151);
+                }
+
+                return false;
+            })
+            .WithMessage(MSG_USE_PORTS_IN_RANGE);
+        }
+
+        public static IRuleBuilderOptions<T, string> TransportConnectionStringValid<T>(this IRuleBuilder<T, string> ruleBuilder) where T : SharedInstanceEditorViewModel
+        {
+            return ruleBuilder.Must((model, connectionString) =>
+            {
+                if (model.SelectedTransport == null) return true; // swallow because transport not selected yet
+                if (string.IsNullOrEmpty(model.SelectedTransport.SampleConnectionString)) return true;
+                return !string.IsNullOrWhiteSpace(connectionString);
+            })
+            .WithMessage(MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING, model => model.SelectedTransport.Name);
+        }
+
+        public static IRuleBuilderOptions<T, TProperty> MustNotBeIn<T, TProperty>(this IRuleBuilder<T, TProperty> ruleBuilder, Func<T, IEnumerable<TProperty>> list) where TProperty : class
+        {
+            return ruleBuilder.Must((t, p) => p != null && !list(t).Contains(p));
+        }
+
+        public static IRuleBuilderOptions<T, string> MustNotContainWhitespace<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            return ruleBuilder.Must(s => !string.IsNullOrEmpty(s) && !s.Any(c => char.IsWhiteSpace(c))).WithMessage(MSG_CANTCONTAINWHITESPACE);
+        }
+    }
+}
