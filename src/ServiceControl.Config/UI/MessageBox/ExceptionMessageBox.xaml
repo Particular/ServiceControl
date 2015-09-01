@@ -41,13 +41,59 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
+
+
         <ContentControl Grid.Row="0"
+                        Grid.Column="0"
                         Grid.ColumnSpan="6"
                         Width="200"
                         Margin="10"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         Content="{StaticResource ServiceControlLogo}" />
+
+
+        <Border Name="progressOverlay"
+                Grid.Row="0"
+                Grid.RowSpan="4"
+                Grid.Column="0"
+                Grid.ColumnSpan="6"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Panel.ZIndex="1000"
+                Background="#CCFFFFFF"
+                Visibility="{Binding Path=InProgress,
+                                     Converter={StaticResource boolToVis}}">
+            <Border.Resources>
+                <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="HorizontalAlignment" Value="Center" />
+                    <Setter Property="FontSize" Value="14" />
+                </Style>
+            </Border.Resources>
+
+            <Border HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="White"
+                    Padding="100">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               FontWeight="Bold"
+                               Text="{Binding Path=ProgressTitle}" />
+                    <ProgressBar Grid.Row="1"
+                                 Width="420"
+                                 Height="20"
+                                 IsIndeterminate="True"
+                                 Maximum="100" />
+                    <TextBlock Grid.Row="2" Text="{Binding Path=ProgressMessage}" />
+                </Grid>
+            </Border>
+        </Border>
 
         <Border Grid.Row="1"
                 Grid.Column="0"
@@ -88,7 +134,7 @@
 
         <Button Grid.Row="3"
                 Grid.Column="3"
-                Click="ReportClick"
+                Command="{Binding ReportClick}"
                 Content="Report"
                 IsEnabled="{Binding Path=ReportClickEnabled}"
                 Style="{StaticResource ClipboardButton}"

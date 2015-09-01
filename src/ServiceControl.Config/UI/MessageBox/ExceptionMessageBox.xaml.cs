@@ -11,9 +11,11 @@
     using PropertyChanged;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Extensions;
+    using ServiceControl.Config.Framework.Commands;
+    using ICommand = System.Windows.Input.ICommand;
 
     [ImplementPropertyChanged]
-    public partial class ExceptionMessageBox
+    public partial class ExceptionMessageBox: IProgressViewModel
     {
         List<string> ExceptionInformationList = new List<string>();
         bool reportClickEnabled;
@@ -179,9 +181,32 @@
             }
         }
 
-        void ReportClick(object sender, RoutedEventArgs e)
+        public ICommand ReportClick
         {
-            reporter.SendReport(this.Exception);
+            get
+            {
+                return new DelegateCommand(CallReportClick);
+            }
+        }
+
+        async void  CallReportClick(object sender)
+        {
+            ReportClickEnabled = false;
+            ProgressTitle = "Processing";
+            ProgressMessage = "Sending Exception Details...";
+            InProgress = true;
+
+            try
+            {
+                await Task.Factory.StartNew(() => reporter.SendReport(this.Exception));
+            }
+            finally
+            {
+                InProgress = false;
+                ProgressTitle = "Processing";
+                ProgressMessage = "";
+                ReportClickEnabled = true;
+            }
         }
 
         private void TraceTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -190,6 +215,10 @@
             else ErrorDetails.Text = e.NewValue.ToString();
         }
 
-  
+
+        public string ProgressTitle { get; set; }
+        public bool InProgress { get; set; }
+        public string ProgressMessage { get; set; }
+        public int ProgressPercent { get; set; }
     }
 }
