@@ -68,11 +68,16 @@
                                 <controls:FormTextBox Grid.Row="1"
                                                       Header="SERVICE ACCOUNT"
                                                       IsEnabled="{Binding UseProvidedAccount}"
-                                                      Text="{Binding ServiceAccount}" />
+                                                      Text="{Binding ServiceAccount}"
+                                                      Visibility="{Binding UseProvidedAccount,
+                                                                           Converter={StaticResource boolToVis}}" />
+
                                 <controls:FormPasswordBox Grid.Row="2"
                                                           Header="PASSWORD"
                                                           IsEnabled="{Binding UseProvidedAccount}"
-                                                          Text="{Binding Password}" />
+                                                          Text="{Binding Password}"
+                                                          Visibility="{Binding UseProvidedAccount,
+                                                                               Converter={StaticResource boolToVis}}" />
                             </Grid>
                         </RadioButton>
                     </StackPanel>
