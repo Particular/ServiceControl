@@ -76,6 +76,7 @@
                               Grid.Column="0"
                               BorderBrush="{StaticResource WhiteBrush}"
                               FontSize="12"
+                              Foreground="White"
                               Header="YOUR EMAIL ADDRESS (Optional)"
                               Text="{Binding EmailAddress}" />
 
