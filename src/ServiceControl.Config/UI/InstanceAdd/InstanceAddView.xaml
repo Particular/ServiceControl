@@ -143,8 +143,9 @@
                     Check to Enable Audit Forwarding
                 </CheckBox>
 
-
-                <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME" Text="{Binding AuditForwardingQueueName}" />
+                <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME"
+                                      Text="{Binding AuditForwardingQueueName}"
+                                      ToolTip="The audit forwarding queue will be created even if Audit Forwarding is not enabled." />
             </StackPanel>
         </sie:SharedInstanceEditorView.SharedContent>
     </sie:SharedInstanceEditorView>
