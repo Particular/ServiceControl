@@ -32,7 +32,9 @@ namespace ServiceControl.Config.Xaml.Native
 
         public RECT rcWork = new RECT();
 
+#pragma warning disable 169
         public int dwFlags = 0;
+#pragma warning restore 169
     }
 
     [StructLayout(LayoutKind.Sequential)]
