@@ -155,6 +155,7 @@
     <Compile Include="Framework\RaygunFeedback.cs" />
     <Compile Include="Framework\RaygunReporter.cs" />
     <Compile Include="Framework\Rx\RxProgressScreen.cs" />
+    <Compile Include="UI\FeedBack\FeedBackViewModelValidator.cs" />
     <Compile Include="UI\MessageBox\ExceptionMessageBox.xaml.cs">
       <DependentUpon>ExceptionMessageBox.xaml</DependentUpon>
     </Compile>

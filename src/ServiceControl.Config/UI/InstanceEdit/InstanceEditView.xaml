@@ -164,7 +164,7 @@
                 <controls:FormTextBox Header="ERROR QUEUE NAME" Text="{Binding ErrorQueueName}" />
                 <controls:FormTextBox Header="ERROR FORWARDING QUEUE NAME" Text="{Binding ErrorForwardingQueueName}" />
                 <controls:FormTextBox Header="AUDIT QUEUE NAME" Text="{Binding AuditQueueName}" />
-                
+
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
                         BorderThickness="0,0,0,1">
@@ -174,7 +174,7 @@
                 </Border>
 
                 <CheckBox IsChecked="{Binding AuditForwarding}" IsThreeState="True">Check to Enable Audit Forwarding</CheckBox>
-                
+
                 <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME" Text="{Binding AuditForwardingQueueName}" />
             </StackPanel>
         </sie:SharedInstanceEditorView.SharedContent>
