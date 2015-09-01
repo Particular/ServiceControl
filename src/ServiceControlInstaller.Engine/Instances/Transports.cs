@@ -50,14 +50,14 @@
                         Name = "SQLServer",
                         TypeName = "NServiceBus.SqlServerTransport, NServiceBus.Transports.SQLServer",
                         MatchOn = "NServiceBus.SqlServer",
-                        SampleConnectionString = @"Data Source=.\SQLEXPRESS;Initial Catalog=nservicebus;Integrated Security=True"
+                        SampleConnectionString = @"Data Source=<SQLInstance>;Initial Catalog=nservicebus;Integrated Security=True"
                     },
                     new TransportInfo
                     {
                         Name = "RabbitMQ",
                         TypeName = "NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ",
                         MatchOn = "NServiceBus.RabbitMQ",
-                        SampleConnectionString = @"host=localhost;username=<USERNAME>;password=<PASSWORD>"
+                        SampleConnectionString = @"host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>"
                     }
                 };
             }
