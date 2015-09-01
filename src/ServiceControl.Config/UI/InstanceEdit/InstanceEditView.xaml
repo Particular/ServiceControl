@@ -173,7 +173,11 @@
                                Text="AUDIT FORWARDING" />
                 </Border>
 
-                <CheckBox IsChecked="{Binding AuditForwarding}" IsThreeState="True">Check to Enable Audit Forwarding</CheckBox>
+                <CheckBox Cursor="Hand"
+                          IsChecked="{Binding AuditForwarding}"
+                          IsThreeState="True">
+                    Check to Enable Audit Forwarding
+                </CheckBox>
 
                 <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME" Text="{Binding AuditForwardingQueueName}" />
             </StackPanel>

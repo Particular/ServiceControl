@@ -16,6 +16,7 @@
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -237,6 +238,7 @@
         <Setter Property="BorderBrush" Value="{StaticResource ThemeBrush}" />
         <Setter Property="Foreground" Value="{StaticResource ThemeBrush}" />
         <Setter Property="ContentTemplate" Value="{x:Null}" />
+        <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
