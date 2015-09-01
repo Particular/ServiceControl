@@ -84,7 +84,7 @@
         {
             if (queues.Select(p => p.QueueName.ToLower()).Distinct().Count() != queues.Count)
             {
-                throw new Exception("Each of the queue names specified for a instance should be unique");
+                throw new EngineValidationException("Each of the queue names specified for a instance should be unique");
             }
         }
 
@@ -99,12 +99,12 @@
             var duplicates = queues.Where(queue => uniqueQueueNames.Contains(queue.QueueName, StringComparer.OrdinalIgnoreCase)).ToList();
             if (duplicates.Count == 1)
             {
-                throw new Exception(string.Format("The queue name for {0} is already assigned to another ServiceControl instance", duplicates[0].PropertyName));
+                throw new EngineValidationException(string.Format("The queue name for {0} is already assigned to another ServiceControl instance", duplicates[0].PropertyName));
             }
 
             if (duplicates.Count > 1)
             {
-                throw new Exception(string.Format("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for {0}", string.Join(", ", duplicates.Select(p => p.PropertyName))));
+                throw new EngineValidationException(string.Format("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for {0}", string.Join(", ", duplicates.Select(p => p.PropertyName))));
             }
         }
     }
