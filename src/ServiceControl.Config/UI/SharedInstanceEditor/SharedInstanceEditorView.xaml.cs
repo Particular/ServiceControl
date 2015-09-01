@@ -1,9 +1,8 @@
 ﻿using System.Windows;
-using System.Windows.Controls;
 
 namespace ServiceControl.Config.UI.SharedInstanceEditor
 {
-    public partial class SharedInstanceEditorView : UserControl
+    public partial class SharedInstanceEditorView
     {
         public SharedInstanceEditorView()
         {

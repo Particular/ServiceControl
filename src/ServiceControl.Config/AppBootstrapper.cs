@@ -42,7 +42,7 @@ namespace ServiceControl.Config
 
         private void DisableRxUIDebuggerBreak()
         {
-            RxApp.DefaultExceptionHandler = Observer.Create<Exception>(delegate (Exception ex)
+            RxApp.DefaultExceptionHandler = Observer.Create(delegate (Exception ex)
             {
                 Scheduler.Schedule(RxApp.MainThreadScheduler, () =>
                 {

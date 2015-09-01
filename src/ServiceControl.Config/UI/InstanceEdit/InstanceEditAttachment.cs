@@ -1,7 +1,6 @@
 namespace ServiceControl.Config.UI.InstanceEdit
 {
     using System;
-    using System.Linq;
     using System.Reactive.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
