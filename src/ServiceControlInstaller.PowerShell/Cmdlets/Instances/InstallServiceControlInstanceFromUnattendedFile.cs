@@ -52,8 +52,18 @@ namespace ServiceControlInstaller.PowerShell
             try
             {
                 logger.Info("Installing Service Control instance...");
-                installer.Add(details);
-                WriteObject(ServiceControlInstance.FindByName(details.Name));
+                if (installer.Add(details))
+                {
+                    var instance = ServiceControlInstance.FindByName(details.Name);
+                    if (instance != null)
+                    {
+                        WriteObject(PSServiceControl.FromInstance(instance));
+                    }
+                    else
+                    {
+                        throw new Exception("Unknown error creating instance");
+                    }
+                }
             }
             catch (Exception ex)
             {
