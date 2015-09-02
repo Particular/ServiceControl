@@ -5,7 +5,9 @@
     using ServiceControl.Config.Framework.Commands;
     using ServiceControl.Config.Framework.Rx;
     using ServiceControl.Config.Validation;
+    using Validar;
 
+    [InjectValidation]
     public class FeedBackViewModel : RxScreen
     {
         RaygunFeedback feedBack;

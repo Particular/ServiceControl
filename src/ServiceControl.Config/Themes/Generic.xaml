@@ -71,7 +71,7 @@
                             <Border x:Name="border"
                                     Grid.Row="1"
                                     Grid.ColumnSpan="2"
-                                    VerticalAlignment="Center"
+                                    VerticalAlignment="Stretch"
                                     Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}">

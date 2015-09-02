@@ -30,7 +30,6 @@
             <RowDefinition Height="30" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -56,23 +55,21 @@
             Your input can only help us make the product better.
         </TextBlock>
 
-        <TextBlock Grid.Row="3"
-                   Margin="5"
-                   VerticalAlignment="Center"
-                   FontSize="12"
-                   Foreground="{StaticResource Gray60Brush}"
-                   Text="MESSAGE" />
+        <controls:FormTextBox Grid.Row="3"
+                              Grid.Column="0"
+                              AcceptsReturn="True"
+                              BorderBrush="{StaticResource WhiteBrush}"
+                              BorderThickness="1"
+                              FontSize="12"
+                              Foreground="White"
+                              Header="MESSAGE"
+                              MaxLength="500"
+                              MinLines="5"
+                              Text="{Binding Message}"
+                              TextWrapping="Wrap"
+                              VerticalScrollBarVisibility="Auto" />
 
-        <TextBox Grid.Row="4"
-                 BorderBrush="{StaticResource WhiteBrush}"
-                 MaxLength="500"
-                 MinLines="5"
-                 Style="{StaticResource MultiLineTextBox}"
-                 Text="{Binding Message}"
-                 TextWrapping="Wrap"
-                 VerticalScrollBarVisibility="Auto" />
-
-        <controls:FormTextBox Grid.Row="5"
+        <controls:FormTextBox Grid.Row="4"
                               Grid.Column="0"
                               BorderBrush="{StaticResource WhiteBrush}"
                               FontSize="12"
@@ -80,7 +77,7 @@
                               Header="YOUR EMAIL ADDRESS (Optional)"
                               Text="{Binding EmailAddress}" />
 
-        <CheckBox Grid.Row="6"
+        <CheckBox Grid.Row="5"
                   Margin="0,5"
                   HorizontalAlignment="Left"
                   Content="Include information about my configuration"
@@ -88,7 +85,7 @@
                   Foreground="White"
                   IsChecked="{Binding IncludeSystemInfo}" />
 
-        <Grid Grid.Row="7"
+        <Grid Grid.Row="6"
               Margin="5"
               VerticalAlignment="Top">
             <Grid.ColumnDefinitions>

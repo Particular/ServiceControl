@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.FeedBack
 {
     using FluentValidation;
-    using ServiceControl.Config.Validation;
 
     public class FeedBackViewModelValidator : AbstractValidator<FeedBackViewModel>
     {
@@ -9,13 +8,10 @@
         {
 
             RuleFor(x => x.Message)
-                .NotEmpty()
-                .MustNotContainWhitespace()
-                .WithMessage("Feedback can't be empty.");
+                .NotEmpty();
 
             RuleFor(x => x.EmailAddress)
-                .EmailAddress()
-                .WithMessage("Email Address is invalid.");
+                .EmailAddress();
         }
 
     }
