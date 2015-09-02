@@ -665,25 +665,11 @@
 
     <Style TargetType="{x:Type controls:FormCheckBox}">
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
+        <Setter Property="IsTabStop" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:FormCheckBox}">
                     <Grid Margin="{TemplateBinding Margin}" Background="{TemplateBinding Background}">
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup x:Name="FocusStates">
-                                <VisualState x:Name="Focused">
-                                    <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="offBullet" Storyboard.TargetProperty="Fill">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource ThemeBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="onBullet" Storyboard.TargetProperty="Fill">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource ThemeBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </VisualState>
-                                <VisualState x:Name="Unfocused" />
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="auto" />
                             <RowDefinition Height="*" />

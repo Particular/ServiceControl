@@ -164,22 +164,10 @@
                 <controls:FormTextBox Header="ERROR QUEUE NAME" Text="{Binding ErrorQueueName}" />
                 <controls:FormTextBox Header="ERROR FORWARDING QUEUE NAME" Text="{Binding ErrorForwardingQueueName}" />
                 <controls:FormTextBox Header="AUDIT QUEUE NAME" Text="{Binding AuditQueueName}" />
-
-                <Border Margin="0,40,0,20"
-                        BorderBrush="{StaticResource Gray90Brush}"
-                        BorderThickness="0,0,0,1">
-                    <TextBlock FontSize="13px"
-                               FontWeight="Bold"
-                               Text="AUDIT FORWARDING" />
-                </Border>
-
-                <CheckBox Cursor="Hand"
-                          IsChecked="{Binding AuditForwarding}"
-                          IsThreeState="True">
-                    Check to Enable Audit Forwarding
-                </CheckBox>
-
-                <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME" Text="{Binding AuditForwardingQueueName}" />
+                <controls:FormCheckBox Header="AUDIT FORWARDING" IsChecked="{Binding AuditForwarding}" />
+                <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME"
+                                      Text="{Binding AuditForwardingQueueName}"
+                                      ToolTip="The audit forwarding queue will be created even if Audit Forwarding is not enabled." />
             </StackPanel>
         </sie:SharedInstanceEditorView.SharedContent>
     </sie:SharedInstanceEditorView>
