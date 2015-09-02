@@ -86,7 +86,7 @@
                     BorderThickness = new Thickness(0),
                     BorderBrush = new SolidColorBrush(Color.FromArgb(0, 255, 255, 255))
                 },
-                ReportClickEnabled = reporter.Enabled,
+               
                 Message =
                 {
                     Text = ex.Message.Truncate(60)
@@ -169,29 +169,19 @@
             Clipboard.SetText(ErrorDetails.Text);
         }
 
-        public bool ReportClickEnabled
-        {
-            get
-            {
-                return reportClickEnabled;
-            }
-            set
-            {
-                reportClickEnabled = value;
-            }
-        }
+     
 
         public ICommand ReportClick
         {
             get
             {
-                return new DelegateCommand(CallReportClick);
+                return new AwaitableDelegateCommand(CallReportClick);
             }
         }
 
-        async void  CallReportClick(object sender)
+        async Task CallReportClick(object sender)
         {
-            ReportClickEnabled = false;
+         
             ProgressTitle = "Processing";
             ProgressMessage = "Sending Exception Details...";
             InProgress = true;
@@ -202,10 +192,9 @@
             }
             finally
             {
-                InProgress = false;
                 ProgressTitle = "Processing";
                 ProgressMessage = "";
-                ReportClickEnabled = true;
+                InProgress = false;
             }
         }
 

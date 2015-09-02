@@ -136,7 +136,6 @@
                 Grid.Column="3"
                 Command="{Binding ReportClick}"
                 Content="Report"
-                IsEnabled="{Binding Path=ReportClickEnabled}"
                 Style="{StaticResource ClipboardButton}"
                 ToolTip="Report Problem to Particular Software" />
 
