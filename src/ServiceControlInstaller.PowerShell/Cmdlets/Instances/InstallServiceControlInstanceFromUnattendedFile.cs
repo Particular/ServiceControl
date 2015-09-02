@@ -57,7 +57,7 @@ namespace ServiceControlInstaller.PowerShell
                     var instance = ServiceControlInstance.FindByName(details.Name);
                     if (instance != null)
                     {
-                        WriteObject(PSServiceControl.FromInstance(instance));
+                        WriteObject(PsServiceControl.FromInstance(instance));
                     }
                     else
                     {

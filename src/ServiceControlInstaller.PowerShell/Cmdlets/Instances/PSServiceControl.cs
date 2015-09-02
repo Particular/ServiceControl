@@ -5,14 +5,14 @@ namespace ServiceControlInstaller.PowerShell
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
 
-    public class PSServiceControl :  IContainPort, IContainInstancePaths, IContainQueueNames
+    public class PsServiceControl :  IContainPort, IContainInstancePaths, IContainQueueNames
     {
-        public static PSServiceControl FromInstance(ServiceControlInstance instance)
+        public static PsServiceControl FromInstance(ServiceControlInstance instance)
         {
-            return new PSServiceControl
+            return new PsServiceControl
             {
                 Name = instance.Name,
-                URL = instance.Url,
+                Url = instance.Url,
                 HostName = instance.HostName,  
                 Port = instance.Port,
                 InstallPath = instance.InstallPath,
@@ -29,7 +29,7 @@ namespace ServiceControlInstaller.PowerShell
             };
         }
         public string Name { get; set; }
-        public string URL { get; set; }
+        public string Url { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
 
