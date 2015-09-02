@@ -148,7 +148,6 @@ namespace ServiceControlInstaller.Engine.Instances
                                       && string.Equals(oldSettings.ErrorQueue, ErrorQueue, StringComparison.OrdinalIgnoreCase)
                                       && string.Equals(oldSettings.AuditLogQueue, AuditLogQueue, StringComparison.OrdinalIgnoreCase)
                                       && string.Equals(oldSettings.ErrorLogQueue, ErrorLogQueue, StringComparison.OrdinalIgnoreCase));
-
             if (urlaclChanged)
             {
                 oldSettings.RemoveUrlAcl();
@@ -180,9 +179,11 @@ namespace ServiceControlInstaller.Engine.Instances
 
             var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
             var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
-
+            var connectionStringChanged = !string.Equals(ConnectionString, oldSettings.ConnectionString, StringComparison.Ordinal);
+            
             //have to save config prior to creating queues (if needed)
-            if (queueNamesChanged || accountChanged)
+
+            if (queueNamesChanged || accountChanged || connectionStringChanged )
             {
                 QueueCreation.RunQueueCreation(this, accountName);
             }
