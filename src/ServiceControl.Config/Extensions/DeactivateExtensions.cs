@@ -16,29 +16,9 @@ namespace ServiceControl.Config
             }
             catch (Exception ex)
             {
-                throw new ModalException("Modal frame exception. Check inner exception for details.", ex.GetBaseException());
+                throw new Exception("Modal frame exception. Check inner exception for details.", ex.GetBaseException());
             }
         }
     }
 
-    [Serializable]
-    public class ModalException : Exception
-    {
-        public ModalException()
-        {
-        }
-
-        public ModalException(string message) : base(message)
-        {
-        }
-
-        public ModalException(string message, Exception inner) : base(message, inner)
-        {
-        }
-
-        protected ModalException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context)
-        { }
-    }
 }
