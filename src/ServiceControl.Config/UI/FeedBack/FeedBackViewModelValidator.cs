@@ -10,7 +10,7 @@
                 .NotEmpty();
 
             RuleFor(x => x.EmailAddress)
-                .EmailAddress().WithMessage("NOT VALID");
+                .EmailAddress().When(vm => !string.IsNullOrEmpty(vm.EmailAddress)).WithMessage("NOT VALID");
         }
     }
 }
