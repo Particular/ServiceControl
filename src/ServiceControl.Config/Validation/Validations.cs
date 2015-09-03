@@ -8,6 +8,8 @@
 
     public static class Validations
     {
+        public const string MSG_EMAIL_NOT_VALID = "Not Valid.";
+
         public const string MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING = "Transport '{0}' requires a connection string.";
         public const string MSG_CANTCONTAINWHITESPACE = "Cannot contain white space.";
 
