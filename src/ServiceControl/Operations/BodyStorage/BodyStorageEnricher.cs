@@ -35,51 +35,26 @@
             var stored = false;
             var bodyUrl = string.Format("/messages/{0}/body", bodyId);
 
-            if (ShouldStoreInBodyStorage(message, bodySize, contentType))
+            if(bodySize <= Settings.MaxBodySizeToStore)
             {
-                bodyUrl = StoreBodyInBodyStorage(message, bodyId, contentType, bodySize);
-                stored = true;
-            }
+                var isBinary = contentType.Contains("binary");
+
+                if (message is ImportFailedMessage || isBinary)
+                {
+                    bodyUrl = StoreBodyInBodyStorage(message, bodyId, contentType, bodySize);
+                    stored = true;
+                }
             
-            if (ShouldStoreBodyInMessageMetadata(bodySize, contentType))
-            {
-                message.Metadata.Add("Body", Encoding.UTF8.GetString(message.PhysicalMessage.Body));
-                stored = true;
+                if (!isBinary)
+                {
+                    message.Metadata.Add("Body", Encoding.UTF8.GetString(message.PhysicalMessage.Body));
+                    stored = true;
+                }
             }
 
             message.Metadata.Add("BodyUrl", bodyUrl);
 
             return stored;
-        }
-
-        static bool ShouldStoreInBodyStorage(ImportMessage message, int bodySize, string contentType)
-        {
-            if (message is ImportFailedMessage)
-            {
-                return true;
-            }
-
-            if (bodySize <= Settings.MaxBodySizeToStore && contentType.Contains("binary"))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        static bool ShouldStoreBodyInMessageMetadata(int bodySize, string contentType)
-        {
-            if (bodySize > Settings.MaxBodySizeToStore)
-            {
-                return false;
-            }
-
-            if (contentType.Contains("binary"))
-            {
-                return false;
-            }
-
-            return true;
         }
 
         static int GetContentLength(ImportMessage message)
