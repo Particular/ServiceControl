@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace ServiceControl.Config.Extensions
 {
@@ -16,12 +14,5 @@ namespace ServiceControl.Config.Extensions
             return null;
         }
 
-        public static string GetDescription(this Enum value)
-        {
-            var field = value.GetType().GetField(value.ToString());
-            var attribute = field.GetAttribute<DescriptionAttribute>();
-
-            return attribute != null ? attribute.Description : value.ToString();
-        }
     }
 }
