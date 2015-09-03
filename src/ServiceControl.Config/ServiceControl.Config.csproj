@@ -141,7 +141,6 @@
     <Compile Include="Commands\UpgradeInstanceCommand.cs" />
     <Compile Include="Events\RefreshInstances.cs" />
     <Compile Include="Extensions\GuidExtensions.cs" />
-    <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Extensions\ReflectionHelper.cs" />
     <Compile Include="Extensions\DeactivateExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
