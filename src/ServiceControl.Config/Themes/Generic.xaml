@@ -681,16 +681,30 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0"
-                                       FontSize="12"
+                                       FontSize="13px"
                                        Foreground="{StaticResource Gray70Brush}"
                                        Text="{TemplateBinding Header}" />
-                            <TextBlock x:Name="errorElement"
-                                       Grid.Column="1"
-                                       Margin="5,0,0,0"
-                                       FontSize="9pt"
-                                       Foreground="{StaticResource ErrorBrush}"
-                                       Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                      Path=(Validation.Errors).CurrentItem.ErrorContent}" />
+
+                            <StackPanel Grid.Column="1"
+                                        Orientation="Horizontal">
+
+                                <TextBlock x:Name="errorElement"
+                                           Margin="5,0,0,0"
+                                           FontSize="13px"
+                                           Foreground="{StaticResource ErrorBrush}"
+                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                          Path=(Validation.Errors).CurrentItem.ErrorContent}" />
+
+                                <TextBlock x:Name="warningElement"
+                                           Margin="5,0,0,0"
+                                           FontSize="13px"
+                                           Foreground="{StaticResource WarningBrush}"
+                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                          Path=(Warning)}"
+                                           Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                                Path=(Validation.HasError),
+                                                                Converter={StaticResource boolToVisHiddenInverted}}" />
+                            </StackPanel>
                         </Grid>
                         <Grid Grid.Row="1">
                             <Grid.Resources>
