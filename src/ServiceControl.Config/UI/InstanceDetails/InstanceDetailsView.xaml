@@ -14,7 +14,7 @@
             </Style>
         </Grid.Resources>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="3*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -90,86 +90,40 @@
 
         <GroupBox Grid.Row="1"
                   Grid.Column="1"
-                  Header="HOST">
-            <TextBlock Text="{Binding Host}" />
+                  Header="TRANSPORT">
+            <TextBlock Text="{Binding Transport}" />
         </GroupBox>
 
         <GroupBox Grid.Row="2"
-                  Grid.Column="0"
-                  Header="TRANSPORT">
-            <TextBlock Text="{Binding Transport}" />
+                  Grid.ColumnSpan="2"
+                  Header="HOST">
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding Host}">
+                <TextBlock Text="{Binding Host}" />
+            </Hyperlink>
         </GroupBox>
 
         <GroupBox Grid.Row="3"
                   Grid.ColumnSpan="2"
                   Header="INSTALLATION PATH">
-            <GroupBox.HeaderTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Margin="0,2,10,0"
-                                   FontSize="13px"
-                                   Foreground="{StaticResource Gray60Brush}"
-                                   Text="{Binding}" />
-                        <Button Width="20"
-                                Height="20"
-                                HorizontalAlignment="Left"
-                                Command="{Binding DataContext.OpenUrl,
-                                                  ElementName=root}"
-                                CommandParameter="{Binding DataContext.InstallPath,
-                                                           ElementName=root}"
-                                Style="{StaticResource OpenFolderButton}" />
-                    </StackPanel>
-                </DataTemplate>
-            </GroupBox.HeaderTemplate>
-            <TextBlock FontSize="12px" Text="{Binding InstallPath}" />
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding InstallPath}">
+                <TextBlock FontSize="12px" Text="{Binding InstallPath}" />
+            </Hyperlink>
         </GroupBox>
 
         <GroupBox Grid.Row="4"
                   Grid.ColumnSpan="2"
                   Header="DATA PATH">
-            <GroupBox.HeaderTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Margin="0,2,10,0"
-                                   FontSize="13px"
-                                   Foreground="{StaticResource Gray60Brush}"
-                                   Text="{Binding}" />
-                        <Button Width="20"
-                                Height="20"
-                                HorizontalAlignment="Left"
-                                Command="{Binding DataContext.OpenUrl,
-                                                  ElementName=root}"
-                                CommandParameter="{Binding DataContext.DBPath,
-                                                           ElementName=root}"
-                                Style="{StaticResource OpenFolderButton}" />
-                    </StackPanel>
-                </DataTemplate>
-            </GroupBox.HeaderTemplate>
-            <TextBlock FontSize="12px" Text="{Binding DBPath}" />
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding DBPath}">
+                <TextBlock FontSize="12px" Text="{Binding DBPath}" />
+            </Hyperlink>
         </GroupBox>
 
         <GroupBox Grid.Row="5"
                   Grid.ColumnSpan="2"
                   Header="LOG PATH">
-            <GroupBox.HeaderTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Margin="0,2,10,0"
-                                   FontSize="13px"
-                                   Foreground="{StaticResource Gray60Brush}"
-                                   Text="{Binding}" />
-                        <Button Width="20"
-                                Height="20"
-                                HorizontalAlignment="Left"
-                                Command="{Binding DataContext.OpenUrl,
-                                                  ElementName=root}"
-                                CommandParameter="{Binding DataContext.LogPath,
-                                                           ElementName=root}"
-                                Style="{StaticResource OpenFolderButton}" />
-                    </StackPanel>
-                </DataTemplate>
-            </GroupBox.HeaderTemplate>
-            <TextBlock FontSize="12px" Text="{Binding LogPath}" />
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding LogPath}">
+                <TextBlock FontSize="12px" Text="{Binding LogPath}" />
+            </Hyperlink>
         </GroupBox>
 
         <Border x:Name="progressOverlay"

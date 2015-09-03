@@ -31,13 +31,11 @@ namespace ServiceControl.Config.Xaml.Controls
 
             onButton.Checked += OnButton_Checked;
             offButton.Checked += OffButton_Checked;
-
-
         }
 
         private void OffButton_Checked(object sender, RoutedEventArgs e)
         {
-           this.IsChecked = !offButton.IsChecked;
+            this.IsChecked = !offButton.IsChecked;
         }
 
         private void OnButton_Checked(object sender, RoutedEventArgs e)
