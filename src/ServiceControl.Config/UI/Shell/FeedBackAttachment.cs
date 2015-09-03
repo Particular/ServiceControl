@@ -3,7 +3,6 @@
     using System;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.UI.FeedBack;
-    using ServiceControl.Config.Validation;
 
     class FeedBackAttachment : Attachment<ShellViewModel>
     {
@@ -37,7 +36,6 @@
             if (raygunFeedBack.Enabled)
             {
                 var feedBackViewModel = feedBackFactory();
-                feedBackViewModel.ValidationTemplate = new ValidationTemplate(feedBackViewModel);
                 if (windowManager.ShowDialog(feedBackViewModel) == true)
                 {
                     var result = feedBackResultFactory();

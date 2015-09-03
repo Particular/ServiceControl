@@ -1,8 +1,10 @@
 ﻿namespace ServiceControl.Config.UI.FeedBack
 {
-    using PropertyChanged;
+    using System.Linq;
+    using System.Reactive.Linq;
+    using System.Windows.Input;
+    using ReactiveUI;
     using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Commands;
     using ServiceControl.Config.Framework.Rx;
     using ServiceControl.Config.Validation;
     using Validar;
@@ -11,18 +13,19 @@
     public class FeedBackViewModel : RxScreen
     {
         RaygunFeedback feedBack;
+        ValidationTemplate validationTemplate;
 
         public FeedBackViewModel(RaygunFeedback raygunFeedBack)
         {
             feedBack = raygunFeedBack;
+            validationTemplate = new ValidationTemplate(this);
             Cancel = Command.Create(() => TryClose(false));
-            SendFeedBack = Command.Create(() => Send());
+            SendFeedBack = new ReactiveCommand(validationTemplate.ErrorsChangedObservable.Select(_ => !validationTemplate.HasErrors).DistinctUntilChanged())
+                .DoAction(_ => Send());
         }
 
-        [DoNotNotify]
-        public ValidationTemplate ValidationTemplate { get; set; }
-
         public string EmailAddress { get; set; }
+
         public string Message { get; set; }
         public bool IncludeSystemInfo { get; set; }
 
@@ -33,8 +36,7 @@
 
         void Send()
         {
-
-            if (!ValidationTemplate.Validate())
+            if (!validationTemplate.Validate())
             {
                 NotifyOfPropertyChange(string.Empty);
                 return;

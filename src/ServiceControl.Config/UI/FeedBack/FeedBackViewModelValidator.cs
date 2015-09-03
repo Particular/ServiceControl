@@ -6,13 +6,11 @@
     {
         public FeedBackViewModelValidator()
         {
-
             RuleFor(x => x.Message)
                 .NotEmpty();
 
             RuleFor(x => x.EmailAddress)
-                .EmailAddress();
+                .EmailAddress().WithMessage("NOT VALID");
         }
-
     }
 }
