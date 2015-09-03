@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using MessageAuditing;
@@ -10,6 +11,7 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
+    using ServiceControl.Operations.BodyStorage.RavenAttachments;
 
     [TestFixture]
     public class CustomExpirationBundleTests
@@ -26,7 +28,7 @@
             var processedMessage2 = new ProcessedMessage
             {
                 Id = "2",
-                ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),                
+                ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
             };
             processedMessage2.MessageMetadata["IsSystemMessage"] = true;
 
@@ -58,7 +60,7 @@
             var processedMessage = new ProcessedMessage
             {
                 Id = Guid.NewGuid().ToString(),
-                ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond%30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
+                ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond % 30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring * 3)),
             };
 
             var processedMessage2 = new ProcessedMessage
@@ -66,7 +68,7 @@
                 Id = "2",
                 ProcessedAt = DateTime.UtcNow,
             };
-            
+
             using (var session = documentStore.OpenSession())
             {
                 for (var i = 0; i < 100; i++)
@@ -74,7 +76,7 @@
                     processedMessage = new ProcessedMessage
                     {
                         Id = Guid.NewGuid().ToString(),
-                        ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond%30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
+                        ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond % 30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring * 3)),
                     };
 
                     session.Store(processedMessage);
@@ -135,6 +137,53 @@
                 msg = session.Load<ProcessedMessage>(processedMessage2.Id);
                 Assert.NotNull(msg);
             }
+        }
+
+        [Test]
+        public void Stored_bodies_are_being_removed_when_message_expires()
+        {
+            // Store expired message with associated body
+            var messageId = "21";
+            var bodyStorage = new RavenAttachmentsBodyStorage
+            {
+                DocumentStore = documentStore
+            };
+
+            var processedMessage = new ProcessedMessage
+            {
+                Id = "1",
+                ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2))
+            };
+
+            processedMessage.MessageMetadata["MessageId"] = messageId;
+
+            using (var session = documentStore.OpenSession())
+            {
+                session.Store(processedMessage);
+                session.SaveChanges();
+            }
+
+            var body = new byte[] { 1, 2, 3, 4, 5 };
+
+            using (var stream = new MemoryStream(body))
+                bodyStorage.Store(messageId, "binary", 5, stream);
+
+            // Wait for expiry
+            documentStore.WaitForIndexing();
+            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
+
+            // Verify message expired
+            using (var session = documentStore.OpenSession())
+            {
+                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
+                Assert.Null(msg, "Audit document should be deleted");
+            }
+
+            // Verify body expired
+            Stream dummy;
+            var bodyFound = bodyStorage.TryFetch(messageId, out dummy);
+            Assert.False(bodyFound, "Audit document body should be deleted");
+
         }
 
         [Test]

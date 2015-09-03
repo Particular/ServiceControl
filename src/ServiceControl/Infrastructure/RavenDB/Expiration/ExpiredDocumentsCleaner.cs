@@ -65,7 +65,8 @@
                 FieldsToFetch = new[]
                 {
                     "__document_id",
-                    "ProcessedAt"
+                    "ProcessedAt", 
+                    "MessageMetadata"
                 },
                 SortedFields = new[]
                 {
@@ -90,6 +91,7 @@
                 {
                     var documentWithCurrentThresholdTimeReached = false;
                     var items = new List<ICommandData>(deletionBatchSize);
+                    var attachments = new List<string>(deletionBatchSize);
                     try
                     {
                         Database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(Database.WorkContext.CancellationToken, cts.Token).Token,
@@ -115,6 +117,17 @@
                                 {
                                     Key = id
                                 });
+
+                                var bodyNotStored = doc.SelectToken("MessageMetadata.BodyNotStored", errorWhenNoMatch: false);
+                                if (bodyNotStored == null || bodyNotStored.Value<bool>() == false)
+                                {
+                                    var msgId = doc.SelectToken("MessageMetadata.MessageId", errorWhenNoMatch: false);
+                                    if (msgId != null)
+                                    {
+                                        var attachmentId = "messagebodies/" + msgId.Value<string>();
+                                        attachments.Add(attachmentId);
+                                    }
+                                }
                             }
                         });
                     }
@@ -127,6 +140,13 @@
 
                     docsToExpire += items.Count;
                     var results = Database.Batch(items.ToArray());
+                    Database.TransactionalStorage.Batch(accessor =>
+                    {
+                        foreach (var attach in attachments)
+                        {
+                            accessor.Attachments.DeleteAttachment(attach, null);
+                        }
+                    });
                     deletionCount = results.Count(x => x.Deleted == true);
                     items.Clear();
                 }
