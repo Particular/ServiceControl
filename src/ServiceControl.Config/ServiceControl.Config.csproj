@@ -143,7 +143,6 @@
     <Compile Include="Extensions\GuidExtensions.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Extensions\ReflectionHelper.cs" />
-    <Compile Include="Extensions\CommandExtensions.cs" />
     <Compile Include="Extensions\DeactivateExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\ValidatorExtensions.cs" />
