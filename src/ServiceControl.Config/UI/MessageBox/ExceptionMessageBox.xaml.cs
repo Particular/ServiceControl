@@ -18,7 +18,6 @@
     public partial class ExceptionMessageBox: IProgressViewModel
     {
         List<string> ExceptionInformationList = new List<string>();
-        bool reportClickEnabled;
 
         static RaygunReporter reporter;
 
