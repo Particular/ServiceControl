@@ -34,22 +34,20 @@
             var bodyId = message.MessageId;
             var stored = false;
             var bodyUrl = string.Format("/messages/{0}/body", bodyId);
+            var isFailedMessage = message is ImportFailedMessage;
+            var isBinary = contentType.Contains("binary");
+            var isBelowMaxSize = bodySize <= Settings.MaxBodySizeToStore;
 
-            if(bodySize <= Settings.MaxBodySizeToStore)
+            if (isFailedMessage || (isBinary && isBelowMaxSize))
             {
-                var isBinary = contentType.Contains("binary");
+                bodyUrl = StoreBodyInBodyStorage(message, bodyId, contentType, bodySize);
+                stored = true;
+            }
 
-                if (message is ImportFailedMessage || isBinary)
-                {
-                    bodyUrl = StoreBodyInBodyStorage(message, bodyId, contentType, bodySize);
-                    stored = true;
-                }
-            
-                if (!isBinary)
-                {
-                    message.Metadata.Add("Body", Encoding.UTF8.GetString(message.PhysicalMessage.Body));
-                    stored = true;
-                }
+            if (isBelowMaxSize && !isBinary)
+            {
+                message.Metadata.Add("Body", Encoding.UTF8.GetString(message.PhysicalMessage.Body));
+                stored = true;                
             }
 
             message.Metadata.Add("BodyUrl", bodyUrl);
