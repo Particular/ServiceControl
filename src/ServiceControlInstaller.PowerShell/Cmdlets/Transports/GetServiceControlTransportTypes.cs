@@ -2,6 +2,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 namespace ServiceControlInstaller.PowerShell
 {
+    using System.Linq;
     using System.Management.Automation;
     using ServiceControlInstaller.Engine.Instances;
 
@@ -10,7 +11,7 @@ namespace ServiceControlInstaller.PowerShell
     {
         protected override void ProcessRecord()
         {
-            WriteObject(Transports.All, true);
+            WriteObject(Transports.All.Select(PsTransportInfo.FromTransport), true);
         }
     }
 }

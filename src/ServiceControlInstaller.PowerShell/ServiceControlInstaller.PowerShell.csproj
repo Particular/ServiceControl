@@ -59,6 +59,7 @@
     <Compile Include="Cmdlets\Instances\PSServiceControl.cs" />
     <Compile Include="Cmdlets\Instances\NewServiceControlInstance.cs" />
     <Compile Include="Cmdlets\Instances\NewServiceControlUnattendedFile.cs" />
+    <Compile Include="Cmdlets\Transports\PsTransportInfo.cs" />
     <Compile Include="Cmdlets\UrlAcls\AddUrlAcl.cs" />
     <Compile Include="Cmdlets\UrlAcls\GetUrlAcls.cs" />
     <Compile Include="Cmdlets\UrlAcls\RemoveUrlAcl.cs" />
