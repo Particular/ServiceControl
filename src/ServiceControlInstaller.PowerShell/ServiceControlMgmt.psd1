@@ -13,6 +13,6 @@
 	CmdletsToExport = '*'
 	VariablesToExport = '*'
 	AliasesToExport = '*'
-	FormatsToProcess = @()
+	FormatsToProcess = @("ServiceControlMgmt.format.ps1xml")
     RequiredAssemblies = @('ServiceControlInstaller.Engine.DLL')
 }

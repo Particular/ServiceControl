@@ -99,6 +99,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ServiceControlMgmt.format.ps1xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
