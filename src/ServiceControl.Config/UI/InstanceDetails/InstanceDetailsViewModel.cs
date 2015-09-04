@@ -5,7 +5,6 @@
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using System.Windows.Input;
-    using Autofac.Features.ResolveAnything;
     using Caliburn.Micro;
     using Events;
     using ServiceControl.Config.Commands;
