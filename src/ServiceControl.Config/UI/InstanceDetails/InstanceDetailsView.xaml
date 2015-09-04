@@ -54,11 +54,11 @@
                     Orientation="Horizontal">
             <Button Command="{Binding StopCommand}"
                     Style="{StaticResource StopButton}"
-                    Visibility="{Binding IsRunning,
+                    Visibility="{Binding AllowStop,
                                          Converter={StaticResource boolToVis}}" />
             <Button Command="{Binding StartCommand}"
                     Style="{StaticResource StartButton}"
-                    Visibility="{Binding IsStopped,
+                    Visibility="{Binding AllowStart,
                                          Converter={StaticResource boolToVis}}" />
             <Button Command="{Binding EditCommand}"
                     CommandParameter="{Binding DataContext,

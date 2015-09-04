@@ -1,10 +1,11 @@
 ﻿namespace ServiceControl.Config.UI.InstanceDetails
 {
     using System;
-    using System.Runtime.Remoting.Channels;
+    using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using System.Windows.Input;
+    using Autofac.Features.ResolveAnything;
     using Caliburn.Micro;
     using Events;
     using ServiceControl.Config.Commands;
@@ -38,33 +39,58 @@
 
         public ServiceControlInstance ServiceControlInstance { get; private set; }
 
-        public string Name { get { return ServiceControlInstance.Name; } }
+        public string Name
+        {
+            get { return ServiceControlInstance.Name; }
+        }
 
-        public string Host { get { return ServiceControlInstance.Url; } }
+        public string Host
+        {
+            get { return ServiceControlInstance.Url; }
+        }
 
         public string BrowsableUrl
         {
-            get{
+            get
+            {
                 // When hostname is a wildcard this returns a URL based on localhost or machinename
-                return ServiceControlInstance.BrowsableUrl;                           
+                return ServiceControlInstance.BrowsableUrl;
             }
         }
 
-        public string InstallPath { get { return ServiceControlInstance.InstallPath; } }
+        public string InstallPath
+        {
+            get { return ServiceControlInstance.InstallPath; }
+        }
 
-        public string DBPath { get { return ServiceControlInstance.DBPath; } }
+        public string DBPath
+        {
+            get { return ServiceControlInstance.DBPath; }
+        }
 
-        public string LogPath { get { return ServiceControlInstance.LogPath; } }
+        public string LogPath
+        {
+            get { return ServiceControlInstance.LogPath; }
+        }
 
-        public Version Version { get { return ServiceControlInstance.Version; } }
+        public Version Version
+        {
+            get { return ServiceControlInstance.Version; }
+        }
 
         public Version NewVersion { get; private set; }
 
-        public bool HasNewVersion { get { return Version < NewVersion; } }
+        public bool HasNewVersion
+        {
+            get { return Version < NewVersion; }
+        }
 
-        public string Transport { get { return ServiceControlInstance.TransportPackage; } }
+        public string Transport
+        {
+            get { return ServiceControlInstance.TransportPackage; }
+        }
 
-        
+
 
         public string Status
         {
@@ -81,13 +107,19 @@
             }
         }
 
-        public bool IsRunning
+        public bool AllowStart
         {
             get
             {
                 try
                 {
-                    return ServiceControlInstance.Service.Status == ServiceControllerStatus.Running;
+                    var dontAllowStartOn = new[]
+                    {
+                        ServiceControllerStatus.Running,
+                        ServiceControllerStatus.StartPending,
+                        ServiceControllerStatus.StopPending,
+                    };
+                    return !dontAllowStartOn.Any(p => p.Equals(ServiceControlInstance.Service.Status));
                 }
                 catch (InvalidOperationException)
                 {
@@ -96,13 +128,20 @@
             }
         }
 
-        public bool IsStopped
+        public bool AllowStop
         {
             get
             {
                 try
                 {
-                    return ServiceControlInstance.Service.Status == ServiceControllerStatus.Stopped;
+                    var dontAllowStopOn = new[]
+                    {
+                        ServiceControllerStatus.Stopped,
+                        ServiceControllerStatus.StartPending,
+                        ServiceControllerStatus.StopPending,
+
+                    };
+                    return !dontAllowStopOn.Any(p => p.Equals(ServiceControlInstance.Service.Status));
                 }
                 catch (InvalidOperationException)
                 {
@@ -160,8 +199,8 @@
         {
             ServiceControlInstance.Service.Refresh();
             NotifyOfPropertyChange("Status");
-            NotifyOfPropertyChange("IsRunning");
-            NotifyOfPropertyChange("IsStopped");
+            NotifyOfPropertyChange("AllowStop");
+            NotifyOfPropertyChange("AllowStart");
         }
     }
 }
