@@ -97,7 +97,7 @@
         <GroupBox Grid.Row="2"
                   Grid.ColumnSpan="2"
                   Header="HOST">
-            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding Host}">
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
                 <TextBlock Text="{Binding Host}" />
             </Hyperlink>
         </GroupBox>

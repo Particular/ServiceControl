@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.UI.InstanceDetails
 {
     using System;
+    using System.Runtime.Remoting.Channels;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using System.Windows.Input;
@@ -41,6 +42,14 @@
 
         public string Host { get { return ServiceControlInstance.Url; } }
 
+        public string BrowsableUrl
+        {
+            get{
+                // When hostname is a wildcard this returns a URL based on localhost or machinename
+                return ServiceControlInstance.BrowsableUrl;                           
+            }
+        }
+
         public string InstallPath { get { return ServiceControlInstance.InstallPath; } }
 
         public string DBPath { get { return ServiceControlInstance.DBPath; } }
@@ -54,6 +63,8 @@
         public bool HasNewVersion { get { return Version < NewVersion; } }
 
         public string Transport { get { return ServiceControlInstance.TransportPackage; } }
+
+        
 
         public string Status
         {

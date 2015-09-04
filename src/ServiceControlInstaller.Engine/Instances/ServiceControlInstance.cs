@@ -92,6 +92,36 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+        public string BrowsableUrl
+        {
+            get
+            {
+                string host;
+
+                switch (HostName)
+                {
+                    case "*" :
+                        host = "localhost";
+                        break;
+                    case "+" :
+                          host = Environment.MachineName.ToLower();
+                        break;
+                    default :
+                        host = HostName;
+                        break;
+                }
+
+                var baseUrl = string.Format("http://{0}:{1}/api/", host, Port);
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return baseUrl;
+                }
+                return string.Format("{0}{1}{2}api/", baseUrl, VirtualDirectory, VirtualDirectory.EndsWith("/") ? "" : "/");
+            }
+        }
+
+
+
         string ReadConnectionString()
         {
             if (File.Exists(Service.ExePath))
