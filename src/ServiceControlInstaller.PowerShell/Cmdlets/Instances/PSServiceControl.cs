@@ -27,7 +27,7 @@ namespace ServiceControlInstaller.PowerShell
                 ErrorLogQueue = instance.ErrorLogQueue,
                 ForwardAuditMessages = instance.ForwardAuditMessages,
                 ServiceAccount = instance.ServiceAccount,
-                Version = instance.Version;
+                Version = instance.Version
             };
         }
         public string Name { get; set; }
