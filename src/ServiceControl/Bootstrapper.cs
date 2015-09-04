@@ -3,6 +3,7 @@ namespace Particular.ServiceControl
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Net;
     using System.ServiceProcess;
     using Autofac;
     using Hosting;
@@ -25,6 +26,9 @@ namespace Particular.ServiceControl
 
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, Configure configure = null)
         {
+            // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
+            ServicePointManager.DefaultConnectionLimit = Settings.HttpDefaultConnectionLimit;
+
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
             ConfigureLogging();
             var containerBuilder = new ContainerBuilder();

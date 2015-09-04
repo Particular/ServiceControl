@@ -234,5 +234,7 @@
             }
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), string.Format("Particular\\{0}\\logs", ServiceName));
         }
+
+        public static int HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
     }
 }
