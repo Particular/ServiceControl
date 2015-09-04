@@ -2,6 +2,7 @@
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace ServiceControlInstaller.PowerShell
 {
+    using System;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
 
@@ -26,6 +27,7 @@ namespace ServiceControlInstaller.PowerShell
                 ErrorLogQueue = instance.ErrorLogQueue,
                 ForwardAuditMessages = instance.ForwardAuditMessages,
                 ServiceAccount = instance.ServiceAccount,
+                Version = instance.Version;
             };
         }
         public string Name { get; set; }
@@ -48,6 +50,8 @@ namespace ServiceControlInstaller.PowerShell
         public bool ForwardAuditMessages { get; set; }
         
         public string ServiceAccount { get; set; }
+
+        public Version Version { get; set; }
         
     }
 }
