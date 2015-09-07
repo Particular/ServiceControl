@@ -25,60 +25,13 @@
                logger.Error("Zip file not found. Service Control service instances can not be upgraded or installed");
                return ActionResult.Failure;
             }
-
-            PlatformInstallActions(session, zipInfo, logger, unattendedInstaller);
+            
             UpgradeInstances(session, zipInfo, logger, unattendedInstaller);
             UnattendedInstall(session, logger, unattendedInstaller);
             ImportLicenseInstall(session, logger);
             return ActionResult.Success;
         }
-
-        static void PlatformInstallActions(Session session, ServiceControlZipInfo zipInfo, MSILogger logger, UnattendInstaller unattendedInstaller)
-        {
-            var platformInstallerPropertyValue = session["PLATFORMINSTALLER"];
-            bool platformInstallerFlag;
-            bool.TryParse(platformInstallerPropertyValue, out platformInstallerFlag);
-
-            if (!platformInstallerFlag)
-                return;
-
-            logger.Info("Platform Installer Flag Detected");
-            //Add or Upgrade "Particular.ServiceControl" Service
-            var defaultSCInstance = ServiceControlInstance.Instances().FirstOrDefault(p => string.Equals(p.Name, "Particular.ServiceControl", StringComparison.OrdinalIgnoreCase));
-            if (defaultSCInstance != null)
-            {
-                if ((zipInfo.Present) && (zipInfo.Version > defaultSCInstance.Version))
-                {
-                    if (!unattendedInstaller.Upgrade(defaultSCInstance))
-                    {
-                        logger.Warn(string.Format("Failed to upgrade {0} to {1}", defaultSCInstance.Name, zipInfo.Version));
-                    }
-                }
-            }
-            else
-            {
-                var defaultInstanceDetails = new ServiceControlInstanceMetadata
-                {
-                    Name = "Particular.ServiceControl",
-                    DisplayName = "Particular ServiceControl",
-                    ServiceDescription = "Particular Software ServiceControl for NServiceBus",
-                    TransportPackage = "MSMQ",
-                    HostName = "localhost",
-                    ForwardAuditMessages = false,
-                    InstallPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Particular Software\ServiceControl"),
-                    Port = 33333
-                };
-                try
-                {
-                    unattendedInstaller.Add(defaultInstanceDetails);
-                }
-                catch(Exception ex)
-                {
-                    logger.Error(string.Format("Failed to add instance - {0}", ex.Message));
-                }
-            }
-        }
-
+        
         static void UpgradeInstances(Session session, ServiceControlZipInfo zipInfo, MSILogger logger, UnattendInstaller unattendedInstaller)
         {
             var upgradeInstancesPropertyValue = session["UPGRADEINSTANCES"];
