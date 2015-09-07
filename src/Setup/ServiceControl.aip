@@ -10,8 +10,6 @@
     <ROW Property="ALLUSERS" Value="1"/>
     <ROW Property="ARPCOMMENTS" Value="Particular Software ServiceControl version [|ProductVersion] for NServiceBus" ValueLocId="*"/>
     <ROW Property="ARPHELPLINK" Value="http://particular.net/support"/>
-    <ROW Property="ARPNOREMOVE" Value="1"/>
-    <ROW Property="ARPNOREPAIR" Value="1"/>
     <ROW Property="ARPPRODUCTICON" Value="Operations.exe" Type="8"/>
     <ROW Property="ARPSYSTEMCOMPONENT" Value="1"/>
     <ROW Property="ARPURLUPDATEINFO" Value="http://particular.net/downloads"/>
@@ -36,8 +34,8 @@
     <ROW Property="WindowsTypeNTDisplay" MultiBuildValue="DefaultBuild:Windows 2000, Windows XP x86, Windows Server 2003 x86, Windows Vista x86" ValueLocId="-"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
-    <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1"/>
-    <ROW Directory="POWERSHELLDIR" Directory_Parent="APPDIR" DefaultDir=".:PowerS~1|PowerShellModule"/>
+    <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1" DirectoryOptions="3"/>
+    <ROW Directory="POWERSHELLDIR" Directory_Parent="APPDIR" DefaultDir=".:PowerS~1|PowerShellModule" DirectoryOptions="3"/>
     <ROW Directory="ProgramMenuFolder" Directory_Parent="TARGETDIR" DefaultDir="Progra~1|ProgramMenuFolder" IsPseudoRoot="1"/>
     <ROW Directory="SHORTCUTDIR" Directory_Parent="TARGETDIR" DefaultDir="SHORTC~1|SHORTCUTDIR" IsPseudoRoot="1"/>
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
@@ -45,18 +43,86 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="AI_CustomARPName" ComponentId="{86B714D7-9C86-41C8-9C3F-D3988F63F047}" Directory_="APPDIR" Attributes="260" KeyPath="DisplayName" Options="1"/>
     <ROW Component="AI_ExePath" ComponentId="{6C6931FD-7DD0-4009-AEA7-4C564B4C21B9}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
-    <ROW Component="PowerShellModule" ComponentId="{EF59CF26-67F2-4BB4-A504-F9088706BB6F}" Directory_="POWERSHELLDIR" Attributes="0"/>
+    <ROW Component="Autofac.dll" ComponentId="{D6F6725A-F61B-4DD9-A263-F8D2C4ED0E3F}" Directory_="APPDIR" Attributes="0" KeyPath="Autofac.dll"/>
+    <ROW Component="Autofac.xml" ComponentId="{A6EFDA0A-3642-408F-91DF-34D2C740CBA8}" Directory_="APPDIR" Attributes="0" KeyPath="Autofac.xml" Type="0"/>
+    <ROW Component="Caliburn.Micro.Platform.dll" ComponentId="{27C13C07-9130-44BE-807B-26EE04C78A21}" Directory_="APPDIR" Attributes="0" KeyPath="Caliburn.Micro.Platform.dll"/>
+    <ROW Component="Caliburn.Micro.dll" ComponentId="{36A52D16-4AD9-4754-B55D-BA18B1B513C4}" Directory_="APPDIR" Attributes="0" KeyPath="Caliburn.Micro.dll"/>
+    <ROW Component="FluentValidation.dll" ComponentId="{76E4C3A9-A85A-45CD-9F30-0D65A5DFEEC4}" Directory_="APPDIR" Attributes="0" KeyPath="FluentValidation.dll"/>
+    <ROW Component="Microsoft.WindowsAPICodePack.Shell.dll" ComponentId="{943DC936-83AE-444A-B4D2-99C616B82BFD}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.WindowsAPICodePack.Shell.dll"/>
+    <ROW Component="Microsoft.WindowsAPICodePack.dll" ComponentId="{C5C6B685-AABC-4C76-BA63-67E3DCC5799B}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.WindowsAPICodePack.dll"/>
+    <ROW Component="Mindscape.Raygun4Net.dll" ComponentId="{F019EB46-BC4B-40BA-9F03-36ADF158949F}" Directory_="APPDIR" Attributes="0" KeyPath="Mindscape.Raygun4Net.dll"/>
+    <ROW Component="Mindscape.Raygun4Net4.dll" ComponentId="{C844C639-AE9E-4361-B4CD-DC1ADACAB74F}" Directory_="APPDIR" Attributes="0" KeyPath="Mindscape.Raygun4Net4.dll"/>
     <ROW Component="REG_ManagementApp" ComponentId="{33DAA3D2-7FB3-41EF-ACCC-39D6BC579FD0}" Directory_="APPDIR" Attributes="260" KeyPath="ManagementApp"/>
     <ROW Component="REG_Version" ComponentId="{0334C672-95CB-4DAC-8971-8BC6B16BFDF9}" Directory_="APPDIR" Attributes="260" KeyPath="Version_1"/>
+    <ROW Component="ReactiveUI.Blend.dll" ComponentId="{21CA9CDF-BB06-446C-AE2E-E10300D5CF6F}" Directory_="APPDIR" Attributes="0" KeyPath="ReactiveUI.Blend.dll"/>
+    <ROW Component="ReactiveUI.Xaml.dll" ComponentId="{42EEA5E3-8E69-455C-9DA4-F7A6BBD56402}" Directory_="APPDIR" Attributes="0" KeyPath="ReactiveUI.Xaml.dll"/>
+    <ROW Component="ReactiveUI.dll" ComponentId="{477DADE0-86E1-45D9-83EB-0F73AB164553}" Directory_="APPDIR" Attributes="0" KeyPath="ReactiveUI.dll"/>
     <ROW Component="SHORTCUTDIR" ComponentId="{A34B0A89-3EB3-443B-9DD8-ACA01E02839A}" Directory_="SHORTCUTDIR" Attributes="0"/>
     <ROW Component="ServiceControlConfig.exe" ComponentId="{03FCB25B-BB80-4956-B6E8-5FF9479F6FC9}" Directory_="APPDIR" Attributes="0" KeyPath="ServiceControlConfig.exe"/>
+    <ROW Component="ServiceControlInstaller.Engine.dll" ComponentId="{C9225982-453E-4549-90DE-C9B2A238E4E3}" Directory_="APPDIR" Attributes="0" KeyPath="ServiceControlInstaller.Engine.dll"/>
+    <ROW Component="ServiceControlInstaller.Engine.dll_1" ComponentId="{0707B5D5-62D6-4A96-9538-31A386E1D5DD}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="ServiceControlInstaller.Engine.dll_1"/>
+    <ROW Component="ServiceControlInstaller.PowerShell.dll" ComponentId="{7EBAE1D8-BD2F-47D5-A68F-D92496F4BDAA}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="ServiceControlInstaller.PowerShell.dll"/>
+    <ROW Component="ServiceControlMgmt.psd1" ComponentId="{6AB21C40-0BF4-461B-A4FF-5C3541832ED5}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="ServiceControlMgmt.psd1" Type="0"/>
+    <ROW Component="System.Reactive.Core.dll" ComponentId="{19132965-8FE8-4656-9DF4-87299FA9BE38}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Core.dll"/>
+    <ROW Component="System.Reactive.Interfaces.dll" ComponentId="{E8EDFC57-E80E-4BE5-9080-92D75F556DBF}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Interfaces.dll"/>
+    <ROW Component="System.Reactive.Linq.dll" ComponentId="{66287EE4-DA0C-468C-8069-B781C847AEFA}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Linq.dll"/>
+    <ROW Component="System.Reactive.PlatformServices.dll" ComponentId="{152F3A06-A77A-4004-A424-F36472111CCC}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.PlatformServices.dll"/>
+    <ROW Component="System.Reactive.Windows.Threading.dll" ComponentId="{3533DEAA-9359-4340-B213-58968125D43C}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Windows.Threading.dll"/>
+    <ROW Component="System.Windows.Interactivity.dll" ComponentId="{5CAFEA8A-8F88-4640-A0B9-009AC54E479A}" Directory_="APPDIR" Attributes="0" KeyPath="System.Windows.Interactivity.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="ServiceControlManagment" Title="ServiceControlManagement" Description="Description" Display="3" Level="1" Directory_="APPDIR" Attributes="0" Components="AI_CustomARPName AI_ExePath PowerShellModule REG_ManagementApp REG_Version SHORTCUTDIR ServiceControlConfig.exe"/>
+    <ROW Feature="ServiceControlManagment" Title="ServiceControlManagement" Description="Description" Display="3" Level="1" Directory_="APPDIR" Attributes="0" Components="AI_CustomARPName AI_ExePath Autofac.dll Autofac.xml Caliburn.Micro.Platform.dll Caliburn.Micro.dll FluentValidation.dll Microsoft.WindowsAPICodePack.Shell.dll Microsoft.WindowsAPICodePack.dll Mindscape.Raygun4Net.dll Mindscape.Raygun4Net4.dll REG_ManagementApp REG_Version ReactiveUI.Blend.dll ReactiveUI.Xaml.dll ReactiveUI.dll SHORTCUTDIR ServiceControlConfig.exe ServiceControlInstaller.Engine.dll ServiceControlInstaller.Engine.dll_1 ServiceControlInstaller.PowerShell.dll ServiceControlMgmt.psd1 System.Reactive.Core.dll System.Reactive.Interfaces.dll System.Reactive.Linq.dll System.Reactive.PlatformServices.dll System.Reactive.Windows.Threading.dll System.Windows.Interactivity.dll"/>
     <ATTRIBUTE name="CurrentFeature" value="ServiceControlManagment"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="ServiceControlConfig.exe" Component_="ServiceControlConfig.exe" FileName="Servic~1.exe|ServiceControlConfig.exe" Attributes="0" SourcePath="&lt;WPF_PATH&gt;\ServiceControlConfig.exe" SelfReg="false" DigSign="true"/>
+    <ROW File="Autofac.dll" Component_="Autofac.dll" FileName="Autofac.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Autofac.dll" SelfReg="false" NextFile="Autofac.xml"/>
+    <ROW File="Autofac.xml" Component_="Autofac.xml" FileName="Autofac.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Autofac.xml" SelfReg="false" NextFile="Caliburn.Micro.dll"/>
+    <ROW File="Caliburn.Micro.Platform.dll" Component_="Caliburn.Micro.Platform.dll" FileName="Calibu~2.dll|Caliburn.Micro.Platform.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.Platform.dll" SelfReg="false" NextFile="Caliburn.Micro.Platform.xml"/>
+    <ROW File="Caliburn.Micro.Platform.xml" Component_="Autofac.xml" FileName="Calibu~1.xml|Caliburn.Micro.Platform.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.Platform.xml" SelfReg="false" NextFile="Caliburn.Micro.xml"/>
+    <ROW File="Caliburn.Micro.dll" Component_="Caliburn.Micro.dll" FileName="Calibu~1.dll|Caliburn.Micro.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.dll" SelfReg="false" NextFile="Caliburn.Micro.Platform.dll"/>
+    <ROW File="Caliburn.Micro.xml" Component_="Autofac.xml" FileName="Calibu~2.xml|Caliburn.Micro.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.xml" SelfReg="false" NextFile="FluentValidation.dll"/>
+    <ROW File="FluentValidation.dll" Component_="FluentValidation.dll" FileName="Fluent~1.dll|FluentValidation.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;FluentValidation.dll" SelfReg="false" NextFile="FluentValidation.pdb"/>
+    <ROW File="FluentValidation.pdb" Component_="FluentValidation.dll" FileName="Fluent~1.pdb|FluentValidation.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;FluentValidation.pdb" SelfReg="false" NextFile="FluentValidation.xml"/>
+    <ROW File="FluentValidation.xml" Component_="Autofac.xml" FileName="Fluent~1.xml|FluentValidation.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;FluentValidation.xml" SelfReg="false" NextFile="Microsoft.WindowsAPICodePack.dll"/>
+    <ROW File="Microsoft.WindowsAPICodePack.Shell.dll" Component_="Microsoft.WindowsAPICodePack.Shell.dll" FileName="Micros~2.dll|Microsoft.WindowsAPICodePack.Shell.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.WindowsAPICodePack.Shell.dll" SelfReg="false" NextFile="Microsoft.WindowsAPICodePack.Shell.pdb"/>
+    <ROW File="Microsoft.WindowsAPICodePack.Shell.pdb" Component_="Microsoft.WindowsAPICodePack.Shell.dll" FileName="Micros~2.pdb|Microsoft.WindowsAPICodePack.Shell.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.WindowsAPICodePack.Shell.pdb" SelfReg="false" NextFile="Mindscape.Raygun4Net.dll"/>
+    <ROW File="Microsoft.WindowsAPICodePack.dll" Component_="Microsoft.WindowsAPICodePack.dll" FileName="Micros~1.dll|Microsoft.WindowsAPICodePack.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.WindowsAPICodePack.dll" SelfReg="false" NextFile="Microsoft.WindowsAPICodePack.pdb"/>
+    <ROW File="Microsoft.WindowsAPICodePack.pdb" Component_="Microsoft.WindowsAPICodePack.dll" FileName="Micros~1.pdb|Microsoft.WindowsAPICodePack.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.WindowsAPICodePack.pdb" SelfReg="false" NextFile="Microsoft.WindowsAPICodePack.Shell.dll"/>
+    <ROW File="Mindscape.Raygun4Net.dll" Component_="Mindscape.Raygun4Net.dll" FileName="Mindsc~1.dll|Mindscape.Raygun4Net.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Mindscape.Raygun4Net.dll" SelfReg="false" NextFile="Mindscape.Raygun4Net.pdb"/>
+    <ROW File="Mindscape.Raygun4Net.pdb" Component_="Mindscape.Raygun4Net.dll" FileName="Mindsc~1.pdb|Mindscape.Raygun4Net.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Mindscape.Raygun4Net.pdb" SelfReg="false" NextFile="Mindscape.Raygun4Net4.dll"/>
+    <ROW File="Mindscape.Raygun4Net4.dll" Component_="Mindscape.Raygun4Net4.dll" FileName="Mindsc~2.dll|Mindscape.Raygun4Net4.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Mindscape.Raygun4Net4.dll" SelfReg="false" NextFile="Mindscape.Raygun4Net4.pdb"/>
+    <ROW File="Mindscape.Raygun4Net4.pdb" Component_="Mindscape.Raygun4Net4.dll" FileName="Mindsc~2.pdb|Mindscape.Raygun4Net4.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Mindscape.Raygun4Net4.pdb" SelfReg="false" NextFile="Particular.ServiceControl1.7.0.zip"/>
+    <ROW File="Particular.ServiceControl1.7.0.zip" Component_="Autofac.xml" FileName="Partic~1.zip|Particular.ServiceControl-1.7.0.zip" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Particular.ServiceControl-1.7.0.zip" SelfReg="false" NextFile="ReactiveUI.Blend.dll"/>
+    <ROW File="ReactiveUI.Blend.dll" Component_="ReactiveUI.Blend.dll" FileName="Reacti~1.dll|ReactiveUI.Blend.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.Blend.dll" SelfReg="false" NextFile="ReactiveUI.Blend.xml"/>
+    <ROW File="ReactiveUI.Blend.xml" Component_="Autofac.xml" FileName="Reacti~1.xml|ReactiveUI.Blend.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.Blend.xml" SelfReg="false" NextFile="ReactiveUI.dll"/>
+    <ROW File="ReactiveUI.Xaml.dll" Component_="ReactiveUI.Xaml.dll" FileName="Reacti~3.dll|ReactiveUI.Xaml.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.Xaml.dll" SelfReg="false" NextFile="ReactiveUI.Xaml.xml"/>
+    <ROW File="ReactiveUI.Xaml.xml" Component_="Autofac.xml" FileName="Reacti~2.xml|ReactiveUI.Xaml.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.Xaml.xml" SelfReg="false" NextFile="ReactiveUI.xml"/>
+    <ROW File="ReactiveUI.dll" Component_="ReactiveUI.dll" FileName="Reacti~2.dll|ReactiveUI.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.dll" SelfReg="false" NextFile="ReactiveUI.Xaml.dll"/>
+    <ROW File="ReactiveUI.xml" Component_="Autofac.xml" FileName="Reacti~3.xml|ReactiveUI.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.xml" SelfReg="false" NextFile="ServiceControlConfig.exe.config"/>
+    <ROW File="ServiceControlConfig.exe" Component_="ServiceControlConfig.exe" FileName="Servic~1.exe|ServiceControlConfig.exe" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;\ServiceControlConfig.exe" SelfReg="false" NextFile="Autofac.dll" DigSign="true"/>
+    <ROW File="ServiceControlConfig.exe.config" Component_="Autofac.xml" FileName="Servic~1.con|ServiceControlConfig.exe.config" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ServiceControlConfig.exe.config" SelfReg="false" NextFile="ServiceControlConfig.pdb"/>
+    <ROW File="ServiceControlConfig.pdb" Component_="ServiceControlConfig.exe" FileName="Servic~1.pdb|ServiceControlConfig.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ServiceControlConfig.pdb" SelfReg="false" NextFile="ServiceControlInstaller.Engine.dll"/>
+    <ROW File="ServiceControlInstaller.Engine.dll" Component_="ServiceControlInstaller.Engine.dll" FileName="Servic~1.dll|ServiceControlInstaller.Engine.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ServiceControlInstaller.Engine.dll" SelfReg="false" NextFile="ServiceControlInstaller.Engine.pdb"/>
+    <ROW File="ServiceControlInstaller.Engine.dll_1" Component_="ServiceControlInstaller.Engine.dll_1" FileName="Servic~1.dll|ServiceControlInstaller.Engine.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlInstaller.Engine.dll" SelfReg="false" NextFile="ServiceControlInstaller.Engine.pdb_1"/>
+    <ROW File="ServiceControlInstaller.Engine.pdb" Component_="ServiceControlInstaller.Engine.dll" FileName="Servic~2.pdb|ServiceControlInstaller.Engine.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ServiceControlInstaller.Engine.pdb" SelfReg="false" NextFile="System.Reactive.Core.dll"/>
+    <ROW File="ServiceControlInstaller.Engine.pdb_1" Component_="ServiceControlInstaller.Engine.dll_1" FileName="Servic~1.pdb|ServiceControlInstaller.Engine.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlInstaller.Engine.pdb" SelfReg="false" NextFile="ServiceControlInstaller.PowerShell.dll"/>
+    <ROW File="ServiceControlInstaller.PowerShell.dll" Component_="ServiceControlInstaller.PowerShell.dll" FileName="Servic~2.dll|ServiceControlInstaller.PowerShell.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlInstaller.PowerShell.dll" SelfReg="false" NextFile="ServiceControlInstaller.PowerShell.pdb"/>
+    <ROW File="ServiceControlInstaller.PowerShell.pdb" Component_="ServiceControlInstaller.PowerShell.dll" FileName="Servic~2.pdb|ServiceControlInstaller.PowerShell.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlInstaller.PowerShell.pdb" SelfReg="false" NextFile="ServiceControlMgmt.psd1"/>
+    <ROW File="ServiceControlMgmt.psd1" Component_="ServiceControlMgmt.psd1" FileName="Servic~1.psd|ServiceControlMgmt.psd1" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlMgmt.psd1" SelfReg="false" NextFile="ServiceControlMgmt.psm1"/>
+    <ROW File="ServiceControlMgmt.psm1" Component_="ServiceControlMgmt.psd1" FileName="Servic~1.psm|ServiceControlMgmt.psm1" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlMgmt.psm1" SelfReg="false" NextFile="ShortcutStartup.ps1"/>
+    <ROW File="ShortcutStartup.ps1" Component_="ServiceControlMgmt.psd1" FileName="Shortc~1.ps1|ShortcutStartup.ps1" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ShortcutStartup.ps1" SelfReg="false"/>
+    <ROW File="System.Reactive.Core.dll" Component_="System.Reactive.Core.dll" FileName="System~1.dll|System.Reactive.Core.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Core.dll" SelfReg="false" NextFile="System.Reactive.Core.xml"/>
+    <ROW File="System.Reactive.Core.xml" Component_="Autofac.xml" FileName="System~1.xml|System.Reactive.Core.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Core.xml" SelfReg="false" NextFile="System.Reactive.Interfaces.dll"/>
+    <ROW File="System.Reactive.Interfaces.dll" Component_="System.Reactive.Interfaces.dll" FileName="System~2.dll|System.Reactive.Interfaces.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Interfaces.dll" SelfReg="false" NextFile="System.Reactive.Interfaces.xml"/>
+    <ROW File="System.Reactive.Interfaces.xml" Component_="Autofac.xml" FileName="System~2.xml|System.Reactive.Interfaces.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Interfaces.xml" SelfReg="false" NextFile="System.Reactive.Linq.dll"/>
+    <ROW File="System.Reactive.Linq.dll" Component_="System.Reactive.Linq.dll" FileName="System~3.dll|System.Reactive.Linq.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Linq.dll" SelfReg="false" NextFile="System.Reactive.Linq.xml"/>
+    <ROW File="System.Reactive.Linq.xml" Component_="Autofac.xml" FileName="System~3.xml|System.Reactive.Linq.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Linq.xml" SelfReg="false" NextFile="System.Reactive.PlatformServices.dll"/>
+    <ROW File="System.Reactive.PlatformServices.dll" Component_="System.Reactive.PlatformServices.dll" FileName="System~4.dll|System.Reactive.PlatformServices.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.PlatformServices.dll" SelfReg="false" NextFile="System.Reactive.PlatformServices.xml"/>
+    <ROW File="System.Reactive.PlatformServices.xml" Component_="Autofac.xml" FileName="System~4.xml|System.Reactive.PlatformServices.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.PlatformServices.xml" SelfReg="false" NextFile="System.Reactive.Windows.Threading.dll"/>
+    <ROW File="System.Reactive.Windows.Threading.dll" Component_="System.Reactive.Windows.Threading.dll" FileName="System~5.dll|System.Reactive.Windows.Threading.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Windows.Threading.dll" SelfReg="false" NextFile="System.Reactive.Windows.Threading.xml"/>
+    <ROW File="System.Reactive.Windows.Threading.xml" Component_="Autofac.xml" FileName="System~5.xml|System.Reactive.Windows.Threading.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Windows.Threading.xml" SelfReg="false" NextFile="System.Windows.Interactivity.dll"/>
+    <ROW File="System.Windows.Interactivity.dll" Component_="System.Windows.Interactivity.dll" FileName="System~6.dll|System.Windows.Interactivity.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Windows.Interactivity.dll" SelfReg="false" NextFile="Validar.xml"/>
+    <ROW File="Validar.xml" Component_="Autofac.xml" FileName="Validar.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Validar.xml" SelfReg="false" NextFile="ServiceControlInstaller.Engine.dll_1"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AiBinaryAliasComponent">
     <ROW AliasRowId="banner" AliasRowOperation="2" Data="Res\banner.jpg"/>
@@ -171,7 +237,6 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCreateFolderComponent">
     <ROW Directory_="SHORTCUTDIR" Component_="SHORTCUTDIR"/>
-    <ROW Directory_="POWERSHELLDIR" Component_="PowerShellModule"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
     <ROW Action="AI_AppSearchEx" Type="1" Source="Prereq.dll" Target="DoAppSearchEx"/>
@@ -282,9 +347,6 @@
     <ROW Registry="HelpTelephone" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="HelpTelephone" Value="[ARPHELPTELEPHONE]" Component_="AI_CustomARPName"/>
     <ROW Registry="InstallLocation" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="InstallLocation" Value="[APPDIR]" Component_="AI_CustomARPName"/>
     <ROW Registry="ManagementApp" Root="-1" Key="Software\ParticularSoftware\ServiceControl" Name="ManagementApp" Value="[#ServiceControlConfig.exe]" Component_="REG_ManagementApp"/>
-    <ROW Registry="ModifyPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="ModifyPath" Value="[AI_UNINSTALLER] /I [ProductCode]" Component_="AI_CustomARPName"/>
-    <ROW Registry="NoRemove" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="NoRemove" Value="#1" Component_="AI_CustomARPName"/>
-    <ROW Registry="NoRepair" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="NoRepair" Value="#1" Component_="AI_CustomARPName"/>
     <ROW Registry="Publisher" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Publisher" Value="[Manufacturer]" Component_="AI_CustomARPName"/>
     <ROW Registry="URLInfoAbout" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLInfoAbout" Value="[ARPURLINFOABOUT]" Component_="AI_CustomARPName"/>
     <ROW Registry="URLUpdateInfo" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLUpdateInfo" Value="[ARPURLUPDATEINFO]" Component_="AI_CustomARPName"/>
