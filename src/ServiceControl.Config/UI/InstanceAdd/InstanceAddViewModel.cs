@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.InstanceAdd
 {
     using System;
-    using System.Diagnostics.PerformanceData;
     using System.IO;
     using System.Linq;
     using System.Windows.Input;
