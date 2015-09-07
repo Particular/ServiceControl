@@ -17,28 +17,18 @@ namespace ServiceControlInstaller.PowerShell
         {
             foreach (var port in Port)
             {
-
-                bool available;
                 try
                 {
-                    PortUtils.CheckAvailable(port);
-                    available = true;
-                }
-                catch (Exception)
-                {
-                    available = false;
-                }
-
-                var p = new PSObject
-                {
-                    Properties =
+                    WriteObject(new PsPortAvailability
                     {
-                        new PSNoteProperty("Port", port),
-                        new PSNoteProperty("Available", available)
-                    },
-                    TypeNames = { "PortAvailability.Information" }
-                };
-                WriteObject(p);
+                        Port = port,
+                        Available = PortUtils.CheckAvailable(port)
+                    });
+                }
+                catch (Exception ex)
+                {
+                    WriteError(new ErrorRecord(ex, null, ErrorCategory.InvalidOperation, port));
+                }
             }       
         }
     }
