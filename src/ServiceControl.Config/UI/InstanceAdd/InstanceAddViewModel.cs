@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.UI.InstanceAdd
 {
     using System;
+    using System.Diagnostics.PerformanceData;
     using System.IO;
     using System.Linq;
     using System.Windows.Input;
@@ -23,33 +24,29 @@
             var serviceControlInstances = ServiceControlInstance.Instances();
 
             // Defaults
-
             if (!serviceControlInstances.Any())
             {
                 InstanceName = "Particular.ServiceControl";
                 PortNumber = "33333";
-
-                AuditQueueName = "audit";
-                AuditForwardingQueueName = "audit.log";
-
-                ErrorQueueName = "error";
-                ErrorForwardingQueueName = "error.log";
             }
             else
             {
-                InstanceName = string.Format("Particular.ServiceControl.{0}", serviceControlInstances.Count);
-                PortNumber = (serviceControlInstances.Max(i => i.Port) + 1).ToString();
-
-                AuditQueueName = string.Format("audit{0}", serviceControlInstances.Count);
-                AuditForwardingQueueName = string.Format("audit{0}.log", serviceControlInstances.Count);
-
-                ErrorQueueName = string.Format("error{0}", serviceControlInstances.Count);
-                ErrorForwardingQueueName = string.Format("error{0}.log", serviceControlInstances.Count);
+                var i = 0;
+                while (true)
+                {
+                    InstanceName = string.Format("Particular.ServiceControl.{0}", ++i);
+                    if (!serviceControlInstances.Any(p => p.Name.Equals(InstanceName, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        break;
+                    }
+                }
             }
-
             Description = "A ServiceControl Instance";
-
-            HostName = "localhost";
+            HostName = "localhost"; 
+            AuditQueueName = "audit";
+            AuditForwardingQueueName = "audit.log";
+            ErrorQueueName = "error";
+            ErrorForwardingQueueName = "error.log";
         }
 
         public string DestinationPath { get; set; }
