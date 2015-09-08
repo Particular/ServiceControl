@@ -86,7 +86,7 @@
                                    Text="{Binding}" />
                         <TextBlock Visibility="{Binding DataContext.HasNewVersion, ElementName=root, Converter={StaticResource boolToVis}}">
                             <Hyperlink Command="{Binding DataContext.UpgradeToNewVersionCommand, ElementName=root}" CommandParameter="{Binding DataContext, ElementName=root}">
-                                <TextBlock FontSize="13" Text="{Binding DataContext.NewVersion, ElementName=root, StringFormat=(V{0} Available)}" />
+                                <TextBlock FontSize="13" Text="{Binding DataContext.NewVersion, ElementName=root, StringFormat=(Upgrade to V{0})}" />
                             </Hyperlink>
                         </TextBlock>
                     </StackPanel>
@@ -134,7 +134,7 @@
         </GroupBox>
 
         <Border x:Name="progressOverlay"
-                Grid.RowSpan="6"
+                Grid.RowSpan="7"
                 Grid.ColumnSpan="2"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"

@@ -26,12 +26,16 @@
 
         public override async Task ExecuteAsync(InstanceDetailsViewModel instanceViewModel)
         {
-            if (windowManager.ShowMessage("STOP INSTANCE AND UPGRADE", string.Format("{0} needs to be stopped in order to upgrade. Do you want to proceed.", instanceViewModel.Name)))
+            var instance = ServiceControlInstance.FindByName(instanceViewModel.Name);
+            instance.Service.Refresh();
+
+            var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
+                windowManager.ShowMessage(string.Format("STOP INSTANCE AND UPGRADE TO {0}", installer.ZipInfo.Version), string.Format("{0} needs to be stopped in order to upgrade to version {1}. Do you want to proceed.", instanceViewModel.Name, installer.ZipInfo.Version));
+
+            if (confirm)
             {
                 using (var progress = instanceViewModel.GetProgressObject("UPGRADING " + instanceViewModel.Name))
                 {
-                    var instance = ServiceControlInstance.FindByName(instanceViewModel.Name);
-
                     instance.Service.Refresh();
                     var isRunning = instance.Service.Status == ServiceControllerStatus.Running;
                     if (isRunning) await instanceViewModel.StopService();
