@@ -44,10 +44,7 @@
                            FontWeight="Bold"
                            Foreground="{StaticResource Gray60Brush}"
                            Text="{Binding ActiveItem.DisplayName}" />
-                <Button Width="24"
-                        Height="24"
-                        HorizontalAlignment="Left"
-                        Command="{Binding RefreshInstancesCmd}"
+                <Button Command="{Binding RefreshInstancesCmd}"
                         Style="{StaticResource RefreshButton}"
                         Visibility="{Binding ShowRefresh,
                                              Converter={StaticResource boolToVis}}" />
@@ -61,31 +58,12 @@
                         Visibility="{Binding IsModal,
                                              Converter={StaticResource boolToVisInverted}}">
 
-                <Button Width="12"
-                        Height="12"
-                        Command="{Binding AddInstance}"
+                <Button Command="{Binding AddInstance}"
                         Style="{StaticResource NewButton}" />
-                <TextBlock Margin="5,0,0,0">
-                    <Hyperlink Command="{Binding AddInstance}"
-                               FontSize="14"
-                               FontWeight="Bold">
-                        NEW INSTANCE
-                    </Hyperlink>
-                </TextBlock>
 
-                <Button Width="12"
-                        Height="12"
-                        Margin="20,0,0,0"
+                <Button Margin="20,0,0,0"
                         Command="{Binding OpenLicense}"
                         Style="{StaticResource LicenseButton}" />
-
-                <TextBlock Margin="5,0,0,0">
-                    <Hyperlink Command="{Binding OpenLicense}"
-                               FontSize="14"
-                               FontWeight="Bold">
-                        LICENSE
-                    </Hyperlink>
-                </TextBlock>
             </StackPanel>
 
             <ContentControl Grid.Row="1"
