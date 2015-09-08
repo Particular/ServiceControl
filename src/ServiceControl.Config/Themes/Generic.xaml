@@ -11,14 +11,14 @@
     <ControlTemplate x:Key="ErrorHeader">
         <StackPanel Orientation="Horizontal">
 
-            <ContentControl x:Name="errorIcon"
-                            Width="16"
-                            Height="16"
-                            Margin="5,0,0,0"
-                            Template="{StaticResource WarningIcon}"
-                            Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                 Path=(Validation.HasError),
-                                                 Converter={StaticResource boolToVisHidden}}" />
+            <Control x:Name="errorIcon"
+                     Width="16"
+                     Height="16"
+                     Margin="5,0,0,0"
+                     Template="{StaticResource WarningIcon}"
+                     Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                          Path=(Validation.HasError),
+                                          Converter={StaticResource boolToVisHidden}}" />
 
             <TextBlock x:Name="errorElement"
                        Margin="5,0,0,0"
@@ -82,14 +82,14 @@
                                         Grid.Column="1"
                                         Orientation="Horizontal">
 
-                                <ContentControl x:Name="errorIcon"
-                                                Width="16"
-                                                Height="16"
-                                                Margin="5,0,0,0"
-                                                Template="{StaticResource WarningIcon}"
-                                                Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                                     Path=(Validation.HasError),
-                                                                     Converter={StaticResource boolToVisHidden}}" />
+                                <Control x:Name="errorIcon"
+                                         Width="16"
+                                         Height="16"
+                                         Margin="5,0,0,0"
+                                         Template="{StaticResource WarningIcon}"
+                                         Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=(Validation.HasError),
+                                                              Converter={StaticResource boolToVisHidden}}" />
 
                                 <TextBlock x:Name="errorElement"
                                            Margin="5,0,0,0"
@@ -292,14 +292,14 @@
                                     Grid.Column="1"
                                     Orientation="Horizontal">
 
-                            <ContentControl x:Name="errorIcon"
-                                            Width="16"
-                                            Height="16"
-                                            Margin="5,0,0,0"
-                                            Template="{StaticResource WarningIcon}"
-                                            Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                                 Path=(Validation.HasError),
-                                                                 Converter={StaticResource boolToVisHidden}}" />
+                            <Control x:Name="errorIcon"
+                                     Width="16"
+                                     Height="16"
+                                     Margin="5,0,0,0"
+                                     Template="{StaticResource WarningIcon}"
+                                     Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                          Path=(Validation.HasError),
+                                                          Converter={StaticResource boolToVisHidden}}" />
 
                             <TextBlock x:Name="errorElement"
                                        Margin="5,0,0,0"
@@ -483,14 +483,14 @@
                                     Grid.ColumnSpan="2"
                                     Orientation="Horizontal">
 
-                            <ContentControl x:Name="errorIcon"
-                                            Width="16"
-                                            Height="16"
-                                            Margin="5,0,0,0"
-                                            Template="{StaticResource WarningIcon}"
-                                            Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                                 Path=(Validation.HasError),
-                                                                 Converter={StaticResource boolToVisHidden}}" />
+                            <Control x:Name="errorIcon"
+                                     Width="16"
+                                     Height="16"
+                                     Margin="5,0,0,0"
+                                     Template="{StaticResource WarningIcon}"
+                                     Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                          Path=(Validation.HasError),
+                                                          Converter={StaticResource boolToVisHidden}}" />
 
                             <TextBlock x:Name="errorElement"
                                        Margin="5,0,0,0"
@@ -592,14 +592,14 @@
                                        Text="{TemplateBinding Header}" />
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
 
-                                <ContentControl x:Name="errorIcon"
-                                                Width="16"
-                                                Height="16"
-                                                Margin="5,0,0,0"
-                                                Template="{StaticResource WarningIcon}"
-                                                Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                                     Path=(Validation.HasError),
-                                                                     Converter={StaticResource boolToVisHidden}}" />
+                                <Control x:Name="errorIcon"
+                                         Width="16"
+                                         Height="16"
+                                         Margin="5,0,0,0"
+                                         Template="{StaticResource WarningIcon}"
+                                         Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=(Validation.HasError),
+                                                              Converter={StaticResource boolToVisHidden}}" />
 
                                 <TextBlock x:Name="errorElement"
                                            Margin="5,0,0,0"
@@ -699,14 +699,14 @@
                                         Grid.Column="1"
                                         Orientation="Horizontal">
 
-                                <ContentControl x:Name="errorIcon"
-                                                Width="16"
-                                                Height="16"
-                                                Margin="5,0,0,0"
-                                                Template="{StaticResource WarningIcon}"
-                                                Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                                     Path=(Validation.HasError),
-                                                                     Converter={StaticResource boolToVisHidden}}" />
+                                <Control x:Name="errorIcon"
+                                         Width="16"
+                                         Height="16"
+                                         Margin="5,0,0,0"
+                                         Template="{StaticResource WarningIcon}"
+                                         Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=(Validation.HasError),
+                                                              Converter={StaticResource boolToVisHidden}}" />
 
                                 <TextBlock x:Name="errorElement"
                                            Margin="5,0,0,0"
@@ -817,14 +817,14 @@
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
 
-                                <ContentControl x:Name="errorIcon"
-                                                Width="16"
-                                                Height="16"
-                                                Margin="5,0,0,0"
-                                                Template="{StaticResource WarningIcon}"
-                                                Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                                     Path=(Validation.HasError),
-                                                                     Converter={StaticResource boolToVisHidden}}" />
+                                <Control x:Name="errorIcon"
+                                         Width="16"
+                                         Height="16"
+                                         Margin="5,0,0,0"
+                                         Template="{StaticResource WarningIcon}"
+                                         Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=(Validation.HasError),
+                                                              Converter={StaticResource boolToVisHidden}}" />
 
                                 <TextBlock x:Name="errorElement"
                                            Margin="5,0,0,0"

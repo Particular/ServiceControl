@@ -34,10 +34,10 @@
                 </Style>
             </Border.Resources>
 
-            <Border HorizontalAlignment="Center"
+            <Border Padding="100"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Background="White"
-                    Padding="100">
+                    Background="White">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
@@ -73,7 +73,7 @@
                         <ColumnDefinition Width="auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <ContentControl Template="{StaticResource WarningIcon}" />
+                    <Control Template="{StaticResource WarningIcon}" />
                     <TextBlock Grid.Column="1"
                                Margin="5,0,0,0"
                                HorizontalAlignment="Left"

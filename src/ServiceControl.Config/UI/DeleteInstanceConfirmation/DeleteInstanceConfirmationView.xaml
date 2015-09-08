@@ -7,9 +7,9 @@
                       Title="DeleteInstanceConfirmationView"
                       Width="500"
                       Height="370"
+                      Padding="0"
                       Background="{StaticResource Gray10Brush}"
                       Foreground="{StaticResource WhiteBrush}"
-                      Padding="0"
                       ResizeMode="NoResize"
                       WindowStartupLocation="CenterOwner"
                       d:DataContext="{d:DesignData /UI/DeleteInstanceConfirmation/SampleData.xaml}"
@@ -58,13 +58,13 @@
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <ContentControl Grid.Column="0"
-                            Width="60"
-                            Height="60"
-                            Margin="0,0,10,0"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Content="{StaticResource WarningIcon}" />
+            <Control Grid.Column="0"
+                     Width="60"
+                     Height="60"
+                     Margin="0,0,10,0"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Template="{StaticResource WarningIcon}" />
             <TextBlock Grid.Column="1"
                        VerticalAlignment="Center"
                        Text="Warning: you're about to remove this instance. This action cannot be reversed."
