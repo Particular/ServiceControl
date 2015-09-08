@@ -222,6 +222,7 @@
     <Compile Include="Xaml\Controls\CleanWindow.cs" />
     <Compile Include="Xaml\Controls\FormComboBox.cs" />
     <Compile Include="Xaml\Controls\FormTextBox.cs" />
+    <Compile Include="Xaml\Converters\CaseConverter.cs" />
     <Compile Include="Xaml\Native\UnsafeNativeMethods.cs" />
     <Compile Include="Xaml\Native\NativeConstants.cs" />
     <Compile Include="Xaml\Native\ShowWindowCommands.cs" />

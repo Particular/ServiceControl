@@ -10,5 +10,7 @@
                                           Invert="True"
                                           IsHidden="True" />
 
+    <converters:CaseConverter x:Key="caseConverter" />
+
     <converters:StringNullOrEmptyToVisibilityConverter x:Key="nullOrEmptyToVis" />
 </ResourceDictionary>
