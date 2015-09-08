@@ -88,9 +88,7 @@
         {
             get { return ServiceControlInstance.TransportPackage; }
         }
-
-
-
+        
         public string Status
         {
             get
@@ -105,6 +103,38 @@
                 }
             }
         }
+
+
+        public bool IsRunning
+        {
+            get
+            {
+                try
+                {
+                    return ServiceControlInstance.Service.Status != ServiceControllerStatus.Stopped;
+                }
+                catch (InvalidOperationException)
+                {
+                    return false;
+                }
+            }
+        }
+
+        public bool IsStopped
+        {
+            get
+            {
+                try
+                {
+                    return ServiceControlInstance.Service.Status == ServiceControllerStatus.Stopped;
+                }
+                catch (InvalidOperationException)
+                {
+                    return true;
+                }
+            }
+        }
+
 
         public bool AllowStart
         {
@@ -144,7 +174,7 @@
                 }
                 catch (InvalidOperationException)
                 {
-                    return true;
+                    return false;
                 }
             }
         }
@@ -200,6 +230,8 @@
             NotifyOfPropertyChange("Status");
             NotifyOfPropertyChange("AllowStop");
             NotifyOfPropertyChange("AllowStart");
+            NotifyOfPropertyChange("IsRunning");
+            NotifyOfPropertyChange("IsStopped");
         }
     }
 }
