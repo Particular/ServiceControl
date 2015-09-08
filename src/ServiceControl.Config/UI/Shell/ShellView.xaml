@@ -10,8 +10,8 @@
                       Height="700"
                       MinWidth="500"
                       MinHeight="500"
-                      CloseOnEscape="False"
                       Padding="0"
+                      CloseOnEscape="False"
                       mc:Ignorable="d">
     <Grid>
         <Grid>
@@ -61,15 +61,25 @@
                         Visibility="{Binding IsModal,
                                              Converter={StaticResource boolToVisInverted}}">
 
-                <TextBlock>
+                <Button Width="12"
+                        Height="12"
+                        Command="{Binding AddInstance}"
+                        Style="{StaticResource NewButton}" />
+                <TextBlock Margin="5,0,0,0">
                     <Hyperlink Command="{Binding AddInstance}"
                                FontSize="14"
                                FontWeight="Bold">
-                        + NEW INSTANCE
+                        NEW INSTANCE
                     </Hyperlink>
                 </TextBlock>
 
-                <TextBlock Padding="15,0,0,0">
+                <Button Width="12"
+                        Height="12"
+                        Margin="20,0,0,0"
+                        Command="{Binding OpenLicense}"
+                        Style="{StaticResource LicenseButton}" />
+
+                <TextBlock Margin="5,0,0,0">
                     <Hyperlink Command="{Binding OpenLicense}"
                                FontSize="14"
                                FontWeight="Bold">

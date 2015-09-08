@@ -242,8 +242,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border Margin="{TemplateBinding Margin}"
-                            Background="Transparent"
+                    <Border Background="Transparent"
                             Padding="{TemplateBinding Padding}"
                             SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
                         <ContentControl x:Name="Icon"
