@@ -1,5 +1,9 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/ServiceControlConfig;component/Styles/Palette.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
     <ControlTemplate x:Key="MinimizeIcon">
         <Viewbox Stretch="Uniform">
             <Canvas Width="16" Height="16">
@@ -32,27 +36,33 @@
         </Viewbox>
     </ControlTemplate>
 
-    <Viewbox x:Key="WarningIcon" Stretch="Uniform">
-        <Canvas Width="60" Height="60">
-            <Path Data="M30,0 60,30 30,60 0,30" Fill="{StaticResource ErrorBrush}" />
-            <Path Data="M25,15 h10 v20 h-10" Fill="{StaticResource WhiteBrush}" />
-            <Path Data="M25,40 h10 v5 h-10" Fill="{StaticResource WhiteBrush}" />
-        </Canvas>
-    </Viewbox>
+    <ControlTemplate x:Key="WarningIcon">
+        <Viewbox  Stretch="Uniform">
+            <Canvas Width="60" Height="60">
+                <Path Data="M30,0 60,30 30,60 0,30" Fill="{StaticResource ErrorBrush}" />
+                <Path Data="M25,15 h10 v20 h-10" Fill="{StaticResource WhiteBrush}" />
+                <Path Data="M25,40 h10 v5 h-10" Fill="{StaticResource WhiteBrush}" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
 
-    <Viewbox x:Key="RunningIcon" Stretch="Uniform">
-        <Canvas Width="10" Height="10">
-            <Path Data="M10,4.738l-10,5.262l-0.03,-10l10.03,4.738Z" Fill="{StaticResource Gray70Brush}" />
-        </Canvas>
-    </Viewbox>
+    <ControlTemplate x:Key="RunningIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="10" Height="10">
+                <Path Data="M10,4.738l-10,5.262l-0.03,-10l10.03,4.738Z" Fill="{StaticResource Gray70Brush}" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
 
-    <Viewbox x:Key="StoppedIcon" Stretch="Uniform">
-        <Canvas Width="10" Height="10">
-            <Rectangle Width="10"
+    <ControlTemplate x:Key="StoppedIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="10" Height="10">
+                <Rectangle Width="10"
                        Height="10"
                        Fill="{StaticResource Gray70Brush}" />
-        </Canvas>
-    </Viewbox>
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
 
     <DataTemplate x:Key="ConfigurationIcon">
         <Viewbox Stretch="Uniform">

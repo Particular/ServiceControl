@@ -35,13 +35,13 @@
             
             <ContentControl Margin="13,7,0,0"
                             VerticalAlignment="Center"
-                            Content="{StaticResource RunningIcon}" 
+                            Template="{StaticResource RunningIcon}"
                             Visibility="{Binding IsRunning,
                             Converter={StaticResource boolToVis}}" /> 
 
             <ContentControl Margin="13,7,0,0"
                             VerticalAlignment="Center"
-                            Content="{StaticResource StoppedIcon}" 
+                            Template="{StaticResource StoppedIcon}"
                             Visibility="{Binding IsStopped,               
                             Converter={StaticResource boolToVis}}" />
             

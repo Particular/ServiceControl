@@ -332,10 +332,6 @@
         <Setter Property="ContentTemplate" Value="{StaticResource SaveIcon}" />
     </Style>
 
-    <Style x:Key="ClipboardButton"
-           BasedOn="{StaticResource BasicButton}"
-           TargetType="{x:Type Button}" />
-
     <Style x:Key="StartButton"
            BasedOn="{StaticResource IconButton}"
            TargetType="{x:Type Button}">

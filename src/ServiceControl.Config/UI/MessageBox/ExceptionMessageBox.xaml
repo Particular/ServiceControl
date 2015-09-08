@@ -41,8 +41,6 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-
-
         <ContentControl Grid.Row="0"
                         Grid.Column="0"
                         Grid.ColumnSpan="6"
@@ -51,7 +49,6 @@
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         Content="{StaticResource ServiceControlLogo}" />
-
 
         <Border Name="progressOverlay"
                 Grid.Row="0"
@@ -136,14 +133,12 @@
                 Grid.Column="3"
                 Command="{Binding ReportClick}"
                 Content="Report"
-                Style="{StaticResource ClipboardButton}"
                 ToolTip="Report Problem to Particular Software" />
 
         <Button Grid.Row="3"
                 Grid.Column="4"
                 Click="CopyClick"
                 Content="Copy"
-                Style="{StaticResource ClipboardButton}"
                 ToolTip="Copy to Clipboard" />
 
         <Button Grid.Row="3"
