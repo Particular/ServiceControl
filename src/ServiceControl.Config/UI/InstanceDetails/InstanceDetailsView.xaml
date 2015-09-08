@@ -18,6 +18,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -25,35 +26,37 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="30" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal">
+        <Border Grid.ColumnSpan="2" BorderBrush="{StaticResource Gray90Brush}" BorderThickness="0,1,0,0" />
+
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal">
             <TextBlock VerticalAlignment="Center"
                        FontSize="18px"
                        FontWeight="Bold"
                        Text="{Binding Name}" />
-            
+
             <ContentControl Margin="13,7,0,0"
                             VerticalAlignment="Center"
                             Template="{StaticResource RunningIcon}"
                             Visibility="{Binding IsRunning,
-                            Converter={StaticResource boolToVis}}" /> 
+                            Converter={StaticResource boolToVis}}" />
 
             <ContentControl Margin="13,7,0,0"
                             VerticalAlignment="Center"
                             Template="{StaticResource StoppedIcon}"
-                            Visibility="{Binding IsStopped,               
+                            Visibility="{Binding IsStopped,
                             Converter={StaticResource boolToVis}}" />
-            
+
             <TextBlock Margin="3,5,0,0"
                        VerticalAlignment="Center"
                        FontSize="13px"
                        Foreground="{StaticResource Gray70Brush}"
                        Text="{Binding Status}" />
-           
         </StackPanel>
 
-        <StackPanel Grid.ColumnSpan="2"
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2"
                     HorizontalAlignment="Right"
                     Orientation="Horizontal">
             <Button Command="{Binding StopCommand}"
@@ -73,7 +76,7 @@
                     Style="{StaticResource RemoveButton}" />
         </StackPanel>
 
-        <GroupBox Grid.Row="1" Header="SERVICECONTROL VERSION">
+        <GroupBox Grid.Row="2" Header="SERVICECONTROL VERSION">
             <GroupBox.HeaderTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
@@ -92,13 +95,13 @@
             <TextBlock Text="{Binding Version, StringFormat=ServiceControl v{0}}" />
         </GroupBox>
 
-        <GroupBox Grid.Row="1"
+        <GroupBox Grid.Row="2"
                   Grid.Column="1"
                   Header="TRANSPORT">
             <TextBlock Text="{Binding Transport}" />
         </GroupBox>
 
-        <GroupBox Grid.Row="2"
+        <GroupBox Grid.Row="3"
                   Grid.ColumnSpan="2"
                   Header="HOST">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
@@ -106,7 +109,7 @@
             </Hyperlink>
         </GroupBox>
 
-        <GroupBox Grid.Row="3"
+        <GroupBox Grid.Row="4"
                   Grid.ColumnSpan="2"
                   Header="INSTALLATION PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding InstallPath}">
@@ -114,7 +117,7 @@
             </Hyperlink>
         </GroupBox>
 
-        <GroupBox Grid.Row="4"
+        <GroupBox Grid.Row="5"
                   Grid.ColumnSpan="2"
                   Header="DATA PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding DBPath}">
@@ -122,7 +125,7 @@
             </Hyperlink>
         </GroupBox>
 
-        <GroupBox Grid.Row="5"
+        <GroupBox Grid.Row="6"
                   Grid.ColumnSpan="2"
                   Header="LOG PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding LogPath}">
