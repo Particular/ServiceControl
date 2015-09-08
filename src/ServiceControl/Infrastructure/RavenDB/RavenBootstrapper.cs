@@ -85,15 +85,13 @@
 
         public void Customize( BusConfiguration configuration )
         {
-            EnsureDatabasesAreSetup();
+           // EnsureDatabasesAreSetup();
 
             var documentStore = new EmbeddableDocumentStore
             {
                 DataDirectory = Settings.SystemDbPath,
-                UseEmbeddedHttpServer = Settings.MaintenanceMode || Settings.ExposeRavenDB,
-                //getting better number without this
-                //EnlistInDistributedTransactions = false,
-                DefaultDatabase = Settings.StorageDbName
+                UseEmbeddedHttpServer = true,//Settings.MaintenanceMode || Settings.ExposeRavenDB,
+                EnlistInDistributedTransactions = false,
             };
 
             SetLicenseIfAny( documentStore );
@@ -104,9 +102,9 @@
             documentStore.Configuration.HostName = ( Settings.Hostname == "*" || Settings.Hostname == "+" )
                 ? "localhost"
                 : Settings.Hostname;
-            //documentStore.Configuration.CompiledIndexCacheDirectory = ;
-            //documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
+          
             documentStore.Conventions.SaveEnumsAsIntegers = true;
+            //documentStore.DefaultDatabase = "localhost-33333";
 
             documentStore.Initialize();
 
