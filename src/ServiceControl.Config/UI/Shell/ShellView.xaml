@@ -122,15 +122,22 @@
                 </TextBlock>
             </StackPanel>
 
-            <TextBlock Grid.Row="2"
-                       Margin="60,-8,59,0"
-                       HorizontalAlignment="Right"
-                       VerticalAlignment="Center"
-                       FontSize="13px"
-                       Foreground="{StaticResource Gray60Brush}"
-                       Text="{Binding VersionInfo}"
-                       Visibility="{Binding IsModal,
-                                            Converter={StaticResource boolToVisInverted}}" />
+            <StackPanel Grid.Row="2"
+                        Margin="60,-8,59,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Visibility="{Binding IsModal,
+                                             Converter={StaticResource boolToVisInverted}}">
+                <TextBlock FontSize="13px"
+                           Foreground="{StaticResource Gray60Brush}"
+                           Text="{Binding VersionInfo}" />
+
+                <TextBlock Margin="20,0,0,0"
+                           FontSize="13px"
+                           Foreground="{StaticResource Gray60Brush}"
+                           Text="{Binding CopyrightInfo}" />
+            </StackPanel>
         </Grid>
 
         <Border HorizontalAlignment="Stretch"

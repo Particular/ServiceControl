@@ -36,6 +36,7 @@
             IsModal = false;
 
             LoadAppVersion();
+            CopyrightInfo = string.Format("{0} © Particular Software", DateTime.Now.Year);
 
             RefreshInstancesCmd = Command.Create(() => eventAggregator.PublishOnUIThread(new RefreshInstances()));
         }
@@ -51,6 +52,8 @@
         public RxScreen Overlay { get; set; }
 
         public string VersionInfo { get; private set; }
+
+        public string CopyrightInfo { get; private set; }
 
         public bool HasInstances { get; private set; }
 
