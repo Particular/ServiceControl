@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Config.Framework.Modules
 {
-    using Autofac;
     using System;
     using System.IO;
     using System.Reflection;
+    using Autofac;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
@@ -19,7 +19,7 @@
 
     public class Installer
     {
-        public ServiceControlZipInfo ZipInfo { private set; get; }
+        public ServiceControlZipInfo ZipInfo { get; private set; }
 
         public Installer()
         {
@@ -73,13 +73,13 @@
             var instance = ServiceControlInstance.FindByName(instanceName);
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
-            
+
             progress.Report(0, 5, "Stopping instance...");
             if (!instance.TryStopService())
             {
                 return new ReportCard
                 {
-                    Errors = { "Service failed to stop"},
+                    Errors = { "Service failed to stop" },
                     Status = Status.Failed
                 };
             }
@@ -99,7 +99,7 @@
             progress.Report(4, 5, "Running Queue Creation...");
             instance.RunInstanceToCreateQueues();
             instance.ReportCard.SetStatus();
-            return instance.ReportCard;   
+            return instance.ReportCard;
         }
 
         internal ReportCard Update(ServiceControlInstance instance, bool startService)
@@ -138,7 +138,6 @@
 
         internal ReportCard Delete(string InstanceName, bool removeDB, bool removeLogs, IProgress<ProgressDetails> progress = null)
         {
-
             progress = progress ?? new Progress<ProgressDetails>();
             progress.Report(0, 7, "Stopping instance...");
             var instance = ServiceControlInstance.FindByName(InstanceName);
@@ -178,7 +177,7 @@
             }
 
             progress.Report(new ProgressDetails());
-            
+
             instance.ReportCard.SetStatus();
             return instance.ReportCard;
         }

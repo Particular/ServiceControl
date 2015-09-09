@@ -45,14 +45,13 @@
                 Version = latest.Value,
                 Present = true
             };
-            
         }
 
         public void ValidateZip()
         {
-            if (Present == false)
+            if (!Present)
                 throw new Exception("No ServiceControl zip file found");
-            
+
             if (!ZipFile.CheckZip(FilePath))
                 throw new Exception(string.Format("Corrupt Zip File - {0}", FilePath));
         }
