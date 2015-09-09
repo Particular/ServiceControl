@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
     using ServiceControl.Config.Commands;
@@ -38,7 +39,12 @@
             LoadAppVersion();
             CopyrightInfo = string.Format("{0} © Particular Software", DateTime.Now.Year);
 
-            RefreshInstancesCmd = Command.Create(() => eventAggregator.PublishOnUIThread(new RefreshInstances()));
+            RefreshInstancesCmd = Command.Create(() =>
+            {
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                // Used to "blink" the refresh button to indicate the refresh actually ran.
+                return Task.Delay(500);
+            });
         }
 
         public object ActiveContext { get; set; }
