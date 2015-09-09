@@ -28,12 +28,37 @@
             paths = pathList.Where(p => !string.IsNullOrWhiteSpace(p.Path)).ToList();
         }
 
-        void RunValidation()
+        void RunValidation(bool includeNewInstanceChecks)
         {
             CheckPathsAreValid();
             CheckNoNestedPaths();
             CheckPathsAreUnique();
             CheckPathsNotUsedInOtherInstances();
+
+            //Do Checks that only make sense on add instance 
+            if (includeNewInstanceChecks)
+            {
+                CheckPathsAreEmpty();
+            }
+        }
+
+        void CheckPathsAreEmpty()
+        {
+            foreach (var pathInfo in paths)
+            {
+                try
+                {
+                    var directory = new DirectoryInfo(pathInfo.Path);
+                    if (directory.Exists && directory.GetFileSystemInfos().Any())
+                    {
+                        throw  new EngineValidationException(string.Format("The directory specified as the {0} is not empty.", pathInfo.Name));
+                    }
+                }
+                catch
+                {
+                    throw  new EngineValidationException(string.Format("An error occured when reading the folder specified as the {0} ", pathInfo.Name));
+                }
+            }
         }
 
         public static void Validate(ServiceControlInstanceMetadata instance)
@@ -42,7 +67,7 @@
             {
                 instances = ServiceControlInstance.Instances().AsEnumerable<IContainInstancePaths>().ToList()
             };
-            validator.RunValidation();
+            validator.RunValidation(true);
         }
 
         public static void Validate(ServiceControlInstance instance)
@@ -51,7 +76,7 @@
             {
                 instances = ServiceControlInstance.Instances().Where(p => p.Name != instance.Name).AsEnumerable<IContainInstancePaths>().ToList()
             };
-            validator.RunValidation();
+            validator.RunValidation(false);
         }
 
         internal void CheckPathsNotUsedInOtherInstances()
