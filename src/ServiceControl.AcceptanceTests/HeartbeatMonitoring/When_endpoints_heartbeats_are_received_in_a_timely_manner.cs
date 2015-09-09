@@ -73,17 +73,20 @@
                     var foundOthers = false;
                     foreach (var otherEndpoint in otherEndpoints)
                     {
-                        Console.WriteLine("Disabling Heartbeats on {0}", otherEndpoint.Name);
-                        Patch("/api/endpoints/" + otherEndpoint.Id, new EndpointUpdateModel
-                        {
-                            MonitorHeartbeat = false
-                        });
-                        foundOthers = true;
+                        if(otherEndpoint.MonitorHeartbeat)
+                        { 
+                            Console.WriteLine("Disabling Heartbeats on {0}", otherEndpoint.MonitorHeartbeat);
+                            Patch("/api/endpoints/" + otherEndpoint.Id, new EndpointUpdateModel
+                            {
+                                MonitorHeartbeat = false
+                            });
+                            foundOthers = true;
+                        }
                     }
 
                     if (foundOthers)
                     {
-                        Thread.Sleep(50);
+                        return false;
                     }
 
                     HeartbeatSummary local;
