@@ -69,16 +69,21 @@
                         return false;
                     }
 
-                    if (endpoints.Count != 2)
+                    var otherEndpoints = endpoints.Except(endpoint1s).Except(endpoint2s).ToArray();
+                    var foundOthers = false;
+                    foreach (var otherEndpoint in otherEndpoints)
                     {
-                        Console.WriteLine("There should be two endpoints");
-                        return false;
+                        Console.WriteLine("Disabling Heartbeats on {0}", otherEndpoint.Name);
+                        Patch("/api/endpoints/" + otherEndpoint.Id, new EndpointUpdateModel
+                        {
+                            MonitorHeartbeat = false
+                        });
+                        foundOthers = true;
                     }
 
-                    if (endpoints.Except(endpoint1s).Except(endpoint2s).Any())
+                    if (foundOthers)
                     {
-                        Console.WriteLine("Endpoints other than 1 and 2 detected");
-                        return false;
+                        Thread.Sleep(50);
                     }
 
                     HeartbeatSummary local;
