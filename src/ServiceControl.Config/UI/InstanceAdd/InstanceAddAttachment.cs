@@ -31,7 +31,11 @@
 
             viewModel.Save = new ReactiveCommand(validationTemplate.ErrorsChangedObservable.Select(_ => !validationTemplate.HasErrors).DistinctUntilChanged())
                 .DoAsync(Add);
-            viewModel.Cancel = Command.Create(() => viewModel.TryClose(false), IsInProgress);
+            viewModel.Cancel = Command.Create(() =>
+            {
+                viewModel.TryClose(false);
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
+            }, IsInProgress);
         }
 
         bool IsInProgress()
