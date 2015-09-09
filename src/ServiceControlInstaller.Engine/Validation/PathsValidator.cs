@@ -46,17 +46,10 @@
         {
             foreach (var pathInfo in paths)
             {
-                try
+                var directory = new DirectoryInfo(pathInfo.Path);
+                if (directory.Exists && directory.GetFileSystemInfos().Any())
                 {
-                    var directory = new DirectoryInfo(pathInfo.Path);
-                    if (directory.Exists && directory.GetFileSystemInfos().Any())
-                    {
-                        throw  new EngineValidationException(string.Format("The directory specified as the {0} is not empty.", pathInfo.Name));
-                    }
-                }
-                catch
-                {
-                    throw  new EngineValidationException(string.Format("An error occured when reading the folder specified as the {0} ", pathInfo.Name));
+                    throw  new EngineValidationException(string.Format("The directory specified as the {0} is not empty.", pathInfo.Name));
                 }
             }
         }
