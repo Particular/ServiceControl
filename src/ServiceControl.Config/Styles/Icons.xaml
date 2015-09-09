@@ -37,7 +37,7 @@
     </ControlTemplate>
 
     <ControlTemplate x:Key="WarningIcon">
-        <Viewbox  Stretch="Uniform">
+        <Viewbox SnapsToDevicePixels="False" Stretch="Uniform">
             <Canvas Width="60" Height="60">
                 <Path Data="M30,0 60,30 30,60 0,30" Fill="{StaticResource ErrorBrush}" />
                 <Path Data="M25,15 h10 v20 h-10" Fill="{StaticResource WhiteBrush}" />
@@ -58,8 +58,8 @@
         <Viewbox Stretch="Uniform">
             <Canvas Width="10" Height="10">
                 <Rectangle Width="10"
-                       Height="10"
-                       Fill="{StaticResource Gray70Brush}" />
+                           Height="10"
+                           Fill="{StaticResource Gray70Brush}" />
             </Canvas>
         </Viewbox>
     </ControlTemplate>
