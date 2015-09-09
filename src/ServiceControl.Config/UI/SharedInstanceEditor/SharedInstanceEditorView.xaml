@@ -34,10 +34,10 @@
                 </Style>
             </Border.Resources>
 
-            <Border HorizontalAlignment="Center"
+            <Border Padding="100"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Background="White"
-                    Padding="100">
+                    Background="White">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />

@@ -25,16 +25,14 @@
                        FontSize="13px"
                        Foreground="{StaticResource ErrorBrush}"
                        Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                      Path=(Validation.Errors).CurrentItem.ErrorContent,
-                                      Converter={StaticResource caseConverter}}" />
+                                      Path=(Validation.Errors).CurrentItem.ErrorContent}" />
 
             <TextBlock x:Name="warningElement"
                        Margin="5,0,0,0"
                        FontSize="13px"
                        Foreground="{StaticResource WarningBrush}"
                        Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                      Path=(Warning),
-                                      Converter={StaticResource caseConverter}}"
+                                      Path=(Warning)}"
                        Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
                                             Path=(Validation.HasError),
                                             Converter={StaticResource boolToVisHiddenInverted}}" />
@@ -62,9 +60,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:FormTextBox}">
                     <Border Margin="{TemplateBinding Margin}"
+                            Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
-                            BorderThickness="0"
-                            Padding="{TemplateBinding Padding}">
+                            BorderThickness="0">
 
                         <Grid>
                             <Grid.RowDefinitions>
@@ -98,8 +96,7 @@
                                            FontSize="13px"
                                            Foreground="{StaticResource ErrorBrush}"
                                            Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Validation.Errors).CurrentItem.ErrorContent,
-                                                          Converter={StaticResource caseConverter}}" />
+                                                          Path=(Validation.Errors).CurrentItem.ErrorContent}" />
 
                                 <TextBlock x:Name="warningElement"
                                            Margin="5,0,0,0"
@@ -309,8 +306,7 @@
                                        FontSize="13px"
                                        Foreground="{StaticResource ErrorBrush}"
                                        Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                      Path=(Validation.Errors).CurrentItem.ErrorContent,
-                                                      Converter={StaticResource caseConverter}}" />
+                                                      Path=(Validation.Errors).CurrentItem.ErrorContent}" />
 
                             <TextBlock x:Name="warningElement"
                                        Margin="5,0,0,0"
@@ -501,8 +497,7 @@
                                        FontSize="13px"
                                        Foreground="{StaticResource ErrorBrush}"
                                        Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                      Path=(Validation.Errors).CurrentItem.ErrorContent,
-                                                      Converter={StaticResource caseConverter}}" />
+                                                      Path=(Validation.Errors).CurrentItem.ErrorContent}" />
 
                             <TextBlock x:Name="warningElement"
                                        Margin="5,0,0,0"
@@ -520,10 +515,10 @@
                                 Grid.Column="0"
                                 Grid.ColumnSpan="2"
                                 Margin="{TemplateBinding Margin}"
+                                Padding="{TemplateBinding Padding}"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                Padding="{TemplateBinding Padding}">
+                                BorderThickness="{TemplateBinding BorderThickness}">
 
                             <ScrollViewer x:Name="PART_ContentHost"
                                           Grid.Row="1"
@@ -533,9 +528,9 @@
                         <Button Grid.Row="1"
                                 Grid.Column="2"
                                 Margin="2,0"
+                                Padding="10,4"
                                 Command="{TemplateBinding SelectCommand}"
-                                Content="..."
-                                Padding="10,4" />
+                                Content="..." />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -611,8 +606,7 @@
                                            FontSize="13px"
                                            Foreground="{StaticResource ErrorBrush}"
                                            Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Validation.Errors).CurrentItem.ErrorContent,
-                                                          Converter={StaticResource caseConverter}}" />
+                                                          Path=(Validation.Errors).CurrentItem.ErrorContent}" />
 
                                 <TextBlock x:Name="warningElement"
                                            Margin="5,0,0,0"
@@ -634,11 +628,11 @@
                                    Text="Off" />
                         <Border Grid.Row="1"
                                 Grid.Column="1"
+                                Padding="2"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 BorderBrush="{StaticResource Gray80Brush}"
-                                BorderThickness="1"
-                                Padding="2">
+                                BorderThickness="1">
                             <Rectangle Width="44" Height="18">
                                 <Rectangle.Fill>
                                     <SolidColorBrush x:Name="switchColor" Color="{StaticResource Gray40Color}" />
@@ -682,9 +676,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:FormPasswordBox}">
                     <Border Margin="{TemplateBinding Margin}"
+                            Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
-                            BorderThickness="0"
-                            Padding="{TemplateBinding Padding}">
+                            BorderThickness="0">
 
                         <Grid>
                             <Grid.RowDefinitions>
@@ -719,8 +713,7 @@
                                            FontSize="13px"
                                            Foreground="{StaticResource ErrorBrush}"
                                            Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Validation.Errors).CurrentItem.ErrorContent,
-                                                          Converter={StaticResource caseConverter}}" />
+                                                          Path=(Validation.Errors).CurrentItem.ErrorContent}" />
 
                                 <TextBlock x:Name="warningElement"
                                            Margin="5,0,0,0"
@@ -838,8 +831,7 @@
                                            FontSize="13px"
                                            Foreground="{StaticResource ErrorBrush}"
                                            Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Validation.Errors).CurrentItem.ErrorContent,
-                                                          Converter={StaticResource caseConverter}}" />
+                                                          Path=(Validation.Errors).CurrentItem.ErrorContent}" />
 
                                 <TextBlock x:Name="warningElement"
                                            Margin="5,0,0,0"
