@@ -73,7 +73,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 if (File.Exists(Service.ExePath))
                 {
                     var fileVersion = FileVersionInfo.GetVersionInfo(Service.ExePath);
-                    return new Version(fileVersion.ProductMajorPart, fileVersion.ProductMinorPart, fileVersion.ProductBuildPart);
+                    return new Version(fileVersion.FileMajorPart, fileVersion.FileMinorPart, fileVersion.FileBuildPart);
                 }
                 return new Version(0, 0, 0);
             }
