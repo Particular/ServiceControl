@@ -8,6 +8,12 @@
     using ServiceControl.Config.Validation;
     using ServiceControlInstaller.Engine.Instances;
 
+    public class BoolDisplayObject
+    {
+        public string Name { get; set; }
+        public bool? Value { get; set; }
+    }
+
     public class SharedInstanceEditorViewModel : RxProgressScreen
     {
         string hostName;
@@ -68,6 +74,18 @@
         public string AuditQueueName { get; set; }
         public bool? AuditForwarding { get; set; }
         public string AuditForwardingQueueName { get; set; }
+
+        public IEnumerable<BoolDisplayObject> ComboItems
+        {
+            get
+            {
+                return new[]
+                {
+                    new BoolDisplayObject() { Name = "On", Value = true },
+                    new BoolDisplayObject() { Name = "Off", Value = false }
+                };
+            }
+        }
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
 

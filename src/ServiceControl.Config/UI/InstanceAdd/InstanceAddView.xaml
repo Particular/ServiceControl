@@ -128,7 +128,13 @@
                 <controls:FormTextBox Header="ERROR QUEUE NAME" Text="{Binding ErrorQueueName}" />
                 <controls:FormTextBox Header="ERROR FORWARDING QUEUE NAME" Text="{Binding ErrorForwardingQueueName}" />
                 <controls:FormTextBox Header="AUDIT QUEUE NAME" Text="{Binding AuditQueueName}" />
-                <controls:FormCheckBox Header="AUDIT FORWARDING" IsChecked="{Binding AuditForwarding, Mode=TwoWay}" />
+                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                       DisplayMemberPath="Name"
+                                       Header="AUDIT FORWARDING"
+                                       ItemsSource="{Binding ComboItems}"
+                                       SelectedValue="{Binding AuditForwarding,
+                                                               Mode=TwoWay}"
+                                       SelectedValuePath="Value" />
                 <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME"
                                       Text="{Binding AuditForwardingQueueName}"
                                       ToolTip="The audit forwarding queue will be created even if Audit Forwarding is not enabled." />
