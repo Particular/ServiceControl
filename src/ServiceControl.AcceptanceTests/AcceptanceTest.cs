@@ -441,12 +441,22 @@
             return true;
         }
 
+        public HttpStatusCode Patch<T>(string url, T payload = null) where T : class
+        {
+            return HttpAction(url, "PATCH", payload, false);
+        }
+
         public void Post<T>(string url, T payload = null) where T : class
         {
-            var request = (HttpWebRequest) WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
+            HttpAction(url, "POST", payload);
+        }
+
+        protected HttpStatusCode HttpAction<T>(string url, string action, T payload = null, bool throwOnFailure = true) where T : class
+        {
+            var request = (HttpWebRequest)WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
 
             request.ContentType = "application/json";
-            request.Method = "POST";
+            request.Method = action;
 
             var json = JsonConvert.SerializeObject(payload, serializerSettings);
             request.ContentLength = json.Length;
@@ -472,9 +482,9 @@
                 response = ex.Response as HttpWebResponse;
             }
 
-            Console.Out.WriteLine(" - {0}", (int) response.StatusCode);
+            Console.Out.WriteLine(" - {0}", (int)response.StatusCode);
 
-            if (response.StatusCode != HttpStatusCode.OK && response.StatusCode != HttpStatusCode.Accepted)
+            if (throwOnFailure && response.StatusCode != HttpStatusCode.OK && response.StatusCode != HttpStatusCode.Accepted)
             {
                 string body;
                 using (var reader = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding("utf-8")))
@@ -482,8 +492,10 @@
                     body = reader.ReadToEnd();
                 }
                 throw new InvalidOperationException(String.Format("Call failed: {0} - {1} - {2}",
-                    (int) response.StatusCode, response.StatusDescription, body));
+                    (int)response.StatusCode, response.StatusDescription, body));
             }
+
+            return response.StatusCode;
         }
     }
 }
