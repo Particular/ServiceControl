@@ -1,6 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Viewbox x:Key="NServiceBusLogo"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="NServiceBusLogo" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="265.19998" Height="63.799999" Canvas.Left="0" Canvas.Top="0">
             <Rectangle  Canvas.Left="0" Canvas.Top="0" Width="63.799999" Height="63.799999"  Fill="#FF00729C" />
             <Polyline  Points="   147.8,157.2 162,128.9 176.1,143 190.3,114.7  "  FillRule="NonZero" StrokeThickness="3.98620009" Stroke="#FFFFFFFF" StrokeMiterLimit="10" StrokeLineJoin="Round">
@@ -141,7 +141,7 @@
             </Path>
         </Canvas>
     </Viewbox>
-    <Viewbox x:Key="ParticularLogo"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="ParticularLogo" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="240.44151" Height="57.613201" Canvas.Left="0" Canvas.Top="0">
             <Path   Fill="#FF1A171B">
                 <Path.Data>
@@ -250,7 +250,7 @@
             </Path>
         </Canvas>
     </Viewbox>
-    <Viewbox x:Key="ServiceControlLogo"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="ServiceControlLogo" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="297.60001" Height="63.799999" Canvas.Left="0" Canvas.Top="0">
             <Path   Fill="#FF1A171B">
                 <Path.Data>
@@ -406,7 +406,7 @@
             </Path>
         </Canvas>
     </Viewbox>
-    <Viewbox x:Key="ServiceInsightLogo"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="ServiceInsightLogo" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="287.10001" Height="63.799999" Canvas.Left="0" Canvas.Top="0">
             <Rectangle  Canvas.Left="0" Canvas.Top="0" Width="63.799999" Height="63.799999"  Fill="#FF585D80" />
             <Rectangle  Canvas.Left="7.0999908" Canvas.Top="7.0999985" Width="7.0999999" Height="7.0999999"  Fill="#FF878CAA" />
@@ -559,7 +559,7 @@
             </Path>
         </Canvas>
     </Viewbox>
-    <Viewbox x:Key="ServiceMatrixLogo"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="ServiceMatrixLogo" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="287" Height="63.799999" Canvas.Left="0" Canvas.Top="0">
             <Rectangle  Canvas.Left="0" Canvas.Top="0" Width="63.799999" Height="63.799999"  Fill="#FF5E4598" />
             <Line  X1="7" Y1="0" X2="7" Y2="63.799995"  Stroke="#FF7E6AAD" StrokeMiterLimit="10" />
@@ -706,7 +706,7 @@
             </Path>
         </Canvas>
     </Viewbox>
-    <Viewbox x:Key="ServicePulseLogo"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="ServicePulseLogo" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="265.70001" Height="63.799999" Canvas.Left="0" Canvas.Top="0">
             <Path   Fill="#FF1A171B">
                 <Path.Data>
@@ -853,7 +853,7 @@
         </Canvas>
     </Viewbox>
 
-    <Viewbox x:Key="NServiceBusIcon"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="NServiceBusIcon" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="63.799999" Height="63.799999" Canvas.Left="0" Canvas.Top="0">
             <Rectangle  Canvas.Left="0" Canvas.Top="0" Width="63.799999" Height="63.799999"  Fill="#FF00729C" />
             <Polyline  Points="   147.8,157.2 162,128.9 176.1,143 190.3,114.7  "  FillRule="NonZero" StrokeThickness="3.98620009" Stroke="#FFFFFFFF" StrokeMiterLimit="10" StrokeLineJoin="Round">
@@ -879,7 +879,7 @@
             <Rectangle  Canvas.Left="49.599991" Canvas.Top="49.500008" Width="7.0999999" Height="7.0999999"  Fill="#FF00A3C4" />
         </Canvas>
     </Viewbox>
-    <Viewbox x:Key="ParticularIcon"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="ParticularIcon" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="63.841518" Height="57.613201" Canvas.Left="0" Canvas.Top="0">
             <Path   Fill="#FF00729C">
                 <Path.Data>
@@ -898,7 +898,7 @@
             </Path>
         </Canvas>
     </Viewbox>
-    <Viewbox x:Key="ServiceControlIcon"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="ServiceControlIcon" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="63.8" Height="63.799999" Canvas.Left="0" Canvas.Top="0">
             <Rectangle  Canvas.Left="0" Canvas.Top="0" Width="63.799999" Height="63.799999"  Fill="#FF92117E" />
             <Rectangle  Canvas.Left="7.1000061" Canvas.Top="7.0999985" Width="7.0999999" Height="7.0999999"  Fill="#FFA84198" />
@@ -924,7 +924,7 @@
             </Path>
         </Canvas>
     </Viewbox>
-    <Viewbox x:Key="ServiceInsightIcon"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="ServiceInsightIcon" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="63.8" Height="63.799999" Canvas.Left="0" Canvas.Top="0">
             <Rectangle  Canvas.Left="0" Canvas.Top="0" Width="63.799999" Height="63.799999"  Fill="#FF585D80" />
             <Rectangle  Canvas.Left="7.0999908" Canvas.Top="7.0999985" Width="7.0999999" Height="7.0999999"  Fill="#FF878CAA" />
@@ -947,7 +947,7 @@
             <Rectangle  Canvas.Left="35.5" Canvas.Top="21.200005" Width="7.0999999" Height="7.0999999"  Fill="#FF585D80" />
         </Canvas>
     </Viewbox>
-    <Viewbox x:Key="ServiceMatrixIcon"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="ServiceMatrixIcon" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="63.799999" Height="63.799999" Canvas.Left="0" Canvas.Top="0">
             <Rectangle  Canvas.Left="0" Canvas.Top="0" Width="63.799999" Height="63.799999"  Fill="#FF5E4598" />
             <Line  X1="7" Y1="0" X2="7" Y2="63.799995"  Stroke="#FF7E6AAD" StrokeMiterLimit="10" />
@@ -969,7 +969,7 @@
             <Rectangle  Canvas.Left="14.100006" Canvas.Top="14.200005" Width="14.3" Height="14.3"  Fill="#FFFFFFFF" />
         </Canvas>
     </Viewbox>
-    <Viewbox x:Key="ServicePulseIcon"  Stretch="Uniform" SnapsToDevicePixels="False">
+    <Viewbox x:Key="ServicePulseIcon" x:Shared="False" Stretch="Uniform" SnapsToDevicePixels="False">
         <Canvas  Width="63.799999" Height="63.799999" Canvas.Left="0" Canvas.Top="0">
             <Rectangle  Canvas.Left="0" Canvas.Top="0" Width="63.799999" Height="63.799999"  Fill="#FF205B5D" />
             <Line  X1="7" Y1="0" X2="7" Y2="63.799995"  Stroke="#FF409393" StrokeMiterLimit="10" />
