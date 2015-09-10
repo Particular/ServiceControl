@@ -88,7 +88,7 @@
         {
             get { return ServiceControlInstance.TransportPackage; }
         }
-        
+
         public string Status
         {
             get
@@ -103,7 +103,6 @@
                 }
             }
         }
-
 
         public bool IsRunning
         {
@@ -134,7 +133,6 @@
                 }
             }
         }
-
 
         public bool AllowStart
         {
@@ -168,7 +166,6 @@
                         ServiceControllerStatus.Stopped,
                         ServiceControllerStatus.StartPending,
                         ServiceControllerStatus.StopPending,
-
                     };
                     return !dontAllowStopOn.Any(p => p.Equals(ServiceControlInstance.Service.Status));
                 }
@@ -201,6 +198,7 @@
             NotifyOfPropertyChange("LogPath");
             NotifyOfPropertyChange("Version");
             NotifyOfPropertyChange("NewVersion");
+            NotifyOfPropertyChange("HasNewVersion");
             NotifyOfPropertyChange("Transport");
         }
 
