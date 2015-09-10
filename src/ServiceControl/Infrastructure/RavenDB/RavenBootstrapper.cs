@@ -46,54 +46,16 @@
             }
         }
 
-        void EnsureDatabasesAreSetup()
-        {
-            var systemStore = new EmbeddableDocumentStore
-            {
-                DataDirectory = Settings.SystemDbPath
-            };
-            
-            //systemStore.Configuration.Catalog.Catalogs.Add( new AssemblyCatalog( GetType().Assembly ) );
-            //systemStore.Configuration.Settings.Add( "Raven/ActiveBundles", "CustomDocumentExpiration" );
-            systemStore.Configuration.Settings.Add( "Raven/CompiledIndexCacheDirectory", Path.Combine( Settings.SystemDbPath, "IdxCache" ) );
-            systemStore.Configuration.Settings.Add( "Raven/StorageEngine", "esent" );
-
-            SetLicenseIfAny( systemStore );
-            systemStore.Initialize();
-            if( systemStore.DatabaseCommands.GlobalAdmin.GetDatabaseNames( 10 ).All( n => n != Settings.StorageDbName ) )
-            {
-                systemStore.DatabaseCommands.GlobalAdmin.CreateDatabase( new DatabaseDocument()
-                {
-                    Id = Settings.StorageDbName,
-                    Settings = {
-                        { "Raven/DataDir", Settings.StorageDbPath },
-                        { "Raven/ActiveBundles", "CustomDocumentExpiration" },
-                        { "Raven/CompiledIndexCacheDirectory", Path.Combine(Settings.StorageDbPath, "IdxCache") },
-                        { "Raven/StorageEngine", "esent" },
-                        { "Raven/PluginsDirectory", AppDomain.CurrentDomain.BaseDirectory },
-                        { "Raven/BundlesSearchPattern", "ServiceControl.exe" }
-                    }
-                } );
-
-                systemStore.DatabaseCommands.GlobalAdmin.EnsureDatabaseExists( Settings.StorageDbName );
-            }
-
-            systemStore.ExecuteIndex(new RavenDocumentsByEntityName());
-
-            systemStore.Dispose();
-        }
-
         public void Customize( BusConfiguration configuration )
         {
-           // EnsureDatabasesAreSetup();
-
             var documentStore = new EmbeddableDocumentStore
             {
                 DataDirectory = Settings.SystemDbPath,
                 UseEmbeddedHttpServer = true,//Settings.MaintenanceMode || Settings.ExposeRavenDB,
                 EnlistInDistributedTransactions = false,
+                
             };
-
+            documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
             SetLicenseIfAny( documentStore );
 
             documentStore.Configuration.Catalog.Catalogs.Add( new AssemblyCatalog( GetType().Assembly ) );
