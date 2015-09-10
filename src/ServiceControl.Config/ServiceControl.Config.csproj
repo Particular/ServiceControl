@@ -215,6 +215,9 @@
     <Compile Include="UI\MessageBox\MessageBoxViewModel.cs" />
     <Compile Include="UI\Shell\FeedBackAttachment.cs" />
     <Compile Include="Xaml\Behaviours\RichTextBoxHelper.cs" />
+    <Compile Include="Xaml\Controls\AppHeader.xaml.cs">
+      <DependentUpon>AppHeader.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Xaml\Controls\FormCheckBox.cs" />
     <Compile Include="Xaml\Controls\FormPasswordBox.cs" />
     <Compile Include="Xaml\Controls\FormToggleButton.cs" />
@@ -263,6 +266,10 @@
     <Compile Include="Xaml\Behaviours\BorderlessWindowBehavior.cs" />
     <Compile Include="Xaml\Behaviours\StylizedBehaviors.cs" />
     <Compile Include="Xaml\Converters\BoolToVisibilityConverter.cs" />
+    <Page Include="Xaml\Controls\AppHeader.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">

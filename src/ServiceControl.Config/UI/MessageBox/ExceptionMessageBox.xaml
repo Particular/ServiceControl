@@ -1,6 +1,7 @@
 ﻿<Window x:Class="ServiceControl.Config.UI.MessageBox.ExceptionMessageBox"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls"
         Title="ExceptionHandler"
         Width="700"
         Height="500"
@@ -27,12 +28,13 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="0" Grid.Column="0"
-                        Grid.ColumnSpan="6"
-                        Margin="10"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        Orientation="Horizontal">
+        <StackPanel Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="6"
+                    Margin="10"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Orientation="Horizontal">
             <StackPanel.Resources>
                 <Style x:Key="{x:Type TextBlock}" TargetType="{x:Type TextBlock}">
                     <Setter Property="FontFamily" Value="pack://application:,,,/Resources/#Lato" />
@@ -44,11 +46,18 @@
             </StackPanel.Resources>
 
             <ContentControl Margin="0,0,10,0"
-                                Content="{StaticResource ServiceControlIcon}"
-                                IsTabStop="False" />
+                            Content="{StaticResource ServiceControlIcon}"
+                            IsTabStop="False" />
             <TextBlock Text="ServiceControl" />
             <TextBlock Foreground="{StaticResource Gray60Brush}" Text="Management Utility" />
         </StackPanel>
+
+        <controls:AppHeader Grid.Row="0"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="6"
+                            Margin="10"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top" />
 
         <Border Name="progressOverlay"
                 Grid.Row="0"
@@ -68,10 +77,10 @@
                 </Style>
             </Border.Resources>
 
-            <Border HorizontalAlignment="Center"
+            <Border Padding="100"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Background="White"
-                    Padding="100">
+                    Background="White">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />

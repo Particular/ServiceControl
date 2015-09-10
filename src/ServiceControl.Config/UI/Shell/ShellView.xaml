@@ -26,27 +26,10 @@
                     BorderThickness="0,0,0,1"
                     SnapsToDevicePixels="True" />
 
-            <StackPanel Grid.Row="0"
-                        Margin="60,30"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        Orientation="Horizontal">
-                <StackPanel.Resources>
-                    <Style x:Key="{x:Type TextBlock}" TargetType="{x:Type TextBlock}">
-                        <Setter Property="FontFamily" Value="pack://application:,,,/Resources/#Lato" />
-                        <Setter Property="FontSize" Value="24" />
-                        <Setter Property="FontWeight" Value="Bold" />
-                        <Setter Property="Margin" Value="3,0" />
-                        <Setter Property="VerticalAlignment" Value="Center" />
-                    </Style>
-                </StackPanel.Resources>
-
-                <ContentControl Margin="0,0,10,0"
-                                Content="{StaticResource ServiceControlIcon}"
-                                IsTabStop="False" />
-                <TextBlock Text="ServiceControl" />
-                <TextBlock Foreground="{StaticResource Gray60Brush}" Text="Management Utility" />
-            </StackPanel>
+            <controls:AppHeader Grid.Row="0"
+                                Margin="60,30"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top" />
 
             <StackPanel Grid.Row="0"
                         Margin="60,7"
