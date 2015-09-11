@@ -200,6 +200,7 @@
             NotifyOfPropertyChange("NewVersion");
             NotifyOfPropertyChange("HasNewVersion");
             NotifyOfPropertyChange("Transport");
+            NotifyOfPropertyChange("BrowsableUrl");
         }
 
         public async Task StartService()
