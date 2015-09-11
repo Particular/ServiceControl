@@ -83,6 +83,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
                     windowManager.ShowActionReport(reportCard, "ISSUES MODIFYING INSTANCE", "Could not modify instance because of the following errors:", "There were some warnings while modifying the instance:");
+                    return;
                 }
 
                 progress.Report(0, 0, "Update Complete");

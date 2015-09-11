@@ -82,6 +82,7 @@
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
                     windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
+                    return;
                 }
             }
 
