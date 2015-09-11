@@ -75,9 +75,10 @@ namespace ServiceControl.Config.Validation
 
             RuleFor(x => x.LogPath)
                 .NotEmpty()
+                .ValidPath()
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths");
-            
+
             RuleFor(x => x.ErrorQueueName)
                 .NotEmpty()
                 .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")

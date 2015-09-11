@@ -23,6 +23,10 @@
 
         public const string WRN_HOSTNAME_SHOULD_BE_LOCALHOST = "Not using localhost can expose ServiceControl to anonymous access.";
 
+        public const string MSG_ILLEGAL_PATH_CHAR = "Paths cannot contain characters {0}";
+
+        private static char[] ILLEGAL_PATH_CHARS = new[] { '*', '?', '"', '<', '>', '|' };
+
         public static IRuleBuilderOptions<T, string> ValidPort<T>(this IRuleBuilder<T, string> ruleBuilder)
         {
             return ruleBuilder.Must((t, port) =>
@@ -36,6 +40,15 @@
                 return false;
             })
             .WithMessage(MSG_USE_PORTS_IN_RANGE);
+        }
+
+        public static IRuleBuilderOptions<T, string> ValidPath<T>(this IRuleBuilder<T, string> rulebuilder)
+        {
+            return rulebuilder.Must((t, path) =>
+            {
+                return !path.Intersect(ILLEGAL_PATH_CHARS).Any();
+            })
+            .WithMessage(MSG_ILLEGAL_PATH_CHAR, string.Join(" ", ILLEGAL_PATH_CHARS));
         }
 
         public static IRuleBuilderOptions<T, string> TransportConnectionStringValid<T>(this IRuleBuilder<T, string> ruleBuilder) where T : SharedInstanceEditorViewModel

@@ -11,7 +11,7 @@
         class PathInfo
         {
             public string Name { get; set; }
-            public string Path{ get; set; }
+            public string Path { get; set; }
         }
 
         internal List<IContainInstancePaths> instances;
@@ -30,15 +30,26 @@
 
         void RunValidation(bool includeNewInstanceChecks)
         {
-            CheckPathsAreValid();
-            CheckNoNestedPaths();
-            CheckPathsAreUnique();
-            CheckPathsNotUsedInOtherInstances();
-
-            //Do Checks that only make sense on add instance 
-            if (includeNewInstanceChecks)
+            try
             {
-                CheckPathsAreEmpty();
+                CheckPathsAreValid();
+                CheckNoNestedPaths();
+                CheckPathsAreUnique();
+                CheckPathsNotUsedInOtherInstances();
+
+                //Do Checks that only make sense on add instance
+                if (includeNewInstanceChecks)
+                {
+                    CheckPathsAreEmpty();
+                }
+            }
+            catch (EngineValidationException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new EngineValidationException("An unhandled exception occured while trying to validate the paths.", ex);
             }
         }
 
@@ -49,7 +60,7 @@
                 var directory = new DirectoryInfo(pathInfo.Path);
                 if (directory.Exists && directory.GetFileSystemInfos().Any())
                 {
-                    throw  new EngineValidationException(string.Format("The directory specified as the {0} is not empty.", pathInfo.Name));
+                    throw new EngineValidationException(string.Format("The directory specified as the {0} is not empty.", pathInfo.Name));
                 }
             }
         }
@@ -100,7 +111,7 @@
                 }
             }
         }
-        
+
         internal void CheckPathsAreUnique()
         {
             if (paths.Select(p => p.Path).Distinct(StringComparer.OrdinalIgnoreCase).Count() != paths.Count)
@@ -108,7 +119,7 @@
                 throw new EngineValidationException("The installation path, log path and database path must be unique");
             }
         }
-    
+
         internal void CheckPathsAreValid()
         {
             var driveletters = DriveInfo.GetDrives().Where(p => p.DriveType != DriveType.Network && p.DriveType != DriveType.CDRom)

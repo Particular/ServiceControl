@@ -13,12 +13,14 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             RuleFor(x => x.DestinationPath)
                 .NotEmpty()
+                .ValidPath()
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
                     .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
             ;
 
             RuleFor(x => x.DatabasePath)
                 .NotEmpty()
+                .ValidPath()
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
                     .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
             ;
