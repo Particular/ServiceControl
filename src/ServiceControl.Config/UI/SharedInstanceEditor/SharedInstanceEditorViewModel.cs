@@ -19,6 +19,7 @@
         string hostName;
         string serviceAccount;
         string password;
+        TransportInfo selectedTransport;
 
         public SharedInstanceEditorViewModel()
         {
@@ -90,7 +91,15 @@
         public IEnumerable<TransportInfo> Transports { get; private set; }
 
         [AlsoNotifyFor("ConnectionString")]
-        public TransportInfo SelectedTransport { get; set; }
+        public TransportInfo SelectedTransport
+        {
+            get { return selectedTransport; }
+            set
+            {
+                ConnectionString = null;
+                selectedTransport = value;
+            }
+        }
 
         public string ConnectionString { get; set; }
         public string SampleConnectionString { get { return SelectedTransport != null ? SelectedTransport.SampleConnectionString : ""; } }
