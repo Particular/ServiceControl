@@ -136,11 +136,11 @@
             }
         }
 
-        internal ReportCard Delete(string InstanceName, bool removeDB, bool removeLogs, IProgress<ProgressDetails> progress = null)
+        internal ReportCard Delete(string instanceName, bool removeDB, bool removeLogs, IProgress<ProgressDetails> progress = null)
         {
             progress = progress ?? new Progress<ProgressDetails>();
             progress.Report(0, 7, "Stopping instance...");
-            var instance = ServiceControlInstance.FindByName(InstanceName);
+            var instance = ServiceControlInstance.FindByName(instanceName);
             instance.ReportCard = new ReportCard();
 
             if (!instance.TryStopService())

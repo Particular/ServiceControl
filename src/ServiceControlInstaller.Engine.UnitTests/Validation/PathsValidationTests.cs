@@ -39,7 +39,7 @@
 
             var p = new PathsValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreUnique());
             Assert.That(ex.Message, Is.EqualTo("The installation path, log path and database path must be unique"));
@@ -57,7 +57,7 @@
 
             var p = new PathsValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
             Assert.DoesNotThrow(() => p.CheckPathsAreUnique());
         }
@@ -74,7 +74,7 @@
 
             var p = new PathsValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsNotUsedInOtherInstances());
             Assert.That(ex.Message, Is.EqualTo("The install path specified is already assigned to another instance"));
@@ -92,7 +92,7 @@
 
             var p = new PathsValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
             Assert.DoesNotThrow(() => p.CheckPathsNotUsedInOtherInstances());
 
@@ -110,7 +110,7 @@
 
             var p = new PathsValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
    
             Assert.DoesNotThrow(() => p.CheckPathsAreValid());
@@ -122,7 +122,7 @@
             //Invalid path
             var p = new PathsValidator(new ServiceControlInstanceMetadata { InstallPath = @"?>c:\test\1\bin" } )
             {
-                instances = instances
+                Instances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreValid());
             Assert.That(ex.Message, Is.EqualTo("The install path is set to an invalid path"));
@@ -130,7 +130,7 @@
             //Partial path
             p = new PathsValidator(new ServiceControlInstanceMetadata { InstallPath = @"\test\1\bin" })
             {
-                instances = instances
+                Instances = instances
             };
 
             ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreValid());
@@ -139,7 +139,7 @@
             //No Drive
             p = new PathsValidator(new ServiceControlInstanceMetadata { InstallPath = string.Format( @"{0}:\test\1\bin", GetAnUnsedDriveLetter()) })
             {
-                instances = instances
+                Instances = instances
             };
             ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreValid());
             Assert.That(ex.Message, Is.EqualTo("The install path does not go to a supported drive"));
@@ -157,7 +157,7 @@
 
             var p = new PathsValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckNoNestedPaths());
             Assert.That(ex.Message, Is.StringContaining("Nested paths are not supported"));
@@ -175,7 +175,7 @@
 
             var p = new PathsValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
             Assert.DoesNotThrow(() => p.CheckNoNestedPaths());
         }
