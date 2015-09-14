@@ -59,6 +59,10 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void CopyFiles(string zipFilePath)
         {
+            //Clear out any files from previos runs of Add Instance, just in case user switches transport
+            //Validation checks for the flag file so wont get here if the directory was also changed
+            FileUtils.DeleteDirectory(InstallPath, true, true);
+
             var account = new NTAccount(UserAccount.ParseAccountName(ServiceAccount).QualifiedName);
             var readExecuteAccessRule = new FileSystemAccessRule(account, FileSystemRights.ReadAndExecute | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
             FileUtils.CreateDirectoryAndSetAcl(InstallPath, readExecuteAccessRule);
@@ -68,10 +72,17 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 FileUtils.CreateDirectoryAndSetAcl(LogPath, modifyAccessRule);
             }
-            if (!string.IsNullOrWhiteSpace(LogPath))
+
+            if (!string.IsNullOrWhiteSpace(DBPath))
             {
                 FileUtils.CreateDirectoryAndSetAcl(DBPath, modifyAccessRule);
             }
+
+            // Mark these directories with a flag 
+            // These flags indicate the directory is empty check can be ignored
+            // We need this because if an install screws up and doesn't complete it is ok to overwrite on a subsequent attempt
+            // First run will still the check
+            AddFlagFiles();
 
             // Copy the binaries from a zip
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
@@ -102,6 +113,9 @@ namespace ServiceControlInstaller.Engine.Instances
                 dependencies.Add("MSMQ");
             }
             WindowsServiceController.RegisterNewService(serviceDetails, dependencies.ToArray());
+
+            // Service registered so pull out not configured flag files.
+            RemoveFlagFiles();
         }
 
         public void RegisterUrlAcl()
@@ -210,5 +224,38 @@ namespace ServiceControlInstaller.Engine.Instances
                 }
             }
         }
+
+        void RemoveFlagFiles()
+        {
+            foreach (var flagFile in FlagFiles)
+            {
+                if (File.Exists(flagFile))
+                    File.Delete(flagFile);
+            }
+        }
+
+        void AddFlagFiles()
+        {
+            foreach (var flagFile in FlagFiles)
+            {
+                if (!File.Exists(flagFile))
+                    File.CreateText(flagFile).Close();
+            }
+        }
+
+        string[] FlagFiles
+        {
+            get
+            {
+                const string flagFileName = ".notconfigured";
+                return new[]
+                {
+                    Path.Combine(InstallPath, flagFileName),
+                    Path.Combine(DBPath, flagFileName),
+                    Path.Combine(LogPath, flagFileName),
+                };
+            }
+        }
+
     }
 }

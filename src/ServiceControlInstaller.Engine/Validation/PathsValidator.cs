@@ -14,7 +14,7 @@
             public string Path { get; set; }
         }
 
-        internal List<IContainInstancePaths> instances;
+        internal List<IContainInstancePaths> Instances;
         List<PathInfo> paths;
 
         internal PathsValidator(IContainInstancePaths instance)
@@ -58,9 +58,13 @@
             foreach (var pathInfo in paths)
             {
                 var directory = new DirectoryInfo(pathInfo.Path);
-                if (directory.Exists && directory.GetFileSystemInfos().Any())
+                if (directory.Exists)
                 {
-                    throw new EngineValidationException(string.Format("The directory specified as the {0} is not empty.", pathInfo.Name));
+                    var flagFile = Path.Combine(directory.FullName, ".notconfigured");
+                    if (File.Exists(flagFile))
+                        continue;  // flagfile will be present if we've unpacked and had a config failure.  In this case it's OK for the directory to have content
+                    if (directory.GetFileSystemInfos().Any())
+                        throw new EngineValidationException(string.Format("The directory specified as the {0} is not empty.", pathInfo.Name));
                 }
             }
         }
@@ -69,7 +73,7 @@
         {
             var validator = new PathsValidator(instance)
             {
-                instances = ServiceControlInstance.Instances().AsEnumerable<IContainInstancePaths>().ToList()
+                Instances = ServiceControlInstance.Instances().AsEnumerable<IContainInstancePaths>().ToList()
             };
             validator.RunValidation(true);
         }
@@ -78,7 +82,7 @@
         {
             var validator = new PathsValidator(instance)
             {
-                instances = ServiceControlInstance.Instances().Where(p => p.Name != instance.Name).AsEnumerable<IContainInstancePaths>().ToList()
+                Instances = ServiceControlInstance.Instances().Where(p => p.Name != instance.Name).AsEnumerable<IContainInstancePaths>().ToList()
             };
             validator.RunValidation(false);
         }
@@ -86,9 +90,9 @@
         internal void CheckPathsNotUsedInOtherInstances()
         {
             var existingInstancePaths = new List<string>();
-            existingInstancePaths.AddRange(instances.Where(q => !string.IsNullOrWhiteSpace(q.InstallPath)).Select(p => Environment.ExpandEnvironmentVariables(p.InstallPath)));
-            existingInstancePaths.AddRange(instances.Where(q => !string.IsNullOrWhiteSpace(q.DBPath)).Select(p => Environment.ExpandEnvironmentVariables(p.DBPath)));
-            existingInstancePaths.AddRange(instances.Where(q => !string.IsNullOrWhiteSpace(q.LogPath)).Select(p => Environment.ExpandEnvironmentVariables(p.LogPath)));
+            existingInstancePaths.AddRange(Instances.Where(q => !string.IsNullOrWhiteSpace(q.InstallPath)).Select(p => Environment.ExpandEnvironmentVariables(p.InstallPath)));
+            existingInstancePaths.AddRange(Instances.Where(q => !string.IsNullOrWhiteSpace(q.DBPath)).Select(p => Environment.ExpandEnvironmentVariables(p.DBPath)));
+            existingInstancePaths.AddRange(Instances.Where(q => !string.IsNullOrWhiteSpace(q.LogPath)).Select(p => Environment.ExpandEnvironmentVariables(p.LogPath)));
             existingInstancePaths = existingInstancePaths.Distinct().ToList();
             foreach (var path in paths.Where(path => existingInstancePaths.Contains(path.Path, StringComparer.OrdinalIgnoreCase)))
             {
