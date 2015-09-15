@@ -8,7 +8,7 @@
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
-    using Raven.Client;
+    using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
@@ -19,252 +19,269 @@
         [Test]
         public void Processed_messages_are_being_expired()
         {
-            var processedMessage = new ProcessedMessage
+            using (var documentStore = GetDocumentStore())
             {
-                Id = "1",
-                ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 3)),
-            };
+                var processedMessage = new ProcessedMessage
+                {
+                    Id = "1",
+                    ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
+                };
 
-            var processedMessage2 = new ProcessedMessage
-            {
-                Id = "2",
-                ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
-            };
-            processedMessage2.MessageMetadata["IsSystemMessage"] = true;
+                var processedMessage2 = new ProcessedMessage
+                {
+                    Id = "2",
+                    ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring*2)),
+                };
+                processedMessage2.MessageMetadata["IsSystemMessage"] = true;
 
-            using (var session = documentStore.OpenSession())
-            {
-                session.Store(processedMessage);
-                session.Store(processedMessage2);
-                session.SaveChanges();
-            }
+                using (var session = documentStore.OpenSession())
+                {
+                    session.Store(processedMessage);
+                    session.Store(processedMessage2);
+                    session.SaveChanges();
+                }
 
-            documentStore.WaitForIndexing();
-            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
+                documentStore.WaitForIndexing();
+                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds*1000*2);
 
-            using (var session = documentStore.OpenSession())
-            {
-                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
-                Assert.Null(msg);
+                using (var session = documentStore.OpenSession())
+                {
+                    var msg = session.Load<ProcessedMessage>(processedMessage.Id);
+                    Assert.Null(msg);
 
-                msg = session.Load<ProcessedMessage>(processedMessage2.Id);
-                Assert.Null(msg);
+                    msg = session.Load<ProcessedMessage>(processedMessage2.Id);
+                    Assert.Null(msg);
+                }
             }
         }
 
         [Test]
         public void Many_processed_messages_are_being_expired()
         {
-            new ExpiryProcessedMessageIndex().Execute(documentStore);
-
-            var processedMessage = new ProcessedMessage
+            using (var documentStore = GetDocumentStore())
             {
-                Id = Guid.NewGuid().ToString(),
-                ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond % 30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring * 3)),
-            };
+                new ExpiryProcessedMessageIndex().Execute(documentStore);
 
-            var processedMessage2 = new ProcessedMessage
-            {
-                Id = "2",
-                ProcessedAt = DateTime.UtcNow,
-            };
-
-            using (var session = documentStore.OpenSession())
-            {
-                for (var i = 0; i < 100; i++)
+                var processedMessage = new ProcessedMessage
                 {
-                    processedMessage = new ProcessedMessage
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond % 30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring * 3)),
-                    };
+                    Id = Guid.NewGuid().ToString(),
+                    ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond%30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
+                };
 
-                    session.Store(processedMessage);
+                var processedMessage2 = new ProcessedMessage
+                {
+                    Id = "2",
+                    ProcessedAt = DateTime.UtcNow,
+                };
+
+                using (var session = documentStore.OpenSession())
+                {
+                    for (var i = 0; i < 100; i++)
+                    {
+                        processedMessage = new ProcessedMessage
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            ProcessedAt = DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Millisecond%30).AddDays(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
+                        };
+
+                        session.Store(processedMessage);
+                    }
+
+                    session.Store(processedMessage2);
+                    session.SaveChanges();
                 }
 
-                session.Store(processedMessage2);
-                session.SaveChanges();
-            }
+                documentStore.WaitForIndexing();
+                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds*1000*10);
+                using (var session = documentStore.OpenSession())
+                {
+                    var results = session.Query<ProcessedMessage, ExpiryProcessedMessageIndex>().Customize(x => x.WaitForNonStaleResults()).ToArray();
+                    Assert.AreEqual(1, results.Length);
 
-            documentStore.WaitForIndexing();
-            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 10);
-            using (var session = documentStore.OpenSession())
-            {
-                var results = session.Query<ProcessedMessage, ExpiryProcessedMessageIndex>().Customize(x => x.WaitForNonStaleResults()).ToArray();
-                Assert.AreEqual(1, results.Length);
+                    var msg = session.Load<ProcessedMessage>(processedMessage.Id);
+                    Assert.Null(msg, "Message with datestamp {0} and ID {1} was found", processedMessage.ProcessedAt, processedMessage.Id);
 
-                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
-                Assert.Null(msg, "Message with datestamp {0} and ID {1} was found", processedMessage.ProcessedAt, processedMessage.Id);
-
-                msg = session.Load<ProcessedMessage>(processedMessage2.Id);
-                Assert.NotNull(msg);
+                    msg = session.Load<ProcessedMessage>(processedMessage2.Id);
+                    Assert.NotNull(msg);
+                }
             }
         }
 
         [Test]
         public void Only_processed_messages_are_being_expired()
         {
-            new ExpiryProcessedMessageIndex().Execute(documentStore);
-
-            var processedMessage = new ProcessedMessage
+            using (var documentStore = GetDocumentStore())
             {
-                Id = "1",
-                ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 3)),
-            };
+                new ExpiryProcessedMessageIndex().Execute(documentStore);
 
-            var processedMessage2 = new ProcessedMessage
-            {
-                Id = "2",
-                ProcessedAt = DateTime.UtcNow,
-            };
-            processedMessage2.MessageMetadata["IsSystemMessage"] = true;
+                var processedMessage = new ProcessedMessage
+                {
+                    Id = "1",
+                    ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
+                };
 
-            using (var session = documentStore.OpenSession())
-            {
-                session.Store(processedMessage);
-                session.Store(processedMessage2);
-                session.SaveChanges();
-            }
+                var processedMessage2 = new ProcessedMessage
+                {
+                    Id = "2",
+                    ProcessedAt = DateTime.UtcNow,
+                };
+                processedMessage2.MessageMetadata["IsSystemMessage"] = true;
 
-            documentStore.WaitForIndexing();
-            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
+                using (var session = documentStore.OpenSession())
+                {
+                    session.Store(processedMessage);
+                    session.Store(processedMessage2);
+                    session.SaveChanges();
+                }
 
-            using (var session = documentStore.OpenSession())
-            {
-                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
-                Assert.Null(msg);
+                documentStore.WaitForIndexing();
+                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds*1000*2);
 
-                msg = session.Load<ProcessedMessage>(processedMessage2.Id);
-                Assert.NotNull(msg);
+                using (var session = documentStore.OpenSession())
+                {
+                    var msg = session.Load<ProcessedMessage>(processedMessage.Id);
+                    Assert.Null(msg);
+
+                    msg = session.Load<ProcessedMessage>(processedMessage2.Id);
+                    Assert.NotNull(msg);
+                }
             }
         }
 
         [Test]
         public void Stored_bodies_are_being_removed_when_message_expires()
         {
-            // Store expired message with associated body
-            var messageId = "21";
-            var bodyStorage = new RavenAttachmentsBodyStorage
+            using (var documentStore = GetDocumentStore())
             {
-                DocumentStore = documentStore
-            };
+                // Store expired message with associated body
+                var messageId = "21";
+                var bodyStorage = new RavenAttachmentsBodyStorage
+                {
+                    DocumentStore = documentStore
+                };
 
-            var processedMessage = new ProcessedMessage
-            {
-                Id = "1",
-                ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2))
-            };
+                var processedMessage = new ProcessedMessage
+                {
+                    Id = "1",
+                    ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring*2))
+                };
 
-            processedMessage.MessageMetadata["MessageId"] = messageId;
+                processedMessage.MessageMetadata["MessageId"] = messageId;
 
-            using (var session = documentStore.OpenSession())
-            {
-                session.Store(processedMessage);
-                session.SaveChanges();
+                using (var session = documentStore.OpenSession())
+                {
+                    session.Store(processedMessage);
+                    session.SaveChanges();
+                }
+
+                var body = new byte[]
+                {
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                };
+
+                using (var stream = new MemoryStream(body))
+                    bodyStorage.Store(messageId, "binary", 5, stream);
+
+                // Wait for expiry
+                documentStore.WaitForIndexing();
+                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds*1000*2);
+
+                // Verify message expired
+                using (var session = documentStore.OpenSession())
+                {
+                    var msg = session.Load<ProcessedMessage>(processedMessage.Id);
+                    Assert.Null(msg, "Audit document should be deleted");
+                }
+
+                // Verify body expired
+                Stream dummy;
+                var bodyFound = bodyStorage.TryFetch(messageId, out dummy);
+                Assert.False(bodyFound, "Audit document body should be deleted");
             }
-
-            var body = new byte[] { 1, 2, 3, 4, 5 };
-
-            using (var stream = new MemoryStream(body))
-                bodyStorage.Store(messageId, "binary", 5, stream);
-
-            // Wait for expiry
-            documentStore.WaitForIndexing();
-            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
-
-            // Verify message expired
-            using (var session = documentStore.OpenSession())
-            {
-                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
-                Assert.Null(msg, "Audit document should be deleted");
-            }
-
-            // Verify body expired
-            Stream dummy;
-            var bodyFound = bodyStorage.TryFetch(messageId, out dummy);
-            Assert.False(bodyFound, "Audit document body should be deleted");
-
         }
 
         [Test]
         public void Recent_processed_messages_are_not_being_expired()
         {
-            new ExpiryProcessedMessageIndex().Execute(documentStore);
-
-            var processedMessage = new ProcessedMessage
+            using (var documentStore = GetDocumentStore())
             {
-                Id = "1",
-                ProcessedAt = DateTime.UtcNow,
-            };
+                new ExpiryProcessedMessageIndex().Execute(documentStore);
 
-            using (var session = documentStore.OpenSession())
-            {
-                session.Store(processedMessage);
-                session.SaveChanges();
-            }
+                var processedMessage = new ProcessedMessage
+                {
+                    Id = "1",
+                    ProcessedAt = DateTime.UtcNow,
+                };
 
-            documentStore.WaitForIndexing();
-            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
+                using (var session = documentStore.OpenSession())
+                {
+                    session.Store(processedMessage);
+                    session.SaveChanges();
+                }
 
-            using (var session = documentStore.OpenSession())
-            {
-                var msg = session.Load<ProcessedMessage>(processedMessage.Id);
-                Assert.NotNull(msg);
+                documentStore.WaitForIndexing();
+                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds*1000*2);
+
+                using (var session = documentStore.OpenSession())
+                {
+                    var msg = session.Load<ProcessedMessage>(processedMessage.Id);
+                    Assert.NotNull(msg);
+                }
             }
         }
 
         [Test]
         public void Errors_are_not_being_expired()
         {
-            var failedMsg = new FailedMessage
-                            {
-                                Id = "1",
-                                ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
-                                                     {
-                                                         new FailedMessage.ProcessingAttempt
-                                                         {
-                                                             AttemptedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 3))
-                                                         },
-                                                         new FailedMessage.ProcessingAttempt
-                                                         {
-                                                             AttemptedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
-                                                         }
-                                                     },
-                                Status = FailedMessageStatus.Unresolved,
-                            };
-
-            using (var session = documentStore.OpenSession())
+            using (var documentStore = GetDocumentStore())
             {
-                session.Store(failedMsg);
-                session.SaveChanges();
-            }
+                var failedMsg = new FailedMessage
+                {
+                    Id = "1",
+                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                    {
+                        new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 3))
+                        },
+                        new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
+                        }
+                    },
+                    Status = FailedMessageStatus.Unresolved,
+                };
 
-            documentStore.WaitForIndexing();
-            Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
+                using (var session = documentStore.OpenSession())
+                {
+                    session.Store(failedMsg);
+                    session.SaveChanges();
+                }
 
-            using (var session = documentStore.OpenSession())
-            {
-                var msg = session.Load<FailedMessage>(failedMsg.Id);
-                Assert.NotNull(msg);
+                documentStore.WaitForIndexing();
+                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
+
+                using (var session = documentStore.OpenSession())
+                {
+                    var msg = session.Load<FailedMessage>(failedMsg.Id);
+                    Assert.NotNull(msg);
+                }
             }
         }
 
 
-        [SetUp]
-        public void SetUp()
+        EmbeddableDocumentStore GetDocumentStore()
         {
-            documentStore = InMemoryStoreBuilder.GetInMemoryStore(withExpiration: true);
+            var documentStore = InMemoryStoreBuilder.GetInMemoryStore(withExpiration: true);
 
             var customIndex = new ExpiryProcessedMessageIndex();
             customIndex.Execute(documentStore);
+            return documentStore;
         }
 
-        [TearDown]
-        public void TearDown()
-        {
-            documentStore.Dispose();
-        }
-
-        IDocumentStore documentStore;
     }
 }
