@@ -9,8 +9,8 @@
     using System.Windows.Media;
     using System.Windows.Threading;
     using PropertyChanged;
-    using ServiceControl.Config.Framework;
     using ServiceControl.Config.Extensions;
+    using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Commands;
     using ICommand = System.Windows.Input.ICommand;
 
@@ -19,7 +19,7 @@
     {
         List<string> ExceptionInformationList = new List<string>();
 
-        static RaygunReporter reporter;
+        static RaygunFeedback reporter;
 
         static ExceptionMessageBox()
         {
@@ -28,31 +28,31 @@
 
         public static void Attach()
         {
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-            Dispatcher.CurrentDispatcher.UnhandledException += CurrentDispatcher_UnhandledException;
-            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledException;
+            Dispatcher.CurrentDispatcher.UnhandledException += CurrentDispatcherUnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskSchedulerUnobservedTaskException;
         }
 
-        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        static void CurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var ex = e.ExceptionObject as Exception;
             if (ex != null)
-                HandleException(ex);
+                handleException(ex);
         }
 
-        static void CurrentDispatcher_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        static void CurrentDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            HandleException(e.Exception);
+            handleException(e.Exception);
             e.Handled = true;
         }
 
-        static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        static void TaskSchedulerUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
             e.SetObserved();
-            HandleException(e.Exception);
+            handleException(e.Exception);
         }
 
-        static Action<Exception> HandleException = ex =>
+        static Action<Exception> handleException = ex =>
         {
             if (ex == null)
                 return;
@@ -63,10 +63,10 @@
             ShowExceptionDialog(rootError);
         };
 
-        public static void ShowExceptionDialog(Exception ex)
+        static void ShowExceptionDialog(Exception ex)
         {
 
-            reporter = new RaygunReporter();
+            reporter = new RaygunFeedback();
 
             var treeViewItem = new TreeViewItem
             {
@@ -88,12 +88,12 @@
                
                 Message =
                 {
-                    Text = ex.Message.Truncate(60)
+                    Text = ex.Message.TruncateSentence(200)
                 } ,
                 Exception = ex
             };
 
-            dialog.buildTreeLayer(ex, treeViewItem);
+            dialog.BuildTreeLayer(ex, treeViewItem);
             dialog.TraceTree.Items.Add(treeViewItem);
 
             if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsLoaded)
@@ -104,11 +104,11 @@
 
         }
 
-        void buildTreeLayer(Exception e, TreeViewItem parent)
+        void BuildTreeLayer(Exception e, TreeViewItem parent)
         {
             var exceptionInformation = "\n\r\n\r" + e.GetType() + "\n\r\n\r";
             parent.DisplayMemberPath = "Header";
-            parent.Items.Add(new TreeViewStringSet() { Header = "Type", Content = e.GetType().ToString() });
+            parent.Items.Add(new TreeViewItem { Header = "Type", Tag = e.GetType().ToString() });
             var memberList = e.GetType().GetProperties();
             foreach (var info in memberList)
             {
@@ -119,31 +119,20 @@
                     {
                         var treeViewItem = new TreeViewItem
                         {
-                            Header = info.Name
+                            Header = info.Name,
+                            Tag = e.InnerException.GetType().ToString()
                         };
-                        buildTreeLayer(e.InnerException, treeViewItem);
+                        BuildTreeLayer(e.InnerException, treeViewItem);
                         parent.Items.Add(treeViewItem);
                     }
                     else
                     {
-                        var treeViewStringSet = new TreeViewStringSet() { Header = info.Name, Content = value.ToString() };
-                        parent.Items.Add(treeViewStringSet);
-                        exceptionInformation += treeViewStringSet.Header + "\n\r\n\r" + treeViewStringSet.Content + "\n\r\n\r";
+                        parent.Items.Add(new TreeViewItem { Header = info.Name, Tag = value.ToString()} );
+                        exceptionInformation += info.Name + "\n\r\n\r" + value + "\n\r\n\r";
                     }
                 }
             }
             ExceptionInformationList.Add(exceptionInformation);
-        }
-
-        private class TreeViewStringSet
-        {
-            public string Header { get; set; }
-            public string Content { get; set; }
-
-            public override string ToString()
-            {
-                return Content;
-            }
         }
 
         public ExceptionMessageBox()
@@ -151,6 +140,7 @@
             InitializeComponent();
         }
 
+        bool IncludeSystemInfo { get; set; }
         Exception Exception { get; set; }
 
         protected override void OnMouseDown(MouseButtonEventArgs e)
@@ -167,8 +157,6 @@
         {
             Clipboard.SetText(ErrorDetails.Text);
         }
-
-     
 
         public ICommand ReportClick
         {
@@ -187,7 +175,7 @@
 
             try
             {
-                await Task.Factory.StartNew(() => reporter.SendReport(this.Exception));
+                await Task.Factory.StartNew(() => reporter.SendException(Exception,  IncludeSystemInfo));
             }
             finally
             {
@@ -197,10 +185,10 @@
             }
         }
 
-        private void TraceTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private void TraceTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (e.NewValue.GetType() == typeof(TreeViewItem)) ErrorDetails.Text = "Exception";
-            else ErrorDetails.Text = e.NewValue.ToString();
+            var item = e.NewValue as TreeViewItem;
+            ErrorDetails.Text = (item != null ) ? item.Tag.ToString() :  "Exception";
         }
 
 

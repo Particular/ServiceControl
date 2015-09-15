@@ -10,7 +10,7 @@
     public class RaygunFeedback: RaygunReporter
     {
       
-        RaygunClient raygunClient = new RaygunClient(raygunApiKey);
+        RaygunClient raygunClient = new RaygunClient(RaygunApiKey);
         Guid trackingId = Guid.NewGuid();
 
         public RaygunFeedback()
@@ -59,7 +59,26 @@
             raygunClient.Send(m);
         }
 
-      
+        public void SendException(Exception ex,  bool includeSystemInfo)
+        {
+            raygunClient.UserInfo = new RaygunIdentifierMessage(trackingId.BareString())
+            {
+                UUID = trackingId.BareString()
+            };
+
+            var raygunMessage = RaygunMessageBuilder.New
+                .SetUser(raygunClient.UserInfo)
+                .SetVersion(GetVersion())
+                .SetExceptionDetails(ex);
+
+            if (includeSystemInfo)
+            {
+                raygunMessage.SetMachineName(Environment.MachineName);
+                raygunMessage.SetEnvironmentDetails();
+            }
+            var m = raygunMessage.Build();
+            raygunClient.Send(m);
+        }
     }
 
     class Feedback : Exception

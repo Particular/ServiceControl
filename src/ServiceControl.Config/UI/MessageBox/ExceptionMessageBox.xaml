@@ -17,29 +17,17 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-
+        
         <controls:AppHeader Grid.Row="0"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="6"
                             Margin="10"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top" />
-
+        
         <Border Name="progressOverlay"
                 Grid.Row="0"
                 Grid.RowSpan="4"
-                Grid.Column="0"
-                Grid.ColumnSpan="6"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 Panel.ZIndex="1000"
@@ -79,7 +67,6 @@
 
         <Border Grid.Row="1"
                 Grid.Column="0"
-                Grid.ColumnSpan="6"
                 Margin="10 0"
                 Background="{StaticResource LightErrorBrush}"
                 BorderBrush="{StaticResource DarkErrorBrush}"
@@ -92,19 +79,18 @@
         </Border>
         <Border Grid.Row="2"
                 Grid.Column="0"
-                Grid.ColumnSpan="6"
                 Margin="10 0"
                 BorderBrush="{StaticResource LightErrorBrush}"
                 BorderThickness="0 2 0 0">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="5" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="5*" />
                 </Grid.ColumnDefinitions>
                 <TreeView Name="TraceTree"
                           Margin="5"
-                          SelectedItemChanged="TraceTree_SelectedItemChanged" />
+                          SelectedItemChanged="TraceTreeSelectedItemChanged" />
                 <GridSplitter Grid.Column="1" Width="5" />
                 <ScrollViewer Grid.Column="2">
                     <TextBlock Name="ErrorDetails"
@@ -114,23 +100,30 @@
             </Grid>
         </Border>
 
-        <Button Grid.Row="3"
-                Grid.Column="3"
+        <CheckBox Grid.Row="3"
+                  Margin="0,5"
+                  HorizontalAlignment="Left"
+                  Content="Include information about my configuration"
+                  FontSize="12"
+                  IsChecked="{Binding IncludeSystemInfo}" />
+        
+        
+        <StackPanel Grid.Row="4" 
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button 
                 Command="{Binding ReportClick}"
-                Content="Report"
-                ToolTip="Report Problem to Particular Software" />
-
-        <Button Grid.Row="3"
-                Grid.Column="4"
+                Content="Report Error"
+                ToolTip="Report Error to Particular Software" MinWidth="140"/>
+            <Button 
                 Click="CopyClick"
                 Content="Copy"
-                ToolTip="Copy to Clipboard" />
-
-        <Button Grid.Row="3"
-                Grid.Column="5"
+                ToolTip="Copy to Clipboard" Margin="5 0" MinWidth="140"/>
+            <Button 
                 Content="Close"
                 IsCancel="True"
                 IsDefault="True"
-                Style="{StaticResource HiliteButton}" />
+                Style="{StaticResource HiliteButton}" MinWidth="140"/>
+        </StackPanel>
     </Grid>
 </Window>
