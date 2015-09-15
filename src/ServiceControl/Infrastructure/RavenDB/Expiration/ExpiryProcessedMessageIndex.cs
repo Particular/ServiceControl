@@ -1,7 +1,6 @@
 namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
     using System.Linq;
-    using Contracts.Operations;
     using MessageAuditing;
     using Raven.Client.Indexes;
 
@@ -13,7 +12,6 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                 select new 
                 {
                     MessageId = (string) message.MessageMetadata["MessageId"],
-                    Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
                     ProcessedAt = message.ProcessedAt,
                 });
 

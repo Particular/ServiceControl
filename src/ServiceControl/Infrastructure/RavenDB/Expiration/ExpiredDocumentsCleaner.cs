@@ -55,13 +55,11 @@
             var currentTime = SystemTime.UtcNow;
             var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
             logger.Debug("Trying to find expired documents to delete (with threshold {0})", currentExpiryThresholdTime.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
-            const string queryString = "Status:3 OR Status:4";
             var query = new IndexQuery
             {
                 Start = 0,
                 PageSize = deletionBatchSize,
                 Cutoff = currentTime,
-                Query = queryString,
                 FieldsToFetch = new[]
                 {
                     "__document_id",
