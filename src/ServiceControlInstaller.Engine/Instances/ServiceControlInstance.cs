@@ -8,7 +8,6 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.ServiceProcess;

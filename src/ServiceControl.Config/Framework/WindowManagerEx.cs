@@ -8,7 +8,6 @@ using ServiceControl.Config.UI.Shell;
 
 namespace ServiceControl.Config.Framework
 {
-    using ServiceControl.Config.Extensions;
     using ServiceControlInstaller.Engine.ReportCard;
 
     public interface IWindowManagerEx : IWindowManager
