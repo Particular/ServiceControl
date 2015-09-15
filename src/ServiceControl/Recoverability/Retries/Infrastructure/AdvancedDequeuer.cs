@@ -11,7 +11,6 @@ namespace ServiceControl.Recoverability
 
     abstract class AdvancedDequeuer : IAdvancedSatellite
     {
-        private Address Address;
         private DequeueMessagesWrapper receiver;
         private Timer timer;
         ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
@@ -24,7 +23,7 @@ namespace ServiceControl.Recoverability
         protected AdvancedDequeuer(Configure configure)
         {
             timer = new Timer(state => StopInternal());
-            Address = Address.Parse(configure.Settings.EndpointName()).SubScope("staging");
+            InputAddress = Address.Parse(configure.Settings.EndpointName()).SubScope("staging");
         }
 
         protected abstract void HandleMessage(TransportMessage message);
@@ -106,7 +105,7 @@ namespace ServiceControl.Recoverability
             Log.InfoFormat("{0} stopped", GetType().Name);
         }
 
-        public Address InputAddress { get { return Address; } }
+        public Address InputAddress { get; private set; }
         public bool Disabled { get { return false; } }
         public Action<TransportReceiver> GetReceiverCustomization()
         {

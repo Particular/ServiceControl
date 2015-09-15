@@ -348,8 +348,8 @@ namespace Particular.ServiceControl.Hosting
     {
         public OptionContext(OptionSet set)
         {
-            this.set = set;
-            c = new OptionValueCollection(this);
+            OptionSet = set;
+            OptionValues = new OptionValueCollection(this);
         }
 
         public Option Option { get; set; }
@@ -358,18 +358,9 @@ namespace Particular.ServiceControl.Hosting
 
         public int OptionIndex { get; set; }
 
-        public OptionSet OptionSet
-        {
-            get { return set; }
-        }
+        public OptionSet OptionSet { get; private set; }
 
-        public OptionValueCollection OptionValues
-        {
-            get { return c; }
-        }
-
-        OptionValueCollection c;
-        OptionSet set;
+        public OptionValueCollection OptionValues { get; private set; }
     }
 
     public enum OptionValueType
@@ -401,28 +392,28 @@ namespace Particular.ServiceControl.Hosting
                 throw new ArgumentOutOfRangeException("maxValueCount");
             }
 
-            this.prototype = prototype;
-            names = prototype.Split('|');
-            this.description = description;
-            count = maxValueCount;
-            type = ParsePrototype();
+            Prototype = prototype;
+            Names = prototype.Split('|');
+            Description = description;
+            MaxValueCount = maxValueCount;
+            OptionValueType = ParsePrototype();
 
-            if (count == 0 && type != OptionValueType.None)
+            if (MaxValueCount == 0 && OptionValueType != OptionValueType.None)
             {
                 throw new ArgumentException(
                     "Cannot provide maxValueCount of 0 for OptionValueType.Required or " +
                     "OptionValueType.Optional.",
                     "maxValueCount");
             }
-            if (type == OptionValueType.None && maxValueCount > 1)
+            if (OptionValueType == OptionValueType.None && maxValueCount > 1)
             {
                 throw new ArgumentException(
                     string.Format("Cannot provide maxValueCount of {0} for OptionValueType.None.", maxValueCount),
                     "maxValueCount");
             }
-            if (Array.IndexOf(names, "<>") >= 0 &&
-                ((names.Length == 1 && type != OptionValueType.None) ||
-                 (names.Length > 1 && MaxValueCount > 1)))
+            if (Array.IndexOf(Names, "<>") >= 0 &&
+                ((Names.Length == 1 && OptionValueType != OptionValueType.None) ||
+                 (Names.Length > 1 && MaxValueCount > 1)))
             {
                 throw new ArgumentException(
                     "The default option handler '<>' cannot require values.",
@@ -430,48 +421,30 @@ namespace Particular.ServiceControl.Hosting
             }
         }
 
-        public string Prototype
-        {
-            get { return prototype; }
-        }
+        public string Prototype { get; private set; }
 
-        public string Description
-        {
-            get { return description; }
-        }
+        public string Description { get; private set; }
 
-        public OptionValueType OptionValueType
-        {
-            get { return type; }
-        }
+        public OptionValueType OptionValueType { get; private set; }
 
-        public int MaxValueCount
-        {
-            get { return count; }
-        }
+        public int MaxValueCount { get; private set; }
 
-        internal string[] Names
-        {
-            get { return names; }
-        }
+        internal string[] Names { get; private set; }
 
-        internal string[] ValueSeparators
-        {
-            get { return separators; }
-        }
+        internal string[] ValueSeparators { get; private set; }
 
         public string[] GetNames()
         {
-            return (string[]) names.Clone();
+            return (string[]) Names.Clone();
         }
 
         public string[] GetValueSeparators()
         {
-            if (separators == null)
+            if (ValueSeparators == null)
             {
                 return new string[0];
             }
-            return (string[]) separators.Clone();
+            return (string[]) ValueSeparators.Clone();
         }
 
         protected static T Parse<T>(string value, OptionContext c)
@@ -500,12 +473,12 @@ namespace Particular.ServiceControl.Hosting
         {
             var type = '\0';
             var seps = new List<string>();
-            for (var i = 0; i < names.Length; ++i)
+            for (var i = 0; i < Names.Length; ++i)
             {
-                var name = names[i];
+                var name = Names[i];
                 if (name.Length == 0)
                 {
-                    throw new ArgumentException("Empty option names are not supported.", "prototype");
+                    throw new Exception("Empty option names are not supported.");
                 }
 
                 var end = name.IndexOfAny(NameTerminator);
@@ -513,16 +486,14 @@ namespace Particular.ServiceControl.Hosting
                 {
                     continue;
                 }
-                names[i] = name.Substring(0, end);
+                Names[i] = name.Substring(0, end);
                 if (type == '\0' || type == name[end])
                 {
                     type = name[end];
                 }
                 else
                 {
-                    throw new ArgumentException(
-                        string.Format("Conflicting option types: '{0}' vs. '{1}'.", type, name[end]),
-                        "prototype");
+                    throw new Exception(string.Format("Conflicting option types: '{0}' vs. '{1}'.", type, name[end]));
                 }
                 AddSeparators(name, end, seps);
             }
@@ -532,17 +503,15 @@ namespace Particular.ServiceControl.Hosting
                 return OptionValueType.None;
             }
 
-            if (count <= 1 && seps.Count != 0)
+            if (MaxValueCount <= 1 && seps.Count != 0)
             {
-                throw new ArgumentException(
-                    string.Format("Cannot provide key/value separators for Options taking {0} value(s).", count),
-                    "prototype");
+                throw new Exception(string.Format("Cannot provide key/value separators for Options taking {0} value(s).", MaxValueCount));
             }
-            if (count > 1)
+            if (MaxValueCount > 1)
             {
                 if (seps.Count == 0)
                 {
-                    separators = new[]
+                    ValueSeparators = new[]
                     {
                         ":",
                         "="
@@ -550,11 +519,11 @@ namespace Particular.ServiceControl.Hosting
                 }
                 else if (seps.Count == 1 && seps[0].Length == 0)
                 {
-                    separators = null;
+                    ValueSeparators = null;
                 }
                 else
                 {
-                    separators = seps.ToArray();
+                    ValueSeparators = seps.ToArray();
                 }
             }
 
@@ -571,18 +540,14 @@ namespace Particular.ServiceControl.Hosting
                     case '{':
                         if (start != -1)
                         {
-                            throw new ArgumentException(
-                                string.Format("Ill-formed name/value separator found in \"{0}\".", name),
-                                "prototype");
+                            throw new Exception(string.Format("Ill-formed name/value separator found in \"{0}\".", name));
                         }
                         start = i + 1;
                         break;
                     case '}':
                         if (start == -1)
                         {
-                            throw new ArgumentException(
-                                string.Format("Ill-formed name/value separator found in \"{0}\".", name),
-                                "prototype");
+                            throw new Exception(string.Format("Ill-formed name/value separator found in \"{0}\".", name));
                         }
                         seps.Add(name.Substring(start, i - start));
                         start = -1;
@@ -597,9 +562,7 @@ namespace Particular.ServiceControl.Hosting
             }
             if (start != -1)
             {
-                throw new ArgumentException(
-                    string.Format("Ill-formed name/value separator found in \"{0}\".", name),
-                    "prototype");
+                throw new Exception(string.Format("Ill-formed name/value separator found in \"{0}\".", name));
             }
         }
 
@@ -623,13 +586,6 @@ namespace Particular.ServiceControl.Hosting
             '=',
             ':'
         };
-
-        int count;
-        string description;
-        string[] names;
-        string prototype;
-        string[] separators;
-        OptionValueType type;
     }
 
     [Serializable]
@@ -642,34 +598,29 @@ namespace Particular.ServiceControl.Hosting
         public OptionException(string message, string optionName)
             : base(message)
         {
-            option = optionName;
+            OptionName = optionName;
         }
 
         public OptionException(string message, string optionName, Exception innerException)
             : base(message, innerException)
         {
-            option = optionName;
+            OptionName = optionName;
         }
 
         protected OptionException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            option = info.GetString("OptionName");
+            OptionName = info.GetString("OptionName");
         }
 
-        public string OptionName
-        {
-            get { return option; }
-        }
+        public string OptionName { get; private set; }
 
         [SecurityPermission(SecurityAction.LinkDemand, SerializationFormatter = true)]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue("OptionName", option);
+            info.AddValue("OptionName", OptionName);
         }
-
-        string option;
     }
 
     public delegate void OptionAction<TKey, TValue>(TKey key, TValue value);
@@ -683,21 +634,16 @@ namespace Particular.ServiceControl.Hosting
 
         public OptionSet(Converter<string, string> localizer)
         {
-            this.localizer = localizer;
+            MessageLocalizer = localizer;
         }
 
-        Converter<string, string> localizer;
-
-        public Converter<string, string> MessageLocalizer
-        {
-            get { return localizer; }
-        }
+        public Converter<string, string> MessageLocalizer { get; private set; }
 
         protected override string GetKeyForItem(Option item)
         {
             if (item == null)
             {
-                throw new ArgumentNullException("option");
+                throw new ArgumentNullException("item");
             }
             if (item.Names != null && item.Names.Length > 0)
             {
@@ -1070,7 +1016,7 @@ namespace Particular.ServiceControl.Hosting
             }
             else if (c.OptionValues.Count > c.Option.MaxValueCount)
             {
-                throw new OptionException(localizer(string.Format(
+                throw new OptionException(MessageLocalizer(string.Format(
                     "Error: Found {0} option values when expecting {1}.",
                     c.OptionValues.Count, c.Option.MaxValueCount)),
                     c.OptionName);
@@ -1110,7 +1056,7 @@ namespace Particular.ServiceControl.Hosting
                     {
                         return false;
                     }
-                    throw new OptionException(string.Format(localizer(
+                    throw new OptionException(string.Format(MessageLocalizer(
                         "Cannot bundle unregistered option '{0}'."), opt), opt);
                 }
                 var p = this[rn];
@@ -1165,7 +1111,7 @@ namespace Particular.ServiceControl.Hosting
                     o.Write(new string(' ', OptionWidth));
                 }
 
-                var lines = GetLines(localizer(GetDescription(p.Description)));
+                var lines = GetLines(MessageLocalizer(GetDescription(p.Description)));
                 o.WriteLine(lines[0]);
                 var prefix = new string(' ', OptionWidth + 2);
                 for (var i = 1; i < lines.Count; ++i)
@@ -1210,19 +1156,19 @@ namespace Particular.ServiceControl.Hosting
             {
                 if (p.OptionValueType == OptionValueType.Optional)
                 {
-                    Write(o, ref written, localizer("["));
+                    Write(o, ref written, MessageLocalizer("["));
                 }
-                Write(o, ref written, localizer("=" + GetArgumentName(0, p.MaxValueCount, p.Description)));
+                Write(o, ref written, MessageLocalizer("=" + GetArgumentName(0, p.MaxValueCount, p.Description)));
                 var sep = p.ValueSeparators != null && p.ValueSeparators.Length > 0
                     ? p.ValueSeparators[0]
                     : " ";
                 for (var c = 1; c < p.MaxValueCount; ++c)
                 {
-                    Write(o, ref written, localizer(sep + GetArgumentName(c, p.MaxValueCount, p.Description)));
+                    Write(o, ref written, MessageLocalizer(sep + GetArgumentName(c, p.MaxValueCount, p.Description)));
                 }
                 if (p.OptionValueType == OptionValueType.Optional)
                 {
-                    Write(o, ref written, localizer("]"));
+                    Write(o, ref written, MessageLocalizer("]"));
                 }
             }
             return true;

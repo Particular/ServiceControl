@@ -52,7 +52,7 @@
         public object Deserialize(string contentType, Stream bodyStream, BindingContext context)
         {
             var deserializedObject =
-                this.serializer.Deserialize(new StreamReader(bodyStream), context.DestinationType);
+                serializer.Deserialize(new StreamReader(bodyStream), context.DestinationType);
 
             var properties =
                 context.DestinationType.GetProperties(BindingFlags.Public | BindingFlags.Instance)

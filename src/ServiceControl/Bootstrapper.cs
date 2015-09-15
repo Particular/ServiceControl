@@ -20,13 +20,9 @@ namespace Particular.ServiceControl
 
     public class Bootstrapper
     {
-        IStartableBus bus;
         public static IContainer Container { get; set; }
 
-        public IStartableBus Bus
-        {
-            get { return bus; }
-        }
+        public IStartableBus Bus { get; private set; }
 
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
@@ -77,7 +73,7 @@ namespace Particular.ServiceControl
                 configuration.EnableInstallers();
             }
 
-            bus = NServiceBus.Bus.Create(configuration);
+            Bus = NServiceBus.Bus.Create(configuration);
         }
 
         static Type DetermineTransportType()

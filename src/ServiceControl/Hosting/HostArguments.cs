@@ -15,8 +15,8 @@ namespace Particular.ServiceControl.Hosting
         public HostArguments(string[] args)
         {
             var executionMode = ExecutionMode.Run;
-            commands = new List<Type> { typeof(RunCommand) };
-            startMode = StartMode.Automatic;
+            Commands = new List<Type> { typeof(RunCommand) };
+            StartMode = StartMode.Automatic;
             ServiceName = "Particular.ServiceControl";
             DisplayName = "Particular ServiceControl";
             Description = "Particular Software ServiceControl for NServiceBus.";
@@ -34,7 +34,7 @@ namespace Particular.ServiceControl.Hosting
                     {
                         options[key] = value;
 
-                        commands = new List<Type>
+                        Commands = new List<Type>
                         {
                             typeof(WriteOptionsCommand),
                         };
@@ -45,7 +45,7 @@ namespace Particular.ServiceControl.Hosting
                     @"Restarts the endpoint."
                     , s =>
                     {
-                        commands = new List<Type>
+                        Commands = new List<Type>
                         {
                             typeof(WriteOptionsCommand),
                             typeof(RestartCommand),
@@ -57,7 +57,7 @@ namespace Particular.ServiceControl.Hosting
                     @"Starts the endpoint."
                     , s =>
                     {
-                        commands = new List<Type>
+                        Commands = new List<Type>
                         {
                             typeof(WriteOptionsCommand),
                             typeof(StartCommand),
@@ -69,7 +69,7 @@ namespace Particular.ServiceControl.Hosting
                     @"Stops the endpoint."
                     , s =>
                     {
-                        commands = new List<Type>
+                        Commands = new List<Type>
                         {
                             typeof(StopCommand),
                         };
@@ -88,7 +88,7 @@ namespace Particular.ServiceControl.Hosting
                                                    "m|maint|maintenance",
                                                    @"Run RavenDB only - use for DB maintenance", 
                                                    s => {
-                                                            commands = new List<Type>
+                                                            Commands = new List<Type>
                                                                        {
                                                                            typeof(MaintCommand)
                                                                        };
@@ -108,7 +108,7 @@ namespace Particular.ServiceControl.Hosting
                     @"Uninstall the endpoint as a Windows service."
                     , s =>
                     {
-                        commands = new List<Type> {typeof(UninstallCommand)};
+                        Commands = new List<Type> {typeof(UninstallCommand)};
                         executionMode = ExecutionMode.Uninstall;
                     }
                 },
@@ -127,7 +127,7 @@ namespace Particular.ServiceControl.Hosting
                     , s =>
                     {
 
-                        commands = new List<Type>{typeof(RunBootstrapperAndNServiceBusInstallers)};
+                        Commands = new List<Type>{typeof(RunBootstrapperAndNServiceBusInstallers)};
                         executionMode = ExecutionMode.Install;
                     }
                 },
@@ -155,7 +155,7 @@ namespace Particular.ServiceControl.Hosting
                     @"Install the endpoint as a Windows service."
                     , s =>
                     {
-                        commands = new List<Type>
+                        Commands = new List<Type>
                         {
                             typeof(WriteOptionsCommand),
                             typeof(CheckMandatoryInstallOptionsCommand),
@@ -208,22 +208,22 @@ namespace Particular.ServiceControl.Hosting
                 {
                     "delayed",
                     @"The service should start automatically (delayed)."
-                    , s => { startMode = StartMode.Delay; }
+                    , s => { StartMode = StartMode.Delay; }
                 },
                 {
                     "autostart",
                     @"The service should start automatically (default)."
-                    , s => { startMode = StartMode.Automatic; }
+                    , s => { StartMode = StartMode.Automatic; }
                 },
                 {
                     "disabled",
                     @"The service should be set to disabled."
-                    , s => { startMode = StartMode.Disabled; }
+                    , s => { StartMode = StartMode.Disabled; }
                 },
                 {
                     "manual",
                     @"The service should be started manually."
-                    , s => { startMode = StartMode.Manual; }
+                    , s => { StartMode = StartMode.Manual; }
                 },
                 {
                     "d|set={==}", "The configuration {0:option} to set to the specified {1:value}", (key, value) =>
@@ -268,10 +268,7 @@ namespace Particular.ServiceControl.Hosting
             }
         }
 
-        public List<Type> Commands
-        {
-            get { return commands; }
-        }
+        public List<Type> Commands { get; private set; }
 
         public Dictionary<string, string> Options
         {
@@ -283,10 +280,7 @@ namespace Particular.ServiceControl.Hosting
         public string DisplayName { get; set; }
         public string Description { get; set; }
 
-        public StartMode StartMode
-        {
-            get { return startMode; }
-        }
+        public StartMode StartMode { get; private set; }
 
         public string OutputPath { get; set; }
         public string Username { get; set; }
@@ -329,9 +323,7 @@ namespace Particular.ServiceControl.Hosting
         readonly OptionSet installOptions;
         readonly OptionSet uninstallOptions;
         readonly OptionSet defaultOptions;
-        List<Type> commands;
         Dictionary<string, string> options = new Dictionary<string, string>();
-        StartMode startMode;
     }
 
     internal enum ExecutionMode

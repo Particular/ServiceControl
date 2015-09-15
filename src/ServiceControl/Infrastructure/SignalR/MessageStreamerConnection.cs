@@ -19,10 +19,10 @@
         {
             this.sender = sender;
 
-            this.messageTypes = settings.GetAvailableTypes()
+            messageTypes = settings.GetAvailableTypes()
                                         .Where(conventions.IsMessageType)
                                         .ToList();
-            this.localAddress = settings.LocalAddress();
+            localAddress = settings.LocalAddress();
         }
 
         static Task MakeEmptyTask()

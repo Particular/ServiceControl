@@ -32,7 +32,7 @@
 
         public AuditQueueImport(IDequeueMessages receiver)
         {
-            disabled = receiver is MsmqDequeueStrategy;
+            Disabled = receiver is MsmqDequeueStrategy;
         }
 
         public bool Handle(TransportMessage message)
@@ -121,10 +121,7 @@
             get { return Settings.AuditQueue; }
         }
 
-        public bool Disabled
-        {
-            get { return disabled; }
-        }
+        public bool Disabled { get; private set; }
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
@@ -149,6 +146,5 @@
         SatelliteImportFailuresHandler satelliteImportFailuresHandler;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(AuditQueueImport));
-        bool disabled;
     }
 }

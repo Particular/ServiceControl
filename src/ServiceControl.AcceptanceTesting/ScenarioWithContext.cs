@@ -145,7 +145,7 @@ namespace NServiceBus.AcceptanceTesting
         IList<IScenarioVerification> shoulds = new List<IScenarioVerification>();
         public Func<ScenarioContext, bool> done = context => true;
 
-        Func<TContext> contextFactory = () => new TContext();
+        Func<TContext> contextFactory;
         Action<RunSummary> reports;
         Func<Exception, bool> allowedExceptions = exception => false;
     }
