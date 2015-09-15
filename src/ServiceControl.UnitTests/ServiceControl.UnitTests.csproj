@@ -103,6 +103,7 @@
     <Compile Include="Infrastructure\PreventReindexing.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapperTests.cs" />
+    <Compile Include="MessageExtensions.cs" />
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />

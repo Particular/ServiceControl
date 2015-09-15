@@ -24,15 +24,16 @@
                                            Id = "1",
                                        };
 
-                processedMessage.MessageMetadata["IsSystemMessage"] = true;
+                processedMessage.MakeSystemMessage();
                 session.Store(processedMessage);
+                
                 var processedMessage2 = new ProcessedMessage
                                         {
                                             Id = "2",
                                         };
-
-                processedMessage2.MessageMetadata["IsSystemMessage"] = false;
+                processedMessage2.MakeSystemMessage(false);
                 session.Store(processedMessage2);
+
                 session.SaveChanges();
             }
 
