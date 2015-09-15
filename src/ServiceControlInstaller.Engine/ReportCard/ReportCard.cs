@@ -1,12 +1,12 @@
 ﻿namespace ServiceControlInstaller.Engine.ReportCard
 {
     using System.Collections.Generic;
-
+    
     public class ReportCard
     {
         public Status Status { get; set; }
-        public List<string> Warnings = new List<string>();
-        public List<string> Errors = new List<string>();
+        public IList<string> Warnings = new TruncatedStringList(700);
+        public IList<string> Errors = new TruncatedStringList(700);
 
         public bool HasErrors
         {

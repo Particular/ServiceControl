@@ -52,15 +52,18 @@
             instanceInstaller.RegisterUrlAcl();
             progress.Report(6, 9, "Creating queues...");
             instanceInstaller.RunInstanceToCreateQueues();
-            progress.Report(7, 9, "Registering service...");
-            instanceInstaller.RegisterService();
 
-            //Post Installation
-            progress.Report(8, 9, "Starting service...");
-            var instance = ServiceControlInstance.FindByName(instanceInstaller.Name);
-            if (!instance.TryStartService())
+            if (!instanceInstaller.ReportCard.HasErrors)
             {
-                instance.ReportCard.Warnings.Add(string.Format("New instance did not startup - please check configuration for {0}", instance.Name));
+                progress.Report(7, 9, "Registering service...");
+                instanceInstaller.RegisterService();
+                //Post Installation
+                progress.Report(8, 9, "Starting service...");
+                var instance = ServiceControlInstance.FindByName(instanceInstaller.Name);
+                if (!instance.TryStartService())
+                {
+                    instance.ReportCard.Warnings.Add(string.Format("New instance did not startup - please check configuration for {0}", instance.Name));
+                }
             }
             instanceInstaller.ReportCard.SetStatus();
             return instanceInstaller.ReportCard;
@@ -120,12 +123,14 @@
                     instance.ReportCard.Status = Status.Failed;
                     return instance.ReportCard;
                 }
-
+                
                 instance.ApplyConfigChange();
-
-                if (startService && !instance.TryStartService())
+                if (!instance.ReportCard.HasErrors)
                 {
-                    instance.ReportCard.Warnings.Add(string.Format("Service did not start after changes - please check configuration for {0}", instance.Name));
+                    if (startService && !instance.TryStartService())
+                    {
+                        instance.ReportCard.Warnings.Add(string.Format("Service did not start after changes - please check configuration for {0}", instance.Name));
+                    }
                 }
                 instance.ReportCard.SetStatus();
                 return instance.ReportCard;

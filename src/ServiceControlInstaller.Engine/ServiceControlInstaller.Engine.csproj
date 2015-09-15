@@ -79,6 +79,9 @@
     <Compile Include="Api\ServiceControlManager.cs" />
     <Compile Include="Api\TokenPrivileges.cs" />
     <Compile Include="Configuration\RegistryReader.cs" />
+    <Compile Include="Queues\ServiceControlQueueCreationException.cs" />
+    <Compile Include="Queues\ServiceControlQueueCreationTimeoutException.cs" />
+    <Compile Include="ReportCard\TruncatedStringList.cs" />
     <Compile Include="Validation\IServiceAccount.cs" />
     <Compile Include="Instances\IServiceControlInstance.cs" />
     <Compile Include="Queues\RunQueueCreation.cs" />

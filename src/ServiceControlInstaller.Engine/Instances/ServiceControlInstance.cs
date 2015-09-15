@@ -8,6 +8,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.ServiceProcess;
@@ -216,6 +217,18 @@ namespace ServiceControlInstaller.Engine.Instances
             if (queueNamesChanged || accountChanged || connectionStringChanged )
             {
                 QueueCreation.RunQueueCreation(this, accountName);
+                try
+                {
+                    QueueCreation.RunQueueCreation(this);
+                }
+                catch (ServiceControlQueueCreationFailedException ex)
+                {
+                    ReportCard.Errors.Add(ex.Message);
+                }
+                catch (ServiceControlQueueCreationTimeoutException ex)
+                {
+                    ReportCard.Errors.Add(ex.Message);
+                }
             }
 
             if (passwordSet || accountChanged)
@@ -437,7 +450,18 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RunInstanceToCreateQueues()
         {
-            QueueCreation.RunQueueCreation(this);
+            try
+            {
+                QueueCreation.RunQueueCreation(this);
+            }
+            catch (ServiceControlQueueCreationFailedException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+            catch (ServiceControlQueueCreationTimeoutException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
         }
 
         bool HasUnderlyingProcessExited()

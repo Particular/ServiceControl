@@ -20,8 +20,9 @@ namespace ServiceControl.Config.UI.MessageBox
         public string Title { get; set; }
         public string ErrorsMessage { get; set; }
         public string WarningsMessage { get; set; }
-        public List<string> Warnings { get; set; }
-        public List<string> Errors { get; set; }
+        
+        public IList<string> Warnings { get; set; }
+        public IList<string> Errors { get; set; }
 
         public bool HasErrors
         {

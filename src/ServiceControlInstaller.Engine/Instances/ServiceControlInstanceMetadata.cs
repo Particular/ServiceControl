@@ -126,7 +126,18 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RunInstanceToCreateQueues()
         {
-            QueueCreation.RunQueueCreation(this);
+            try
+            {
+                QueueCreation.RunQueueCreation(this);
+            }
+            catch (ServiceControlQueueCreationFailedException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+            catch (ServiceControlQueueCreationTimeoutException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
         }
 
         public void Save(string path)
@@ -158,7 +169,6 @@ namespace ServiceControlInstaller.Engine.Instances
                 catch(EngineValidationException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
-
                 }
             }
 

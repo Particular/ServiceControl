@@ -38,18 +38,21 @@
             if (p != null)
             {
                 var error = p.StandardError.ReadToEnd();
-
-                p.WaitForExit((int)TimeSpan.FromMinutes(3).TotalMilliseconds);
-
+                p.WaitForExit((int) TimeSpan.FromMinutes(1).TotalMilliseconds);
                 if (!p.HasExited)
                 {
-                    throw new Exception("Timed out waiting for ServiceControl to created queues");
+                    p.Kill();
+                    throw new ServiceControlQueueCreationTimeoutException("Timed out waiting for ServiceControl to created queues. This usually indicates a configuration error.");
                 }
 
                 if (p.ExitCode != 0)
                 {
-                    throw new Exception(string.Format("ServiceControl instance failed to run and created queues. {0}", error));
+                    throw new ServiceControlQueueCreationFailedException(string.Format("ServiceControl.exe threw an error when creating queues. This typically indicates a configuration error such a as an invalid connection string. The error output from ServiceControl.exe was:\r\n {0}",  error));
                 }
+            }
+            else
+            {
+                throw new Exception("Attempt to launch ServiceControl.exe failed.");
             }
         }
     }
