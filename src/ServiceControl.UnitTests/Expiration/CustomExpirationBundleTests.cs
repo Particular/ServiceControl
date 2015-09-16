@@ -30,7 +30,7 @@
                 Id = "2",
                 ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2)),
             };
-            processedMessage2.MessageMetadata["IsSystemMessage"] = true;
+            processedMessage2.MakeSystemMessage();
 
             using (var session = documentStore.OpenSession())
             {
@@ -117,7 +117,7 @@
                 Id = "2",
                 ProcessedAt = DateTime.UtcNow,
             };
-            processedMessage2.MessageMetadata["IsSystemMessage"] = true;
+            processedMessage2.MakeSystemMessage();
 
             using (var session = documentStore.OpenSession())
             {
@@ -155,7 +155,7 @@
                 ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring * 2))
             };
 
-            processedMessage.MessageMetadata["MessageId"] = messageId;
+            processedMessage.SetMessageId(messageId);
 
             using (var session = documentStore.OpenSession())
             {
