@@ -26,18 +26,10 @@
                     Id = "1",
                     ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring*3)),
                 };
-
-                var processedMessage2 = new ProcessedMessage
-                {
-                    Id = "2",
-                    ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring*2)),
-                };
-                processedMessage2.MessageMetadata["IsSystemMessage"] = true;
-
+                
                 using (var session = documentStore.OpenSession())
                 {
                     session.Store(processedMessage);
-                    session.Store(processedMessage2);
                     session.SaveChanges();
                 }
 
@@ -49,7 +41,6 @@
                     var msg = session.Load<ProcessedMessage>(processedMessage.Id);
                     Assert.Null(msg);
 
-                    msg = session.Load<ProcessedMessage>(processedMessage2.Id);
                     Assert.Null(msg);
                 }
             }
@@ -125,7 +116,6 @@
                     Id = "2",
                     ProcessedAt = DateTime.UtcNow,
                 };
-                processedMessage2.MessageMetadata["IsSystemMessage"] = true;
 
                 using (var session = documentStore.OpenSession())
                 {
@@ -184,7 +174,9 @@
                 };
 
                 using (var stream = new MemoryStream(body))
+                {
                     bodyStorage.Store(messageId, "binary", 5, stream);
+                }
 
                 // Wait for expiry
                 documentStore.WaitForIndexing();
