@@ -39,7 +39,6 @@
                     session.Store(sagaHistory);
                     session.SaveChanges();
                 }
-                Thread.Sleep(100);
                 RunExpiry(documentStore, DateTime.UtcNow);
 
                 using (var session = documentStore.OpenSession())
@@ -116,6 +115,7 @@
 
         static void RunExpiry(EmbeddableDocumentStore documentStore, DateTime expiryThreshold)
         {
+            Thread.Sleep(100);
             new ExpiryProcessedMessageIndex().Execute(documentStore);
             documentStore.WaitForIndexing();
             ExpiredDocumentsCleaner.RunCleanup(100, documentStore.DocumentDatabase, expiryThreshold);
@@ -160,7 +160,6 @@
                     session.Store(recentSagaHistory);
                     session.SaveChanges();
                 }
-                Thread.Sleep(100);
                 RunExpiry(documentStore, expiryThreshold);
 
                 using (var session = documentStore.OpenSession())
