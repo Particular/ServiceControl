@@ -39,7 +39,7 @@
                     session.Store(sagaHistory);
                     session.SaveChanges();
                 }
-                Thread.Sleep(500);
+                Thread.Sleep(100);
                 RunExpiry(documentStore, DateTime.UtcNow);
 
                 using (var session = documentStore.OpenSession())
@@ -160,7 +160,7 @@
                     session.Store(recentSagaHistory);
                     session.SaveChanges();
                 }
-
+                Thread.Sleep(100);
                 RunExpiry(documentStore, expiryThreshold);
 
                 using (var session = documentStore.OpenSession())
