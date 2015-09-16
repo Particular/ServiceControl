@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Threading;
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
@@ -19,7 +18,7 @@
         [Test]
         public void Processed_messages_are_being_expired()
         {
-            using (var documentStore = GetDocumentStore())
+            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 var processedMessage = new ProcessedMessage
                 {
@@ -32,9 +31,7 @@
                     session.Store(processedMessage);
                     session.SaveChanges();
                 }
-
-                documentStore.WaitForIndexing();
-                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds*1000*2);
+                RunExpiry(documentStore);
 
                 using (var session = documentStore.OpenSession())
                 {
@@ -49,9 +46,8 @@
         [Test]
         public void Many_processed_messages_are_being_expired()
         {
-            using (var documentStore = GetDocumentStore())
+            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
-                new ExpiryProcessedMessageIndex().Execute(documentStore);
 
                 var processedMessage = new ProcessedMessage
                 {
@@ -82,8 +78,8 @@
                     session.SaveChanges();
                 }
 
-                documentStore.WaitForIndexing();
-                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds*1000*10);
+                RunExpiry(documentStore);
+
                 using (var session = documentStore.OpenSession())
                 {
                     var results = session.Query<ProcessedMessage, ExpiryProcessedMessageIndex>().Customize(x => x.WaitForNonStaleResults()).ToArray();
@@ -98,10 +94,18 @@
             }
         }
 
+        static void RunExpiry(EmbeddableDocumentStore documentStore)
+        {
+            new ExpiryProcessedMessageIndex().Execute(documentStore);
+            documentStore.WaitForIndexing();
+            ExpiredDocumentsCleaner.RunCleanup(100, documentStore.DocumentDatabase);
+            documentStore.WaitForIndexing();
+        }
+
         [Test]
         public void Only_processed_messages_are_being_expired()
         {
-            using (var documentStore = GetDocumentStore())
+            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 new ExpiryProcessedMessageIndex().Execute(documentStore);
 
@@ -123,9 +127,7 @@
                     session.Store(processedMessage2);
                     session.SaveChanges();
                 }
-
-                documentStore.WaitForIndexing();
-                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds*1000*2);
+                RunExpiry(documentStore);
 
                 using (var session = documentStore.OpenSession())
                 {
@@ -141,7 +143,7 @@
         [Test]
         public void Stored_bodies_are_being_removed_when_message_expires()
         {
-            using (var documentStore = GetDocumentStore())
+            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 // Store expired message with associated body
                 var messageId = "21";
@@ -177,10 +179,7 @@
                 {
                     bodyStorage.Store(messageId, "binary", 5, stream);
                 }
-
-                // Wait for expiry
-                documentStore.WaitForIndexing();
-                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds*1000*2);
+                RunExpiry(documentStore);
 
                 // Verify message expired
                 using (var session = documentStore.OpenSession())
@@ -199,7 +198,7 @@
         [Test]
         public void Recent_processed_messages_are_not_being_expired()
         {
-            using (var documentStore = GetDocumentStore())
+            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 new ExpiryProcessedMessageIndex().Execute(documentStore);
 
@@ -214,10 +213,7 @@
                     session.Store(processedMessage);
                     session.SaveChanges();
                 }
-
-                documentStore.WaitForIndexing();
-                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds*1000*2);
-
+                RunExpiry(documentStore);
                 using (var session = documentStore.OpenSession())
                 {
                     var msg = session.Load<ProcessedMessage>(processedMessage.Id);
@@ -229,7 +225,7 @@
         [Test]
         public void Errors_are_not_being_expired()
         {
-            using (var documentStore = GetDocumentStore())
+            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 var failedMsg = new FailedMessage
                 {
@@ -253,9 +249,7 @@
                     session.Store(failedMsg);
                     session.SaveChanges();
                 }
-
-                documentStore.WaitForIndexing();
-                Thread.Sleep(Settings.ExpirationProcessTimerInSeconds * 1000 * 2);
+                RunExpiry(documentStore);
 
                 using (var session = documentStore.OpenSession())
                 {
@@ -263,16 +257,6 @@
                     Assert.NotNull(msg);
                 }
             }
-        }
-
-
-        EmbeddableDocumentStore GetDocumentStore()
-        {
-            var documentStore = InMemoryStoreBuilder.GetInMemoryStore(withExpiration: true);
-
-            var customIndex = new ExpiryProcessedMessageIndex();
-            customIndex.Execute(documentStore);
-            return documentStore;
         }
 
     }

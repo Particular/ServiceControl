@@ -3,7 +3,6 @@
 
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel.Composition;
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
@@ -14,43 +13,15 @@
     using Raven.Abstractions.Logging;
     using Raven.Database;
     using Raven.Database.Impl;
-    using Raven.Database.Plugins;
     using ServiceBus.Management.Infrastructure.Settings;
 
 
-    [InheritedExport(typeof(IStartupTask))]
-    [ExportMetadata("Bundle", "customDocumentExpiration")]
-    public class ExpiredDocumentsCleaner : IStartupTask, IDisposable
+    public class ExpiredDocumentsCleaner
     {
-        ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleaner));
-        PeriodicExecutor timer;
-        DocumentDatabase Database { get; set; }
-        string indexName;
-        int deleteFrequencyInSeconds;
-        int deletionBatchSize;
+        static ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleaner));
+        static string indexName = new ExpiryProcessedMessageIndex().IndexName;
 
-        public void Execute(DocumentDatabase database)
-        {
-            Database = database;
-            indexName = new ExpiryProcessedMessageIndex().IndexName;
-
-            deletionBatchSize = Settings.ExpirationProcessBatchSize;
-            deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
-
-            if (deleteFrequencyInSeconds == 0)
-            {
-                return;
-            }
-
-            logger.Info("Expired Documents every {0} seconds", deleteFrequencyInSeconds);
-            logger.Info("Deletion Batch Size: {0}", deletionBatchSize);
-            logger.Info("Retention Period: {0}", Settings.HoursToKeepMessagesBeforeExpiring);
-
-            timer = new PeriodicExecutor(Delete,TimeSpan.FromSeconds(deleteFrequencyInSeconds));
-            timer.Start(true);
-        }
-
-        void Delete(PeriodicExecutor executor)
+        public static void RunCleanup(int deletionBatchSize, DocumentDatabase database)
         {
             var currentTime = SystemTime.UtcNow;
             var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
@@ -84,7 +55,7 @@
                 var stopwatch = Stopwatch.StartNew();
                 int deletionCount;
                 using (DocumentCacher.SkipSettingDocumentsInDocumentCache())
-                using (Database.DisableAllTriggersForCurrentThread())
+                using (database.DisableAllTriggersForCurrentThread())
                 using (var cts = new CancellationTokenSource())
                 {
                     var documentWithCurrentThresholdTimeReached = false;
@@ -92,7 +63,7 @@
                     var attachments = new List<string>(deletionBatchSize);
                     try
                     {
-                        Database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(Database.WorkContext.CancellationToken, cts.Token).Token,
+                        database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(database.WorkContext.CancellationToken, cts.Token).Token,
                        null,
                         doc =>
                         {
@@ -137,8 +108,8 @@
                     logger.Debug("Batching deletion of {0} documents.",items.Count);
 
                     docsToExpire += items.Count;
-                    var results = Database.Batch(items.ToArray());
-                    Database.TransactionalStorage.Batch(accessor =>
+                    var results = database.Batch(items.ToArray());
+                    database.TransactionalStorage.Batch(accessor =>
                     {
                         foreach (var attach in attachments)
                         {
@@ -164,16 +135,5 @@
             }
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        /// <filterpriority>2</filterpriority>
-        public void Dispose()
-        {
-            if (timer != null)
-            {
-                timer.Stop();
-            }
-        }
     }
 }
