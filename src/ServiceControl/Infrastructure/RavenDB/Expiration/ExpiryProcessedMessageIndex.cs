@@ -11,7 +11,6 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
             Map = (messages => from message in messages
                 select new 
                 {
-                    MessageId = (string) message.MessageMetadata["MessageId"],
                     ProcessedAt = message.ProcessedAt,
                 });
 
