@@ -146,7 +146,9 @@
                     session.Store(expiredSagaHistory);
                     session.SaveChanges();
                 }
+                Thread.Sleep(100);
                 var expiryThreshold = DateTime.UtcNow;
+                Thread.Sleep(100);
                 var recentMessage = new ProcessedMessage
                 {
                     Id = "2",
