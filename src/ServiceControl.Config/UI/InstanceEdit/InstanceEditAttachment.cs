@@ -1,7 +1,6 @@
 namespace ServiceControl.Config.UI.InstanceEdit
 {
     using System;
-    using System.Reactive.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
@@ -29,8 +28,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             var validationTemplate = new ValidationTemplate(viewModel);
             viewModel.ValidationTemplate = validationTemplate;
 
-            viewModel.Save = new ReactiveCommand(validationTemplate.ErrorsChangedObservable.Select(_ => !validationTemplate.HasErrors).DistinctUntilChanged())
-                .DoAsync(Save);
+            viewModel.Save = new ReactiveCommand().DoAsync(Save);
             viewModel.Cancel = Command.Create(() => viewModel.TryClose(false), IsInProgress);
         }
 

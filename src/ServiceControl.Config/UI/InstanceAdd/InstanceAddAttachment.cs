@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.InstanceAdd
 {
     using System;
-    using System.Reactive.Linq;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using ReactiveUI;
@@ -29,8 +28,7 @@
             var validationTemplate = new ValidationTemplate(viewModel);
             viewModel.ValidationTemplate = validationTemplate;
 
-            viewModel.Save = new ReactiveCommand(validationTemplate.ErrorsChangedObservable.Select(_ => !validationTemplate.HasErrors).DistinctUntilChanged())
-                .DoAsync(Add);
+            viewModel.Save = new ReactiveCommand().DoAsync(Add);
             viewModel.Cancel = Command.Create(() =>
             {
                 viewModel.TryClose(false);
