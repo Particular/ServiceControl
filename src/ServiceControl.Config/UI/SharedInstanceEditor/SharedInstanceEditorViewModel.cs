@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Windows;
     using System.Windows.Input;
     using PropertyChanged;
     using ServiceControl.Config.Framework.Rx;
@@ -90,7 +91,7 @@
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
 
-        [AlsoNotifyFor("ConnectionString")]
+        [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]
         public TransportInfo SelectedTransport
         {
             get { return selectedTransport; }
