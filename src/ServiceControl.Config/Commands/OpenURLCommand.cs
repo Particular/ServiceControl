@@ -4,7 +4,6 @@
     using System.Diagnostics;
     using System.IO;
     using System.Windows;
-    using System.Windows.Navigation;
     using ServiceControl.Config.Framework.Commands;
 
     class OpenURLCommand : AbstractCommand<string>
@@ -25,21 +24,6 @@
 
             return !uri.IsFile || (File.Exists(url) || Directory.Exists(url));
         }
-
-        static bool IsFileUrl(string url)
-        {
-            if (string.IsNullOrEmpty(url))
-                return false;
-
-            Uri uri;
-            if (!Uri.TryCreate(url, UriKind.Absolute, out uri)) return true;
-
-            url = FixUrlOn64bitSystem(url);
-
-            return !uri.IsFile || (File.Exists(url) || Directory.Exists(url));
-        }
-
-
 
         static string FixUrlOn64bitSystem(string url)
         {
