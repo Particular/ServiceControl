@@ -19,7 +19,7 @@
 
         public const string MSG_USE_PORTS_IN_RANGE = "Use Ports in range 1 - 49151. Ephemeral port range should not be used (49152 to 65535).";
 
-        public const string MSG_MUST_BE_UNIQUE = "{0} must be unique across all instances.";
+        public const string MSG_MUST_BE_UNIQUE = "{0} must be unique across all instances on the same transport.";
 
         public const string WRN_HOSTNAME_SHOULD_BE_LOCALHOST = "Not using localhost can expose ServiceControl to anonymous access.";
 
