@@ -1,8 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.FeedBack
 {
-    using System.Reactive.Linq;
     using System.Windows.Input;
-    using ReactiveUI;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Rx;
     using ServiceControl.Config.Validation;
@@ -19,8 +17,7 @@
             feedBack = raygunFeedBack;
             validationTemplate = new ValidationTemplate(this);
             Cancel = Command.Create(() => TryClose(false));
-            SendFeedBack = new ReactiveCommand(validationTemplate.ErrorsChangedObservable.Select(_ => !validationTemplate.HasErrors).DistinctUntilChanged())
-                .DoAction(_ => Send());
+            SendFeedBack = Command.Create(() => Send());
         }
 
         public string EmailAddress { get; set; }
@@ -40,7 +37,6 @@
                 NotifyOfPropertyChange(string.Empty);
                 return;
             }
-
             try
             {
                 feedBack.SendFeedBack(EmailAddress, Message, IncludeSystemInfo);
