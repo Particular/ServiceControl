@@ -103,7 +103,7 @@
         <CheckBox Grid.Row="3"
                   Margin="0,5"
                   HorizontalAlignment="Left"
-                  Content="Include Operating Systen version and hardware information when sending report"
+                  Content="Include operating system version and hardware information when sending report"
                   FontSize="12"
                   IsChecked="{Binding IncludeSystemInfo}" />
         
