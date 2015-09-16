@@ -39,6 +39,7 @@
                     session.Store(sagaHistory);
                     session.SaveChanges();
                 }
+                Thread.Sleep(100);
                 RunExpiry(documentStore, DateTime.UtcNow);
 
                 using (var session = documentStore.OpenSession())
@@ -164,6 +165,7 @@
                     session.Store(recentSagaHistory);
                     session.SaveChanges();
                 }
+                Thread.Sleep(100);
                 RunExpiry(documentStore, expiryThreshold);
 
                 using (var session = documentStore.OpenSession())
@@ -215,6 +217,7 @@
                 {
                     bodyStorage.Store(messageId, "binary", 5, stream);
                 }
+                Thread.Sleep(100);
                 RunExpiry(documentStore, DateTime.UtcNow);
 
                 // Verify message expired
@@ -269,6 +272,7 @@
                     session.Store(failedMsg);
                     session.SaveChanges();
                 }
+                Thread.Sleep(100);
                 RunExpiry(documentStore, DateTime.UtcNow);
 
                 using (var session = documentStore.OpenSession())
