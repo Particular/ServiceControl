@@ -23,18 +23,24 @@
 
         public static void RunCleanup(int deletionBatchSize, DocumentDatabase database)
         {
-            var currentTime = SystemTime.UtcNow;
-            var currentExpiryThresholdTime = currentTime.AddHours(-Settings.HoursToKeepMessagesBeforeExpiring);
-            logger.Debug("Trying to find expired documents to delete (with threshold {0})", currentExpiryThresholdTime.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
+            var hoursToKeep = Settings.HoursToKeepMessagesBeforeExpiring;
+            var expiryThreshold = SystemTime.UtcNow.AddHours(-hoursToKeep);
+
+            RunCleanup(deletionBatchSize, database, expiryThreshold);
+        }
+
+        public static void RunCleanup(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
+        {
+            logger.Debug("Trying to find expired documents to delete (with threshold {0})", expiryThreshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
             var query = new IndexQuery
             {
                 Start = 0,
                 PageSize = deletionBatchSize,
-                Cutoff = currentTime,
+                Cutoff = DateTime.UtcNow,
                 FieldsToFetch = new[]
                 {
                     "__document_id",
-                    "ProcessedAt", 
+                    "ProcessedAt",
                     "MessageMetadata"
                 },
                 SortedFields = new[]
@@ -55,69 +61,73 @@
                 var stopwatch = Stopwatch.StartNew();
                 int deletionCount;
                 using (DocumentCacher.SkipSettingDocumentsInDocumentCache())
-                using (database.DisableAllTriggersForCurrentThread())
-                using (var cts = new CancellationTokenSource())
                 {
-                    var documentWithCurrentThresholdTimeReached = false;
-                    var items = new List<ICommandData>(deletionBatchSize);
-                    var attachments = new List<string>(deletionBatchSize);
-                    try
+                    using (database.DisableAllTriggersForCurrentThread())
                     {
-                        database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(database.WorkContext.CancellationToken, cts.Token).Token,
-                       null,
-                        doc =>
+                        using (var cts = new CancellationTokenSource())
                         {
-                            if (documentWithCurrentThresholdTimeReached)
+                            var documentWithCurrentThresholdTimeReached = false;
+                            var items = new List<ICommandData>(deletionBatchSize);
+                            var attachments = new List<string>(deletionBatchSize);
+                            try
                             {
-                                return;
-                            }
-
-                            if (doc.Value<DateTime>("ProcessedAt") >= currentExpiryThresholdTime)
-                            {
-                                documentWithCurrentThresholdTimeReached = true;
-                                cts.Cancel();
-                                return;
-                            }
-
-                            var id = doc.Value<string>("__document_id");
-                            if (!string.IsNullOrEmpty(id))
-                            {
-                                items.Add(new DeleteCommandData
-                                {
-                                    Key = id
-                                });
-
-                                var bodyNotStored = doc.SelectToken("MessageMetadata.BodyNotStored", errorWhenNoMatch: false);
-                                if (bodyNotStored == null || bodyNotStored.Value<bool>() == false)
-                                {
-                                    var msgId = doc.SelectToken("MessageMetadata.MessageId", errorWhenNoMatch: false);
-                                    if (msgId != null)
+                                database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(database.WorkContext.CancellationToken, cts.Token).Token,
+                                    null,
+                                    doc =>
                                     {
-                                        var attachmentId = "messagebodies/" + msgId.Value<string>();
-                                        attachments.Add(attachmentId);
-                                    }
-                                }
+                                        if (documentWithCurrentThresholdTimeReached)
+                                        {
+                                            return;
+                                        }
+
+                                        if (doc.Value<DateTime>("ProcessedAt") >= expiryThreshold)
+                                        {
+                                            documentWithCurrentThresholdTimeReached = true;
+                                            cts.Cancel();
+                                            return;
+                                        }
+
+                                        var id = doc.Value<string>("__document_id");
+                                        if (!string.IsNullOrEmpty(id))
+                                        {
+                                            items.Add(new DeleteCommandData
+                                            {
+                                                Key = id
+                                            });
+
+                                            var bodyNotStored = doc.SelectToken("MessageMetadata.BodyNotStored", errorWhenNoMatch: false);
+                                            if (bodyNotStored == null || bodyNotStored.Value<bool>() == false)
+                                            {
+                                                var msgId = doc.SelectToken("MessageMetadata.MessageId", errorWhenNoMatch: false);
+                                                if (msgId != null)
+                                                {
+                                                    var attachmentId = "messagebodies/" + msgId.Value<string>();
+                                                    attachments.Add(attachmentId);
+                                                }
+                                            }
+                                        }
+                                    });
                             }
-                        });
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        //Ignore
-                    }
+                            catch (OperationCanceledException)
+                            {
+                                //Ignore
+                            }
 
-                    logger.Debug("Batching deletion of {0} documents.",items.Count);
+                            logger.Debug("Batching deletion of {0} documents.", items.Count);
 
-                    docsToExpire += items.Count;
-                    var results = database.Batch(items.ToArray());
-                    database.TransactionalStorage.Batch(accessor =>
-                    {
-                        foreach (var attach in attachments)
-                        {
-                            accessor.Attachments.DeleteAttachment(attach, null);
+                            docsToExpire += items.Count;
+                            var results = database.Batch(items.ToArray());
+                            database.TransactionalStorage.Batch(accessor =>
+                            {
+                                foreach (var attach in attachments)
+                                {
+                                    accessor.Attachments.DeleteAttachment(attach, null);
+                                }
+                            });
+                            deletionCount = results.Count(x => x.Deleted == true);
+                            items.Clear();
                         }
-                    });
-                    deletionCount = results.Count(x => x.Deleted == true);
-                    items.Clear();
+                    }
                 }
 
                 if (docsToExpire == 0)
@@ -134,6 +144,5 @@
                 logger.ErrorException("Error when trying to find expired documents", e);
             }
         }
-
     }
 }
