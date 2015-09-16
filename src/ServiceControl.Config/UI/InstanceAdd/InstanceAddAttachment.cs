@@ -43,9 +43,11 @@
 
         private async Task Add(object arg)
         {
+            viewModel.SubmitAttempted = true;
             if (!viewModel.ValidationTemplate.Validate())
             {
                 viewModel.NotifyOfPropertyChange(string.Empty);
+                viewModel.SubmitAttempted = false;
                 return;
             }
 
@@ -72,7 +74,7 @@
                 ServiceAccount = viewModel.ServiceAccount,
                 ServiceAccountPwd = viewModel.Password
             };
-
+            
             using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
             {
                 var reportCard = await Task.Run(() => installer.Add(instanceMetadata, progress));

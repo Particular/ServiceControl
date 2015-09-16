@@ -39,9 +39,11 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
         async Task Save(object arg)
         {
+            viewModel.SubmitAttempted = true;
             if (!viewModel.ValidationTemplate.Validate())
             {
                 viewModel.NotifyOfPropertyChange(string.Empty);
+                viewModel.SubmitAttempted = false;
                 return;
             }
 

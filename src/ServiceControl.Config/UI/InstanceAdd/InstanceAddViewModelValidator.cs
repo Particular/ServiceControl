@@ -7,23 +7,26 @@ namespace ServiceControl.Config.UI.InstanceAdd
     {
         public InstanceAddViewModelValidator()
         {
-            RuleFor(x => x.ServiceAccount).NotEmpty();
+            RuleFor(x => x.ServiceAccount)
+                .NotEmpty()
+                .When(x => x.SubmitAttempted);
 
-            RuleFor(x => x.SelectedTransport).NotEmpty();
+            RuleFor(x => x.SelectedTransport)
+                .NotEmpty();
 
             RuleFor(x => x.DestinationPath)
                 .NotEmpty()
                 .ValidPath()
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
-                    .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
-            ;
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.DatabasePath)
                 .NotEmpty()
                 .ValidPath()
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
-                    .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
-            ;
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .When(x => x.SubmitAttempted);
         }
     }
 }

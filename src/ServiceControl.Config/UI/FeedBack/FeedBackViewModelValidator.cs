@@ -8,10 +8,14 @@
         public FeedBackViewModelValidator()
         {
             RuleFor(x => x.Message)
-                .NotEmpty();
+                .NotEmpty()
+                .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.EmailAddress)
-                .EmailAddress().When(vm => !string.IsNullOrEmpty(vm.EmailAddress)).WithMessage(Validations.MSG_EMAIL_NOT_VALID);
+                .EmailAddress()
+                .When(vm => !string.IsNullOrEmpty(vm.EmailAddress))
+                .When(x => x.SubmitAttempted)
+                .WithMessage(Validations.MSG_EMAIL_NOT_VALID);
         }
     }
 }

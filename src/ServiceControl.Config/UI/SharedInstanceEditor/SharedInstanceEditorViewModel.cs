@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Windows;
     using System.Windows.Input;
     using PropertyChanged;
     using ServiceControl.Config.Framework.Rx;
@@ -111,6 +110,8 @@
 
         public ICommand Save { get; set; }
         public ICommand Cancel { get; set; }
+        
+        public bool SubmitAttempted { get; set; }
 
         protected virtual void OnInstanceNameChanged()
         {

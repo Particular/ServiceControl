@@ -7,9 +7,12 @@ namespace ServiceControl.Config.UI.InstanceEdit
     {
         public InstanceEditViewModelValidator()
         {
-            RuleFor(x => x.ServiceAccount).NotEmpty();
+            RuleFor(x => x.ServiceAccount)
+                .NotEmpty()
+                .When(x => x.SubmitAttempted); 
 
-            RuleFor(x => x.SelectedTransport).NotEmpty();
+            RuleFor(x => x.SelectedTransport)
+                .NotEmpty(); 
         }
     }
 }

@@ -30,11 +30,15 @@
         public ICommand Cancel { get; set; }
         public ICommand SendFeedBack { get; set; }
 
+        public bool SubmitAttempted { get; set; }
+        
         void Send()
         {
+            SubmitAttempted = true;
             if (!validationTemplate.Validate())
             {
                 NotifyOfPropertyChange(string.Empty);
+                SubmitAttempted = false;
                 return;
             }
             try
