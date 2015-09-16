@@ -63,7 +63,9 @@
                     }
                     session.SaveChanges();
                 }
+                Thread.Sleep(100);
                 var thresholdTime = DateTime.UtcNow;
+                Thread.Sleep(100);
                 using (var session = documentStore.OpenSession())
                 {
                     var recentMessage = new ProcessedMessage
