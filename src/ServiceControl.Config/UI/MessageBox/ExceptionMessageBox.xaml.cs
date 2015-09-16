@@ -140,7 +140,7 @@
             InitializeComponent();
         }
 
-        bool IncludeSystemInfo { get; set; }
+        public bool IncludeSystemInfo { get; set; }
         Exception Exception { get; set; }
 
         protected override void OnMouseDown(MouseButtonEventArgs e)
