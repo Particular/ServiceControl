@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
@@ -38,7 +39,7 @@
                     session.Store(sagaHistory);
                     session.SaveChanges();
                 }
-
+                Thread.Sleep(500);
                 RunExpiry(documentStore, DateTime.UtcNow);
 
                 using (var session = documentStore.OpenSession())
