@@ -13,6 +13,7 @@
     using Raven.Abstractions.Logging;
     using Raven.Database;
     using Raven.Database.Impl;
+    using Raven.Json.Linq;
     using ServiceBus.Management.Infrastructure.Settings;
 
 
@@ -101,15 +102,10 @@
                                 Key = id
                             });
 
-                            var bodyNotStored = doc.SelectToken("MessageMetadata.BodyNotStored", errorWhenNoMatch: false);
-                            if (bodyNotStored == null || bodyNotStored.Value<bool>() == false)
+                            string bodyId;
+                            if (TryGetBodyId(doc, out bodyId))
                             {
-                                var msgId = doc.SelectToken("MessageMetadata.MessageId", errorWhenNoMatch: false);
-                                if (msgId != null)
-                                {
-                                    var attachmentId = "messagebodies/" + msgId.Value<string>();
-                                    attachments.Add(attachmentId);
-                                }
+                                attachments.Add(bodyId);
                             }
                         });
                 }
@@ -141,6 +137,23 @@
             {
                 logger.Debug("Deleted {0} out of {1} expired documents batch - Execution time:{2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
             }
+        }
+
+        static bool TryGetBodyId(RavenJObject doc, out string bodyId)
+        {
+            bodyId = null;
+            var bodyNotStored = doc.SelectToken("MessageMetadata.BodyNotStored", errorWhenNoMatch: false);
+            if (bodyNotStored != null && bodyNotStored.Value<bool>())
+            {
+                return false;
+            }
+            var messageId = doc.SelectToken("MessageMetadata.MessageId", errorWhenNoMatch: false);
+            if (messageId == null)
+            {
+                return false;
+            }
+            bodyId = "messagebodies/" + messageId.Value<string>();
+            return true;
         }
     }
 }
