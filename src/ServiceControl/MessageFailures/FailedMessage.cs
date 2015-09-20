@@ -5,7 +5,7 @@
     using Contracts.Operations;
     using NServiceBus;
 
-    public class FailedMessage
+    public class FailedMessage: IHaveStatus
     {
         public static string MakeDocumentId(string messageUniqueId)
         {

@@ -22,18 +22,20 @@ namespace ServiceControl.Recoverability
 
         CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-        public void StartRetryForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter = null, string context = null) where TIndex : AbstractIndexCreationTask, new()
+        public void StartRetryForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter = null, string context = null) where TIndex : AbstractIndexCreationTask, new() where TType : IHaveStatus
         {
             Task.Factory.StartNew(
                 () => CreateAndStageRetriesForIndex<TType, TIndex>(filter, cancellationTokenSource.Token, context),
                 cancellationTokenSource.Token);
         }
 
-        void CreateAndStageRetriesForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter, CancellationToken token, string context) where TIndex : AbstractIndexCreationTask, new()
+        void CreateAndStageRetriesForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter, CancellationToken token, string context) where TIndex : AbstractIndexCreationTask, new() where TType : IHaveStatus
         {
             using (var session = Store.OpenSession())
             {
                 var query = session.Query<TType, TIndex>();
+
+                query = query.Where(d=>d.Status == FailedMessageStatus.Unresolved);
 
                 if (filter != null)
                 {
