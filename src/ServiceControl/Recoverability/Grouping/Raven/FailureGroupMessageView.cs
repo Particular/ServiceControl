@@ -2,7 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using ServiceControl.MessageFailures;
 
-    public class FailureGroupMessageView
+    public class FailureGroupMessageView: IHaveStatus
     {
         public string Id { get; set; }
         public string FailureGroupId { get; set; }
