@@ -30,7 +30,9 @@
                 .Done(c =>
                 {
                     if (c.MessageToBeRetriedByGroupId == null || c.MessageToBeArchivedId == null)
+                    {
                         return false;
+                    }
 
                     //First we are going to issue an archive to one of the messages
                     if (!c.ArchiveIssued)
