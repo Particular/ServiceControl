@@ -60,7 +60,7 @@
         }
 
         [Test]
-        public void Only_unresolved_issues_should_be_retried()
+        public void Only_unresolved_issues_should_be_archived()
         {
             var context = new MyContext();
 
@@ -125,7 +125,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
+                EndpointSetup<DefaultServer>(c => c.DisableFeature<SecondLevelRetries>())
                     .WithConfig<TransportConfig>(c =>
                     {
                         c.MaxRetries = 1;
@@ -137,13 +137,12 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
+
+                public IBus Bus { get; set; }
 
                 public void Handle(MyMessage message)
                 {
-
                     var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
                     var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
@@ -175,11 +174,8 @@
         {
             public string FirstMessageId { get; set; }
             public string SecondMessageId { get; set; }
-
-
             public bool ArchiveIssued { get; set; }
             public bool RetryIssued { get; set; }
         }
-
     }
 }

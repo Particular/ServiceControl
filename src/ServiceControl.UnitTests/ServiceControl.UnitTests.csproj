@@ -103,7 +103,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArgumentParsing\OptionsTests.cs" />
-    <Compile Include="AuditImport\AuditImportTests.cs" />
     <Compile Include="CompositeViews\FailedMessageTest.cs" />
     <Compile Include="Expiration\PeriodicExecutorTests.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverterTests.cs" />
@@ -113,6 +112,7 @@
     <Compile Include="Infrastructure\PreventReindexing.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapperTests.cs" />
+    <Compile Include="MessageExtensions.cs" />
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
@@ -130,7 +130,9 @@
       <Name>ServiceControl</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="AuditImport\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

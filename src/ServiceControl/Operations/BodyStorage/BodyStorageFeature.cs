@@ -51,27 +51,27 @@
             bool TryStoreBody(ImportMessage message, int bodySize, string contentType)
             {
                 var bodyId = message.MessageId;
-                var stored = false;
+                var storedInBodyStorage = false;
                 var bodyUrl = string.Format("/messages/{0}/body", bodyId);
                 var isFailedMessage = message is ImportFailedMessage;
                 var isBinary = contentType.Contains("binary");
                 var isBelowMaxSize = bodySize <= Settings.MaxBodySizeToStore;
+                var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
-                if (isFailedMessage || (isBinary && isBelowMaxSize))
+                if (isFailedMessage || isBelowMaxSize)
                 {
                     bodyUrl = StoreBodyInBodyStorage(message, bodyId, contentType, bodySize);
-                    stored = true;
+                    storedInBodyStorage = true;
                 }
 
-                if (isBelowMaxSize && !isBinary)
+                if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
                 {
                     message.Metadata.Add("Body", Encoding.UTF8.GetString(message.PhysicalMessage.Body));
-                    stored = true;
                 }
 
                 message.Metadata.Add("BodyUrl", bodyUrl);
 
-                return stored;
+                return storedInBodyStorage;
             }
 
             static int GetContentLength(ImportMessage message)
@@ -103,6 +103,8 @@
                     return bodyUrl;
                 }
             }
+
+            static int LargeObjectHeapThreshold = 85 * 1024;
         }
     }
 }

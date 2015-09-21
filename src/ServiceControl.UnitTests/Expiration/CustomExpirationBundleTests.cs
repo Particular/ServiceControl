@@ -166,7 +166,7 @@
                     ProcessedAt = DateTime.UtcNow.AddHours(-(Settings.HoursToKeepMessagesBeforeExpiring*2))
                 };
 
-                processedMessage.MessageMetadata["MessageId"] = messageId;
+            processedMessage.SetMessageId(messageId);
 
                 using (var session = documentStore.OpenSession())
                 {

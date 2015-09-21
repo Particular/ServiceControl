@@ -8,7 +8,7 @@ namespace ServiceControl.MessageFailures.Api
 
     public class FailedMessageViewIndex : AbstractIndexCreationTask<FailedMessage>
     {
-        public class SortAndFilterOptions
+        public class SortAndFilterOptions: IHaveStatus
         {
             public string MessageId { get; set; }
             public DateTime TimeSent { get; set; }

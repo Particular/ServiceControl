@@ -13,7 +13,6 @@
     using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
-    using NServiceBus.Transports.Msmq;
     using NServiceBus.Unicast;
     using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
@@ -28,12 +27,6 @@
         public PipelineExecutor PipelineExecutor { get; set; }
         public LogicalMessageFactory LogicalMessageFactory { get; set; }
         public CriticalError CriticalError { get; set; }
-
-
-        public AuditQueueImport(IDequeueMessages receiver)
-        {
-            Disabled = receiver is MsmqDequeueStrategy;
-        }
 
         public bool Handle(TransportMessage message)
         {
@@ -85,7 +78,7 @@
         {
             if (!TerminateIfForwardingIsEnabledButQueueNotWritable())
             {
-                Logger.InfoFormat("Audit import is now started, feeding audit messages from: {0}", InputAddress);    
+                Logger.InfoFormat("Audit import is now started, feeding audit messages from: {0}", InputAddress);
             }
         }
 
@@ -110,7 +103,7 @@
                 return true;
             }
         }
-       
+
 
         public void Stop()
         {
@@ -121,7 +114,7 @@
             get { return Settings.AuditQueue; }
         }
 
-        public bool Disabled { get; private set; }
+        public bool Disabled { get { return false; } }
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
@@ -129,7 +122,7 @@
                 Path.Combine(Settings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
                 {
                     Message = tm,
-                }, 
+                },
                 CriticalError);
 
             return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
