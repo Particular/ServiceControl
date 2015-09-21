@@ -14,7 +14,7 @@ namespace ServiceControl.Recoverability
             }
 
             var group = Session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                               .FirstOrDefault(x => x.Id == message.GroupId);
+                .FirstOrDefault(x => x.Id == message.GroupId);
 
             string context = null;
 
