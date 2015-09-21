@@ -87,7 +87,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => Configure.Features.Disable<SecondLevelRetries>())
+                EndpointSetup<DefaultServer>(c => Configure.Features.Disable<SecondLevelRetries>())
                     .WithConfig<TransportConfig>(c =>
                     {
                         c.MaxRetries = 1;
