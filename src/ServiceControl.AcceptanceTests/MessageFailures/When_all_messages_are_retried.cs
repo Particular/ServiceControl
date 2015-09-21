@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
+﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
     using NServiceBus;
@@ -77,7 +77,7 @@
 
                     return true;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run(TimeSpan.FromMinutes(3));
 
             Assert.AreEqual(FailedMessageStatus.Archived, messageToBeArchived.Status, "Non retried message should be archived");
             Assert.AreEqual(FailedMessageStatus.Resolved, messageToBeRetriedAsPartOfRetryAll.Status, "Retried Message should not be set to Archived when group is retried");
