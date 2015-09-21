@@ -198,6 +198,7 @@
     <Compile Include="Contexts\DefaultServer.cs" />
     <Compile Include="Contexts\ManagementEndpoint.cs" />
     <Compile Include="Contexts\ManagementEndpointSetup.cs" />
+    <Compile Include="Recoverability\Groups\When_a_group_is_retried.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_archived.cs" />
     <Compile Include="Recoverability\Groups\When_a_message_fails_twice_with_different_exceptions.cs" />
     <Compile Include="Recoverability\Groups\When_a_message_has_failed.cs" />
