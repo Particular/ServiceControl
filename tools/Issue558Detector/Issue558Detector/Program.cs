@@ -12,12 +12,14 @@ namespace Issue558Detector
         {
             var store = new DocumentStore
             {
-                Url = "http://localhost:33333/storage",
+                Url = (args.Length == 1 ? args[0] : "http://localhost:33333/storage"),
             };
 
             store.Initialize();
 
-            Console.Write("Creating Temp Index (this may take some time)...");
+            Console.WriteLine("This tool is going to examine ServiceControl for potential messages affected by issue  https://github.com/Particular/ServiceControl/pull/558\n");
+            
+            Console.WriteLine("Creating Temp Index (this may take some time)...");
 
             var index = new MessageHistories();
 
@@ -31,32 +33,40 @@ namespace Issue558Detector
                 }
 
                 Console.WriteLine(" DONE");
-
-                Console.WriteLine("\nSearching for messages which may have been affected by issue https://github.com/Particular/ServiceControl/pull/558\n");
+                Console.WriteLine("\nScanning for messages that were sent for reprocessing and require your attention.\n");
 
                 var dangerLevel = CheckForMessagesAffectedByIssue(store);
+
+                var noralColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Cyan;
 
                 switch (dangerLevel)
                 {
                     case 0: // Not affected
                         Console.WriteLine("You are NOT affected by issue https://github.com/Particular/ServiceControl/pull/558");
-                        Console.WriteLine("However, we ask all users of ServiceControl using 1.6.x to update to 1.6.3 immediately.");
+                        Console.WriteLine("However, we ask all users of ServiceControl using 1.6.x to update to the latest version immediately.");
+                        Console.WriteLine("Latest release:  https://github.com/Particular/ServiceControl/releases");
                         break;
                     case 1: // Maybe affected
                         Console.WriteLine("You may be affected by issue https://github.com/Particular/ServiceControl/pull/558");
-                        Console.WriteLine("Please upgrade ServiceControl to 1.6.3 immediately.");
+                        Console.WriteLine("Please upgrade ServiceControl to the latest version immediately.");
+                        Console.WriteLine("Latest release:  https://github.com/Particular/ServiceControl/releases");
                         Console.WriteLine("Contact us via support (http://particular.net/support) and we will work with you to get your situation sorted out.");
                         break;
                     case 2: // Definitely affected
                         Console.WriteLine("You are affected by issue https://github.com/Particular/ServiceControl/pull/558");
-                        Console.WriteLine("Please upgrade ServiceControl to 1.6.3 immediately.");
+                        Console.WriteLine("Please upgrade ServiceControl to the latest version immediately.");
+                        Console.WriteLine("Latest release:  https://github.com/Particular/ServiceControl/releases");
                         Console.WriteLine("Contact us via support (http://particular.net/support) and we will work with you to get your situation sorted out.");
                         break;
                 }
+
+                Console.ForegroundColor = noralColor;
             }
             finally
             {
-                Console.WriteLine("Removing Temp Index");
+                Console.WriteLine("\nRemoving Temp Index...");
+                Console.WriteLine(" DONE");
                 store.DatabaseCommands.DeleteIndex(index.IndexName);
             }
         }
@@ -83,9 +93,9 @@ namespace Issue558Detector
                             var attempt = failedMessage.ProcessingAttempts.Last();
 
                             Console.WriteLine("Message Id:         {0}", attempt.MessageId);
-                            Console.WriteLine("Receiving Endpoint: {0}", attempt.FailureDetails.AddressOfFailingEndpoint);
                             Console.WriteLine("Message Type:       {0}", attempt.MessageMetadata.MessageType);
-                            Console.WriteLine("Timeline: ");
+                            Console.WriteLine("Receiving Endpoint: {0}", attempt.FailureDetails.AddressOfFailingEndpoint);
+                            Console.WriteLine("Message History: ");
 
                             foreach (var item in classifiedTimeline)
                             {
