@@ -16,6 +16,7 @@ namespace Issue558Detector
             };
 
             store.Initialize();
+            store.Conventions.MaxNumberOfRequestsPerSession = 2048;
 
             Console.WriteLine("This tool is going to examine ServiceControl for potential messages affected by issue  https://github.com/Particular/ServiceControl/pull/558\n");
             
