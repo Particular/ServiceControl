@@ -47,9 +47,10 @@ Each message that is output by the tool will have one of two statuses:
 Once the tool has scanned all of the messages a footer message provides an overall health statement indicating if you have or have not been affected by Issue 558.
 
 ## Common Cases
-The following are a number of common cases, what they look like, and how they should be handled.
+The following are sample timelines which the detection tool might identify in your database, with explanation of what they mean and suggestion on how they should be handled. If you observe other timelines and you are not sure how to proceed, do not hesitate to contact our support.
 
-### A Bulk Retry after an Archive Operation
+### FailedMessageArchived > MessagesSubmittedForRetry
+#### Sample detection tool output 
 
 ```
 Message Id:         13837004-af4f-4fef-a9a8-1e230a579c39
@@ -63,18 +64,30 @@ Message History:
 	19-Aug-15 23:02:59 Z: [May be affected] MessageFailureResolvedByRetry
 ```
 
-Over the life of this message there have been 4 events.
-  1. The message failed - This event is expected as it indicates that the message was read from the error queue
-  2. The message was archived - Likely by a user of Service Pulse
-  3. The message was sent for Retry - This should not have happened because the message was previously archived. This is the event that causes the message to be marked as `Affected`.
-  4. The message was retried successfully - Note that although this is the outcome of the retry in step 3, which should not have happened. Any events that happen to a message after the incorrect Retry are also likely to be not what was expected.
+```
+Message Id:         13837004-af4f-4fef-a9a8-1e230a579c39
+Message Type:       Sample.Command.SendEmails
+Receiving Endpoint: Sample.Endpoint-A
+Status:             Definitely affected
+Message History: 
+	19-Aug-15 03:26:34 Z: [               ] MessageFailed
+	19-Aug-15 03:32:05 Z: [               ] FailedMessageArchived
+	19-Aug-15 23:02:58 Z: [       Affected] MessagesSubmittedForRetry
+	19-Aug-15 23:02:59 Z: [May be affected] MessageFailed
+```
+
+#### What that means?
+
+The previously archived message was retried.
+
+#### What should you do?
 
 Using this information it is possible to examine the endpoint (in this case `Sample.Endpoint-A`) to see if the message (`Sample.Command.SendEmails`) that was sent has had any adverse effect.
 
 If the message was successfully processed on the final retry then it will no longer appear in ServiceControl. If the message failed processing on the final retry then it should be archived.
 
-### A Bulk Retry after a Successful Retry
-
+### MessageFailureResolvedByRetry > MessagesSubmittedForRetry
+#### Sample detection tool output
 ```
 Message Id:         03a20f7d-bcf7-4c6a-870c-fb53a80f1544
 Message Type:       Sample.Command.SendEmails
@@ -88,14 +101,27 @@ Message History:
 	23-Aug-15 06:07:35 Z: [May be affected] MessageFailed
 ```
 
-Over the life of this message there have been 5 events.
-  1. The message failed - expected
-  2. The message was retried - expected
-  3. The message was resolved by the retry - expected
-  4. The message was sent for Retry - This should not have happened because the message was previously resolved. This is the event that causes the message to be marked as `Affected`. 
-  5. The retry failed. Note that even if the incorrect retry failed, attempting to reprocess the message may still have had an effect on your system.
+```
+Message Id:         03a20f7d-bcf7-4c6a-870c-fb53a80f1544
+Message Type:       Sample.Command.SendEmails
+Receiving Endpoint: Sample.Endpoint-A
+Status:             Definitely affected
+Message History: 
+	19-Aug-15 03:45:34 Z: [               ] MessageFailed
+	19-Aug-15 03:52:05 Z: [               ] MessageSubmittedForRetry
+	19-Aug-15 03:55:06 Z: [               ] MessageFailureResolvedByRetry
+	23-Aug-15 06:07:32 Z: [       Affected] MessagesSubmittedForRetry
+	23-Aug-15 06:07:35 Z: [May be affected] MessageFailureResolvedByRetry
+```
 
-### A Bulk Retry after an Outstanding Retry
+#### What that means?
+
+The message in question was successfully retried in the past. However, it was picked up again during "Retry all" operation and was incorrectly attempted to be processed again.
+
+#### What should you do?
+ Good question...
+ 
+### MessagesSubmittedForRetry > MessagesSubmittedForRetry
 ```
 Message Id:         03a20f7d-bcf7-4c6a-870c-fb53a80f1544
 Message Type:       Sample.Command.SendEmails
@@ -107,17 +133,44 @@ Message History:
 	21-Aug-15 13:09:13 Z: [       Affected] MessagesSubmittedForRetry
 	21-Aug-15 13:09:15 Z: [May be affected] MessageFailed
 ```
+```
+Message Id:         03a20f7d-bcf7-4c6a-870c-fb53a80f1544
+Message Type:       Sample.Command.SendEmails
+Receiving Endpoint: Sample.Endpoint-A
+Status:             Definitely affected
+Message History: 
+	20-Aug-15 05:30:12 Z: [               ] MessageFailed
+	20-Aug-15 05:31:43 Z: [               ] MessageSubmittedForRetry
+	21-Aug-15 13:09:13 Z: [       Affected] MessagesSubmittedForRetry
+	21-Aug-15 13:09:15 Z: [May be affected] MessageResolvedByRetry
+```
+```
+Message Id:         03a20f7d-bcf7-4c6a-870c-fb53a80f1544
+Message Type:       Sample.Command.SendEmails
+Receiving Endpoint: Sample.Endpoint-A
+Status:             Definitely affected
+Message History: 
+	20-Aug-15 05:30:12 Z: [               ] MessageFailed
+	20-Aug-15 05:31:43 Z: [               ] MessageSubmittedForRetry
+	21-Aug-15 13:09:13 Z: [       Affected] MessagesSubmittedForRetry
+```
 
-Over the life of this message there have been 4 events.
-  1. The message failed - expected
-  2. The message was retried - expected
-  3. The message was sent for Retry - This should not have happened (see below). This is the event that causes the message to be marked as `Affected`
-  4. The second retry failed.
+#### What that means?
 
-This can happen for under two circumstances:
+This timeline can be the result of the following situations:
   1. Audit Ingestion is turned off - If this is the case then ServiceControl will not hear about it if a message is successfully resolved.
   2. The first retry is still outstanding - If this is the case then it may be possible that a `MessageFailed` or a `MessageFailureResolvedByRetry` event will appear later. 
+  3. The message was successfully retried before ServiceControl upgrade, but the `MessageFailureResolvedByRetry` event wasn't emitted. That might happen for older versions of ServiceControl (e.g. 1.4.4).
+  4. The failed message (which could fail multiple times) was correctly retried.
 
+#### What should you do?
+There are a few additional check that can help you determine which of the following scenarios took place:
+  1. Find the suspicious message in ServiceInsight. If you notice two messages with the same id, it means that the message was successfully retried before the ServiceControl upgrade. If both messages are green then the incorrect retry was successful. If one of the messages is red then it means the incorrect retry attempt failed.
+  2. Navigate to the exposed Raven studio (by default it's at http://localhost:33333/storage), open Documents tab and go to FailedMessages. There you can export data to CSV file for easier search. 
+      - If the suspicious message does not have any FailureGroup, then it means it was incorrectly retried and that retry succeeded. Its Status is 2 (Resolved).
+      - If the suspicious message does have a FailureGroup assigned and has Status 2, then it was most likely correctly retried failed message.
+      - If the suspicious message does have a FailureGroup and has Status 1 (Unresolved), then the last retry attempt failed, but we can't determine its previous state.
+  
 ## Other notes
 If a failed message has been retried accidentally:
   1. It may have had an effect on your endpoint even if it failed again
