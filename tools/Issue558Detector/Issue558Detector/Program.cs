@@ -95,11 +95,28 @@ namespace Issue558Detector
                             Console.WriteLine("Message Id:         {0}", attempt.MessageId);
                             Console.WriteLine("Message Type:       {0}", attempt.MessageMetadata.MessageType);
                             Console.WriteLine("Receiving Endpoint: {0}", attempt.FailureDetails.AddressOfFailingEndpoint);
+                            Console.Write("Status:             ");
+
+                            var definitelyAffected = classifiedTimeline.Any(x => x.Classification == EventClassification.NotOk);
+
+                            if (definitelyAffected)
+                            {
+                                Console.WriteLine("Definitely affected");
+                            }
+                            else
+                            {
+                                var maybeAffected = classifiedTimeline.Any(x => x.Classification == EventClassification.Unknown);
+                                if (maybeAffected)
+                                {
+                                    Console.WriteLine("May be affected");
+                                }
+                            }
+
                             Console.WriteLine("Message History: ");
 
                             foreach (var item in classifiedTimeline)
                             {
-                                Console.WriteLine("\t{0:dd-MMM-yy HH:mm:ss K}: [{2,7}] {1}", item.Entry.When, item.Entry.Event, item.Classification);
+                                Console.WriteLine("\t{0:dd-MMM-yy HH:mm:ss K}: [{2,15}] {1}", item.Entry.When, item.Entry.Event, FormatClassification(item.Classification));
                                 if (item.Classification == EventClassification.NotOk)
                                 {
                                     dangerLevel = 2;
@@ -117,6 +134,21 @@ namespace Issue558Detector
             }
 
             return dangerLevel;
+        }
+
+        private static string FormatClassification(EventClassification classification)
+        {
+            switch (classification)
+            {
+                case EventClassification.Ok:
+                    return "";
+                case EventClassification.NotOk:
+                    return "Affected";
+                case EventClassification.Unknown:
+                    return "May be affected";
+                default:
+                    return "Unknown";
+            }
         }
     }
 }
