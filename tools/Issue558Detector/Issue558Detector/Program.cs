@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Raven.Client.Document;
@@ -84,7 +83,7 @@ namespace Issue558Detector
                 {
                     while (stream.MoveNext())
                     {
-                        var classifiedTimeline = AnalyseTimeline(stream.Current.Document.Events).ToArray();
+                        var classifiedTimeline = TimelineAnalyzer.AnalyzeTimeline(stream.Current.Document.Events).ToArray();
                         if (classifiedTimeline.Any(x => x.Classification != EventClassification.Ok))
                         {
                             var failedMessageId = stream.Current.Document.MessageId.Replace("/message/", "FailedMessages/");
@@ -118,54 +117,6 @@ namespace Issue558Detector
             }
 
             return dangerLevel;
-        }
-
-        private static IEnumerable<ClassifiedTimelineEntry> AnalyseTimeline(TimelineEntry[] entries)
-        {
-            bool? canRetry = null;
-
-            foreach (var entry in entries.OrderBy(e => e.When))
-            {
-                var status = EventClassification.Ok;
-
-                switch (entry.Event)
-                {
-                    case "MessageFailed":
-                        canRetry = true;
-                        break;
-                    case "MessagesSubmittedForRetry":
-                        if (canRetry.HasValue)
-                        {
-                            if (canRetry.Value == false)
-                            {
-                                status = EventClassification.NotOk;
-                            }
-                        }
-                        else
-                        {
-                            status = EventClassification.Unknown;
-                        }
-                        canRetry = false;
-                        break;
-                    case "MessageSubmittedForRetry": // Event for Retries before SC 1.6
-                    case "MessageFailureResolvedByRetry": // Only is audit ingestion is on
-                    case "FailedMessageArchived": // Single message archived
-                    case "FailedMessageGroupArchived": // SC1.6 group archived
-                        canRetry = false;
-                        break;
-                    default: // An event we didn't account for. A Retry following this is suspect
-                        canRetry = null;
-                        Console.WriteLine("Unexpected event for message: {0}", entry.Event);
-                        break;
-                }
-
-                yield return new ClassifiedTimelineEntry
-                {
-                    Entry = entry,
-                    Classification = status
-                };
-
-            }
         }
     }
 }

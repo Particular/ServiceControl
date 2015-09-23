@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TimelineAnalyzer.cs" />
     <Compile Include="TimelineModel.cs" />
     <Compile Include="ServiceControlModel\EventLogItem.cs" />
     <Compile Include="MessageHistories.cs" />
