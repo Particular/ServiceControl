@@ -150,7 +150,7 @@ Message History:
 The message in question was successfully retried in the past. However, it was picked up again during "Retry all" or "Retry group" operation and was incorrectly attempted to be processed again.
 
 #### What should you do?
-Investigate the handlers for the retried message, depending on your implementation it may or may not have a negative impact on the system. If handlers are idempotent then there should not be negative influence on the system.
+Investigate the handlers for the retried message, depending on your implementation it may or may not have a negative impact on the system. If handlers are idempotent then there should not be negative impact on the system.
  
 ### MessageSubmittedForRetry > MessagesSubmittedForRetry or MessageSubmittedForRetry > MessageSubmittedForRetry
 ```
