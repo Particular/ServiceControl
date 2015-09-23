@@ -11,7 +11,8 @@ Open the Services Panel, find the ServiceControl instance and stop it.
 From an administrative command prompt, run `ServiceControl.exe --maint`. This will expose the embedded RavenDB database via RavenDB Studio (by default at `http://localhost:33333/storage`). ServiceControl will keep processing messages as usual.
 
 ### 3. Run the tool from the command line
-Run `Issue558Detector.exe` from the same machine that ServiceControl is running on. This assumes that the exposed RavenDB instance is available at `http://localhost:33333/storage`. If the RavenDB instance is made available at a different url then you can pass the full url in on the command line like this:
+On the machine that ServiceControl is running, open a command prompt and run it in administrative mode. Navigate to directory where `Issue558Detector.exe` is stored and run it. 
+The tool assumes that RavenDB instance is exposed at the default url, i.e. `http://localhost:33333/storage`. However, if you customized configuration then you can pass the full url in on the command line like this:
 
     Issue558Detector.exe http://[machineName]:[port]/storage
 
@@ -58,7 +59,7 @@ Removing Temp Index...
 
 The first step that the tool takes is to create a temporary index. This index is created in the embedded RavenDB database that is embedded inside ServiceControl. This index is only required for tool and will be removed when the tool stops. Depending on the number of messages that you have, this step make take some time (in our testing we have seen it take 10-15 minutes). 
 
-Once the index has been created the tool will check each Failed Message in the database. Failed Messages are never deleted from ServiceControl so any message which has ever failed will still be there. The check involves looking at the series of events which have happened related to that message.
+Once the index has been created the tool will check each Failed Message in the database. Failed Messages are never deleted from ServiceControl so any message which has ever failed will still be there. The check involves looking at the series of events which have happened related to that failed message.
 
 If a message is Archived or Resolved and then subsequently retried then it has been affected by Issue 558. The tool will output the details of any message which meets this criteria.
 
