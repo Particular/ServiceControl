@@ -46,7 +46,8 @@ namespace Issue558Detector
                             canRetry = false;
                             break;
                         default: // An event we didn't account for. A Retry following this is suspect
-                            canRetry = null;
+                            status = EventClassification.Unknown;
+                            timelinePoisoned = true;
                             Console.WriteLine("Unexpected event for message: {0}", entry.Event);
                             break;
                     }
