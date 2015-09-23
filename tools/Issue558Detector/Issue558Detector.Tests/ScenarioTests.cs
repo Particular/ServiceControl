@@ -178,7 +178,7 @@ namespace Issue558Detector.Tests
         }
 
         [TestMethod]
-        public void IfANewRetryIsTheFirstThingInAMessageTimelineThenTheStatusIsUnknown()
+        public void IfANewRetryIsTheFirstThingInAMessageTimelineThenTheStatusIsOk()
         {
             var timeline = CreateTimeline(NewRetry).ToArray();
 
@@ -186,7 +186,7 @@ namespace Issue558Detector.Tests
 
             Assert.AreEqual(timeline.Length, results.Length, "Analyzed Timeline should have the same number of events as the Ingested Timeline");
 
-            Assert.AreEqual(EventClassification.Unknown, results[0].Classification, "Retry as first timeline entry is unknown");
+            Assert.AreEqual(EventClassification.Ok, results[0].Classification, "Retry as first timeline entry is Ok");
         }
 
         [TestMethod]

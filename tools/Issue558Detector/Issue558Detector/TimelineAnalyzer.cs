@@ -8,7 +8,8 @@ namespace Issue558Detector
     {
         public static IEnumerable<ClassifiedTimelineEntry> AnalyzeTimeline(TimelineEntry[] entries)
         {
-            bool? canRetry = null;
+            // Until we see the first event it is OK to Retry
+            var canRetry = true;
             var status = EventClassification.Ok;
             var timelinePoisoned = false;
 
@@ -22,17 +23,10 @@ namespace Issue558Detector
                             canRetry = true;
                             break;
                         case "MessagesSubmittedForRetry":
-                            if (canRetry.HasValue)
+                            if (canRetry == false)
                             {
-                                if (canRetry.Value == false)
-                                {
-                                    status = EventClassification.NotOk;
-                                    timelinePoisoned = true;
-                                }
-                            }
-                            else
-                            {
-                                status = EventClassification.Unknown;
+                                status = EventClassification.NotOk;
+                                timelinePoisoned = true;
                             }
                             canRetry = false;
                             break;
@@ -63,8 +57,6 @@ namespace Issue558Detector
                 {
                     status = EventClassification.Unknown;
                 }
-
-
             }
         }
     }
