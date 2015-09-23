@@ -22,10 +22,39 @@ The tool outputs directly to the console window. To keep the output for examinat
 ### 4. Restart Service Control
 In the Services Control Pane, find the ServiceControl instance and restart it.
 
-## What does it do
-This is a sample output file:
+## About the tool
 
-    Sample goes here
+### Sample output:
+
+```
+This tool is going to examine ServiceControl for potential messages affected by issue https://github.com/Particular/ServiceControl/pull/558
+
+
+Creating Temp Index (this may take some time)...
+ DONE
+
+Scanning for messages that were sent for reprocessing and require your attention.
+
+Message Id:         ddd7a384-907e-4e53-b8c4-a4f700ebfdb9
+Message Type:       Sample.Command.SendEmails
+Receiving Endpoint: Sample.Endpoint-A
+Status:             Definitely affected
+Message History: 
+	17-Aug-15 19:20:22 Z: [               ] MessageFailed
+	17-Aug-15 21:23:36 Z: [               ] MessagesSubmittedForRetry
+	19-Aug-15 03:34:07 Z: [               ] FailedMessageArchived
+	19-Aug-15 05:56:15 Z: [       Affected] MessagesSubmittedForRetry
+	19-Aug-15 16:14:12 Z: [May be affected] FailedMessageArchived
+
+You are affected by issue https://github.com/Particular/ServiceControl/pull/558
+Please upgrade ServiceControl to the latest version immediately.
+Latest release:  https://github.com/Particular/ServiceControl/releases
+Contact us via support (http://particular.net/support) and we will work with you to get your situation sorted out.
+
+Removing Temp Index...
+ DONE
+```
+### How it works?
 
 The first step that the tool takes is to create a temporary index. This index is created in the embedded RavenDB database that is embedded inside ServiceControl. This index is only required for tool and will be removed when the tool stops. Depending on the number of messages that you have, this step make take some time (in our testing we have seen it take 10-15 minutes). 
 
@@ -42,11 +71,12 @@ The details include:
 
 Each message that is output by the tool will have one of two statuses:
 * `Definitely Affected` - means that the tool has detected a case where the message was sent for re-processing when it should not have been. Messages in this category require some manual intervention (see below).
-* `May be affected` - means that the tool has encountered an event in the log that it does not understand. Messages in the category require a user to interpret the timeline.
+* `May be affected` - means that the tool has encountered an event in the log that is ambiguous. Messages in the category require a user to interpret the timeline.
 
 Once the tool has scanned all of the messages a footer message provides an overall health statement indicating if you have or have not been affected by Issue 558.
 
-## Common Cases
+## Common results
+
 The following are sample timelines which the detection tool might identify in your database, with explanation of what they mean and suggestion on how they should be handled. If you observe other timelines and you are not sure how to proceed, do not hesitate to contact our support.
 
 ### FailedMessageArchived > MessagesSubmittedForRetry
@@ -86,7 +116,7 @@ Using this information it is possible to examine the endpoint (in this case `Sam
 
 If the message was successfully processed on the final retry then it will no longer appear in ServiceControl. If the message failed processing on the final retry then it should be archived.
 
-### MessageFailureResolvedByRetry > MessagesSubmittedForRetry
+### MessageFailureResolvedByRetry > MessagesSubmittedForRetry or MessageFailureResolvedByRetry > MessageSubmittedForRetry
 #### Sample detection tool output
 ```
 Message Id:         03a20f7d-bcf7-4c6a-870c-fb53a80f1544
@@ -116,12 +146,12 @@ Message History:
 
 #### What that means?
 
-The message in question was successfully retried in the past. However, it was picked up again during "Retry all" operation and was incorrectly attempted to be processed again.
+The message in question was successfully retried in the past. However, it was picked up again during "Retry all" or "Retry group" operation and was incorrectly attempted to be processed again.
 
 #### What should you do?
- Good question...
+Investigate the handlers for the retried message, depending on your implementation it may or may not have a negative impact on the system. If handlers are idempotent then there should not be negative influence on the system.
  
-### MessagesSubmittedForRetry > MessagesSubmittedForRetry
+### MessageSubmittedForRetry > MessagesSubmittedForRetry or MessageSubmittedForRetry > MessageSubmittedForRetry
 ```
 Message Id:         03a20f7d-bcf7-4c6a-870c-fb53a80f1544
 Message Type:       Sample.Command.SendEmails
@@ -167,11 +197,12 @@ This timeline can be the result of the following situations:
 There are a few additional check that can help you determine which of the following scenarios took place:
   1. Find the suspicious message in ServiceInsight. If you notice two messages with the same id, it means that the message was successfully retried before the ServiceControl upgrade. If both messages are green then the incorrect retry was successful. If one of the messages is red then it means the incorrect retry attempt failed.
   2. Navigate to the exposed Raven studio (by default it's at http://localhost:33333/storage), open Documents tab and go to FailedMessages. There you can export data to CSV file for easier search. 
-      - If the suspicious message does not have any FailureGroup, then it means it was incorrectly retried and that retry succeeded. Its Status is 2 (Resolved).
-      - If the suspicious message does have a FailureGroup assigned and has Status 2, then it was most likely correctly retried failed message.
+      - If the suspicious message does not have any FailureGroup and has Status 2 (Resolved), then it means it was incorrectly retried and that retry succeeded.
+      - If the suspicious message does have a FailureGroup assigned and has Status 2 (Resolved), then it was most likely correctly retried failed message.
       - If the suspicious message does have a FailureGroup and has Status 1 (Unresolved), then the last retry attempt failed, but we can't determine its previous state.
   
 ## Other notes
 If a failed message has been retried accidentally:
   1. It may have had an effect on your endpoint even if it failed again
-  2. If the retry failed then the message may still be marked as Unresolved in ServiceControl. It needs to be archived to prevent it from being retried again in the future. 
+  2. If the retry failed then the message may still be marked as Unresolved in ServiceControl. It needs to be archived to prevent it from being retried again in the future.
+  3. MessageSubmittedForRetry vs MessagesSubmittedForRetry - the latter event was introduced in ServiceControl version 1.6.0, so it can help you determine whether the specific retry was attempted before or after the upgrade.
