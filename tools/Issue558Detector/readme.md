@@ -196,7 +196,7 @@ This timeline can be the result of the following situations:
 #### What should you do?
 There are a few additional check that can help you determine which of the following scenarios took place:
   1. Find the suspicious message in ServiceInsight. If you notice two messages with the same id, it means that the message was successfully retried before the ServiceControl upgrade. If both messages are green then the incorrect retry was successful. If one of the messages is red then it means the incorrect retry attempt failed.
-  2. Navigate to the exposed Raven studio (by default it's at http://localhost:33333/storage), open Documents tab and go to FailedMessages. There you can export data to CSV file for easier search. 
+  2. Navigate to the exposed RavenDB studio (by default it's exposed at http://localhost:33333/storage, [more details](http://docs.particular.net/servicecontrol/use-ravendb-studio)), open Documents tab and go to FailedMessages. There you can export data to CSV file for easier search. 
       - If the suspicious message does not have any FailureGroup and has Status 2 (Resolved), then it means it was incorrectly retried and that retry succeeded.
       - If the suspicious message does have a FailureGroup assigned and has Status 2 (Resolved), then it was most likely correctly retried failed message.
       - If the suspicious message does have a FailureGroup and has Status 1 (Unresolved), then the last retry attempt failed, but we can't determine its previous state.
