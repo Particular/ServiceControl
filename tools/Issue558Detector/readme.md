@@ -64,10 +64,10 @@ Message History:
 ```
 
 Over the life of this message there have been 4 events.
-1. The message failed - This event is expected as it indicates that the message was read from the error queue
-2. The message was archived - Likely by a user of Service Pulse
-3. The message was sent for Retry - This should not have happened because the message was previously archived. This is the event that causes the message to be marked as `Affected`.
-4. The message was retried successfully - Note that although this is the outcome of the retry in step 3, which should not have happened. Any events that happen to a message after the incorrect Retry are also likely to be not what was expected.
+  1. The message failed - This event is expected as it indicates that the message was read from the error queue
+  2. The message was archived - Likely by a user of Service Pulse
+  3. The message was sent for Retry - This should not have happened because the message was previously archived. This is the event that causes the message to be marked as `Affected`.
+  4. The message was retried successfully - Note that although this is the outcome of the retry in step 3, which should not have happened. Any events that happen to a message after the incorrect Retry are also likely to be not what was expected.
 
 Using this information it is possible to examine the endpoint (in this case `Sample.Endpoint-A`) to see if the message (`Sample.Command.SendEmails`) that was sent has had any adverse effect.
 
@@ -89,11 +89,11 @@ Message History:
 ```
 
 Over the life of this message there have been 5 events.
-1. The message failed - expected
-2. The message was retried - expected
-3. The message was resolved by the retry - expected
-4. The message was sent for Retry - This should not have happened because the message was previously resolved. This is the event that causes the message to be marked as `Affected`. 
-5. The retry failed. Note that even if the incorrect retry failed, attempting to reprocess the message may still have had an effect on your system.
+  1. The message failed - expected
+  2. The message was retried - expected
+  3. The message was resolved by the retry - expected
+  4. The message was sent for Retry - This should not have happened because the message was previously resolved. This is the event that causes the message to be marked as `Affected`. 
+  5. The retry failed. Note that even if the incorrect retry failed, attempting to reprocess the message may still have had an effect on your system.
 
 ### A Bulk Retry after an Outstanding Retry
 ```
@@ -109,16 +109,16 @@ Message History:
 ```
 
 Over the life of this message there have been 4 events.
-1. The message failed - expected
-2. The message was retried - expected
-3. The message was sent for Retry - This should not have happened (see below). This is the event that causes the message to be marked as `Affected`
-4. The second retry failed.
+  1. The message failed - expected
+  2. The message was retried - expected
+  3. The message was sent for Retry - This should not have happened (see below). This is the event that causes the message to be marked as `Affected`
+  4. The second retry failed.
 
 This can happen for under two circumstances:
-1. Audit Ingestion is turned off - If this is the case then ServiceControl will not hear about it if a message is successfully resolved.
-2. The first retry is still outstanding - If this is the case then it may be possible that a `MessageFailed` or a `MessageFailureResolvedByRetry` event will appear later. 
+  1. Audit Ingestion is turned off - If this is the case then ServiceControl will not hear about it if a message is successfully resolved.
+  2. The first retry is still outstanding - If this is the case then it may be possible that a `MessageFailed` or a `MessageFailureResolvedByRetry` event will appear later. 
 
 ## Other notes
 If a failed message has been retried accidentally:
-1. It may have had an effect on your endpoint even if it failed again
-2. If the retry failed then the message may still be marked as Unresolved in ServiceControl. It needs to be archived to prevent it from being retried again in the future. 
+  1. It may have had an effect on your endpoint even if it failed again
+  2. If the retry failed then the message may still be marked as Unresolved in ServiceControl. It needs to be archived to prevent it from being retried again in the future. 
