@@ -57,7 +57,7 @@ Removing Temp Index...
 ```
 ### How it works?
 
-The first step that the tool takes is to create a temporary index. This index is created in the embedded RavenDB database that is embedded inside ServiceControl. This index is only required for tool and will be removed when the tool stops. Depending on the number of messages that you have, this step make take some time (in our testing we have seen it take 10-15 minutes). 
+The first step that the tool takes is to create a temporary index. This index is created in the embedded RavenDB database that is embedded inside ServiceControl. This index is only required for the tool and will be removed when the tool done executing. Depending on the number of messages that you have, this step make take some time (in our testing we have seen it take 10-15 minutes). 
 
 Once the index has been created the tool will check each Failed Message in the database. Failed Messages are never deleted from ServiceControl so any message which has ever failed will still be there. The check involves looking at the series of events which have happened related to that failed message.
 
