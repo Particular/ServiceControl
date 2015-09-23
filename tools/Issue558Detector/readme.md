@@ -8,7 +8,7 @@ An [issue in ServiceControl 1.6](https://github.com/Particular/ServiceControl/pu
 Open the Services Panel, find the ServiceControl instance and stop it. 
 
 ### 2. Start Service Control in Maintenance Mode
-From an administrative command prompt, run `ServiceControl.exe --maint`. This will expose the embedded database of ServiceControl. No other API or processing will be started. 
+From an administrative command prompt, run `ServiceControl.exe --maint`. This will expose the embedded RavenDB database via RavenDB Studio (by default at `http://localhost:33333/storage`). ServiceControl will keep processing messages as usual.
 
 ### 3. Run the tool from the command line
 Run `Issue558Detector.exe` from the same machine that ServiceControl is running on. This assumes that the exposed RavenDB instance is available at `http://localhost:33333/storage`. If the RavenDB instance is made available at a different url then you can pass the full url in on the command line like this:
