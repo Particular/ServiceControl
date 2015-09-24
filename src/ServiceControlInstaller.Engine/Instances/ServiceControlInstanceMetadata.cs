@@ -211,14 +211,17 @@ namespace ServiceControlInstaller.Engine.Instances
             try
             {
                 ServiceAccountValidation.Validate(this);
+                ConnectionStringValidator.Validate(this);
             }
             catch (IdentityNotMappedException)
             {
                 ReportCard.Errors.Add("The service account specified does not exist");
+                return;
             }
             catch (EngineValidationException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
+                return;
             }
         }
 

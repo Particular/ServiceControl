@@ -531,11 +531,21 @@ namespace ServiceControlInstaller.Engine.Instances
                 catch (IdentityNotMappedException)
                 {
                     ReportCard.Errors.Add("The service account specified does not exist");
+                    return;
                 }
                 catch (EngineValidationException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
+                    return;
                 }
+            }
+            try
+            {
+                ConnectionStringValidator.Validate(this);
+            }
+            catch (EngineValidationException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
             }
         }
     }

@@ -82,6 +82,7 @@
     <Compile Include="Queues\ServiceControlQueueCreationException.cs" />
     <Compile Include="Queues\ServiceControlQueueCreationTimeoutException.cs" />
     <Compile Include="ReportCard\TruncatedStringList.cs" />
+    <Compile Include="Validation\ConnectionStringValidator.cs" />
     <Compile Include="Validation\IServiceAccount.cs" />
     <Compile Include="Instances\IServiceControlInstance.cs" />
     <Compile Include="Queues\RunQueueCreation.cs" />
