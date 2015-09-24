@@ -44,7 +44,6 @@
             {
                 Start = 0,
                 PageSize = deletionBatchSize,
-                Cutoff = DateTime.UtcNow,
                 FieldsToFetch = new[]
                 {
                     "__document_id",
@@ -55,17 +54,14 @@
                 {
                     new SortedField("LastModified")
                     {
-                        Field = "LastModified",
                         Descending = false
                     }
                 },
             };
 
-            var docsToExpire = 0;
             // we may be receiving a LOT of documents to delete, so we are going to skip
             // the cache for that, to avoid filling it up very quickly
             var stopwatch = Stopwatch.StartNew();
-            int deletionCount;
             using (DocumentCacher.SkipSettingDocumentsInDocumentCache())
             using (database.DisableAllTriggersForCurrentThread())
             using (var cts = new CancellationTokenSource())
@@ -73,6 +69,7 @@
                 var documentWithCurrentThresholdTimeReached = false;
                 var items = new List<ICommandData>(deletionBatchSize);
                 var attachments = new List<string>(deletionBatchSize);
+                var docsToExpire = 0;
                 try
                 {
                     database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(database.WorkContext.CancellationToken, cts.Token).Token,
@@ -124,19 +121,18 @@
                         accessor.Attachments.DeleteAttachment(attach, null);
                     }
                 });
-                deletionCount = results.Count(x => x.Deleted == true);
-                items.Clear();
-            }
-
-            if (docsToExpire == 0)
-            {
-                logger.Debug("No expired documents found");
-            }
-            else
-            {
-                logger.Debug("Deleted {0} out of {1} expired documents batch - Execution time:{2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
+                var deletionCount = results.Count(x => x.Deleted == true);
+                if (docsToExpire == 0)
+                {
+                    logger.Debug("No expired documents found");
+                }
+                else
+                {
+                    logger.Debug("Deleted {0} out of {1} expired documents batch - Execution time:{2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
+                }
             }
         }
+
         static bool TryGetBodyId(RavenJObject doc, out string bodyId)
         {
             bodyId = null;
