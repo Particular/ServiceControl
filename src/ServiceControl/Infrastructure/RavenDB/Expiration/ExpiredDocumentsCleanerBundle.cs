@@ -17,19 +17,19 @@
 
         public void Execute(DocumentDatabase database)
         {
-            var deletionBatchSize = Settings.ExpirationProcessBatchSize;
             var deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
 
             if (deleteFrequencyInSeconds == 0)
             {
                 return;
             }
+            var deletionBatchSize = Settings.ExpirationProcessBatchSize;
 
             logger.Info("Expired Documents every {0} seconds", deleteFrequencyInSeconds);
             logger.Info("Deletion Batch Size: {0}", deletionBatchSize);
-            logger.Info("Retention Period: {0}", Settings.HoursToKeepMessagesBeforeExpiring);
+            logger.Info("Retention Period: {0} hours", Settings.HoursToKeepMessagesBeforeExpiring);
 
-            timer = new PeriodicExecutor(executor => ExpiredDocumentsCleaner.RunCleanup(Settings.ExpirationProcessBatchSize, database), TimeSpan.FromSeconds(deleteFrequencyInSeconds));
+            timer = new PeriodicExecutor(executor => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database), TimeSpan.FromSeconds(deleteFrequencyInSeconds));
             timer.Start(true);
         }
 
