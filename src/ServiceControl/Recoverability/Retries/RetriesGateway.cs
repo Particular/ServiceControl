@@ -1,10 +1,10 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Linq.Expressions;
-    using System.Threading;
     using System.Threading.Tasks;
     using Raven.Abstractions.Data;
     using Raven.Client;
@@ -20,62 +20,83 @@ namespace ServiceControl.Recoverability
         public IDocumentStore Store { get; set; }
         public RetryDocumentManager RetryDocumentManager { get; set; }
 
-        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        BlockingCollection<IBulkRetryRequest> _bulkRequests = new BlockingCollection<IBulkRetryRequest>();
 
-        public void StartRetryForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter = null, string context = null) where TIndex : AbstractIndexCreationTask, new() where TType : IHaveStatus
+        interface IBulkRetryRequest
         {
-            Task.Factory.StartNew(
-                () => CreateAndStageRetriesForIndex<TType, TIndex>(filter, cancellationTokenSource.Token, context),
-                cancellationTokenSource.Token);
+            IEnumerator<StreamResult<FailedMessage>> GetDocuments(IDocumentSession session);
+            string GetBatchName(int pageNum, int totalPages);
         }
 
-        void CreateAndStageRetriesForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter, CancellationToken token, string context) where TIndex : AbstractIndexCreationTask, new() where TType : IHaveStatus
+        class IndexBasedBulkRetryRequest<TType, TIndex> : IBulkRetryRequest 
+            where TIndex : AbstractIndexCreationTask, new()
+            where TType : IHaveStatus
         {
-            using (var session = Store.OpenSession())
+            string context;
+            Expression<Func<TType, bool>> filter;
+
+            public IndexBasedBulkRetryRequest(string context, Expression<Func<TType, bool>> filter)
+            {
+                this.context = context;
+                this.filter = filter;
+            }
+
+            public IEnumerator<StreamResult<FailedMessage>> GetDocuments(IDocumentSession session)
             {
                 var query = session.Query<TType, TIndex>();
 
-                query = query.Where(d=>d.Status == FailedMessageStatus.Unresolved);
+                query = query.Where(d => d.Status == FailedMessageStatus.Unresolved);
 
                 if (filter != null)
                 {
                     query = query.Where(filter);
                 }
 
-                var currentBatch = new List<string>();
-                QueryHeaderInformation info;
-                int totalPages;
-                var currentPage = 1;
-                string batchContext = null;
+                return session.Advanced.Stream(query.As<FailedMessage>());
+            }
 
-                using (var stream = session.Advanced.Stream(query.As<FailedMessage>(), out info))
+            public string GetBatchName(int pageNum, int totalPages)
+            {
+                if (context == null)
+                    return null;
+                return string.Format("Retry '{0}' batch {1} of {2}", context, pageNum, totalPages);
+            }
+        }
+
+        IList<string[]> GetRequestedBatches(IBulkRetryRequest request)
+        {
+            var batches = new List<string[]>();
+            var currentBatch = new List<string>(1000);
+
+            using (var session = Store.OpenSession())
+            using (var stream = request.GetDocuments(session))
+            {
+                while (stream.MoveNext())
                 {
-                    totalPages = (int)Math.Ceiling(info.TotalResults/(decimal)BatchSize);
-                    while (stream.MoveNext() && !token.IsCancellationRequested)
+                    currentBatch.Add(stream.Current.Document.UniqueMessageId);
+                    if (currentBatch.Count == BatchSize)
                     {
-                        currentBatch.Add(stream.Current.Document.UniqueMessageId);
-                        if (currentBatch.Count == BatchSize)
-                        {
-                            if (context != null)
-                            {
-                                batchContext = string.Format("Retry '{0}' batch {1} of {2}", context, currentPage, totalPages);
-                            }
-                            StageRetryByUniqueMessageIds(currentBatch.ToArray(), batchContext);
-                            currentPage += 1;
-                            currentBatch.Clear();
-                        }
+                        batches.Add(currentBatch.ToArray());
+                        currentBatch.Clear();
                     }
                 }
 
                 if (currentBatch.Any())
                 {
-                    if (context != null)
-                    {
-                        batchContext = string.Format("Retry '{0}' batch {1} of {2}", context, currentPage, totalPages);
-                    }
-                    StageRetryByUniqueMessageIds(currentBatch.ToArray(), batchContext);
+                    batches.Add(currentBatch.ToArray());
                 }
             }
+
+            return batches;
+        }
+
+        public void StartRetryForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter = null, string context = null)
+            where TIndex : AbstractIndexCreationTask, new()
+            where TType : IHaveStatus
+        {
+            var request = new IndexBasedBulkRetryRequest<TType, TIndex>(context, filter);
+
+            _bulkRequests.Add(request);
         }
 
         public void StageRetryByUniqueMessageIds(string[] messageIds, string context = null)
@@ -88,15 +109,33 @@ namespace ServiceControl.Recoverability
             var batchDocumentId = RetryDocumentManager.CreateBatchDocument(context);
 
             var retryIds = new ConcurrentSet<string>();
-            Parallel.ForEach(messageIds, id => retryIds.Add(RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, id)));
+            Parallel.ForEach(
+                messageIds,
+                id => retryIds.Add(RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, id)));
 
             RetryDocumentManager.MoveBatchToStaging(batchDocumentId, retryIds.ToArray());
         }
 
-        internal void StopProcessingOutstandingBatches()
+        internal bool ProcessRequestedBulkRetries()
         {
-            cancellationTokenSource.Cancel();
-            cancellationTokenSource.Dispose();
+            IBulkRetryRequest request;
+            if (!_bulkRequests.TryTake(out request))
+            {
+                return false;
+            }
+
+            ProcessRequest(request);
+            return true;
+        }
+
+        void ProcessRequest(IBulkRetryRequest request)
+        {
+            var batches = GetRequestedBatches(request);
+
+            for (var i = 0; i < batches.Count; i++)
+            {
+                StageRetryByUniqueMessageIds(batches[i], request.GetBatchName(i + 1, batches.Count));
+            }
         }
     }
 }

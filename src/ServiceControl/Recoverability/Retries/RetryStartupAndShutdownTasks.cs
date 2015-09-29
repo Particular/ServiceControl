@@ -7,6 +7,7 @@ namespace ServiceControl.Recoverability
     class RetryStartupAndShutdownTasks : IWantToRunWhenBusStartsAndStops
     {
         PeriodicExecutor executor;
+        PeriodicExecutor retriesGatewayExecutor;
 
         public RetryStartupAndShutdownTasks()
         {
@@ -14,6 +15,19 @@ namespace ServiceControl.Recoverability
                 AdoptOrphanedBatches, 
                 TimeSpan.FromMinutes(2) 
             );
+
+            retriesGatewayExecutor = new PeriodicExecutor(
+                ProcessRequestedBulkRetryOperations, 
+                TimeSpan.FromSeconds(5));
+        }
+
+        void ProcessRequestedBulkRetryOperations(PeriodicExecutor obj)
+        {
+            bool processedRequests;
+            do
+            {
+                processedRequests = Retries.ProcessRequestedBulkRetries();
+            } while (processedRequests && !obj.IsCancellationRequested);
         }
 
         private void AdoptOrphanedBatches(PeriodicExecutor ex)
@@ -32,6 +46,10 @@ namespace ServiceControl.Recoverability
 
         public void Start()
         {
+            if (Retries != null)
+            {
+                retriesGatewayExecutor.Start(true);
+            }
             executor.Start(false);
         }
 
@@ -39,7 +57,7 @@ namespace ServiceControl.Recoverability
         {
             if (Retries != null)
             {
-                Retries.StopProcessingOutstandingBatches();
+                retriesGatewayExecutor.Stop();
             }
             executor.Stop();
         }
