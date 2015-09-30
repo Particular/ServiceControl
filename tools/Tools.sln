@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FailureFirehose", "FailureFirehose\FailureFirehose.csproj", "{C6EDC1E3-9433-458D-B58E-5146EF5BF621}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SagaAuditCreator", "SagaAuditCreator\SagaAuditCreator.csproj", "{F9B237D3-B34E-4682-9288-C0817403BC9D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{C6EDC1E3-9433-458D-B58E-5146EF5BF621}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6EDC1E3-9433-458D-B58E-5146EF5BF621}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6EDC1E3-9433-458D-B58E-5146EF5BF621}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9B237D3-B34E-4682-9288-C0817403BC9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9B237D3-B34E-4682-9288-C0817403BC9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9B237D3-B34E-4682-9288-C0817403BC9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9B237D3-B34E-4682-9288-C0817403BC9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
