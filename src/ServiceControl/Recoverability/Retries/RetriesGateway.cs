@@ -20,7 +20,7 @@ namespace ServiceControl.Recoverability
         public IDocumentStore Store { get; set; }
         public RetryDocumentManager RetryDocumentManager { get; set; }
 
-        BlockingCollection<IBulkRetryRequest> _bulkRequests = new BlockingCollection<IBulkRetryRequest>();
+        ConcurrentQueue<IBulkRetryRequest> _bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
 
         interface IBulkRetryRequest
         {
@@ -66,7 +66,7 @@ namespace ServiceControl.Recoverability
         IList<string[]> GetRequestedBatches(IBulkRetryRequest request)
         {
             var batches = new List<string[]>();
-            var currentBatch = new List<string>(1000);
+            var currentBatch = new List<string>(BatchSize);
 
             using (var session = Store.OpenSession())
             using (var stream = request.GetDocuments(session))
@@ -96,7 +96,7 @@ namespace ServiceControl.Recoverability
         {
             var request = new IndexBasedBulkRetryRequest<TType, TIndex>(context, filter);
 
-            _bulkRequests.Add(request);
+            _bulkRequests.Enqueue(request);
         }
 
         public void StageRetryByUniqueMessageIds(string[] messageIds, string context = null)
@@ -116,10 +116,10 @@ namespace ServiceControl.Recoverability
             RetryDocumentManager.MoveBatchToStaging(batchDocumentId, retryIds.ToArray());
         }
 
-        internal bool ProcessRequestedBulkRetries()
+        internal bool ProcessNextBulkRetry()
         {
             IBulkRetryRequest request;
-            if (!_bulkRequests.TryTake(out request))
+            if (!_bulkRequests.TryDequeue(out request))
             {
                 return false;
             }

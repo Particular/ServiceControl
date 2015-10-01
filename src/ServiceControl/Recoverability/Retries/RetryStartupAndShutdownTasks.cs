@@ -26,7 +26,7 @@ namespace ServiceControl.Recoverability
             bool processedRequests;
             do
             {
-                processedRequests = Retries.ProcessRequestedBulkRetries();
+                processedRequests = Retries.ProcessNextBulkRetry();
             } while (processedRequests && !obj.IsCancellationRequested);
         }
 
