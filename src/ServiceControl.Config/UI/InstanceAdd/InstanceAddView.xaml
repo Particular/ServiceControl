@@ -1,0 +1,144 @@
+﻿<UserControl x:Class="ServiceControl.Config.UI.InstanceAdd.InstanceAddView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cm="clr-namespace:System.ComponentModel;assembly=System"
+             xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sie="clr-namespace:ServiceControl.Config.UI.SharedInstanceEditor"
+             d:DesignHeight="800"
+             d:DesignWidth="800"
+             mc:Ignorable="d">
+    <sie:SharedInstanceEditorView IsTabStop="False" SaveText="Add">
+        <sie:SharedInstanceEditorView.SharedContent>
+            <StackPanel Margin="60,0,60,0">
+                <Border Margin="0,40,0,20"
+                        BorderBrush="{StaticResource Gray70Brush}"
+                        BorderThickness="0,0,0,1">
+                    <TextBlock FontSize="13px"
+                               FontWeight="Bold"
+                               Text="GENERAL" />
+                </Border>
+
+                <controls:FormTextBox Header="NAME / WINDOWS SERVICE NAME" Text="{Binding InstanceName}" />
+                <controls:FormTextBox Header="DESCRIPTION" Text="{Binding Description}" />
+
+                <GroupBox Header="USER ACCOUNT">
+                    <StackPanel>
+                        <RadioButton IsChecked="{Binding UseSystemAccount, Mode=OneWay}">
+                            <TextBlock Text="SYSTEM" />
+                        </RadioButton>
+                        <RadioButton HorizontalContentAlignment="Stretch" IsChecked="{Binding UseProvidedAccount}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="USER" />
+                                <controls:FormTextBox Grid.Row="1"
+                                                      Header="SERVICE ACCOUNT"
+                                                      IsEnabled="{Binding UseProvidedAccount}"
+                                                      Text="{Binding ServiceAccount}"
+                                                      Visibility="{Binding UseProvidedAccount,
+                                                                           Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormPasswordBox Grid.Row="2"
+                                                          Header="PASSWORD"
+                                                          IsEnabled="{Binding UseProvidedAccount}"
+                                                          Text="{Binding Password}"
+                                                          Visibility="{Binding UseProvidedAccount,
+                                                                               Converter={StaticResource boolToVis}}" />
+                            </Grid>
+                        </RadioButton>
+                    </StackPanel>
+                </GroupBox>
+
+                <controls:FormTextBox Header="HOST NAME"
+                                      Text="{Binding HostName}"
+                                      Warning="{Binding HostNameWarning}" />
+                <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding PortNumber}" />
+
+                <Border Margin="0,40,0,20"
+                        BorderBrush="{StaticResource Gray90Brush}"
+                        BorderThickness="0,0,0,1">
+                    <TextBlock FontSize="13px"
+                               FontWeight="Bold"
+                               Text="PATHS" />
+                </Border>
+
+                <controls:FormPathTextBox Header="DESTINATION PATH"
+                                          SelectCommand="{Binding SelectDestinationPath}"
+                                          Text="{Binding DestinationPath}" />
+
+                <controls:FormPathTextBox Header="LOG PATH"
+                                          SelectCommand="{Binding SelectLogPath}"
+                                          Text="{Binding LogPath}" />
+
+                <controls:FormPathTextBox Header="DATABASE PATH"
+                                          SelectCommand="{Binding SelectDatabasePath}"
+                                          Text="{Binding DatabasePath}" />
+
+                <Border Margin="0,40,0,20"
+                        BorderBrush="{StaticResource Gray90Brush}"
+                        BorderThickness="0,0,0,1">
+                    <TextBlock FontSize="13px"
+                               FontWeight="Bold"
+                               Text="TRANSPORT CONFIGURATION" />
+                </Border>
+
+                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                       DisplayMemberPath="Name"
+                                       Header="TRANSPORT"
+                                       ItemsSource="{Binding Transports}"
+                                       SelectedItem="{Binding SelectedTransport}" />
+
+                <controls:FormTextBox AcceptsReturn="True"
+                                      Header="TRANSPORT CONNECTION STRING"
+                                      Text="{Binding ConnectionString}"
+                                      TextWrapping="Wrap"
+                                      Visibility="{Binding ShowConnectionString,
+                                                           Converter={StaticResource boolToVis}}" />
+
+                <TextBlock FontSize="14px"
+                           Foreground="{StaticResource Gray60Brush}"
+                           Text="SAMPLE CONNECTION STRING"
+                           Visibility="{Binding ShowConnectionString,
+                                                Converter={StaticResource boolToVis}}" />
+
+                <TextBox BorderThickness="0"
+                         FontSize="14px"
+                         Foreground="{StaticResource Gray60Brush}"
+                         IsReadOnly="True"
+                         Text="{Binding SampleConnectionString,
+                                        Mode=OneWay}"
+                         TextWrapping="Wrap"
+                         Visibility="{Binding ShowConnectionString,
+                                              Converter={StaticResource boolToVis}}" />
+
+                <Border Margin="0,40,0,20"
+                        BorderBrush="{StaticResource Gray90Brush}"
+                        BorderThickness="0,0,0,1">
+                    <TextBlock FontSize="13px"
+                               FontWeight="Bold"
+                               Text="QUEUES CONFIGURATION" />
+                </Border>
+
+                <controls:FormTextBox Header="ERROR QUEUE NAME" Text="{Binding ErrorQueueName}" />
+                <controls:FormTextBox Header="ERROR FORWARDING QUEUE NAME" Text="{Binding ErrorForwardingQueueName}" />
+                <controls:FormTextBox Header="AUDIT QUEUE NAME" Text="{Binding AuditQueueName}" />
+                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                       DisplayMemberPath="Name"
+                                       Header="AUDIT FORWARDING"
+                                       ItemsSource="{Binding ComboItems}"
+                                       SelectedValue="{Binding AuditForwarding,
+                                                               Mode=TwoWay}"
+                                       SelectedValuePath="Value" />
+                <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME"
+                                      Text="{Binding AuditForwardingQueueName}"
+                                      ToolTip="The audit forwarding queue will be created even if Audit Forwarding is not enabled." />
+            </StackPanel>
+        </sie:SharedInstanceEditorView.SharedContent>
+    </sie:SharedInstanceEditorView>
+</UserControl>

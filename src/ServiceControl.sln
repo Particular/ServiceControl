@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
@@ -9,14 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl", "ServiceCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTests", "ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Install.CustomActions", "ServiceControl.Install.CustomActions\ServiceControl.Install.CustomActions.csproj", "{7E47B904-EF48-4F26-AAB5-BE435BCDC696}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.IntegrationDemo", "ServiceControl.IntegrationDemo\ServiceControl.IntegrationDemo.csproj", "{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Setup", "Setup\Setup.csproj", "{FA2792B9-B82D-4936-871E-16812FA60D13}"
-	ProjectSection(ProjectDependencies) = postProject
-		{4C6B71B2-74EF-4B9E-88FF-C56532727C6D} = {4C6B71B2-74EF-4B9E-88FF-C56532727C6D}
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Installer", "Installer", "{55C388DD-2B39-4C2F-AEBD-AFD3444815F1}"
 EndProject
@@ -27,10 +20,30 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Chocolatey", "Chocolatey", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTesting", "ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj", "{758357F6-CD31-4337-80C4-BA377FC257AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Packaging", "Packaging\Packaging.csproj", "{15F811B7-314C-4E9E-B5E9-35596045BBC4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Engine", "ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj", "{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{15F811B7-314C-4E9E-B5E9-35596045BBC4} = {15F811B7-314C-4E9E-B5E9-35596045BBC4}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.PowerShell", "ServiceControlInstaller.PowerShell\ServiceControlInstaller.PowerShell.csproj", "{FA9439BF-37B4-4F27-B7E9-BE3605E66BE7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.CustomActions", "ServiceControlInstaller.CustomActions\ServiceControlInstaller.CustomActions.csproj", "{2343779D-26D4-4F9D-A42F-32E146632EF0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Packaging", "ServicControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj", "{15F811B7-314C-4E9E-B5E9-35596045BBC4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4C6B71B2-74EF-4B9E-88FF-C56532727C6D} = {4C6B71B2-74EF-4B9E-88FF-C56532727C6D}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Config", "ServiceControl.Config\ServiceControl.Config.csproj", "{C0EEF6D1-5DF7-4A26-9964-6376F465B085}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Setup", "Setup\Setup.csproj", "{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C0EEF6D1-5DF7-4A26-9964-6376F465B085} = {C0EEF6D1-5DF7-4A26-9964-6376F465B085}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Engine.UnitTests", "ServiceControlInstaller.Engine.UnitTests\ServiceControlInstaller.Engine.UnitTests.csproj", "{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.CustomActions.UnitTests", "ServiceControlInstaller.CustomActions.UnitTests\ServiceControlInstaller.CustomActions.UnitTests.csproj", "{20284C68-6381-4AE9-832C-F094E996D913}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,32 +63,58 @@ Global
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1E60657-039F-4BAB-B031-2515F86B0C3D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7E47B904-EF48-4F26-AAB5-BE435BCDC696}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7E47B904-EF48-4F26-AAB5-BE435BCDC696}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7E47B904-EF48-4F26-AAB5-BE435BCDC696}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7E47B904-EF48-4F26-AAB5-BE435BCDC696}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FA2792B9-B82D-4936-871E-16812FA60D13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FA2792B9-B82D-4936-871E-16812FA60D13}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FA2792B9-B82D-4936-871E-16812FA60D13}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FA2792B9-B82D-4936-871E-16812FA60D13}.Release|Any CPU.Build.0 = Release|Any CPU
 		{758357F6-CD31-4337-80C4-BA377FC257AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{758357F6-CD31-4337-80C4-BA377FC257AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{758357F6-CD31-4337-80C4-BA377FC257AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{758357F6-CD31-4337-80C4-BA377FC257AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA9439BF-37B4-4F27-B7E9-BE3605E66BE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA9439BF-37B4-4F27-B7E9-BE3605E66BE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA9439BF-37B4-4F27-B7E9-BE3605E66BE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA9439BF-37B4-4F27-B7E9-BE3605E66BE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2343779D-26D4-4F9D-A42F-32E146632EF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2343779D-26D4-4F9D-A42F-32E146632EF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2343779D-26D4-4F9D-A42F-32E146632EF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2343779D-26D4-4F9D-A42F-32E146632EF0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{15F811B7-314C-4E9E-B5E9-35596045BBC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{15F811B7-314C-4E9E-B5E9-35596045BBC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15F811B7-314C-4E9E-B5E9-35596045BBC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15F811B7-314C-4E9E-B5E9-35596045BBC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0EEF6D1-5DF7-4A26-9964-6376F465B085}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0EEF6D1-5DF7-4A26-9964-6376F465B085}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0EEF6D1-5DF7-4A26-9964-6376F465B085}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0EEF6D1-5DF7-4A26-9964-6376F465B085}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20284C68-6381-4AE9-832C-F094E996D913}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20284C68-6381-4AE9-832C-F094E996D913}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20284C68-6381-4AE9-832C-F094E996D913}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20284C68-6381-4AE9-832C-F094E996D913}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{FA2792B9-B82D-4936-871E-16812FA60D13} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
+		{E2F41605-F664-4EC6-9D64-1F142CC3B7B2} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
+		{FA9439BF-37B4-4F27-B7E9-BE3605E66BE7} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
+		{2343779D-26D4-4F9D-A42F-32E146632EF0} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 		{15F811B7-314C-4E9E-B5E9-35596045BBC4} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
+		{C0EEF6D1-5DF7-4A26-9964-6376F465B085} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
+		{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
+		{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
+		{20284C68-6381-4AE9-832C-F094E996D913} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 	EndGlobalSection
 EndGlobal

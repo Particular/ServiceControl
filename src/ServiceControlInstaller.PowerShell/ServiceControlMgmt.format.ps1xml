@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Configuration>
+  <ViewDefinitions>
+    <View>
+      <Name>TransportsList</Name>
+      <ViewSelectedBy>
+        <TypeName>ServiceControlInstaller.Powershell.PsTransportInfo</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Name</Label>
+                <PropertyName>Name</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>TypeName</Label>
+                <PropertyName>TypeName</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>SampleConnectionString </Label>
+                <PropertyName>SampleConnectionString</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+  </ViewDefinitions>
+</Configuration>

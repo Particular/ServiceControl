@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{FA9439BF-37B4-4F27-B7E9-BE3605E66BE7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ServiceControlInstaller.PowerShell</RootNamespace>
+    <AssemblyName>ServiceControlInstaller.PowerShell</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>b8d686ae</NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>5</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>5</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Packaging|AnyCPU'">
+    <OutputPath>bin\Packaging\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>5</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Management.Automation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>True</SpecificVersion>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Cmdlets\Instances\PSServiceControl.cs" />
+    <Compile Include="Cmdlets\Instances\NewServiceControlInstance.cs" />
+    <Compile Include="Cmdlets\Instances\NewServiceControlUnattendedFile.cs" />
+    <Compile Include="Cmdlets\Ports\PsPortAvailability.cs" />
+    <Compile Include="Cmdlets\Transports\PsTransportInfo.cs" />
+    <Compile Include="Cmdlets\UrlAcls\AddUrlAcl.cs" />
+    <Compile Include="Cmdlets\UrlAcls\GetUrlAcls.cs" />
+    <Compile Include="Cmdlets\UrlAcls\RemoveUrlAcl.cs" />
+    <Compile Include="Cmdlets\User\GetSecurityIdentifier.cs" />
+    <Compile Include="Cmdlets\Instances\GetServiceControlInstances.cs" />
+    <Compile Include="Cmdlets\License\GetServiceControlLicense.cs" />
+    <Compile Include="Cmdlets\Transports\GetServiceControlTransportTypes.cs" />
+    <Compile Include="Cmdlets\License\ImportServiceControlLicense.cs" />
+    <Compile Include="Cmdlets\Instances\InstallServiceControlInstanceFromUnattendedFile.cs" />
+    <Compile Include="Cmdlets\Instances\InvokeServiceControlInstanceUpgrade.cs" />
+    <Compile Include="Cmdlets\Instances\RemoveServiceControlInstance.cs" />
+    <Compile Include="Cmdlets\Ports\TestIfPortIsAvailable.cs" />
+    <Compile Include="Helpers\Account.cs" />
+    <Compile Include="Helpers\PSLogger.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj">
+      <Project>{e2f41605-f664-4ec6-9d64-1f142cc3b7b2}</Project>
+      <Name>ServiceControlInstaller.Engine</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ServiceControlInstaller.Powershell.dll-help.xml" />
+    <Content Include="ServiceControlMgmt.psd1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ShortcutStartup.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ServiceControlMgmt.psm1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ServiceControlMgmt.format.ps1xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets'))" />
+  </Target>
+  <UsingTask TaskName="GitVersionTask.GetVersion" AssemblyFile="..\packages\GitVersionTask.2.0.1\GitVersionTask.dll" />
+  <UsingTask TaskName="MSBuild.Community.Tasks.FileUpdate" AssemblyFile="$(SolutionDir)..\buildsupport\MSBuild.Community.Tasks.dll" />
+  <Target Name="AfterBuild">
+    <ItemGroup>
+      <PSModuleFile Include="$(OutputPath)\ServiceControlMgmt.psd1" />
+    </ItemGroup>
+    <GetVersion SolutionDirectory="$(SolutionDir)">
+      <Output TaskParameter="MajorMinorPatch" PropertyName="MajorMinorPatch" />
+    </GetVersion>
+    <FileUpdate Files="@(PSModuleFile)" Regex="{{Version}}" ReplacementText="$(MajorMinorPatch)" />
+  </Target>
+</Project>

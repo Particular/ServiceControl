@@ -1,0 +1,129 @@
+﻿<Window x:Class="ServiceControl.Config.UI.MessageBox.ExceptionMessageBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls"
+        Title="ExceptionHandler"
+        Width="700"
+        Height="500"
+        BorderBrush="#45496D"
+        BorderThickness="2"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        
+        <controls:AppHeader Grid.Row="0"
+                            Margin="10"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top" />
+        
+        <Border Name="progressOverlay"
+                Grid.Row="0"
+                Grid.RowSpan="4"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Panel.ZIndex="1000"
+                Background="#CCFFFFFF"
+                Visibility="{Binding Path=InProgress,
+                                     Converter={StaticResource boolToVis}}">
+            <Border.Resources>
+                <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="HorizontalAlignment" Value="Center" />
+                    <Setter Property="FontSize" Value="14" />
+                </Style>
+            </Border.Resources>
+
+            <Border Padding="100"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="White">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               FontWeight="Bold"
+                               Text="{Binding Path=ProgressTitle}" />
+                    <ProgressBar Grid.Row="1"
+                                 Width="420"
+                                 Height="20"
+                                 IsIndeterminate="True"
+                                 Maximum="100" />
+                    <TextBlock Grid.Row="2" Text="{Binding Path=ProgressMessage}" />
+                </Grid>
+            </Border>
+        </Border>
+
+        <Border Grid.Row="1"
+                Grid.Column="0"
+                Margin="10 0"
+                Background="{StaticResource LightErrorBrush}"
+                BorderBrush="{StaticResource DarkErrorBrush}"
+                BorderThickness="0 2 0 0">
+            <TextBlock Name="Message"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontSize="14"
+                       Foreground="White" />
+        </Border>
+        <Border Grid.Row="2"
+                Grid.Column="0"
+                Margin="10 0"
+                BorderBrush="{StaticResource LightErrorBrush}"
+                BorderThickness="0 2 0 0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="5*" />
+                </Grid.ColumnDefinitions>
+                <TreeView Name="TraceTree"
+                          Margin="5"
+                          SelectedItemChanged="TraceTreeSelectedItemChanged" />
+                <GridSplitter Grid.Column="1" Width="5" />
+                <ScrollViewer Grid.Column="2">
+                    <TextBlock Name="ErrorDetails"
+                               Margin="5"
+                               TextWrapping="Wrap" />
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <CheckBox Grid.Row="3"
+                  Margin="0,5"
+                  HorizontalAlignment="Left"
+                  Content="Include operating system version and hardware information when sending report"
+                  FontSize="12"
+                  IsChecked="{Binding IncludeSystemInfo}" />
+        
+        
+        <StackPanel Grid.Row="4" 
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button 
+                Command="{Binding ReportClick}"
+                Content="Report Error"
+                ToolTip="Report Error to Particular Software" MinWidth="140"/>
+            <Button 
+                Click="CopyClick"
+                Content="Copy"
+                ToolTip="Copy to Clipboard" Margin="5 0" MinWidth="140"/>
+            <Button 
+                Content="Close"
+                IsCancel="True"
+                IsDefault="True"
+                Style="{StaticResource HiliteButton}" MinWidth="140"/>
+        </StackPanel>
+    </Grid>
+</Window>
