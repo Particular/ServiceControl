@@ -84,6 +84,8 @@ namespace ServiceControl.Recoverability
                             }
                         });
 
+                    store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(messageUniqueId), null);
+
                     bus.Publish<MessagesSubmittedForRetryFailed>(m =>
                     {
                         m.FailedMessageId = messageUniqueId;
