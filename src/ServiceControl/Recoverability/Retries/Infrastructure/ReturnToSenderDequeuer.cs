@@ -5,7 +5,6 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Faults;
     using NServiceBus.Logging;
     using NServiceBus.Transports;
-    using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceControl.MessageFailures;
 
@@ -70,21 +69,24 @@ namespace ServiceControl.Recoverability
                 {
                     var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
                     var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
-                    Log.Error(string.Format("Failed to send '{0}' message to '{1}' for retry.", messageUniqueId, destination), e);
+                    Log.Warn(string.Format("Failed to send '{0}' message to '{1}' for retry. Attempting to revert message status to unresolved so it can be tried again.", messageUniqueId, destination), e);
 
-                    var key = FailedMessage.MakeDocumentId(messageUniqueId);
-                    store.DatabaseCommands.Patch(key,
-                        new[]
+                    using (var session = store.OpenSession())
+                    {
+                        var failedMessage = session.Load<FailedMessage>(FailedMessage.MakeDocumentId(messageUniqueId));
+                        if (failedMessage != null)
                         {
-                            new PatchRequest
-                            {
-                                Type = PatchCommandType.Set,
-                                Name = "Status",
-                                Value = (int) FailedMessageStatus.Unresolved,
-                            }
-                        });
+                            failedMessage.Status = FailedMessageStatus.Unresolved;
+                        }
+                        
+                        var failedMessageRetry = session.Load<FailedMessageRetry>(FailedMessageRetry.MakeDocumentId(messageUniqueId));
+                        if (failedMessageRetry != null)
+                        {
+                            session.Delete(failedMessageRetry);
+                        }
 
-                    store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(messageUniqueId), null);
+                        session.SaveChanges();
+                    }
 
                     bus.Publish<MessagesSubmittedForRetryFailed>(m =>
                     {
