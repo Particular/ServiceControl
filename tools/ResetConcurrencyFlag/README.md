@@ -27,7 +27,7 @@ Done
 ```
 
 **Note:**
-The tool assumes that RavenDB instance is exposed at the default url, i.e. `http://localhost:33333/storage`. However, if you customized the ServiceControl configuration to alter the URL, you can pass the full URL in on the command line after the id, like this:
+The tool assumes that RavenDB instance is exposed at the default url, i.e. http://localhost:33333/storage. If you have altered the URL in the ServiceControl configuration, you can pass the full URL to the executable like this:
 ```cmd
 ResetMessageRetry.exe <id> http://[machineName]:[port]/storage
 ```
