@@ -190,6 +190,7 @@
     <Compile Include="MessageFailures\When_all_messages_are_retried.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed_from_send_only_endpoint.cs" />
+    <Compile Include="MessageFailures\When_a_retry_fails_to_be_sent.cs" />
     <Compile Include="MessageFailures\When_a_message_sent_from_third_party_endpoint_with_missing_metadata_failed.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_empty_body_message_is_successful.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_fails.cs" />

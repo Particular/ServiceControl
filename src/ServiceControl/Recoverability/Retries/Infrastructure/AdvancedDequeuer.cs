@@ -4,6 +4,7 @@ namespace ServiceControl.Recoverability
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Faults;
     using NServiceBus.Logging;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
@@ -24,9 +25,25 @@ namespace ServiceControl.Recoverability
         protected AdvancedDequeuer()
         {
             timer = new Timer(state => StopInternal());
+
+            ExecuteOnFailure = () =>
+            {
+                if (IsCounting)
+                {
+                    CountMessageAndStopIfReachedTarget();
+                }
+                else
+                {
+                    timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
+                }
+            };
         }
 
         protected abstract void HandleMessage(TransportMessage message);
+
+        protected abstract IManageMessageFailures FaultManager { get; }
+
+        protected Action ExecuteOnFailure;
 
         public bool Handle(TransportMessage message)
         {
@@ -113,6 +130,7 @@ namespace ServiceControl.Recoverability
             {
                 receiver = new DequeueMessagesWrapper(r.Receiver);
                 r.Receiver = receiver;
+                r.FailureManager = FaultManager ?? r.FailureManager;
             };
         }
 
