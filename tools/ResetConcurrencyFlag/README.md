@@ -2,7 +2,11 @@
 
 An [issue in ServiceControl 1.6.0 to 1.6.3](https://github.com/Particular/ServiceControl/pull/565) was identified that causes the retries feature of ServiceControl to stall and not process any subsequent retries. This issue is fixed in [ServiceControl 1.6.4](https://github.com/Particular/ServiceControl/releases/tag/1.6.4), however in order to reset stalled retries a manual step is needs to be performed by the user, this is where this tool will help.
 
-This tool resets the concurrecy flag in stalled messages that were part of a batch retry.
+When a message is retried in ServiceControl 1.6.x, a lock is placed on the message to ensure it cannot be retried again. If we did not do this then a message could be send to the receiving endpoint more than once and processed multiple times. If the message fails again the lock is removed allowing subsequent retries.
+
+A situation can occur where ServiceControl creates the lock on the failed message but the message cannot be sent to the original destination. When this happens the message being retried gets placed on the ServiceControl error queue but the lock remains.
+
+This tool allows you to remove the lock from a failed message allowing it to be retried again.
 
 ## How to identify messages that are stalled?
 
@@ -15,7 +19,18 @@ If you find messages with `ServiceControl.Retry.UniqueMessageId` header, eg
 	<Value>efb8fb3d-7649-e0ea-f3fc-f77fc79abc3b</Value>
 </HeaderInfo>
 ```
-You need to copy the value of that header and run the tool against that value, eg
+You need to copy the value of that header and run the tool against that value.
+
+## How to run the tool
+
+### 1. Shut down Service Control
+Open the Services Panel, find the `Particular ServiceControl` instance and stop it. 
+
+### 2. Start Service Control in Maintenance Mode
+From an administrative command prompt, run `ServiceControl.exe --maint`. This will expose the embedded RavenDB database via RavenDB Studio (by default at `http://localhost:33333/storage`). ServiceControl will keep processing messages as usual.
+
+### 3. Run the tool from the command line
+Example:
 ```cmd
 ResetMessageRetry.exe efb8fb3d-7649-e0ea-f3fc-f77fc79abc3b
 ```
@@ -31,6 +46,11 @@ The tool assumes that RavenDB instance is exposed at the default url, i.e. http:
 ```cmd
 ResetMessageRetry.exe <id> http://[machineName]:[port]/storage
 ```
+
+After the tool finishes running, press `Enter` in ServiceControl to exit maintenance mode.
+
+### 4. Restart Service Control
+In the Services Control Pane, find the `Particular ServiceControl` instance and restart it.
 
 ### Here is an example how to do this for MSMQ transport using QueueExplorer
 ![](http://i.imgur.com/EWnh4Wq.jpg)
