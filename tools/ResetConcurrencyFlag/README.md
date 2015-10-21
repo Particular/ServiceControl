@@ -7,7 +7,7 @@ This tool resets the concurrecy flag in stalled messages that were part of a bat
 ## How to identify messages that are stalled?
 
 "Stalled" messages are messages that have been retried but failed to return to the input queue of an endpoint.
-To identify these messages, you need to open the `particular.servicecontrol.errors` queue and look at the headers of the current messages in there.
+To identify these messages, you need to open the `particular.servicecontrol.errors` queue (note the queue name changes based on the name of the windows service) and look at the headers of the current messages in there.
 If you find messages with `ServiceControl.Retry.UniqueMessageId` header, eg
 ```xml
 <HeaderInfo>
