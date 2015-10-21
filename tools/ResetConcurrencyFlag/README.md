@@ -1,12 +1,12 @@
 # Retries concurrency flag reset
 
-An [issue in ServiceControl 1.6.0 to 1.6.3](https://github.com/Particular/ServiceControl/pull/565) was identified that causes the retries feature of ServiceControl to get stuck and not process any subsequent retries. This issue is fixed in [ServiceControl 1.6.4](https://github.com/Particular/ServiceControl/releases/tag/1.6.4), however in order to reset existing stuck retries a manual step is needs to be performed by the user, this is where this tool will help.
+An [issue in ServiceControl 1.6.0 to 1.6.3](https://github.com/Particular/ServiceControl/pull/565) was identified that causes the retries feature of ServiceControl to stall and not process any subsequent retries. This issue is fixed in [ServiceControl 1.6.4](https://github.com/Particular/ServiceControl/releases/tag/1.6.4), however in order to reset stalled retries a manual step is needs to be performed by the user, this is where this tool will help.
 
-This tool un-stucks existing batch retries.
+This tool locates stalled batch retries.
 
-## How to identify messages that are stuck?
+## How to identify messages that are stalled?
 
-Messages that failed to be returned to the input queue of an endpoint may got into this "stuck" state.
+"Stalled" messages are messages that have been retried but failed to returned to the input queue of an endpoint.
 To identify these messages, you need to open the `particular.servicecontrol.errors` queue and look at the headers of the current messages in there.
 If you find messages with `ServiceControl.Retry.UniqueMessageId` header, eg
 ```xml
