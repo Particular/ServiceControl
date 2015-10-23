@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Reflection;
     using NLog;
     using NLog.Config;
@@ -32,6 +33,8 @@
 
         public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
+            ServicePointManager.DefaultConnectionLimit = 100;
+
             var settings = runDescriptor.Settings;
 
             NServiceBus.Logging.LogManager.Use<NLogFactory>();
