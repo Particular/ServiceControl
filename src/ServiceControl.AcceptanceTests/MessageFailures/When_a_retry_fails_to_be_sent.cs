@@ -60,7 +60,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                         return false;
                     }
 
-                    return TryGetSingle("/api/errors/", out decomissionedFailure, m => m.Id == ctx.DecommissionedEndpointUniqueMessageId) &&
+                    return TryGetSingle("/api/errors/", out decomissionedFailure, m => m.Id == ctx.DecommissionedEndpointUniqueMessageId && m.Status == FailedMessageStatus.Unresolved) &&
                            TryGetSingle("/api/errors/", out successfullyRetried, m => m.Id == ctx.MessageThatWillFailUniqueMessageId && m.Status == FailedMessageStatus.Resolved);
                 })
                 .Run(TimeSpan.FromMinutes(2));

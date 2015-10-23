@@ -30,12 +30,16 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                 .Done(ctx =>
                 {
                     if (String.IsNullOrWhiteSpace(ctx.UniqueMessageId))
+                    {
                         return false;
+                    }
 
                     if (!ctx.Retrying)
                     {
-                        if (TryGet(string.Format("/api/errors/{0}", ctx.UniqueMessageId), out originalMessage))
+                        FailedMessage originalMessageTemp;
+                        if (TryGet(string.Format("/api/errors/{0}", ctx.UniqueMessageId), out originalMessageTemp))
                         {
+                            originalMessage = originalMessageTemp;
                             ctx.Retrying = true;
                             Post<object>(string.Format("/api/errors/{0}/retry", ctx.UniqueMessageId));
                         }
@@ -45,7 +49,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                         return TryGet(
                             string.Format("/api/errors/{0}", ctx.UniqueMessageId), 
                             out retriedMessage, 
-                            err => err.ProcessingAttempts.Count() == 2
+                            err => err.ProcessingAttempts.Count == 2
                             );
                     }
 
@@ -53,7 +57,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                 })
                 .Run(TimeSpan.FromMinutes(3));
 
-            Assert.IsNotNull(originalMessage, "Original message was not receieved");
+            Assert.IsNotNull(originalMessage, "Original message was not received");
             Assert.IsNotNull(retriedMessage, "Retried message was not received");
 
             Assert.IsNotNull(originalMessage.FailureGroups, "The original message has no failure groups");
