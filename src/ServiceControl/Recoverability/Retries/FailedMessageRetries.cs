@@ -26,21 +26,41 @@
 
         class StopProcessingOutstandingBatchesAtShutdown : FeatureStartupTask
         {
+            readonly RetriesGateway retries;
+            PeriodicExecutor retriesGatewayExecutor;
+
+            public StopProcessingOutstandingBatchesAtShutdown(RetriesGateway retries)
+            {
+                this.retries = retries;
+
+                retriesGatewayExecutor = new PeriodicExecutor(
+                ProcessRequestedBulkRetryOperations,
+                TimeSpan.FromSeconds(5));
+            }
+
             protected override void OnStart()
             {
-
+                if (retries != null)
+                {
+                    retriesGatewayExecutor.Start(true);
+                }
             }
 
             protected override void OnStop()
             {
-                Retries.StopProcessingOutstandingBatches();
+                if (retries != null)
+                {
+                    retriesGatewayExecutor.Stop();
+                }
             }
 
-            RetriesGateway Retries;
-
-            public StopProcessingOutstandingBatchesAtShutdown(RetriesGateway retries)
+            void ProcessRequestedBulkRetryOperations(PeriodicExecutor obj)
             {
-                Retries = retries;
+                bool processedRequests;
+                do
+                {
+                    processedRequests = retries.ProcessNextBulkRetry();
+                } while (processedRequests && !obj.IsCancellationRequested);
             }
         }
 
@@ -48,7 +68,7 @@
         {
             public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager)
             {
-                RetryDocumentManager = retryDocumentManager;
+                this.retryDocumentManager = retryDocumentManager;
                 executor = new PeriodicExecutor(
                     AdoptOrphanedBatches,
                     TimeSpan.FromMinutes(2)
@@ -57,7 +77,7 @@
 
             private void AdoptOrphanedBatches(PeriodicExecutor ex)
             {
-                var allDone = RetryDocumentManager.AdoptOrphanedBatches();
+                var allDone = retryDocumentManager.AdoptOrphanedBatches();
 
                 if (allDone)
                 {
@@ -76,16 +96,16 @@
             }
 
             PeriodicExecutor executor;
-            RetryDocumentManager RetryDocumentManager;
+            RetryDocumentManager retryDocumentManager;
         }
 
         class ProcessRetryBatches : FeatureStartupTask
         {
-            static ILog Log = LogManager.GetLogger(typeof(ProcessRetryBatches));
+            static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatches));
 
             public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor)
             {
-                executor = new PeriodicExecutor(Process, TimeSpan.FromSeconds(30), ex => Log.Error("Error during retry batch processing", ex));
+                executor = new PeriodicExecutor(Process, TimeSpan.FromSeconds(30), ex => log.Error("Error during retry batch processing", ex));
                 this.processor = processor;
                 this.store = store;
             }

@@ -250,6 +250,7 @@
     <Compile Include="CustomChecks\InternalMessages\ReportCustomCheckResult.cs" />
     <Compile Include="EventLog\Definitions\FailedMessageGroupArchivedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
     <Compile Include="CustomChecks\CustomChecksIndex.cs" />
     <Compile Include="EventLog\Definitions\ReclassificationOfErrorMessageCompleteDefinition.cs" />
@@ -457,9 +458,10 @@
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroup.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\StackTraceParser.cs" />
-    <Compile Include="Recoverability\Retries\Infrastructure\AdvancedDequeuer.cs" />
+    <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
     <Compile Include="Recoverability\Retries\FailedMessageRetries.cs" />
     <Compile Include="Recoverability\Retries\MessagesSubmittedForRetry.cs" />
+    <Compile Include="Recoverability\Retries\MessagesSubmittedForRetryFailed.cs" />
     <Compile Include="Recoverability\Retries\Raven\FailedMessageRetries_ByBatch.cs" />
     <Compile Include="Recoverability\Retries\FailedMessageRetry.cs" />
     <Compile Include="Recoverability\Retries\RetriesGateway.cs" />
@@ -471,7 +473,6 @@
     <Compile Include="Recoverability\Retries\RetryDocumentManager.cs" />
     <Compile Include="Recoverability\Retries\Handlers\RetryHandlerForBackwardsCompatability.cs" />
     <Compile Include="Recoverability\Retries\RetryMessagesById.cs" />
-    <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
     <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeInitiator.cs" />

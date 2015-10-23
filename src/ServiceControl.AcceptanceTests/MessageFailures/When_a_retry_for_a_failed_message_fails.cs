@@ -109,7 +109,6 @@
 
                 public void Handle(MyMessage message)
                 {
-                    Console.Out.WriteLine("Handling message");
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
@@ -126,7 +125,6 @@
         {
         }
 
-        [Serializable]
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
