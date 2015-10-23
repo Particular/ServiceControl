@@ -51,6 +51,7 @@
 
         public AcceptanceTest()
         {
+            ServicePointManager.DefaultConnectionLimit = 100;
         }
 
         public AcceptanceTest(Type typeOfTransport, string connectionString)
