@@ -12,7 +12,7 @@
         public FailedMessageRetries()
         {
             EnableByDefault();
-            RegisterStartupTask<StopProcessingOutstandingBatchesAtShutdown>();
+            RegisterStartupTask<BulkRetryBatchCreation>();
             RegisterStartupTask<AdoptOrphanBatchesFromPreviousSession>();
             RegisterStartupTask<ProcessRetryBatches>();
         }
@@ -24,12 +24,12 @@
             context.Container.ConfigureComponent<RetryProcessor>(DependencyLifecycle.SingleInstance);
         }
 
-        class StopProcessingOutstandingBatchesAtShutdown : FeatureStartupTask
+        class BulkRetryBatchCreation : FeatureStartupTask
         {
             readonly RetriesGateway retries;
             PeriodicExecutor retriesGatewayExecutor;
 
-            public StopProcessingOutstandingBatchesAtShutdown(RetriesGateway retries)
+            public BulkRetryBatchCreation(RetriesGateway retries)
             {
                 this.retries = retries;
 
