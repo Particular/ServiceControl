@@ -18,7 +18,7 @@
     <ROW Property="Manufacturer" Value="Particular Software"/>
     <ROW Property="ProductCode" Value="1033:{E81799B3-F7D0-4EDE-8BB8-92E7590BEAA2} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
-    <ROW Property="ProductName" Value="ServiceControl Management"/>
+    <ROW Property="ProductName" Value="ServiceControl"/>
     <ROW Property="ProductVersion" Value="1.6.0" Type="32"/>
     <ROW Property="SCINSTANCESPRESENT" Value="NO"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
