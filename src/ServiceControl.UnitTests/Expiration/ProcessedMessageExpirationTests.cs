@@ -103,7 +103,7 @@
         {
             new ExpiryProcessedMessageIndex().Execute(documentStore);
             documentStore.WaitForIndexing();
-            ExpiredDocumentsCleaner.ExpireProcessedMessages(100, documentStore.DocumentDatabase, expiryThreshold);
+            ExpiredProcessedMessageCleaner.ExpireProcessedMessages(100, documentStore.DocumentDatabase, expiryThreshold);
             documentStore.WaitForIndexing();
         }
 
