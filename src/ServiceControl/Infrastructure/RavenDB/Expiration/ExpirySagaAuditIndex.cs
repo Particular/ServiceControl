@@ -6,7 +6,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
     using Raven.Json.Linq;
     using ServiceControl.SagaAudit;
 
-    public class ExpirySagaAuditIndex : AbstractMultiMapIndexCreationTask<ExpirySagaAuditIndex.Result>
+    public class ExpirySagaAuditIndex : AbstractIndexCreationTask<SagaHistory, ExpirySagaAuditIndex.Result>
     {
         public class Result
         {
@@ -15,11 +15,12 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
 
         public ExpirySagaAuditIndex()
         {
-            AddMap<SagaHistory>(sagaHistories => from sagaHistory in sagaHistories
-                                                 select new Result
-                                                 {
-                                                     LastModified = MetadataFor(sagaHistory)["Last-Modified"],
-                                                 });
+            Map = (sagaHistories => from sagaHistory in sagaHistories
+                select new Result
+                {
+                    LastModified = MetadataFor(sagaHistory)["Last-Modified"],
+                });
+
             DisableInMemoryIndexing = true;
 
             Sort(result => result.LastModified, SortOptions.String);
