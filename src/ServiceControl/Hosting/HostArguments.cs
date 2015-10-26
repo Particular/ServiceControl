@@ -115,8 +115,6 @@ namespace Particular.ServiceControl.Hosting
 
         public void PrintUsage()
         {
-            var sb = new StringBuilder();
-
             var helpText = String.Empty;
             using (
                 var stream =
