@@ -1,6 +1,6 @@
 # Retries concurrency flag reset
 
-An [issue in ServiceControl 1.6.0 to 1.6.3](https://github.com/Particular/ServiceControl/pull/565) was identified that causes the retries feature of ServiceControl to stall and not process any subsequent retries. This issue is fixed in [ServiceControl 1.6.4](https://github.com/Particular/ServiceControl/releases/tag/1.6.4), however in order to reset stalled retries a manual step is needs to be performed by the user, this is where this tool will help.
+An [issue in ServiceControl 1.6.0 to 1.6.3](https://github.com/Particular/ServiceControl/pull/565) was identified that causes the retries feature of ServiceControl to stall and not process any subsequent retries. This issue is fixed in [ServiceControl 1.7.0](https://github.com/Particular/ServiceControl/releases/tag/1.7.0), however in order to reset stalled retries a manual step is needs to be performed by the user, this is where this tool will help.
 
 When a message is retried in ServiceControl 1.6.x, a lock is placed on the message to ensure it cannot be retried again. If we did not do this then a message could be send to the receiving endpoint more than once and processed multiple times. If the message fails again the lock is removed allowing subsequent retries.
 
