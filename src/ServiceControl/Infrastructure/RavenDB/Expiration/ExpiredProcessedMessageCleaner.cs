@@ -16,34 +16,9 @@
     using Raven.Json.Linq;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class ExpiredDocumentsCleaner
+    public class ExpiredProcessedMessageCleaner
     {
-        static ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleaner));
-
-        public static void RunCleanup(int deletionBatchSize, DocumentDatabase database)
-        {
-            var hoursToKeep = Settings.HoursToKeepMessagesBeforeExpiring;
-            var expiryThreshold = SystemTime.UtcNow.AddHours(-hoursToKeep);
-
-            logger.Debug("Trying to find expired documents to delete (with threshold {0})", expiryThreshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
-
-            try
-            {
-                InnerCleanup(deletionBatchSize, database, expiryThreshold);
-            }
-            catch (Exception e)
-            {
-                logger.ErrorException("Error when trying to find expired documents", e);
-            }
-        }
-
-        public static void InnerCleanup(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
-        {
-            // we may be receiving a LOT of documents to delete, so we are going to skip
-            // the cache for that, to avoid filling it up very quickly
-            ExpireProcessedMessages(deletionBatchSize, database, expiryThreshold);
-            ExpiredSagaAuditsCleaner. ExpireSagaAudits(deletionBatchSize, database, expiryThreshold);
-        }
+        static ILog logger = LogManager.GetLogger(typeof(ExpiredProcessedMessageCleaner));
 
         public static void ExpireProcessedMessages(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
@@ -140,6 +115,8 @@
                 }
             }
         }
+
+
 
         static bool TryGetBodyId(RavenJObject doc, out string bodyId)
         {

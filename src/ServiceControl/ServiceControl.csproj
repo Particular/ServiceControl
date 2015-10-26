@@ -296,7 +296,10 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Hosting\Options.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredSagaAuditsCleaner.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredProcessedMessageCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleaner.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\ExpirySagaAuditIndex.cs" />
     <Compile Include="Infrastructure\Settings\CheckSettingsFeature.cs" />
     <Compile Include="Infrastructure\Settings\NullableRegistryReader.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryProcessedMessageIndex.cs" />
