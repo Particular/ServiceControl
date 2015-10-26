@@ -4,7 +4,6 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Globalization;
     using System.Linq;
     using System.Threading;
     using Raven.Abstractions;
@@ -14,7 +13,6 @@
     using Raven.Database;
     using Raven.Database.Impl;
     using Raven.Json.Linq;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     public class ExpiredSagaAuditsCleaner
     {
