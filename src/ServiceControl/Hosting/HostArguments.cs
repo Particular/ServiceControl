@@ -5,7 +5,6 @@ namespace Particular.ServiceControl.Hosting
     using System.IO;
     using System.Reflection;
     using System.ServiceProcess;
-    using System.Text;
     using Commands;
     using global::ServiceControl.Hosting.Commands;
     using ServiceBus.Management.Infrastructure.Settings;
