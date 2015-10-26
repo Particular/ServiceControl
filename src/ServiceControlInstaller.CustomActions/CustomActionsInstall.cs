@@ -84,8 +84,12 @@
             {
                 logger.Info(string.Format("File Exists : {0}", unattendedFilePropertyValue));
                 var instanceToInstallDetails = ServiceControlInstanceMetadata.Load(unattendedFilePath);
-                instanceToInstallDetails.ServiceAccount = serviceAccount;
-                instanceToInstallDetails.ServiceAccountPwd = password;
+
+                if (!string.IsNullOrWhiteSpace(serviceAccount))
+                {
+                    instanceToInstallDetails.ServiceAccount = serviceAccount;
+                    instanceToInstallDetails.ServiceAccountPwd = password;
+                }
                 unattendedInstaller.Add(instanceToInstallDetails);
             }
             else
