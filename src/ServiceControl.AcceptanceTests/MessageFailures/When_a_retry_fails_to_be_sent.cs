@@ -11,10 +11,13 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
     using NServiceBus.Settings;
     using NServiceBus.Transports;
     using NServiceBus.Unicast;
+    using NServiceBus.Unicast.Queuing;
     using NUnit.Framework;
+    using Raven.Client;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Recoverability;
 
     [Serializable]
     public class When_a_retry_fails_to_be_sent : AcceptanceTest
@@ -25,7 +28,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
             Scenario.Define<MyContext>()
-                .WithEndpoint<ManagementEndpoint>(ctx => ctx.AppConfig(PathToAppConfig))
+                .WithEndpoint<ManagementEndpointEx>(ctx => ctx.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>(b => b.Given((bus, ctx) =>
                 {
                     ctx.DecommissionedEndpointName = "DecommissionedEndpoint";
@@ -71,6 +74,34 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             Assert.AreEqual(FailedMessageStatus.Resolved, successfullyRetried.Status);
         }
 
+        public class ManagementEndpointEx : EndpointConfigurationBuilder
+        {
+            public ManagementEndpointEx()
+            {
+                //Need to override the ISendMessages, because Azure does not throw exception when sending to a non existent queue :(
+                EndpointSetup<ManagementEndpointSetup>(c => c.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(new SendMessagesWrapper(b.Build<ISendMessages>()), b.Build<IDocumentStore>(), b.Build<IBus>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)));
+            }
+
+            class SendMessagesWrapper : ISendMessages
+            {
+                readonly ISendMessages original;
+
+                public SendMessagesWrapper(ISendMessages original)
+                {
+                    this.original = original;
+                }
+
+                public void Send(TransportMessage message, SendOptions sendOptions)
+                {
+                    if (sendOptions.Destination.Queue == "nonexistingqueue")
+                    {
+                        throw new QueueNotFoundException();
+                    }
+
+                    original.Send(message, sendOptions);
+                }
+            }
+        }
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {

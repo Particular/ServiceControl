@@ -14,7 +14,7 @@ namespace ServiceControl.Recoverability
     using ServiceControl.MessageFailures;
     using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
 
-    class ReturnToSenderDequeuer : IAdvancedSatellite
+    public class ReturnToSenderDequeuer : IAdvancedSatellite
     {
         private DequeueMessagesWrapper receiver;
         private Timer timer;
