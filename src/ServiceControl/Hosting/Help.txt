@@ -1,24 +1,7 @@
 ﻿ServiceControl by Particular Software
 
 USAGE:
-   ServiceControl.exe --start [options]
-   ServiceControl.exe --stop [options]
-   ServiceControl.exe --restart [options]
-   ServiceControl.exe --install -d="ForwardAuditQueue==[true|false]" [options]
-   ServiceControl.exe --uninstall [options]
-   ServiceControl.exe --maintenance [options]
-
-DEFAULT OPTIONS:
-
-{0}
-																
-INSTALL OPTIONS:
-
-{1}
-
-UNINSTALL OPTIONS:
-
-{2}
+   ServiceControl.exe --maintenance 
 
 MAINTENANCE 
 
@@ -27,74 +10,8 @@ The REST API, message importers and the background document expiry are all disab
 
 This mode is only supported when run interactively. 
 
-CONFIGURATION OPTIONS:
+SERVICE INSTALL AND UNINSTALL AND CONFIGURATION OPTIONS
 
-ServiceControl/ForwardAuditMessages bool (true/false)
-Use this setting to configure whether processed audit messages are forwarded to another queue or not. 
-This is a mandatory setting and does not have a default value.
-
-ServiceControl/LogPath string
-The path for the ServiceControl logs. Default: %LOCALAPPDATA%\Particular\ServiceControl\logs
-
-ServiceControl/Port int
-The port to bind the embedded http server. Default: 33333.
-
-ServiceControl/Hostname string
-The hostname to bind the embedded http server to, modify if you want to bind to a specific hostname, eg. sc.mydomain.com. Default: localhost
-
-ServiceControl/VirtualDirectory string
-The virtual directory to bind the embedded http server to, modify if you want to bind to a specific virtual directiory. Default: empty
-
-ServiceControl/HeartbeatGracePeriod timespan
-The period that defines whether an endpoint is considered alive or not. Default: 00:00:40 (40 secs)
-
-ServiceControl/ExpirationProcessTimerInSeconds int 
-The number of seconds to wait between checking for expired messages, Default 600 (10 minutes)
-
-ServiceControl/HoursToKeepMessagesBeforeExpiring int
-The number of hours to keep a message for before it is deleted, Default 720 (30 days)
-
-ServiceControl/DbPath string
-The path where the internal RavenDB is located. Default %SystemDrive\ProgramData\Particular\ServiceControl\
-
-ServiceControl/TransportType string (.Net type)
-The transport type to run ServiceControl with. Default NServiceBus.MsmqTransport, NServiceBus.Core
-
-NServiceBus/Transport string
-The connection string for the transport.
-
-ServiceBus/AuditQueue string
-The audit queue name. Default audit
-		  
-ServiceBus/ErrorQueue string
-The error queue name. Default error
-		  
-ServiceBus/ErrorLogQueue string
-The error queue name to use for forwarding error messages. Default <ErrorQueue>.log
-		  
-ServiceBus/AuditLogQueue string
-The audit queue name to use for forwarding audit messages. This only works if ServiceControl/ForwardAuditMessages is true. Default <AuditQueue>.log
-
-ServiceControl/MaxBodySizeToStore int (representing amount in bytes)
-By default ServiceControl only stores bodies of audit messages that are smaller than 100Kb. Increase this number to store messages with larger bodies.  Default 102400 bytes
-Messages that have a large message body are not stored. This is to ensure that the majority of our users enjoy the best level of performance. For users with special analysis needs, edit MaxBodySizeToStore in ServiceControl.exe.config to increase the size of storeable messages.
-
-EXAMPLES:
-   ServiceControl.exe --restart 
-     -d="ServiceControl/LogPath==c:\MyLogs Files"
-     -d=ServiceControl/Hostname==sc.myspecialdomain.com
-     -d=ServiceControl/Port==80
-	 
-   ServiceControl.exe --install 
-     --serviceName="MyServiceControl" 
-     --displayName="My ServiceControl"
-     --description="Service for monitoring" 
-     --username="corp\serviceuser"
-     --password="p@ssw0rd!"
-	 --d=ServiceControl/ForwardAuditMessages==true
-     --d=ServiceControl/Hostname==localhost 
-     --d=ServiceControl/Port==33334
-
-   ServiceControl.exe --uninstall --serviceName="MyServiceControl"
-
+As of Service Control 1.7 the command line  uninstall and install switches have been removed. 
+Please use the ServiceControl Management Utilities for adding and removing ServiceControl instances.
 
