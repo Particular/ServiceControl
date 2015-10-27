@@ -25,9 +25,9 @@
             }
             var deletionBatchSize = Settings.ExpirationProcessBatchSize;
 
-            logger.Info("Expired Documents every {0} seconds", deleteFrequencyInSeconds);
-            logger.Info("Deletion Batch Size: {0}", deletionBatchSize);
-            logger.Info("Retention Period: {0} hours", Settings.HoursToKeepMessagesBeforeExpiring);
+            logger.Info("Running deletion of expired documents every {0} seconds", deleteFrequencyInSeconds);
+            logger.Info("Deletion batch size set to {0}", deletionBatchSize);
+            logger.Info("Retention period is {0} hours", Settings.HoursToKeepMessagesBeforeExpiring);
 
             timer = new PeriodicExecutor(executor => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database), TimeSpan.FromSeconds(deleteFrequencyInSeconds));
             timer.Start(true);

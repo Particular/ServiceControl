@@ -22,7 +22,7 @@
             try
             {
                 ExpiredProcessedMessageCleaner.ExpireProcessedMessages(deletionBatchSize, database, expiryThreshold);
-                ExpiredSagaAuditsCleaner. ExpireSagaAudits(deletionBatchSize, database, expiryThreshold);
+                ExpiredSagaAuditsCleaner.ExpireSagaAudits(deletionBatchSize, database, expiryThreshold);
             }
             catch (Exception e)
             {

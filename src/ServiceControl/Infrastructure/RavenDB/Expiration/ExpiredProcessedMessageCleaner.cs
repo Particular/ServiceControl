@@ -14,7 +14,7 @@
     using Raven.Database.Impl;
     using Raven.Json.Linq;
 
-    public class ExpiredProcessedMessageCleaner
+    public static class ExpiredProcessedMessageCleaner
     {
         static ILog logger = LogManager.GetLogger(typeof(ExpiredProcessedMessageCleaner));
 
@@ -113,8 +113,6 @@
                 }
             }
         }
-
-
 
         static bool TryGetBodyId(RavenJObject doc, out string bodyId)
         {
