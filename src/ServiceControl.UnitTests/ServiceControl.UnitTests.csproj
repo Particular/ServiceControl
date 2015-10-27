@@ -103,11 +103,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompositeViews\FailedMessageTest.cs" />
+    <Compile Include="Expiration\ProcessedMessageExpirationTests.cs" />
     <Compile Include="Expiration\RavenLastModifiedScope.cs" />
     <Compile Include="Expiration\PeriodicExecutorTests.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverterTests.cs" />
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
-    <Compile Include="Expiration\CustomExpirationBundleTests.cs" />
+    <Compile Include="Expiration\SagaAuditExpirationTests.cs" />
     <Compile Include="Heartbeats\HeartbeatStatusProviderTests.cs" />
     <Compile Include="Infrastructure\PreventReindexing.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />

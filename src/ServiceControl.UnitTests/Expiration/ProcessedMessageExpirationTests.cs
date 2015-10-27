@@ -12,10 +12,9 @@
     using Raven.Client.Embedded;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
-    using ServiceControl.SagaAudit;
 
     [TestFixture]
-    public class CustomExpirationBundleTests
+    public class ProcessedMessageExpirationTests
     {
         [Test]
         public void Old_documents_are_being_expired()
@@ -27,19 +26,12 @@
                 var processedMessage = new ProcessedMessage
                 {
                     Id = "1",
+                    ProcessedAt = expiredDate
                 };
 
-                var sagaHistoryId = Guid.NewGuid();
-                var sagaHistory = new SagaHistory
-                {
-                    Id = sagaHistoryId,
-                };
-
-                using (new RavenLastModifiedScope(expiredDate))
                 using (var session = documentStore.OpenSession())
                 {
                     session.Store(processedMessage);
-                    session.Store(sagaHistory);
                     session.SaveChanges();
                 }
                 RunExpiry(documentStore, thresholdDate);
@@ -47,7 +39,6 @@
                 using (var session = documentStore.OpenSession())
                 {
                     Assert.IsEmpty(session.Query<ProcessedMessage>());
-                    Assert.IsEmpty(session.Query<SagaHistory>());
                 }
             }
         }
@@ -60,32 +51,24 @@
                 var expiredDate = DateTime.UtcNow.AddDays(-3);
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
                 var recentDate = DateTime.UtcNow.AddDays(-1);
-                var expiredMessages = BuilExpiredMessaged().ToList();
-                using (new RavenLastModifiedScope(expiredDate))
+                var expiredMessages = BuilExpiredMessaged(expiredDate).ToList();
+                using (var session = documentStore.OpenSession())
                 {
-                    using (var session = documentStore.OpenSession())
+                    foreach (var message in expiredMessages)
                     {
-                        foreach (var message in expiredMessages)
-                        {
-                            session.Store(message);
-                        }
-                        session.SaveChanges();
+                        session.Store(message);
                     }
+                    session.SaveChanges();
                 }
 
-                using (new RavenLastModifiedScope(recentDate))
                 using (var session = documentStore.OpenSession())
                 {
                     var recentMessage = new ProcessedMessage
                     {
                         Id = "recentMessageId",
+                        ProcessedAt = recentDate
                     };
                     session.Store(recentMessage);
-                    var recentSagaHistory = new SagaHistory
-                    {
-                        Id = Guid.NewGuid(),
-                    };
-                    session.Store(recentSagaHistory);
                     session.SaveChanges();
                 }
                 RunExpiry(documentStore, thresholdDate);
@@ -100,22 +83,18 @@
                 using (var session = documentStore.OpenSession())
                 {
                     Assert.AreEqual(1, session.Query<ProcessedMessage>().Count());
-                    Assert.AreEqual(1, session.Query<SagaHistory>().Count());
                 }
             }
         }
 
-        IEnumerable<object> BuilExpiredMessaged()
+        IEnumerable<object> BuilExpiredMessaged(DateTime dateTime)
         {
             for (var i = 0; i < 10; i++)
             {
                 yield return new ProcessedMessage
                 {
                     Id = Guid.NewGuid().ToString(),
-                };
-                yield return new SagaHistory
-                {
-                    Id = Guid.NewGuid(),
+                    ProcessedAt = dateTime
                 };
             }
         }
@@ -124,7 +103,7 @@
         {
             new ExpiryProcessedMessageIndex().Execute(documentStore);
             documentStore.WaitForIndexing();
-            ExpiredDocumentsCleaner.InnerCleanup(100, documentStore.DocumentDatabase, expiryThreshold);
+            ExpiredProcessedMessageCleaner.ExpireProcessedMessages(100, documentStore.DocumentDatabase, expiryThreshold);
             documentStore.WaitForIndexing();
         }
 
@@ -139,34 +118,23 @@
                 var expiredMessage = new ProcessedMessage
                 {
                     Id = "1",
+                    ProcessedAt = expiredDate
                 };
 
-                var expiredSagaHistory = new SagaHistory
-                {
-                    Id = Guid.NewGuid(),
-                };
-
-                using (new RavenLastModifiedScope(expiredDate))
                 using (var session = documentStore.OpenSession())
                 {
                     session.Store(expiredMessage);
-                    session.Store(expiredSagaHistory);
                     session.SaveChanges();
                 }
 
                 var recentMessage = new ProcessedMessage
                 {
                     Id = "2",
+                    ProcessedAt = recentDate
                 };
-                var recentSagaHistory = new SagaHistory
-                {
-                    Id = Guid.NewGuid(),
-                };
-                using (new RavenLastModifiedScope(recentDate))
                 using (var session = documentStore.OpenSession())
                 {
                     session.Store(recentMessage);
-                    session.Store(recentSagaHistory);
                     session.SaveChanges();
                 }
                 RunExpiry(documentStore, thresholdDate);
@@ -174,9 +142,7 @@
                 using (var session = documentStore.OpenSession())
                 {
                     Assert.Null(session.Load<ProcessedMessage>(expiredMessage.Id));
-                    Assert.Null(session.Load<SagaHistory>(expiredSagaHistory.Id));
                     Assert.NotNull(session.Load<ProcessedMessage>(recentMessage.Id));
-                    Assert.NotNull(session.Load<SagaHistory>(recentSagaHistory.Id));
                 }
             }
         }
@@ -194,6 +160,7 @@
                 var processedMessage = new ProcessedMessage
                 {
                     Id = "1",
+                    ProcessedAt = expiredDate,
                     MessageMetadata = new Dictionary<string, object>
                     {
                         {
@@ -202,7 +169,6 @@
                     }
                 };
 
-                using (new RavenLastModifiedScope(expiredDate))
                 using (var session = documentStore.OpenSession())
                 {
                     session.Store(processedMessage);
@@ -250,16 +216,10 @@
                 var message = new ProcessedMessage
                 {
                     Id = "1",
+                    ProcessedAt = recentDate
                 };
-                var sagaHistory = new SagaHistory
-                {
-                    Id = Guid.NewGuid(),
-                };
-
-                using (new RavenLastModifiedScope(recentDate))
                 using (var session = documentStore.OpenSession())
                 {
-                    session.Store(sagaHistory);
                     session.Store(message);
                     session.SaveChanges();
                 }
@@ -267,7 +227,6 @@
                 using (var session = documentStore.OpenSession())
                 {
                     Assert.AreEqual(1, session.Query<ProcessedMessage>().Count());
-                    Assert.AreEqual(1, session.Query<SagaHistory>().Count());
                 }
             }
         }
