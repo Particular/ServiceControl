@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
@@ -12,11 +12,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.IntegrationDemo", "ServiceControl.IntegrationDemo\ServiceControl.IntegrationDemo.csproj", "{3C3F3C5B-E7B0-49E9-8905-AD23F7BFF217}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Installer", "Installer", "{55C388DD-2B39-4C2F-AEBD-AFD3444815F1}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Chocolatey", "Chocolatey", "{2191194C-6B5A-44DD-B799-11E1FB038DFA}"
-	ProjectSection(SolutionItems) = preProject
-		..\packaging\chocolatey\Setup.install.nuspec = ..\packaging\chocolatey\Setup.install.nuspec
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTesting", "ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj", "{758357F6-CD31-4337-80C4-BA377FC257AF}"
 EndProject
