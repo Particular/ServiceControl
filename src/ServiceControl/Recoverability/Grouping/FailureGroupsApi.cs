@@ -58,11 +58,16 @@ namespace ServiceControl.Recoverability
             {
                 RavenQueryStatistics stats;
 
-                var results = session.Query<FailureGroupMessageView, FailedMessages_ByGroup>()
-                    .Where(x => x.FailureGroupId == groupId && x.Status == FailedMessageStatus.Unresolved)
+                var results = session.Advanced
+                    .LuceneQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
                     .Statistics(out stats)
+                    .WhereEquals(view => view.FailureGroupId, groupId)
+                    .AndAlso()
+                    .WhereEquals( "Status",(int) FailedMessageStatus.Unresolved)
+                    .Sort(Request)
                     .Paging(Request)
-                    .TransformWith<FailedMessageViewTransformer, FailedMessageView>()
+                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    .SelectFields<FailedMessageView>()
                     .ToArray();
 
                 return Negotiate.WithModel(results)
