@@ -8,6 +8,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
     using NServiceBus.Features;
+    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
@@ -72,7 +73,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => Configure.Features.Disable<SecondLevelRetries>())
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
                     .WithConfig<TransportConfig>(c =>
                     {
                         c.MaxRetries = 1;
@@ -86,12 +87,14 @@
 
                 public IBus Bus { get; set; }
 
+                public ReadOnlySettings Settings { get; set; }
+
                 public void Handle(MyMessage message)
                 {
 
                     var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Configure.EndpointName).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (message.IsFirst)
                     {

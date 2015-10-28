@@ -1,0 +1,3 @@
+﻿<DeleteInstanceConfirmationViewModel xmlns="clr-namespace:ServiceControl.Config.UI.DeleteInstanceConfirmation">
+    <DeleteInstanceConfirmationViewModel.InstanceName>Test Instance 1</DeleteInstanceConfirmationViewModel.InstanceName>
+</DeleteInstanceConfirmationViewModel>

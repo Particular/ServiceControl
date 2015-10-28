@@ -5,7 +5,9 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
     using System.Collections.Generic;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Settings;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.CompositeViews.Messages;
@@ -25,7 +27,7 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ThridPartyEndpoint>()
                 .Done(c => TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
-                .Run(TimeSpan.FromMinutes(1));
+                .Run();
 
             Assert.IsNotNull(auditedMessage);
             Assert.IsNull(auditedMessage.TimeSent);
@@ -40,14 +42,21 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
 
             class SendMessage : IWantToRunWhenBusStartsAndStops
             {
-                public ISendMessages SendMessages { get; set; }
+                readonly ISendMessages sendMessages;
+                readonly MyContext context;
+                readonly ReadOnlySettings settings;
 
-                public MyContext MyContext { get; set; }
+                public SendMessage(ISendMessages sendMessages, MyContext context, ReadOnlySettings settings)
+                {
+                    this.sendMessages = sendMessages;
+                    this.context = context;
+                    this.settings = settings;
+                }
 
                 public void Start()
                 {
-                    var transportMessage = new TransportMessage(MyContext.MessageId, new Dictionary<string, string>() { { Headers.ProcessingEndpoint, Configure.EndpointName } });
-                    SendMessages.Send(transportMessage, Address.Parse("audit"));
+                    var transportMessage = new TransportMessage(context.MessageId, new Dictionary<string, string> { { Headers.ProcessingEndpoint, settings.EndpointName() } });
+                    sendMessages.Send(transportMessage, new SendOptions("audit"));
                 }
 
                 public void Stop()

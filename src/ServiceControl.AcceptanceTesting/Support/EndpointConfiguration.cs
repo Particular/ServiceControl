@@ -10,6 +10,7 @@
             UserDefinedConfigSections = new Dictionary<Type, object>();
             TypesToExclude = new List<Type>();
             TypesToInclude = new List<Type>();
+            GetBus = () => null;
         }
 
         public IDictionary<Type, Type> EndpointMappings { get; set; }
@@ -18,14 +19,18 @@
 
         public IList<Type> TypesToInclude { get; set; }
 
-        public Func<RunDescriptor, IDictionary<Type, string>, Configure> GetConfiguration { get; set; }
+        public Func<RunDescriptor, IDictionary<Type, string>, BusConfiguration> GetConfiguration { get; set; }
+
+        internal Func<IStartableBus> GetBus { get; set; }
 
         public string EndpointName
         {
             get
             {
                 if (!string.IsNullOrEmpty(CustomEndpointName))
+                {
                     return CustomEndpointName;
+                }
                 return endpointName;
             }
             set { endpointName = value; }
@@ -42,8 +47,12 @@
         public string CustomEndpointName { get; set; }
 
         public Type AuditEndpoint { get; set; }
+        public bool SendOnly { get; set; }
 
-        public bool AllowExceptions { get; set; }
+        public void SelfHost(Func<IStartableBus> getBus)
+        {
+            GetBus = getBus;
+        }
 
         string endpointName;
     }

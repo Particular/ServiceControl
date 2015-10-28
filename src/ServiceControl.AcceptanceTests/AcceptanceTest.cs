@@ -51,6 +51,7 @@
 
         public AcceptanceTest()
         {
+            ServicePointManager.DefaultConnectionLimit = 100;
         }
 
         public AcceptanceTest(Type typeOfTransport, string connectionString)
@@ -208,6 +209,16 @@
             else
             {
                 appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/CreateIndexSync"), new XAttribute("value", true)));
+            }
+
+            var forwardAuditMessagesElement = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/ForwardAuditMessages""]");
+            if (forwardAuditMessagesElement != null)
+            {
+                forwardAuditMessagesElement.SetAttributeValue("value", false);
+            }
+            else
+            {
+                appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/ForwardAuditMessages"), new XAttribute("value", false)));
             }
 
             // Mash any user defined settings into the config

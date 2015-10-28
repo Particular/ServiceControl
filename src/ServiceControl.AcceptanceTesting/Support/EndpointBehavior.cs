@@ -11,7 +11,7 @@
         public EndpointBehavior(Type builderType)
         {
             EndpointBuilderType = builderType;
-            CustomConfig = new List<Action<Configure>>();
+            CustomConfig = new List<Action<BusConfiguration>>();
         }
 
         public Type EndpointBuilderType { get; private set; }
@@ -19,35 +19,8 @@
         public List<IGivenDefinition> Givens { get; set; }
         public List<IWhenDefinition> Whens { get; set; }
 
-        public List<Action<Configure>> CustomConfig { get; set; }
-
+        public List<Action<BusConfiguration>> CustomConfig { get; set; }
         public string AppConfig { get; set; }
-    }
-
-    [Serializable]
-    public class GivenDefinition<TContext> : IGivenDefinition where TContext : ScenarioContext
-    {
-        public GivenDefinition(Action<IBus> action)
-        {
-            givenAction2 = action;
-        }
-
-        public GivenDefinition(Action<IBus, TContext> action)
-        {
-            givenAction = action;
-        }
-
-        public Action<IBus> GetAction(ScenarioContext context)
-        {
-            if (givenAction2 != null)
-                return bus => givenAction2(bus);
-
-            return bus => givenAction(bus, (TContext)context);
-        }
-
-        readonly Action<IBus, TContext> givenAction;
-        readonly Action<IBus> givenAction2;
-
     }
 
     [Serializable]
@@ -55,19 +28,19 @@
     {
         public WhenDefinition(Predicate<TContext> condition, Action<IBus> action)
         {
-            id = Guid.NewGuid();
+            Id = Guid.NewGuid();
             this.condition = condition;
             busAction = action;
         }
 
         public WhenDefinition(Predicate<TContext> condition, Action<IBus, TContext> actionWithContext)
         {
-            id = Guid.NewGuid();
+            Id = Guid.NewGuid();
             this.condition = condition;
             busAndContextAction = actionWithContext;
         }
 
-        public Guid Id { get { return id; } }
+        public Guid Id { get; private set; }
 
         public bool ExecuteAction(ScenarioContext context, IBus bus)
         {
@@ -89,7 +62,7 @@
           
             }
 
-            Debug.WriteLine("Condition {0} has fired - Thread: {1} AppDomain: {2}", id, Thread.CurrentThread.ManagedThreadId,AppDomain.CurrentDomain.FriendlyName);
+            Debug.WriteLine("Condition {0} has fired - Thread: {1} AppDomain: {2}", Id, Thread.CurrentThread.ManagedThreadId,AppDomain.CurrentDomain.FriendlyName);
 
             return true;
         }
@@ -97,7 +70,6 @@
         readonly Predicate<TContext> condition;
         readonly Action<IBus> busAction;
         readonly Action<IBus, TContext> busAndContextAction;
-        Guid id;
     }
 
     public interface IGivenDefinition

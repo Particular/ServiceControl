@@ -5,6 +5,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
 
@@ -85,8 +86,8 @@
                     transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
                     transportMessage.Headers["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z";
                     transportMessage.Headers[Headers.EnclosedMessageTypes] = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
-                    transportMessage.ReplyToAddress = null;
-                    SendMessages.Send(transportMessage, Address.Parse("error"));
+
+                    SendMessages.Send(transportMessage, new SendOptions(Address.Parse("error")));
                 }
 
                 public void Stop()

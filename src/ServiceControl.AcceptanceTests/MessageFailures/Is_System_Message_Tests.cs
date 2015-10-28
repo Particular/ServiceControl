@@ -5,6 +5,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
 
@@ -151,8 +152,8 @@
                     {
                         transportMessage.Headers[Headers.ControlMessageHeader] = SystemMessageTestContext.ControlMessageHeaderValue != null && (bool) SystemMessageTestContext.ControlMessageHeaderValue ? SystemMessageTestContext.ControlMessageHeaderValue.ToString() : null;
                     }
-                    transportMessage.ReplyToAddress = null;
-                    SendMessages.Send(transportMessage, Address.Parse("error"));
+
+                    SendMessages.Send(transportMessage, new SendOptions(Address.Parse("error")));
                 }
 
                 public void Stop()

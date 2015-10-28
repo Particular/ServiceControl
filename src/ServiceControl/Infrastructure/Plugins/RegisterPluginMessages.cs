@@ -1,12 +1,21 @@
 ﻿namespace ServiceControl.Infrastructure.Plugins
 {
     using NServiceBus;
+    using NServiceBus.Features;
 
-    class RegisterPluginMessages : IWantToRunBeforeConfiguration
+    public class RegisterPluginMessagesFeature : Feature
     {
-        public void Init()
+        public RegisterPluginMessagesFeature()
         {
-            MessageConventionExtensions.AddSystemMessagesConventions(t => t.Namespace != null
+            EnableByDefault();
+        }
+        /// <summary>
+        /// Invoked if the feature is activated
+        /// </summary>
+        /// <param name="context">The feature context</param>
+        protected override void Setup(FeatureConfigurationContext context)
+        {
+            context.Settings.Get<Conventions>().AddSystemMessagesConventions(t => t.Namespace != null
                 && t.Namespace.StartsWith("ServiceControl.Plugin.")
                 && t.Namespace.EndsWith(".Messages"));
         }

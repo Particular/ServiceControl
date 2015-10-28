@@ -4,72 +4,74 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Reflection;
     using NLog;
     using NLog.Config;
+    using NLog.Filters;
     using NLog.Targets;
     using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
-    using NServiceBus.Features;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Hosting.Helpers;
-    using NServiceBus.Logging.Loggers.NLogAdapter;
-    using TransportIntegration;
-
-    public class DefaultServerWithoutAudit : DefaultServer
-    {
-        public override void AddMoreConfig()
-        {
-            Configure.Features.Disable<Audit>();
-        }
-    }
 
     public class DefaultServer : IEndpointSetupTemplate
     {
-        public virtual void AddMoreConfig()
+        readonly List<Type> typesToInclude;
+
+        public DefaultServer()
         {
-            
+            typesToInclude = new List<Type>();
         }
 
-        public virtual void SetSerializer(Configure configure)
+        public DefaultServer(List<Type> typesToInclude)
         {
-            //NOOP Default is XML serializer
+            this.typesToInclude = typesToInclude;
         }
 
-        public Configure GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration,
-            IConfigurationSource configSource)
+        public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
+            ServicePointManager.DefaultConnectionLimit = 100;
+
             var settings = runDescriptor.Settings;
 
-            var types = GetTypesScopedByTestClass(endpointConfiguration);
+            NServiceBus.Logging.LogManager.Use<NLogFactory>();
 
-            var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
             SetupLogging(endpointConfiguration);
 
-            Configure.Features.Enable<Sagas>();
-            Configure.ScaleOut(_ => _.UseSingleBrokerQueue());
+            var types = GetTypesScopedByTestClass(endpointConfiguration);
+            var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
 
-            AddMoreConfig();
+            typesToInclude.AddRange(types);
 
-            var config = Configure.With(types)
-                .DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t))
-                .DefineEndpointName(endpointConfiguration.EndpointName)
-                .CustomConfigurationSource(configSource)
-                .DefineBuilder(settings.GetOrNull("Builder"));
+            var builder = new BusConfiguration();
 
-            SetSerializer(config);
-
-            config
-                .DefineTransport(transportToUse)
-                .InMemorySagaPersister()
-                .UseInMemoryTimeoutPersister();
-
-            if (transportToUse == null || transportToUse is MsmqTransportIntegration || transportToUse is SqlServerTransportIntegration || transportToUse is AzureStorageQueuesTransportIntegration)
+            builder.UsePersistence<InMemoryPersistence>();
+            builder.EndpointName(endpointConfiguration.EndpointName);
+            builder.TypesToScan(typesToInclude);
+            builder.CustomConfigurationSource(configSource);
+            builder.EnableInstallers();
+            builder.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
+            builder.DefineTransport(transportToUse);
+            builder.RegisterComponents(r =>
             {
-                config.InMemorySubscriptionStorage();
+                r.RegisterSingleton(runDescriptor.ScenarioContext.GetType(), runDescriptor.ScenarioContext);
+                r.RegisterSingleton(typeof(ScenarioContext), runDescriptor.ScenarioContext);
+            });
+
+            var serializer = settings.GetOrNull("Serializer");
+
+            if (serializer != null)
+            {
+                builder.UseSerialization(Type.GetType(serializer));
             }
 
-            return config.UnicastBus();
+            builder.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
+            configurationBuilderCustomization(builder);
+
+            return builder;
         }
 
         static bool IsExternalContract(Type t)
@@ -98,13 +100,30 @@
             var fileTarget = new FileTarget
             {
                 FileName = logFile,
-                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:inner=${newline}${exception}${newline}${stacktrace:format=DetailedFlat}}"
+                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}"
             };
 
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "Raven.*"));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
-            NLogConfigurator.Configure(new object[] {fileTarget}, logLevel);
+
             LogManager.Configuration = nlogConfig;
+        }
+
+        private static LoggingRule MakeFilteredLoggingRule(Target target, LogLevel logLevel, string text)
+        {
+            var rule = new LoggingRule(text, LogLevel.Info, target)
+            {
+                Final = true
+            };
+
+            rule.Filters.Add(new ConditionBasedFilter
+            {
+                Action = FilterResult.Ignore,
+                Condition = string.Format("level < LogLevel.{0}", logLevel.Name)
+            });
+
+            return rule;
         }
 
         static IEnumerable<Type> GetTypesScopedByTestClass(EndpointConfiguration endpointConfiguration)

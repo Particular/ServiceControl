@@ -4,15 +4,15 @@
     using System.Diagnostics;
     using System.IO;
     using System.Security.Principal;
+    using NServiceBus;
     using NServiceBus.Installation;
-    using NServiceBus.Installation.Environments;
     using NServiceBus.Logging;
-    using Settings;
-    
-    public class UrlAclInstaller : INeedToInstallSomething<Windows>
+    using ServiceBus.Management.Infrastructure.Settings;
+
+    public class UrlAclInstaller : INeedToInstallSomething
     {
 // ReSharper disable once RedundantAssignment
-        public void Install(string identity)
+        public void Install(string identity, Configure config)
         {
             // Ignore identity and set URL ACL to localized 'Builtin\Users'
             var accountSid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);

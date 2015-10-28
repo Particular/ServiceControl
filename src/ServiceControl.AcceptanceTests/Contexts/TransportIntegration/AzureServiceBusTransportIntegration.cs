@@ -25,17 +25,17 @@
 
         public Type Type
         {
-            get { return typeof(AzureServiceBus); }
+            get { return typeof(AzureServiceBusTransport); }
         }
 
         public string TypeName
         {
-            get { return "NServiceBus.AzureServiceBus, NServiceBus.Azure.Transports.WindowsAzureServiceBus"; }
+            get { return "NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus"; }
         }
 
         public string ConnectionString { get; set; }
 
-        public void OnEndpointShutdown()
+        public void OnEndpointShutdown(string endpointName)
         {
         }
 

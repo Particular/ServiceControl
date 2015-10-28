@@ -1,13 +1,20 @@
 namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
+    using System;
     using NServiceBus;
+    using NServiceBus.AcceptanceTesting.Support;
+    using NServiceBus.Config.ConfigurationSource;
     using ServiceBus.Management.AcceptanceTests.Contexts;
 
-    public class JsonServer : DefaultServer
+    public class JsonServer : IEndpointSetupTemplate
     {
-        public override void SetSerializer(Configure configure)
+        public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
-            Configure.Serialization.Json();
+            return new DefaultServer().GetConfiguration(runDescriptor, endpointConfiguration, configSource, b =>
+            {
+                b.UseSerialization<JsonSerializer>();
+                configurationBuilderCustomization(b);
+            });
         }
     }
 }

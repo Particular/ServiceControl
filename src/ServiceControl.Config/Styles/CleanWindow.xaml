@@ -1,0 +1,195 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:behaviours="clr-namespace:ServiceControl.Config.Xaml.Behaviours"
+                    xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/ServiceControlConfig;component/Styles/Icons.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <Storyboard x:Key="WindowButtonMouseOverStoryboard">
+        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Bd" Storyboard.TargetProperty="Background">
+            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Brushes.LightGray}" />
+        </ObjectAnimationUsingKeyFrames>
+    </Storyboard>
+
+    <Storyboard x:Key="WindowCloseButtonMouseOverStoryboard">
+        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Bd" Storyboard.TargetProperty="Background">
+            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Brushes.Tomato}" />
+        </ObjectAnimationUsingKeyFrames>
+    </Storyboard>
+
+    <Storyboard x:Key="WindowButtonPressedStoryboard">
+        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Bd" Storyboard.TargetProperty="Background">
+            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Brushes.DarkGray}" />
+        </ObjectAnimationUsingKeyFrames>
+    </Storyboard>
+
+    <Storyboard x:Key="WindowCloseButtonPressedStoryboard">
+        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Bd" Storyboard.TargetProperty="Background">
+            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Brushes.Red}" />
+        </ObjectAnimationUsingKeyFrames>
+    </Storyboard>
+
+    <Storyboard x:Key="WindowButtonDisabledStoryboard">
+        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Content" Storyboard.TargetProperty="Foreground">
+            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Brushes.Gray}" />
+        </ObjectAnimationUsingKeyFrames>
+    </Storyboard>
+
+    <Style x:Key="WindowButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="Black" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Height" Value="26" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            SnapsToDevicePixels="True">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="MouseOver" Storyboard="{StaticResource WindowButtonMouseOverStoryboard}" />
+                                <VisualState x:Name="Pressed" Storyboard="{StaticResource WindowButtonPressedStoryboard}" />
+                                <VisualState x:Name="Disabled" Storyboard="{StaticResource WindowButtonDisabledStoryboard}" />
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="FocusStates">
+                                <VisualState x:Name="Focused" />
+                                <VisualState x:Name="Unfocused" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <ContentPresenter x:Name="Content"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          SnapsToDevicePixels="True" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="WindowCloseButtonStyle"
+           BasedOn="{StaticResource WindowButtonStyle}"
+           TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            SnapsToDevicePixels="True">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="MouseOver" Storyboard="{StaticResource WindowCloseButtonMouseOverStoryboard}" />
+                                <VisualState x:Name="Pressed" Storyboard="{StaticResource WindowCloseButtonPressedStoryboard}" />
+                                <VisualState x:Name="Disabled" Storyboard="{StaticResource WindowButtonDisabledStoryboard}" />
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="FocusStates">
+                                <VisualState x:Name="Focused" />
+                                <VisualState x:Name="Unfocused" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <ContentPresenter x:Name="Content"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          SnapsToDevicePixels="True" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type controls:CleanWindow}">
+        <Setter Property="BorderBrush" Value="Black" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Foreground" Value="Black" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Padding" Value="6,36,6,6" />
+        <Setter Property="behaviours:StylizedBehaviors.Behaviors">
+            <Setter.Value>
+                <behaviours:StylizedBehaviorCollection>
+                    <behaviours:BorderlessWindowBehavior />
+                </behaviours:StylizedBehaviorCollection>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:CleanWindow}">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <Grid>
+                            <AdornerDecorator>
+                                <ContentPresenter Margin="{TemplateBinding Padding}" />
+                            </AdornerDecorator>
+                            <!--<TextBlock Text="{TemplateBinding Title}" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8, 8, 0, 0" />-->
+                            <Grid x:Name="WindowButtonArea"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Top"
+                                  Visibility="Visible">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="PART_Min"
+                                        Grid.Column="0"
+                                        Style="{StaticResource WindowButtonStyle}"
+                                        ToolTip="minimize">
+                                    <ContentControl Width="16"
+                                                    Height="16"
+                                                    Foreground="{TemplateBinding Foreground}"
+                                                    Template="{StaticResource MinimizeIcon}" />
+                                </Button>
+                                <Button x:Name="PART_Max"
+                                        Grid.Column="1"
+                                        Style="{StaticResource WindowButtonStyle}"
+                                        ToolTip="maximize">
+                                    <ContentControl Width="16"
+                                                    Height="16"
+                                                    Foreground="{TemplateBinding Foreground}"
+                                                    Template="{StaticResource MaximizeIcon}" />
+                                </Button>
+                                <Button x:Name="PART_Clo"
+                                        Grid.Column="2"
+                                        Style="{StaticResource WindowCloseButtonStyle}"
+                                        ToolTip="close">
+                                    <ContentControl Width="16"
+                                                    Height="16"
+                                                    Foreground="{TemplateBinding Foreground}"
+                                                    Template="{StaticResource CloseIcon}" />
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="ResizeMode" Value="NoResize">
+                            <Setter TargetName="PART_Min" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PART_Max" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="ResizeMode" Value="CanMinimize">
+                            <Setter TargetName="PART_Max" Property="IsEnabled" Value="False" />
+                        </Trigger>
+                        <Trigger Property="WindowState" Value="Maximized">
+                            <Setter TargetName="PART_Max" Property="Content">
+                                <Setter.Value>
+                                    <ContentControl Width="16"
+                                                    Height="16"
+                                                    Template="{StaticResource MaximizedIcon}" />
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="PART_Max" Property="ToolTip" Value="restore down" />
+                            <Setter Property="BorderThickness" Value="0" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

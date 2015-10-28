@@ -13,13 +13,13 @@
         }
 
         public string Name { get { return "Msmq"; } }
-        public Type Type { get { return typeof(Msmq); } }
-        public string TypeName { get { return "NServiceBus.Msmq, NServiceBus.Core"; }}
+        public Type Type { get { return typeof(MsmqTransport); } }
+        public string TypeName { get { return "NServiceBus.MsmqTransport, NServiceBus.Core"; }}
         public string ConnectionString { get; set; }
 
-        public void OnEndpointShutdown()
+        public void OnEndpointShutdown(string endpointName)
         {
-            DeleteQueues(Configure.EndpointName);
+            DeleteQueues(endpointName);
         }
 
         public void TearDown()

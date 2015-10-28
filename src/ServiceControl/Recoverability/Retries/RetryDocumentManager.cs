@@ -5,7 +5,6 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using NServiceBus.IdGeneration;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
@@ -17,11 +16,11 @@ namespace ServiceControl.Recoverability
     {
         public IDocumentStore Store { get; set; }
 
-        static string RetrySessionId = CombGuid.Generate().ToString();
+        static string RetrySessionId = Guid.NewGuid().ToString();
 
         public string CreateBatchDocument(string context = null)
         {
-            var batchDocumentId = RetryBatch.MakeDocumentId(CombGuid.Generate().ToString());
+            var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = Store.OpenSession())
             {
                 session.Store(new RetryBatch

@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using NServiceBus;
-    using NServiceBus.Settings;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using TransportIntegration;
 
     public static class ConfigureExtensions
@@ -18,36 +18,21 @@
             return dictionary[key];
         }
 
-        public static Configure DefineTransport(this Configure config, ITransportIntegration transport)
+        public static void DefineTransport(this BusConfiguration config, ITransportIntegration transport)
         {
-            var transportDefinitionType = typeof(Msmq);
-            string connectionString = null;
+            var transportDefinitionType = transport.Type;
+            var connectionString = transport.ConnectionString;
 
-            if (transport != null)
-            {
-                transportDefinitionType = transport.Type;
-                connectionString = transport.ConnectionString;
-            }
-
-            Action action = transport.OnEndpointShutdown;
-            SettingsHolder.Set("CleanupTransport", action);
+            Action action = () => transport.OnEndpointShutdown(config.GetSettings().EndpointName());
+            config.GetSettings().Set("CleanupTransport", action);
 
             if (connectionString == null)
             {
-                return config.UseTransport(transportDefinitionType);
+                config.UseTransport(transportDefinitionType);
+                return;
             }
 
-            return config.UseTransport(transportDefinitionType, () => connectionString);
-        }
-
-        public static Configure DefineBuilder(this Configure config, string builder)
-        {
-            if (string.IsNullOrEmpty(builder))
-            {
-                return config.DefaultBuilder();
-            }
-
-            throw new InvalidOperationException("Unknown builder:" + builder);
+            config.UseTransport(transportDefinitionType).ConnectionString(connectionString);
         }
     }
 }

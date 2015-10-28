@@ -6,11 +6,13 @@
 
     public class ImportFailureCircuitBreaker : IDisposable
     {
+        readonly CriticalError criticalError;
         Timer timer;
         long failureCount;
 
-        public ImportFailureCircuitBreaker()
+        public ImportFailureCircuitBreaker(CriticalError criticalError)
         {
+            this.criticalError = criticalError;
             timer = new Timer(_ => FlushHistory(), null, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(20));
         }
 
@@ -24,7 +26,7 @@
             var result = Interlocked.Increment(ref failureCount);
             if (result > 50)
             {
-                Configure.Instance.RaiseCriticalError("Failed to import too many times", lastException);
+                criticalError.Raise("Failed to import too many times", lastException);
             }
         }
 

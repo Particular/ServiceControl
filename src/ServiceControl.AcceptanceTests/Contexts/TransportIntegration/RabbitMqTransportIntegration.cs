@@ -19,11 +19,11 @@
         }
 
         public string Name { get { return "RabbitMq"; } }
-        public Type Type { get { return typeof(RabbitMQ); } }
-        public string TypeName { get { return "NServiceBus.RabbitMQ, NServiceBus.Transports.RabbitMQ"; } }
+        public Type Type { get { return typeof(RabbitMQTransport); } }
+        public string TypeName { get { return "NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ"; } }
         public string ConnectionString { get; set; }
 
-        public void OnEndpointShutdown()
+        public void OnEndpointShutdown(string endpointName)
         {
         }
 
@@ -72,7 +72,7 @@
                 Password = password,
                 VirtualHost = virtualHost,
                 HostName = host,
-                //AutomaticRecoveryEnabled = true
+                AutomaticRecoveryEnabled = true
             };
         }
 

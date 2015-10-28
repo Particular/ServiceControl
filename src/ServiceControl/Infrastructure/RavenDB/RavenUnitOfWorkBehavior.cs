@@ -8,12 +8,11 @@
     /// <summary>
     /// Not that we use a logical message behavior to enable uow for our import satellites
     /// </summary>
-#pragma warning disable 618
-    class RavenUnitOfWorkBehavior : IBehavior<ReceiveLogicalMessageContext>
+    class RavenUnitOfWorkBehavior : IBehavior<IncomingContext>
     {
         public IDocumentStore Store { get; set; }
 
-        public void Invoke(ReceiveLogicalMessageContext context, Action next)
+        public void Invoke(IncomingContext context, Action next)
         {
             using (var session = Store.OpenSession())
             {
@@ -27,12 +26,14 @@
             }
         }
     }
-   class RavenUnitOfWorkBehaviorPipelineOverride:PipelineOverride
+
+    class RavenRegisterStep : RegisterStep
     {
-       public override void Override(BehaviorList<ReceiveLogicalMessageContext> behaviorList)
-       {
-           behaviorList.InnerList.Insert(0,typeof(RavenUnitOfWorkBehavior));
-       }
+        public RavenRegisterStep()
+            : base("Custom Raven Behavior", typeof(RavenUnitOfWorkBehavior), "Raven Behavior")
+        {
+            InsertAfter(WellKnownStep.CreateChildContainer);
+            InsertBefore(WellKnownStep.ExecuteUnitOfWork);
+        }
     }
-#pragma warning restore 618
 }

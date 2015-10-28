@@ -17,17 +17,17 @@
         {
             if (string.IsNullOrEmpty(message.EndpointName))
             {
-                throw new ArgumentException("Received an custom check message without proper initialization of the EndpointName in the schema", "message.EndpointName");
+                throw new Exception("Received an custom check message without proper initialization of the EndpointName in the schema");
             }
 
             if (string.IsNullOrEmpty(message.Host))
             {
-                throw new ArgumentException("Received an custom check message without proper initialization of the Host in the schema", "message.Host");
+                throw new Exception("Received an custom check message without proper initialization of the Host in the schema");
             }
 
             if (message.HostId == Guid.Empty)
             {
-                throw new ArgumentException("Received an custom check message without proper initialization of the HostId in the schema", "message.HostId");
+                throw new Exception("Received an custom check message without proper initialization of the HostId in the schema");
             }
 
             var publish = false;

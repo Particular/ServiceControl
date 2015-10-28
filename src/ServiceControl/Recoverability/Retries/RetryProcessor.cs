@@ -7,12 +7,12 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transports;
+    using NServiceBus.Unicast;
     using Raven.Client;
-    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
 
-    class RetryProcessor : IWantToRunWhenBusStartsAndStops, IDisposable
+    class RetryProcessor
     {
         static readonly List<string> KeysToRemoveWhenRetryingAMessage = new List<string>
         {
@@ -27,45 +27,15 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IBus bus, ReturnToSenderDequeuer returnToSender)
+        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender)
         {
-            executor = new PeriodicExecutor(Process, TimeSpan.FromSeconds(30), ex => Log.Error("Error during retry batch processing", ex));
             this.bodyStorage = bodyStorage;
             this.sender = sender;
-            this.store = store;
             this.bus = bus;
             this.returnToSender = returnToSender;
         }
 
-        public void Start()
-        {
-            executor.Start(false);
-        }
-
-        public void Stop()
-        {
-            executor.Stop();
-        }
-
-        public void Dispose()
-        {
-            Stop();
-        }
-
-        void Process(PeriodicExecutor e)
-        {
-            bool batchesProcessed;
-            do
-            {
-                using (var session = store.OpenSession())
-                {
-                    batchesProcessed = ProcessBatches(session);
-                    session.SaveChanges();
-                }
-            } while (batchesProcessed && !e.IsCancellationRequested);
-        }
-
-        bool ProcessBatches(IDocumentSession session)
+        public bool ProcessBatches(IDocumentSession session)
         {
             var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
                 .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
@@ -109,7 +79,7 @@ namespace ServiceControl.Recoverability
             {
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId));
             }
-            else if(messageCount > 0)
+            else if (messageCount > 0)
             {
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), messageCount);
             }
@@ -178,6 +148,10 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.TargetEndpointAddress"] = attempt.FailureDetails.AddressOfFailingEndpoint;
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
+            if (!string.IsNullOrWhiteSpace(attempt.ReplyToAddress))
+            {
+                headersToRetryWith[Headers.ReplyToAddress] = attempt.ReplyToAddress;
+            }
 
             var transportMessage = new TransportMessage(message.Id, headersToRetryWith)
             {
@@ -195,12 +169,7 @@ namespace ServiceControl.Recoverability
                 }
             }
 
-            if (!String.IsNullOrWhiteSpace(attempt.ReplyToAddress))
-            {
-                transportMessage.ReplyToAddress = Address.Parse(attempt.ReplyToAddress);
-            }
-
-            sender.Send(transportMessage, AdvancedDequeuer.Address);
+            sender.Send(transportMessage, new SendOptions(returnToSender.InputAddress));
         }
 
         static byte[] ReadFully(Stream input)
@@ -219,8 +188,6 @@ namespace ServiceControl.Recoverability
 
         IBodyStorage bodyStorage;
         ISendMessages sender;
-        PeriodicExecutor executor;
-        IDocumentStore store;
         IBus bus;
         ReturnToSenderDequeuer returnToSender;
         bool isRecoveringFromPrematureShutdown = true;

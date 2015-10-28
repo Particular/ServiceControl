@@ -5,7 +5,6 @@ namespace Particular.ServiceControl.Hosting
     using System.IO;
     using System.Reflection;
     using System.ServiceProcess;
-    using System.Text;
     using Commands;
     using global::ServiceControl.Hosting.Commands;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -15,8 +14,8 @@ namespace Particular.ServiceControl.Hosting
         public HostArguments(string[] args)
         {
             var executionMode = ExecutionMode.Run;
-            commands = new List<Type> { typeof(RunCommand) };
-            startMode = StartMode.Automatic;
+            Commands = new List<Type> { typeof(RunCommand) };
+            StartMode = StartMode.Automatic;
             ServiceName = "Particular.ServiceControl";
             DisplayName = "Particular ServiceControl";
             Description = "Particular Software ServiceControl for NServiceBus.";
@@ -24,61 +23,10 @@ namespace Particular.ServiceControl.Hosting
             Username = String.Empty;
             Password = String.Empty;
 
-            defaultOptions = new OptionSet
+            var defaultOptions = new OptionSet
             {
                 {
                     "?|h|help", "Help about the command line options.", key => { Help = true; }
-                },
-                {
-                    "d|set={==}", "The configuration {0:option} to set to the specified {1:value}", (key, value) =>
-                    {
-                        options[key] = value;
-
-                        commands = new List<Type>
-                        {
-                            typeof(WriteOptionsCommand),
-                        };
-                    }
-                },
-                {
-                    "restart",
-                    @"Restarts the endpoint."
-                    , s =>
-                    {
-                        commands = new List<Type>
-                        {
-                            typeof(WriteOptionsCommand),
-                            typeof(RestartCommand),
-                        };
-                    }
-                },
-                {
-                    "start",
-                    @"Starts the endpoint."
-                    , s =>
-                    {
-                        commands = new List<Type>
-                        {
-                            typeof(WriteOptionsCommand),
-                            typeof(StartCommand),
-                        };
-                    }
-                },
-                {
-                    "stop",
-                    @"Stops the endpoint."
-                    , s =>
-                    {
-                        commands = new List<Type>
-                        {
-                            typeof(StopCommand),
-                        };
-                    }
-                },
-                {
-                    "serviceName=",
-                    @"Specify the service name for the installed service."
-                    , s => { ServiceName = s; }
                 },
             };
 
@@ -88,7 +36,7 @@ namespace Particular.ServiceControl.Hosting
                                                    "m|maint|maintenance",
                                                    @"Run RavenDB only - use for DB maintenance", 
                                                    s => {
-                                                            commands = new List<Type>
+                                                            Commands = new List<Type>
                                                                        {
                                                                            typeof(MaintCommand)
                                                                        };
@@ -97,28 +45,7 @@ namespace Particular.ServiceControl.Hosting
                                                }
                                            };
 
-         
-            uninstallOptions = new OptionSet
-            {
-                {
-                    "?|h|help", "Help about the command line options.", key => { Help = true; }
-                },
-                {
-                    "u|uninstall",
-                    @"Uninstall the endpoint as a Windows service."
-                    , s =>
-                    {
-                        commands = new List<Type> {typeof(UninstallCommand)};
-                        executionMode = ExecutionMode.Uninstall;
-                    }
-                },
-                {
-                    "serviceName=",
-                    @"Specify the service name for the installed service."
-                    , s => { ServiceName = s; }
-                }
-            };
-
+            // Not documented in help - Used bt SC installer only
             var externalInstallerOptions = new OptionSet
             {
                 {
@@ -127,7 +54,7 @@ namespace Particular.ServiceControl.Hosting
                     , s =>
                     {
 
-                        commands = new List<Type>{typeof(RunBootstrapperAndNServiceBusInstallers)};
+                        Commands = new List<Type>{typeof(RunBootstrapperAndNServiceBusInstallers)};
                         executionMode = ExecutionMode.Install;
                     }
                 },
@@ -142,116 +69,15 @@ namespace Particular.ServiceControl.Hosting
                     , s => { Username = s; }
                 },
             };
-
-            installOptions = new OptionSet
-            {
-                {
-                    "?|h|help",
-                    "Help about the command line options.",
-                    key => { Help = true; }
-                },
-                {
-                    "i|install",
-                    @"Install the endpoint as a Windows service."
-                    , s =>
-                    {
-                        commands = new List<Type>
-                        {
-                            typeof(WriteOptionsCommand),
-                            typeof(CheckMandatoryInstallOptionsCommand),
-                            typeof(RunBootstrapperAndNServiceBusInstallers),
-                            typeof(InstallCommand)
-                        };
-                        executionMode = ExecutionMode.Install;
-                    }
-                },
-                {
-                    "serviceName=",
-                    @"Specify the service name for the installed service."
-                    , s => { ServiceName = s; }
-                },
-                {
-                    "displayName=",
-                    @"Friendly name for the installed service."
-                    , s => { DisplayName = s; }
-                },
-                {
-                    "description=",
-                    @"Description for the service."
-                    , s => { Description = s; }
-                },
-                {
-                    "username=",
-                    @"Username for the account the service should run under."
-                    , s => { Username = s; }
-                },
-                {
-                    "password=",
-                    @"Password for the service account."
-                    , s => { Password = s; }
-                },
-                {
-                    "localservice",
-                    @"Run the service with the local service account."
-                    , s => { ServiceAccount = ServiceAccount.LocalService; }
-                },
-                {
-                    "networkservice",
-                    @"Run the service with the network service permission."
-                    , s => { ServiceAccount = ServiceAccount.NetworkService; }
-                },
-                {
-                    "user",
-                    @"Run the service with the specified username and password. Alternative the system will prompt for a valid username and password if values for both the username and password are not specified."
-                    , s => { ServiceAccount = ServiceAccount.User; }
-                },
-                {
-                    "delayed",
-                    @"The service should start automatically (delayed)."
-                    , s => { startMode = StartMode.Delay; }
-                },
-                {
-                    "autostart",
-                    @"The service should start automatically (default)."
-                    , s => { startMode = StartMode.Automatic; }
-                },
-                {
-                    "disabled",
-                    @"The service should be set to disabled."
-                    , s => { startMode = StartMode.Disabled; }
-                },
-                {
-                    "manual",
-                    @"The service should be started manually."
-                    , s => { startMode = StartMode.Manual; }
-                },
-                {
-                    "d|set={==}", "The configuration {0:option} to set to the specified {1:value}", (key, value) =>
-                    {
-                        options[key] = value;
-                    }
-                },
-            };
-
+            
             try
             {
-                installOptions.Parse(args);
-                if (executionMode == ExecutionMode.Install)
-                {
-                    return;
-                }
-
                 externalInstallerOptions.Parse(args);
                 if (executionMode == ExecutionMode.Install)
                 {
                     return;
                 }
-
-                uninstallOptions.Parse(args);
-                if (executionMode == ExecutionMode.Uninstall)
-                {
-                    return;
-                }
+                
                 maintenanceOptions.Parse(args);
                 if (executionMode == ExecutionMode.Maintenance)
                 {
@@ -268,10 +94,7 @@ namespace Particular.ServiceControl.Hosting
             }
         }
 
-        public List<Type> Commands
-        {
-            get { return commands; }
-        }
+        public List<Type> Commands { get; private set; }
 
         public Dictionary<string, string> Options
         {
@@ -283,20 +106,14 @@ namespace Particular.ServiceControl.Hosting
         public string DisplayName { get; set; }
         public string Description { get; set; }
 
-        public StartMode StartMode
-        {
-            get { return startMode; }
-        }
+        public StartMode StartMode { get; private set; }
 
-        public string OutputPath { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
         public ServiceAccount ServiceAccount { get; set; }
 
         public void PrintUsage()
         {
-            var sb = new StringBuilder();
-
             var helpText = String.Empty;
             using (
                 var stream =
@@ -311,27 +128,11 @@ namespace Particular.ServiceControl.Hosting
                     }
                 }
             }
-
-            installOptions.WriteOptionDescriptions(new StringWriter(sb));
-            var installOptionsHelp = sb.ToString();
-
-            sb.Clear();
-            uninstallOptions.WriteOptionDescriptions(new StringWriter(sb));
-            var uninstallOptionsHelp = sb.ToString();
-
-            sb.Clear();
-            defaultOptions.WriteOptionDescriptions(new StringWriter(sb));
-            var defaultOptionsHelp = sb.ToString();
-
-            Console.Out.WriteLine(helpText, defaultOptionsHelp, installOptionsHelp, uninstallOptionsHelp);
+            
+            Console.Out.WriteLine(helpText);
         }
 
-        readonly OptionSet installOptions;
-        readonly OptionSet uninstallOptions;
-        readonly OptionSet defaultOptions;
-        List<Type> commands;
         Dictionary<string, string> options = new Dictionary<string, string>();
-        StartMode startMode;
     }
 
     internal enum ExecutionMode

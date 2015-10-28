@@ -3,9 +3,10 @@
     using System;
     using System.Linq;
     using Contexts;
+    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Unicast;
+    using NServiceBus.Configuration.AdvanceExtensibility;
+    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.EventLog;
@@ -16,7 +17,6 @@
         public void Should_result_in_a_startup_event()
         {
             var context = new MyContext();
-
             EventLogItem entry = null;
 
             Scenario.Define(context)
@@ -26,36 +26,44 @@
                 .Run();
 
             Assert.AreEqual(Severity.Info, entry.Severity, "Endpoint startup should be treated as info");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/host/" + context.HostId));           
+            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/host/" + context.HostIdentifier));
         }
-
 
         public class MyContext : ScenarioContext
         {
-            public Guid HostId { get; set; }
+            public Guid HostIdentifier { get; set; }
         }
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
             public StartingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var hostIdentifier = Guid.NewGuid();
+                    c.GetSettings().Set("ServiceControl.CustomHostIdentifier", hostIdentifier);
+                    c.UniquelyIdentifyRunningInstance().UsingCustomIdentifier(hostIdentifier);
+                });
             }
 
-            class HostIdFinder:IWantToRunWhenConfigurationIsComplete
+            class RetrieveHostIdentifier : IWantToRunWhenBusStartsAndStops
             {
-                public UnicastBus UnicastBus { get; set; }
+                readonly ReadOnlySettings settings;
+                readonly MyContext context;
 
-                public MyContext Context { get; set; }
-
-                public void Run()
+                public RetrieveHostIdentifier(ReadOnlySettings settings, MyContext context)
                 {
-                    if (Context == null)
-                    {
-                        return;
-                    }
+                    this.settings = settings;
+                    this.context = context;
+                }
 
-                    Context.HostId = UnicastBus.HostInformation.HostId;
+                public void Start()
+                {
+                    context.HostIdentifier = settings.Get<Guid>("ServiceControl.CustomHostIdentifier");
+                }
+
+                public void Stop()
+                {
                 }
             }
         }
