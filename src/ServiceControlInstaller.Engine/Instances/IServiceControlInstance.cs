@@ -6,5 +6,8 @@
     {
         string Name { get; }
         string ConnectionString { get; }
+        string VirtualDirectory { get; }
+        bool ForwardAuditMessages { get; }
+        string HostName { get; }
     }
 }

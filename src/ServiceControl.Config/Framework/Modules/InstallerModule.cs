@@ -98,6 +98,7 @@
             {
                 progress.Report(3, 5, "Restoring app.config...");
                 instance.RestoreAppConfig(backupFile);
+                
             }
             progress.Report(4, 5, "Running Queue Creation...");
             instance.RunInstanceToCreateQueues();

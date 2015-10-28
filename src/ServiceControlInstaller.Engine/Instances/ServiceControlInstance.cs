@@ -415,6 +415,12 @@ namespace ServiceControlInstaller.Engine.Instances
             }
             var configFile = string.Format("{0}.config", Service.ExePath);
             File.Copy(sourcePath, configFile, true);
+
+            // Ensure Transport type is correct and populate the config with common settings even if they are defaults
+            // Will not clobber other settings in the config 
+            var configWriter = new ConfigurationWriter(this);
+            configWriter.Validate();
+            configWriter.Save();
         }
 
         public void UpgradeFiles(string zipFilePath)

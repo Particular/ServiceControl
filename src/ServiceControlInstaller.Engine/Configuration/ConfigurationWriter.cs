@@ -8,10 +8,10 @@
 
     internal class ConfigurationWriter
     {
-        ServiceControlInstanceMetadata details;
+        IServiceControlInstance details;
         Configuration configuration;
 
-        public ConfigurationWriter(ServiceControlInstanceMetadata details)
+        public ConfigurationWriter(IServiceControlInstance details)
         {
             this.details = details;
             var exeMapping = new ExeConfigurationFileMap { ExeConfigFilename = Path.Combine(details.InstallPath, "ServiceControl.exe.config") };
