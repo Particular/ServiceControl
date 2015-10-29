@@ -66,7 +66,18 @@
                     //for backwards compatibility
                     if (message.PhysicalMessage.Headers.TryGetValue(Headers.SagaId, out sagaId))
                     {
-                        var sagaType = message.PhysicalMessage.Headers[Headers.SagaType].Split(',').First();
+                        // A failure when a MarkAsComplete control message is received causes a saga message to be received in
+                        // the error queue without a Headers.SagaType header.
+                        // Hence the reason for the check!
+                        string sagaType;
+                        if (message.PhysicalMessage.Headers.TryGetValue(Headers.SagaType, out sagaType))
+                        {
+                            sagaType = sagaType.Split(',').First();
+                        }
+                        else
+                        {
+                            sagaType = "Unknown";
+                        }
 
                         message.Metadata.Add("InvokedSagas", new List<SagaInfo>
                         {
@@ -83,7 +94,16 @@
 
                 if (message.PhysicalMessage.Headers.TryGetValue(Headers.OriginatingSagaId, out originatingSagaId))
                 {
-                    var sagaType = message.PhysicalMessage.Headers[Headers.OriginatingSagaType].Split(',').First();
+                    // I am not sure if we need this logic here as well, but just in case see comment above.
+                    string sagaType;
+                    if (message.PhysicalMessage.Headers.TryGetValue(Headers.OriginatingSagaType, out sagaType))
+                    {
+                        sagaType = sagaType.Split(',').First();
+                    }
+                    else
+                    {
+                        sagaType = "Unknown";
+                    }
 
                     message.Metadata.Add("OriginatesFromSaga", new SagaInfo
                     {
