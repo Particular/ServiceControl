@@ -415,6 +415,12 @@ namespace ServiceControlInstaller.Engine.Instances
             }
             var configFile = string.Format("{0}.config", Service.ExePath);
             File.Copy(sourcePath, configFile, true);
+
+            // Ensure Transport type is correct and populate the config with common settings even if they are defaults
+            // Will not clobber other settings in the config 
+            var configWriter = new ConfigurationWriter(this);
+            configWriter.Validate();
+            configWriter.Save();
         }
 
         public void UpgradeFiles(string zipFilePath)
@@ -426,14 +432,15 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public static ReadOnlyCollection<ServiceControlInstance> Instances()
         {
-            return new ReadOnlyCollection<ServiceControlInstance>(WindowsServiceController.FindInstancesByExe("ServiceControl.exe").Select(p => new ServiceControlInstance(p)).ToList());
+            var services = WindowsServiceController.FindInstancesByExe("ServiceControl.exe");
+            return new ReadOnlyCollection<ServiceControlInstance>(services.Where(p => File.Exists(p.ExePath)).Select(p => new ServiceControlInstance(p)).ToList());
         }
 
-        public static ServiceControlInstance FindByName(string InstanceName)
+        public static ServiceControlInstance FindByName(string instanceName)
         {
             try
             {
-                return Instances().Single(p => p.Name.Equals(InstanceName, StringComparison.OrdinalIgnoreCase));
+                return Instances().Single(p => p.Name.Equals(instanceName, StringComparison.OrdinalIgnoreCase));
             }
             catch (Exception ex)
             {
@@ -441,10 +448,10 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public static void CheckIfServiceNameTaken(string InstanceName)
+        public static void CheckIfServiceNameTaken(string instanceName)
         {
-            if (ServiceController.GetServices().SingleOrDefault(p => p.ServiceName.Equals(InstanceName, StringComparison.OrdinalIgnoreCase)) != null)
-                throw new Exception(string.Format("Invalid Service Name. There is already a windows service called '{0}'", InstanceName));
+            if (ServiceController.GetServices().SingleOrDefault(p => p.ServiceName.Equals(instanceName, StringComparison.OrdinalIgnoreCase)) != null)
+                throw new Exception(string.Format("Invalid Service Name. There is already a windows service called '{0}'", instanceName));
         }
 
         public void RunInstanceToCreateQueues()
