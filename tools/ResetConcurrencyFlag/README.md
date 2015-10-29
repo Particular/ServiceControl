@@ -21,6 +21,11 @@ If you find messages with `ServiceControl.Retry.UniqueMessageId` header, eg
 ```
 You need to copy the value of that header and run the tool against that value.
 
+#### Here is an example how to obtain a stalled message IDs using QueueExplorer for MSMQ
+![](http://i.imgur.com/EWnh4Wq.jpg)
+
+**If you have any difficulty performing this action for other transports contact us at support@particular.net**
+
 ## How to run the tool
 
 ### 1. Shut down Service Control
@@ -51,8 +56,3 @@ After the tool finishes running, press `Enter` in ServiceControl to exit mainten
 
 ### 4. Restart Service Control
 In the Services Control Pane, find the `Particular ServiceControl` instance and restart it.
-
-### Here is an example how to do this for MSMQ transport using QueueExplorer
-![](http://i.imgur.com/EWnh4Wq.jpg)
-
-**If you have any difficulty performing this action for other transports contact us at support@particular.net**
