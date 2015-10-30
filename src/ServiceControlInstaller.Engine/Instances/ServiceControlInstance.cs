@@ -268,12 +268,10 @@ namespace ServiceControlInstaller.Engine.Instances
             if (File.Exists(Service.ExePath))
             {
                 var configManager = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
-                if (configManager.AppSettings.Settings.AllKeys.Contains(key))
+                if (configManager.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
                 {
                     return (T) Convert.ChangeType(configManager.AppSettings.Settings[key].Value, typeof(T));
                 }
-
-                
             }
             try
             {
