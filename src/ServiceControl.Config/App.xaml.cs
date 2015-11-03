@@ -26,7 +26,7 @@
                 Console.WriteLine("Task requires app to be run with elevated permissions.");
                 return;
             }
-
+            Splash.Show();
             if (args.Length == 0)
             {
                 var app = new App();
