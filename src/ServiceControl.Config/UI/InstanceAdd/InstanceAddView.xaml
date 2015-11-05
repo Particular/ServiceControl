@@ -29,14 +29,14 @@
                             <TextBlock Text="SYSTEM" />
                         </RadioButton>
                         <RadioButton HorizontalContentAlignment="Stretch" IsChecked="{Binding UseProvidedAccount}">
-                            <Grid>
+                            <TextBlock Text="USER" />
+                        </RadioButton>
+                            <Grid Margin="15,0,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*" />
                                     <RowDefinition Height="auto" />
                                     <RowDefinition Height="auto" />
                                 </Grid.RowDefinitions>
-
-                                <TextBlock Text="USER" />
                                 <controls:FormTextBox Grid.Row="1"
                                                       Header="SERVICE ACCOUNT"
                                                       IsEnabled="{Binding UseProvidedAccount}"
@@ -51,7 +51,6 @@
                                                           Visibility="{Binding UseProvidedAccount,
                                                                                Converter={StaticResource boolToVis}}" />
                             </Grid>
-                        </RadioButton>
                     </StackPanel>
                 </GroupBox>
 
