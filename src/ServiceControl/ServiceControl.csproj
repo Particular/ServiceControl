@@ -449,6 +449,7 @@
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroup.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\StackTraceParser.cs" />
+    <Compile Include="Recoverability\Retries\DisableCallbackReceiverForRabbit.cs" />
     <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
     <Compile Include="Recoverability\Retries\FailedMessageRetries.cs" />
     <Compile Include="Recoverability\Retries\MessagesSubmittedForRetry.cs" />
