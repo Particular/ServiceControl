@@ -4,25 +4,24 @@ namespace Particular.ServiceControl.Hosting
     using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
-    using System.ServiceProcess;
     using Commands;
     using global::ServiceControl.Hosting.Commands;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class HostArguments
     {
+        public List<Type> Commands { get; private set; }
+
+        public bool Help { get; set; }
+        public string ServiceName { get; set; }
+        public string Username { get; set; }
+        
         public HostArguments(string[] args)
         {
             var executionMode = ExecutionMode.Run;
             Commands = new List<Type> { typeof(RunCommand) };
-            StartMode = StartMode.Automatic;
             ServiceName = "Particular.ServiceControl";
-            DisplayName = "Particular ServiceControl";
-            Description = "Particular Software ServiceControl for NServiceBus.";
-            ServiceAccount = ServiceAccount.LocalSystem;
-            Username = String.Empty;
-            Password = String.Empty;
-
+         
             var defaultOptions = new OptionSet
             {
                 {
@@ -45,7 +44,7 @@ namespace Particular.ServiceControl.Hosting
                                                }
                                            };
 
-            // Not documented in help - Used bt SC installer only
+            // Not documented in help - Used by SC installer only
             var externalInstallerOptions = new OptionSet
             {
                 {
@@ -55,7 +54,7 @@ namespace Particular.ServiceControl.Hosting
                     {
 
                         Commands = new List<Type>{typeof(RunBootstrapperAndNServiceBusInstallers)};
-                        executionMode = ExecutionMode.Install;
+                        executionMode = ExecutionMode.RunInstallers;
                     }
                 },
                 {
@@ -67,13 +66,13 @@ namespace Particular.ServiceControl.Hosting
                     "userName=",
                     @"Username for the account the service should run under."
                     , s => { Username = s; }
-                },
+                }
             };
             
             try
             {
                 externalInstallerOptions.Parse(args);
-                if (executionMode == ExecutionMode.Install)
+                if (executionMode == ExecutionMode.RunInstallers)
                 {
                     return;
                 }
@@ -93,25 +92,7 @@ namespace Particular.ServiceControl.Hosting
                 Help = true;
             }
         }
-
-        public List<Type> Commands { get; private set; }
-
-        public Dictionary<string, string> Options
-        {
-            get { return options; }
-        } 
-
-        public bool Help { get; set; }
-        public string ServiceName { get; set; }
-        public string DisplayName { get; set; }
-        public string Description { get; set; }
-
-        public StartMode StartMode { get; private set; }
-
-        public string Username { get; set; }
-        public string Password { get; set; }
-        public ServiceAccount ServiceAccount { get; set; }
-
+        
         public void PrintUsage()
         {
             var helpText = String.Empty;
@@ -131,23 +112,12 @@ namespace Particular.ServiceControl.Hosting
             
             Console.Out.WriteLine(helpText);
         }
-
-        Dictionary<string, string> options = new Dictionary<string, string>();
     }
 
     internal enum ExecutionMode
     {
-        Install,
-        Uninstall,
+        RunInstallers,
         Run,
         Maintenance
-    }
-
-    public enum StartMode
-    {
-        Manual,
-        Automatic,
-        Delay,
-        Disabled
     }
 }

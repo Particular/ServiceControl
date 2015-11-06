@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Security.Principal;
     using Microsoft.Win32;
+    using ServiceControlInstaller.Engine.Validation;
 
     public class UserAccount
     {
@@ -57,9 +58,14 @@
             {
                 return true;
             }
+            if (password == null)
+            {
+                throw new EngineValidationException("A password is required for this service account");
+            }
+
             var localAccount = Domain.Equals(Environment.MachineName, StringComparison.OrdinalIgnoreCase);
-            var context = localAccount ? new PrincipalContext(ContextType.Machine) : new PrincipalContext(ContextType.Domain);
-            return context.ValidateCredentials(QualifiedName, password);
+            var context = localAccount ? new PrincipalContext(ContextType.Machine) : new PrincipalContext(ContextType.Domain, Domain);
+            return context.ValidateCredentials(Name, password);
         }
         
         public static UserAccount ParseAccountName(string accountName)
