@@ -234,7 +234,7 @@ namespace ServiceControlInstaller.Engine.Services
                             if (entryType == 1) // driver not a service
                                 continue;
 
-                            var imagePath = (string)serviceKey.GetValue("ImagePath", null);
+                            var imagePath = serviceKey.GetValue("ImagePath", null) as String;
                             if (imagePath == null)
                                 continue;
 
