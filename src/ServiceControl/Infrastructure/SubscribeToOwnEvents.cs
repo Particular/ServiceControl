@@ -4,15 +4,14 @@ namespace ServiceControl.Infrastructure
     using System.Collections.Generic;
     using System.Linq;
     using NServiceBus;
-    using NServiceBus.Config;
     using NServiceBus.Settings;
     using NServiceBus.Transports;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
 
-    class SubscribeToOwnEvents : IWantToRunWhenConfigurationIsComplete
+    class SubscribeToOwnEvents
     {
-        public void Run(Configure config)
+        public void Run()
         {
             var localAddress = Settings.LocalAddress();
             var eventTypes = Settings.GetAvailableTypes().Implementing<IEvent>();
