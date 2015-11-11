@@ -6,6 +6,7 @@ namespace Particular.ServiceControl
     using System.Net;
     using System.ServiceProcess;
     using Autofac;
+    using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.SignalR;
     using NLog.Config;
     using NLog.Filters;
@@ -33,6 +34,7 @@ namespace Particular.ServiceControl
             ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
+            containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             Container = containerBuilder.Build();
 
             if (configuration == null)
@@ -74,6 +76,8 @@ namespace Particular.ServiceControl
             }
 
             Bus = NServiceBus.Bus.Create(configuration);
+
+            Container.Resolve<SubscribeToOwnEvents>().Run();
         }
 
         static Type DetermineTransportType()
