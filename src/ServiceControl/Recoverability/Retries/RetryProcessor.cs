@@ -115,7 +115,9 @@ namespace ServiceControl.Recoverability
                 return false;
             }
 
-            var messages = session.Load<FailedMessage>(messageIds);
+            var messages = session.Load<FailedMessage>(messageIds)
+                .Where(m => m != null)
+                .ToArray();
 
             foreach (var message in messages)
             {
@@ -128,9 +130,11 @@ namespace ServiceControl.Recoverability
                 m.Context = stagingBatch.Context;
             });
 
+            var msgLookup = messages.ToLookup(x => x.Id);
+
             stagingBatch.Status = RetryBatchStatus.Forwarding;
             stagingBatch.StagingId = stagingId;
-            stagingBatch.FailureRetries = matchingFailures.Select(x => x.Id).ToArray();
+            stagingBatch.FailureRetries = matchingFailures.Where(x => msgLookup[x.FailedMessageId].Any()).Select(x => x.Id).ToArray();
 
             Log.InfoFormat("Retry batch {0} staged {1} messages", stagingBatch.Id, messages.Length);
             return true;
