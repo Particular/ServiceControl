@@ -24,7 +24,7 @@
                 .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.EventType == typeof(CustomCheckFailed).Name))
                 .Run();
 
-            Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as info");
+            Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as error");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/MyCustomCheckId"));
             Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/CustomChecks.EndpointWithFailingCustomCheck")));
         }
