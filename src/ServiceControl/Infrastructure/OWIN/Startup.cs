@@ -27,13 +27,17 @@
 
                 return func();
             });
+
+            var resolver = new AutofacDependencyResolver();
             
             app.MapConnection<MessageStreamerConnection>("/messagestream",
                 new ConnectionConfiguration
                 {
                     EnableCrossDomain = true,
-                    Resolver = new AutofacDependencyResolver()
+                    Resolver = resolver
                 });
+
+            GlobalHost.DependencyResolver = resolver;
 
             app.UseNancy(new NancyOptions { Bootstrapper = new NServiceBusContainerBootstrapper() });
         }

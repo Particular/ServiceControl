@@ -44,7 +44,7 @@
 
         protected Dictionary<string, string> AppConfigurationSettings = new Dictionary<string, string>();
         string pathToAppConfig;
-        int port;
+        protected int port;
         string ravenPath;
         [NonSerialized]
         ITransportIntegration transportToUse;
