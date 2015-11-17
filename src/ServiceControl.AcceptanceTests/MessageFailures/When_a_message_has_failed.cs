@@ -1,8 +1,12 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Globalization;
     using System.Linq;
+    using System.Net;
     using Contexts;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -14,8 +18,10 @@
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.SignalR;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using Microsoft.AspNet.SignalR.Client;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
@@ -103,6 +109,96 @@
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), "Should contain the api url to retrieve additional details about the endpoint where the message failed");
         }
 
+        [Test]
+        public void Should_raise_a_signalr_event()
+        {
+            var context = new MyContext
+            {
+                SCPort = port
+            };
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<EndpointThatUsesSignalR>()
+                .Done(c => c.SignalrEventReceived)
+                .Run();
+
+            Assert.IsNotNull(context.SignalrData);
+        }
+
+        public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
+        {
+            public EndpointThatUsesSignalR()
+            {
+                EndpointSetup<DefaultServerWithoutAudit>();
+            }
+
+            class SignalrStarter : IWantToRunWhenBusStartsAndStops
+            {
+                private readonly MyContext context;
+                Connection connection;
+
+                public SignalrStarter(MyContext context)
+                {
+                    this.context = context;
+                    connection = new Connection(string.Format("http://localhost:{0}/api/messagestream", context.SCPort));
+                }
+
+                public void Start()
+                {
+                    var serializerSettings = new JsonSerializerSettings
+                    {
+                        ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
+                        Formatting = Formatting.None,
+                        NullValueHandling = NullValueHandling.Ignore,
+                        Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
+                    };
+
+                    connection.JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(serializerSettings);
+                    connection.Received += ConnectionOnReceived;
+
+                    while (true)
+                    {
+                        try
+                        {
+                            connection.Start().Wait();
+                            break;
+                        }
+                        catch (AggregateException ex)
+                        {
+                            var exception = ex.GetBaseException();
+                            var webException = exception as WebException;
+
+                            if (webException == null)
+                            {
+                                continue;
+                            }
+                            var statusCode = ((HttpWebResponse)webException.Response).StatusCode;
+                            if (statusCode != HttpStatusCode.NotFound && statusCode != HttpStatusCode.ServiceUnavailable)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                private void ConnectionOnReceived(string s)
+                {
+                    if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
+                    {
+                        context.SignalrData = s;
+                        context.SignalrEventReceived = true;
+                    }
+                }
+
+                public void Stop()
+                {
+                    connection.Stop();
+                }
+            }
+        }
+
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver()
@@ -148,6 +244,10 @@
                     return DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
                 }
             }
+
+            public int SCPort { get; set; }
+            public bool SignalrEventReceived { get; set; }
+            public string SignalrData { get; set; }
         }
     }
 }
