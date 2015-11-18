@@ -1,8 +1,13 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Globalization;
     using System.Linq;
+    using System.Net;
+    using System.Text.RegularExpressions;
     using Contexts;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -14,8 +19,10 @@
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.SignalR;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using Microsoft.AspNet.SignalR.Client;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
@@ -103,6 +110,117 @@
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/endpoint/" + context.EndpointNameOfReceivingEndpoint), "Should contain the api url to retrieve additional details about the endpoint where the message failed");
         }
 
+        [Test]
+        public void Should_raise_a_signalr_event()
+        {
+            var context = new MyContext
+            {
+                SCPort = port
+            };
+
+            Scenario.Define(context)
+                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<Receiver>()
+                .WithEndpoint<EndpointThatUsesSignalR>()
+                .Done(c => c.SignalrEventReceived)
+                .Run();
+
+            Assert.IsNotNull(context.SignalrData);
+        }
+
+        public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
+        {
+            public EndpointThatUsesSignalR()
+            {
+                EndpointSetup<DefaultServerWithoutAudit>()
+                    .AddMapping<MyMessage>(typeof(Receiver));
+            }
+
+            class SignalRStarter : IWantToRunWhenBusStartsAndStops
+            {
+                const string pattern = @"\{
+\s*""message"": \{
+\s*""total"": 1,
+\s*""raised_at"": ""\S*""
+\s*\},
+\s*""types"": \[
+\s*""MessageFailuresUpdated""
+\s*\]
+\}";
+                private readonly MyContext context;
+                private readonly IBus bus;
+                private Connection connection;
+                private Regex dataRegex = new Regex(pattern, RegexOptions.Multiline | RegexOptions.Compiled);
+
+                public SignalRStarter(MyContext context, IBus bus)
+                {
+                    this.context = context;
+                    this.bus = bus;
+                    connection = new Connection(string.Format("http://localhost:{0}/api/messagestream", context.SCPort));
+                }
+
+                public void Start()
+                {
+                    var serializerSettings = new JsonSerializerSettings
+                    {
+                        ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
+                        Formatting = Formatting.None,
+                        NullValueHandling = NullValueHandling.Ignore,
+                        Converters =
+                        {
+                            new IsoDateTimeConverter
+                            {
+                                DateTimeStyles = DateTimeStyles.RoundtripKind
+                            }
+                        }
+                    };
+
+                    connection.JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(serializerSettings);
+                    connection.Received += ConnectionOnReceived;
+
+                    while (true)
+                    {
+                        try
+                        {
+                            connection.Start().Wait();
+                            break;
+                        }
+                        catch (AggregateException ex)
+                        {
+                            var exception = ex.GetBaseException();
+                            var webException = exception as WebException;
+
+                            if (webException == null)
+                            {
+                                continue;
+                            }
+                            var statusCode = ((HttpWebResponse) webException.Response).StatusCode;
+                            if (statusCode != HttpStatusCode.NotFound && statusCode != HttpStatusCode.ServiceUnavailable)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    bus.Send(new MyMessage());
+                }
+
+                private void ConnectionOnReceived(string s)
+                {
+                    if (dataRegex.IsMatch(s))
+                    {
+                        context.SignalrData = s;
+                        context.SignalrEventReceived = true;
+                    }
+                }
+
+                public void Stop()
+                {
+                    connection.Stop();
+                }
+            }
+        }
+
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver()
@@ -148,6 +266,10 @@
                     return DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
                 }
             }
+
+            public int SCPort { get; set; }
+            public bool SignalrEventReceived { get; set; }
+            public string SignalrData { get; set; }
         }
     }
 }
