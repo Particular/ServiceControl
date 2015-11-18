@@ -4,6 +4,7 @@
     using System.Globalization;
     using System.Linq;
     using System.Net;
+    using System.Text.RegularExpressions;
     using Contexts;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
@@ -119,7 +120,7 @@
 
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
                 .Run();
@@ -131,17 +132,30 @@
         {
             public EndpointThatUsesSignalR()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>()
+                    .AddMapping<MyMessage>(typeof(Receiver));
             }
 
-            class SignalrStarter : IWantToRunWhenBusStartsAndStops
+            class SignalRStarter : IWantToRunWhenBusStartsAndStops
             {
+                const string pattern = @"\{
+\s*""message"": \{
+\s*""total"": 1,
+\s*""raised_at"": ""\S*""
+\s*\},
+\s*""types"": \[
+\s*""MessageFailuresUpdated""
+\s*\]
+\}";
                 private readonly MyContext context;
-                Connection connection;
+                private readonly IBus bus;
+                private Connection connection;
+                private Regex dataRegex = new Regex(pattern, RegexOptions.Multiline | RegexOptions.Compiled);
 
-                public SignalrStarter(MyContext context)
+                public SignalRStarter(MyContext context, IBus bus)
                 {
                     this.context = context;
+                    this.bus = bus;
                     connection = new Connection(string.Format("http://localhost:{0}/api/messagestream", context.SCPort));
                 }
 
@@ -152,7 +166,13 @@
                         ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
                         Formatting = Formatting.None,
                         NullValueHandling = NullValueHandling.Ignore,
-                        Converters = { new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind } }
+                        Converters =
+                        {
+                            new IsoDateTimeConverter
+                            {
+                                DateTimeStyles = DateTimeStyles.RoundtripKind
+                            }
+                        }
                     };
 
                     connection.JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(serializerSettings);
@@ -174,18 +194,20 @@
                             {
                                 continue;
                             }
-                            var statusCode = ((HttpWebResponse)webException.Response).StatusCode;
+                            var statusCode = ((HttpWebResponse) webException.Response).StatusCode;
                             if (statusCode != HttpStatusCode.NotFound && statusCode != HttpStatusCode.ServiceUnavailable)
                             {
                                 break;
                             }
                         }
                     }
+
+                    bus.Send(new MyMessage());
                 }
 
                 private void ConnectionOnReceived(string s)
                 {
-                    if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
+                    if (dataRegex.IsMatch(s))
                     {
                         context.SignalrData = s;
                         context.SignalrEventReceived = true;
