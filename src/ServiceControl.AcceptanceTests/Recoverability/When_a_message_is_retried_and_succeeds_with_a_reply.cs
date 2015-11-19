@@ -17,7 +17,7 @@
             var context = new RetryReplyContext();
 
             Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
+                .WithEndpoint<ServiceControlEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<OriginatingEndpoint>(c => c.Given(bus => bus.Send(new OriginalMessage())))
                 .WithEndpoint<ReceivingEndpoint>()
                 .Done(c =>
@@ -37,11 +37,11 @@
                         return false;
                     }
 
-                    return c.Done;
+                    return !string.IsNullOrWhiteSpace(c.ReplyHandledBy);
                 })
                 .Run(TimeSpan.FromMinutes(3));
 
-            Assert.IsTrue(context.Done);
+            Assert.AreEqual("Originating Endpoint", context.ReplyHandledBy, "Reply handled by incorrect endpoint");
         }
 
         class OriginalMessage : IMessage { }
@@ -50,9 +50,21 @@
 
         class RetryReplyContext : ScenarioContext
         {
-            public bool Done { get; set; }
             public bool RetryIssued { get; set; }
             public string UniqueMessageId { get; set; }
+            public string ReplyHandledBy { get; set; }
+        }
+
+        class ServiceControlEndpoint : ManagementEndpoint
+        {
+            public class ReplyHandler : IHandleMessages<ReplyMessage>
+            {
+                public RetryReplyContext Context { get; set; }
+                public void Handle(ReplyMessage message)
+                {
+                    Context.ReplyHandledBy = "Service Control";
+                }
+            }
         }
 
         class OriginatingEndpoint : EndpointConfigurationBuilder
@@ -69,7 +81,7 @@
 
                 public void Handle(ReplyMessage message)
                 {
-                    Context.Done = true;
+                    Context.ReplyHandledBy = "Originating Endpoint";
                 }
             }
         }
@@ -102,6 +114,15 @@
                         throw new Exception("This is still the original attempt");
                     }
                     Bus.Reply(new ReplyMessage());
+                }
+            }
+
+            public class ReplyMessageHandler : IHandleMessages<ReplyMessage>
+            {
+                public RetryReplyContext Context { get; set; }
+                public void Handle(ReplyMessage message)
+                {
+                    Context.ReplyHandledBy = "Receiving Endpoint";
                 }
             }
         }
