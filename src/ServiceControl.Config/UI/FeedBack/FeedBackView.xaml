@@ -18,11 +18,6 @@
         <Style TargetType="{x:Type TextBlock}">
             <Setter Property="FontSize" Value="14" />
         </Style>
-        <Style TargetType="{x:Type CheckBox}">
-            <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Margin" Value="0,5" />
-        </Style>
     </controls:CleanWindow.Resources>
 
     <Grid Margin="15,0">
@@ -76,14 +71,15 @@
                               Foreground="White"
                               Header="YOUR EMAIL ADDRESS (Optional)"
                               Text="{Binding EmailAddress}" />
-
+        
         <CheckBox Grid.Row="5"
                   Margin="0,5"
                   HorizontalAlignment="Left"
-                  Content="Include operating system version and hardware information when sending feedback"
                   FontSize="12"
-                  Foreground="White"
-                  IsChecked="{Binding IncludeSystemInfo}" />
+                  IsChecked="{Binding IncludeSystemInfo}" 
+                  VerticalContentAlignment="Center">
+                <Label Foreground="{StaticResource WhiteBrush}">Include operating system version and hardware information when sending feedback</Label>
+        </CheckBox>
 
         <Grid Grid.Row="6"
               Margin="5"
