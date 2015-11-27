@@ -27,10 +27,22 @@
         
         void CheckMsSqlConnectionString()
         {
+            string[] customKeys = { "Queue Schema" };
+
             try
             {
                 //Check  validity of connection string. This will throw if invalid
-                var builder = new DbConnectionStringBuilder{ConnectionString = instance.ConnectionString};  
+                var builder = new DbConnectionStringBuilder{ConnectionString = instance.ConnectionString};
+
+                //The NSB SQL Transport can have custom key/value pairs in the connection string
+                // that won't make sense to SQL. Remove these from the string we want to validate.
+                foreach (var customKey in customKeys)
+                {
+                    if (builder.ContainsKey(customKey))
+                    {
+                        builder.Remove(customKey);
+                    }
+                }
 
                 //Check that localsystem is not used when integrated security is enabled
                 if (builder.ContainsKey("Integrated Security"))

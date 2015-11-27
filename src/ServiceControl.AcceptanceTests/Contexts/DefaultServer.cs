@@ -16,6 +16,7 @@
     using NServiceBus.Config.ConfigurationSource;
     using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Hosting.Helpers;
+    using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
 
     public class DefaultServer : IEndpointSetupTemplate
     {
@@ -41,8 +42,8 @@
 
             SetupLogging(endpointConfiguration);
 
-            var types = GetTypesScopedByTestClass(endpointConfiguration);
             var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
+            var types = GetTypesScopedByTestClass(transportToUse, endpointConfiguration);
 
             typesToInclude.AddRange(types);
 
@@ -126,13 +127,21 @@
             return rule;
         }
 
-        static IEnumerable<Type> GetTypesScopedByTestClass(EndpointConfiguration endpointConfiguration)
+        static IEnumerable<Type> GetTypesScopedByTestClass(ITransportIntegration transportToUse, EndpointConfiguration endpointConfiguration)
         {
             var assemblies = new AssemblyScanner().GetScannableAssemblies();
 
             var types = assemblies.Assemblies
                 //exclude all test types by default
                                   .Where(a => a != Assembly.GetExecutingAssembly())
+                                  .Where(a =>
+                                  {
+                                      if (a == transportToUse.Type.Assembly)
+                                      {
+                                          return true;
+                                      }
+                                      return !a.GetName().Name.Contains("Transports");
+                                  })
                                   .Where(a => a.GetName().Name != "ServiceControl")
                                   .SelectMany(a => a.GetTypes());
 
