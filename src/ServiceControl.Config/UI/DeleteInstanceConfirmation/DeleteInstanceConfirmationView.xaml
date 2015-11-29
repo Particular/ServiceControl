@@ -18,28 +18,25 @@
         <Style TargetType="{x:Type TextBlock}">
             <Setter Property="FontSize" Value="14" />
         </Style>
-        <Style TargetType="{x:Type CheckBox}">
-            <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Margin" Value="0,5" />
-        </Style>
+
     </controls:CleanWindow.Resources>
 
-    <Grid Margin="40,35">
+    <Grid Margin="40,35,40,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="35" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="8.6" />
+            <RowDefinition Height="56.2"/>
+            <RowDefinition Height="5*" />
         </Grid.RowDefinitions>
 
-        <Border Margin="-40,0"
+        <Border Margin="-40,0,-40.4,0"
                 BorderBrush="{StaticResource Gray20Brush}"
                 BorderThickness="0,0,0,1" />
-        <Grid Margin="0,5">
+        <Grid Margin="0,5,-0.4,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="*" />
@@ -53,7 +50,7 @@
                        Text="{Binding InstanceName}" />
         </Grid>
 
-        <Grid Grid.Row="1" Margin="0,25">
+        <Grid Grid.Row="1" Margin="0,25,-0.4,25.4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="*" />
@@ -71,19 +68,22 @@
                        TextWrapping="Wrap" />
         </Grid>
 
-        <TextBlock Grid.Row="2"
+        <TextBlock Grid.Row="1"
                    FontWeight="Bold"
-                   Text="Optional - remove associated data:" />
-
+                   Text="Optional - remove associated data:" Margin="0,110,-0.4,27.6" Grid.RowSpan="3" />
+        <CheckBox Grid.Row="2"
+                  IsChecked="{Binding RemoveDatabase}" 
+                  VerticalContentAlignment="Center" Margin="0,34.6,-0.4,0.6" Grid.RowSpan="2">
+            <Label Foreground="{StaticResource WhiteBrush}" FontSize="14">Remove associated DB data</Label>
+        </CheckBox>
         <CheckBox Grid.Row="3"
-                  Content="Remove associated DB data"
-                  IsChecked="{Binding RemoveDatabase}" />
-        <CheckBox Grid.Row="4"
-                  Content="Remove associated Logs"
-                  IsChecked="{Binding RemoveLogs}" />
+                  IsChecked="{Binding RemoveLogs}" 
+                  VerticalContentAlignment="Center" Margin="0,27.4,-0.4,0.6" Grid.RowSpan="2">
+            <Label Foreground="{StaticResource WhiteBrush}" FontSize="14" >Remove associated Logs</Label>
+        </CheckBox>
 
-        <Grid Grid.Row="5"
-              Margin="0,25,0,0"
+        <Grid Grid.Row="6"
+              Margin="0,15.6,-0.4,0"
               VerticalAlignment="Top">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -101,9 +101,5 @@
                     IsCancel="True"
                     Style="{StaticResource BasicButton}" />
         </Grid>
-
-        <TextBlock Grid.Row="6"
-                   Foreground="Transparent"
-                   Text="Invisible element to fix WPF layout bug. DO NOT REMOVE" />
     </Grid>
 </controls:CleanWindow>

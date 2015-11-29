@@ -131,7 +131,7 @@
       <HintPath>..\packages\NLog.4.0.1\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.Core, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.5.2.5\lib\net45\NServiceBus.Core.dll</HintPath>
+      <HintPath>..\packages\NServiceBus.5.2.10\lib\net45\NServiceBus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NServiceBus.NLog">
@@ -141,8 +141,9 @@
       <HintPath>..\packages\NServiceBus.Autofac.5.0.0\lib\net45\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NServiceBus.RavenDB">
-      <HintPath>..\packages\NServiceBus.RavenDB.2.2.1\lib\net45\NServiceBus.RavenDB.dll</HintPath>
+    <Reference Include="NServiceBus.RavenDB, Version=2.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.RavenDB.2.2.3\lib\net45\NServiceBus.RavenDB.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Owin">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
@@ -449,7 +450,6 @@
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroup.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\StackTraceParser.cs" />
-    <Compile Include="Recoverability\Retries\DisableCallbackReceiverForRabbit.cs" />
     <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
     <Compile Include="Recoverability\Retries\FailedMessageRetries.cs" />
     <Compile Include="Recoverability\Retries\MessagesSubmittedForRetry.cs" />

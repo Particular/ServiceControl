@@ -16,16 +16,17 @@
     using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Hosting.Helpers;
     using Particular.ServiceControl;
+    using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
 
     public class ManagementEndpointSetup : IEndpointSetupTemplate
     {
         public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
             var builder = new BusConfiguration();
-            builder.TypesToScan(GetTypesScopedByTestClass(endpointConfiguration));
+            var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
+            builder.TypesToScan(GetTypesScopedByTestClass(transportToUse, endpointConfiguration));
             builder.EnableInstallers();
 
-            var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
 
             Action action = () => transportToUse.OnEndpointShutdown(builder.GetSettings().EndpointName());
             builder.GetSettings().Set("CleanupTransport", action);
@@ -49,16 +50,23 @@
             return builder;
         }
 
-        static IEnumerable<Type> GetTypesScopedByTestClass(EndpointConfiguration endpointConfiguration)
+        static IEnumerable<Type> GetTypesScopedByTestClass(ITransportIntegration transportToUse, EndpointConfiguration endpointConfiguration)
         {
             var assemblies = new AssemblyScanner().GetScannableAssemblies();
 
             var types = assemblies.Assemblies
                 //exclude all test types by default
                                   .Where(a => a != Assembly.GetExecutingAssembly())
+                                  .Where(a =>
+                                  {
+                                      if (a == transportToUse.Type.Assembly)
+                                      {
+                                          return true;
+                                      }
+                                      return !a.GetName().Name.Contains("Transports");
+                                  })
                                   .Where(a => !a.GetName().Name.StartsWith("ServiceControl.Plugin"))
                                   .SelectMany(a => a.GetTypes());
-
 
             types = types.Union(GetNestedTypeRecursive(endpointConfiguration.BuilderType.DeclaringType, endpointConfiguration.BuilderType));
 
