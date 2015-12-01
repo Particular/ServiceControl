@@ -29,7 +29,12 @@ namespace ServiceControl.Config.UI.InstanceEdit
             viewModel.ValidationTemplate = validationTemplate;
 
             viewModel.Save = new ReactiveCommand().DoAsync(Save);
-            viewModel.Cancel = Command.Create(() => viewModel.TryClose(false), IsInProgress);
+            viewModel.Cancel = Command.Create(() =>
+            {
+                viewModel.TryClose(false);
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
+            }, IsInProgress);
+
         }
 
         bool IsInProgress()
