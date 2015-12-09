@@ -91,7 +91,29 @@
                     {
                         Logger.DebugFormat("Publishing external event on the bus.");
                     }
-                    Bus.Publish(eventToBePublished);
+
+                    try
+                    {
+                        Bus.Publish(eventToBePublished);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error("Failed dispatching external integration event.", e);
+
+                        var publishedEvent = eventToBePublished;
+                        Bus.Publish<ExternalIntegrationEventFailedToBePublished>(m =>
+                        {
+                            m.EventType = publishedEvent.GetType();
+                            try
+                            {
+                                m.Reason = e.GetBaseException().Message;
+                            }
+                            catch (Exception)
+                            {
+                                m.Reason = "Failed to retrieve reason!";
+                            }
+                        });
+                    }
                 }
                 foreach (var dispatchedEvent in awaitingDispatching)
                 {

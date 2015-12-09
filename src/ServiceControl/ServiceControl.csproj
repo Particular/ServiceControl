@@ -249,6 +249,7 @@
     <Compile Include="CustomChecks\CustomCheckNotifications.cs" />
     <Compile Include="CustomChecks\CustomChecksFeature.cs" />
     <Compile Include="CustomChecks\InternalMessages\ReportCustomCheckResult.cs" />
+    <Compile Include="EventLog\Definitions\ExternalIntegrationEventFailedToBePublishedDefinition.cs" />
     <Compile Include="EventLog\Definitions\FailedMessageGroupArchivedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryFailedDefinition.cs" />
@@ -261,6 +262,7 @@
     <Compile Include="ExternalIntegrations\ExternalIntegrationDispatchRequest.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
     <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
+    <Compile Include="ExternalIntegrations\ExternalIntegrationEventFailedToBePublished.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationsFeature.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckFailedPublisher.cs" />
     <Compile Include="ExternalIntegrations\HeartbeatRestoredPublisher.cs" />
