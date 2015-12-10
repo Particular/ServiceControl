@@ -12,24 +12,33 @@
 
     public class JsonNetSerializer : ISerializer
     {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="JsonNetSerializer" /> class.
-        /// </summary>
-        public JsonNetSerializer()
+        public static JsonSerializerSettings CreateDefault()
         {
-            var serializerSettings = new JsonSerializerSettings
+            return new JsonSerializerSettings
             {
                 ContractResolver = new UnderscoreMappingResolver(),
                 Formatting = Formatting.None,
                 NullValueHandling = NullValueHandling.Ignore,
                 Converters =
                 {
-                    new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}, 
-                    new StringEnumConverter{CamelCaseText = true},
-
+                    new IsoDateTimeConverter
+                    {
+                        DateTimeStyles = DateTimeStyles.RoundtripKind
+                    },
+                    new StringEnumConverter
+                    {
+                        CamelCaseText = true
+                    },
                 }
             };
-            serializer = JsonSerializer.Create(serializerSettings);
+        }
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="JsonNetSerializer" /> class.
+        /// </summary>
+        public JsonNetSerializer()
+        {
+            serializer = JsonSerializer.Create(CreateDefault());
         }
 
         /// <summary>

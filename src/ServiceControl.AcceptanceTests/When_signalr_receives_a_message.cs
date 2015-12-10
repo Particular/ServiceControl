@@ -1,12 +1,9 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Globalization;
     using System.Net;
     using Contexts;
     using Microsoft.AspNet.SignalR.Client;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -31,17 +28,10 @@
                 .WithEndpoint<ManagementEndpointEx>(b => b.AppConfig(PathToAppConfig)
                     .When(_ =>
                     {
-                        var connection = new Connection("http://localhost:33333/api/messagestream");
-
-                        var serializerSettings = new JsonSerializerSettings
+                        var connection = new Connection("http://localhost:33333/api/messagestream")
                         {
-                            ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
-                            Formatting = Formatting.None,
-                            NullValueHandling = NullValueHandling.Ignore,
-                            Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}}
+                            JsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
                         };
-
-                        connection.JsonSerializer = JsonSerializer.Create(serializerSettings);
 
                         while (true)
                         {

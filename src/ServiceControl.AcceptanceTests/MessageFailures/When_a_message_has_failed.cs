@@ -1,13 +1,10 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Globalization;
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
     using Contexts;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -161,21 +158,7 @@
 
                 public void Start()
                 {
-                    var serializerSettings = new JsonSerializerSettings
-                    {
-                        ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
-                        Formatting = Formatting.None,
-                        NullValueHandling = NullValueHandling.Ignore,
-                        Converters =
-                        {
-                            new IsoDateTimeConverter
-                            {
-                                DateTimeStyles = DateTimeStyles.RoundtripKind
-                            }
-                        }
-                    };
-
-                    connection.JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(serializerSettings);
+                    connection.JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
                     connection.Received += ConnectionOnReceived;
 
                     while (true)

@@ -297,6 +297,7 @@
     <Compile Include="Infrastructure\PeriodicExecutor.cs" />
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
+    <Compile Include="Infrastructure\SignalR\SerializationSettingsFactoryForSignalR.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\IFailedMessageEnricher.cs" />
