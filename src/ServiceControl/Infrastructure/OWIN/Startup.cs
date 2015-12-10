@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
     using Microsoft.Owin;
@@ -12,8 +11,6 @@
     using ServiceControl.Infrastructure.SignalR;
     using Autofac;
     using Microsoft.AspNet.SignalR.Json;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using JsonNetSerializer = Microsoft.AspNet.SignalR.Json.JsonNetSerializer;
 
     public class Startup
@@ -50,20 +47,7 @@
 
             GlobalHost.DependencyResolver = resolver;
 
-            var serializerSettings = new JsonSerializerSettings
-            {
-                ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR(),
-                Formatting = Formatting.None,
-                NullValueHandling = NullValueHandling.Ignore,
-                Converters =
-                {
-                    new IsoDateTimeConverter
-                    {
-                        DateTimeStyles = DateTimeStyles.RoundtripKind
-                    }
-                }
-            };
-            var jsonSerializer = new JsonNetSerializer(serializerSettings);
+            var jsonSerializer = new JsonNetSerializer(SerializationSettingsFactoryForSignalR.CreateDefault());
             GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => jsonSerializer);
         }
     }

@@ -32,7 +32,6 @@
 
         public class MyContext : ScenarioContext
         {
-            public string CustomCheckId { get; set; }
         }
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
