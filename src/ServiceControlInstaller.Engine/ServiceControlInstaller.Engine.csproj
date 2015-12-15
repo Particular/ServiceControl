@@ -107,7 +107,7 @@
     <Compile Include="FileSystem\FileUtils.cs" />
     <Compile Include="FileSystem\NonLockingFileReader.cs" />
     <Compile Include="Validation\IContainInstancePaths.cs" />
-    <Compile Include="Validation\IContainQueueNames.cs" />
+    <Compile Include="Validation\IContainTransportInfo.cs" />
     <Compile Include="Validation\PathsValidator.cs" />
     <Compile Include="ILogging.cs" />
     <Compile Include="Validation\PortValidator.cs" />

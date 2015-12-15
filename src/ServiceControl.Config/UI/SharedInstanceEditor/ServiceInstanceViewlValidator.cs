@@ -28,11 +28,15 @@ namespace ServiceControl.Config.Validation
         }
 
         // We need this to ignore the instance that represents the edit screen
-        protected List<string> UsedQueueNames(TransportInfo transportInfo = null, string instanceName = null)
+        protected List<string> UsedQueueNames(TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
         {
             var transport = (transportInfo == null) ? string.Empty : transportInfo.Name;
-            var instancesByTransport = ServiceControlInstances.Where(p => p.TransportPackage.Equals(transport, StringComparison.OrdinalIgnoreCase)).ToList();
-            return instancesByTransport.Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName).SelectMany(p => new[]
+            var instancesByTransport = ServiceControlInstances.Where(p => (p.TransportPackage.Equals(transport, StringComparison.OrdinalIgnoreCase)) &&
+                            (string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase))).ToList();
+
+            return instancesByTransport
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .SelectMany(p => new[]
                 {
                     p.ErrorLogQueue,
                     p.ErrorQueue,
@@ -85,14 +89,13 @@ namespace ServiceControl.Config.Validation
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
                 .When(x => x.SubmitAttempted);
-            
 
             RuleFor(x => x.ErrorQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")
-                .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
-                .NotEqual(x => x.AuditForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding")
-                .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName)).WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Queue names")
+                .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit")
+                .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Error Forwarding")
+                .NotEqual(x => x.AuditForwardingQueueName).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit Forwarding")
+                .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .MustNotContainWhitespace()
                 .When(x => x.SubmitAttempted);
 
@@ -101,7 +104,7 @@ namespace ServiceControl.Config.Validation
                 .NotEqual(x => x.ErrorQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error")
                 .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")
                 .NotEqual(x => x.AuditForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding")
-                .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName)).WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Queue names")
+                .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .MustNotContainWhitespace()
                 .When(x => x.SubmitAttempted);
 
@@ -110,7 +113,7 @@ namespace ServiceControl.Config.Validation
                 .NotEqual(x => x.ErrorQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error")
                 .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
                 .NotEqual(x => x.AuditForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding")
-                 .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName)).WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Queue names")
+                .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .MustNotContainWhitespace()
                 .When(x => x.SubmitAttempted);
 
@@ -119,7 +122,7 @@ namespace ServiceControl.Config.Validation
                 .NotEqual(x => x.ErrorQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error")
                 .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")
                 .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
-                .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName)).WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Queue names")
+                .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .MustNotContainWhitespace()
                 .When(x => x.SubmitAttempted);
         }

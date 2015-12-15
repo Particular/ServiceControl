@@ -2,10 +2,9 @@
 {
     using ServiceControlInstaller.Engine.Validation;
 
-    public interface IServiceControlInstance : IContainPort, IContainInstancePaths, IContainQueueNames, IServiceAccount
+    public interface IServiceControlInstance : IContainPort, IContainInstancePaths, IContainTransportInfo, IServiceAccount
     {
         string Name { get; }
-        string ConnectionString { get; }
         string VirtualDirectory { get; }
         bool ForwardAuditMessages { get; }
         string HostName { get; }

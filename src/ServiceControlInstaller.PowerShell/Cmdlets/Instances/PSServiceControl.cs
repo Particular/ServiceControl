@@ -6,7 +6,7 @@ namespace ServiceControlInstaller.PowerShell
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
 
-    public class PsServiceControl :  IContainPort, IContainInstancePaths, IContainQueueNames
+    public class PsServiceControl :  IContainPort, IContainInstancePaths, IContainTransportInfo
     {
         public static PsServiceControl FromInstance(ServiceControlInstance instance)
         {
