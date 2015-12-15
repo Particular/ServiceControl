@@ -118,7 +118,7 @@ namespace ServiceControl.Config.Validation
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.AuditForwardingQueueName).NotEmpty()
-                .NotEmpty().When(t => t.AuditForwarding.Value)
+                .NotEmpty().When(t => t.AuditForwarding != null)
                 .NotEqual(x => x.ErrorQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error")
                 .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")
                 .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
