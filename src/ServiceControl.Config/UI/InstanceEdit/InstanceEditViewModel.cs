@@ -32,7 +32,7 @@
             // instance.VirtualDirectory
             AuditForwardingQueueName = instance.AuditLogQueue;
             AuditQueueName = instance.AuditQueue;
-            AuditForwarding = instance.ForwardAuditMessages;
+            AuditForwarding = AuditForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardAuditMessages);
             ErrorQueueName = instance.ErrorQueue;
             ErrorForwardingQueueName = instance.ErrorLogQueue;
             SelectedTransport = Transports.First(t => StringComparer.InvariantCultureIgnoreCase.Equals(t.Name, instance.TransportPackage));

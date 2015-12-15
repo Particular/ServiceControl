@@ -8,10 +8,10 @@
     using ServiceControl.Config.Validation;
     using ServiceControlInstaller.Engine.Instances;
 
-    public class BoolDisplayObject
+    public class AuditForwardingOption
     {
         public string Name { get; set; }
-        public bool? Value { get; set; }
+        public bool Value { get; set; }
     }
 
     public class SharedInstanceEditorViewModel : RxProgressScreen
@@ -24,6 +24,11 @@
         public SharedInstanceEditorViewModel()
         {
             Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
+            AuditForwardingOptions = new[]
+            {
+                new AuditForwardingOption { Name = "On", Value = true },
+                new AuditForwardingOption { Name = "Off", Value = false }
+            };
         }
 
         [DoNotNotify]
@@ -73,21 +78,12 @@
         public string ErrorQueueName { get; set; }
         public string ErrorForwardingQueueName { get; set; }
         public string AuditQueueName { get; set; }
-        public bool? AuditForwarding { get; set; }
         public string AuditForwardingQueueName { get; set; }
 
-        public IEnumerable<BoolDisplayObject> ComboItems
-        {
-            get
-            {
-                return new[]
-                {
-                    new BoolDisplayObject() { Name = "On", Value = true },
-                    new BoolDisplayObject() { Name = "Off", Value = false }
-                };
-            }
-        }
+        public AuditForwardingOption AuditForwarding { get; set; }
 
+        public IEnumerable<AuditForwardingOption> AuditForwardingOptions{ get; private set;}
+        
         public IEnumerable<TransportInfo> Transports { get; private set; }
 
         [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]
@@ -102,7 +98,11 @@
         }
 
         public string ConnectionString { get; set; }
+        
+        // ReSharper disable once UnusedMember.Global
         public string SampleConnectionString { get { return SelectedTransport != null ? SelectedTransport.SampleConnectionString : ""; } }
+        
+        // ReSharper disable once UnusedMember.Global
         public bool ShowConnectionString { get { return SelectedTransport != null && !string.IsNullOrEmpty(SelectedTransport.SampleConnectionString); } }
 
         public string LogPath { get; set; }
