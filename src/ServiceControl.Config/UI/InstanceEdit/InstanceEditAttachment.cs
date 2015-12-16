@@ -71,7 +71,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.VirtualDirectory = null;
             instance.AuditLogQueue = viewModel.AuditForwardingQueueName;
             instance.AuditQueue = viewModel.AuditQueueName;
-            instance.ForwardAuditMessages = viewModel.AuditForwarding ?? false;
+            instance.ForwardAuditMessages = viewModel.AuditForwarding.Value;
             instance.ErrorQueue = viewModel.ErrorQueueName;
             instance.ErrorLogQueue = viewModel.ErrorForwardingQueueName;
             instance.TransportPackage = viewModel.SelectedTransport.Name;

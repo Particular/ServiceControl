@@ -130,10 +130,8 @@
                 <controls:FormComboBox HorizontalAlignment="Stretch"
                                        DisplayMemberPath="Name"
                                        Header="AUDIT FORWARDING"
-                                       ItemsSource="{Binding ComboItems}"
-                                       SelectedValue="{Binding AuditForwarding,
-                                                               Mode=TwoWay}"
-                                       SelectedValuePath="Value" />
+                                       SelectedValue="{Binding AuditForwarding}"
+                                       ItemsSource="{Binding AuditForwardingOptions}" />
                 <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME"
                                       Text="{Binding AuditForwardingQueueName}"
                                       ToolTip="The audit forwarding queue will be created even if Audit Forwarding is not enabled." />

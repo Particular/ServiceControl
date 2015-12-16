@@ -7,11 +7,12 @@
 
     internal class QueueNameValidator
     {
-        internal List<IContainQueueNames> instances;
+        internal List<IContainTransportInfo> instances;
         List<QueueInfo> queues;
 
         class QueueInfo
         {
+            public string ConnectionString { get; set; }
             public string PropertyName { get; set; }
             public string QueueName { get; set; }
         }
@@ -20,7 +21,7 @@
         {
             var validator = new QueueNameValidator(instance)
             {
-                instances = ServiceControlInstance.Instances().Where(p => p.TransportPackage.Equals(instance.TransportPackage, StringComparison.OrdinalIgnoreCase)).AsEnumerable<IContainQueueNames>().ToList()
+                instances = ServiceControlInstance.Instances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage, StringComparison.OrdinalIgnoreCase)).AsEnumerable<IContainTransportInfo>().ToList()
             };
             validator.RunValidation();
         }
@@ -29,39 +30,43 @@
         {
             var validator = new QueueNameValidator(instance)
             {
-                instances = ServiceControlInstance.Instances().Where(p => p.Name != instance.Name  & p.TransportPackage.Equals(instance.TransportPackage, StringComparison.OrdinalIgnoreCase)).AsEnumerable<IContainQueueNames>().ToList()
+                instances = ServiceControlInstance.Instances().Where(p => p.Name != instance.Name  & p.TransportPackage.Equals(instance.TransportPackage, StringComparison.OrdinalIgnoreCase)).AsEnumerable<IContainTransportInfo>().ToList()
             };
             validator.RunValidation();
         }
 
-        internal QueueNameValidator(IContainQueueNames instance)
+        internal QueueNameValidator(IContainTransportInfo instance)
         {
-            DetermineQueueNames(instance.AuditQueue, instance.ErrorQueue, instance.AuditLogQueue, instance.ErrorLogQueue, instance.TransportPackage);
+            DetermineQueueNames(instance.AuditQueue, instance.ErrorQueue, instance.AuditLogQueue, instance.ErrorLogQueue, instance.ConnectionString);
         }
 
-        void DetermineQueueNames(string audit, string error, string auditLog, string errorLog, string transport)
+        void DetermineQueueNames(string audit, string error, string auditLog, string errorLog, string connectionString)
         {
             var auditQueueInfo = new QueueInfo
             {
                 PropertyName = "AuditQueue",
+                ConnectionString = connectionString,
                 QueueName = string.IsNullOrWhiteSpace(audit) ? "audit" : audit
             };
 
             var errorQueueInfo = new QueueInfo
             {
                 PropertyName = "ErrorQueue",
+                ConnectionString = connectionString,
                 QueueName = string.IsNullOrWhiteSpace(error) ? "error" : error
             };
 
             var auditLogQueueInfo = new QueueInfo
             {
                 PropertyName = "AuditLogQueue",
+                ConnectionString = connectionString,
                 QueueName = string.IsNullOrWhiteSpace(auditLog) ? audit + "log" : auditLog
             };
 
             var errorLogQueueInfo = new QueueInfo
             {
                 PropertyName = "ErrorLogQueue",
+                ConnectionString = connectionString,
                 QueueName = string.IsNullOrWhiteSpace(errorLog) ? error + "log" : errorLog
             };
 
@@ -76,11 +81,11 @@
 
         void RunValidation()
         {
-            CheckQueueNamesAreUnique();
+            CheckQueueNamesAreUniqueWithinInstance();
             CheckQueueNamesAreNotTakenByAnotherInstance();
         }
 
-        internal void CheckQueueNamesAreUnique()
+        internal void CheckQueueNamesAreUniqueWithinInstance()
         {
             if (queues.Select(p => p.QueueName.ToLower()).Distinct().Count() != queues.Count)
             {
@@ -95,16 +100,17 @@
             {
                 allQueues.AddRange(new QueueNameValidator(instance).queues);
             }
-            var uniqueQueueNames = allQueues.Select(p => p.QueueName.ToLower()).Distinct().ToList();
-            var duplicates = queues.Where(queue => uniqueQueueNames.Contains(queue.QueueName, StringComparer.OrdinalIgnoreCase)).ToList();
+
+            var duplicates = (from queue in queues where allQueues.Any(p => (string.Equals(p.ConnectionString, queue.ConnectionString, StringComparison.OrdinalIgnoreCase)) && (string.Equals(p.QueueName, queue.QueueName, StringComparison.OrdinalIgnoreCase))) select queue.PropertyName).ToList();
+
             if (duplicates.Count == 1)
             {
-                throw new EngineValidationException(string.Format("The queue name for {0} is already assigned to another ServiceControl instance", duplicates[0].PropertyName));
+                throw new EngineValidationException(string.Format("The queue name for {0} is already assigned to another ServiceControl instance", duplicates[0]));
             }
 
             if (duplicates.Count > 1)
             {
-                throw new EngineValidationException(string.Format("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for {0}", string.Join(", ", duplicates.Select(p => p.PropertyName))));
+                throw new EngineValidationException(string.Format("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for {0}", string.Join(", ", duplicates)));
             }
         }
     }

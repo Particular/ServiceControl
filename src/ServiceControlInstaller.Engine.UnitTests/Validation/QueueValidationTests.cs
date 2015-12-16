@@ -9,26 +9,27 @@
     [TestFixture]
     public class QueueValidationTests
     {
-        List<IContainQueueNames> instances;
+        List<IContainTransportInfo> instances;
 
         [SetUp]
         public void Init()
         {
-            var instanceA = new Mock<IContainQueueNames>();
+            var instanceA = new Mock<IContainTransportInfo>();
             instanceA.SetupGet(p => p.TransportPackage).Returns(@"MSMQ");
             instanceA.SetupGet(p => p.AuditQueue).Returns(@"audit");
             instanceA.SetupGet(p => p.AuditLogQueue).Returns(@"auditlog");
             instanceA.SetupGet(p => p.ErrorQueue).Returns(@"error");
             instanceA.SetupGet(p => p.ErrorLogQueue).Returns(@"errorlog");
-
-            var instanceB = new Mock<IContainQueueNames>();
+            
+            var instanceB = new Mock<IContainTransportInfo>();
             instanceB.SetupGet(p => p.TransportPackage).Returns(@"RabbitMQ");
             instanceB.SetupGet(p => p.AuditQueue).Returns(@"RMQaudit");
             instanceB.SetupGet(p => p.AuditLogQueue).Returns(@"RMQauditlog");
             instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
             instanceB.SetupGet(p => p.ErrorLogQueue).Returns(@"RMQerrorlog");
-
-            instances = new List<IContainQueueNames>
+            instanceB.SetupGet(p => p.ConnectionString).Returns(@"afakeconnectionstring");
+            
+            instances = new List<IContainTransportInfo>
             {
                 instanceA.Object,
                 instanceB.Object
@@ -49,9 +50,9 @@
 
             var p = new QueueNameValidator(newInstance)
             {
-                instances = new List<IContainQueueNames>()
+                instances = new List<IContainTransportInfo>()
             };
-            Assert.DoesNotThrow(() => p.CheckQueueNamesAreUnique());
+            Assert.DoesNotThrow(() => p.CheckQueueNamesAreUniqueWithinInstance());
         }
 
         [Test]
@@ -68,10 +69,10 @@
 
             var p = new QueueNameValidator(newInstance)
             {
-                instances = new List<IContainQueueNames>()
+                instances = new List<IContainTransportInfo>()
             };
 
-            var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreUnique());
+            var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreUniqueWithinInstance());
             Assert.That(ex.Message, Is.StringContaining("Each of the queue names specified for a instance should be unique"));
         }
 
@@ -150,6 +151,35 @@
 
             ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
             Assert.That(ex.Message, Is.StringContaining("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
+        }
+
+        [Test]
+        public void EnsureDuplicateQueueNamesAreAllowedOnSameTransportWithDifferentConnectionString()
+        {
+            var newInstance = new ServiceControlInstanceMetadata
+            {
+                TransportPackage = "RabbitMQ",
+                AuditQueue = "RMQaudit",
+                AuditLogQueue = "RMQauditlog",
+                ErrorQueue = "RMQerror",
+                ErrorLogQueue = "RMQerrorlog",
+                ConnectionString = "afakeconnectionstring"
+            };
+
+            var p = new QueueNameValidator(newInstance)
+            {
+                instances = instances
+            };
+            var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
+            Assert.That(ex.Message, Is.StringContaining("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
+
+            newInstance.ConnectionString = "differentconnectionstring";
+            p = new QueueNameValidator(newInstance)
+            {
+                instances = instances
+            };
+            Assert.DoesNotThrow(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
+
         }
     }
 }
