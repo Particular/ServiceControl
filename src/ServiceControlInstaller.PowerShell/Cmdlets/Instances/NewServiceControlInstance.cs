@@ -84,6 +84,8 @@ namespace ServiceControlInstaller.PowerShell
         
         protected override void BeginProcessing()
         {
+            
+
             //Set default values
             HostName = HostName ?? "localhost";
             ErrorQueue = ErrorQueue ?? "error";
@@ -117,6 +119,7 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void ProcessRecord()
         {
+         
             var details = new ServiceControlInstanceMetadata
             {
                 InstallPath = InstallPath,
@@ -131,8 +134,8 @@ namespace ServiceControlInstaller.PowerShell
                 VirtualDirectory = VirtualDirectory,
                 AuditQueue = AuditQueue,
                 ErrorQueue = ErrorQueue,
-                AuditLogQueue = string.IsNullOrWhiteSpace(AuditLogQueue) ? AuditLogQueue : null,
-                ErrorLogQueue = string.IsNullOrWhiteSpace(ErrorLogQueue) ? ErrorLogQueue : null,
+                AuditLogQueue = string.IsNullOrWhiteSpace(AuditLogQueue) ? null : AuditLogQueue,
+                ErrorLogQueue = string.IsNullOrWhiteSpace(ErrorLogQueue) ? null : ErrorLogQueue,
                 ForwardAuditMessages = ForwardAuditMessages.ToBool(),
                 ConnectionString = ConnectionString,
                 TransportPackage = Transport
@@ -140,6 +143,7 @@ namespace ServiceControlInstaller.PowerShell
             
             var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var logger = new PSLogger(Host);
+
             var installer = new UnattendInstaller(logger, zipfolder);
             try
             {
