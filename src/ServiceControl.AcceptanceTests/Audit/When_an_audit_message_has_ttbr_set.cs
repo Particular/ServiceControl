@@ -3,6 +3,7 @@
     using System;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.MessageMutator;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -28,11 +29,14 @@
                     c => c.CustomConfig(config => config.Transactions().Disable())
                           .Given(bus => bus.SendLocal(new MessageWithTtbr()))
                 )
-                .WithEndpoint<LogPeekEndpoint>()
+                .WithEndpoint<LogPeekEndpoint>(
+                    c => c.CustomConfig(config => config.RegisterComponents(components => components.ConfigureComponent<LogPeekEndpoint.MutateIncomingTransportMessages>(DependencyLifecycle.InstancePerCall)))
+                )
                 .Done(c => c.Done)
                 .Run();
 
             Assert.IsTrue(context.Done, "Audited message never made it to Audit Log");
+            Assert.IsTrue(context.TtbrStipped, "TTBR still set");
         }
 
         public class SourceEndpoint : EndpointConfigurationBuilder
@@ -60,18 +64,21 @@
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            public class MessageHandler : IHandleMessages<MessageWithTtbr>
+            public class MutateIncomingTransportMessages : IMutateIncomingTransportMessages
             {
                 readonly MyContext context;
-                IBus Bus { get; set; }
 
-                public MessageHandler(MyContext context)
+                public MutateIncomingTransportMessages(MyContext context)
                 {
                     this.context = context;
                 }
 
-                public void Handle(MessageWithTtbr message)
+                public void MutateIncoming(TransportMessage transportMessage)
                 {
+                    context.TtbrStipped = true;
+                    // MSMQ gives incoming messages a magic value so we can't compare against MaxValue
+                    // context.TtbrStipped = transportMessage.TimeToBeReceived == TimeSpan.MaxValue;
+
                     context.Done = true;
                 }
             }
@@ -87,6 +94,7 @@
         public class MyContext : ScenarioContext
         {
             public bool Done { get; set; }
+            public bool TtbrStipped { get; set; }
         }
     }
 }
