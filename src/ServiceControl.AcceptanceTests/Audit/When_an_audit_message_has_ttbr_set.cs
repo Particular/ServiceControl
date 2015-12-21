@@ -77,7 +77,8 @@
                 {
                     context.TtbrStipped = true;
                     // MSMQ gives incoming messages a magic value so we can't compare against MaxValue
-                    // context.TtbrStipped = transportMessage.TimeToBeReceived == TimeSpan.MaxValue;
+                    // Ensure that the TTBR given is greater than the 10:00:00 configured
+                    context.TtbrStipped = transportMessage.TimeToBeReceived > TimeSpan.Parse("10:00:00");
 
                     context.Done = true;
                 }
