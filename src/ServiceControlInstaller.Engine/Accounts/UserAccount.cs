@@ -27,7 +27,12 @@
             }
         }
 
-        
+        // ReSharper disable once InconsistentNaming
+        static string LocalizedNTAuthority()
+        {
+            var localSystem = new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null);
+            return localSystem.Translate(typeof(NTAccount)).Value.Split('\\')[0];
+        }
 
         public string RetrieveProfilePath()
         {
@@ -54,7 +59,8 @@
 
         public bool CheckPassword(string password)
         {
-            if (Domain.Equals("NT AUTHORITY", StringComparison.OrdinalIgnoreCase))
+
+            if (Domain.Equals(LocalizedNTAuthority(), StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
@@ -75,10 +81,8 @@
                 null,
                 "system",
                 "local system",
-                "system",
                 "localsystem"
             };
-
             
             var userAccount = new UserAccount();
             if (systemAliases.Contains(accountName, StringComparer.OrdinalIgnoreCase))
@@ -106,7 +110,7 @@
                 userAccount.DisplayName = parts[1];    
             }
 
-            if (!userAccount.Domain.Equals("NT AUTHORITY", StringComparison.OrdinalIgnoreCase))
+            if (!userAccount.Domain.Equals(LocalizedNTAuthority(), StringComparison.OrdinalIgnoreCase))
             {
                 if (!userAccount.SID.IsAccountSid())
                 {
