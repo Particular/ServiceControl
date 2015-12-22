@@ -68,14 +68,9 @@
 
             if (Settings.ForwardAuditMessages == true)
             {
-                CleanMessageForAuditLog(message);
+                TransportMessageCleaner.CleanForForwarding(message);
                 Forwarder.Send(message, new SendOptions(Settings.AuditLogQueue));
             }
-        }
-
-        void CleanMessageForAuditLog(TransportMessage message)
-        {
-            message.TimeToBeReceived = TimeSpan.MaxValue;
         }
 
         Type[] behavioursToAddFirst = new[] { typeof(RavenUnitOfWorkBehavior) };

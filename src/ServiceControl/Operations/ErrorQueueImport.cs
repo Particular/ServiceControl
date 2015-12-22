@@ -66,6 +66,7 @@
                 PipelineExecutor.InvokePipeline(behaviors, context);
             }
 
+            TransportMessageCleaner.CleanForForwarding(message);
             Forwarder.Send(message, new SendOptions(Settings.ErrorLogQueue));
         }
 
