@@ -57,9 +57,8 @@
 
                 public void Start()
                 {
-                    var id = Guid.NewGuid().ToString();
-                    context.MessageId = id;
-                    var message = new TransportMessage(id, null);
+                    var message = new TransportMessage();
+                    context.MessageId = message.Id;
                     message.Headers[Headers.ProcessingEndpoint] = "Error.SourceEndpoint";
                     message.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName;
                     message.Headers["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened";
@@ -98,6 +97,12 @@
 
                 public void MutateIncoming(TransportMessage transportMessage)
                 {
+                    if (transportMessage.Id == Guid.Empty.ToString("N"))
+                    {
+                        // This is the forwarding smoke test
+                        return;
+                    }
+
                     if (transportMessage.Id == context.MessageId)
                     {
                         // MSMQ gives incoming messages a magic value so we can't compare against MaxValue
