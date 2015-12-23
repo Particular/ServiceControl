@@ -26,7 +26,7 @@
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
-                .Run();
+                .Run(TimeSpan.FromMinutes(2));
 
             Assert.True(context.SignalrData.IndexOf("\"severity\": \"error\",") > 0);
         }
@@ -36,6 +36,7 @@
             public bool SignalrEventReceived { get; set; }
             public int SCPort { get; set; }
             public string SignalrData { get; set; }
+            public bool SignalRConnected { get; set; }
         }
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
@@ -68,6 +69,7 @@
                         try
                         {
                             connection.Start().Wait();
+                            context.SignalRConnected = true;
                             break;
                         }
                         catch (AggregateException ex)
@@ -123,7 +125,7 @@
 
                 public override CheckResult PerformCheck()
                 {
-                    if ((Interlocked.Increment(ref counter) / 10) % 2 == 0)
+                    if ((Interlocked.Increment(ref counter) / 5) % 2 == 1)
                     {
                         return CheckResult.Failed("fail!");
                     }

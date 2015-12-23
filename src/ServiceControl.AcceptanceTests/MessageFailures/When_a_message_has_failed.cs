@@ -79,7 +79,7 @@
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c => TryGetSingle("/api/messages", out failure,m=>m.MessageId == c.MessageId))
-                .Run();
+                .Run(TimeSpan.FromMinutes(2));
 
             Assert.AreEqual(context.UniqueMessageId, failure.Id, "The unique id should be returned");
             
@@ -166,11 +166,14 @@
                         try
                         {
                             connection.Start().Wait();
+                            context.SignalRConnected = true;
                             break;
                         }
                         catch (AggregateException ex)
                         {
                             var exception = ex.GetBaseException();
+                            Console.WriteLine(exception.Message);
+                            Console.WriteLine(exception.StackTrace);
                             var webException = exception as WebException;
 
                             if (webException == null)
@@ -253,6 +256,7 @@
             public int SCPort { get; set; }
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
+            public bool SignalRConnected { get; set; }
         }
     }
 }
