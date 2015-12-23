@@ -172,6 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audit\Audit_Messages_Have_Proper_IsSystemMessage_Tests.cs" />
+    <Compile Include="Audit\When_an_audit_message_has_ttbr_set.cs" />
     <Compile Include="Audit\When_a_message_has_been_successfully_processed_from_sendonly.cs" />
     <Compile Include="Audit\Audit_Messages_That_Big_Bodies_Audit_Test.cs">
       <SubType>Code</SubType>
@@ -201,6 +202,7 @@
     <Compile Include="MessageFailures\ErrorImportPerformanceTests.cs" />
     <Compile Include="MessageFailures\Is_System_Message_Tests.cs" />
     <Compile Include="MessageFailures\When_all_messages_are_retried.cs" />
+    <Compile Include="MessageFailures\When_an_error_message_has_ttbr_set.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed_from_send_only_endpoint.cs" />
     <Compile Include="MessageFailures\When_a_invalid_id_is_sent_to_retry.cs" />

@@ -68,6 +68,7 @@
 
             if (Settings.ForwardAuditMessages == true)
             {
+                TransportMessageCleaner.CleanForForwarding(message);
                 Forwarder.Send(message, new SendOptions(Settings.AuditLogQueue));
             }
         }
