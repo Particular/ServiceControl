@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Threading.Tasks;
     using Nancy;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -9,22 +10,22 @@ namespace ServiceControl.Recoverability
     {
         public FailureGroupsRetryApi()
         {
-            Post["/recoverability/groups/{groupId}/errors/retry"] =
-                parameters => RetryAllGroupErrors(parameters.GroupId);
+            Post["/recoverability/groups/{groupId}/errors/retry", true] =
+                async (parameters, ct) => await RetryAllGroupErrors(parameters.GroupId);
         }
 
-        dynamic RetryAllGroupErrors(string groupId)
+        async Task<dynamic> RetryAllGroupErrors(string groupId)
         {
             if (String.IsNullOrWhiteSpace(groupId))
             {
                 return HttpStatusCode.BadRequest;
             }
 
-            Bus.SendLocal<RetryAllInGroup>(m => m.GroupId = groupId);
+            await BusSession.SendLocal<RetryAllInGroup>(m => m.GroupId = groupId);
 
             return HttpStatusCode.Accepted;
         }
 
-        public IBus Bus { get; set; }
+        public IBusSession BusSession { get; set; }
     }
 }

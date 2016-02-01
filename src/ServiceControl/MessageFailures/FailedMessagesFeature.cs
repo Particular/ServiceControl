@@ -14,22 +14,22 @@
         public FailedMessagesFeature()
         {
             EnableByDefault();
-            RegisterStartupTask<WireUpFailedMessageNotifications>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            context.RegisterStartupTask(builder => builder.Build<WireUpFailedMessageNotifications>());
             context.Container.ConfigureComponent<FailedMessageViewIndexNotifications>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<DetectSuccessfullRetriesEnricher>(DependencyLifecycle.SingleInstance);
         }
 
         class DetectSuccessfullRetriesEnricher : ImportEnricher
         {
-            IBus bus;
+            IBusSession busSession;
 
-            public DetectSuccessfullRetriesEnricher(IBus bus)
+            public DetectSuccessfullRetriesEnricher(IBusSession busSession)
             {
-                this.bus = bus;
+                this.busSession = busSession;
             }
 
             public override void Enrich(ImportMessage message)
@@ -56,12 +56,12 @@
 
                 if (isOldRetry)
                 {
-                    bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = message.UniqueMessageId);
+                    busSession.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = message.UniqueMessageId);
                 }
 
                 if (isNewRetry)
                 {
-                    bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = newRetryMessageId);
+                    busSession.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = newRetryMessageId);
                 }
             }
         }

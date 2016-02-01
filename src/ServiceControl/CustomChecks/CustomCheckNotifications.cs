@@ -9,9 +9,9 @@
 
     class CustomCheckNotifications : IObserver<IndexChangeNotification>
     {
-        public CustomCheckNotifications(IDocumentStore store, IBus bus)
+        public CustomCheckNotifications(IDocumentStore store, IBusSession busSession)
         {
-            this.bus = bus;
+            this.busSession = busSession;
             this.store = store;
         }
 
@@ -35,10 +35,10 @@
                 if (lastCount == failedCustomCheckCount)
                     return;
                 lastCount = failedCustomCheckCount;
-                bus.Publish(new CustomChecksUpdated
+                busSession.Publish(new CustomChecksUpdated
                 {
                     Failed = lastCount
-                });
+                }).GetAwaiter().GetResult();
             }
         }
 
@@ -52,7 +52,7 @@
             //Ignore
         }
 
-        IBus bus;
+        IBusSession busSession;
         IDocumentStore store;
         int lastCount;
         ILog logging = LogManager.GetLogger(typeof(CustomCheckNotifications));

@@ -27,7 +27,7 @@ namespace ServiceControl.Recoverability
         readonly ISendMessages sender;
         CaptureIfMessageSendingFails faultManager;
 
-        public ReturnToSenderDequeuer(ISendMessages sender, IDocumentStore store, IBus bus, Configure configure)
+        public ReturnToSenderDequeuer(ISendMessages sender, IDocumentStore store, IBusSession busSession, Configure configure)
         {
             this.sender = sender;
 
@@ -43,7 +43,7 @@ namespace ServiceControl.Recoverability
                 }
             };
 
-            faultManager = new CaptureIfMessageSendingFails(store, bus, executeOnFailure);
+            faultManager = new CaptureIfMessageSendingFails(store, busSession, executeOnFailure);
             timer = new Timer(state => StopInternal());
             InputAddress = Address.Parse(configure.Settings.EndpointName()).SubScope("staging");
         }
@@ -161,13 +161,13 @@ namespace ServiceControl.Recoverability
         {
             static ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
             private IDocumentStore store;
-            private IBus bus;
+            private IBusSession busSession;
             readonly Action executeOnFailure;
 
-            public CaptureIfMessageSendingFails(IDocumentStore store, IBus bus, Action executeOnFailure)
+            public CaptureIfMessageSendingFails(IDocumentStore store, IBusSession busSession, Action executeOnFailure)
             {
                 this.store = store;
-                this.bus = bus;
+                this.busSession = busSession;
                 this.executeOnFailure = executeOnFailure;
             }
 
@@ -200,7 +200,7 @@ namespace ServiceControl.Recoverability
                         session.SaveChanges();
                     }
 
-                    bus.Publish<MessagesSubmittedForRetryFailed>(m =>
+                    busSession.Publish<MessagesSubmittedForRetryFailed>(m =>
                     {
                         m.FailedMessageId = messageUniqueId;
                         m.Destination = destination;
@@ -213,7 +213,7 @@ namespace ServiceControl.Recoverability
                             m.Reason = "Failed to retrieve reason!";
                         }
 
-                    });
+                    }).GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {

@@ -18,19 +18,19 @@ namespace ServiceControl.HeartbeatMonitoring
         public HeartbeatsMonitor()
         {
             EnableByDefault();
-            RegisterStartupTask<StatusInitialiser>();
-            RegisterStartupTask<HeartbeatMonitor>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            context.RegisterStartupTask(builder => builder.Build<StatusInitialiser>());
+            context.RegisterStartupTask(builder => builder.Build<HeartbeatMonitor>());
             context.Container.ConfigureComponent<HeartbeatStatusProvider>(DependencyLifecycle.SingleInstance)
                         .ConfigureProperty(p => p.GracePeriod, Settings.HeartbeatGracePeriod);
         }
 
         class HeartbeatMonitor : FeatureStartupTask
         {
-            public IBus Bus { get; set; }
+            public IBusSession BusSession { get; set; }
 
             public HeartbeatStatusProvider HeartbeatStatusProvider { get; set; }
 
@@ -71,12 +71,12 @@ namespace ServiceControl.HeartbeatMonitoring
                 {
                     var id = DeterministicGuid.MakeId(failingEndpoint.Details.Name, failingEndpoint.Details.HostId.ToString());
 
-                    Bus.SendLocal(new RegisterPotentiallyMissingHeartbeats
+                    BusSession.SendLocal(new RegisterPotentiallyMissingHeartbeats
                     {
                         EndpointInstanceId = id,
                         DetectedAt = now,
                         LastHeartbeatAt = failingEndpoint.LastHeartbeatAt
-                    });
+                    }).GetAwaiter().GetResult();
                 }
             }
 
