@@ -5,6 +5,7 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.Net;
     using System.ServiceProcess;
+    using System.Threading.Tasks;
     using Autofac;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.SignalR;
@@ -23,7 +24,9 @@ namespace Particular.ServiceControl
     {
         public static IContainer Container { get; set; }
 
-        public IStartableBus Bus { get; private set; }
+        public IEndpointInstance EndpointInstance { get; private set; }
+
+        IStartableEndpoint startableEnpoint;
 
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
@@ -50,24 +53,27 @@ namespace Particular.ServiceControl
 
             configuration.UseSerialization<JsonSerializer>();
 
-            configuration.Transactions()
-                .DisableDistributedTransactions()
-                .DoNotWrapHandlersExecutionInATransactionScope();
-            
-            configuration.ScaleOut().UseSingleBrokerQueue();
-            
+            //configuration.Transactions()
+            //    .DisableDistributedTransactions()
+            //    .DoNotWrapHandlersExecutionInATransactionScope();
+
+            // configuration.ScaleOut().UseSingleBrokerQueue();
+
             var transportType = DetermineTransportType();
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
             configuration.EndpointName(Settings.ServiceName);
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(Container));
-            configuration.UseTransport(transportType);
-            configuration.DefineCriticalErrorAction((s, exception) =>
+            configuration.UseTransport(transportType).Transactions(TransportTransactionMode.None);
+
+            configuration.DefineCriticalErrorAction(context =>
             {
                 if (host != null)
                 {
                     host.Stop();
                 }
+
+                return Task.FromResult(0);
             });
 
             if (Environment.UserInteractive && Debugger.IsAttached)
@@ -75,7 +81,9 @@ namespace Particular.ServiceControl
                 configuration.EnableInstallers();
             }
 
-            Bus = NServiceBus.Bus.Create(configuration);
+            this.startableEnpoint = Endpoint.Create(configuration).GetAwaiter().GetResult();
+                
+                //NServiceBus.Bus.Create(configuration);
 
             Container.Resolve<SubscribeToOwnEvents>().Run();
         }
@@ -100,7 +108,7 @@ namespace Particular.ServiceControl
 
         public void Start()
         {
-             var Logger = LogManager.GetLogger(typeof(Bootstrapper));
+            var Logger = LogManager.GetLogger(typeof(Bootstrapper));
             if (Settings.MaintenanceMode)
             {
                 Logger.InfoFormat("RavenDB is now accepting requests on {0}", Settings.StorageUrl);
@@ -110,13 +118,16 @@ namespace Particular.ServiceControl
                 }
                 return;
             }
-            
-            Bus.Start();
+
+            EndpointInstance = startableEnpoint.Start().GetAwaiter().GetResult();
         }
 
         public void Stop()
         {
-            Bus.Dispose();
+            if (EndpointInstance != null)
+            {
+                EndpointInstance.Stop();
+            }
         }
 
         static void ConfigureLogging()
@@ -157,7 +168,7 @@ namespace Particular.ServiceControl
             nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "NServiceBus.RavenDB.Persistence.*"));
             nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "NServiceBus.Licensing.*"));
             nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Info, "Particular.ServiceControl.Licensing.*"));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget)); 
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
             nlogConfig.AddTarget("console", consoleTarget);
 
             NLog.LogManager.Configuration = nlogConfig;
@@ -174,13 +185,13 @@ namespace Particular.ServiceControl
 
             rule.Filters.Add(new ConditionBasedFilter
             {
-                Action = FilterResult.Ignore, 
+                Action = FilterResult.Ignore,
                 Condition = string.Format("level < LogLevel.{0}", logLevel.Name)
             });
 
             return rule;
         }
-   
+
         string DetermineServiceName(ServiceBase host, HostArguments hostArguments)
         {
             //if Arguments not null then bootstrapper was run from installer so use servicename passed to the installer

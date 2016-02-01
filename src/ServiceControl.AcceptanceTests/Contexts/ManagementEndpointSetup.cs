@@ -40,7 +40,7 @@
 
             configurationBuilderCustomization(builder);
 
-            var startableBus = new Bootstrapper(configuration: builder).Bus;
+            var startableBus = new Bootstrapper(configuration: builder).EndpointInstance;
 
             LogManager.Configuration = SetupLogging(endpointConfiguration);
 

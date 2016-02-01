@@ -35,12 +35,13 @@ namespace ServiceControl.HeartbeatMonitoring
             public HeartbeatStatusProvider HeartbeatStatusProvider { get; set; }
 
 
-            protected override void OnStart()
+            protected override Task OnStart(IBusSession session)
             {
                 timer = new Timer(Refresh, null, 0, -1);
+                Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IBusSession session)
             {
                 using (var manualResetEvent = new ManualResetEvent(false))
                 {
@@ -48,6 +49,8 @@ namespace ServiceControl.HeartbeatMonitoring
 
                     manualResetEvent.WaitOne();
                 }
+
+                Task.FromResult(0);
             }
 
             void Refresh(object _)
@@ -94,17 +97,20 @@ namespace ServiceControl.HeartbeatMonitoring
                 this.store = store;
                 this.statusProvider = statusProvider;
             }
-            protected override void OnStart()
+            protected override Task OnStart(IBusSession session)
             {
                 task = Task.Factory.StartNew(Initialise);
+                return Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IBusSession session)
             {
                 if (task != null && !task.IsCompleted)
                 {                   
                     task.Wait();
                 }
+
+                return Task.FromResult(0);
             }
 
             void Initialise()

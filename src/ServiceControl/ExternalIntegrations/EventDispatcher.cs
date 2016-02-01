@@ -6,7 +6,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
-    using NServiceBus.CircuitBreakers;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -19,7 +18,7 @@
         public IEnumerable<IEventPublisher> EventPublishers { get; set; }
         public CriticalError CriticalError { get; set; }
 
-        protected override void OnStart()
+        protected override Task OnStart(IBusSession session)
         {
             tokenSource = new CancellationTokenSource();
             circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventDispatcher",
@@ -27,6 +26,8 @@
                 ex => CriticalError.Raise("Repeated failures when dispatching external integration events.", ex),
                 TimeSpan.FromSeconds(20));
             StartDispatcher();
+
+            return Task.FromResult(0);
         }
 
         void StartDispatcher()
@@ -50,9 +51,10 @@
                 }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        protected override void OnStop()
+        protected override Task OnStop(IBusSession session)
         {
             tokenSource.Cancel();
+            return Task.FromResult(0);
         }
 
         private void DispatchEvents(CancellationToken token)

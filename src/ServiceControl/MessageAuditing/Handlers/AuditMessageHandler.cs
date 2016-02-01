@@ -14,6 +14,8 @@
             var auditMessage = new ProcessedMessage(message);
 
             Session.Store(auditMessage);
+
+            return Task.FromResult(0);
         }
     }
 }
