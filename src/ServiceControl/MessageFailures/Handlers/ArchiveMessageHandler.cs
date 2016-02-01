@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System;
+    using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using InternalMessages;
     using NServiceBus;
@@ -10,9 +11,7 @@
     {
         public IDocumentSession Session { get; set; }
 
-        public IBus Bus { get; set; }
-
-        public void Handle(ArchiveMessage message)
+        public async Task Handle(ArchiveMessage message, IMessageHandlerContext context)
         {
             var failedMessage = Session.Load<FailedMessage>(new Guid(message.FailedMessageId));
 
@@ -25,7 +24,7 @@
             {
                 failedMessage.Status = FailedMessageStatus.Archived;
 
-                Bus.Publish<FailedMessageArchived>(m=>m.FailedMessageId = message.FailedMessageId);
+                await context.Publish<FailedMessageArchived>(m=>m.FailedMessageId = message.FailedMessageId);
             }
         }
     }

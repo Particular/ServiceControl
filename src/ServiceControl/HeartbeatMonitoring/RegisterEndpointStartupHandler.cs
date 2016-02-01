@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
+    using System.Threading.Tasks;
     using Contracts.EndpointControl;
     using Contracts.Operations;
     using NServiceBus;
@@ -9,11 +10,10 @@
     class RegisterEndpointStartupHandler : IHandleMessages<RegisterEndpointStartup>
     {
         public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
 
-        public void Handle(RegisterEndpointStartup message)
+        public Task Handle(RegisterEndpointStartup message, IMessageHandlerContext context)
         {
-            Bus.Publish<EndpointStarted>(e =>
+            return context.Publish<EndpointStarted>(e =>
             {
                 e.EndpointDetails = new EndpointDetails
                 {

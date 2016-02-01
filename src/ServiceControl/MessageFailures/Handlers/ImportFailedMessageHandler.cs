@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
@@ -10,11 +11,10 @@
     class ImportFailedMessageHandler : IHandleMessages<ImportFailedMessage>
     {
         public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
         
-        public IEnumerable<IFailedMessageEnricher> Enrichers { get; set; } 
+        public IEnumerable<IFailedMessageEnricher> Enrichers { get; set; }
 
-        public void Handle(ImportFailedMessage message)
+        public async Task Handle(ImportFailedMessage message, IMessageHandlerContext context)
         {
             var documentId = FailedMessage.MakeDocumentId(message.UniqueMessageId);
 
@@ -58,7 +58,7 @@
             string failedMessageId;
             if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
             {
-                Bus.Publish<MessageFailedRepeatedly>(m =>
+                await context.Publish<MessageFailedRepeatedly>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
                     m.EndpointId = message.FailingEndpointId;
@@ -67,7 +67,7 @@
             }
             else
             {
-                Bus.Publish<MessageFailed>(m =>
+                await context.Publish<MessageFailed>(m =>
                 {
                     m.FailureDetails = message.FailureDetails;
                     m.EndpointId = message.FailingEndpointId;

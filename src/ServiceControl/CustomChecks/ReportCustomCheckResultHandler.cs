@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
+    using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using Contracts.Operations;
     using Infrastructure;
@@ -11,9 +12,8 @@
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
         public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
 
-        public void Handle(ReportCustomCheckResult message)
+        public async Task Handle(ReportCustomCheckResult message, IMessageHandlerContext context)
         {
             if (string.IsNullOrEmpty(message.EndpointName))
             {
@@ -66,7 +66,7 @@
             {
                 if (message.HasFailed)
                 {
-                    Bus.Publish<CustomCheckFailed>(m =>
+                    await context.Publish<CustomCheckFailed>(m =>
                     {
                         m.Id = id;
                         m.CustomCheckId = message.CustomCheckId;
@@ -78,7 +78,7 @@
                 }
                 else
                 {
-                    Bus.Publish<CustomCheckSucceeded>(m =>
+                    await context.Publish<CustomCheckSucceeded>(m =>
                     {
                         m.Id = id;
                         m.CustomCheckId = message.CustomCheckId;

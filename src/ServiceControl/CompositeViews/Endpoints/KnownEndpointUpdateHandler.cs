@@ -1,6 +1,7 @@
 namespace ServiceControl.CompositeViews.Endpoints
 {
     using System;
+    using System.Threading.Tasks;
     using EndpointControl;
     using EndpointControl.Contracts;
     using NServiceBus;
@@ -10,9 +11,7 @@ namespace ServiceControl.CompositeViews.Endpoints
     {
         public IDocumentSession Session { get; set; }
 
-        public IBus Bus { get; set; }
-
-        public void Handle(EnableEndpointMonitoring message)
+        public Task Handle(EnableEndpointMonitoring message, IMessageHandlerContext context)
         {
             var knownEndpoint = Session.Load<KnownEndpoint>(message.EndpointId);
 
@@ -25,14 +24,14 @@ namespace ServiceControl.CompositeViews.Endpoints
 
             Session.Store(knownEndpoint);
 
-            Bus.Publish(new MonitoringEnabledForEndpoint
+            return context.Publish(new MonitoringEnabledForEndpoint
             {
                 EndpointInstanceId = message.EndpointId,
                 Endpoint = knownEndpoint.EndpointDetails
             });
         }
 
-        public void Handle(DisableEndpointMonitoring message)
+        public Task Handle(DisableEndpointMonitoring message, IMessageHandlerContext context)
         {
             var knownEndpoint = Session.Load<KnownEndpoint>(message.EndpointId);
 
@@ -45,7 +44,7 @@ namespace ServiceControl.CompositeViews.Endpoints
 
             Session.Store(knownEndpoint);
 
-            Bus.Publish(new MonitoringDisabledForEndpoint
+            return context.Publish(new MonitoringDisabledForEndpoint
             {
                 EndpointInstanceId = message.EndpointId,
                 Endpoint = knownEndpoint.EndpointDetails

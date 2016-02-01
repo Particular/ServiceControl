@@ -2,18 +2,17 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
-    using NServiceBus.Transports;
     using Raven.Client;
 
     public class EventMappingHandler : IHandleMessages<IEvent>
     {
-        public ISendMessages MessageSender { get; set; }
         public IDocumentSession Session { get; set; }
-        public IEnumerable<IEventPublisher> EventPublishers { get; set; } 
+        public IEnumerable<IEventPublisher> EventPublishers { get; set; }
 
-        public void Handle(IEvent message)
+        public Task Handle(IEvent message, IMessageHandlerContext context)
         {
             var dispatchContexts = EventPublishers
                 .Where(p => p.Handles(message))
@@ -31,6 +30,8 @@
                 };
                 Session.Store(dispatchRequest);    
             }
+
+            return Task.Delay(0);
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(EventMappingHandler));

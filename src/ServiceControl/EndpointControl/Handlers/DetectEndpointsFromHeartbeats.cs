@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.EndpointControl.Handlers
 {
+    using System.Threading.Tasks;
     using Infrastructure;
     using InternalMessages;
     using NServiceBus;
@@ -7,17 +8,15 @@
 
     class DetectEndpointsFromHeartbeats : IHandleMessages<HeartbeatingEndpointDetected>
     {
-        public IBus Bus { get; set; }
-
         public KnownEndpointsCache KnownEndpointsCache { get; set; }
 
-        public void Handle(HeartbeatingEndpointDetected message)
+        public async Task Handle(HeartbeatingEndpointDetected message, IMessageHandlerContext context)
         {
             var id = DeterministicGuid.MakeId(message.Endpoint.Name, message.Endpoint.HostId.ToString());
 
             if (KnownEndpointsCache.TryAdd(id))
             {
-                Bus.SendLocal(new RegisterEndpoint
+                await context.SendLocal(new RegisterEndpoint
                 {
                     EndpointInstanceId = id,
                     Endpoint = message.Endpoint,

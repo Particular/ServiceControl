@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
+    using System.Threading.Tasks;
     using Contracts.HeartbeatMonitoring;
     using EndpointControl.Contracts;
     using NServiceBus;
@@ -12,9 +13,8 @@
 
         public IDocumentSession Session { get; set; }
 
-        public IBus Bus { get; set; }
 
-        public void Handle(MonitoringDisabledForEndpoint message)
+        public Task Handle(MonitoringDisabledForEndpoint message, IMessageHandlerContext context)
         {
             // The user could be disabling an endpoint that had the heartbeats plugin, or not.
             // Check to see if the endpoint had associated heartbeat.
@@ -24,7 +24,7 @@
                 if (heartbeat.Disabled)
                 {
                     Logger.InfoFormat("Heartbeat monitoring for endpoint {0} is already disabled", message.EndpointInstanceId);
-                    return;
+                    return Task.FromResult(0);
                 }
                 heartbeat.Disabled = true;
                 Session.Store(heartbeat);
@@ -35,7 +35,7 @@
             }
 
             StatusProvider.DisableMonitoring(message.Endpoint);
-            Bus.Publish(new HeartbeatMonitoringDisabled
+            return context.Publish(new HeartbeatMonitoringDisabled
             {
                 EndpointInstanceId = message.EndpointInstanceId
             });

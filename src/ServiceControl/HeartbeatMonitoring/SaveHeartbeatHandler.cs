@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
+    using System.Threading.Tasks;
     using Contracts.HeartbeatMonitoring;
     using Contracts.Operations;
     using Infrastructure;
@@ -12,10 +13,9 @@
     class SaveHeartbeatHandler : IHandleMessages<EndpointHeartbeat>
     {
         public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
         public HeartbeatStatusProvider HeartbeatStatusProvider { get; set; }
 
-        public void Handle(EndpointHeartbeat message)
+        public async Task Handle(EndpointHeartbeat message, IMessageHandlerContext context)
         {
             if (string.IsNullOrEmpty(message.EndpointName))
             {
@@ -74,7 +74,7 @@
 
             if (isNew) // New endpoint heartbeat
             {
-                Bus.Publish(new HeartbeatingEndpointDetected
+                await context.Publish(new HeartbeatingEndpointDetected
                 {
                     Endpoint = heartbeat.EndpointDetails,
                     DetectedAt = heartbeat.LastReportAt,
@@ -84,7 +84,7 @@
             if (heartbeat.ReportedStatus == Status.Dead)
             {
                 heartbeat.ReportedStatus = Status.Beating;
-                Bus.Publish(new EndpointHeartbeatRestored
+                await context.Publish(new EndpointHeartbeatRestored
                 {
                     Endpoint = heartbeat.EndpointDetails,
                     RestoredAt = heartbeat.LastReportAt

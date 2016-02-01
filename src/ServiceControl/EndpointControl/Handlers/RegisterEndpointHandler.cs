@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading.Tasks;
     using CompositeViews.Endpoints;
     using Infrastructure;
     using InternalMessages;
@@ -12,9 +13,8 @@
     public class RegisterEndpointHandler : IHandleMessages<RegisterEndpoint>
     {
         public IDocumentStore Store { get; set; }
-        public IBus Bus { get; set; }
 
-        public void Handle(RegisterEndpoint message)
+        public async Task Handle(RegisterEndpoint message, IMessageHandlerContext context)
         {
             var id = message.EndpointInstanceId;
 
@@ -44,7 +44,7 @@
                 if (knownEndpoint == null)
                 {
                     //new endpoint
-                    Bus.Publish(new NewEndpointDetected
+                    await context.Publish(new NewEndpointDetected
                     {
                         Endpoint = message.Endpoint,
                         DetectedAt = message.DetectedAt

@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using EndpointPlugin.Messages.SagaState;
     using NServiceBus;
     using Raven.Client;
@@ -10,7 +11,7 @@
     {
         public IDocumentSession Session { get; set; }
 
-        public void Handle(SagaUpdatedMessage message)
+        public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
         {
             var sagaHistory = Session.Load<SagaHistory>(message.SagaId) ?? new SagaHistory
             {
@@ -50,6 +51,8 @@
             AddResultingMessages(message.ResultingMessages, sagaStateChange);
 
             Session.Store(sagaHistory);
+
+            return Task.FromResult(0);
         }
 
         static InitiatingMessage CreateInitiatingMessage(SagaChangeInitiator initiator)

@@ -1,29 +1,32 @@
 namespace ServiceControl.Recoverability
 {
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using Raven.Client;
 
     public class RetryAllInGroupHandler : IHandleMessages<RetryAllInGroup>
     {
-        public void Handle(RetryAllInGroup message)
+        public Task Handle(RetryAllInGroup message, IMessageHandlerContext context)
         {
             if (Retries == null)
             {
-                return;
+                return Task.FromResult(0);
             }
 
             var group = Session.Query<FailureGroupView, FailureGroupsViewIndex>()
                                .FirstOrDefault(x => x.Id == message.GroupId);
 
-            string context = null;
+            string title = null;
 
             if (group != null && group.Title != null)
             {
-                context = group.Title;
+                title = group.Title;
             }
 
-            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(x => x.FailureGroupId == message.GroupId, context);
+            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(x => x.FailureGroupId == message.GroupId, title);
+
+            return Task.FromResult(0);
         }
 
         public RetriesGateway Retries { get; set; }
