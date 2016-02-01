@@ -54,18 +54,18 @@
             }
         }
 
-        static Address GetAuditLogQueue()
+        static string GetAuditLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
             if (value == null)
             {
                 Logger.Info("No settings found for audit log queue to import, default name will be used");
-                return AuditQueue.SubScope("log");
+                return AuditQueue + "." + "log";
             }
-            return Address.Parse(value);
+            return value;
         }
 
-        static Address GetAuditQueue()
+        static string GetAuditQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
 
@@ -73,12 +73,12 @@
             {
                 Logger.Warn(
                     "No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
-                return Address.Undefined;
+                return null;
             }
-            return Address.Parse(value);
+            return value;
         }
 
-        static Address GetErrorQueue()
+        static string GetErrorQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
 
@@ -86,22 +86,22 @@
             {
                 Logger.Warn(
                     "No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
-                return Address.Undefined;
+                return null;
             }
-            return Address.Parse(value);
+            return value;
         }
 
 
-        static Address GetErrorLogQueue()
+        static string GetErrorLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
 
             if (value == null)
             {
                 Logger.Info("No settings found for error log queue to import, default name will be used");
-                return ErrorQueue.SubScope("log");
+                return ErrorQueue + "." + "log";
             }
-            return Address.Parse(value);
+            return value;
         }
 
         static string GetDbPath()
@@ -149,12 +149,12 @@
         public static int MaximumMessageThroughputPerSecond = SettingsReader<int>.Read("MaximumMessageThroughputPerSecond", 350);
 
         public static string DbPath;
-        public static Address ErrorLogQueue;
-        public static Address ErrorQueue;
-        public static Address AuditQueue;
+        public static string ErrorLogQueue;
+        public static string ErrorQueue;
+        public static string AuditQueue;
         public static bool? ForwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
-        public static Address AuditLogQueue;
+        public static string AuditLogQueue;
         
         const int ExpirationProcessTimerInSecondsDefault = 600;
         static int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault); 
