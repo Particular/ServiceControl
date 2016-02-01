@@ -40,7 +40,7 @@ namespace Particular.ServiceControl
             if (configuration == null)
             {
                 configuration = new BusConfiguration();
-                configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+                configuration.ExcludeAssemblies("ServiceControl.Plugin");
             }
 
             // Disable Auditing for the service control endpoint
