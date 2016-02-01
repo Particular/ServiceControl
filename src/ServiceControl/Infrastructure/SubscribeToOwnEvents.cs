@@ -2,8 +2,9 @@ namespace ServiceControl.Infrastructure
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Extensibility;
     using NServiceBus.Settings;
     using NServiceBus.Transports;
     using NServiceBus.Unicast.Subscriptions;
@@ -16,27 +17,31 @@ namespace ServiceControl.Infrastructure
             var localAddress = Settings.LocalAddress();
             var eventTypes = Settings.GetAvailableTypes().Implementing<IEvent>();
 
-            if (TransportDefinition.HasNativePubSubSupport)
+            var routingPolicy = TransportDefinition.GetOutboundRoutingPolicy(Settings);
+            if (routingPolicy.Publishes == OutboundRoutingType.Multicast)
             {
-                SubscribeForBrokers(localAddress, eventTypes);
+                SubscribeForBrokers(eventTypes).GetAwaiter().GetResult();
             }
             else
             {
-                SubscribeForNonBrokers(localAddress, eventTypes);
+                SubscribeForNonBrokers(localAddress, eventTypes).GetAwaiter().GetResult();
             }
         }
 
-        void SubscribeForBrokers(Address address, IEnumerable<Type> eventTypes)
+        async Task SubscribeForBrokers(IEnumerable<Type> eventTypes)
         {
             foreach (var eventType in eventTypes)
             {
-                SubscriptionManager.Subscribe(eventType, address);
+                await SubscriptionManager.Subscribe(eventType, new ContextBag()).ConfigureAwait(false);
             }
         }
 
-        void SubscribeForNonBrokers(Address address, IEnumerable<Type> eventTypes)
+        async Task SubscribeForNonBrokers(string address, IEnumerable<Type> eventTypes)
         {
-            SubscriptionStorage.Subscribe(address, eventTypes.Select(e => new MessageType(e)));
+            foreach (var eventType in eventTypes)
+            {
+                await SubscriptionStorage.Subscribe(new Subscriber(address, Settings.EndpointName()), new MessageType(eventType), new ContextBag()).ConfigureAwait(false);
+            }
         }
 
         public IManageSubscriptions SubscriptionManager { get; set; }
