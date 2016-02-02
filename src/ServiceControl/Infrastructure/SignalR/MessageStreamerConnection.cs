@@ -8,16 +8,17 @@
     using Microsoft.AspNet.SignalR;
     using Newtonsoft.Json.Linq;
     using NServiceBus;
+    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
+    using NServiceBus.Routing;
     using NServiceBus.Settings;
     using NServiceBus.Transports;
-    using NServiceBus.Unicast;
 
     public class MessageStreamerConnection : PersistentConnection
     {
-        public MessageStreamerConnection(ISendMessages sender, ReadOnlySettings settings, Conventions conventions)
+        public MessageStreamerConnection(IDispatchMessages dispatcher, ReadOnlySettings settings, Conventions conventions)
         {
-            this.sender = sender;
+            this.dispatcher = dispatcher;
 
             messageTypes = settings.GetAvailableTypes()
                                         .Where(conventions.IsMessageType)
@@ -25,14 +26,7 @@
             localAddress = settings.LocalAddress();
         }
 
-        static Task MakeEmptyTask()
-        {
-            var completionSource = new TaskCompletionSource<object>();
-            completionSource.SetResult(null);
-            return completionSource.Task;
-        }
-
-        protected override Task OnReceived(IRequest request, string connectionId, string data)
+        protected override async Task OnReceived(IRequest request, string connectionId, string data)
         {
             try
             {
@@ -40,14 +34,15 @@
 
                 var jsonMessage = jObject["message"].ToString();
                 var messageType = jObject["type"].ToString();
+                
+                var message = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
+                {
+                    { Headers.EnclosedMessageTypes, MapMessageType(messageType) },
+                    { Headers.ContentType, ContentTypes.Json }
+                }, Encoding.UTF8.GetBytes(jsonMessage));
 
-                var message = new TransportMessage();
-                message.Headers[Headers.EnclosedMessageTypes] = MapMessageType(messageType);
-                message.Body = Encoding.UTF8.GetBytes(jsonMessage);
-
-                sender.Send(message, new SendOptions(localAddress));
-
-                return EmptyTask;
+                var operation = new TransportOperation(message, new UnicastAddressTag(localAddress)); // TODO: Do we require specific consinstency from the transport?
+                await dispatcher.Dispatch(new TransportOperations(operation), new ContextBag()).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -61,10 +56,9 @@
             return messageTypes.Single(t => t.Name == className).AssemblyQualifiedName;
         }
 
-        static readonly Task EmptyTask = MakeEmptyTask();
         static readonly ILog Log = LogManager.GetLogger(typeof(MessageStreamerConnection));
         readonly List<Type> messageTypes;
-        readonly ISendMessages sender;
-        Address localAddress;
+        readonly IDispatchMessages dispatcher;
+        string localAddress;
     }
 }

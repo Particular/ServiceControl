@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.SignalR
 {
     using System.Linq;
+    using System.Threading.Tasks;
     using Microsoft.AspNet.SignalR;
     using NServiceBus;
     using NServiceBus.Unicast.Messages;
@@ -9,13 +10,16 @@
     {
         public MessageMetadataRegistry MessageMetadataRegistry { get; set; }
 
-        public void Handle(IEvent @event)
+        public Task Handle(IEvent message, IMessageHandlerContext context)
         {
-            var metadata = MessageMetadataRegistry.GetMessageMetadata(@event.GetType());
-            var context = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
+            var metadata = MessageMetadataRegistry.GetMessageMetadata(message.GetType());
+            var connectionContext = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
 
-            context.Connection.Broadcast(new Envelope { Types = metadata.MessageHierarchy.Select(t=>t.Name).ToList(), Message = @event })
-                 .Wait();
+            return connectionContext.Connection.Broadcast(new Envelope
+            {
+                Types = metadata.MessageHierarchy.Select(t => t.Name).ToList(),
+                Message = message
+            });
         }
     }
 }

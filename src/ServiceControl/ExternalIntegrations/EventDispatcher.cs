@@ -6,7 +6,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
-    using NServiceBus.CircuitBreakers;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -15,11 +14,11 @@
     public class EventDispatcher : FeatureStartupTask
     {
         public IDocumentStore DocumentStore { get; set; }
-        public IBus Bus { get; set; }
+        public IBusSession BusSession { get; set; }
         public IEnumerable<IEventPublisher> EventPublishers { get; set; }
         public CriticalError CriticalError { get; set; }
 
-        protected override void OnStart()
+        protected override Task OnStart(IBusSession session)
         {
             tokenSource = new CancellationTokenSource();
             circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventDispatcher",
@@ -27,6 +26,8 @@
                 ex => CriticalError.Raise("Repeated failures when dispatching external integration events.", ex),
                 TimeSpan.FromSeconds(20));
             StartDispatcher();
+
+            return Task.FromResult(0);
         }
 
         void StartDispatcher()
@@ -35,7 +36,7 @@
                 .StartNew(() => DispatchEvents(tokenSource.Token), tokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default)
                 .ContinueWith(t =>
                 {
-// ReSharper disable once PossibleNullReferenceException
+                    // ReSharper disable once PossibleNullReferenceException
                     t.Exception.Handle(ex =>
                     {
                         Logger.Error("An exception occurred when dispatching external integration events", ex);
@@ -50,9 +51,10 @@
                 }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        protected override void OnStop()
+        protected override Task OnStop(IBusSession session)
         {
             tokenSource.Cancel();
+            return Task.FromResult(0);
         }
 
         private void DispatchEvents(CancellationToken token)
@@ -94,14 +96,14 @@
 
                     try
                     {
-                        Bus.Publish(eventToBePublished);
+                        BusSession.Publish(eventToBePublished).GetAwaiter().GetResult();
                     }
                     catch (Exception e)
                     {
                         Logger.Error("Failed dispatching external integration event.", e);
 
                         var publishedEvent = eventToBePublished;
-                        Bus.Publish<ExternalIntegrationEventFailedToBePublished>(m =>
+                        BusSession.Publish<ExternalIntegrationEventFailedToBePublished>(m =>
                         {
                             m.EventType = publishedEvent.GetType();
                             try
@@ -112,7 +114,7 @@
                             {
                                 m.Reason = "Failed to retrieve reason!";
                             }
-                        });
+                        }).GetAwaiter().GetResult();
                     }
                 }
                 foreach (var dispatchedEvent in awaitingDispatching)

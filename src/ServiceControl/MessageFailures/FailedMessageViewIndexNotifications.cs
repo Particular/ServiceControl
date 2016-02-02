@@ -11,14 +11,14 @@
 
     class FailedMessageViewIndexNotifications : IObserver<IndexChangeNotification>
     {
-        IBus bus;
+        IBusSession busSession;
         IDocumentStore store;
         int lastCount;
         ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
 
-        public FailedMessageViewIndexNotifications(IDocumentStore store, IBus bus)
+        public FailedMessageViewIndexNotifications(IDocumentStore store, IBusSession busSession)
         {
-            this.bus = bus;
+            this.busSession = busSession;
             this.store = store;
         }
 
@@ -52,10 +52,10 @@
                 if (lastCount == failedMessageCount)
                     return;
                 lastCount = failedMessageCount;
-                bus.Publish(new MessageFailuresUpdated
+                busSession.Publish(new MessageFailuresUpdated
                 {
                     Total = failedMessageCount
-                });
+                }).GetAwaiter().GetResult();
             }
         }
     }

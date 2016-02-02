@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System.Threading.Tasks;
     using NServiceBus;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.MessageFailures.InternalMessages;
@@ -8,19 +9,17 @@ namespace ServiceControl.Recoverability
     // Once these messages have been cleared out it is no longer required
     public class RetryHandlerForBackwardsCompatability : IHandleMessages<RegisterSuccessfulRetry>, IHandleMessages<PerformRetry>
     {
-        public void Handle(RegisterSuccessfulRetry message)
+        public Task Handle(RegisterSuccessfulRetry message, IMessageHandlerContext context)
         {
-            Bus.Publish<MessageFailureResolvedByRetry>(m =>
+            return context.Publish<MessageFailureResolvedByRetry>(m =>
             {
                 m.FailedMessageId = message.FailedMessageId;
             });
         }
 
-        public void Handle(PerformRetry message)
+        public Task Handle(PerformRetry message, IMessageHandlerContext context)
         {
-            Bus.Publish<RetryMessagesById>(m => m.MessageUniqueIds = new [] { message.FailedMessageId });
+            return context.Publish<RetryMessagesById>(m => m.MessageUniqueIds = new [] { message.FailedMessageId });
         }
-
-        public IBus Bus { get; set; }
     }
 }

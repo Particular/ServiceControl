@@ -8,7 +8,7 @@
         public override void Execute(HostArguments args)
         {
             var configuration = new BusConfiguration();
-            configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+            configuration.ExcludeAssemblies("ServiceControl.Plugin");
             configuration.EnableInstallers(args.Username);
             new Bootstrapper(hostArguments: args, configuration:configuration);
         }

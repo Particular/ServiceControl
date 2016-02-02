@@ -4,10 +4,13 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.DeliveryConstraints;
+    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
+    using NServiceBus.Routing;
     using NServiceBus.Transports;
-    using NServiceBus.Unicast;
     using Raven.Client;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
@@ -27,11 +30,11 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender)
+        public RetryProcessor(IBodyStorage bodyStorage, IDispatchMessages sender, IBusSession busSession, ReturnToSenderDequeuer returnToSender)
         {
             this.bodyStorage = bodyStorage;
             this.sender = sender;
-            this.bus = bus;
+            this.busSession = busSession;
             this.returnToSender = returnToSender;
         }
 
@@ -61,7 +64,7 @@ namespace ServiceControl.Recoverability
 
             if (stagingBatch != null)
             {
-                if (Stage(stagingBatch, session))
+                if (Stage(stagingBatch, session).GetAwaiter().GetResult())
                 {
                     session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id }, RetryBatchNowForwarding.Id);
                 }
@@ -98,7 +101,7 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        bool Stage(RetryBatch stagingBatch, IDocumentSession session)
+        async Task<bool> Stage(RetryBatch stagingBatch, IDocumentSession session)
         {
             var stagingId = Guid.NewGuid().ToString();
 
@@ -121,14 +124,14 @@ namespace ServiceControl.Recoverability
 
             foreach (var message in messages)
             {
-                StageMessage(message, stagingId);
+                await StageMessage(message, stagingId).ConfigureAwait(false);
             }
 
-            bus.Publish<MessagesSubmittedForRetry>(m =>
+            await busSession.Publish<MessagesSubmittedForRetry>(m =>
             {
                 m.FailedMessageIds = messages.Select(x => x.UniqueMessageId).ToArray();
                 m.Context = stagingBatch.Context;
-            });
+            }).ConfigureAwait(false);
 
             var msgLookup = messages.ToLookup(x => x.Id);
 
@@ -140,7 +143,7 @@ namespace ServiceControl.Recoverability
             return true;
         }
 
-        void StageMessage(FailedMessage message, string stagingId)
+        async Task StageMessage(FailedMessage message, string stagingId)
         {
             message.Status = FailedMessageStatus.RetryIssued;
 
@@ -157,42 +160,47 @@ namespace ServiceControl.Recoverability
                 headersToRetryWith[Headers.ReplyToAddress] = attempt.ReplyToAddress;
             }
 
-            var transportMessage = new TransportMessage(message.Id, headersToRetryWith)
-            {
-                CorrelationId = attempt.CorrelationId,
-                Recoverable = attempt.Recoverable,
-                MessageIntent = attempt.MessageIntent
-            };
-
+            byte[] body = new byte[0];
             Stream stream;
             if (bodyStorage.TryFetch(attempt.MessageId, out stream))
             {
                 using (stream)
                 {
-                    transportMessage.Body = ReadFully(stream);
+                    body = await ReadFully(stream).ConfigureAwait(false);
                 }
             }
 
-            sender.Send(transportMessage, new SendOptions(returnToSender.InputAddress));
+            var outgoingMessage = new OutgoingMessage(message.Id, headersToRetryWith, body);
+            outgoingMessage.Headers[Headers.CorrelationId] = attempt.CorrelationId;
+            outgoingMessage.Headers[Headers.MessageIntent] = attempt.MessageIntent.ToString();
+            List<DeliveryConstraint> constraints = new List<DeliveryConstraint>();
+            if (!attempt.Recoverable)
+            {
+                constraints.Add(new NonDurableDelivery());
+            }
+
+            var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(returnToSender.InputAddress.ToString()), deliveryConstraints: constraints);
+
+            await sender.Dispatch(new TransportOperations(operation), new ContextBag()).ConfigureAwait(false);
         }
 
-        static byte[] ReadFully(Stream input)
+        static async Task<byte[]> ReadFully(Stream input)
         {
             var buffer = new byte[16 * 1024];
             using (var ms = new MemoryStream())
             {
                 int read;
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                while ((read = await input.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) > 0)
                 {
-                    ms.Write(buffer, 0, read);
+                    await ms.WriteAsync(buffer, 0, read).ConfigureAwait(false);
                 }
                 return ms.ToArray();
             }
         }
 
         IBodyStorage bodyStorage;
-        ISendMessages sender;
-        IBus bus;
+        IDispatchMessages sender;
+        IBusSession busSession;
         ReturnToSenderDequeuer returnToSender;
         bool isRecoveringFromPrematureShutdown = true;
     }

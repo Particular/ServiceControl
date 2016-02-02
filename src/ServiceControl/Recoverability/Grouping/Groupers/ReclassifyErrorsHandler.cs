@@ -19,20 +19,18 @@ namespace ServiceControl.Recoverability
 
     class ReclassifyErrorsHandler : IHandleMessages<ReclassifyErrors>
     {
-        readonly IBus bus;
         readonly IDocumentStore store;
         readonly IEnumerable<IFailureClassifier> classifiers;
         const int BatchSize = 1000;
         int failedMessagesReclassified;
 
-        public ReclassifyErrorsHandler(IBus bus, IDocumentStore store, IEnumerable<IFailureClassifier> classifiers)
+        public ReclassifyErrorsHandler(IDocumentStore store, IEnumerable<IFailureClassifier> classifiers)
         {
-            this.bus = bus;
             this.store = store;
             this.classifiers = classifiers;
         }
 
-        public void Handle(ReclassifyErrors message)
+        public async Task Handle(ReclassifyErrors message, IMessageHandlerContext context)
         {
             using (var session = store.OpenSession())
             {
@@ -68,7 +66,7 @@ namespace ServiceControl.Recoverability
 
             if (failedMessagesReclassified > 0)
             {
-                bus.Publish(new ReclassificationOfErrorMessageComplete
+                await context.Publish(new ReclassificationOfErrorMessageComplete
                 {
                     NumberofMessageReclassified = failedMessagesReclassified
                 });

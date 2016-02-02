@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
@@ -10,7 +11,9 @@ namespace ServiceControl.Recoverability
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
-        public void Handle(ArchiveAllInGroup message)
+        public IDocumentSession Session { get; set; }
+
+        public Task Handle(ArchiveAllInGroup message, IMessageHandlerContext context)
         {
             var query = Session.Query<FailureGroupMessageView, FailedMessages_ByGroup>()
                 .Where(m => m.FailureGroupId == message.GroupId && m.Status == FailedMessageStatus.Unresolved)
@@ -33,7 +36,8 @@ namespace ServiceControl.Recoverability
                         groupName = stream.Current.Document.FailureGroupName;
                     }
 
-                    try { 
+                    try
+                    {
                         Session.Advanced.DocumentStore.DatabaseCommands.Patch(
                             stream.Current.Document.Id,
                             new[]
@@ -53,20 +57,15 @@ namespace ServiceControl.Recoverability
                     {
                         // Ignore concurrency exceptions
                     }
-
-                    
                 }
             }
 
-            Bus.Publish<FailedMessageGroupArchived>(m =>
+            return context.Publish<FailedMessageGroupArchived>(m =>
             {
                 m.GroupId = message.GroupId;
                 m.GroupName = groupName;
                 m.MessageIds = messageIds.ToArray();
             });
         }
-
-        public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
     }
 }

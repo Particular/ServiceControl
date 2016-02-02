@@ -9,27 +9,27 @@
         public FailedMessageClassification()
         {
             EnableByDefault();
-            RegisterStartupTask<ReclassifyErrorsAtStartup>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            context.RegisterStartupTask(builder => builder.Build<ReclassifyErrorsAtStartup>());
             context.Container.ConfigureComponent<ExceptionTypeAndStackTraceMessageGrouper>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<ClassifyFailedMessageEnricher>(DependencyLifecycle.SingleInstance);
         }
 
         class ReclassifyErrorsAtStartup : FeatureStartupTask
         {
-            readonly IBus bus;
+            readonly IBusSession busSession;
 
-            public ReclassifyErrorsAtStartup(IBus bus)
+            public ReclassifyErrorsAtStartup(IBusSession busSession)
             {
-                this.bus = bus;
+                this.busSession = busSession;
             }
 
             protected override void OnStart()
             {
-                bus.SendLocal(new ReclassifyErrors());
+                busSession.SendLocal(new ReclassifyErrors()).GetAwaiter().GetResult();
             }
         }
     }

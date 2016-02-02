@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System.Linq;
+    using System.Threading.Tasks;
     using Nancy;
     using NServiceBus;
     using Raven.Client;
@@ -14,12 +15,12 @@ namespace ServiceControl.Recoverability
 
     public class FailureGroupsApi : BaseModule
     {
-        public IBus Bus { get; set; }
+        public IBusSession BusSession { get; set; }
 
         public FailureGroupsApi()
         {
-            Post["/recoverability/groups/reclassify"] = 
-                _ => ReclassifyErrors();
+            Post["/recoverability/groups/reclassify", true] = 
+                async (_, ct) => await ReclassifyErrors();
 
             Get["/recoverability/groups"] =
                 _ => GetAllGroups();
@@ -28,9 +29,9 @@ namespace ServiceControl.Recoverability
                 parameters => GetGroupErrors(parameters.GroupId);
         }
 
-        dynamic ReclassifyErrors()
+        async Task<dynamic> ReclassifyErrors()
         {
-            Bus.SendLocal(new ReclassifyErrors());
+            await BusSession.SendLocal(new ReclassifyErrors());
 
             return HttpStatusCode.Accepted;
         }

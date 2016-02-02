@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System.Threading.Tasks;
     using NServiceBus;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.MessageFailures;
@@ -14,7 +15,7 @@ namespace ServiceControl.Recoverability
         public RetriesGateway Retries { get; set; }
         public RetryDocumentManager RetryDocumentManager { get; set; }
 
-        public void Handle(RequestRetryAll message)
+        public Task Handle(RequestRetryAll message, IMessageHandlerContext context)
         {
             if (message.Endpoint != null)
             {
@@ -24,21 +25,26 @@ namespace ServiceControl.Recoverability
             {
                 Retries.StartRetryForIndex<FailedMessage, FailedMessageViewIndex>(context: "all messages");
             }
+
+            return Task.FromResult(0);
         }
 
-        public void Handle(RetryMessagesById message)
+        public Task Handle(RetryMessagesById message, IMessageHandlerContext context)
         {
             Retries.StageRetryByUniqueMessageIds(message.MessageUniqueIds);
+            return Task.FromResult(0);
         }
 
-        public void Handle(RetryMessage message)
+        public Task Handle(RetryMessage message, IMessageHandlerContext context)
         {
             Retries.StageRetryByUniqueMessageIds(new [] { message.FailedMessageId });
+            return Task.FromResult(0);
         }
 
-        public void Handle(MessageFailedRepeatedly message)
+        public Task Handle(MessageFailedRepeatedly message, IMessageHandlerContext context)
         {
             RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+            return Task.FromResult(0);
         }
     }
 }

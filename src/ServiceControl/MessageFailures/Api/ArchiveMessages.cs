@@ -10,11 +10,11 @@
 
     public class ArchiveMessages : BaseModule
     {
-        public IBus Bus { get; set; }
+        public IBusSession BusSession { get; set; }
 
         public ArchiveMessages()
         {
-            Patch["/errors/archive"] = _ =>
+            Patch["/errors/archive", true] = async (_, ct) =>
             {
                 var ids = this.Bind<List<string>>();
 
@@ -27,13 +27,13 @@
                 {
                     var request = new ArchiveMessage { FailedMessageId = id };
 
-                    Bus.SendLocal(request); 
+                    await BusSession.SendLocal(request); 
                 }
 
                 return HttpStatusCode.Accepted;
             };
 
-            Patch["/errors/{messageid}/archive"] = parameters =>
+            Patch["/errors/{messageid}/archive", true] = async (parameters, ct) =>
             {
                 var failedMessageId = parameters.MessageId;
 
@@ -42,7 +42,7 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                Bus.SendLocal<ArchiveMessage>(m =>
+                await BusSession.SendLocal<ArchiveMessage>(m =>
                 {
                     m.FailedMessageId = failedMessageId;
                 });

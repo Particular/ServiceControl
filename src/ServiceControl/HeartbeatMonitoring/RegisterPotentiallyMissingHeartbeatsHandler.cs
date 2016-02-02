@@ -1,5 +1,6 @@
 namespace ServiceControl.HeartbeatMonitoring
 {
+    using System.Threading.Tasks;
     using Contracts.HeartbeatMonitoring;
     using InternalMessages;
     using NServiceBus;
@@ -9,10 +10,9 @@ namespace ServiceControl.HeartbeatMonitoring
     class RegisterPotentiallyMissingHeartbeatsHandler : IHandleMessages<RegisterPotentiallyMissingHeartbeats>
     {
         public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
         public HeartbeatStatusProvider StatusProvider { get; set; }
 
-        public void Handle(RegisterPotentiallyMissingHeartbeats message)
+        public async Task Handle(RegisterPotentiallyMissingHeartbeats message, IMessageHandlerContext context)
         {
             var heartbeat = Session.Load<Heartbeat>(message.EndpointInstanceId);
 
@@ -36,7 +36,7 @@ namespace ServiceControl.HeartbeatMonitoring
 
             heartbeat.ReportedStatus = Status.Dead;
 
-            Bus.Publish(new EndpointFailedToHeartbeat
+            await context.Publish(new EndpointFailedToHeartbeat
             {
                 Endpoint = heartbeat.EndpointDetails,
                 LastReceivedAt = heartbeat.LastReportAt,

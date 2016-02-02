@@ -14,11 +14,13 @@
         public ApiFeature()
         {
             EnableByDefault();
-            RegisterStartupTask<ConfigureSignalR>();
-            RegisterStartupTask<BootstrapApi>();
         }
 
-        protected override void Setup(FeatureConfigurationContext context) { }
+        protected override void Setup(FeatureConfigurationContext context)
+        {
+            context.RegisterStartupTask(builder => builder.Build<ConfigureSignalR>());
+            context.RegisterStartupTask(builder => builder.Build<BootstrapApi>());
+        }
 
         class ConfigureSignalR : FeatureStartupTask
         {

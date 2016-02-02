@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.EventLog
 {
+    using System.Threading.Tasks;
     using Contracts.EventLog;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -13,9 +14,8 @@
     {
         public EventLogMappings EventLogMappings { get; set; }
         public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
 
-        public void Handle(IEvent message)
+        public async Task Handle(IEvent message, IMessageHandlerContext context)
         {
             //to prevent a infinite loop
             if (message is EventLogItemAdded)
@@ -28,12 +28,12 @@
             }
 
             Logger.InfoFormat("Event: {0} emitted", message.GetType().Name);
-            var messageId = Bus.GetMessageHeader(message, Headers.MessageId);
+            var messageId = context.MessageHeaders[Headers.MessageId];
             var logItem = EventLogMappings.ApplyMapping(messageId, message);
 
             Session.Store(logItem);
 
-            Bus.Publish<EventLogItemAdded>(m =>
+            await context.Publish<EventLogItemAdded>(m =>
             {
                 m.RaisedAt = logItem.RaisedAt;
                 m.Severity = logItem.Severity;

@@ -8,11 +8,12 @@ namespace ServiceControl.ExternalIntegrations
         public ExternalIntegrationsFeature()
         {
             EnableByDefault();
-            RegisterStartupTask<EventDispatcher>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            context.RegisterStartupTask(builder => builder.Build<EventDispatcher>());
+
             var eventPublisherTypes = context.Settings.GetAvailableTypes().Implementing<IEventPublisher>();
 
             foreach (var eventPublisherType in eventPublisherTypes)

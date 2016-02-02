@@ -45,12 +45,12 @@
 
         class DetectNewEndpointsFromImportsEnricher : ImportEnricher
         {
-            IBus bus;
+            IBusSession busSession;
             KnownEndpointsCache knownEndpointsCache;
 
-            public DetectNewEndpointsFromImportsEnricher(IBus bus, KnownEndpointsCache knownEndpointsCache)
+            public DetectNewEndpointsFromImportsEnricher(IBusSession busSession, KnownEndpointsCache knownEndpointsCache)
             {
-                this.bus = bus;
+                this.busSession = busSession;
                 this.knownEndpointsCache = knownEndpointsCache;
             }
 
@@ -101,7 +101,7 @@
                         Endpoint = endpointDetails,
                         DetectedAt = DateTime.UtcNow
                     };
-                    bus.SendLocal(registerEndpoint);
+                    busSession.SendLocal(registerEndpoint).GetAwaiter().GetResult();
                 }
             }
 
@@ -117,7 +117,7 @@
                         Endpoint = endpointDetails,
                         DetectedAt = DateTime.UtcNow
                     };
-                    bus.SendLocal(registerEndpoint);
+                    busSession.SendLocal(registerEndpoint).GetAwaiter().GetResult();
                 }
             }
         }

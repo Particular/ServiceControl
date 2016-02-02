@@ -19,13 +19,13 @@ namespace ServiceControl.CompositeViews.Endpoints
 
     public class GetEndpoints : BaseModule
     {
-        public IBus Bus { get; set; }
+        public IBusSession BusSession { get; set; }
 
         public LicenseStatusKeeper LicenseStatusKeeper { get; set; }
 
         public GetEndpoints()
         {
-            Patch["/endpoints/{id}"] = parameters =>
+            Patch["/endpoints/{id}", true] = async (parameters, ct) =>
             {
                 var data = this.Bind<EndpointUpdateModel>();
                 var endpointId = (Guid) parameters.id;
@@ -46,11 +46,11 @@ namespace ServiceControl.CompositeViews.Endpoints
 
                     if (data.MonitorHeartbeat)
                     {
-                        Bus.SendLocal(new EnableEndpointMonitoring{EndpointId = endpointId});
+                        await BusSession.SendLocal(new EnableEndpointMonitoring{EndpointId = endpointId});
                     }
                     else
                     {
-                        Bus.SendLocal(new DisableEndpointMonitoring { EndpointId = endpointId });
+                        await BusSession.SendLocal(new DisableEndpointMonitoring { EndpointId = endpointId });
                     }
                 }
 

@@ -18,29 +18,30 @@ namespace ServiceControl.HeartbeatMonitoring
         public HeartbeatsMonitor()
         {
             EnableByDefault();
-            RegisterStartupTask<StatusInitialiser>();
-            RegisterStartupTask<HeartbeatMonitor>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            context.RegisterStartupTask(builder => builder.Build<StatusInitialiser>());
+            context.RegisterStartupTask(builder => builder.Build<HeartbeatMonitor>());
             context.Container.ConfigureComponent<HeartbeatStatusProvider>(DependencyLifecycle.SingleInstance)
                         .ConfigureProperty(p => p.GracePeriod, Settings.HeartbeatGracePeriod);
         }
 
         class HeartbeatMonitor : FeatureStartupTask
         {
-            public IBus Bus { get; set; }
+            public IBusSession BusSession { get; set; }
 
             public HeartbeatStatusProvider HeartbeatStatusProvider { get; set; }
 
 
-            protected override void OnStart()
+            protected override Task OnStart(IBusSession session)
             {
                 timer = new Timer(Refresh, null, 0, -1);
+                Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IBusSession session)
             {
                 using (var manualResetEvent = new ManualResetEvent(false))
                 {
@@ -48,6 +49,8 @@ namespace ServiceControl.HeartbeatMonitoring
 
                     manualResetEvent.WaitOne();
                 }
+
+                Task.FromResult(0);
             }
 
             void Refresh(object _)
@@ -71,12 +74,12 @@ namespace ServiceControl.HeartbeatMonitoring
                 {
                     var id = DeterministicGuid.MakeId(failingEndpoint.Details.Name, failingEndpoint.Details.HostId.ToString());
 
-                    Bus.SendLocal(new RegisterPotentiallyMissingHeartbeats
+                    BusSession.SendLocal(new RegisterPotentiallyMissingHeartbeats
                     {
                         EndpointInstanceId = id,
                         DetectedAt = now,
                         LastHeartbeatAt = failingEndpoint.LastHeartbeatAt
-                    });
+                    }).GetAwaiter().GetResult();
                 }
             }
 
@@ -94,17 +97,20 @@ namespace ServiceControl.HeartbeatMonitoring
                 this.store = store;
                 this.statusProvider = statusProvider;
             }
-            protected override void OnStart()
+            protected override Task OnStart(IBusSession session)
             {
                 task = Task.Factory.StartNew(Initialise);
+                return Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IBusSession session)
             {
                 if (task != null && !task.IsCompleted)
                 {                   
                     task.Wait();
                 }
+
+                return Task.FromResult(0);
             }
 
             void Initialise()

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System;
+    using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using NServiceBus;
     using Raven.Client;
@@ -9,16 +10,16 @@
     {
         public IDocumentSession Session { get; set; }
 
-        public void Handle(MessageFailureResolvedByRetry message)
+        public Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
         {
             var failedMessage = Session.Load<FailedMessage>(new Guid(message.FailedMessageId));
 
-            if (failedMessage == null)
+            if (failedMessage != null)
             {
-                return; //No point throwing
+                failedMessage.Status = FailedMessageStatus.Resolved;
             }
 
-            failedMessage.Status = FailedMessageStatus.Resolved;    
+            return Task.FromResult(0); //No point throwing
         }
     }
 }

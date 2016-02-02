@@ -4,7 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Security.Principal;
-    using NServiceBus;
+    using System.Threading.Tasks;
     using NServiceBus.Installation;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -12,7 +12,8 @@
     public class UrlAclInstaller : INeedToInstallSomething
     {
 // ReSharper disable once RedundantAssignment
-        public void Install(string identity, Configure config)
+
+        public Task Install(string identity)
         {
             // Ignore identity and set URL ACL to localized 'Builtin\Users'
             var accountSid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
@@ -21,20 +22,21 @@
             if (CurrentUserIsNotAdmin())
             {
                 Logger.InfoFormat(@"Did not attempt to grant user '{0}' HttpListener permissions since you are not running with admin privileges", identity);
-                return;
-            } 
-            
+                return Task.FromResult(0);
+            }
+
             if (Environment.OSVersion.Version.Major <= 5)
             {
                 Logger.InfoFormat(
                     @"Did not attempt to grant user '{0}' HttpListener permissions since you are running an old OS. Processing will continue. 
 To manually perform this action run the following command for each url from an admin console:
 httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a D:(A;;GX;;;""{0}"")", identity);
-                return;
+                return Task.FromResult(0);
             }
             StartNetshProcess(identity, Settings.ApiUrl);
-        }
 
+            return Task.FromResult(0);
+        }
 
         static bool CurrentUserIsNotAdmin()
         {

@@ -13,7 +13,7 @@
     {
         public RetryMessages()
         {
-            Post["/errors/{messageid}/retry"] = parameters =>
+            Post["/errors/{messageid}/retry", true] = async (parameters, ct) =>
             {
                 var failedMessageId = parameters.MessageId;
 
@@ -22,7 +22,7 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                Bus.SendLocal<RetryMessage>(m =>
+                await BusSession.SendLocal<RetryMessage>(m =>
                 {
                     m.FailedMessageId = failedMessageId;
                 });
@@ -30,7 +30,7 @@
                 return HttpStatusCode.Accepted;
             };
 
-            Post["/errors/retry"] = _ =>
+            Post["/errors/retry", true] = async (parameters, ct) =>
             {
                 var ids = this.Bind<List<string>>();
 
@@ -39,31 +39,31 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                Bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = ids.ToArray());
+                await BusSession.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = ids.ToArray());
 
                 return HttpStatusCode.Accepted;
             };
 
-            Post["/errors/retry/all"] = _ =>
+            Post["/errors/retry/all", true] = async (parameters, ct) =>
             {
                 var request = new RequestRetryAll();
 
-                Bus.SendLocal(request);
+                await BusSession.SendLocal(request);
 
                 return HttpStatusCode.Accepted;
             };
 
-            Post["/errors/{name}/retry/all"] = parameters =>
+            Post["/errors/{name}/retry/all", true] = async (parameters, ct) =>
             {
                 var request = new RequestRetryAll { Endpoint = parameters.name };
 
-                Bus.SendLocal(request);
+                await BusSession.SendLocal(request);
 
                 return HttpStatusCode.Accepted;
             };
         }
 
-        public IBus Bus { get; set; }
+        public IBusSession BusSession { get; set; }
     }
 
 
