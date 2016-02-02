@@ -9,7 +9,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.SignalR;
     using NLog.Config;
-    using NLog.Filters;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
