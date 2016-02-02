@@ -19,6 +19,8 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            context.RegisterStartupTask();
+
             context.Container.ConfigureComponent<RetryDocumentManager>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<RetriesGateway>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<RetryProcessor>(DependencyLifecycle.SingleInstance);

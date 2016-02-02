@@ -3,6 +3,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -13,11 +14,13 @@
         public DetectFailedMessageImportsFeature()
         {
             EnableByDefault();
-            RegisterStartupTask<CheckForFailedErrorMessageImports>();
             // There is no check for audits as no message loss occurs here
         }
 
-        protected override void Setup(FeatureConfigurationContext context) { }
+        protected override void Setup(FeatureConfigurationContext context)
+        {
+            context.RegisterStartupTask(builder => builder.Build<CheckForFailedErrorMessageImports>());
+        }
 
         class CheckForFailedErrorMessageImports : FeatureStartupTask
         {
@@ -26,17 +29,21 @@
                 this.store = store;
             }
 
-            protected override void OnStart()
+            protected override Task OnStart(IBusSession session)
             {
                 source = new CancellationTokenSource();
                 task = Task.Factory.StartNew(() => Run<FailedErrorImport, FailedErrorImportIndex>(source.Token), source.Token);
+
+                return Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IBusSession session)
             {
                 source.Cancel();
                 task.Wait();
                 source.Dispose();
+
+                return Task.FromResult(0);
             }
 
             void Run<T, I>(CancellationToken token) where I : AbstractIndexCreationTask, new()
