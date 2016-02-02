@@ -15,6 +15,8 @@
 
         public DetectedLicense(string licensePath, string licenseText)
         {
+            Details = new LicenseDetails();
+
             Location = licensePath;
             Exception validationFailure;
             License license;
