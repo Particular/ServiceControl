@@ -11,6 +11,7 @@ namespace ServiceControl.Recoverability
     using Raven.Client.Linq;
     using Raven.Json.Linq;
     using ServiceControl.MessageFailures;
+    using NServiceBus.Logging;
 
     public class RetryDocumentManager
     {
@@ -21,8 +22,12 @@ namespace ServiceControl.Recoverability
         public string CreateBatchDocument(string context = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
+            Logger.InfoFormat("Retry group: Batch retry document Id created {0}", batchDocumentId);
+
             using (var session = Store.OpenSession())
             {
+                Logger.InfoFormat("Retry group: Storing retry batch document {0} in RavenDB", batchDocumentId);
+
                 session.Store(new RetryBatch
                 {
                     Id = batchDocumentId, 
@@ -31,13 +36,20 @@ namespace ServiceControl.Recoverability
                     Status = RetryBatchStatus.MarkingDocuments
                 });
                 session.SaveChanges();
+
+                Logger.Info("Retry group: batch document stored");
             }
+
             return batchDocumentId;
         }
 
         public string CreateFailedMessageRetryDocument(string batchDocumentId, string messageUniqueId)
         {
+            Logger.InfoFormat("Retry group: Creating failed message retry document with batchDocumentId: {0} and messageUniqueId: {1}", batchDocumentId, messageUniqueId);
+
             var failureRetryId = FailedMessageRetry.MakeDocumentId(messageUniqueId);
+            Logger.InfoFormat("Retry group: failureRetryId: {0}", failureRetryId);
+
             Store.DatabaseCommands.Patch(failureRetryId,
                 new PatchRequest[0], // if existing do nothing
                 new[]
@@ -62,6 +74,8 @@ namespace ServiceControl.Recoverability
                                     }}", FailedMessageRetry.CollectionName, 
                     typeof(FailedMessageRetry).AssemblyQualifiedName))
                 );
+
+            Logger.InfoFormat("Retry group: Patch command issued for failureRetryId: {0}", failureRetryId);
             return failureRetryId;
         }
 
@@ -69,6 +83,7 @@ namespace ServiceControl.Recoverability
         {
             try
             {
+                Logger.InfoFormat("Retry group: Moving batch with Id {0} to staging. Retry Ids: '{1}'", batchDocumentId, string.Join(", ", failedMessageRetryIds));
                 Store.DatabaseCommands.Patch(batchDocumentId,
                     new[]
                     {
@@ -86,9 +101,12 @@ namespace ServiceControl.Recoverability
                             Value = new RavenJArray((IEnumerable)failedMessageRetryIds)
                         }
                     });
+
+                Logger.InfoFormat("Retry group: Batch with Id {0} successfully moved to staging", batchDocumentId);
             }
             catch (ConcurrencyException)
             {
+                Logger.InfoFormat("Retry group: Batch with Id {0} could not be moved to staging - concurrency exception", batchDocumentId);
                 // Ignore concurrency exceptions
             }
         }
@@ -139,5 +157,7 @@ namespace ServiceControl.Recoverability
 
             MoveBatchToStaging(batchId, messageIds.ToArray());
         }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(RetryDocumentManager));
     }
 }
