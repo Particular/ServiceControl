@@ -21,16 +21,19 @@ namespace Particular.ServiceControl
     public class Bootstrapper
     {
         public static IContainer Container { get; set; }
-
         public IStartableBus Bus { get; private set; }
 
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
+            LogManager.Use<NLogFactory>();
+            
+            // ServiceName is required to determine the default logging path
+            Settings.ServiceName = DetermineServiceName(host, hostArguments);
+            ConfigureLogging();
+            
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = Settings.HttpDefaultConnectionLimit;
 
-            Settings.ServiceName = DetermineServiceName(host, hostArguments);
-            ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
@@ -120,8 +123,6 @@ namespace Particular.ServiceControl
 
         static void ConfigureLogging()
         {
-            LogManager.Use<NLogFactory>();
-
             if (NLog.LogManager.Configuration != null)
             {
                 return;
@@ -167,12 +168,13 @@ namespace Particular.ServiceControl
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget){ Final = true });
             
             // Defaults
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", Settings.LoggingLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
             
             NLog.LogManager.Configuration = nlogConfig;
 
-            Settings.Logger = LogManager.GetLogger(typeof(Settings));
+            var logger = LogManager.GetLogger(typeof(Bootstrapper));
+            logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName, Settings.LoggingLevel.Name);
         }
 
         string DetermineServiceName(ServiceBase host, HostArguments hostArguments)
