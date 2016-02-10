@@ -164,7 +164,7 @@ namespace ServiceControl.HeartbeatMonitoring
 
             protected override void OnStart()
             {
-                timer = new Timer(Refresh, null, 0, -1);
+                timer = new Timer(Refresh, null, TimeSpan.FromSeconds(15), Timeout.InfiniteTimeSpan);
             }
 
             protected override void OnStop()
@@ -240,14 +240,14 @@ namespace ServiceControl.HeartbeatMonitoring
                                 }
                             };
 
-                            session.Store(heartbeat);
-
                             Bus.Publish(new HeartbeatingEndpointDetected
                             {
                                 Endpoint = heartbeat.EndpointDetails,
                                 DetectedAt = heartbeat.LastReportAt,
                             });
                         }
+
+                        session.Store(heartbeat);
 
                         HeartbeatStatusProvider.RegisterHeartbeatingEndpoint(heartbeat.EndpointDetails, heartbeat.LastReportAt);
                     }
