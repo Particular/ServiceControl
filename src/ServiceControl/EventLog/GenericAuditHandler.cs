@@ -2,7 +2,6 @@
 {
     using Contracts.EventLog;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Raven.Client;
 
     /// <summary>
@@ -27,7 +26,6 @@
                 return;
             }
 
-            Logger.InfoFormat("Event: {0} emitted", message.GetType().Name);
             var messageId = Bus.GetMessageHeader(message, Headers.MessageId);
             var logItem = EventLogMappings.ApplyMapping(messageId, message);
 
@@ -42,10 +40,6 @@
                 m.Category = logItem.Category;
                 m.RelatedTo = logItem.RelatedTo;
             });
-
-            
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(GenericAuditHandler));
     }
 }
