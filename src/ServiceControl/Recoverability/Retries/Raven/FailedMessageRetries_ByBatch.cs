@@ -12,6 +12,8 @@ namespace ServiceControl.Recoverability
                 {
                     doc.RetryBatchId
                 };
+
+            DisableInMemoryIndexing = true;
         }
     }
 }
