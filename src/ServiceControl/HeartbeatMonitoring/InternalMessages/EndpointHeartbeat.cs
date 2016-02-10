@@ -3,7 +3,7 @@
     using System;
     using NServiceBus;
 
-    class EndpointHeartbeat : ICommand
+    public class EndpointHeartbeat : ICommand
     {
         public DateTime ExecutedAt { get; set; }
 

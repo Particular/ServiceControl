@@ -1,9 +1,11 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
+    using ServiceControl.Plugin.Heartbeat.Messages;
 
     public class HeartbeatStatusProvider
     {
@@ -17,7 +19,7 @@
             }
         }
 
-        public HeartbeatsStats RegisterHeartbeatingEndpoint(EndpointDetails endpointDetails,DateTime timeOfHeartbeat)
+        public HeartbeatsStats RegisterHeartbeatingEndpoint(EndpointDetails endpointDetails, DateTime timeOfHeartbeat)
         {
             lock (locker)
             {
@@ -167,7 +169,7 @@
         readonly object locker = new object();
 
         List<HeartbeatingEndpoint> endpoints = new List<HeartbeatingEndpoint>();
-
+        ConcurrentDictionary<Guid, EndpointHeartbeat> heartbeatsPerInstance = new ConcurrentDictionary<Guid, EndpointHeartbeat>(); 
 
 
         public class PotentiallyFailedEndpoint
@@ -178,5 +180,12 @@
         }
 
         public TimeSpan GracePeriod { get; set; }
+
+        public void UpdateHeartbeat(Guid id, EndpointHeartbeat endpointHeartbeat)
+        {
+            heartbeatsPerInstance.AddOrUpdate(id, endpointHeartbeat, (currentId, currentEndpointHeartbeat) => endpointHeartbeat.ExecutedAt <= currentEndpointHeartbeat.ExecutedAt ? currentEndpointHeartbeat : endpointHeartbeat);
+        }
+
+        public IDictionary<Guid, EndpointHeartbeat> HeartbeatsPerInstance { get { return heartbeatsPerInstance; } }
     }
 }
