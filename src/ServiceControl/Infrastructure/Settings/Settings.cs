@@ -133,8 +133,41 @@
         public static bool ExposeRavenDB = SettingsReader<bool>.Read("ExposeRavenDB");
         public static string Hostname = SettingsReader<string>.Read("Hostname", "localhost");
         public static string VirtualDirectory = SettingsReader<string>.Read("VirtualDirectory", String.Empty);
-        public static TimeSpan HeartbeatGracePeriod = TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
+
+        public static TimeSpan HeartbeatGracePeriod
+        {
+            get
+            {
+                try
+                {
+                    return  TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
+                }
+                catch(Exception ex)
+                {
+                    Logger.ErrorFormat("HeartbeatGracePeriod settings invalid - {0}. Defaulting HeartbeatGracePeriod to '00:00:40'", ex);
+                    return TimeSpan.FromSeconds(40);
+                }
+            }
+        }
+        
         public static string TransportType { get; set; }
+        
+        public static NLog.LogLevel LoggingLevel
+        {
+            get
+            {
+                var level = NLog.LogLevel.Warn;
+                try
+                {
+                    level = NLog.LogLevel.FromString(SettingsReader<string>.Read("LogLevel"));
+                }
+                catch
+                {
+                    NLog.Common.InternalLogger.Warn("Failed to parse LogLevel setting. Defaulting to Warn");
+                }
+                return level;
+            }
+        }
 
         public static string LogPath
         {

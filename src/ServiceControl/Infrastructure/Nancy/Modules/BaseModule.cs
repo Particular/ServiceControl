@@ -22,9 +22,8 @@
                 //negotiator.NegotiationContext.PermissableMediaRanges.Add(MediaRange.FromString("application/xml"));
                 //negotiator.NegotiationContext.PermissableMediaRanges.Add(MediaRange.FromString("application/vnd.particular.1+xml"));
 
-                negotiator.NegotiationContext.PermissableMediaRanges.Add(MediaRange.FromString("application/json"));
-                negotiator.NegotiationContext.PermissableMediaRanges.Add(
-                    MediaRange.FromString("application/vnd.particular.1+json"));
+                negotiator.NegotiationContext.PermissableMediaRanges.Add(new MediaRange("application/json"));
+                negotiator.NegotiationContext.PermissableMediaRanges.Add(new MediaRange("application/vnd.particular.1+json"));
 
                 return negotiator;
             }

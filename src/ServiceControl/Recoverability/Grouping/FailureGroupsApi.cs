@@ -30,7 +30,10 @@ namespace ServiceControl.Recoverability
 
         dynamic ReclassifyErrors()
         {
-            Bus.SendLocal(new ReclassifyErrors());
+            Bus.SendLocal(new ReclassifyErrors
+            {
+                Force = true
+            });
 
             return HttpStatusCode.Accepted;
         }

@@ -9,7 +9,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.SignalR;
     using NLog.Config;
-    using NLog.Filters;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
@@ -22,16 +21,19 @@ namespace Particular.ServiceControl
     public class Bootstrapper
     {
         public static IContainer Container { get; set; }
-
         public IStartableBus Bus { get; private set; }
 
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
+            LogManager.Use<NLogFactory>();
+            
+            // ServiceName is required to determine the default logging path
+            Settings.ServiceName = DetermineServiceName(host, hostArguments);
+            ConfigureLogging();
+            
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = Settings.HttpDefaultConnectionLimit;
 
-            Settings.ServiceName = DetermineServiceName(host, hostArguments);
-            ConfigureLogging();
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
@@ -121,8 +123,6 @@ namespace Particular.ServiceControl
 
         static void ConfigureLogging()
         {
-            LogManager.Use<NLogFactory>();
-
             if (NLog.LogManager.Configuration != null)
             {
                 return;
@@ -140,47 +140,43 @@ namespace Particular.ServiceControl
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
             };
+
             var consoleTarget = new ColoredConsoleTarget
             {
                 Layout = simpleLayout,
                 UseDefaultRowHighlightingRules = true,
             };
+            
+            var nullTarget = new NullTarget();
 
-            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "Raven.*"));
-            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "NServiceBus.RavenDB.Persistence.*"));
-            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "NServiceBus.Licensing.*"));
-            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Info, "Particular.ServiceControl.Licensing.*"));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
             nlogConfig.AddTarget("debugger", fileTarget);
-
-            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "Raven.*"));
-            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "NServiceBus.RavenDB.Persistence.*"));
-            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Error, "NServiceBus.Licensing.*"));
-            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(consoleTarget, LogLevel.Info, "Particular.ServiceControl.Licensing.*"));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget)); 
             nlogConfig.AddTarget("console", consoleTarget);
+            nlogConfig.AddTarget("bitbucket", nullTarget);
+            
+            // Only want to see raven errors
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget) { Final = true }); //Will swallow debug and above messages
 
+            // Only want to see persistance errors
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*", LogLevel.Error, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*", LogLevel.Error, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*", LogLevel.Debug, nullTarget) { Final = true }); //Will swallow debug and above messages
+
+            // Always want to see license logging regardless of default logging level
+            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget){ Final = true });
+            
+            // Defaults
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", Settings.LoggingLevel, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
+            
             NLog.LogManager.Configuration = nlogConfig;
 
-            Settings.Logger = LogManager.GetLogger(typeof(Settings));
+            var logger = LogManager.GetLogger(typeof(Bootstrapper));
+            logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName, Settings.LoggingLevel.Name);
         }
 
-        private static LoggingRule MakeFilteredLoggingRule(Target target, LogLevel logLevel, string text)
-        {
-            var rule = new LoggingRule(text, LogLevel.Info, target)
-            {
-                Final = true
-            };
-
-            rule.Filters.Add(new ConditionBasedFilter
-            {
-                Action = FilterResult.Ignore, 
-                Condition = string.Format("level < LogLevel.{0}", logLevel.Name)
-            });
-
-            return rule;
-        }
-   
         string DetermineServiceName(ServiceBase host, HostArguments hostArguments)
         {
             //if Arguments not null then bootstrapper was run from installer so use servicename passed to the installer

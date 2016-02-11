@@ -4,5 +4,6 @@
 
     public class ReclassifyErrors : ICommand
     {
+        public bool Force { get; set; }
     }
 }
