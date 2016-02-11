@@ -5,6 +5,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Plugin.Heartbeat.Messages;
 
     public class HeartbeatStatusProvider
@@ -48,7 +49,7 @@
 
         public HeartbeatsStats RegisterEndpointWhoseHeartbeatIsRestored(EndpointDetails endpointDetails, DateTime timeOfHeartbeat)
         {
-            return RegisterHeartbeatingEndpoint(endpointDetails,timeOfHeartbeat);
+            return RegisterHeartbeatingEndpoint(endpointDetails, timeOfHeartbeat);
         }
 
         public HeartbeatsStats GetHeartbeatsStats()
@@ -83,13 +84,18 @@
         {
             lock (locker)
             {
-                return endpoints.Where(e =>HasPassedTheGracePeriod(time,e))
+                return endpoints.Where(e => HasPassedTheGracePeriod(time, e))
                     .Select(e => new PotentiallyFailedEndpoint
-                {
-                    Details = new EndpointDetails { Host = e.Host,HostId = e.HostId,Name = e.Name},
-                    LastHeartbeatAt = e.TimeOfLastHeartbeat.Value
+                    {
+                        Details = new EndpointDetails
+                        {
+                            Host = e.Host,
+                            HostId = e.HostId,
+                            Name = e.Name
+                        },
+                        LastHeartbeatAt = e.TimeOfLastHeartbeat.Value
 
-                }).ToList();
+                    }).ToList();
             }
         }
 
@@ -98,7 +104,7 @@
             return new HeartbeatsStats(endpoints.Count(e => !e.MonitoringDisabled && e.Active), endpoints.Count(e => !e.MonitoringDisabled && !e.Active));
         }
 
-        bool HasPassedTheGracePeriod(DateTime time,HeartbeatingEndpoint heartbeatingEndpoint)
+        bool HasPassedTheGracePeriod(DateTime time, HeartbeatingEndpoint heartbeatingEndpoint)
         {
             if (!heartbeatingEndpoint.TimeOfLastHeartbeat.HasValue)
             {
@@ -110,7 +116,17 @@
                 return false;
             }
 
-            var timeSinceLastHeartbeat = time - heartbeatingEndpoint.TimeOfLastHeartbeat;
+            var id = DeterministicGuid.MakeId(heartbeatingEndpoint.Name, heartbeatingEndpoint.HostId.ToString());
+            TimeSpan timeSinceLastHeartbeat;
+
+            if (heartbeatsPerInstance.ContainsKey(id))
+            {
+                timeSinceLastHeartbeat = time - heartbeatsPerInstance[id].ExecutedAt;
+            }
+            else
+            {
+                timeSinceLastHeartbeat = time - heartbeatingEndpoint.TimeOfLastHeartbeat.Value;
+            }
 
             return timeSinceLastHeartbeat >= GracePeriod;
         }
@@ -169,7 +185,7 @@
         readonly object locker = new object();
 
         List<HeartbeatingEndpoint> endpoints = new List<HeartbeatingEndpoint>();
-        ConcurrentDictionary<Guid, EndpointHeartbeat> heartbeatsPerInstance = new ConcurrentDictionary<Guid, EndpointHeartbeat>(); 
+        ConcurrentDictionary<Guid, EndpointHeartbeat> heartbeatsPerInstance = new ConcurrentDictionary<Guid, EndpointHeartbeat>();
 
 
         public class PotentiallyFailedEndpoint
@@ -186,6 +202,9 @@
             heartbeatsPerInstance.AddOrUpdate(id, endpointHeartbeat, (currentId, currentEndpointHeartbeat) => endpointHeartbeat.ExecutedAt <= currentEndpointHeartbeat.ExecutedAt ? currentEndpointHeartbeat : endpointHeartbeat);
         }
 
-        public IDictionary<Guid, EndpointHeartbeat> HeartbeatsPerInstance { get { return heartbeatsPerInstance; } }
+        public IDictionary<Guid, EndpointHeartbeat> HeartbeatsPerInstance
+        {
+            get { return heartbeatsPerInstance; }
+        }
     }
 }

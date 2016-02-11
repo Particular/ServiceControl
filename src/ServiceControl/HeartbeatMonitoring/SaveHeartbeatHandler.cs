@@ -32,7 +32,6 @@
 
             var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString());
 
-
             HeartbeatStatusProvider.UpdateHeartbeat(id, message);
         }
     }
