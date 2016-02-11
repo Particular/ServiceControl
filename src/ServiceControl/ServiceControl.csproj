@@ -441,6 +441,7 @@
     <Compile Include="Recoverability\Grouping\ClassifyFailedMessageEnricher.cs" />
     <Compile Include="Recoverability\Grouping\Archiving\FailureGroupsArchiveApi.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsHandler.cs" />
+    <Compile Include="Recoverability\Grouping\Raven\ReclassifyErrorSettings.cs" />
     <Compile Include="Recoverability\Grouping\Retries\FailureGroupsRetryApi.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ExceptionTypeAndStackTraceMessageGrouper.cs" />
     <Compile Include="Recoverability\Grouping\FailedMessageClassification.cs" />

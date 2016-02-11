@@ -6,6 +6,7 @@ namespace ServiceControl.Recoverability
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
@@ -25,6 +26,8 @@ namespace ServiceControl.Recoverability
         const int BatchSize = 1000;
         int failedMessagesReclassified;
 
+        ILog logger = LogManager.GetLogger<ReclassifyErrorsHandler>();
+
         public ReclassifyErrorsHandler(IBus bus, IDocumentStore store, IEnumerable<IFailureClassifier> classifiers)
         {
             this.bus = bus;
@@ -36,6 +39,21 @@ namespace ServiceControl.Recoverability
         {
             using (var session = store.OpenSession())
             {
+                ReclassifyErrorSettings settings = null;
+
+                if (!message.Force)
+                {
+                    settings = session.Load<ReclassifyErrorSettings>(ReclassifyErrorSettings.IdentifierCase);
+
+                    if (settings != null && settings.ReclassificationDone)
+                    {
+                        logger.Info("Skipping reclassification of failures as classification has already been done.");
+                        return;
+                    }
+                }
+
+                logger.Info("Reclassification of failures started.");
+
                 var query = session.Query<FailedMessage, FailedMessageViewIndex>()
                     .Where(f => f.Status == FailedMessageStatus.Unresolved);
 
@@ -64,6 +82,17 @@ namespace ServiceControl.Recoverability
                 {
                     ReclassifyBatch(currentBatch);
                 }
+
+                logger.Info("Reclassification of failures ended.");
+
+                if (settings == null)
+                {
+                    settings = new ReclassifyErrorSettings();
+                }
+
+                settings.ReclassificationDone = true;
+                session.Store(settings);
+                session.SaveChanges();
             }
 
             if (failedMessagesReclassified > 0)
