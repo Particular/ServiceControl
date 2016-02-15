@@ -6,23 +6,13 @@ namespace ServiceControl.Recoverability
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
-    using Raven.Json.Linq;
     using ServiceControl.MessageFailures;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
         public void Handle(ArchiveAllInGroup message)
         {
-            var group = Session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                   .FirstOrDefault(x => x.Id == message.GroupId);
-
-            var groupName = "group";
-            if (group != null && group.Title != null)
-            {
-                groupName = group.Title;
-            }
-
-            RavenJToken result = Session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(
+            var result = Session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(
                             new FailedMessages_ByGroup().IndexName, 
                             new IndexQuery
                             {
@@ -43,6 +33,20 @@ namespace ServiceControl.Recoverability
                 .Select(x => x.Document)
                 .ToArray();
 
+            if (patchedDocumentIds.Length == 0)
+            {
+                return;
+            }
+
+            var group = Session.Query<FailureGroupView, FailureGroupsViewIndex>()
+                   .FirstOrDefault(x => x.Id == message.GroupId);
+
+            var groupName = "Undefined";
+            if (group != null && group.Title != null)
+            {
+                groupName = group.Title;
+            }
+
             Bus.Publish<FailedMessageGroupArchived>(m =>
             {
                 m.GroupId = message.GroupId;
@@ -53,19 +57,10 @@ namespace ServiceControl.Recoverability
 
         public IDocumentSession Session { get; set; }
         public IBus Bus { get; set; }
-    }
 
-
-    public class DocumentPatchResult
-    {
-        public string Document { get; set; }
-        //public Results Result { get; set; }
-        //public string[] Debug { get; set; }
-
-        //public class Results
-        //{
-        //    public string PatchResult { get; set; }
-        //    public string Document { get; set; }
-        //}
+        class DocumentPatchResult
+        {
+            public string Document { get; set; }
+        }
     }
 }
