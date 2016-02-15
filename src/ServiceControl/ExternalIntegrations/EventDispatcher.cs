@@ -63,7 +63,10 @@
                 resetEvent.Reset();
                 while (!token.IsCancellationRequested)
                 {
-                    DispatchEventBatch(token);
+                    if (DispatchEventBatch() && !token.IsCancellationRequested)
+                    {
+                        token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1));
+                    }
                 }
             }
             finally
@@ -72,7 +75,7 @@
             }
         }
 
-        void DispatchEventBatch(CancellationToken token)
+        bool DispatchEventBatch()
         {
             using (var session = DocumentStore.OpenSession())
             {
@@ -83,8 +86,7 @@
                     {
                         Logger.Debug("Nothing to dispatch. Waiting...");
                     }
-                    token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1));
-                    return;
+                    return true;
                 }
 
                 var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
@@ -130,6 +132,8 @@
                 }
                 session.SaveChanges();
             }
+
+            return false;
         }
 
         ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
