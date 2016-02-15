@@ -29,7 +29,7 @@ namespace Particular.ServiceControl
             
             // ServiceName is required to determine the default logging path
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
-            ConfigureLogging();
+            ConfigureLogging(enableConsoleLogging: host == null);
             
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = Settings.HttpDefaultConnectionLimit;
@@ -121,7 +121,7 @@ namespace Particular.ServiceControl
             Bus.Dispose();
         }
 
-        static void ConfigureLogging()
+        static void ConfigureLogging(bool enableConsoleLogging)
         {
             const long MegaByte = 1073741824;
             if (NLog.LogManager.Configuration != null)
@@ -152,7 +152,12 @@ namespace Particular.ServiceControl
             var nullTarget = new NullTarget();
 
             nlogConfig.AddTarget("debugger", fileTarget);
-            nlogConfig.AddTarget("console", consoleTarget);
+
+            if (enableConsoleLogging)
+            {
+                nlogConfig.AddTarget("console", consoleTarget);
+            }
+
             nlogConfig.AddTarget("bitbucket", nullTarget);
             
             // Only want to see raven errors
