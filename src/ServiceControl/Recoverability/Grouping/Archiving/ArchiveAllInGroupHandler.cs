@@ -1,8 +1,10 @@
 namespace ServiceControl.Recoverability
 {
     using System.Globalization;
+    using System.Linq;
     using NServiceBus;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Json.Linq;
     using ServiceControl.MessageFailures;
@@ -11,8 +13,17 @@ namespace ServiceControl.Recoverability
     {
         public void Handle(ArchiveAllInGroup message)
         {
+            var group = Session.Query<FailureGroupView, FailureGroupsViewIndex>()
+                   .FirstOrDefault(x => x.Id == message.GroupId);
+
+            var groupName = "group";
+            if (group != null && group.Title != null)
+            {
+                groupName = group.Title;
+            }
+
             RavenJToken result = Session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(
-                            "FailedMessages/ByGroup",
+                            new FailedMessages_ByGroup().IndexName, 
                             new IndexQuery
                             {
                                 Query = string.Format(CultureInfo.InvariantCulture, "FailureGroupId:{0} AND Status:{1}", message.GroupId, (int)FailedMessageStatus.Unresolved)
@@ -27,34 +38,33 @@ namespace ServiceControl.Recoverability
                                 }
                             }).WaitForCompletion();
 
-            //TODO: What to do with result, it looks like:
-            /*
-            [
-                {
-                    "Document": "failedmessages/46aa0a73-fa28-81be-63b4-813895af1d6f",
-                    "Result": {
-                        "PatchResult": "Patched",
-                        "Document": null
-                    }
-                },
-                {
-                    "Document": "failedmessages/40432c54-2ecd-dc35-8ec1-6996a0002913",
-                    "Result": {
-                        "PatchResult": "Patched",
-                        "Document": null
-                    }
-                }
-            ]
-            */
+            var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>()
+                .Select(x => x.Document)
+                .ToArray();
+
             Bus.Publish<FailedMessageGroupArchived>(m =>
             {
                 m.GroupId = message.GroupId;
-                m.GroupName = message.GroupId;
-                m.MessageIds = new []{ result.ToString() };
+                m.GroupName = groupName;
+                m.MessageIds = patchedDocumentIds;
             });
         }
 
         public IDocumentSession Session { get; set; }
         public IBus Bus { get; set; }
+    }
+
+
+    public class DocumentPatchResult
+    {
+        public string Document { get; set; }
+        //public Results Result { get; set; }
+        //public string[] Debug { get; set; }
+
+        //public class Results
+        //{
+        //    public string PatchResult { get; set; }
+        //    public string Document { get; set; }
+        //}
     }
 }
