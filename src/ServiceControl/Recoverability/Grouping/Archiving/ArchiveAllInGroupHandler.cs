@@ -27,7 +27,7 @@ namespace ServiceControl.Recoverability
                                     Name = "Status",
                                     Value = (int) FailedMessageStatus.Archived
                                 }
-                            }).WaitForCompletion();
+                            }, true).WaitForCompletion();
 
             var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>()
                 .Select(x => x.Document)
