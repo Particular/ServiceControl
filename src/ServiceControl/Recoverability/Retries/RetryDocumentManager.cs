@@ -120,8 +120,8 @@ namespace ServiceControl.Recoverability
 
                 AdoptBatches(session, orphanedBatchIds);
 
-                var moreToDo = abort || stats.IsStale || orphanedBatchIds.Any();
-                return !moreToDo;
+                var moreToDo = stats.IsStale || orphanedBatchIds.Any();
+                return abort || !moreToDo;
             }
         }
 
