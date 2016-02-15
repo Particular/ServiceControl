@@ -53,13 +53,22 @@
         protected override void OnStop()
         {
             tokenSource.Cancel();
+            resetEvent.Wait();
         }
 
         private void DispatchEvents(CancellationToken token)
         {
-            while (!token.IsCancellationRequested)
+            try
             {
-                DispatchEventBatch(token);
+                resetEvent.Reset();
+                while (!token.IsCancellationRequested)
+                {
+                    DispatchEventBatch(token);
+                }
+            }
+            finally
+            {
+                resetEvent.Set();
             }
         }
 
@@ -123,6 +132,7 @@
             }
         }
 
+        ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
         CancellationTokenSource tokenSource;
         RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
         static readonly ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
