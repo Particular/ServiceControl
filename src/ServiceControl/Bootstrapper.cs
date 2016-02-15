@@ -123,6 +123,7 @@ namespace Particular.ServiceControl
 
         static void ConfigureLogging()
         {
+            const long MegaByte = 1073741824;
             if (NLog.LogManager.Configuration != null)
             {
                 return;
@@ -139,6 +140,7 @@ namespace Particular.ServiceControl
                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
+                ArchiveAboveSize =  30 * MegaByte
             };
 
             var consoleTarget = new ColoredConsoleTarget
