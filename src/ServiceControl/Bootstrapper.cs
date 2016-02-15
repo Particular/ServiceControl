@@ -143,6 +143,17 @@ namespace Particular.ServiceControl
                 ArchiveAboveSize =  30 * MegaByte
             };
 
+            var ravenFileTarget = new FileTarget
+            {
+                ArchiveEvery = FileArchivePeriod.Day,
+                FileName = Path.Combine(Settings.LogPath, "ravenlog.txt"),
+                ArchiveFileName = Path.Combine(Settings.LogPath, "ravenlog.{#}.txt"),
+                ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                Layout = simpleLayout,
+                MaxArchiveFiles = 14,
+                ArchiveAboveSize = 30 * MegaByte
+            };
+            
             var consoleTarget = new ColoredConsoleTarget
             {
                 Layout = simpleLayout,
@@ -158,18 +169,15 @@ namespace Particular.ServiceControl
                 nlogConfig.AddTarget("console", consoleTarget);
             }
 
+            nlogConfig.AddTarget("raven", ravenFileTarget);
             nlogConfig.AddTarget("bitbucket", nullTarget);
             
             // Only want to see raven errors
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", Settings.RavenDBLogLevel, ravenFileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));  //Noise reduction - Only RavenDB errors on the console
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget) { Final = true }); //Will swallow debug and above messages
 
-            // Only want to see persistance errors
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*", LogLevel.Error, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*", LogLevel.Error, consoleTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*", LogLevel.Debug, nullTarget) { Final = true }); //Will swallow debug and above messages
-
+            
             // Always want to see license logging regardless of default logging level
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget){ Final = true });
@@ -182,6 +190,7 @@ namespace Particular.ServiceControl
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
             logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName, Settings.LoggingLevel.Name);
+            logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName, Settings.RavenDBLogLevel.Name);
         }
 
         string DetermineServiceName(ServiceBase host, HostArguments hostArguments)

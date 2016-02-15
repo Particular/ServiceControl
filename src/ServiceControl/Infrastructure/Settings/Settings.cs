@@ -169,6 +169,24 @@
             }
         }
 
+        public static NLog.LogLevel RavenDBLogLevel
+        {
+            get
+            {
+                var level = NLog.LogLevel.Warn;
+                try
+                {
+                    level = NLog.LogLevel.FromString(SettingsReader<string>.Read("RavenDBLogLevel"));
+                }
+                catch
+                {
+                    NLog.Common.InternalLogger.Warn("Failed to parse RavenDBLogLevel setting. Defaulting to Warn");
+                }
+                return level;
+            }
+        }
+
+
         public static string LogPath
         {
             get
