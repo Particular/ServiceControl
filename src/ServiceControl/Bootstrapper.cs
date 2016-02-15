@@ -23,6 +23,8 @@ namespace Particular.ServiceControl
         public static IContainer Container { get; set; }
         public IStartableBus Bus { get; private set; }
 
+        ShutdownNotifier notifier = new ShutdownNotifier();
+
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
             LogManager.Use<NLogFactory>();
@@ -36,6 +38,7 @@ namespace Particular.ServiceControl
 
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
+            containerBuilder.RegisterInstance(notifier).ExternallyOwned();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             Container = containerBuilder.Build();
 
@@ -118,6 +121,7 @@ namespace Particular.ServiceControl
 
         public void Stop()
         {
+            notifier.Dispose();
             Bus.Dispose();
         }
 

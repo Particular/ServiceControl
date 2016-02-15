@@ -6,10 +6,18 @@ namespace ServiceControl.Recoverability
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using Raven.Client.Linq;
+    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
+        private bool abort;
+
+        public ArchiveAllInGroupHandler(ShutdownNotifier notifier)
+        {
+            notifier.Register(() => { abort = true; });
+        }
+
         public void Handle(ArchiveAllInGroup message)
         {
             var query = Session.Query<FailureGroupMessageView, FailedMessages_ByGroup>()
@@ -21,7 +29,7 @@ namespace ServiceControl.Recoverability
 
             using (var stream = Session.Advanced.Stream(query))
             {
-                while (stream.MoveNext())
+                while (!abort && stream.MoveNext())
                 {
                     if (stream.Current.Document.Status != FailedMessageStatus.Unresolved)
                     {
@@ -53,8 +61,6 @@ namespace ServiceControl.Recoverability
                     {
                         // Ignore concurrency exceptions
                     }
-
-                    
                 }
             }
 
