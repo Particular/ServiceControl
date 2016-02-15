@@ -20,7 +20,11 @@ namespace ServiceControl.Recoverability
                 return HttpStatusCode.BadRequest;
             }
 
-            Bus.SendLocal<ArchiveAllInGroup>(m => m.GroupId = groupId);
+            Bus.SendLocal<ArchiveAllInGroup>(m =>
+            {
+                m.GroupId = groupId;
+                m.CutOff = DateTime.UtcNow;
+            });
 
             return HttpStatusCode.Accepted;
         }

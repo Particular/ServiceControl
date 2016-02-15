@@ -26,7 +26,8 @@ namespace ServiceControl.Recoverability
                             new FailedMessages_ByGroup().IndexName, 
                             new IndexQuery
                             {
-                                Query = string.Format(CultureInfo.InvariantCulture, "FailureGroupId:{0} AND Status:{1}", message.GroupId, (int)FailedMessageStatus.Unresolved)
+                                Query = string.Format(CultureInfo.InvariantCulture, "FailureGroupId:{0} AND Status:{1}", message.GroupId, (int)FailedMessageStatus.Unresolved), 
+                                Cutoff = message.CutOff
                             },
                             new[]
                             {
