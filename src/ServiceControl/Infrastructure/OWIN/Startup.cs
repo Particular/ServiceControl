@@ -11,6 +11,7 @@
     using ServiceControl.Infrastructure.SignalR;
     using Autofac;
     using Microsoft.AspNet.SignalR.Json;
+    using ServiceControl.Infrastructure.OWIN;
     using JsonNetSerializer = Microsoft.AspNet.SignalR.Json.JsonNetSerializer;
 
     public class Startup
@@ -29,6 +30,8 @@
 
                 return func();
             });
+
+            app.Use<LogApiCalls>();
 
             ConfigureSignalR(app);
             app.UseNancy(new NancyOptions { Bootstrapper = new NServiceBusContainerBootstrapper() });
