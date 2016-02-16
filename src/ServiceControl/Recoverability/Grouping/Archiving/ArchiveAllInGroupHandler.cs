@@ -38,21 +38,21 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var group = Session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                   .FirstOrDefault(x => x.Id == message.GroupId);
-
+            var failedMessage = Session.Load<FailedMessage>(patchedDocumentIds[0]);
+            var failureGroup = failedMessage.FailureGroups.FirstOrDefault();
             var groupName = "Undefined";
-            if (group != null && group.Title != null)
+
+            if (failureGroup != null && failureGroup.Title != null)
             {
-                groupName = group.Title;
+                groupName = failureGroup.Title;
             }
 
             Bus.Publish<FailedMessageGroupArchived>(m =>
-            {
-                m.GroupId = message.GroupId;
-                m.GroupName = groupName;
-                m.MessageIds = patchedDocumentIds;
-            });
+                {
+                    m.GroupId = message.GroupId;
+                    m.GroupName = groupName;
+                    m.MessageIds = patchedDocumentIds;
+                });
         }
 
         public IDocumentSession Session { get; set; }
