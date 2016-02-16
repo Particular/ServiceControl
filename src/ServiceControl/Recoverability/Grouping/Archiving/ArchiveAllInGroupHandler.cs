@@ -29,16 +29,14 @@ namespace ServiceControl.Recoverability
                                 }
                             }, true).WaitForCompletion();
 
-            var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>()
-                .Select(x => x.Document)
-                .ToArray();
+            var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
 
             if (patchedDocumentIds.Length == 0)
             {
                 return;
             }
 
-            var failedMessage = Session.Load<FailedMessage>(patchedDocumentIds[0]);
+            var failedMessage = Session.Load<FailedMessage>(patchedDocumentIds[0].Document);
             var failureGroup = failedMessage.FailureGroups.FirstOrDefault();
             var groupName = "Undefined";
 
@@ -51,7 +49,7 @@ namespace ServiceControl.Recoverability
                 {
                     m.GroupId = message.GroupId;
                     m.GroupName = groupName;
-                    m.MessageIds = patchedDocumentIds;
+                    m.MessagesCount = patchedDocumentIds.Length;
                 });
         }
 
