@@ -3,6 +3,7 @@ namespace Particular.ServiceControl
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.ServiceProcess;
     using Autofac;
@@ -29,7 +30,7 @@ namespace Particular.ServiceControl
             
             // ServiceName is required to determine the default logging path
             Settings.ServiceName = DetermineServiceName(host, hostArguments);
-            ConfigureLogging(enableConsoleLogging: host == null);
+            ConfigureLogging();
             
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = Settings.HttpDefaultConnectionLimit;
@@ -121,9 +122,9 @@ namespace Particular.ServiceControl
             Bus.Dispose();
         }
 
-        static void ConfigureLogging(bool enableConsoleLogging)
+        static void ConfigureLogging()
         {
-            const long MegaByte = 1073741824;
+            const long megaByte = 1073741824;
             if (NLog.LogManager.Configuration != null)
             {
                 return;
@@ -140,7 +141,7 @@ namespace Particular.ServiceControl
                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
-                ArchiveAboveSize =  30 * MegaByte
+                ArchiveAboveSize =  30 * megaByte
             };
 
             var ravenFileTarget = new FileTarget
@@ -151,7 +152,7 @@ namespace Particular.ServiceControl
                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
-                ArchiveAboveSize = 30 * MegaByte
+                ArchiveAboveSize = 30 * megaByte
             };
             
             var consoleTarget = new ColoredConsoleTarget
@@ -162,13 +163,9 @@ namespace Particular.ServiceControl
             
             var nullTarget = new NullTarget();
 
+            // There lines don't appear to be necessary.  The rules seem to work without implicitly adding the targets?!?
+            nlogConfig.AddTarget("console", consoleTarget);
             nlogConfig.AddTarget("debugger", fileTarget);
-
-            if (enableConsoleLogging)
-            {
-                nlogConfig.AddTarget("console", consoleTarget);
-            }
-
             nlogConfig.AddTarget("raven", ravenFileTarget);
             nlogConfig.AddTarget("bitbucket", nullTarget);
             
@@ -185,6 +182,15 @@ namespace Particular.ServiceControl
             // Defaults
             nlogConfig.LoggingRules.Add(new LoggingRule("*", Settings.LoggingLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
+
+            // Remove Console Logging when running as a service
+            if (!Environment.UserInteractive)
+            {
+                foreach (var rule in nlogConfig.LoggingRules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
+                {
+                    nlogConfig.LoggingRules.Remove(rule);
+                }
+            }
             
             NLog.LogManager.Configuration = nlogConfig;
 
