@@ -28,6 +28,7 @@ namespace Particular.ServiceControl
 
         ShutdownNotifier notifier = new ShutdownNotifier();
         EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
+        TimeKeeper timeKeeper;
 
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
@@ -40,9 +41,12 @@ namespace Particular.ServiceControl
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = Settings.HttpDefaultConnectionLimit;
 
+            timeKeeper = new TimeKeeper();
+
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
+            containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
 
@@ -114,7 +118,7 @@ namespace Particular.ServiceControl
 
         public void Start()
         {
-             var Logger = LogManager.GetLogger(typeof(Bootstrapper));
+            var Logger = LogManager.GetLogger(typeof(Bootstrapper));
             if (Settings.MaintenanceMode)
             {
                 Logger.InfoFormat("RavenDB is now accepting requests on {0}", Settings.StorageUrl);
@@ -124,7 +128,7 @@ namespace Particular.ServiceControl
                 }
                 return;
             }
-            
+
             Bus.Start();
         }
 
@@ -132,6 +136,7 @@ namespace Particular.ServiceControl
         {
             notifier.Dispose();
             Bus.Dispose();
+            timeKeeper.Dispose();
             documentStore.Dispose();
         }
 
