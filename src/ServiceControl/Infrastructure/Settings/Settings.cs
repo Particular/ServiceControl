@@ -159,7 +159,7 @@
                 var level = NLog.LogLevel.Warn;
                 try
                 {
-                    level = NLog.LogLevel.FromString(SettingsReader<string>.Read("LogLevel"));
+                    level = NLog.LogLevel.FromString(SettingsReader<string>.Read("LogLevel", NLog.LogLevel.Warn.Name));
                 }
                 catch
                 {
@@ -176,7 +176,7 @@
                 var level = NLog.LogLevel.Warn;
                 try
                 {
-                    level = NLog.LogLevel.FromString(SettingsReader<string>.Read("RavenDBLogLevel"));
+                    level = NLog.LogLevel.FromString(SettingsReader<string>.Read("RavenDBLogLevel", NLog.LogLevel.Warn.Name));
                 }
                 catch
                 {
