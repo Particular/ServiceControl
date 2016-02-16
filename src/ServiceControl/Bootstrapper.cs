@@ -136,9 +136,9 @@ namespace Particular.ServiceControl
             var fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = Path.Combine(Settings.LogPath, "logfile.txt"),
-                ArchiveFileName = Path.Combine(Settings.LogPath, "log.{#}.txt"),
-                ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                FileName = Path.Combine(Settings.LogPath, "logfile.${shortdate}.txt"),
+                ArchiveFileName = Path.Combine(Settings.LogPath, "logfile.{#}.txt"),
+                ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
                 ArchiveAboveSize =  30 * megaByte
@@ -147,9 +147,9 @@ namespace Particular.ServiceControl
             var ravenFileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = Path.Combine(Settings.LogPath, "ravenlog.txt"),
+                FileName = Path.Combine(Settings.LogPath, "ravenlog.${shortdate}.txt"),
                 ArchiveFileName = Path.Combine(Settings.LogPath, "ravenlog.{#}.txt"),
-                ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
                 ArchiveAboveSize = 30 * megaByte
