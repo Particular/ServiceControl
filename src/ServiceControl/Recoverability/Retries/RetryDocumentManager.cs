@@ -10,6 +10,7 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using Raven.Client.Linq;
     using Raven.Json.Linq;
+    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
     public class RetryDocumentManager
@@ -17,6 +18,13 @@ namespace ServiceControl.Recoverability
         public IDocumentStore Store { get; set; }
 
         static string RetrySessionId = Guid.NewGuid().ToString();
+
+        private bool abort;
+
+        public RetryDocumentManager(ShutdownNotifier notifier)
+        {
+            notifier.Register(() => { abort = true; });
+        }
 
         public string CreateBatchDocument(string context = null)
         {
@@ -113,7 +121,7 @@ namespace ServiceControl.Recoverability
                 AdoptBatches(session, orphanedBatchIds);
 
                 var moreToDo = stats.IsStale || orphanedBatchIds.Any();
-                return !moreToDo;
+                return abort || !moreToDo;
             }
         }
 
@@ -131,13 +139,16 @@ namespace ServiceControl.Recoverability
 
             using (var stream = session.Advanced.Stream(query))
             {
-                while (stream.MoveNext())
+                while (!abort && stream.MoveNext())
                 {
                     messageIds.Add(stream.Current.Document.Id);
                 }
             }
 
-            MoveBatchToStaging(batchId, messageIds.ToArray());
+            if (!abort)
+            {
+                MoveBatchToStaging(batchId, messageIds.ToArray());
+            }
         }
     }
 }

@@ -5,6 +5,7 @@
     using System.IO;
     using System.Linq;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Persistence;
     using NServiceBus.Pipeline;
@@ -31,14 +32,13 @@
 
         public void Customize(BusConfiguration configuration)
         {
+            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
+
             Directory.CreateDirectory(Settings.DbPath);
 
-            var documentStore = new EmbeddableDocumentStore
-            {
-                DataDirectory = Settings.DbPath,
-                UseEmbeddedHttpServer = Settings.MaintenanceMode || Settings.ExposeRavenDB,
-                EnlistInDistributedTransactions = false,
-            };
+            documentStore.DataDirectory = Settings.DbPath;
+            documentStore.UseEmbeddedHttpServer = Settings.MaintenanceMode || Settings.ExposeRavenDB;
+            documentStore.EnlistInDistributedTransactions = false;
 
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
             if (File.Exists(localRavenLicense))
@@ -92,8 +92,7 @@
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
 
             configuration.RegisterComponents(c => 
-                c.RegisterSingleton<IDocumentStore>(documentStore)
-                 .ConfigureComponent(builder =>
+                 c.ConfigureComponent(builder =>
                  {
                      var context = builder.Build<PipelineExecutor>().CurrentContext;
 

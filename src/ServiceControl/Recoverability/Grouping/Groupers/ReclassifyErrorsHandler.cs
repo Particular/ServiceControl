@@ -25,82 +25,99 @@ namespace ServiceControl.Recoverability
         readonly IEnumerable<IFailureClassifier> classifiers;
         const int BatchSize = 1000;
         int failedMessagesReclassified;
+        private bool abort;
+        private static int executing;
 
         ILog logger = LogManager.GetLogger<ReclassifyErrorsHandler>();
 
-        public ReclassifyErrorsHandler(IBus bus, IDocumentStore store, IEnumerable<IFailureClassifier> classifiers)
+        public ReclassifyErrorsHandler(IBus bus, IDocumentStore store, ShutdownNotifier notifier, IEnumerable<IFailureClassifier> classifiers)
         {
             this.bus = bus;
             this.store = store;
             this.classifiers = classifiers;
+
+            notifier.Register(() => { abort = true; });
         }
 
         public void Handle(ReclassifyErrors message)
         {
-            using (var session = store.OpenSession())
+            if (Interlocked.Exchange(ref executing, 1) != 0)
             {
-                ReclassifyErrorSettings settings = null;
-
-                if (!message.Force)
-                {
-                    settings = session.Load<ReclassifyErrorSettings>(ReclassifyErrorSettings.IdentifierCase);
-
-                    if (settings != null && settings.ReclassificationDone)
-                    {
-                        logger.Info("Skipping reclassification of failures as classification has already been done.");
-                        return;
-                    }
-                }
-
-                logger.Info("Reclassification of failures started.");
-
-                var query = session.Query<FailedMessage, FailedMessageViewIndex>()
-                    .Where(f => f.Status == FailedMessageStatus.Unresolved);
-
-                var currentBatch = new List<Tuple<string, FailureDetails>>();
-
-                using (var stream = session.Advanced.Stream(query.As<FailedMessage>()))
-                {
-                    while (stream.MoveNext())
-                    {
-                        if (stream.Current.Document.FailureGroups.Count > 0)
-                        {
-                            continue;
-                        }
-
-                        currentBatch.Add(Tuple.Create(stream.Current.Document.Id, stream.Current.Document.ProcessingAttempts.Last().FailureDetails));
-
-                        if (currentBatch.Count == BatchSize)
-                        {
-                            ReclassifyBatch(currentBatch);
-                            currentBatch.Clear();
-                        }
-                    }
-                }
-
-                if (currentBatch.Any())
-                {
-                    ReclassifyBatch(currentBatch);
-                }
-
-                logger.Info("Reclassification of failures ended.");
-
-                if (settings == null)
-                {
-                    settings = new ReclassifyErrorSettings();
-                }
-
-                settings.ReclassificationDone = true;
-                session.Store(settings);
-                session.SaveChanges();
+                // Prevent more then one execution at a time
+                return;
             }
 
-            if (failedMessagesReclassified > 0)
+            try
             {
-                bus.Publish(new ReclassificationOfErrorMessageComplete
+                using (var session = store.OpenSession())
                 {
-                    NumberofMessageReclassified = failedMessagesReclassified
-                });
+                    ReclassifyErrorSettings settings = null;
+
+                    if (!message.Force)
+                    {
+                        settings = session.Load<ReclassifyErrorSettings>(ReclassifyErrorSettings.IdentifierCase);
+
+                        if (settings != null && settings.ReclassificationDone)
+                        {
+                            logger.Info("Skipping reclassification of failures as classification has already been done.");
+                            return;
+                        }
+                    }
+
+                    logger.Info("Reclassification of failures started.");
+
+                    var query = session.Query<FailedMessage, FailedMessageViewIndex>()
+                        .Where(f => f.Status == FailedMessageStatus.Unresolved);
+
+                    var currentBatch = new List<Tuple<string, FailureDetails>>();
+
+                    using (var stream = session.Advanced.Stream(query.As<FailedMessage>()))
+                    {
+                        while (!abort && stream.MoveNext())
+                        {
+                            if (stream.Current.Document.FailureGroups.Count > 0)
+                            {
+                                continue;
+                            }
+
+                            currentBatch.Add(Tuple.Create(stream.Current.Document.Id, stream.Current.Document.ProcessingAttempts.Last().FailureDetails));
+
+                            if (currentBatch.Count == BatchSize)
+                            {
+                                ReclassifyBatch(currentBatch);
+                                currentBatch.Clear();
+                            }
+                        }
+                    }
+
+                    if (currentBatch.Any())
+                    {
+                        ReclassifyBatch(currentBatch);
+                    }
+
+                    logger.Info("Reclassification of failures ended.");
+
+                    if (settings == null)
+                    {
+                        settings = new ReclassifyErrorSettings();
+                    }
+
+                    settings.ReclassificationDone = true;
+                    session.Store(settings);
+                    session.SaveChanges();
+                }
+
+                if (failedMessagesReclassified > 0)
+                {
+                    bus.Publish(new ReclassificationOfErrorMessageComplete
+                    {
+                        NumberofMessageReclassified = failedMessagesReclassified
+                    });
+                }
+            }
+            finally
+            {
+                Interlocked.Exchange(ref executing, 0);
             }
         }
 
