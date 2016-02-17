@@ -14,7 +14,8 @@
         {
             lock (locker)
             {
-                GetEndpoint(endpointDetails);
+                // TODO: Create Heartbeat Document?
+                //GetEndpoint(endpointDetails);
 
                 return GetHeartbeatsStatsNoLock();
             }
@@ -24,11 +25,12 @@
         {
             lock (locker)
             {
-                var existingEndpoint = GetEndpoint(endpointDetails);
+                // TODO: Register Heartbeating Endpoint
+                //var existingEndpoint = GetEndpoint(endpointDetails);
 
 
-                existingEndpoint.Active = true;
-                existingEndpoint.TimeOfLastHeartbeat = timeOfHeartbeat;
+                //existingEndpoint.Active = true;
+                //existingEndpoint.TimeOfLastHeartbeat = timeOfHeartbeat;
 
                 return GetHeartbeatsStatsNoLock();
             }
@@ -38,10 +40,11 @@
         {
             lock (locker)
             {
-                var existingEndpoint = GetEndpoint(endpointDetails);
+                // TODO: Register Dead Endpoint
+                //var existingEndpoint = GetEndpoint(endpointDetails);
 
 
-                existingEndpoint.Active = false;
+                //existingEndpoint.Active = false;
 
                 return GetHeartbeatsStatsNoLock();
             }
@@ -64,8 +67,11 @@
         {
             lock (locker)
             {
-                var existingEndpoint = GetEndpoint(endpoint);
-                existingEndpoint.MonitoringDisabled = false;
+                Heartbeat heartbeat;
+                if (TryGetHeartbeat(endpoint, out heartbeat))
+                {
+                    heartbeat.Disabled = false;
+                }
                 return GetHeartbeatsStatsNoLock();
             }
         }
@@ -74,8 +80,11 @@
         {
             lock (locker)
             {
-                var existingEndpoint = GetEndpoint(endpoint);
-                existingEndpoint.MonitoringDisabled = true;
+                Heartbeat heartbeat;
+                if (TryGetHeartbeat(endpoint, out heartbeat))
+                {
+                    heartbeat.Disabled = true;
+                }
                 return GetHeartbeatsStatsNoLock();
             }
         }
@@ -84,108 +93,96 @@
         {
             lock (locker)
             {
-                return endpoints.Where(e => HasPassedTheGracePeriod(time, e))
+                return heartbeatsPerInstance.Values.Where(e => HasPassedTheGracePeriod(time, e))
                     .Select(e => new PotentiallyFailedEndpoint
                     {
-                        Details = new EndpointDetails
-                        {
-                            Host = e.Host,
-                            HostId = e.HostId,
-                            Name = e.Name
-                        },
-                        LastHeartbeatAt = e.TimeOfLastHeartbeat.Value
-
+                        Details = e.EndpointDetails,
+                        LastHeartbeatAt = e.LastReportAt
                     }).ToList();
             }
         }
 
         HeartbeatsStats GetHeartbeatsStatsNoLock()
         {
-            return new HeartbeatsStats(endpoints.Count(e => !e.MonitoringDisabled && e.Active), endpoints.Count(e => !e.MonitoringDisabled && !e.Active));
+            var heartbeats = heartbeatsPerInstance.Values.Where(x => x.Disabled == false).ToArray();
+
+            return new HeartbeatsStats(heartbeats.Count(x => x.ReportedStatus == Status.Beating), heartbeats.Count(x => x.ReportedStatus == Status.Dead));
         }
 
-        bool HasPassedTheGracePeriod(DateTime time, HeartbeatingEndpoint heartbeatingEndpoint)
+        bool HasPassedTheGracePeriod(DateTime time, Heartbeat heartbeat)
         {
-            if (!heartbeatingEndpoint.TimeOfLastHeartbeat.HasValue)
+            if (heartbeat.Disabled)
             {
                 return false;
             }
 
-            if (!heartbeatingEndpoint.Active)
-            {
-                return false;
-            }
-
-            var id = DeterministicGuid.MakeId(heartbeatingEndpoint.Name, heartbeatingEndpoint.HostId.ToString());
-            TimeSpan timeSinceLastHeartbeat;
-
-            if (heartbeatsPerInstance.ContainsKey(id))
-            {
-                timeSinceLastHeartbeat = time - heartbeatsPerInstance[id].ExecutedAt;
-            }
-            else
-            {
-                timeSinceLastHeartbeat = time - heartbeatingEndpoint.TimeOfLastHeartbeat.Value;
-            }
+            var timeSinceLastHeartbeat = time - heartbeat.LastReportAt;
 
             return timeSinceLastHeartbeat >= GracePeriod;
         }
 
-
-
-        HeartbeatingEndpoint GetEndpoint(EndpointDetails endpointDetails)
+        bool TryGetHeartbeat(EndpointDetails endpointDetails, out Heartbeat heartbeat)
         {
-            var existingEndpoint = TryFindEndpoint(endpointDetails);
-            if (existingEndpoint == null)
-            {
-                existingEndpoint = new HeartbeatingEndpoint
-                {
-                    Host = endpointDetails.Host,
-                    HostId = endpointDetails.HostId,
-                    Name = endpointDetails.Name
-                };
+            var key = GetHeartbeatId(endpointDetails);
 
-                endpoints.Add(existingEndpoint);
-            }
-            else
-            {
-                if (existingEndpoint.HostId == Guid.Empty && endpointDetails.HostId != Guid.Empty)
-                {
-                    existingEndpoint.HostId = endpointDetails.HostId;
-                }
-            }
-            return existingEndpoint;
+            return heartbeatsPerInstance.TryGetValue(key, out heartbeat);
         }
 
-        HeartbeatingEndpoint TryFindEndpoint(EndpointDetails endpointDetails)
-        {
-            if (endpointDetails.HostId == Guid.Empty)
-            {
-                // Try to match existing ones on host and machine if no host id is present
-                return endpoints.Where(e => e.Host == endpointDetails.Host && e.Name == endpointDetails.Name)
-                    .OrderBy(e => e.HostId) // This is a hack because of Issue #448
-                    .FirstOrDefault();
-            }
 
-            //try to get an exact match
-            var existingEndpoint = endpoints.SingleOrDefault(e => e.HostId == endpointDetails.HostId && e.Name == endpointDetails.Name);
 
-            if (existingEndpoint != null)
-            {
-                return existingEndpoint;
-            }
+        //HeartbeatingEndpoint GetEndpoint(EndpointDetails endpointDetails)
+        //{
+        //    var existingEndpoint = TryFindEndpoint(endpointDetails);
+        //    if (existingEndpoint == null)
+        //    {
+        //        existingEndpoint = new HeartbeatingEndpoint
+        //        {
+        //            Host = endpointDetails.Host,
+        //            HostId = endpointDetails.HostId,
+        //            Name = endpointDetails.Name
+        //        };
 
-            //try to match on existing ones without host IDs
-            return endpoints.SingleOrDefault(e =>
-                e.HostId == Guid.Empty &&
-                e.Host == endpointDetails.Host && e.Name == endpointDetails.Name);
+        //        endpoints.Add(existingEndpoint);
+        //    }
+        //    else
+        //    {
+        //        if (existingEndpoint.HostId == Guid.Empty && endpointDetails.HostId != Guid.Empty)
+        //        {
+        //            existingEndpoint.HostId = endpointDetails.HostId;
+        //        }
+        //    }
+        //    return existingEndpoint;
+        //}
 
-        }
+        //HeartbeatingEndpoint TryFindEndpoint(EndpointDetails endpointDetails)
+        //{
+        //    if (endpointDetails.HostId == Guid.Empty)
+        //    {
+        //        // Try to match existing ones on host and machine if no host id is present
+        //        return endpoints.Where(e => e.Host == endpointDetails.Host && e.Name == endpointDetails.Name)
+        //            .OrderBy(e => e.HostId) // This is a hack because of Issue #448
+        //            .FirstOrDefault();
+        //    }
+
+        //    //try to get an exact match
+        //    var existingEndpoint = endpoints.SingleOrDefault(e => e.HostId == endpointDetails.HostId && e.Name == endpointDetails.Name);
+
+        //    if (existingEndpoint != null)
+        //    {
+        //        return existingEndpoint;
+        //    }
+
+        //    //try to match on existing ones without host IDs
+        //    return endpoints.SingleOrDefault(e =>
+        //        e.HostId == Guid.Empty &&
+        //        e.Host == endpointDetails.Host && e.Name == endpointDetails.Name);
+
+        //}
 
         readonly object locker = new object();
 
-        List<HeartbeatingEndpoint> endpoints = new List<HeartbeatingEndpoint>();
-        ConcurrentDictionary<Guid, EndpointHeartbeat> heartbeatsPerInstance = new ConcurrentDictionary<Guid, EndpointHeartbeat>();
+        //List<HeartbeatingEndpoint> endpoints = new List<HeartbeatingEndpoint>();
+        ConcurrentDictionary<Guid, Heartbeat> heartbeatsPerInstance = new ConcurrentDictionary<Guid, Heartbeat>();
 
 
         public class PotentiallyFailedEndpoint
@@ -197,14 +194,58 @@
 
         public TimeSpan GracePeriod { get; set; }
 
-        public void UpdateHeartbeat(Guid id, EndpointHeartbeat endpointHeartbeat)
+        public void UpdateHeartbeat(EndpointDetails endpoint, DateTime lastExecuted)
         {
-            heartbeatsPerInstance.AddOrUpdate(id, endpointHeartbeat, (currentId, currentEndpointHeartbeat) => endpointHeartbeat.ExecutedAt <= currentEndpointHeartbeat.ExecutedAt ? currentEndpointHeartbeat : endpointHeartbeat);
+            var heartbeatId = GetHeartbeatId(endpoint);
+
+            heartbeatsPerInstance.AddOrUpdate(heartbeatId,
+                newId => CreateNewEndpointHeartbeat(newId, endpoint, lastExecuted),
+                (currentId, currentHeartbeat) => UpdateExistingHeartbeat(lastExecuted, currentHeartbeat));
         }
 
-        public IDictionary<Guid, EndpointHeartbeat> HeartbeatsPerInstance
+        private Guid GetHeartbeatId(EndpointDetails details)
+        {
+            return DeterministicGuid.MakeId(details.Name, details.HostId.ToString());
+        }
+
+        static Heartbeat UpdateExistingHeartbeat(DateTime newBeatTime, Heartbeat currentHeartbeat)
+        {
+            if (currentHeartbeat.LastReportAt >= newBeatTime)
+            {
+                return currentHeartbeat;
+            }
+
+            currentHeartbeat.LastReportAt = newBeatTime;
+
+            if (currentHeartbeat.ReportedStatus == Status.Dead)
+            {
+                currentHeartbeat.ReportedStatus = Status.Beating;
+
+                // TODO: Raise Notification
+                // TODO: Persist
+            }
+
+            return currentHeartbeat;
+        }
+
+        public IDictionary<Guid, Heartbeat> HeartbeatsPerInstance
         {
             get { return heartbeatsPerInstance; }
+        }
+
+        static Heartbeat CreateNewEndpointHeartbeat(Guid newId, EndpointDetails endpoint, DateTime lastExecutedAt)
+        {
+            // TODO: Raise new heartbeat event?
+            // TODO: Persist new heartbeat?
+
+            return new Heartbeat
+            {
+                Id = newId,
+                Disabled = false,
+                EndpointDetails = endpoint,
+                LastReportAt = lastExecutedAt,
+                ReportedStatus = Status.Beating
+            };
         }
     }
 }

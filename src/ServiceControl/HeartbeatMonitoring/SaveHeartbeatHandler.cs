@@ -5,6 +5,7 @@
     using NServiceBus;
     using Plugin.Heartbeat.Messages;
     using Raven.Client;
+    using ServiceControl.Contracts.Operations;
 
     class SaveHeartbeatHandler : IHandleMessages<EndpointHeartbeat>
     {
@@ -29,10 +30,14 @@
                 throw new Exception("Received an EndpointHeartbeat message without proper initialization of the HostId in the schema");
             }
                 
+            var endpoint = new EndpointDetails
+            {
+                Host = message.Host,
+                HostId = message.HostId,
+                Name = message.EndpointName
+            };
 
-            var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString());
-
-            HeartbeatStatusProvider.UpdateHeartbeat(id, message);
+            HeartbeatStatusProvider.UpdateHeartbeat(endpoint, message.ExecutedAt);
         }
     }
 }

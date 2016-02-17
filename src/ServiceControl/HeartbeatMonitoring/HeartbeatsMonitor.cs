@@ -207,14 +207,8 @@ namespace ServiceControl.HeartbeatMonitoring
                                 continue;
                             }
 
-                            heartbeat.LastReportAt = memHeartbeat.Value.ExecutedAt;
-                            heartbeat.EndpointDetails = new EndpointDetails
-                            {
-                                HostId = memHeartbeat.Value.HostId,
-                                Host = memHeartbeat.Value.Host,
-                                Name = memHeartbeat.Value.EndpointName
-                            };
-
+                            heartbeat.LastReportAt = memHeartbeat.Value.LastReportAt;
+                            heartbeat.EndpointDetails = memHeartbeat.Value.EndpointDetails;
                             if (heartbeat.ReportedStatus == Status.Dead)
                             {
                                 heartbeat.ReportedStatus = Status.Beating;
@@ -231,13 +225,8 @@ namespace ServiceControl.HeartbeatMonitoring
                             {
                                 Id = memHeartbeat.Key,
                                 ReportedStatus = Status.Beating,
-                                LastReportAt = memHeartbeat.Value.ExecutedAt,
-                                EndpointDetails = new EndpointDetails
-                                {
-                                    HostId = memHeartbeat.Value.HostId,
-                                    Host = memHeartbeat.Value.Host,
-                                    Name = memHeartbeat.Value.EndpointName
-                                }
+                                LastReportAt = memHeartbeat.Value.LastReportAt,
+                                EndpointDetails = memHeartbeat.Value.EndpointDetails
                             };
 
                             Bus.Publish(new HeartbeatingEndpointDetected
