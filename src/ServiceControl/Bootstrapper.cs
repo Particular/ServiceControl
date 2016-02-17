@@ -3,6 +3,7 @@ namespace Particular.ServiceControl
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.ServiceProcess;
     using Autofac;
@@ -123,6 +124,7 @@ namespace Particular.ServiceControl
 
         static void ConfigureLogging()
         {
+            const long megaByte = 1073741824;
             if (NLog.LogManager.Configuration != null)
             {
                 return;
@@ -134,13 +136,25 @@ namespace Particular.ServiceControl
             var fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = Path.Combine(Settings.LogPath, "logfile.txt"),
-                ArchiveFileName = Path.Combine(Settings.LogPath, "log.{#}.txt"),
-                ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                FileName = Path.Combine(Settings.LogPath, "logfile.${shortdate}.txt"),
+                ArchiveFileName = Path.Combine(Settings.LogPath, "logfile.{#}.txt"),
+                ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
+                ArchiveAboveSize =  30 * megaByte
             };
 
+            var ravenFileTarget = new FileTarget
+            {
+                ArchiveEvery = FileArchivePeriod.Day,
+                FileName = Path.Combine(Settings.LogPath, "ravenlog.${shortdate}.txt"),
+                ArchiveFileName = Path.Combine(Settings.LogPath, "ravenlog.{#}.txt"),
+                ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
+                Layout = simpleLayout,
+                MaxArchiveFiles = 14,
+                ArchiveAboveSize = 30 * megaByte
+            };
+            
             var consoleTarget = new ColoredConsoleTarget
             {
                 Layout = simpleLayout,
@@ -149,20 +163,18 @@ namespace Particular.ServiceControl
             
             var nullTarget = new NullTarget();
 
-            nlogConfig.AddTarget("debugger", fileTarget);
+            // There lines don't appear to be necessary.  The rules seem to work without implicitly adding the targets?!?
             nlogConfig.AddTarget("console", consoleTarget);
+            nlogConfig.AddTarget("debugger", fileTarget);
+            nlogConfig.AddTarget("raven", ravenFileTarget);
             nlogConfig.AddTarget("bitbucket", nullTarget);
             
             // Only want to see raven errors
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", Settings.RavenDBLogLevel, ravenFileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));  //Noise reduction - Only RavenDB errors on the console
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget) { Final = true }); //Will swallow debug and above messages
 
-            // Only want to see persistance errors
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*", LogLevel.Error, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*", LogLevel.Error, consoleTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.RavenDB.Persistence.*", LogLevel.Debug, nullTarget) { Final = true }); //Will swallow debug and above messages
-
+            
             // Always want to see license logging regardless of default logging level
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget){ Final = true });
@@ -170,11 +182,21 @@ namespace Particular.ServiceControl
             // Defaults
             nlogConfig.LoggingRules.Add(new LoggingRule("*", Settings.LoggingLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
+
+            // Remove Console Logging when running as a service
+            if (!Environment.UserInteractive)
+            {
+                foreach (var rule in nlogConfig.LoggingRules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
+                {
+                    nlogConfig.LoggingRules.Remove(rule);
+                }
+            }
             
             NLog.LogManager.Configuration = nlogConfig;
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
             logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName, Settings.LoggingLevel.Name);
+            logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName, Settings.RavenDBLogLevel.Name);
         }
 
         string DetermineServiceName(ServiceBase host, HostArguments hostArguments)
