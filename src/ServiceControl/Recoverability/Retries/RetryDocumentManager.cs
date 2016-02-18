@@ -5,6 +5,7 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
@@ -97,7 +98,7 @@ namespace ServiceControl.Recoverability
             }
             catch (ConcurrencyException)
             {
-                // Ignore concurrency exceptions
+                log.DebugFormat("Ignoring concurrency exception while moving batch to staging {0}", batchDocumentId);
             }
         }
 
@@ -117,6 +118,8 @@ namespace ServiceControl.Recoverability
                     .Statistics(out stats)
                     .Select(b => b.Id)
                     .ToArray();
+
+                log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatchIds.Length);
 
                 AdoptBatches(session, orphanedBatchIds);
 
@@ -147,8 +150,11 @@ namespace ServiceControl.Recoverability
 
             if (!abort)
             {
+                log.InfoFormat("Adopting retry batch {0} from previous session with {1} messages", batchId, messageIds.Count);
                 MoveBatchToStaging(batchId, messageIds.ToArray());
             }
         }
+
+        static ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
     }
 }

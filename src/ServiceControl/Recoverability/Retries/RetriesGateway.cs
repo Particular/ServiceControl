@@ -6,6 +6,7 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Linq.Expressions;
     using System.Threading.Tasks;
+    using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Client.Indexes;
@@ -94,6 +95,8 @@ namespace ServiceControl.Recoverability
             where TIndex : AbstractIndexCreationTask, new()
             where TType : IHaveStatus
         {
+            log.InfoFormat("Enqueuing index based bulk retry `{0}`", context);
+
             var request = new IndexBasedBulkRetryRequest<TType, TIndex>(context, filter);
 
             _bulkRequests.Enqueue(request);
@@ -103,10 +106,13 @@ namespace ServiceControl.Recoverability
         {
             if (messageIds == null || !messageIds.Any())
             {
+                log.DebugFormat("Context `{0}` contains no messages", context);
                 return;
             }
 
             var batchDocumentId = RetryDocumentManager.CreateBatchDocument(context);
+
+            log.InfoFormat("Created Batch {0} with {1} messages for context `{2}`", batchDocumentId, messageIds.Length, context);
 
             var retryIds = new ConcurrentSet<string>();
             Parallel.ForEach(
@@ -114,6 +120,7 @@ namespace ServiceControl.Recoverability
                 id => retryIds.Add(RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, id)));
 
             RetryDocumentManager.MoveBatchToStaging(batchDocumentId, retryIds.ToArray());
+            log.InfoFormat("Moved Batch {0} to Staging", batchDocumentId);
         }
 
         internal bool ProcessNextBulkRetry()
@@ -137,5 +144,7 @@ namespace ServiceControl.Recoverability
                 StageRetryByUniqueMessageIds(batches[i], request.GetBatchName(i + 1, batches.Count));
             }
         }
+
+        static ILog log = LogManager.GetLogger(typeof(RetriesGateway));
     }
 }
