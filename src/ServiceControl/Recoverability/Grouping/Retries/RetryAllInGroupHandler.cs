@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System.Linq;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Raven.Client;
 
     public class RetryAllInGroupHandler : IHandleMessages<RetryAllInGroup>
@@ -10,6 +11,7 @@ namespace ServiceControl.Recoverability
         {
             if (Retries == null)
             {
+                log.WarnFormat("Attempt to retry a group ({0}) when retries are disabled", message.GroupId);
                 return;
             }
 
@@ -28,5 +30,7 @@ namespace ServiceControl.Recoverability
 
         public RetriesGateway Retries { get; set; }
         public IDocumentSession Session { get; set; }
+
+        static ILog log = LogManager.GetLogger(typeof(RetryAllInGroupHandler));
     }
 }
