@@ -13,9 +13,12 @@ namespace Particular.ServiceControl
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Particular.ServiceControl.Hosting;
+    using Raven.Client;
+    using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
     using LogLevel = NLog.LogLevel;
 
@@ -23,6 +26,10 @@ namespace Particular.ServiceControl
     {
         public static IContainer Container { get; set; }
         public IStartableBus Bus { get; private set; }
+
+        ShutdownNotifier notifier = new ShutdownNotifier();
+        EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
+        TimeKeeper timeKeeper;
 
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
@@ -35,9 +42,15 @@ namespace Particular.ServiceControl
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = Settings.HttpDefaultConnectionLimit;
 
+            timeKeeper = new TimeKeeper();
+
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
+            containerBuilder.RegisterInstance(notifier).ExternallyOwned();
+            containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
+            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+
             Container = containerBuilder.Build();
 
             if (configuration == null)
@@ -45,6 +58,9 @@ namespace Particular.ServiceControl
                 configuration = new BusConfiguration();
                 configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
             }
+
+            // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
+            configuration.GetSettings().Set("ServiceControl.EmbeddableDocumentStore", documentStore);
 
             // Disable Auditing for the service control endpoint
             configuration.DisableFeature<Audit>();
@@ -103,7 +119,7 @@ namespace Particular.ServiceControl
 
         public void Start()
         {
-             var Logger = LogManager.GetLogger(typeof(Bootstrapper));
+            var Logger = LogManager.GetLogger(typeof(Bootstrapper));
             if (Settings.MaintenanceMode)
             {
                 Logger.InfoFormat("RavenDB is now accepting requests on {0}", Settings.StorageUrl);
@@ -113,13 +129,16 @@ namespace Particular.ServiceControl
                 }
                 return;
             }
-            
+
             Bus.Start();
         }
 
         public void Stop()
         {
+            notifier.Dispose();
             Bus.Dispose();
+            timeKeeper.Dispose();
+            documentStore.Dispose();
         }
 
         static void ConfigureLogging()

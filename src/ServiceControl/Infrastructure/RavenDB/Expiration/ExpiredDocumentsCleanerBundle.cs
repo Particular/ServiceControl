@@ -3,6 +3,7 @@
 
     using System;
     using System.ComponentModel.Composition;
+    using System.Threading;
     using Raven.Abstractions.Logging;
     using Raven.Database;
     using Raven.Database.Plugins;
@@ -13,7 +14,7 @@
     public class ExpiredDocumentsCleanerBundle : IStartupTask, IDisposable
     {
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));
-        PeriodicExecutor timer;
+        Timer timer;
 
         public void Execute(DocumentDatabase database)
         {
@@ -29,15 +30,24 @@
             logger.Info("Deletion batch size set to {0}", deletionBatchSize);
             logger.Info("Retention period is {0} hours", Settings.HoursToKeepMessagesBeforeExpiring);
 
-            timer = new PeriodicExecutor(executor => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database), TimeSpan.FromSeconds(deleteFrequencyInSeconds));
-            timer.Start(true);
+            var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
+            timer = new Timer(executor =>
+            {
+                ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database);
+                
+                timer.Change(due, Timeout.InfiniteTimeSpan);
+            }, null, due, Timeout.InfiniteTimeSpan);
         }
 
         public void Dispose()
         {
             if (timer != null)
             {
-                timer.Stop();
+                using (var manualResetEvent = new ManualResetEvent(false))
+                {
+                    timer.Dispose(manualResetEvent);
+                    manualResetEvent.WaitOne();
+                }
             }
         }
     }

@@ -53,17 +53,29 @@
         protected override void OnStop()
         {
             tokenSource.Cancel();
+            resetEvent.Wait();
         }
 
         private void DispatchEvents(CancellationToken token)
         {
-            while (!token.IsCancellationRequested)
+            try
             {
-                DispatchEventBatch(token);
+                resetEvent.Reset();
+                while (!token.IsCancellationRequested)
+                {
+                    if (DispatchEventBatch() && !token.IsCancellationRequested)
+                    {
+                        token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1));
+                    }
+                }
+            }
+            finally
+            {
+                resetEvent.Set();
             }
         }
 
-        void DispatchEventBatch(CancellationToken token)
+        bool DispatchEventBatch()
         {
             using (var session = DocumentStore.OpenSession())
             {
@@ -74,8 +86,7 @@
                     {
                         Logger.Debug("Nothing to dispatch. Waiting...");
                     }
-                    token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1));
-                    return;
+                    return true;
                 }
 
                 var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
@@ -121,8 +132,11 @@
                 }
                 session.SaveChanges();
             }
+
+            return false;
         }
 
+        ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
         CancellationTokenSource tokenSource;
         RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
         static readonly ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
