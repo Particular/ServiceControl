@@ -40,7 +40,11 @@
                 m.Description = logItem.Description;
                 m.Id = logItem.Id;
                 m.Category = logItem.Category;
-                m.RelatedTo = EmptyArray;
+                // Yes this is on purpose.
+                // The reason is because this data is not useful for end users, so for now we just empty it.
+                // At the moment too much data is being populated in this field, and this has significant down sides to the amount of data we are sending down to ServicePulse (it actually crashes it).
+                m.RelatedTo = EmptyArray; 
+
             });
         }
     }
