@@ -11,6 +11,7 @@
             TypesToExclude = new List<Type>();
             TypesToInclude = new List<Type>();
             GetBus = () => null;
+            StopBus = null;
         }
 
         public IDictionary<Type, Type> EndpointMappings { get; set; }
@@ -22,6 +23,8 @@
         public Func<RunDescriptor, IDictionary<Type, string>, BusConfiguration> GetConfiguration { get; set; }
 
         internal Func<IStartableBus> GetBus { get; set; }
+
+        internal Action StopBus { get; set; } 
 
         public string EndpointName
         {
@@ -49,9 +52,10 @@
         public Type AuditEndpoint { get; set; }
         public bool SendOnly { get; set; }
 
-        public void SelfHost(Func<IStartableBus> getBus)
+        public void SelfHost(Func<IStartableBus> getBus, Action stopBus)
         {
             GetBus = getBus;
+            StopBus = stopBus;
         }
 
         string endpointName;

@@ -171,7 +171,14 @@
                 }
                 else
                 {
-                    bus.Dispose();
+                    if (configuration.StopBus != null)
+                    {
+                        configuration.StopBus();
+                    }
+                    else
+                    {
+                        bus.Dispose();
+                    }
                 }
 
                 Cleanup();
