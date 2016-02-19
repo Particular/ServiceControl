@@ -19,8 +19,10 @@
         [Test]
         public void Should_result_in_a_custom_check_failed_event()
         {
-            var context = new MyContext();
-
+            var context = new MyContext
+            {
+                SignalrStarted = true
+            };
             EventLogItem entry = null;
 
             Scenario.Define(context)
@@ -57,6 +59,7 @@
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
             public int SCPort { get; set; }
+            public bool SignalrStarted { get; set; }
         }
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
@@ -87,6 +90,8 @@
                         try
                         {
                             connection.Start().Wait();
+                            context.SignalrStarted = true;
+                            context.AddTrace("SignalR started");
                             break;
                         }
                         catch (AggregateException ex)
@@ -133,21 +138,26 @@
 
             class FailingCustomCheck : PeriodicCheck
             {
+                private readonly MyContext context;
                 bool executed;
                 
-                public FailingCustomCheck() : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5))
+                public FailingCustomCheck(MyContext context) : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5))
                 {
+                    this.context = context;
                 }
 
                 public override CheckResult PerformCheck()
                 {
-                    if (executed)
+                    if (executed && context.SignalrStarted)
                     {
+                        context.AddTrace("CheckResult.Failed");
+
                         return CheckResult.Failed("Some reason");
                     }
 
                     executed = true;
 
+                    context.AddTrace("CheckResult.Pass");
                     return CheckResult.Pass;
 
                 }
