@@ -31,8 +31,8 @@
 
         void StartDispatcher()
         {
-            Task.Factory
-                .StartNew(() => DispatchEvents(tokenSource.Token), tokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+            task = Task.Factory
+                .StartNew(() => DispatchEvents(tokenSource.Token), CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
                 .ContinueWith(t =>
                 {
 // ReSharper disable once PossibleNullReferenceException
@@ -53,25 +53,18 @@
         protected override void OnStop()
         {
             tokenSource.Cancel();
-            resetEvent.Wait();
+            task.Wait();
+            tokenSource.Dispose();
         }
 
         private void DispatchEvents(CancellationToken token)
         {
-            try
+            while (!token.IsCancellationRequested)
             {
-                resetEvent.Reset();
-                while (!token.IsCancellationRequested)
+                if (DispatchEventBatch() && !token.IsCancellationRequested)
                 {
-                    if (DispatchEventBatch() && !token.IsCancellationRequested)
-                    {
-                        token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1));
-                    }
+                    token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1));
                 }
-            }
-            finally
-            {
-                resetEvent.Set();
             }
         }
 
@@ -136,8 +129,8 @@
             return false;
         }
 
-        ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
         CancellationTokenSource tokenSource;
+        Task task;
         RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
         static readonly ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
     }
