@@ -287,6 +287,24 @@
     </Compile>
     <Compile Include="Hosting\HostArguments.cs" />
     <Compile Include="Hosting\Options.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\ErrorCode.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpApi.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpApiConstants.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpApiVersion.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigId.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigIPListenParam.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigIPListenQuery.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigQueryType.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigSslKey.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigSslParam.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigSslQuery.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigSslSet.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclKey.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclParam.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclQuery.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclSet.cs" />
+    <Compile Include="Infrastructure\Installers\UrlAcl\UrlReservation.cs" />
+    <Compile Include="Infrastructure\ShutdownNotifier.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredSagaAuditsCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredProcessedMessageCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleaner.cs" />
@@ -294,7 +312,7 @@
     <Compile Include="Infrastructure\Settings\CheckSettingsFeature.cs" />
     <Compile Include="Infrastructure\Settings\NullableRegistryReader.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryProcessedMessageIndex.cs" />
-    <Compile Include="Infrastructure\PeriodicExecutor.cs" />
+    <Compile Include="Infrastructure\TimeKeeper.cs" />
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SignalR\SerializationSettingsFactoryForSignalR.cs" />

@@ -21,8 +21,8 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             var context = new MyContext();
 
             Scenario.Define(context)
-                .WithEndpoint<ManagementEndpoint>(ctx => ctx.AppConfig(PathToAppConfig))
-                .WithEndpoint<FailureEndpoint>(ctx => ctx
+                .WithEndpoint<ManagementEndpoint>(cfg => cfg.AppConfig(PathToAppConfig))
+                .WithEndpoint<FailureEndpoint>(cfg => cfg
                     .When(bus =>
                     {
                         while (true)
@@ -39,23 +39,13 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                         }
                         
                         bus.SendLocal(new MessageThatWillFail());
-                    }))
-                .Done(ctx =>
-                {
-                    if (ctx.IssueRetry)
+                    })
+                    .When(ctx =>
                     {
                         object failure;
-                        if (!TryGet("/api/errors/" + ctx.UniqueMessageId, out failure))
-                        {
-                            return false;
-                        }
-
-                        ctx.IssueRetry = false;
-                        Post<object>(String.Format("/api/errors/{0}/retry", ctx.UniqueMessageId));
-                    }
-
-                    return ctx.Done;
-                })
+                        return ctx.IssueRetry && TryGet("/api/errors/" + ctx.UniqueMessageId, out failure);
+                    }, (bus, ctx) => Post<object>(string.Format("/api/errors/{0}/retry", ctx.UniqueMessageId))))
+                .Done(ctx => ctx.Done)
                 .Run(TimeSpan.FromMinutes(3));
 
             Assert.IsTrue(context.Done);
