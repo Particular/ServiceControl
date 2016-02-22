@@ -29,7 +29,7 @@
             protected override void OnStart()
             {
                 source = new CancellationTokenSource();
-                task = Task.Factory.StartNew(() => Run<FailedErrorImport, FailedErrorImportIndex>(source.Token), source.Token);
+                task = Task.Factory.StartNew(() => Run<FailedErrorImport, FailedErrorImportIndex>(source.Token));
             }
 
             protected override void OnStop()
