@@ -24,8 +24,17 @@
                 {
                     log.Error("Reoccurring timer task failed.", ex);
                 }
-                
-                timer.Change(period, Timeout.InfiniteTimeSpan);
+                if (timers.ContainsKey(timer))
+                {
+                    try
+                    {
+                        timer.Change(period, Timeout.InfiniteTimeSpan);
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // timer has been disposed already, safe to ignore
+                    }
+                }
             }, null, dueTime, Timeout.InfiniteTimeSpan);
 
             timers.TryAdd(timer, null);
