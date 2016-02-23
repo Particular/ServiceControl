@@ -19,8 +19,10 @@
         [Test]
         public void Should_result_in_a_custom_check_failed_event()
         {
-            var context = new MyContext();
-
+            var context = new MyContext
+            {
+                SignalrStarted = true
+            };
             EventLogItem entry = null;
 
             Scenario.Define(context)
@@ -37,12 +39,10 @@
         [Test]
         public void Should_raise_a_signalr_event()
         {
-            var context = new MyContext
+            var context = Scenario.Define(() => new MyContext
             {
                 SCPort = port
-            };
-
-            Scenario.Define(context)
+            })
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
@@ -51,12 +51,13 @@
 
             Assert.IsNotNull(context.SignalrData);
         }
-        
+
         public class MyContext : ScenarioContext
         {
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
             public int SCPort { get; set; }
+            public bool SignalrStarted { get; set; }
         }
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
@@ -81,12 +82,14 @@
                 {
                     connection.JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
                     connection.Received += ConnectionOnReceived;
+                    connection.StateChanged += change => { context.SignalrStarted = change.NewState == ConnectionState.Connected; };
 
                     while (true)
                     {
                         try
                         {
                             connection.Start().Wait();
+                            
                             break;
                         }
                         catch (AggregateException ex)
@@ -125,7 +128,6 @@
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
-            
             public EndpointWithFailingCustomCheck()
             {
                 EndpointSetup<DefaultServerWithoutAudit>();
@@ -133,15 +135,17 @@
 
             class FailingCustomCheck : PeriodicCheck
             {
+                private readonly MyContext context;
                 bool executed;
                 
-                public FailingCustomCheck() : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5))
+                public FailingCustomCheck(MyContext context) : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5))
                 {
+                    this.context = context;
                 }
 
                 public override CheckResult PerformCheck()
                 {
-                    if (executed)
+                    if (executed && context.SignalrStarted)
                     {
                         return CheckResult.Failed("Some reason");
                     }
@@ -149,7 +153,6 @@
                     executed = true;
 
                     return CheckResult.Pass;
-
                 }
             }
         }

@@ -1,6 +1,7 @@
 ﻿namespace NServiceBus.AcceptanceTesting
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.Remoting.Activation;
@@ -66,12 +67,14 @@
 
         public bool HasNativePubSubSupport { get; set; }
 
-        public string Trace { get; set; }
+        public string Trace { get { return string.Join(Environment.NewLine, traceQueue.ToArray()); } }
 
         public void AddTrace(string trace)
         {
-            Trace += DateTime.Now.ToString("HH:mm:ss.ffffff") + " - " + trace + Environment.NewLine;
+            traceQueue.Enqueue(String.Format("{0:HH:mm:ss.ffffff} - {1}", DateTime.Now, trace));
         }
+
+        ConcurrentQueue<string> traceQueue = new ConcurrentQueue<string>();
 
         public void RecordEndpointLog(string endpointName,string level ,string message)
         {

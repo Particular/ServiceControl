@@ -12,6 +12,7 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
+    [Serializable]
     public class When_a_group_is_archived : AcceptanceTest
     {
         [Test]
@@ -25,25 +26,46 @@
             Scenario.Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
-                {
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
-                }))
+                    {
+                        bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
+                        bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
+                    })
+                    .When(ctx =>
+                    {
+                        if (ctx.ArchiveIssued || ctx.FirstMessageId == null || ctx.SecondMessageId == null)
+                        {
+                            return false;
+                        }
+
+                        List<FailedMessage.FailureGroup> beforeArchiveGroups;
+                        if (!TryGetMany("/api/recoverability/groups/", out beforeArchiveGroups))
+                            return false;
+
+                        foreach (var group in beforeArchiveGroups)
+                        {
+                            List<FailedMessage> failedMessages;
+                            if (TryGetMany(string.Format("/api/recoverability/groups/{0}/errors", group.Id), out failedMessages))
+                            {
+                                if (failedMessages.Count == 2)
+                                {
+                                    ctx.GroupId = group.Id;
+                                    return true;
+                                }
+                            }
+                        }
+
+                        return false;
+
+                    }, (bus, ctx) =>
+                    {
+                        Post<object>(string.Format("/api/recoverability/groups/{0}/errors/archive", ctx.GroupId));
+                        ctx.ArchiveIssued = true;
+                    })
+                )
                 .Done(c =>
                 {
                     if (c.FirstMessageId == null || c.SecondMessageId == null)
                         return false;
-
-                    if (!c.ArchiveIssued)
-                    {
-                        List<FailedMessage.FailureGroup> beforeArchiveGroups;
-
-                        if (!TryGetMany("/api/recoverability/groups/", out beforeArchiveGroups))
-                            return false;
-
-                        Post<object>(String.Format("/api/recoverability/groups/{0}/errors/archive", beforeArchiveGroups[0].Id));
-                        c.ArchiveIssued = true;
-                    }
 
                     if (!TryGet("/api/errors/" + c.FirstMessageId, out firstFailure, e => e.Status == FailedMessageStatus.Archived))
                         return false;
@@ -170,12 +192,14 @@
             public int MessageNumber { get; set; }
         }
 
+        [Serializable]
         public class MyContext : ScenarioContext
         {
             public string FirstMessageId { get; set; }
             public string SecondMessageId { get; set; }
             public bool ArchiveIssued { get; set; }
             public bool RetryIssued { get; set; }
+            public string GroupId { get; set; }
         }
     }
 }

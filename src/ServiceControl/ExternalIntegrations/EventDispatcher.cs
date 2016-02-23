@@ -31,39 +31,44 @@
 
         void StartDispatcher()
         {
-            Task.Factory
-                .StartNew(() => DispatchEvents(tokenSource.Token), tokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-                .ContinueWith(t =>
+            task = Task.Run(() =>
+            {
+                try
                 {
-// ReSharper disable once PossibleNullReferenceException
-                    t.Exception.Handle(ex =>
-                    {
-                        Logger.Error("An exception occurred when dispatching external integration events", ex);
-                        circuitBreaker.Failure(ex);
-                        return true;
-                    });
+                    DispatchEvents(tokenSource.Token);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("An exception occurred when dispatching external integration events", ex);
+                    circuitBreaker.Failure(ex);
 
                     if (!tokenSource.IsCancellationRequested)
                     {
                         StartDispatcher();
                     }
-                }, TaskContinuationOptions.OnlyOnFaulted);
+                }
+            });
         }
 
         protected override void OnStop()
         {
             tokenSource.Cancel();
+            task.Wait();
+            tokenSource.Dispose();
         }
 
         private void DispatchEvents(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
-                DispatchEventBatch(token);
+                if (DispatchEventBatch() && !token.IsCancellationRequested)
+                {
+                    token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1));
+                }
             }
         }
 
-        void DispatchEventBatch(CancellationToken token)
+        bool DispatchEventBatch()
         {
             using (var session = DocumentStore.OpenSession())
             {
@@ -74,8 +79,7 @@
                     {
                         Logger.Debug("Nothing to dispatch. Waiting...");
                     }
-                    token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1));
-                    return;
+                    return true;
                 }
 
                 var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
@@ -121,9 +125,12 @@
                 }
                 session.SaveChanges();
             }
+
+            return false;
         }
 
         CancellationTokenSource tokenSource;
+        Task task;
         RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
         static readonly ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
     }

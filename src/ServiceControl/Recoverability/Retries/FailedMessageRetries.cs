@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Threading;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
@@ -27,22 +28,22 @@
         class BulkRetryBatchCreation : FeatureStartupTask
         {
             readonly RetriesGateway retries;
-            PeriodicExecutor retriesGatewayExecutor;
+            private readonly TimeKeeper timeKeeper;
+            private Timer timer;
+            private bool abortProcessing;
 
-            public BulkRetryBatchCreation(RetriesGateway retries)
+            public BulkRetryBatchCreation(RetriesGateway retries, TimeKeeper timeKeeper)
             {
                 this.retries = retries;
-
-                retriesGatewayExecutor = new PeriodicExecutor(
-                ProcessRequestedBulkRetryOperations,
-                TimeSpan.FromSeconds(5));
+                this.timeKeeper = timeKeeper;
             }
 
             protected override void OnStart()
             {
                 if (retries != null)
                 {
-                    retriesGatewayExecutor.Start(true);
+                    var due = TimeSpan.FromSeconds(5);
+                    timer = timeKeeper.New(ProcessRequestedBulkRetryOperations, due, due);
                 }
             }
 
@@ -50,92 +51,102 @@
             {
                 if (retries != null)
                 {
-                    retriesGatewayExecutor.Stop();
+                    abortProcessing = true;
+                    timeKeeper.Release(timer);
                 }
             }
 
-            void ProcessRequestedBulkRetryOperations(PeriodicExecutor obj)
+            void ProcessRequestedBulkRetryOperations()
             {
                 bool processedRequests;
                 do
                 {
                     processedRequests = retries.ProcessNextBulkRetry();
-                } while (processedRequests && !obj.IsCancellationRequested);
+                } while (processedRequests && !abortProcessing);
             }
         }
 
         class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
         {
-            public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager)
+            private Timer timer;
+
+            public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, TimeKeeper timeKeeper)
             {
                 this.retryDocumentManager = retryDocumentManager;
-                executor = new PeriodicExecutor(
-                    AdoptOrphanedBatches,
-                    TimeSpan.FromMinutes(2)
-                );
+                this.timeKeeper = timeKeeper;
             }
 
-            private void AdoptOrphanedBatches(PeriodicExecutor ex)
+            private void AdoptOrphanedBatches()
             {
                 var allDone = retryDocumentManager.AdoptOrphanedBatches();
 
                 if (allDone)
                 {
-                    executor.Stop();
+                    //Disable timeout
+                    timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 }
             }
 
             protected override void OnStart()
             {
-                executor.Start(false);
+                timer = timeKeeper.New(AdoptOrphanedBatches, TimeSpan.Zero, TimeSpan.FromMinutes(2));
             }
 
             protected override void OnStop()
             {
-                executor.Stop();
+                timeKeeper.Release(timer);
             }
 
-            PeriodicExecutor executor;
             RetryDocumentManager retryDocumentManager;
+            private readonly TimeKeeper timeKeeper;
         }
 
         class ProcessRetryBatches : FeatureStartupTask
         {
             static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatches));
-
-            public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor)
+            private Timer timer;
+            public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor, TimeKeeper timeKeeper)
             {
-                executor = new PeriodicExecutor(Process, TimeSpan.FromSeconds(30), ex => log.Error("Error during retry batch processing", ex));
                 this.processor = processor;
+                this.timeKeeper = timeKeeper;
                 this.store = store;
             }
 
             protected override void OnStart()
             {
-                executor.Start(false);
+                timer = timeKeeper.New(Process, TimeSpan.Zero, TimeSpan.FromSeconds(30));
             }
 
             protected override void OnStop()
             {
-                executor.Stop();
+                abortProcessing = true;
+                timeKeeper.Release(timer);
             }
 
-            void Process(PeriodicExecutor e)
+            void Process()
             {
-                bool batchesProcessed;
-                do
+                try
                 {
-                    using (var session = store.OpenSession())
+                    bool batchesProcessed;
+                    do
                     {
-                        batchesProcessed = processor.ProcessBatches(session);
-                        session.SaveChanges();
-                    }
-                } while (batchesProcessed && !e.IsCancellationRequested);
+                        using (var session = store.OpenSession())
+                        {
+                            batchesProcessed = processor.ProcessBatches(session);
+                            session.SaveChanges();
+                        }
+                    } while (batchesProcessed && !abortProcessing);
+                }
+                catch (Exception ex)
+                {
+                    log.Error("Error during retry batch processing", ex);
+                }
             }
 
-            PeriodicExecutor executor;
             IDocumentStore store;
             RetryProcessor processor;
+            private readonly TimeKeeper timeKeeper;
+            private bool abortProcessing;
         }
     }
 }

@@ -6,6 +6,6 @@ namespace ServiceControl.Recoverability
     {
         public string GroupId { get; set; }
         public string GroupName { get; set; }
-        public string[] MessageIds { get; set; }
+        public int MessagesCount { get; set; }
     }
 }
