@@ -31,23 +31,23 @@
 
         void StartDispatcher()
         {
-            task = Task.Factory
-                .StartNew(() => DispatchEvents(tokenSource.Token), CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-                .ContinueWith(t =>
+            task = Task.Run(() =>
+            {
+                try
                 {
-// ReSharper disable once PossibleNullReferenceException
-                    t.Exception.Handle(ex =>
-                    {
-                        Logger.Error("An exception occurred when dispatching external integration events", ex);
-                        circuitBreaker.Failure(ex);
-                        return true;
-                    });
+                    DispatchEvents(tokenSource.Token);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("An exception occurred when dispatching external integration events", ex);
+                    circuitBreaker.Failure(ex);
 
                     if (!tokenSource.IsCancellationRequested)
                     {
                         StartDispatcher();
                     }
-                }, TaskContinuationOptions.OnlyOnFaulted);
+                }
+            });
         }
 
         protected override void OnStop()
