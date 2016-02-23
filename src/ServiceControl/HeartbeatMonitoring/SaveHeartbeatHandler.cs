@@ -1,13 +1,11 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
-    using Contracts.HeartbeatMonitoring;
-    using Contracts.Operations;
     using Infrastructure;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Plugin.Heartbeat.Messages;
     using Raven.Client;
+    using ServiceControl.Contracts.Operations;
 
     class SaveHeartbeatHandler : IHandleMessages<EndpointHeartbeat>
     {
@@ -32,68 +30,14 @@
                 throw new Exception("Received an EndpointHeartbeat message without proper initialization of the HostId in the schema");
             }
                 
-
-            var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString());
-
-            var heartbeat = Session.Load<Heartbeat>(id);
-          
-            if (heartbeat != null)
+            var endpoint = new EndpointDetails
             {
-                if (heartbeat.Disabled)
-                {
-                    return;
-                }
-            }
-
-            var isNew = false;
-
-            if (heartbeat == null)
-            {
-                isNew = true;
-                heartbeat = new Heartbeat
-                {
-                    Id = id,
-                    ReportedStatus = Status.Beating
-                };
-                Session.Store(heartbeat);
-            }
-
-            if (message.ExecutedAt <= heartbeat.LastReportAt)
-            {
-                Logger.InfoFormat("Out of sync heartbeat received for endpoint {0}", message.EndpointName);
-                return;
-            }
-
-            heartbeat.LastReportAt = message.ExecutedAt;
-            heartbeat.EndpointDetails = new EndpointDetails
-            {
-                HostId = message.HostId,
                 Host = message.Host,
+                HostId = message.HostId,
                 Name = message.EndpointName
             };
 
-            if (isNew) // New endpoint heartbeat
-            {
-                Bus.Publish(new HeartbeatingEndpointDetected
-                {
-                    Endpoint = heartbeat.EndpointDetails,
-                    DetectedAt = heartbeat.LastReportAt,
-                });
-            }
-
-            if (heartbeat.ReportedStatus == Status.Dead)
-            {
-                heartbeat.ReportedStatus = Status.Beating;
-                Bus.Publish(new EndpointHeartbeatRestored
-                {
-                    Endpoint = heartbeat.EndpointDetails,
-                    RestoredAt = heartbeat.LastReportAt
-                });
-            }
-
-            HeartbeatStatusProvider.RegisterHeartbeatingEndpoint(heartbeat.EndpointDetails, heartbeat.LastReportAt);
+            HeartbeatStatusProvider.UpdateHeartbeat(endpoint, message.ExecutedAt);
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(SaveHeartbeatHandler));
     }
 }

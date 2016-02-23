@@ -10,6 +10,8 @@ namespace ServiceControl.HeartbeatMonitoring
     using NServiceBus.Features;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Contracts.HeartbeatMonitoring;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.HeartbeatMonitoring.InternalMessages;
     using ServiceControl.Infrastructure;
 
@@ -20,6 +22,7 @@ namespace ServiceControl.HeartbeatMonitoring
             EnableByDefault();
             RegisterStartupTask<StatusInitialiser>();
             RegisterStartupTask<HeartbeatMonitor>();
+            RegisterStartupTask<HeartbeatsWriter>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
@@ -33,7 +36,6 @@ namespace ServiceControl.HeartbeatMonitoring
             public IBus Bus { get; set; }
 
             public HeartbeatStatusProvider HeartbeatStatusProvider { get; set; }
-
 
             protected override void OnStart()
             {
@@ -56,7 +58,7 @@ namespace ServiceControl.HeartbeatMonitoring
 
                 try
                 {
-                    timer.Change((int)TimeSpan.FromSeconds(5).TotalMilliseconds, -1);
+                    timer.Change(TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
                 }
                 catch (ObjectDisposedException)
                 {
@@ -146,6 +148,104 @@ namespace ServiceControl.HeartbeatMonitoring
                     session.Advanced.Eagerly.ExecuteAllPendingLazyOperations();
                 }
             }
+        }
+
+        class HeartbeatsWriter : FeatureStartupTask
+        {
+            private readonly IDocumentStore store;
+            public IBus Bus { get; set; }
+
+            public HeartbeatStatusProvider HeartbeatStatusProvider { get; set; }
+
+            public HeartbeatsWriter(IDocumentStore store)
+            {
+                this.store = store;
+            }
+
+            protected override void OnStart()
+            {
+                timer = new Timer(Refresh, null, TimeSpan.FromSeconds(15), Timeout.InfiniteTimeSpan);
+            }
+
+            protected override void OnStop()
+            {
+                using (var manualResetEvent = new ManualResetEvent(false))
+                {
+                    timer.Dispose(manualResetEvent);
+
+                    manualResetEvent.WaitOne();
+                }
+            }
+
+            void Refresh(object _)
+            {
+                Sync();
+
+                try
+                {
+                    timer.Change(TimeSpan.FromMinutes(2), Timeout.InfiniteTimeSpan);
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+            }
+
+            void Sync()
+            {
+                using (var session = store.OpenSession())
+                {
+                    var storedHeartbeats = session.Query<Heartbeat>().ToDictionary(h=> h.Id);
+                    var inmemoryHeartbeats = HeartbeatStatusProvider.HeartbeatsPerInstance;
+
+                    foreach (var memHeartbeat in inmemoryHeartbeats)
+                    {
+                        Heartbeat heartbeat;
+                        if (storedHeartbeats.TryGetValue(memHeartbeat.Key, out heartbeat))
+                        {
+                            if (heartbeat.Disabled)
+                            {
+                                continue;
+                            }
+
+                            heartbeat.LastReportAt = memHeartbeat.Value.LastReportAt;
+                            heartbeat.EndpointDetails = memHeartbeat.Value.EndpointDetails;
+                            if (heartbeat.ReportedStatus == Status.Dead)
+                            {
+                                heartbeat.ReportedStatus = Status.Beating;
+                                Bus.Publish(new EndpointHeartbeatRestored
+                                {
+                                    Endpoint = heartbeat.EndpointDetails,
+                                    RestoredAt = heartbeat.LastReportAt
+                                });
+                            }
+                        }
+                        else
+                        {
+                            heartbeat = new Heartbeat
+                            {
+                                Id = memHeartbeat.Key,
+                                ReportedStatus = Status.Beating,
+                                LastReportAt = memHeartbeat.Value.LastReportAt,
+                                EndpointDetails = memHeartbeat.Value.EndpointDetails
+                            };
+
+                            Bus.Publish(new HeartbeatingEndpointDetected
+                            {
+                                Endpoint = heartbeat.EndpointDetails,
+                                DetectedAt = heartbeat.LastReportAt,
+                            });
+                        }
+
+                        session.Store(heartbeat);
+
+                        HeartbeatStatusProvider.RegisterHeartbeatingEndpoint(heartbeat.EndpointDetails, heartbeat.LastReportAt);
+                    }
+
+                    session.SaveChanges();
+                }
+            }
+
+            Timer timer;
         }
     }
 }
