@@ -39,12 +39,10 @@
         [Test]
         public void Should_raise_a_signalr_event()
         {
-            var context = new MyContext
+            var context = Scenario.Define(() => new MyContext
             {
                 SCPort = port
-            };
-
-            Scenario.Define(context)
+            })
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
@@ -53,7 +51,7 @@
 
             Assert.IsNotNull(context.SignalrData);
         }
-        
+
         public class MyContext : ScenarioContext
         {
             public bool SignalrEventReceived { get; set; }
@@ -84,14 +82,14 @@
                 {
                     connection.JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
                     connection.Received += ConnectionOnReceived;
+                    connection.StateChanged += change => { context.SignalrStarted = change.NewState == ConnectionState.Connected; };
 
                     while (true)
                     {
                         try
                         {
                             connection.Start().Wait();
-                            context.SignalrStarted = true;
-                            context.AddTrace("SignalR started");
+                            
                             break;
                         }
                         catch (AggregateException ex)
@@ -130,7 +128,6 @@
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
-            
             public EndpointWithFailingCustomCheck()
             {
                 EndpointSetup<DefaultServerWithoutAudit>();
@@ -150,16 +147,12 @@
                 {
                     if (executed && context.SignalrStarted)
                     {
-                        context.AddTrace("CheckResult.Failed");
-
                         return CheckResult.Failed("Some reason");
                     }
 
                     executed = true;
 
-                    context.AddTrace("CheckResult.Pass");
                     return CheckResult.Pass;
-
                 }
             }
         }
