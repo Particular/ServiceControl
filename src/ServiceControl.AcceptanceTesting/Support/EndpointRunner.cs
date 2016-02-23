@@ -84,15 +84,21 @@
                             }
 
                             //we spin around each 5s since the callback mechanism seems to be shaky
-                            await contextChanged.WaitAsync(TimeSpan.FromSeconds(5), stopToken);
-
-                            if (stopToken.IsCancellationRequested)
+                            try
                             {
-                                break;
+                                await contextChanged.WaitAsync(TimeSpan.FromSeconds(5), stopToken);
+                            }
+                            catch (OperationCanceledException)
+                            {
                             }
 
                             foreach (var when in behavior.Whens)
                             {
+                                if (stopToken.IsCancellationRequested)
+                                {
+                                    return;
+                                }
+
                                 if (executedWhens.Contains(when.Id))
                                 {
                                     continue;
@@ -104,7 +110,7 @@
                                 }
                             }
                         }
-                    }, stopToken).Unwrap();
+                    }).Unwrap();
                 }
                 return Result.Success();
             }
