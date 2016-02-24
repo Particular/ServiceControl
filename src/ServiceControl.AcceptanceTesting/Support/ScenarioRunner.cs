@@ -253,7 +253,7 @@ namespace NServiceBus.AcceptanceTesting.Support
             var startTime = DateTime.UtcNow;
             var maxTime = runDescriptor.TestExecutionTimeout;
 
-            Task.WaitAll(endpoints.Select(endpoint => Task.Factory.StartNew(() => SpinWait.SpinUntil(done, maxTime))).Cast<Task>().ToArray(), maxTime);
+            Task.WaitAll(Task.Run(() => SpinWait.SpinUntil(done, maxTime)));
 
             try
             {
