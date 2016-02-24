@@ -76,20 +76,23 @@
                 this.timeKeeper = timeKeeper;
             }
 
-            private void AdoptOrphanedBatches()
+            private bool AdoptOrphanedBatches()
             {
-                var allDone = retryDocumentManager.AdoptOrphanedBatches();
+                bool hasMoreWorkToDo;
+                retryDocumentManager.AdoptOrphanedBatches(out hasMoreWorkToDo);
 
-                if (allDone)
+                if (!hasMoreWorkToDo)
                 {
                     //Disable timeout
                     timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 }
+
+                return hasMoreWorkToDo;
             }
 
             protected override void OnStart()
             {
-                timer = timeKeeper.New(AdoptOrphanedBatches, TimeSpan.Zero, TimeSpan.FromMinutes(2));
+                timer = timeKeeper.NewTimer(AdoptOrphanedBatches, TimeSpan.Zero, TimeSpan.FromMinutes(2));
             }
 
             protected override void OnStop()
