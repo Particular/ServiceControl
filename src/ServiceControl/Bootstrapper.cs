@@ -66,6 +66,7 @@ namespace Particular.ServiceControl
             configuration.DisableFeature<Audit>();
             configuration.DisableFeature<AutoSubscribe>();
             configuration.DisableFeature<SecondLevelRetries>();
+            configuration.DisableFeature<TimeoutManager>();
 
             configuration.UseSerialization<JsonSerializer>();
 
