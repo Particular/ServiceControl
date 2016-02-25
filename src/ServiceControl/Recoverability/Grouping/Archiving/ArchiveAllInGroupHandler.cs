@@ -6,18 +6,10 @@ namespace ServiceControl.Recoverability
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
-    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
-        private bool abort;
-
-        public ArchiveAllInGroupHandler(ShutdownNotifier notifier)
-        {
-            notifier.Register(() => { abort = true; });
-        }
-
         public void Handle(ArchiveAllInGroup message)
         {
             var result = Session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(
