@@ -10,21 +10,23 @@
         ConcurrentDictionary<Timer, object> timers = new ConcurrentDictionary<Timer, object>();
         private ILog log = LogManager.GetLogger<TimeKeeper>();
 
-        public Timer New(Action callback, TimeSpan dueTime, TimeSpan period)
+        public Timer NewTimer(Func<bool> callback, TimeSpan dueTime, TimeSpan period)
         {
             Timer timer = null;
 
             timer = new Timer(_ =>
             {
+                var reschedule = false;
+
                 try
                 {
-                    callback();
+                    reschedule = callback();
                 }
                 catch (Exception ex)
                 {
                     log.Error("Reoccurring timer task failed.", ex);
                 }
-                if (timers.ContainsKey(timer))
+                if (reschedule && timers.ContainsKey(timer))
                 {
                     try
                     {
@@ -39,6 +41,15 @@
 
             timers.TryAdd(timer, null);
             return timer;
+        }
+
+        public Timer New(Action callback, TimeSpan dueTime, TimeSpan period)
+        {
+            return NewTimer(() =>
+            {
+                callback();
+                return true;
+            }, dueTime, period);
         }
 
         public void Release(Timer timer)

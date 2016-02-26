@@ -107,7 +107,7 @@ namespace ServiceControl.Recoverability
             Store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
-        internal bool AdoptOrphanedBatches()
+        internal void AdoptOrphanedBatches(out bool hasMoreWorkToDo)
         {
             using (var session = Store.OpenSession())
             {
@@ -123,8 +123,13 @@ namespace ServiceControl.Recoverability
 
                 AdoptBatches(session, orphanedBatchIds);
 
-                var moreToDo = stats.IsStale || orphanedBatchIds.Any();
-                return abort || !moreToDo;
+                if (abort)
+                {
+                    hasMoreWorkToDo = false;
+                    return;
+                }
+
+                hasMoreWorkToDo = stats.IsStale || orphanedBatchIds.Any();
             }
         }
 
