@@ -1,19 +1,28 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System;
-    using Contracts.HeartbeatMonitoring;
+    using System.Linq;
     using Contracts.Operations;
     using Infrastructure;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Plugin.Heartbeat.Messages;
+    using Raven.Abstractions.Data;
     using Raven.Client;
+    using Raven.Json.Linq;
+    using ServiceControl.Contracts.HeartbeatMonitoring;
 
     class SaveHeartbeatHandler : IHandleMessages<EndpointHeartbeat>
     {
-        public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
-        public HeartbeatStatusProvider HeartbeatStatusProvider { get; set; }
+        private readonly IBus bus;
+        private readonly HeartbeatStatusProvider statusProvider;
+        private readonly IDocumentStore store;
+
+        public SaveHeartbeatHandler(IBus bus, HeartbeatStatusProvider statusProvider, IDocumentStore store)
+        {
+            this.bus = bus;
+            this.statusProvider = statusProvider;
+            this.store = store;
+        }
 
         public void Handle(EndpointHeartbeat message)
         {
@@ -31,69 +40,95 @@
             {
                 throw new Exception("Received an EndpointHeartbeat message without proper initialization of the HostId in the schema");
             }
-                
+
 
             var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString());
+            var key = store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(Heartbeat), false);
 
-            var heartbeat = Session.Load<Heartbeat>(id);
-          
-            if (heartbeat != null)
-            {
-                if (heartbeat.Disabled)
-                {
-                    return;
-                }
-            }
-
-            var isNew = false;
-
-            if (heartbeat == null)
-            {
-                isNew = true;
-                heartbeat = new Heartbeat
-                {
-                    Id = id,
-                    ReportedStatus = Status.Beating
-                };
-                Session.Store(heartbeat);
-            }
-
-            if (message.ExecutedAt <= heartbeat.LastReportAt)
-            {
-                Logger.InfoFormat("Out of sync heartbeat received for endpoint {0}", message.EndpointName);
-                return;
-            }
-
-            heartbeat.LastReportAt = message.ExecutedAt;
-            heartbeat.EndpointDetails = new EndpointDetails
+            var endpointDetails = new EndpointDetails
             {
                 HostId = message.HostId,
                 Host = message.Host,
                 Name = message.EndpointName
             };
 
+            var patchResult = store.DatabaseCommands.Patch(key, new ScriptedPatchRequest
+            {
+                Script = @"
+if(new Date(lastReported) <= new Date(this.LastReportAt)) {
+    return;
+}
+
+if(this.ReportedStatus === deadStatus) {
+    output('wasDead');
+}
+this.LastReportAt = lastReported;
+this.ReportedStatus = reportedStatus;
+",
+                Values =
+                {
+                    {"lastReported", message.ExecutedAt},
+                    {"reportedStatus", (int) Status.Beating},
+                    {"deadStatus", (int) Status.Dead},
+                }
+            }, new ScriptedPatchRequest
+            {
+                Script = @"
+this.LastReportAt = lastReported;
+this.ReportedStatus = reportedStatus;
+this.EndpointDetails = {
+    'Host': endpointDetails_Host,
+    'HostId': endpointDetails_HostId,
+    'Name': endpointDetails_Name
+};
+this.Disabled = false;
+output('isNew');
+",
+                Values =
+                {
+                    {"lastReported", message.ExecutedAt},
+                    {"reportedStatus", (int) Status.Beating},
+                    {"endpointDetails_Host", endpointDetails.Host},
+                    {"endpointDetails_HostId", endpointDetails.HostId.ToString()},
+                    {"endpointDetails_Name", endpointDetails.Name}
+                }
+            }, RavenJObject.Parse(String.Format(@"
+                                    {{
+                                        ""Raven-Entity-Name"": ""{0}"", 
+                                        ""Raven-Clr-Type"": ""{1}""
+                                    }}",
+                store.Conventions.GetTypeTagName(typeof(Heartbeat)),
+                typeof(Heartbeat).AssemblyQualifiedName)));
+
+            var debugStatements = patchResult.Value<RavenJArray>("Debug");
+            var ravenJToken = debugStatements.SingleOrDefault();
+            bool isNew = false, wasDead = false;
+
+            if (ravenJToken != null)
+            {
+                var result = ravenJToken.Value<string>();
+                isNew = result == "isNew";
+                wasDead = result == "wasDead";
+            }
+
             if (isNew) // New endpoint heartbeat
             {
-                Bus.Publish(new HeartbeatingEndpointDetected
+                bus.Publish(new HeartbeatingEndpointDetected
                 {
-                    Endpoint = heartbeat.EndpointDetails,
-                    DetectedAt = heartbeat.LastReportAt,
+                    Endpoint = endpointDetails,
+                    DetectedAt = message.ExecutedAt
                 });
             }
-
-            if (heartbeat.ReportedStatus == Status.Dead)
+            else if (wasDead)
             {
-                heartbeat.ReportedStatus = Status.Beating;
-                Bus.Publish(new EndpointHeartbeatRestored
+                bus.Publish(new EndpointHeartbeatRestored
                 {
-                    Endpoint = heartbeat.EndpointDetails,
-                    RestoredAt = heartbeat.LastReportAt
+                    Endpoint = endpointDetails,
+                    RestoredAt = message.ExecutedAt
                 });
             }
 
-            HeartbeatStatusProvider.RegisterHeartbeatingEndpoint(heartbeat.EndpointDetails, heartbeat.LastReportAt);
+            statusProvider.RegisterHeartbeatingEndpoint(endpointDetails, message.ExecutedAt);
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(SaveHeartbeatHandler));
     }
 }

@@ -41,6 +41,7 @@
                     if (messageQueue.QueueName.StartsWith(nameFilter, StringComparison.OrdinalIgnoreCase))
                     {
                         queuesToBeDeleted.Add(messageQueue.Path);
+                        Console.WriteLine("Deleted '{0}' queue", messageQueue.Path);
                     }
                 }
             }
