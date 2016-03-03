@@ -36,7 +36,7 @@
                     RavenQueryStatistics stats;
 
                     var results = session.Advanced
-                        .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                        .DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
                         .FilterByLastModifiedRange(Request)
@@ -61,7 +61,7 @@
 
                     RavenQueryStatistics stats;
                     var results = session.Advanced
-                        .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                        .DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
                         .AndAlso()
