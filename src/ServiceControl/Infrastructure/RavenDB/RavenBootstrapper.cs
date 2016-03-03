@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System;
-    using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
     using NServiceBus;
@@ -9,7 +8,6 @@
     using NServiceBus.Logging;
     using NServiceBus.Persistence;
     using NServiceBus.Pipeline;
-    using Particular.ServiceControl.Licensing;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Embedded;
@@ -33,37 +31,9 @@
         public void Customize(BusConfiguration configuration)
         {
             var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
-
-            Directory.CreateDirectory(Settings.DbPath);
-
-            documentStore.DataDirectory = Settings.DbPath;
-            documentStore.UseEmbeddedHttpServer = Settings.MaintenanceMode || Settings.ExposeRavenDB;
+            documentStore.Url = Settings.ApiUrl + "storage";
+            documentStore.DefaultDatabase = "ServiceControl";
             documentStore.EnlistInDistributedTransactions = false;
-
-            var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
-            if (File.Exists(localRavenLicense))
-            {
-                Logger.InfoFormat("Loading RavenDB license found from {0}", localRavenLicense);
-                documentStore.Configuration.Settings["Raven/License"] = NonLockingFileReader.ReadAllTextWithoutLocking(localRavenLicense);
-            }
-            else
-            {
-                Logger.InfoFormat("Loading Embedded RavenDB license");
-                documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
-            }
-
-            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
-            
-            if (!Settings.MaintenanceMode) {
-                documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
-            }
-
-            documentStore.Configuration.Port = Settings.Port;
-            documentStore.Configuration.HostName = (Settings.Hostname == "*" || Settings.Hostname == "+")
-                ? "localhost"
-                : Settings.Hostname;
-            documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
-            documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
             documentStore.Conventions.SaveEnumsAsIntegers = true;
             documentStore.Initialize();
 

@@ -89,14 +89,14 @@
                 var firstByCriticalTime = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.CriticalTime)
                     .Where(x => x.CriticalTime != null)
-                    .AsProjection<ProcessedMessage>()
+                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
                     .First();
                 Assert.AreEqual("1", firstByCriticalTime.Id);
 
                 var firstByCriticalTimeDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.CriticalTime)
                     .Where(x => x.CriticalTime != null)
-                    .AsProjection<ProcessedMessage>()
+                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
                     .First();
                 Assert.AreEqual("2", firstByCriticalTimeDescription.Id);
             }

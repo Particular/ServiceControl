@@ -29,14 +29,12 @@
         {
             get
             {
-                var suffix = VirtualDirectory;
+                var suffix = String.Empty;
 
-                if (!string.IsNullOrEmpty(suffix))
+                if (!string.IsNullOrEmpty(VirtualDirectory))
                 {
-                    suffix += "/";
+                    suffix = VirtualDirectory + "/";
                 }
-
-                suffix += "api/";
 
                 return string.Format("http://{0}:{1}/{2}", Hostname, Port, suffix);
             }
@@ -46,14 +44,12 @@
         {
             get
             {
-                var suffix = VirtualDirectory;
+                var suffix = String.Empty;
 
-                if (!string.IsNullOrEmpty(suffix))
+                if (!string.IsNullOrEmpty(VirtualDirectory))
                 {
-                    suffix += "/";
+                    suffix = VirtualDirectory;
                 }
-
-                suffix += "storage/";
 
                 return string.Format("http://{0}:{1}/{2}", Hostname, Port, suffix);
             }

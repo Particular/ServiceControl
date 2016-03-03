@@ -17,21 +17,24 @@ namespace ServiceControl.Recoverability
         {
             logger.InfoFormat("Archiving of {0} started", message.GroupId);
             var result = Session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(
-                            new FailedMessages_ByGroup().IndexName, 
-                            new IndexQuery
-                            {
-                                Query = string.Format(CultureInfo.InvariantCulture, "FailureGroupId:{0} AND Status:{1}", message.GroupId, (int)FailedMessageStatus.Unresolved), 
-                                Cutoff = message.CutOff
-                            },
-                            new[]
-                            {
-                                new PatchRequest
-                                {
-                                    Type = PatchCommandType.Set,
-                                    Name = "Status",
-                                    Value = (int) FailedMessageStatus.Archived
-                                }
-                            }, true).WaitForCompletion();
+                new FailedMessages_ByGroup().IndexName,
+                new IndexQuery
+                {
+                    Query = string.Format(CultureInfo.InvariantCulture, "FailureGroupId:{0} AND Status:{1}", message.GroupId, (int) FailedMessageStatus.Unresolved),
+                    Cutoff = message.CutOff
+                },
+                new[]
+                {
+                    new PatchRequest
+                    {
+                        Type = PatchCommandType.Set,
+                        Name = "Status",
+                        Value = (int) FailedMessageStatus.Archived
+                    }
+                }, new BulkOperationOptions
+                {
+                    AllowStale = true
+                }).WaitForCompletion();
 
             var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
             logger.InfoFormat("Archiving of {0} ended", message.GroupId);

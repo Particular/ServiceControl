@@ -2,44 +2,107 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.Composition.Hosting;
+    using System.IO;
+    using Autofac;
     using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
-    using Microsoft.Owin;
-    using Nancy;
-    using Owin;
-    using Particular.ServiceControl;
-    using ServiceControl.Infrastructure.SignalR;
-    using Autofac;
     using Microsoft.AspNet.SignalR.Json;
+    using NServiceBus.Logging;
+    using Owin;
+    using Particular.ServiceControl.Licensing;
+    using Raven.Database.Config;
+    using Raven.Database.Server;
+    using ServiceBus.Management.Infrastructure.Nancy;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.OWIN;
+    using ServiceControl.Infrastructure.SignalR;
     using JsonNetSerializer = Microsoft.AspNet.SignalR.Json.JsonNetSerializer;
 
     public class Startup
     {
+        static readonly ILog Logger = LogManager.GetLogger(typeof(Startup));
+
+        private IContainer container;
+
+
+        public Startup(IContainer container)
+        {
+            this.container = container;
+        }
+
         public void Configuration(IAppBuilder app)
         {
             app.UseErrorPage();
 
-            app.Use((context, func) =>
+            app.Map("/api", b =>
             {
-                if (!context.Request.PathBase.HasValue)
+                b.Use<LogApiCalls>();
+                ConfigureSignalR(b);
+                b.UseNancy(new NancyOptions
                 {
-                    context.Request.Path = new PathString("/");
-                    context.Request.PathBase = new PathString("/api");
-                }
-
-                return func();
+                    Bootstrapper = new NServiceBusContainerBootstrapper(container)
+                });
             });
 
-            app.Use<LogApiCalls>();
-
-            ConfigureSignalR(app);
-            app.UseNancy(new NancyOptions { Bootstrapper = new NServiceBusContainerBootstrapper() });
+            ConfigureRavenDB(app);
         }
 
-        private static void ConfigureSignalR(IAppBuilder app)
+        static string ReadLicense()
         {
-            var resolver = new AutofacDependencyResolver();
+            using (var resourceStream = typeof(Startup).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
+            {
+                using (var reader = new StreamReader(resourceStream))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
+        }
+
+        public void ConfigureRavenDB(IAppBuilder builder)
+        {
+            builder.Map("/storage", app =>
+            {
+                string virtualDirectory = "storage";
+                if (!String.IsNullOrEmpty(Settings.VirtualDirectory))
+                {
+                    virtualDirectory = Settings.VirtualDirectory + "/" + virtualDirectory;
+                }
+
+                var configuration = new RavenConfiguration
+                {
+                    VirtualDirectory = virtualDirectory,
+                    DataDirectory = Path.Combine(Settings.DbPath, "Databases", "System"),
+                    CompiledIndexCacheDirectory = Path.Combine(Settings.DbPath, "CompiledIndexes"),
+                    CountersDataDirectory = Path.Combine(Settings.DbPath, "Data", "Counters"),
+                    WebDir = Path.Combine(Settings.DbPath, "Raven", "WebUI"),
+                    PluginsDirectory = Path.Combine(Settings.DbPath, "Plugins"),
+                    AssembliesDirectory = Path.Combine(Settings.DbPath, "Assemblies"),
+                };
+
+                var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
+                if (File.Exists(localRavenLicense))
+                {
+                    Logger.InfoFormat("Loading RavenDB license found from {0}", localRavenLicense);
+                    configuration.Settings["Raven/License"] = NonLockingFileReader.ReadAllTextWithoutLocking(localRavenLicense);
+                }
+                else
+                {
+                    Logger.InfoFormat("Loading Embedded RavenDB license");
+                    configuration.Settings["Raven/License"] = ReadLicense();
+                }
+
+                configuration.FileSystem.DataDirectory = Path.Combine(Settings.DbPath, "FileSystems");
+                configuration.FileSystem.IndexStoragePath = Path.Combine(Settings.DbPath, "FileSystems", "Indexes");
+                configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
+
+                app.UseRavenDB(new RavenDBOptions(configuration));
+            });
+        }
+
+        private void ConfigureSignalR(IAppBuilder app)
+        {
+            var resolver = new AutofacDependencyResolver(container);
 
             app.MapConnection<MessageStreamerConnection>("/messagestream",
                 new ConnectionConfiguration
@@ -59,10 +122,17 @@
 
     class AutofacDependencyResolver : DefaultDependencyResolver
     {
+        private IContainer container;
+
+        public AutofacDependencyResolver(IContainer container)
+        {
+            this.container = container;
+        }
+
         public override object GetService(Type serviceType)
         {
             object service;
-            if (Bootstrapper.Container.TryResolve(serviceType, out service))
+            if (container.TryResolve(serviceType, out service))
             {
                 return service;
             }
@@ -72,7 +142,7 @@
         public override IEnumerable<object> GetServices(Type serviceType)
         {
             object services;
-            if (Bootstrapper.Container.TryResolve(typeof(IEnumerable<>).MakeGenericType(serviceType), out services))
+            if (container.TryResolve(typeof(IEnumerable<>).MakeGenericType(serviceType), out services))
             {
                 return (IEnumerable<object>) services;
             }
