@@ -39,9 +39,9 @@ namespace ServiceControl.CompositeViews.Messages
                     TimeSent = (DateTime) message.MessageMetadata["TimeSent"],
                     ProcessedAt = message.ProcessedAt,
                     ReceivingEndpointName = ((EndpointDetails) message.MessageMetadata["ReceivingEndpoint"]).Name,
-                    CriticalTime = (TimeSpan) message.MessageMetadata["CriticalTime"],
-                    ProcessingTime = (TimeSpan) message.MessageMetadata["ProcessingTime"],
-                    DeliveryTime = (TimeSpan) message.MessageMetadata["DeliveryTime"],
+                    CriticalTime = (TimeSpan?) message.MessageMetadata["CriticalTime"],
+                    ProcessingTime = (TimeSpan?) message.MessageMetadata["ProcessingTime"],
+                    DeliveryTime = (TimeSpan?) message.MessageMetadata["DeliveryTime"],
                     Query = message.MessageMetadata.Select(_ => _.Value.ToString()).ToArray(),
                     ConversationId = (string) message.MessageMetadata["ConversationId"],
                 });
@@ -51,7 +51,7 @@ namespace ServiceControl.CompositeViews.Messages
                 let last = message.ProcessingAttempts.Last()
                 select new
                 {
-                    MessageId = (object) last.MessageId,
+                    last.MessageId,
                     MessageType = last.MessageMetadata["MessageType"], 
                     IsSystemMessage = last.MessageMetadata["IsSystemMessage"],
                     Status = message.Status == FailedMessageStatus.Archived
@@ -62,9 +62,9 @@ namespace ServiceControl.CompositeViews.Messages
                     TimeSent = (DateTime) last.MessageMetadata["TimeSent"],
                     ProcessedAt = last.AttemptedAt,
                     ReceivingEndpointName = ((EndpointDetails) last.MessageMetadata["ReceivingEndpoint"]).Name,
-                    CriticalTime = (object) null,
-                    ProcessingTime = (object) null,
-                    DeliveryTime = (object) null,
+                    CriticalTime = (TimeSpan?) null,
+                    ProcessingTime = (TimeSpan?) null,
+                    DeliveryTime = (TimeSpan?) null,
                     Query = last.MessageMetadata.Select(_ => _.Value.ToString()),
                     ConversationId = last.MessageMetadata["ConversationId"],
                 });

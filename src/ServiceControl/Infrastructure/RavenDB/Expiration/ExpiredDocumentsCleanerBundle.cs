@@ -51,12 +51,11 @@
         {
             if (timer != null)
             {
-                timer.Dispose();
-                //using (var manualResetEvent = new ManualResetEvent(false))
-                //{
-                //    timer.Dispose(manualResetEvent);
-                //    manualResetEvent.WaitOne();
-                //}
+                using (var manualResetEvent = new ManualResetEvent(false))
+                {
+                    timer.Dispose(manualResetEvent);
+                    manualResetEvent.WaitOne();
+                }
             }
         }
     }
