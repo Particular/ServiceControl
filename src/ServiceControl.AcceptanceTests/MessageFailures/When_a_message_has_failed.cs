@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -185,6 +186,8 @@
                             {
                                 break;
                             }
+
+                            Thread.Sleep(TimeSpan.FromSeconds(1));
                         }
                     }
 

@@ -45,7 +45,9 @@
 
         bool GetFailedMessage(MyContext c, out FailedMessage failure, Predicate<FailedMessage> condition = null)
         {
-            if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure, condition))
+            failure = null;
+
+            if (String.IsNullOrEmpty(c.UniqueMessageId) || !TryGet("/api/errors/" + c.UniqueMessageId, out failure, condition))
             {
                 return false;
             }
