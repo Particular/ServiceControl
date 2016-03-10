@@ -2,6 +2,7 @@
 {
     using System;
     using System.Net;
+    using System.Threading;
     using Contexts;
     using Microsoft.AspNet.SignalR.Client;
     using NServiceBus;
@@ -54,6 +55,8 @@
                                 {
                                     break;
                                 }
+
+                                Thread.Sleep(TimeSpan.FromSeconds(1));
                             }
                         }
 

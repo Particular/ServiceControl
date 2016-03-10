@@ -86,6 +86,8 @@
                             {
                                 break;
                             }
+
+                            Thread.Sleep(TimeSpan.FromSeconds(1));
                         }
                     }
                 }

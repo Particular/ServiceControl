@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Net;
+    using System.Threading;
     using Contexts;
     using Microsoft.AspNet.SignalR.Client;
     using NServiceBus;
@@ -88,12 +89,15 @@
                     {
                         try
                         {
+                            context.AddTrace("Connecting to signalr");
                             connection.Start().Wait();
-                            
+                            context.AddTrace("Connected to signalr");
                             break;
                         }
                         catch (AggregateException ex)
                         {
+                            context.AddTrace(string.Format("Signalr connection failed, exception={0}", ex));
+
                             var exception = ex.GetBaseException();
                             var webException = exception as WebException;
 
@@ -106,6 +110,8 @@
                             {
                                 break;
                             }
+
+                            Thread.Sleep(TimeSpan.FromSeconds(1));
                         }
                     }
                 }
