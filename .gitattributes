@@ -24,6 +24,7 @@
 *.ico	-text -diff
 *.ttf	-text -diff
 *.otf	-text -diff
+*.zip	-text -diff
 
 *.cs text diff=csharp
 *.config text diff=csharp
