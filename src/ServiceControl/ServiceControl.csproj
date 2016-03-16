@@ -306,6 +306,7 @@
     <Compile Include="Infrastructure\Installers\UrlAcl\UrlReservation.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ErrorMessageCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryErrorMessageIndex.cs" />
+    <Compile Include="Infrastructure\Settings\LoggingSettings.cs" />
     <Compile Include="Infrastructure\ShutdownNotifier.cs" />
     <Compile Include="Infrastructure\OWIN\ApiLogger.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\SagaHistoryCleaner.cs" />

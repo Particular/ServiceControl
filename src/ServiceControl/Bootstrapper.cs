@@ -33,12 +33,13 @@ namespace Particular.ServiceControl
 
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
-            LogManager.Use<NLogFactory>();
-            
             // ServiceName is required to determine the default logging path
-            Settings.ServiceName = DetermineServiceName(host, hostArguments);
+            LoggingSettings.ServiceName = DetermineServiceName(host, hostArguments);
+
             ConfigureLogging();
-            
+
+            Settings.ServiceName = LoggingSettings.ServiceName;
+
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = Settings.HttpDefaultConnectionLimit;
 
@@ -144,6 +145,8 @@ namespace Particular.ServiceControl
 
         static void ConfigureLogging()
         {
+            LogManager.Use<NLogFactory>();
+
             const long megaByte = 1073741824;
             if (NLog.LogManager.Configuration != null)
             {
@@ -156,8 +159,8 @@ namespace Particular.ServiceControl
             var fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = Path.Combine(Settings.LogPath, "logfile.${shortdate}.txt"),
-                ArchiveFileName = Path.Combine(Settings.LogPath, "logfile.{#}.txt"),
+                FileName = Path.Combine(LoggingSettings.LogPath, "logfile.${shortdate}.txt"),
+                ArchiveFileName = Path.Combine(LoggingSettings.LogPath, "logfile.{#}.txt"),
                 ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
@@ -167,8 +170,8 @@ namespace Particular.ServiceControl
             var ravenFileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
-                FileName = Path.Combine(Settings.LogPath, "ravenlog.${shortdate}.txt"),
-                ArchiveFileName = Path.Combine(Settings.LogPath, "ravenlog.{#}.txt"),
+                FileName = Path.Combine(LoggingSettings.LogPath, "ravenlog.${shortdate}.txt"),
+                ArchiveFileName = Path.Combine(LoggingSettings.LogPath, "ravenlog.{#}.txt"),
                 ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
@@ -190,7 +193,7 @@ namespace Particular.ServiceControl
             nlogConfig.AddTarget("bitbucket", nullTarget);
             
             // Only want to see raven errors
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", Settings.RavenDBLogLevel, ravenFileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LoggingSettings.RavenDBLogLevel, ravenFileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));  //Noise reduction - Only RavenDB errors on the console
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget) { Final = true }); //Will swallow debug and above messages
 
@@ -200,7 +203,7 @@ namespace Particular.ServiceControl
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget){ Final = true });
             
             // Defaults
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", Settings.LoggingLevel, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LoggingSettings.LoggingLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
 
             // Remove Console Logging when running as a service
@@ -216,8 +219,8 @@ namespace Particular.ServiceControl
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
             var logEventInfo = new NLog.LogEventInfo { TimeStamp = DateTime.Now };
-            logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName.Render(logEventInfo), Settings.LoggingLevel.Name);
-            logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName.Render(logEventInfo), Settings.RavenDBLogLevel.Name);
+            logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName.Render(logEventInfo), LoggingSettings.LoggingLevel.Name);
+            logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName.Render(logEventInfo), LoggingSettings.RavenDBLogLevel.Name);
             
         }
 

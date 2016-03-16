@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.Linq;
+    using NLog.Common;
     using NServiceBus;
     using NServiceBus.Logging;
 
@@ -18,6 +19,8 @@
             TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
             ForwardAuditMessages = GetForwardAuditMessages();
             ForwardErrorMessages = GetForwardErrorMessages();
+            auditRetentionPeriod = GetAuditRetentionPeriod();
+            errorRetentionPeriod = GetErrorRetentionPeriod();
         }
 
         public static bool MaintenanceMode;
@@ -172,49 +175,6 @@
         }
         
         public static string TransportType { get; set; }
-        
-        public static NLog.LogLevel LoggingLevel
-        {
-            get
-            {
-                var level = NLog.LogLevel.Warn;
-                try
-                {
-                    level = NLog.LogLevel.FromString(SettingsReader<string>.Read("LogLevel", NLog.LogLevel.Warn.Name));
-                }
-                catch
-                {
-                    NLog.Common.InternalLogger.Warn("Failed to parse LogLevel setting. Defaulting to Warn");
-                }
-                return level;
-            }
-        }
-
-        public static NLog.LogLevel RavenDBLogLevel
-        {
-            get
-            {
-                var level = NLog.LogLevel.Warn;
-                try
-                {
-                    level = NLog.LogLevel.FromString(SettingsReader<string>.Read("RavenDBLogLevel", NLog.LogLevel.Warn.Name));
-                }
-                catch
-                {
-                    NLog.Common.InternalLogger.Warn("Failed to parse RavenDBLogLevel setting. Defaulting to Warn");
-                }
-                return level;
-            }
-        }
-
-
-        public static string LogPath
-        {
-            get
-            {
-                return Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", DefaultLogPathForInstance())); 
-            }
-        }
 
         public static int ExternalIntegrationsDispatchingBatchSize = SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
@@ -233,8 +193,8 @@
         
         public const int ExpirationProcessTimerInSecondsDefault = 600;
         
-        static TimeSpan auditRetentionPeriod = GetAuditRetentionPeriod();
-        static TimeSpan errorRetentionPeriod = GetErrorRetentionPeriod();
+        static TimeSpan auditRetentionPeriod;
+        static TimeSpan errorRetentionPeriod;
 
         private static TimeSpan GetErrorRetentionPeriod()
         {
@@ -244,6 +204,7 @@
             if (valueRead == null)
             {
                 message = "ErrorRetentionPeriod settings is missing, please make sure it is included.";
+                Logger.Fatal(message);
                 throw new Exception(message);
             }
             try
@@ -282,6 +243,7 @@
             if (valueRead == null)
             {
                 message = "AuditRetentionPeriod settings is missing, please make sure it is included.";
+                Logger.Fatal(message);
                 throw new Exception(message);
             }
             try
@@ -291,21 +253,21 @@
                     if (result < TimeSpan.FromHours(1))
                     {
                         message = "AuditRetentionPeriod settings is invalid, value should be minimum 1 hour.";
-                        Logger.Fatal(message);
+                        InternalLogger.Fatal(message);
                         throw new Exception(message);
                     }
 
                     if (result > TimeSpan.FromDays(365))
                     {
                         message = "AuditRetentionPeriod settings is invalid, value should be maximum 365 days.";
-                        Logger.Fatal(message);
+                        InternalLogger.Fatal(message);
                         throw new Exception(message);
                     }
                 }
                 catch (Exception)
                 {
                     message = "AuditRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
-                    Logger.Fatal(message);
+                    InternalLogger.Fatal(message);
                     throw new Exception(message);
                 }
             
@@ -345,15 +307,6 @@
         public static ILog Logger = LogManager.GetLogger(typeof(Settings));
 
         public static string ServiceName;
-
-        static string DefaultLogPathForInstance()
-        {
-            if (ServiceName.Equals("Particular.ServiceControl", StringComparison.OrdinalIgnoreCase))
-            {
-                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Particular\\ServiceControl\\logs");
-            }
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), string.Format("Particular\\{0}\\logs", ServiceName));
-        }
 
         public static int HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
     }

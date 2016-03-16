@@ -38,7 +38,7 @@
                     .WithModel(new
                                   {
                                       WindowsService = Settings.ServiceName,
-                                      LogfilePath = Path.Combine(Settings.LogPath, "logfile.txt"),
+                                      LogfilePath = Path.Combine(LoggingSettings.LogPath, "logfile.txt"),
                                       Settings.TransportType,
                                       RavenDBPath = Settings.DbPath
                                   });

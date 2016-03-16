@@ -2,6 +2,7 @@ namespace ServiceControl.Infrastructure.Extensions
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Text;
@@ -64,7 +65,7 @@ namespace ServiceControl.Infrastructure.Extensions
             var sortOptions = new[]
             {
                 "id", "message_id", "message_type", 
-                "time_sent", "status"
+                "time_sent", "status", "modified"
             };
 
             var sort = "time_sent";
@@ -93,6 +94,10 @@ namespace ServiceControl.Infrastructure.Extensions
 
                 case "status":
                     keySelector = "Status";
+                    break;
+
+                case "modified":
+                    keySelector = "LastModified";
                     break;
 
                 default:
@@ -162,6 +167,45 @@ namespace ServiceControl.Infrastructure.Extensions
             sb.Append(")");
 
             source.Where(string.Format("Status: {0}", sb));
+
+            return source;
+        }
+
+
+        public static IDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions> FilterByLastModifiedRange(this IDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions> source, Request request)
+        {
+            string modified = null;
+
+            if ((bool) request.Query.modified.HasValue)
+            {
+                modified = (string) request.Query.modified;
+            }
+
+            if (modified == null)
+            {
+                return source;
+            }
+
+            var filters = modified.Split(new[]
+            {
+                ".."
+            }, StringSplitOptions.None);
+
+            if (filters.Length != 2)
+            {
+                throw new Exception("Invalid modified date range, dates need to be in ISO8601 format and it needs to be a range eg. 2016-03-11T00:27:15.474Z..2016-03-16T03:27:15.474Z");
+            }
+            try
+            {
+                var from = DateTime.Parse(filters[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                var to = DateTime.Parse(filters[1], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+
+                source.Where(string.Format("LastModified: [{0} TO {1}]", from.Ticks, to.Ticks));
+            }
+            catch (Exception)
+            {
+                throw new Exception("Invalid modified date range, dates need to be in ISO8601 format and it needs to be a range eg. 2016-03-11T00:27:15.474Z..2016-03-16T03:27:15.474Z");
+            }
 
             return source;
         }

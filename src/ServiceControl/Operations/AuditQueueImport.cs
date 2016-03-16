@@ -120,7 +120,7 @@
         public Action<TransportReceiver> GetReceiverCustomization()
         {
             satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(Builder.Build<IDocumentStore>(),
-                Path.Combine(Settings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
+                Path.Combine(LoggingSettings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
                 {
                     Message = tm,
                 },
