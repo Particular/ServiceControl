@@ -161,7 +161,7 @@
             {
                 try
                 {
-                    return  TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
+                    return TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
                 }
                 catch(Exception ex)
                 {
@@ -231,58 +231,103 @@
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;
         
-        const int ExpirationProcessTimerInSecondsDefault = 600;
-        static int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault); 
-        public static int ExpirationProcessTimerInSeconds
-        {
-            get
-            {
-                if ((expirationProcessTimerInSeconds < 0) || (expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds))
-                {
-                    Logger.ErrorFormat("ExpirationProcessTimerInSeconds settings is invalid, the valid range is 0 to {0}. Defaulting to {1}" , TimeSpan.FromHours(3).TotalSeconds, ExpirationProcessTimerInSecondsDefault);
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-                return expirationProcessTimerInSeconds;
-            }
-            set { expirationProcessTimerInSeconds = value; }
-        }
+        public const int ExpirationProcessTimerInSecondsDefault = 600;
         
-        const int HoursToKeepMessagesBeforeExpiringDefault = 720; 
-        static int hoursToKeepMessagesBeforeExpiring = SettingsReader<int>.Read("HoursToKeepMessagesBeforeExpiring", HoursToKeepMessagesBeforeExpiringDefault);
-        public static int HoursToKeepMessagesBeforeExpiring
+        static TimeSpan auditRetentionPeriod = GetAuditRetentionPeriod();
+        static TimeSpan errorRetentionPeriod = GetErrorRetentionPeriod();
+
+        private static TimeSpan GetErrorRetentionPeriod()
         {
-            get
+            TimeSpan result;
+            string message;
+            var valueRead = SettingsReader<string>.Read("ErrorRetentionPeriod");
+            if (valueRead == null)
             {
-                if (hoursToKeepMessagesBeforeExpiring < 24)
-                {
-                    Logger.ErrorFormat("HoursToKeepMessagesBeforeExpiring settings is invalid, value should be greater than 24 (1 day).  Defaulting to {0}",  HoursToKeepMessagesBeforeExpiringDefault);
-                    return HoursToKeepMessagesBeforeExpiringDefault;
-                }
-                return hoursToKeepMessagesBeforeExpiring;
+                message = "ErrorRetentionPeriod settings is missing, please make sure it is included.";
+                throw new Exception(message);
             }
-            set { hoursToKeepMessagesBeforeExpiring = value; }
+            try
+            {
+                result = TimeSpan.Parse(valueRead);
+
+                if (result < TimeSpan.FromDays(10))
+                {
+                    message = "ErrorRetentionPeriod settings is invalid, value should be minimum 10 days.";
+                    Logger.Fatal(message);
+                    throw new Exception(message);
+                }
+
+                if (result > TimeSpan.FromDays(45))
+                {
+                    message = "ErrorRetentionPeriod settings is invalid, value should be maximum 45 days.";
+                    Logger.Fatal(message);
+                    throw new Exception(message);
+                }
+            }
+            catch (Exception)
+            {
+                message = "ErrorRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            return result;
         }
 
-        const int ExpirationProcessBatchSizeDefault = 65512;
-        const int ExpirationProcessBatchSizeMinimum = 10240;
-        static int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
-
-        public static int ExpirationProcessBatchSize
+        private static TimeSpan GetAuditRetentionPeriod()
         {
-            get
+            TimeSpan result;
+            string message;
+            var valueRead = SettingsReader<string>.Read("AuditRetentionPeriod");
+            if (valueRead == null)
             {
-                if (expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum) 
-                {
-                    Logger.ErrorFormat("ExpirationProcessBatchSize settings is invalid, {0} is the minimum value. Defaulting to {1}", ExpirationProcessBatchSizeMinimum, ExpirationProcessBatchSizeDefault);
-                    return ExpirationProcessBatchSizeDefault;
-                }
-                return expirationProcessBatchSize;
+                message = "AuditRetentionPeriod settings is missing, please make sure it is included.";
+                throw new Exception(message);
             }
-            set { expirationProcessBatchSize = value; }
+            try
+                {
+                    result = TimeSpan.Parse(valueRead);
+
+                    if (result < TimeSpan.FromHours(1))
+                    {
+                        message = "AuditRetentionPeriod settings is invalid, value should be minimum 1 hour.";
+                        Logger.Fatal(message);
+                        throw new Exception(message);
+                    }
+
+                    if (result > TimeSpan.FromDays(365))
+                    {
+                        message = "AuditRetentionPeriod settings is invalid, value should be maximum 365 days.";
+                        Logger.Fatal(message);
+                        throw new Exception(message);
+                    }
+                }
+                catch (Exception)
+                {
+                    message = "AuditRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
+                    Logger.Fatal(message);
+                    throw new Exception(message);
+                }
+            
+            return result;
         }
+
+        public static TimeSpan AuditRetentionPeriod
+        {
+            get { return auditRetentionPeriod; }
+        }
+
+        public static TimeSpan ErrorRetentionPeriod
+        {
+            get { return errorRetentionPeriod; }
+        }
+
+        public const int ExpirationProcessBatchSizeDefault = 65512;
 
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
+
         static int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
+
         public static int MaxBodySizeToStore
         {
             get

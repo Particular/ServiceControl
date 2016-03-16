@@ -18,17 +18,17 @@
 
         public void Execute(DocumentDatabase database)
         {
-            var deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
+            var deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSecondsDefault;
 
             if (deleteFrequencyInSeconds == 0)
             {
                 return;
             }
-            var deletionBatchSize = Settings.ExpirationProcessBatchSize;
+            var deletionBatchSize = Settings.ExpirationProcessBatchSizeDefault;
 
             logger.Info("Running deletion of expired documents every {0} seconds", deleteFrequencyInSeconds);
             logger.Info("Deletion batch size set to {0}", deletionBatchSize);
-            logger.Info("Retention period is {0} hours", Settings.HoursToKeepMessagesBeforeExpiring);
+            logger.Info("Retention period is {0} hours", Settings.AuditRetentionPeriod);
 
             var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
             timer = new Timer(executor =>

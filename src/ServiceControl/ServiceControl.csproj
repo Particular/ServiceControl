@@ -304,10 +304,12 @@
     <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclQuery.cs" />
     <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclSet.cs" />
     <Compile Include="Infrastructure\Installers\UrlAcl\UrlReservation.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\ErrorMessageCleaner.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryErrorMessageIndex.cs" />
     <Compile Include="Infrastructure\ShutdownNotifier.cs" />
     <Compile Include="Infrastructure\OWIN\ApiLogger.cs" />
-    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredSagaAuditsCleaner.cs" />
-    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredProcessedMessageCleaner.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\SagaHistoryCleaner.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\AuditMessageCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpirySagaAuditIndex.cs" />
     <Compile Include="Infrastructure\Settings\NullableRegistryReader.cs" />

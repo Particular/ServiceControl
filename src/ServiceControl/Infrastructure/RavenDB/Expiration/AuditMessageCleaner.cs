@@ -14,11 +14,11 @@
     using Raven.Database.Impl;
     using Raven.Json.Linq;
 
-    public static class ExpiredProcessedMessageCleaner
+    public static class AuditMessageCleaner
     {
-        static ILog logger = LogManager.GetLogger(typeof(ExpiredProcessedMessageCleaner));
+        static ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
 
-        public static void ExpireProcessedMessages(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
+        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
             using (DocumentCacher.SkipSettingDocumentsInDocumentCache())
             using (database.DisableAllTriggersForCurrentThread())

@@ -15,11 +15,11 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
 
         public ExpirySagaAuditIndex()
         {
-            Map = (sagaHistories => from sagaHistory in sagaHistories
+            Map = sagaHistories => from sagaHistory in sagaHistories
                 select new Result
                 {
                     LastModified = MetadataFor(sagaHistory)["Last-Modified"],
-                });
+                };
 
             DisableInMemoryIndexing = true;
 

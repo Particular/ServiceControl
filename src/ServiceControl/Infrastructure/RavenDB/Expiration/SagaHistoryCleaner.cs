@@ -12,12 +12,12 @@
     using Raven.Database;
     using Raven.Database.Impl;
 
-    public static class ExpiredSagaAuditsCleaner
+    public static class SagaHistoryCleaner
     {
-        static ILog logger = LogManager.GetLogger(typeof(ExpiredSagaAuditsCleaner));
+        static ILog logger = LogManager.GetLogger(typeof(SagaHistoryCleaner));
 
 
-        public static void ExpireSagaAudits(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
+        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
             using (DocumentCacher.SkipSettingDocumentsInDocumentCache())
             using (database.DisableAllTriggersForCurrentThread())
