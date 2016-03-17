@@ -8,7 +8,7 @@
     using ServiceControl.Config.Validation;
     using ServiceControlInstaller.Engine.Instances;
 
-    public class AuditForwardingOption
+    public class ForwardingOption
     {
         public string Name { get; set; }
         public bool Value { get; set; }
@@ -24,10 +24,10 @@
         public SharedInstanceEditorViewModel()
         {
             Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
-            AuditForwardingOptions = new[]
+            ForwardingOptions = new[]
             {
-                new AuditForwardingOption { Name = "On", Value = true },
-                new AuditForwardingOption { Name = "Off", Value = false }
+                new ForwardingOption { Name = "On", Value = true },
+                new ForwardingOption { Name = "Off", Value = false }
             };
         }
 
@@ -80,9 +80,10 @@
         public string AuditQueueName { get; set; }
         public string AuditForwardingQueueName { get; set; }
 
-        public AuditForwardingOption AuditForwarding { get; set; }
+        public ForwardingOption AuditForwarding { get; set; }
+        public ForwardingOption ErrorForwarding { get; set; }
 
-        public IEnumerable<AuditForwardingOption> AuditForwardingOptions{ get; private set;}
+        public IEnumerable<ForwardingOption> ForwardingOptions{ get; private set;}
         
         public IEnumerable<TransportInfo> Transports { get; private set; }
 

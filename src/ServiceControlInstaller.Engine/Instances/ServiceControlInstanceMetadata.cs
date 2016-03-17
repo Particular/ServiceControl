@@ -30,6 +30,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string AuditQueue { get; set; }
         public string AuditLogQueue { get; set; }
         public bool ForwardAuditMessages { get; set; }
+        public bool ForwardErrorMessages { get; set; }
         public string TransportPackage { get; set; }
         public string ConnectionString { get; set; }
         public string Name { get; set; }
@@ -216,12 +217,10 @@ namespace ServiceControlInstaller.Engine.Instances
             catch (IdentityNotMappedException)
             {
                 ReportCard.Errors.Add("The service account specified does not exist");
-                return;
             }
             catch (EngineValidationException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
-                return;
             }
         }
 
@@ -269,6 +268,5 @@ namespace ServiceControlInstaller.Engine.Instances
                 };
             }
         }
-
     }
 }

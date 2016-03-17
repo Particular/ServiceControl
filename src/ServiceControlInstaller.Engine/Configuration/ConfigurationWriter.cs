@@ -37,6 +37,7 @@
             settings.Set("ServiceControl/LogPath", details.LogPath);
             settings.Set("ServiceControl/DBPath", details.DBPath);
             settings.Set("ServiceControl/ForwardAuditMessages", details.ForwardAuditMessages.ToString());
+            settings.Set("ServiceControl/ForwardErrorMessages", details.ForwardErrorMessages.ToString());
             settings.Set("ServiceControl/TransportType", Transports.FindByName(details.TransportPackage).TypeName);
             settings.Set("ServiceBus/AuditQueue", details.AuditQueue);
             settings.Set("ServiceBus/ErrorQueue", details.ErrorQueue);
