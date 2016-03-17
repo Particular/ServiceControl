@@ -7,6 +7,7 @@
         string Name { get; }
         string VirtualDirectory { get; }
         bool ForwardAuditMessages { get; }
+        bool ForwardErrorMessages { get; }
         string HostName { get; }
     }
 }

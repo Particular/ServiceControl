@@ -125,13 +125,20 @@
                 </Border>
 
                 <controls:FormTextBox Header="ERROR QUEUE NAME" Text="{Binding ErrorQueueName}" />
+
+                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                       DisplayMemberPath="Name"
+                                       Header="ERROR FORWARDING"
+                                       SelectedValue="{Binding ErrorForwarding}"
+                                       ItemsSource="{Binding ForwardingOptions}" />
+
                 <controls:FormTextBox Header="ERROR FORWARDING QUEUE NAME" Text="{Binding ErrorForwardingQueueName}" />
                 <controls:FormTextBox Header="AUDIT QUEUE NAME" Text="{Binding AuditQueueName}" />
                 <controls:FormComboBox HorizontalAlignment="Stretch"
                                        DisplayMemberPath="Name"
                                        Header="AUDIT FORWARDING"
                                        SelectedValue="{Binding AuditForwarding}"
-                                       ItemsSource="{Binding AuditForwardingOptions}" />
+                                       ItemsSource="{Binding ForwardingOptions}" />
                 <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME"
                                       Text="{Binding AuditForwardingQueueName}"
                                       ToolTip="The audit forwarding queue will be created even if Audit Forwarding is not enabled." />

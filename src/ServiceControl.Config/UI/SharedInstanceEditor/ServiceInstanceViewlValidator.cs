@@ -83,6 +83,11 @@ namespace ServiceControl.Config.Validation
             RuleFor(x => x.AuditForwarding)
                 .NotNull().WithMessage(Validations.MSG_SELECTAUDITFORWARDING);
 
+            RuleFor(x => x.ErrorForwarding)
+                .NotNull().WithMessage(Validations.MSG_SELECTERRORFORWARDING);
+
+
+
             RuleFor(x => x.LogPath)
                 .NotEmpty()
                 .ValidPath()
