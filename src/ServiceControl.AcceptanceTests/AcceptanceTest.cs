@@ -221,6 +221,18 @@
                 appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/ForwardAuditMessages"), new XAttribute("value", false)));
             }
 
+            var forwardErrorMessagesElement = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/ForwardErrorMessages""]");
+            if (forwardErrorMessagesElement != null)
+            {
+                forwardErrorMessagesElement.SetAttributeValue("value", true);
+            }
+            else
+            {
+                appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/ForwardErrorMessages"), new XAttribute("value", true)));
+            }
+
+
+
             // Mash any user defined settings into the config
             foreach (var configSetting in AppConfigurationSettings)
             {
