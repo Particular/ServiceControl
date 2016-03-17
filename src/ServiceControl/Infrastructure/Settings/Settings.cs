@@ -16,6 +16,8 @@
             AuditLogQueue = GetAuditLogQueue();
             DbPath = GetDbPath();
             TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
+            ForwardAuditMessages = GetForwardAuditMessages();
+            ForwardErrorMessages = GetForwardErrorMessages();
         }
 
         public static bool MaintenanceMode;
@@ -91,7 +93,6 @@
             return Address.Parse(value);
         }
 
-
         static Address GetErrorLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
@@ -121,6 +122,26 @@
             var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
 
             return SettingsReader<string>.Read("DbPath", defaultPath);
+        }
+
+        static bool GetForwardErrorMessages()
+        {
+            var forwardErrorMessages = NullableSettingsReader<bool>.Read("ForwardErrorMessages");
+            if (forwardErrorMessages.HasValue)
+            {
+                return forwardErrorMessages.Value;
+            }
+            throw new Exception("ForwardErrorMessages settings is missing, please make sure it is included.");
+        }
+
+        static bool GetForwardAuditMessages()
+        {
+            var forwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
+            if (forwardAuditMessages.HasValue)
+            {
+                return forwardAuditMessages.Value;
+            }
+            throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
         }
 
         static string SanitiseFolderName(string folderName)
@@ -203,7 +224,10 @@
         public static Address ErrorLogQueue;
         public static Address ErrorQueue;
         public static Address AuditQueue;
-        public static bool? ForwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
+
+        public static bool ForwardAuditMessages { get; set; }
+        public static bool ForwardErrorMessages { get; set; }
+        
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;
         
