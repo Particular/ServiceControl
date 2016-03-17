@@ -93,6 +93,20 @@
 				</maml:description>
 				<command:parameterValue required="true" variableLength="true">String[]</command:parameterValue>
 			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
@@ -120,6 +134,30 @@
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
 	</command:parameters>
 	<command:inputTypes>
 		<command:inputType>
@@ -129,8 +167,7 @@
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -142,8 +179,7 @@
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -213,6 +249,20 @@ Or Username can specified in the longer form which specifies a user belonging to
 				</maml:description>
 				<command:parameterValue required="true" variableLength="true">String[]</command:parameterValue>
 			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
@@ -229,6 +279,30 @@ Or Username can specified in the longer form which specifies a user belonging to
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
 	</command:parameters>
 	<command:inputTypes>
 		<command:inputType>
@@ -238,8 +312,7 @@ Or Username can specified in the longer form which specifies a user belonging to
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -251,8 +324,7 @@ Or Username can specified in the longer form which specifies a user belonging to
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -373,9 +445,48 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-ServiceControlInstances</maml:name>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
-	<command:parameters>	</command:parameters>
+	<command:parameters>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+	</command:parameters>
 	<command:inputTypes>
 		<command:inputType>
 			<dev:type>
@@ -384,8 +495,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -397,8 +507,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -456,9 +565,48 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-ServiceControlLicense</maml:name>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
-	<command:parameters>	</command:parameters>
+	<command:parameters>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+	</command:parameters>
 	<command:inputTypes>
 		<command:inputType>
 			<dev:type>
@@ -467,8 +615,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -480,8 +627,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -518,9 +664,48 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-ServiceControlTransportTypes</maml:name>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
-	<command:parameters>	</command:parameters>
+	<command:parameters>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+	</command:parameters>
 	<command:inputTypes>
 		<command:inputType>
 			<dev:type>
@@ -529,8 +714,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -542,8 +726,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -621,9 +804,48 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-UrlAcls</maml:name>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
-	<command:parameters>	</command:parameters>
+	<command:parameters>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+	</command:parameters>
 	<command:inputTypes>
 		<command:inputType>
 			<dev:type>
@@ -632,8 +854,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -645,8 +866,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -694,6 +914,20 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
@@ -701,6 +935,30 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 			<maml:name>File</maml:name>
 			<maml:description>
 				<maml:para>The path to the license file</maml:para>
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -718,8 +976,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -731,8 +988,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -789,6 +1045,13 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Invoke-ServiceControlInstanceUpgrade</maml:name>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByValue, ByPropertyName)" position="1">
+				<maml:name>ForwardErrorMessages</maml:name>
+				<maml:description>
+					<maml:para>This parameter is mandatory if the existing instance of ServiceControl does not have an entry in the configuration file for ForwardErrorMessages. When enabled all messages read of the Error queue are forwarded to queue specified ErrorLog queue as part of the import into ServiceControl. This configuration settings did not exist prior to Version of 1.12.</maml:para>
+				</maml:description>
+				<command:parameterValue required="false" variableLength="false">Boolean</command:parameterValue>
+			</command:parameter>
 			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="true (ByValue, ByPropertyName)" position="0">
 				<maml:name>Name</maml:name>
 				<maml:description>
@@ -796,9 +1059,35 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="true">String[]</command:parameterValue>
 			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByValue, ByPropertyName)" position="1">
+			<maml:name>ForwardErrorMessages</maml:name>
+			<maml:description>
+				<maml:para>This parameter is mandatory if the existing instance of ServiceControl does not have an entry in the configuration file for ForwardErrorMessages. When enabled all messages read of the Error queue are forwarded to queue specified ErrorLog queue as part of the import into ServiceControl. This configuration settings did not exist prior to Version of 1.12.</maml:para>
+			</maml:description>
+			<command:parameterValue required="false" variableLength="false">Boolean</command:parameterValue>
+			<dev:type>
+				<maml:name>Boolean</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
 		<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="true (ByValue, ByPropertyName)" position="0">
 			<maml:name>Name</maml:name>
 			<maml:description>
@@ -807,6 +1096,30 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 			<command:parameterValue required="true" variableLength="true">String[]</command:parameterValue>
 			<dev:type>
 				<maml:name>String[]</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
 				<maml:uri/>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
@@ -820,8 +1133,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -833,8 +1145,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -979,7 +1290,14 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>ForwardAuditMessages</maml:name>
 				<maml:description>
-					<maml:para>If this is the messages read of the audit queue are forwarded to queue specified AuditLogQueue as part of the Import into ServiceControl</maml:para>
+					<maml:para>When enabled all messages read of the Audit queue are forwarded to queue specified AuditLog queue as part of the import into ServiceControl</maml:para>
+				</maml:description>
+				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>ForwardErrorMessages</maml:name>
+				<maml:description>
+					<maml:para>When enabled all messages read of the Error queue are forwarded to queue specified ErrorLog queue as part of the import into ServiceControl</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
@@ -994,6 +1312,20 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:name>ServiceAccountPassword</maml:name>
 				<maml:description>
 					<maml:para>The password for the Windows account used as the service account. If the Service Account was not specified then the account chosen is localsystem and no password is required.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -1183,7 +1515,19 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>ForwardAuditMessages</maml:name>
 			<maml:description>
-				<maml:para>If this is the messages read of the audit queue are forwarded to queue specified AuditLogQueue as part of the Import into ServiceControl</maml:para>
+				<maml:para>When enabled all messages read of the Audit queue are forwarded to queue specified AuditLog queue as part of the import into ServiceControl</maml:para>
+			</maml:description>
+			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+			<dev:type>
+				<maml:name>SwitchParameter</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>ForwardErrorMessages</maml:name>
+			<maml:description>
+				<maml:para>When enabled all messages read of the Error queue are forwarded to queue specified ErrorLog queue as part of the import into ServiceControl</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -1216,6 +1560,30 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
 	</command:parameters>
 	<command:inputTypes>
 		<command:inputType>
@@ -1225,8 +1593,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -1238,8 +1605,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -1271,7 +1637,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para>Create an instance from an unattended install file. The unattended install file can be made using the ServiceControl Management tool or via the New-ServiceControlUnattendedFile cmdlet</maml:para>
+		<maml:para>Create an instance from an unattended install file. The unattended install file can be made using the New-ServiceControlUnattendedFile cmdlet</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
@@ -1286,7 +1652,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="1">
 				<maml:name>ServiceAccount</maml:name>
 				<maml:description>
-					<maml:para>The Windows Account to run the service under.  Without this specified localsystem will be used </maml:para>
+					<maml:para>The Windows Account to run the service under.  Without this specified localsystem will be used</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -1295,6 +1661,20 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 				<maml:description>
 					<maml:para>The Password for the Service Account.  When no account is specified then localsystem is used. 
 Localsystem does not require a password</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -1316,7 +1696,7 @@ Localsystem does not require a password</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="1">
 			<maml:name>ServiceAccount</maml:name>
 			<maml:description>
-				<maml:para>The Windows Account to run the service under.  Without this specified localsystem will be used </maml:para>
+				<maml:para>The Windows Account to run the service under.  Without this specified localsystem will be used</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1338,6 +1718,30 @@ Localsystem does not require a password</maml:para>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
 	</command:parameters>
 	<command:inputTypes>
 		<command:inputType>
@@ -1347,8 +1751,7 @@ Localsystem does not require a password</maml:para>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -1360,8 +1763,7 @@ Localsystem does not require a password</maml:para>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -1530,8 +1932,29 @@ Localsystem does not require a password</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>ForwardErrorMessages</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+			</command:parameter>
 			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>OutputFile</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
 				<maml:description>
 					<maml:para />
 				</maml:description>
@@ -1732,8 +2155,44 @@ Localsystem does not require a password</maml:para>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>ForwardErrorMessages</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+			<dev:type>
+				<maml:name>SwitchParameter</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
 		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>OutputFile</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
 			<maml:description>
 				<maml:para />
 			</maml:description>
@@ -1753,8 +2212,7 @@ Localsystem does not require a password</maml:para>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -1766,8 +2224,7 @@ Localsystem does not require a password</maml:para>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -1825,6 +2282,20 @@ Localsystem does not require a password</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
@@ -1864,6 +2335,30 @@ Localsystem does not require a password</maml:para>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
 	</command:parameters>
 	<command:inputTypes>
 		<command:inputType>
@@ -1873,8 +2368,7 @@ Localsystem does not require a password</maml:para>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -1886,8 +2380,7 @@ Localsystem does not require a password</maml:para>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -1931,6 +2424,20 @@ Localsystem does not require a password</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="true">UrlReservation[]</command:parameterValue>
 			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
@@ -1946,6 +2453,30 @@ Localsystem does not require a password</maml:para>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
 	</command:parameters>
 	<command:inputTypes>
 		<command:inputType>
@@ -1955,8 +2486,7 @@ Localsystem does not require a password</maml:para>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -1968,8 +2498,7 @@ Localsystem does not require a password</maml:para>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
@@ -2038,6 +2567,20 @@ Get-UrlAcls | ? Port -EQ 33333 | Remove-UrlACl</dev:code>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="true">Int32[]</command:parameterValue>
 			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationAction</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>InformationVariable</maml:name>
+				<maml:description>
+					<maml:para />
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
@@ -2053,6 +2596,30 @@ Get-UrlAcls | ? Port -EQ 33333 | Remove-UrlACl</dev:code>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationAction</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">ActionPreference</command:parameterValue>
+			<dev:type>
+				<maml:name>ActionPreference</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>InformationVariable</maml:name>
+			<maml:description>
+				<maml:para />
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
 	</command:parameters>
 	<command:inputTypes>
 		<command:inputType>
@@ -2062,8 +2629,7 @@ Get-UrlAcls | ? Port -EQ 33333 | Remove-UrlACl</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:inputType>
 	</command:inputTypes>
@@ -2075,8 +2641,7 @@ Get-UrlAcls | ? Port -EQ 33333 | Remove-UrlACl</dev:code>
 				<maml:description/>
 			</dev:type>
 			<maml:description>
-				<maml:para>
-</maml:para>
+<maml:para />
 			</maml:description>
 		</command:returnValue>
 	</command:returnValues>
