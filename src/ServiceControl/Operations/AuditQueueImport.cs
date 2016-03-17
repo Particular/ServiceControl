@@ -66,7 +66,7 @@
                 PipelineExecutor.InvokePipeline(behaviors, context);
             }
 
-            if (Settings.ForwardAuditMessages == true)
+            if (Settings.ForwardAuditMessages)
             {
                 TransportMessageCleaner.CleanForForwarding(message);
                 Forwarder.Send(message, new SendOptions(Settings.AuditLogQueue));
@@ -85,7 +85,7 @@
 
         bool TerminateIfForwardingIsEnabledButQueueNotWritable()
         {
-            if (Settings.ForwardAuditMessages != true)
+            if (!Settings.ForwardAuditMessages)
             {
                 return false;
             }

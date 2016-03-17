@@ -65,7 +65,7 @@
 
                 PipelineExecutor.InvokePipeline(behaviors, context);
             }
-            if (Settings.ForwardErrorMessages == true)
+            if (Settings.ForwardErrorMessages)
             {
                 TransportMessageCleaner.CleanForForwarding(message);
                 Forwarder.Send(message, new SendOptions(Settings.ErrorLogQueue));
@@ -109,7 +109,7 @@
 
         bool TerminateIfForwardingQueueNotWritable()
         {
-            if (Settings.ForwardErrorMessages != true)
+            if (!Settings.ForwardErrorMessages)
             {
                 return false;
             }
