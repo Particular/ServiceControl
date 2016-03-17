@@ -74,6 +74,10 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(HelpMessage = "Specify if audit messages are forwarded to the queue specified by AuditLogQueue")]
         public SwitchParameter ForwardAuditMessages { get; set; }
 
+        [Parameter(HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue")]
+        public SwitchParameter ForwardErrorMessages { get; set; }
+
+
         [ValidateNotNullOrEmpty]
         [Parameter(Mandatory = true, HelpMessage = "The path of the XML file save the output to")]
         public string OutputFile { get; set; }
@@ -136,6 +140,7 @@ namespace ServiceControlInstaller.PowerShell
 		        ErrorLogQueue = ErrorLogQueue,
 		        ErrorQueue = ErrorQueue,
 		        ForwardAuditMessages = ForwardAuditMessages.ToBool(),
+                ForwardErrorMessages = ForwardErrorMessages.ToBool(),
                 ConnectionString = ConnectionString,
 		        TransportPackage = Transport
             };

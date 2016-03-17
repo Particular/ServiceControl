@@ -76,6 +76,10 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(HelpMessage = "Specify if audit messages are forwarded to the queue specified by AuditLogQueue")]
         public SwitchParameter ForwardAuditMessages { get; set; }
 
+
+        [Parameter(HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue")]
+        public SwitchParameter ForwardErrorMessages { get; set; }
+        
         [Parameter(HelpMessage = "The Account to run the Windows service. If no specified LocalSystem is used")]
         public string ServiceAccount { get; set; }
 
@@ -137,6 +141,7 @@ namespace ServiceControlInstaller.PowerShell
                 AuditLogQueue = string.IsNullOrWhiteSpace(AuditLogQueue) ? null : AuditLogQueue,
                 ErrorLogQueue = string.IsNullOrWhiteSpace(ErrorLogQueue) ? null : ErrorLogQueue,
                 ForwardAuditMessages = ForwardAuditMessages.ToBool(),
+                ForwardErrorMessages = ForwardErrorMessages.ToBool(),
                 ConnectionString = ConnectionString,
                 TransportPackage = Transport
             };
