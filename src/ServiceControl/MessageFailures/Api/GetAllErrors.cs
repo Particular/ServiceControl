@@ -13,6 +13,22 @@
     {
         public GetAllErrors()
         {
+            Head["/errors"] = _ =>
+            {
+                using (var session = Store.OpenSession())
+                {
+                    var queryResult = session.Advanced
+                        .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                        .FilterByStatusWhere(Request)
+                        .FilterByLastModifiedRange(Request)
+                        .QueryResult;
+                    
+                    return Negotiate
+                        .WithTotalCount(queryResult.TotalResults)
+                        .WithEtagAndLastModified(queryResult.IndexEtag, queryResult.IndexTimestamp);
+                }
+            };
+
             Get["/errors"] = _ =>
             {
                 using (var session = Store.OpenSession())
@@ -23,7 +39,6 @@
                         .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
-                        .AndAlso()
                         .FilterByLastModifiedRange(Request)
                         .Sort(Request)
                         .Paging(Request)
@@ -51,7 +66,6 @@
                         .FilterByStatusWhere(Request)
                         .AndAlso()
                         .WhereEquals("ReceivingEndpointName", endpoint)
-                        .AndAlso()
                         .FilterByLastModifiedRange(Request)
                         .Sort(Request)
                         .Paging(Request)

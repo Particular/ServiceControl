@@ -22,7 +22,12 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
         public static Negotiator WithTotalCount(this Negotiator negotiator, RavenQueryStatistics stats)
         {
-            return negotiator.WithHeader("Total-Count", stats.TotalResults.ToString(CultureInfo.InvariantCulture));
+            return negotiator.WithTotalCount(stats.TotalResults);
+        }
+
+        public static Negotiator WithTotalCount(this Negotiator negotiator, int total)
+        {
+            return negotiator.WithHeader("Total-Count", total.ToString(CultureInfo.InvariantCulture));
         }
 
         public static Negotiator WithPagingLinks(this Negotiator negotiator, RavenQueryStatistics stats, Request request)
