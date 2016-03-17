@@ -235,6 +235,7 @@
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatStatusChanged.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
+    <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolved.cs" />
@@ -251,6 +252,7 @@
     <Compile Include="CustomChecks\InternalMessages\ReportCustomCheckResult.cs" />
     <Compile Include="EventLog\Definitions\ExternalIntegrationEventFailedToBePublishedDefinition.cs" />
     <Compile Include="EventLog\Definitions\FailedMessageGroupArchivedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\FailedMessageUnArchivedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
@@ -319,12 +321,17 @@
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SignalR\SerializationSettingsFactoryForSignalR.cs" />
+    <Compile Include="MessageFailures\Api\UnArchiveMessages.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
+    <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
     <Compile Include="MessageFailures\Handlers\IFailedMessageEnricher.cs" />
+    <Compile Include="MessageFailures\Handlers\UnArchiveMessagesByRangeHandler.cs" />
     <Compile Include="MessageFailures\IHaveStatus.cs" />
     <Compile Include="MessageFailures\InternalMessages\ReclassificationOfErrorMessageComplete.cs" />
     <Compile Include="MessageFailures\InternalMessages\ReclassifyErrors.cs" />
+    <Compile Include="MessageFailures\InternalMessages\UnArchiveMessages.cs" />
+    <Compile Include="MessageFailures\InternalMessages\UnArchiveMessagesByRange.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\ImportFailedMessage.cs" />
