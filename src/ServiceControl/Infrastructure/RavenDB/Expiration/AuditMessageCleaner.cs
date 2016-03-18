@@ -27,7 +27,6 @@
                 var documentWithCurrentThresholdTimeReached = false;
                 var items = new List<ICommandData>(deletionBatchSize);
                 var attachments = new List<string>(deletionBatchSize);
-                var docsToExpire = 0;
                 try
                 {
                     var query = new IndexQuery
@@ -92,7 +91,6 @@
 
                 logger.DebugFormat("Batching deletion of {0} audit documents.", items.Count);
 
-                docsToExpire += items.Count;
                 var results = database.Batch(items.ToArray());
                 database.TransactionalStorage.Batch(accessor =>
                 {
@@ -102,13 +100,13 @@
                     }
                 });
                 var deletionCount = results.Count(x => x.Deleted == true);
-                if (docsToExpire == 0)
+                if (deletionCount == 0)
                 {
                     logger.Debug("No expired audit documents found");
                 }
                 else
                 {
-                    logger.InfoFormat("Deleted {0} out of {1} expired audit documents. Batch execution took {2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
+                    logger.InfoFormat("Deleted {0} expired audit documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
                 }
             }
         }

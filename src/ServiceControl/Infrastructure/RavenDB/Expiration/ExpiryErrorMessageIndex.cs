@@ -1,5 +1,6 @@
 namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
+    using System;
     using System.Linq;
     using Raven.Client.Indexes;
     using ServiceControl.MessageFailures;
@@ -14,7 +15,8 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                 select new
                 {
                     MessageId = last.MessageId,
-                    Status = message.Status
+                    Status = message.Status,
+                    LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
                 };
 
             DisableInMemoryIndexing = true;
