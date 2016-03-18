@@ -204,7 +204,7 @@ namespace Particular.ServiceControl
             
             // Defaults
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LoggingSettings.LoggingLevel, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LoggingSettings.LoggingLevel < LogLevel.Info ? LoggingSettings.LoggingLevel : LogLevel.Info, consoleTarget));
 
             // Remove Console Logging when running as a service
             if (!Environment.UserInteractive)

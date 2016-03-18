@@ -75,10 +75,6 @@
                 var awaitingDispatching = session.Query<ExternalIntegrationDispatchRequest>().Take(Settings.ExternalIntegrationsDispatchingBatchSize).ToList();
                 if (!awaitingDispatching.Any())
                 {
-                    if (Logger.IsDebugEnabled)
-                    {
-                        Logger.Debug("Nothing to dispatch. Waiting...");
-                    }
                     return true;
                 }
 

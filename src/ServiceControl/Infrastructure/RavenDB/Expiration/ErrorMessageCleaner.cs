@@ -9,13 +9,12 @@
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
-    using Raven.Abstractions.Logging;
     using Raven.Database;
     using Raven.Database.Impl;
 
     public static class ErrorMessageCleaner
     {
-        static ILog logger = LogManager.GetLogger(typeof(ErrorMessageCleaner));
+        static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(ErrorMessageCleaner));
 
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
@@ -86,7 +85,7 @@
                     //Ignore
                 }
 
-                logger.Debug("Batching deletion of {0} documents.", items.Count);
+                logger.DebugFormat("Batching deletion of {0} error documents.", items.Count);
 
                 docsToExpire += items.Count;
                 var results = database.Batch(items.ToArray());
@@ -100,11 +99,11 @@
                 var deletionCount = results.Count(x => x.Deleted == true);
                 if (docsToExpire == 0)
                 {
-                    logger.Debug("No expired documents found");
+                    logger.Debug("No expired error documents found");
                 }
                 else
                 {
-                    logger.Debug("Deleted {0} out of {1} expired documents batch - Execution time:{2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
+                    logger.InfoFormat("Deleted {0} out of {1} expired error documents. Batch execution took {2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
                 }
             }
         }

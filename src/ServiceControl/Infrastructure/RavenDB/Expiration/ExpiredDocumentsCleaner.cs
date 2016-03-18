@@ -14,8 +14,6 @@
 
         public static void RunCleanup(int deletionBatchSize, DocumentDatabase database)
         {
-            
-
             try
             {
                 var threshold = SystemTime.UtcNow.Add(-Settings.AuditRetentionPeriod);

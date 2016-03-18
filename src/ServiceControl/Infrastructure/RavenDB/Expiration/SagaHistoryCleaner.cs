@@ -8,14 +8,12 @@
     using System.Threading;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
-    using Raven.Abstractions.Logging;
     using Raven.Database;
     using Raven.Database.Impl;
 
     public static class SagaHistoryCleaner
     {
-        static ILog logger = LogManager.GetLogger(typeof(SagaHistoryCleaner));
-
+        static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(SagaHistoryCleaner));
 
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
@@ -79,18 +77,18 @@
                     //Ignore
                 }
 
-                logger.Debug("Batching deletion of {0} documents.", items.Count);
+                logger.DebugFormat("Batching deletion of {0} sagahistory documents.", items.Count);
 
                 docsToExpire += items.Count;
                 var results = database.Batch(items.ToArray());
                 var deletionCount = results.Count(x => x.Deleted == true);
                 if (docsToExpire == 0)
                 {
-                    logger.Debug("No expired documents found");
+                    logger.Debug("No expired sagahistory documents found");
                 }
                 else
                 {
-                    logger.Debug("Deleted {0} out of {1} expired documents batch - Execution time:{2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
+                    logger.InfoFormat("Deleted {0} out of {1} expired sagahistory documents. Batch execution took {2}ms", deletionCount, docsToExpire, stopwatch.ElapsedMilliseconds);
                 }
             }
         }
