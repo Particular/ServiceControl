@@ -215,8 +215,10 @@ namespace Particular.ServiceControl
             NLog.LogManager.Configuration = nlogConfig;
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
-            logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName, Settings.LoggingLevel.Name);
-            logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName, Settings.RavenDBLogLevel.Name);
+            var logEventInfo = new NLog.LogEventInfo { TimeStamp = DateTime.Now };
+            logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName.Render(logEventInfo), Settings.LoggingLevel.Name);
+            logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName.Render(logEventInfo), Settings.RavenDBLogLevel.Name);
+            
         }
 
         string DetermineServiceName(ServiceBase host, HostArguments hostArguments)
