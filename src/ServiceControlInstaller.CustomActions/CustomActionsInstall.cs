@@ -38,7 +38,18 @@
             if (string.IsNullOrWhiteSpace(upgradeInstancesPropertyValue))
                 return;
             upgradeInstancesPropertyValue = upgradeInstancesPropertyValue.Trim();
-
+            
+            var forwardErrorMessagesPropertyValue = session["FORWARDERRORMESSAGES"];
+            bool? forwardErrorMessages;
+            try
+            {
+                forwardErrorMessages = bool.Parse(forwardErrorMessagesPropertyValue);
+            }
+            catch
+            {
+                forwardErrorMessages = null;
+            }
+            
             //determine what to upgrade
             var instancesToUpgrade = new List<ServiceControlInstance>();
             if (upgradeInstancesPropertyValue.Equals("*", StringComparison.OrdinalIgnoreCase) || upgradeInstancesPropertyValue.Equals("ALL", StringComparison.OrdinalIgnoreCase))
@@ -56,7 +67,13 @@
             {
                 if (zipInfo.Version > instance.Version)
                 {
-                    if (!unattendedInstaller.Upgrade(instance))
+                    if ((!instance.AppSettingExists("ServiceControl/ForwardErrorMessages") && (!forwardErrorMessages.HasValue)))
+                    {
+                        logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for 'ServiceControl/ForwardErrorMessages'", instance.Name, zipInfo.Version));
+                        continue;
+                    }
+
+                    if (!unattendedInstaller.Upgrade(instance, forwardErrorMessages))
                     {
                         logger.Warn(string.Format("Failed to upgrade {0} to {1}", instance.Name, zipInfo.Version));
                     }
