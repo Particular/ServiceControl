@@ -297,7 +297,7 @@
             get { return errorRetentionPeriod; }
         }
 
-        const int ExpirationProcessBatchSizeDefault = 65512;
+        const int ExpirationProcessBatchSizeDefault = 32756;
         const int ExpirationProcessBatchSizeMinimum = 10240;
         static int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
 
