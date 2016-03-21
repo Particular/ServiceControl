@@ -55,7 +55,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string Description { get; set; }
         public string ServiceAccount { get; set; }
         public string ServiceAccountPwd { get; set; }
-
+        
         public string Name
         {
             get { return Service.ServiceName; }
@@ -121,8 +121,6 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-
-
         string ReadConnectionString()
         {
             if (File.Exists(Service.ExePath))
@@ -165,7 +163,7 @@ namespace ServiceControlInstaller.Engine.Instances
             return Transports.All.First(p => p.Default).Name;
         }
 
-        public void ApplyConfigChange()
+        public void ApplyConfigChange(string[] unsupportedKeys = null)
         {
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = FindByName(Name);
@@ -201,7 +199,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set("ServiceControl/HostName", HostName);
             settings.Set("ServiceControl/LogPath", LogPath);
             settings.Set("ServiceControl/ForwardAuditMessages", ForwardAuditMessages.ToString());
-            settings.Set("ServiceControl/ForwardErrorMessages", ForwardErrorMessages.ToString());
+            settings.Set("ServiceControl/ForwardErrorMessages", ForwardErrorMessages.ToString(), unsupportedKeys);
             settings.Set("ServiceBus/AuditQueue", AuditQueue);
             settings.Set("ServiceBus/ErrorQueue", ErrorQueue);
             settings.Set("ServiceBus/ErrorLogQueue", ErrorLogQueue);
@@ -565,6 +563,11 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 ReportCard.Errors.Add(ex.Message);
             }
+        }
+
+        public string[] UnsupportedKeys()
+        {
+            return Version < new Version(1,11,2) ? new[]{"ServiceControl/ForwardErrorMessages"} : null;
         }
     }
 }
