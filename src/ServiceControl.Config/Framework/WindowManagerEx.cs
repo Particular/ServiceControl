@@ -5,11 +5,10 @@ using Caliburn.Micro;
 using ServiceControl.Config.Framework.Rx;
 using ServiceControl.Config.UI.MessageBox;
 using ServiceControl.Config.UI.Shell;
+using ServiceControlInstaller.Engine.ReportCard;
 
 namespace ServiceControl.Config.Framework
 {
-    using ServiceControlInstaller.Engine.ReportCard;
-
     public interface IWindowManagerEx : IWindowManager
     {
         void NavigateTo(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
@@ -19,6 +18,8 @@ namespace ServiceControl.Config.Framework
         bool? ShowOverlayDialog(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
 
         bool ShowMessage(string title, string message, string acceptText = "Ok");
+
+        bool? ShowYesNoCancelDialog(string title, string message, string yesText, string noText);
 
         bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage, string warningsMessage);
     }
@@ -81,6 +82,13 @@ namespace ServiceControl.Config.Framework
 
             return result ?? false;
         }
+
+        public bool? ShowYesNoCancelDialog(string title, string message, string yesText, string noText)
+        {
+            var messageBox = new YesNoCancelViewModel(title, message, yesText, noText);
+            return ShowOverlayDialog(messageBox);
+        }
+
 
         public bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage, string warningsMessage)
         {
