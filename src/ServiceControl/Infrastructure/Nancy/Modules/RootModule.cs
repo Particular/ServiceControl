@@ -58,7 +58,9 @@
                         Settings.MaximumMessageThroughputPerSecond,
                         MaxBodySizeToStore= Settings.MaxBodySizeToStore,
                         Settings.HttpDefaultConnectionLimit,
-                        Settings.ExternalIntegrationsDispatchingBatchSize
+                        Settings.ExternalIntegrationsDispatchingBatchSize,
+                        Settings.ExpirationProcessBatchSize,
+                        Settings.ExpirationProcessTimerInSeconds
                     },
                     Transport = new
                     {

@@ -18,13 +18,13 @@
 
         public void Execute(DocumentDatabase database)
         {
-            var deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSecondsDefault;
+            var deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
 
             if (deleteFrequencyInSeconds == 0)
             {
                 return;
             }
-            var deletionBatchSize = Settings.ExpirationProcessBatchSizeDefault;
+            var deletionBatchSize = Settings.ExpirationProcessBatchSize;
 
             logger.Info("Running deletion of expired documents every {0} seconds", deleteFrequencyInSeconds);
             logger.Info("Deletion batch size set to {0}", deletionBatchSize);

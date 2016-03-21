@@ -190,9 +190,22 @@
         
         public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;
-        
-        public const int ExpirationProcessTimerInSecondsDefault = 600;
-        
+
+        const int ExpirationProcessTimerInSecondsDefault = 600;
+        static int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
+        public static int ExpirationProcessTimerInSeconds
+        {
+            get
+            {
+                if ((expirationProcessTimerInSeconds < 0) || (expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds))
+                {
+                    Logger.ErrorFormat("ExpirationProcessTimerInSeconds settings is invalid, the valid range is 0 to {0}. Defaulting to {1}", TimeSpan.FromHours(3).TotalSeconds, ExpirationProcessTimerInSecondsDefault);
+                    return ExpirationProcessTimerInSecondsDefault;
+                }
+                return expirationProcessTimerInSeconds;
+            }
+        }
+
         static TimeSpan auditRetentionPeriod;
         static TimeSpan errorRetentionPeriod;
 
@@ -284,7 +297,22 @@
             get { return errorRetentionPeriod; }
         }
 
-        public const int ExpirationProcessBatchSizeDefault = 65512;
+        const int ExpirationProcessBatchSizeDefault = 65512;
+        const int ExpirationProcessBatchSizeMinimum = 10240;
+        static int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
+
+        public static int ExpirationProcessBatchSize
+        {
+            get
+            {
+                if (expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
+                {
+                    Logger.ErrorFormat("ExpirationProcessBatchSize settings is invalid, {0} is the minimum value. Defaulting to {1}", ExpirationProcessBatchSizeMinimum, ExpirationProcessBatchSizeDefault);
+                    return ExpirationProcessBatchSizeDefault;
+                }
+                return expirationProcessBatchSize;
+            }
+        }
 
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
 
