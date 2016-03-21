@@ -130,7 +130,7 @@
                                        DisplayMemberPath="Name"
                                        Header="ERROR FORWARDING"
                                        SelectedValue="{Binding ErrorForwarding}"
-                                       ItemsSource="{Binding ForwardingOptions}" />
+                                       ItemsSource="{Binding ErrorForwardingOptions}" />
 
                 <controls:FormTextBox Header="ERROR FORWARDING QUEUE NAME" Text="{Binding ErrorForwardingQueueName}" />
                 <controls:FormTextBox Header="AUDIT QUEUE NAME" Text="{Binding AuditQueueName}" />
@@ -138,7 +138,7 @@
                                        DisplayMemberPath="Name"
                                        Header="AUDIT FORWARDING"
                                        SelectedValue="{Binding AuditForwarding}"
-                                       ItemsSource="{Binding ForwardingOptions}" />
+                                       ItemsSource="{Binding AuditForwardingOptions}" />
                 <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME"
                                       Text="{Binding AuditForwardingQueueName}"
                                       ToolTip="The audit forwarding queue will be created even if Audit Forwarding is not enabled." />

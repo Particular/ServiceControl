@@ -24,11 +24,18 @@
         public SharedInstanceEditorViewModel()
         {
             Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
-            ForwardingOptions = new[]
+            AuditForwardingOptions = new[]
             {
                 new ForwardingOption { Name = "On", Value = true },
                 new ForwardingOption { Name = "Off", Value = false }
             };
+            ErrorForwardingOptions = new[]
+            {
+                new ForwardingOption { Name = "On", Value = true },
+                new ForwardingOption { Name = "Off", Value = false }
+            };
+
+
         }
 
         [DoNotNotify]
@@ -83,8 +90,9 @@
         public ForwardingOption AuditForwarding { get; set; }
         public ForwardingOption ErrorForwarding { get; set; }
 
-        public IEnumerable<ForwardingOption> ForwardingOptions{ get; private set;}
-        
+        public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; private set;}
+        public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; private set; }
+
         public IEnumerable<TransportInfo> Transports { get; private set; }
 
         [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]

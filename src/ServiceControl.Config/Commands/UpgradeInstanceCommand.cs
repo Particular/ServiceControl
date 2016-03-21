@@ -28,9 +28,23 @@
         {
             var instance = ServiceControlInstance.FindByName(instanceViewModel.Name);
             instance.Service.Refresh();
+            bool? overrideErrorForwarding = null;
 
+            if (!instance.AppSettingExists("ServiceControl/ForwardErrorMessages"))
+            {
+
+                var result  = windowManager.ShowYesNoCancelDialog("DISABLE ERROR FORWARDING?", "Error messages can be forwarded to a secondary error queue known as the Error Forwarding Queue.  This queue exists to allow external tools to receive error messages. If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled.", "Disable", "Enable");
+                if (!result.HasValue)
+                {
+                    //Dialog was cancelled
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    return;
+                }
+                overrideErrorForwarding = !result.Value;
+            }
+            
             var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
-                windowManager.ShowMessage(string.Format("STOP INSTANCE AND UPGRADE TO {0}", installer.ZipInfo.Version), string.Format("{0} needs to be stopped in order to upgrade to version {1}. Do you want to proceed.", instanceViewModel.Name, installer.ZipInfo.Version));
+                windowManager.ShowMessage(string.Format("STOP INSTANCE AND UPGRADE TO {0}", installer.ZipInfo.Version), string.Format("{0} needs to be stopped in order to upgrade to version {1}. Do you want to proceed?", instanceViewModel.Name, installer.ZipInfo.Version));
 
             if (confirm)
             {
@@ -40,7 +54,7 @@
                     var isRunning = instance.Service.Status == ServiceControllerStatus.Running;
                     if (isRunning) await instanceViewModel.StopService();
 
-                    var reportCard = await Task.Run(() => installer.Upgrade(instanceViewModel.Name, progress));
+                    var reportCard = await Task.Run(() => installer.Upgrade(instanceViewModel.Name, overrideErrorForwarding, progress));
 
                     if (reportCard.HasErrors || reportCard.HasWarnings)
                     {

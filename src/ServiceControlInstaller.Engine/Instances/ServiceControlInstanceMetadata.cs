@@ -7,6 +7,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
+    using System.Xml;
     using System.Xml.Serialization;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
@@ -152,11 +153,21 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public static ServiceControlInstanceMetadata Load(string path)
         {
+            ServiceControlInstanceMetadata instanceData;
             var serializer = new XmlSerializer(typeof(ServiceControlInstanceMetadata));
             using (var stream = File.OpenRead(path))
             {
-                return (ServiceControlInstanceMetadata)serializer.Deserialize(stream);
+                instanceData = (ServiceControlInstanceMetadata) serializer.Deserialize(stream);
             }
+
+            //Validate that the XML contained a setting for ForwardErrorMessages, this was introduced in v1.12 so older unattended files won't have the setting.
+            var doc = new XmlDocument();
+            doc.Load(path);
+            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)
+            {
+                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
+            }
+            return instanceData;
         }
 
         public void Validate()
