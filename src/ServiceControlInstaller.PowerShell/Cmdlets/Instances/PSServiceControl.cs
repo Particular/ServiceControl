@@ -10,11 +10,11 @@ namespace ServiceControlInstaller.PowerShell
     {
         public static PsServiceControl FromInstance(ServiceControlInstance instance)
         {
-            return new PsServiceControl
+            var result = new PsServiceControl
             {
                 Name = instance.Name,
                 Url = instance.Url,
-                HostName = instance.HostName,  
+                HostName = instance.HostName,
                 Port = instance.Port,
                 InstallPath = instance.InstallPath,
                 LogPath = instance.LogPath,
@@ -27,8 +27,10 @@ namespace ServiceControlInstaller.PowerShell
                 ErrorLogQueue = instance.ErrorLogQueue,
                 ForwardAuditMessages = instance.ForwardAuditMessages,
                 ServiceAccount = instance.ServiceAccount,
-                Version = instance.Version
+                Version = instance.Version,
+                ForwardErrorMessages = instance.Version < new Version(1, 11, 2) || instance.ForwardErrorMessages
             };
+            return result;
         }
         public string Name { get; set; }
         public string Url { get; set; }
@@ -48,7 +50,8 @@ namespace ServiceControlInstaller.PowerShell
         public string AuditQueue { get;  set; }
         public string AuditLogQueue { get;  set; }
         public bool ForwardAuditMessages { get; set; }
-        
+        public bool ForwardErrorMessages { get; set; }
+
         public string ServiceAccount { get; set; }
 
         public Version Version { get; set; }
