@@ -125,6 +125,13 @@
                 </Border>
 
                 <controls:FormTextBox Header="ERROR QUEUE NAME" Text="{Binding ErrorQueueName}" />
+
+                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                       DisplayMemberPath="Name"
+                                       Header="ERROR FORWARDING"
+                                       SelectedValue="{Binding ErrorForwarding}"
+                                       ItemsSource="{Binding ErrorForwardingOptions}" />
+
                 <controls:FormTextBox Header="ERROR FORWARDING QUEUE NAME" Text="{Binding ErrorForwardingQueueName}" />
                 <controls:FormTextBox Header="AUDIT QUEUE NAME" Text="{Binding AuditQueueName}" />
                 <controls:FormComboBox HorizontalAlignment="Stretch"

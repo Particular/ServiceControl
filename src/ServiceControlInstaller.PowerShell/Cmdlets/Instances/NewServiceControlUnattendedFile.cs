@@ -36,19 +36,19 @@ namespace ServiceControlInstaller.PowerShell
         public int Port { get; set; }
 
         [ValidateNotNullOrEmpty]
-        [Parameter(Mandatory = false, HelpMessage = "Specify ErrorQueue name to consume messages from. Default is error")]
+        [Parameter(Mandatory = true, HelpMessage = "Specify ErrorQueue name to consume messages from. Default is error")]
         public string ErrorQueue { get; set; }
 
         [ValidateNotNullOrEmpty]
-        [Parameter(Mandatory = false, HelpMessage = "Specify AuditQueue name to consume messages from. Default is audit")]
+        [Parameter(Mandatory = true, HelpMessage = "Specify AuditQueue name to consume messages from. Default is audit")]
         public string AuditQueue { get; set; }
 
         [ValidateNotNullOrEmpty]
-        [Parameter(Mandatory = false, HelpMessage = "Specify Queue name to forward error messages to. Default is errorlog")]
+        [Parameter(Mandatory = true, HelpMessage = "Specify Queue name to forward error messages to. Default is errorlog")]
         public string ErrorLogQueue { get; set; }
 
         [ValidateNotNullOrEmpty]
-        [Parameter(Mandatory = false, HelpMessage = "Specify Queue name to forward audit messages to. Default is auditlog")]
+        [Parameter(Mandatory = true, HelpMessage = "Specify Queue name to forward audit messages to. Default is auditlog")]
         public string AuditLogQueue { get; set; }
 
         [ValidateSet("AzureServiceBus", "AzureStorageQueue", "MSMQ", "SQLServer", "RabbitMQ")]
@@ -71,8 +71,12 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Specify the description to use on the Windows Service for this instance")]
         public string Description { get; set; }
 
-        [Parameter(HelpMessage = "Specify if audit messages are forwarded to the queue specified by AuditLogQueue")]
-        public SwitchParameter ForwardAuditMessages { get; set; }
+        [Parameter(Mandatory = true, HelpMessage = "Specify if audit messages are forwarded to the queue specified by AuditLogQueue")]
+        public bool ForwardAuditMessages { get; set; }
+
+        [Parameter(Mandatory = true, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue")]
+        public bool ForwardErrorMessages { get; set; }
+
 
         [ValidateNotNullOrEmpty]
         [Parameter(Mandatory = true, HelpMessage = "The path of the XML file save the output to")]
@@ -135,7 +139,8 @@ namespace ServiceControlInstaller.PowerShell
 		        AuditQueue = AuditQueue,
 		        ErrorLogQueue = ErrorLogQueue,
 		        ErrorQueue = ErrorQueue,
-		        ForwardAuditMessages = ForwardAuditMessages.ToBool(),
+		        ForwardAuditMessages = ForwardAuditMessages,
+                ForwardErrorMessages = ForwardErrorMessages,
                 ConnectionString = ConnectionString,
 		        TransportPackage = Transport
             };

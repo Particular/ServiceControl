@@ -46,6 +46,7 @@
             AuditForwardingQueueName = "audit.log";
             ErrorQueueName = "error";
             ErrorForwardingQueueName = "error.log";
+            ErrorForwarding = ErrorForwardingOptions.First(p => !p.Value); //Default to Off.
         }
 
         public string DestinationPath { get; set; }
@@ -54,6 +55,7 @@
         public string DatabasePath { get; set; }
         public ICommand SelectDatabasePath { get; private set; }
 
+        
         protected override void OnInstanceNameChanged()
         {
             DestinationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Particular Software", InstanceName);

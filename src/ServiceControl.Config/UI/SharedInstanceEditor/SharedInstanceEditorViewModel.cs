@@ -8,7 +8,7 @@
     using ServiceControl.Config.Validation;
     using ServiceControlInstaller.Engine.Instances;
 
-    public class AuditForwardingOption
+    public class ForwardingOption
     {
         public string Name { get; set; }
         public bool Value { get; set; }
@@ -26,9 +26,16 @@
             Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
             AuditForwardingOptions = new[]
             {
-                new AuditForwardingOption { Name = "On", Value = true },
-                new AuditForwardingOption { Name = "Off", Value = false }
+                new ForwardingOption { Name = "On", Value = true },
+                new ForwardingOption { Name = "Off", Value = false }
             };
+            ErrorForwardingOptions = new[]
+            {
+                new ForwardingOption { Name = "On", Value = true },
+                new ForwardingOption { Name = "Off", Value = false }
+            };
+
+
         }
 
         [DoNotNotify]
@@ -80,10 +87,12 @@
         public string AuditQueueName { get; set; }
         public string AuditForwardingQueueName { get; set; }
 
-        public AuditForwardingOption AuditForwarding { get; set; }
+        public ForwardingOption AuditForwarding { get; set; }
+        public ForwardingOption ErrorForwarding { get; set; }
 
-        public IEnumerable<AuditForwardingOption> AuditForwardingOptions{ get; private set;}
-        
+        public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; private set;}
+        public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; private set; }
+
         public IEnumerable<TransportInfo> Transports { get; private set; }
 
         [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]

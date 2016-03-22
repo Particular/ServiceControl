@@ -4,6 +4,7 @@ namespace ServiceControlInstaller.Engine.Unattended
 {
     using System;
     using System.IO;
+    using System.ServiceProcess;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
@@ -82,11 +83,12 @@ namespace ServiceControlInstaller.Engine.Unattended
             return true;
         }
 
-        public bool Upgrade(ServiceControlInstance instance)
+        public bool Upgrade(ServiceControlInstance instance, bool? forwardErrorMessages = null)
         {
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
 
+            var restartService = instance.Service.Status == ServiceControllerStatus.Running;
             if (!instance.TryStopService())
             {
                 logger.Error("Service failed to stop or service stop timed out");
@@ -102,9 +104,15 @@ namespace ServiceControlInstaller.Engine.Unattended
                 {
                     instance.RestoreAppConfig(backupFile);
                 }
-
+            
+                if (forwardErrorMessages.HasValue)
+                {
+                    instance.ForwardErrorMessages = forwardErrorMessages.Value;
+                    instance.ApplyConfigChange();
+                }
+           
                 instance.RunInstanceToCreateQueues();
-
+                
                 if (instance.ReportCard.HasErrors)
                 {
                     foreach (var error in instance.ReportCard.Errors)
@@ -113,12 +121,21 @@ namespace ServiceControlInstaller.Engine.Unattended
                     }
                     return false;
                 }
+
+                if (restartService && !instance.TryStartService())
+                {
+                    logger.Error("Service failed to start after update - please check configuration for {0}", instance.Name);
+                    return false;
+                }
             }
             catch (Exception ex)
             {
                 logger.Error("Upgrade Failed: {0}", ex.Message);
                 return false;
             }
+
+
+
             return true;
         }
 

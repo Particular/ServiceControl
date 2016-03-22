@@ -73,9 +73,12 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Specify the description to use on the Windows Service for this instance")]
         public string Description { get; set; }
 
-        [Parameter(HelpMessage = "Specify if audit messages are forwarded to the queue specified by AuditLogQueue")]
-        public SwitchParameter ForwardAuditMessages { get; set; }
-
+        [Parameter(Mandatory = true, HelpMessage = "Specify if audit messages are forwarded to the queue specified by AuditLogQueue")]
+        public bool ForwardAuditMessages { get; set; }
+        
+        [Parameter(Mandatory = true, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue")]
+        public bool ForwardErrorMessages { get; set; }
+        
         [Parameter(HelpMessage = "The Account to run the Windows service. If no specified LocalSystem is used")]
         public string ServiceAccount { get; set; }
 
@@ -84,8 +87,6 @@ namespace ServiceControlInstaller.PowerShell
         
         protected override void BeginProcessing()
         {
-            
-
             //Set default values
             HostName = HostName ?? "localhost";
             ErrorQueue = ErrorQueue ?? "error";
@@ -119,7 +120,6 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void ProcessRecord()
         {
-         
             var details = new ServiceControlInstanceMetadata
             {
                 InstallPath = InstallPath,
@@ -127,6 +127,7 @@ namespace ServiceControlInstaller.PowerShell
                 DBPath = DBPath,
                 Name = Name,
                 DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName,
+                ServiceDescription = Description,
                 ServiceAccount = ServiceAccount,
                 ServiceAccountPwd = ServiceAccountPassword,
                 HostName = HostName,
@@ -136,7 +137,8 @@ namespace ServiceControlInstaller.PowerShell
                 ErrorQueue = ErrorQueue,
                 AuditLogQueue = string.IsNullOrWhiteSpace(AuditLogQueue) ? null : AuditLogQueue,
                 ErrorLogQueue = string.IsNullOrWhiteSpace(ErrorLogQueue) ? null : ErrorLogQueue,
-                ForwardAuditMessages = ForwardAuditMessages.ToBool(),
+                ForwardAuditMessages = ForwardAuditMessages,
+                ForwardErrorMessages = ForwardErrorMessages,
                 ConnectionString = ConnectionString,
                 TransportPackage = Transport
             };

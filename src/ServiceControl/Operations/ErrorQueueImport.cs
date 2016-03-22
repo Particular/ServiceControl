@@ -65,21 +65,21 @@
 
                 PipelineExecutor.InvokePipeline(behaviors, context);
             }
-
-            TransportMessageCleaner.CleanForForwarding(message);
-            Forwarder.Send(message, new SendOptions(Settings.ErrorLogQueue));
+            if (Settings.ForwardErrorMessages)
+            {
+                TransportMessageCleaner.CleanForForwarding(message);
+                Forwarder.Send(message, new SendOptions(Settings.ErrorLogQueue));
+            }
         }
 
         Type[] behavioursToAddFirst = new[] { typeof(RavenUnitOfWorkBehavior) };
 
         public void Start()
         {
-
-            if (TerminateIfForwardingQueueNotWritable())
+            if (!TerminateIfForwardingQueueNotWritable())
             {
-                return;
+                Logger.InfoFormat("Error import is now started, feeding error messages from: {0}", InputAddress);
             }
-            Logger.InfoFormat("Error import is now started, feeding error messages from: {0}", InputAddress);
         }
 
         public void Stop()
@@ -109,6 +109,11 @@
 
         bool TerminateIfForwardingQueueNotWritable()
         {
+            if (!Settings.ForwardErrorMessages)
+            {
+                return false;
+            }
+
             try
             {
                 //Send a message to test the forwarding queue

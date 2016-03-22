@@ -15,6 +15,8 @@
 
         public const string MSG_SELECTAUDITFORWARDING = "Must select audit forwarding.";
 
+        public const string MSG_SELECTERRORFORWARDING = "Must select error forwarding.";
+
         public const string MSG_UNIQUEQUEUENAME = "Must not equal {0} queue name.";
 
         public const string MSG_USE_PORTS_IN_RANGE = "Use Ports in range 1 - 49151. Ephemeral port range should not be used (49152 to 65535).";

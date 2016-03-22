@@ -15,6 +15,9 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
         public string[] Name;
 
+        [Parameter(ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 1, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue. This setting if appsetting is not set, this occurs when upgrading versions 1.11.1 and below")]
+        public bool? ForwardErrorMessages;
+
         protected override void BeginProcessing()
         {
             Account.TestIfAdmin();
@@ -26,6 +29,7 @@ namespace ServiceControlInstaller.PowerShell
 
             var zipFolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var installer = new UnattendInstaller(logger, zipFolder);
+            
             foreach (var name in Name)
             {
                 var instance = ServiceControlInstance.FindByName(name);
@@ -34,7 +38,16 @@ namespace ServiceControlInstaller.PowerShell
                     WriteWarning(string.Format("No action taken. An instance called {0} was not found", name));
                     break;
                 }
-                if (!installer.Upgrade(instance))
+
+                if (!ForwardErrorMessages.HasValue)
+                {
+                    if (!instance.AppSettingExists("ServiceControl/ForwardErrorMessages"))
+                    {
+                        ThrowTerminatingError(new ErrorRecord(new Exception(string.Format("Upgrade of {0} aborted. ForwardErrorMessages parameter must be set to true or false because the configuration file has no setting for ForwardErrorMessages. This setting is mandatory as of version 1.12", instance.Name)), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+                    }
+                }
+                
+                if (!installer.Upgrade(instance, ForwardErrorMessages))
                 {
                     ThrowTerminatingError(new ErrorRecord(new Exception(string.Format("Upgrade of {0} failed",  instance.Name)), "UpgradeFailure", ErrorCategory.InvalidResult, null));
                 }
