@@ -69,7 +69,8 @@
                         AuditQueue = Settings.AuditQueue.Queue,
                         ErrorLogQueue = Settings.ErrorLogQueue.Queue,
                         ErrorQueue = Settings.ErrorQueue.Queue,
-                        Settings.ForwardAuditMessages
+                        Settings.ForwardAuditMessages,
+                        Settings.ForwardErrorMessages
                     },
                     Plugins = new
                     {
