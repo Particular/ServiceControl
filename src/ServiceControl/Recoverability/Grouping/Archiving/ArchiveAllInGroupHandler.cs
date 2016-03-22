@@ -3,6 +3,7 @@ namespace ServiceControl.Recoverability
     using System.Globalization;
     using System.Linq;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
@@ -10,8 +11,11 @@ namespace ServiceControl.Recoverability
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
+        private static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
+
         public void Handle(ArchiveAllInGroup message)
         {
+            logger.InfoFormat("Archiving of {0} started", message.GroupId);
             var result = Session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(
                             new FailedMessages_ByGroup().IndexName, 
                             new IndexQuery
@@ -30,6 +34,8 @@ namespace ServiceControl.Recoverability
                             }, true).WaitForCompletion();
 
             var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
+            logger.InfoFormat("Archiving of {0} ended", message.GroupId);
+            logger.InfoFormat("Archived {0} for {1}", patchedDocumentIds.Length, message.GroupId);
 
             if (patchedDocumentIds.Length == 0)
             {
