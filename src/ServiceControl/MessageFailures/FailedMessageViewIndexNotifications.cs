@@ -13,7 +13,7 @@
     {
         IBus bus;
         IDocumentStore store;
-        int lastCount;
+        int lastUnresolvedCount, lastArchivedCount;
         ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
 
         public FailedMessageViewIndexNotifications(IDocumentStore store, IBus bus)
@@ -48,13 +48,21 @@
         {
             using (var session = store.OpenSession())
             {
-                var failedMessageCount = session.Query<FailedMessage, FailedMessageViewIndex>().Count(p => p.Status == FailedMessageStatus.Unresolved);
-                if (lastCount == failedMessageCount)
+                var failedUnresolvedMessageCount = session.Query<FailedMessage, FailedMessageViewIndex>().Count(p => p.Status == FailedMessageStatus.Unresolved);
+                var failedArchivedMessageCount = session.Query<FailedMessage, FailedMessageViewIndex>().Count(p => p.Status == FailedMessageStatus.Archived);
+
+                if (lastUnresolvedCount == failedUnresolvedMessageCount && lastArchivedCount == failedArchivedMessageCount)
+                {
                     return;
-                lastCount = failedMessageCount;
+                }
+                lastUnresolvedCount = failedUnresolvedMessageCount;
+                lastArchivedCount = failedArchivedMessageCount;
+
                 bus.Publish(new MessageFailuresUpdated
                 {
-                    Total = failedMessageCount
+                    Total = failedUnresolvedMessageCount, // Left here for backwards compatibility, to be removed eventually.
+                    UnresolvedTotal = failedUnresolvedMessageCount,
+                    ArchivedTotal = failedUnresolvedMessageCount
                 });
             }
         }
