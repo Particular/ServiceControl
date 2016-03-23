@@ -89,9 +89,7 @@
                     {
                         try
                         {
-                            context.AddTrace("Connecting to signalr");
                             connection.Start().Wait();
-                            context.AddTrace("Connected to signalr");
                             break;
                         }
                         catch (AggregateException ex)
