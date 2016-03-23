@@ -8,7 +8,6 @@ namespace ServiceControl.Recoverability
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceControl.Infrastructure.Extensions;
-    using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.MessageFailures.InternalMessages;
 
@@ -65,8 +64,8 @@ namespace ServiceControl.Recoverability
                     .LuceneQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
                     .Statistics(out stats)
                     .WhereEquals(view => view.FailureGroupId, groupId)
-                    .AndAlso()
-                    .WhereEquals( "Status",(int) FailedMessageStatus.Unresolved)
+                    .FilterByStatusWhere(Request)
+                    .FilterByLastModifiedRange(Request)
                     .Sort(Request)
                     .Paging(Request)
                     .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)

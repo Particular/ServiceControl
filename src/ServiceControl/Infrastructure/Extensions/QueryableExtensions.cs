@@ -8,7 +8,6 @@ namespace ServiceControl.Infrastructure.Extensions
     using System.Text;
     using CompositeViews.Messages;
     using MessageFailures;
-    using MessageFailures.Api;
     using Nancy;
     using Raven.Client;
     using Raven.Client.Linq;
@@ -112,7 +111,7 @@ namespace ServiceControl.Infrastructure.Extensions
             return source.AddOrder(keySelector, descending);
         }
 
-        public static IDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions> FilterByStatusWhere(this IDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions> source, Request request)
+        public static IDocumentQuery<T> FilterByStatusWhere<T>(this IDocumentQuery<T> source, Request request)
         {
             string status = null;
 
@@ -177,7 +176,7 @@ namespace ServiceControl.Infrastructure.Extensions
         }
 
 
-        public static IDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions> FilterByLastModifiedRange(this IDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions> source, Request request)
+        public static IDocumentQuery<T> FilterByLastModifiedRange<T>(this IDocumentQuery<T> source, Request request)
         {
             string modified = null;
 

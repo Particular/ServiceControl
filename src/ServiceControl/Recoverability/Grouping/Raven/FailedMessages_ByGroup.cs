@@ -11,7 +11,7 @@ namespace ServiceControl.Recoverability
         public FailedMessages_ByGroup()
         {
             Map = docs => from doc in docs
-                let metadata = doc.ProcessingAttempts.Last().MessageMetadata
+                let processingAttemptsLast = doc.ProcessingAttempts.Last()
                 from failureGroup in doc.FailureGroups
                 select new FailureGroupMessageView
                 {
@@ -20,8 +20,10 @@ namespace ServiceControl.Recoverability
                     FailureGroupId = failureGroup.Id,
                     FailureGroupName = failureGroup.Title,
                     Status = doc.Status,
-                    MessageType = (string) metadata["MessageType"],
-                    TimeSent = (DateTime) metadata["TimeSent"]
+                    MessageType = (string)processingAttemptsLast.MessageMetadata["MessageType"],
+                    TimeSent = (DateTime)processingAttemptsLast.MessageMetadata["TimeSent"],
+                    TimeOfFailure = processingAttemptsLast.FailureDetails.TimeOfFailure,
+                    LastModified = MetadataFor(doc).Value<DateTime>("Last-Modified").Ticks
                 };
 
             StoreAllFields(FieldStorage.Yes);
