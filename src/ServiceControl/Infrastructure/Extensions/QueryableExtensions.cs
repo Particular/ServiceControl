@@ -65,7 +65,7 @@ namespace ServiceControl.Infrastructure.Extensions
             var sortOptions = new[]
             {
                 "id", "message_id", "message_type", 
-                "time_sent", "status", "modified"
+                "time_sent", "status", "modified", "time_of_failure"
             };
 
             var sort = "time_sent";
@@ -98,6 +98,10 @@ namespace ServiceControl.Infrastructure.Extensions
 
                 case "modified":
                     keySelector = "LastModified";
+                    break;
+
+                case "time_of_failure":
+                    keySelector = "TimeOfFailure";
                     break;
 
                 default:

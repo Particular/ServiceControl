@@ -7,6 +7,7 @@
     using MessageFailures;
     using NUnit.Framework;
     using Raven.Client;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageFailures.Api;
 
     [TestFixture]
@@ -25,7 +26,8 @@
                                            ProcessingAttempts = new List<FailedMessage.ProcessingAttempt> { new FailedMessage.ProcessingAttempt
                                            {
                                                AttemptedAt = DateTime.UtcNow,
-                                               MessageMetadata = new Dictionary<string, object>()
+                                               MessageMetadata = new Dictionary<string, object>(),
+                                               FailureDetails = new FailureDetails()
                                            }}
                                        };
 
@@ -40,12 +42,10 @@
             {
                 using (var session = documentStore.OpenSession())
                 {
-
-
                     var results = session.Advanced.LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                                         .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                                         .Statistics(out stats)
-                                            .SelectFields<FailedMessageView>()
+                                        .SelectFields<FailedMessageView>()
                                         .ToList();
 
 

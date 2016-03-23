@@ -22,6 +22,7 @@
                     rec.FailureDetails.Exception,
                     NumberOfProcessingAttempts = failure.ProcessingAttempts.Count,
                     failure.Status,
+                    TimeOfFailure = rec.FailureDetails.TimeOfFailure,
                     LastModified = MetadataFor(failure)["Last-Modified"].Value<DateTime>()
                 };
         }

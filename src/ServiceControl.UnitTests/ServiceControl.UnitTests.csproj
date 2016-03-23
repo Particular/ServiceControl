@@ -102,7 +102,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CompositeViews\FailedMessageTest.cs" />
+    <Compile Include="CompositeViews\FailedMessagesTests.cs" />
     <Compile Include="Expiration\ProcessedMessageExpirationTests.cs" />
     <Compile Include="Expiration\RavenLastModifiedScope.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverterTests.cs" />
