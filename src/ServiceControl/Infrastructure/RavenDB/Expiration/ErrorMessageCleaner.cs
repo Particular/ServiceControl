@@ -6,10 +6,10 @@
     using System.Diagnostics;
     using System.Linq;
     using Raven.Abstractions;
-    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Database;
     using Raven.Database.Impl;
+    using Raven.Json.Linq;
 
     public static class ErrorMessageCleaner
     {
@@ -21,7 +21,7 @@
             using (database.DisableAllTriggersForCurrentThread())
             {
                 var stopwatch = Stopwatch.StartNew();
-                var items = new List<ICommandData>(deletionBatchSize);
+                var items = new List<string>(deletionBatchSize);
                 var attachments = new List<string>(deletionBatchSize);
                 try
                 {
@@ -56,10 +56,7 @@
                                 return;
                             }
 
-                            items.Add(new DeleteCommandData
-                            {
-                                Key = id
-                            });
+                            items.Add(id);
 
                             attachments.Add(doc.Value<string>("MessageId"));
                         });
@@ -69,26 +66,27 @@
                     //Ignore
                 }
 
-                logger.DebugFormat("Batching deletion of {0} error documents.", items.Count);
-                var results = database.Batch(items);
-                logger.DebugFormat("Batching deletion of {0} error documents completed.", items.Count);
-
+                var deletionCount = 0;
 
                 database.TransactionalStorage.Batch(accessor =>
                 {
-                    logger.DebugFormat("Batching deletion of {0} attachment error documents.", attachments.Count);
+                    RavenJObject metadata;
+                    Etag deletedETag;
+                    logger.InfoFormat("Batching deletion of {0} error documents.", items.Count);
+                    deletionCount += items.Count(key => accessor.Documents.DeleteDocument(key, null, out metadata, out deletedETag));
+                    logger.InfoFormat("Batching deletion of {0} error documents completed.", items.Count);
 
+                    logger.InfoFormat("Batching deletion of {0} attachment error documents.", attachments.Count);
                     foreach (var attach in attachments)
                     {
                         accessor.Attachments.DeleteAttachment("messagebodies/" + attach, null);
                     }
-                    logger.DebugFormat("Batching deletion of {0} attachment error documents completed.", attachments.Count);
-
+                    logger.InfoFormat("Batching deletion of {0} attachment error documents completed.", attachments.Count);
                 });
-                var deletionCount = results.Count(x => x.Deleted == true);
+
                 if (deletionCount == 0)
                 {
-                    logger.Debug("No expired error documents found");
+                    logger.Info("No expired error documents found");
                 }
                 else
                 {

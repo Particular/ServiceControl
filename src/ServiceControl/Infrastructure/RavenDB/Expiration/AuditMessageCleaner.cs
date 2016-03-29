@@ -7,7 +7,6 @@
     using System.Linq;
     using System.Threading;
     using Raven.Abstractions;
-    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Database;
     using Raven.Database.Impl;
@@ -25,7 +24,7 @@
             {
                 var stopwatch = Stopwatch.StartNew();
                 var documentWithCurrentThresholdTimeReached = false;
-                var items = new List<ICommandData>(deletionBatchSize);
+                var items = new List<string>(deletionBatchSize);
                 var attachments = new List<string>(deletionBatchSize);
                 try
                 {
@@ -51,6 +50,7 @@
                         },
                     };
                     var indexName = new ExpiryProcessedMessageIndex().IndexName;
+                    //database.TransactionalStorage.Batch(accessor => accessor);
                     database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(database.WorkContext.CancellationToken, cts.Token).Token,
                         null,
                         doc =>
@@ -72,10 +72,7 @@
                             {
                                 return;
                             }
-                            items.Add(new DeleteCommandData
-                            {
-                                Key = id
-                            });
+                            items.Add(id);
 
                             string bodyId;
                             if (TryGetBodyId(doc, out bodyId))
@@ -89,28 +86,27 @@
                     //Ignore
                 }
 
-                logger.DebugFormat("Batching deletion of {0} audit documents.", items.Count);
-                var results = database.Batch(items);
-                logger.DebugFormat("Batching deletion of {0} audit documents completed.", items.Count);
+                var deletionCount = 0;
 
                 database.TransactionalStorage.Batch(accessor =>
                 {
-                    logger.DebugFormat("Batching deletion of {0} attachment audit documents.", attachments.Count);
+                    RavenJObject metadata;
+                    Etag deletedETag;
+                    logger.InfoFormat("Batching deletion of {0} audit documents.", items.Count);
+                    deletionCount += items.Count(key => accessor.Documents.DeleteDocument(key, null, out metadata, out deletedETag));
+                    logger.InfoFormat("Batching deletion of {0} audit documents completed.", items.Count);
 
+                    logger.InfoFormat("Batching deletion of {0} attachment audit documents.", attachments.Count);
                     foreach (var attach in attachments)
                     {
                         accessor.Attachments.DeleteAttachment(attach, null);
                     }
-
-                    logger.DebugFormat("Batching deletion of {0} attachment audit documents completed.", attachments.Count);
-
+                    logger.InfoFormat("Batching deletion of {0} attachment audit documents completed.", attachments.Count);
                 });
-
-                var deletionCount = results.Count(x => x.Deleted == true);
 
                 if (deletionCount == 0)
                 {
-                    logger.Debug("No expired audit documents found");
+                    logger.Info("No expired audit documents found");
                 }
                 else
                 {
