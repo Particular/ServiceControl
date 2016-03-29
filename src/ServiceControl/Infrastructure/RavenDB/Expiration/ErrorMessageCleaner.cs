@@ -6,10 +6,10 @@
     using System.Diagnostics;
     using System.Linq;
     using Raven.Abstractions;
+    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Database;
     using Raven.Database.Impl;
-    using Raven.Json.Linq;
 
     public static class ErrorMessageCleaner
     {
@@ -21,7 +21,7 @@
             using (database.DisableAllTriggersForCurrentThread())
             {
                 var stopwatch = Stopwatch.StartNew();
-                var items = new List<string>(deletionBatchSize);
+                var items = new List<ICommandData>(deletionBatchSize);
                 var attachments = new List<string>(deletionBatchSize);
                 try
                 {
@@ -56,7 +56,10 @@
                                 return;
                             }
 
-                            items.Add(id);
+                            items.Add(new DeleteCommandData
+                            {
+                                Key = id
+                            });
 
                             attachments.Add(doc.Value<string>("MessageId"));
                         });
@@ -68,20 +71,26 @@
 
                 var deletionCount = 0;
 
-                database.TransactionalStorage.Batch(accessor =>
+                Chunker.ExecuteInChunks(items.Count, (s, e) =>
                 {
-                    RavenJObject metadata;
-                    Etag deletedETag;
-                    logger.InfoFormat("Batching deletion of {0} error documents.", items.Count);
-                    deletionCount += items.Count(key => accessor.Documents.DeleteDocument(key, null, out metadata, out deletedETag));
-                    logger.InfoFormat("Batching deletion of {0} error documents completed.", items.Count);
+                    logger.InfoFormat("Batching deletion of {0}-{1} error documents.", s, e);
+                    var results = database.Batch(items.GetRange(s, e - s + 1));
+                    logger.InfoFormat("Batching deletion of {0}-{1} error documents completed.", s, e);
 
-                    logger.InfoFormat("Batching deletion of {0} attachment error documents.", attachments.Count);
-                    foreach (var attach in attachments)
+                    deletionCount += results.Count(x => x.Deleted == true);
+                });
+
+                Chunker.ExecuteInChunks(attachments.Count, (s, e) =>
+                {
+                    database.TransactionalStorage.Batch(accessor =>
                     {
-                        accessor.Attachments.DeleteAttachment("messagebodies/" + attach, null);
-                    }
-                    logger.InfoFormat("Batching deletion of {0} attachment error documents completed.", attachments.Count);
+                        logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents.", s, e);
+                        for (var idx = s; idx <= e; idx++)
+                        {
+                            accessor.Attachments.DeleteAttachment("messagebodies/" + attachments[idx], null);
+                        }
+                        logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents completed.", s, e);
+                    });
                 });
 
                 if (deletionCount == 0)

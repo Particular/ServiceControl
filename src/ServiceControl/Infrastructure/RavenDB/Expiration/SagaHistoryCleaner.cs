@@ -6,10 +6,10 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Database;
     using Raven.Database.Impl;
-    using Raven.Json.Linq;
 
     public static class SagaHistoryCleaner
     {
@@ -23,7 +23,7 @@
             {
                 var stopwatch = Stopwatch.StartNew();
                 var documentWithCurrentThresholdTimeReached = false;
-                var items = new List<string>(deletionBatchSize);
+                var items = new List<ICommandData>(deletionBatchSize);
                 try
                 {
                     var query = new IndexQuery
@@ -65,7 +65,10 @@
                             {
                                 return;
                             }
-                            items.Add(id);
+                            items.Add(new DeleteCommandData
+                            {
+                                Key = id
+                            });
                         });
                 }
                 catch (OperationCanceledException)
@@ -75,15 +78,15 @@
 
                 var deletionCount = 0;
 
-                database.TransactionalStorage.Batch(accessor =>
+                Chunker.ExecuteInChunks(items.Count, (s, e) =>
                 {
-                    RavenJObject metadata;
-                    Etag deletedETag;
-                    logger.InfoFormat("Batching deletion of {0} sagahistory documents.", items.Count);
-                    deletionCount += items.Count(key => accessor.Documents.DeleteDocument(key, null, out metadata, out deletedETag));
-                    logger.InfoFormat("Batching deletion of {0} sagahistory documents completed.", items.Count);
-                });
+                    logger.InfoFormat("Batching deletion of {0}-{1} sagahistory documents.", s, e);
+                    var results = database.Batch(items.GetRange(s, e - s + 1));
+                    logger.InfoFormat("Batching deletion of {0}-{1} sagahistory documents completed.", s, e);
 
+                    deletionCount += results.Count(x => x.Deleted == true);
+                });
+                
                 if (deletionCount == 0)
                 {
                     logger.Info("No expired sagahistory documents found");

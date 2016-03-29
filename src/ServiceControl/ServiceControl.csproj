@@ -306,6 +306,7 @@
     <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclQuery.cs" />
     <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclSet.cs" />
     <Compile Include="Infrastructure\Installers\UrlAcl\UrlReservation.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\Chunker.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ErrorMessageCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryErrorMessageIndex.cs" />
     <Compile Include="Infrastructure\Settings\LoggingSettings.cs" />
