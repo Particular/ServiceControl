@@ -78,7 +78,10 @@
 
                 logger.DebugFormat("Batching deletion of {0} sagahistory documents.", items.Count);
 
-                var results = database.Batch(items.ToArray());
+                var results = database.Batch(items);
+
+                logger.DebugFormat("Batching deletion of {0} sagahistory documents completed.", items.Count);
+
                 var deletionCount = results.Count(x => x.Deleted == true);
                 if (deletionCount == 0)
                 {

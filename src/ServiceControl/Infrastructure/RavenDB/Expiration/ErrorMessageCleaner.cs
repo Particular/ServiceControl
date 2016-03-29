@@ -70,14 +70,20 @@
                 }
 
                 logger.DebugFormat("Batching deletion of {0} error documents.", items.Count);
+                var results = database.Batch(items);
+                logger.DebugFormat("Batching deletion of {0} error documents completed.", items.Count);
 
-                var results = database.Batch(items.ToArray());
+
                 database.TransactionalStorage.Batch(accessor =>
                 {
+                    logger.DebugFormat("Batching deletion of {0} attachment error documents.", attachments.Count);
+
                     foreach (var attach in attachments)
                     {
                         accessor.Attachments.DeleteAttachment("messagebodies/" + attach, null);
                     }
+                    logger.DebugFormat("Batching deletion of {0} attachment error documents completed.", attachments.Count);
+
                 });
                 var deletionCount = results.Count(x => x.Deleted == true);
                 if (deletionCount == 0)

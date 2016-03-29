@@ -90,16 +90,24 @@
                 }
 
                 logger.DebugFormat("Batching deletion of {0} audit documents.", items.Count);
+                var results = database.Batch(items);
+                logger.DebugFormat("Batching deletion of {0} audit documents completed.", items.Count);
 
-                var results = database.Batch(items.ToArray());
                 database.TransactionalStorage.Batch(accessor =>
                 {
+                    logger.DebugFormat("Batching deletion of {0} attachment audit documents.", attachments.Count);
+
                     foreach (var attach in attachments)
                     {
                         accessor.Attachments.DeleteAttachment(attach, null);
                     }
+
+                    logger.DebugFormat("Batching deletion of {0} attachment audit documents completed.", attachments.Count);
+
                 });
+
                 var deletionCount = results.Count(x => x.Deleted == true);
+
                 if (deletionCount == 0)
                 {
                     logger.Debug("No expired audit documents found");
