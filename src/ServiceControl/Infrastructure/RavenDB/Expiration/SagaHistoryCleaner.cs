@@ -6,10 +6,10 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Database;
-    using Raven.Database.Impl;
 
     public static class SagaHistoryCleaner
     {
@@ -17,8 +17,6 @@
 
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
-            using (DocumentCacher.SkipSettingDocumentsInDocumentCache())
-            using (database.DisableAllTriggersForCurrentThread())
             using (var cts = new CancellationTokenSource())
             {
                 var stopwatch = Stopwatch.StartNew();
@@ -29,6 +27,8 @@
                     var query = new IndexQuery
                     {
                         Start = 0,
+                        DisableCaching = true,
+                        Cutoff = SystemTime.UtcNow,
                         PageSize = deletionBatchSize,
                         FieldsToFetch = new[]
                         {
