@@ -1,32 +1,20 @@
 ﻿namespace ServiceBus.Management.Infrastructure.OWIN
 {
     using System.Threading.Tasks;
-    using Microsoft.AspNet.SignalR;
-    using Microsoft.AspNet.SignalR.Json;
     using Microsoft.Owin.Hosting;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.SignalR;
 
     class ApiFeature : Feature
     {
         public ApiFeature()
         {
             EnableByDefault();
-            RegisterStartupTask<ConfigureSignalR>();
             RegisterStartupTask<BootstrapApi>();
         }
 
         protected override void Setup(FeatureConfigurationContext context) { }
-
-        class ConfigureSignalR : FeatureStartupTask
-        {
-            protected override void OnStart()
-            {
-                GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), SerializationSettingsFactoryForSignalR.CreateDefault);
-            }
-        }
 
         class BootstrapApi : FeatureStartupTask
         {
