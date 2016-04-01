@@ -23,8 +23,14 @@ namespace ServiceControl.Recoverability
             Get["/recoverability/groups"] =
                 _ => GetAllGroups();
 
+            Head["/recoverability/groups"] =
+                 _ => GetAllGroupsCount();
+
             Get["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrors(parameters.GroupId);
+
+            Head["/recoverability/groups/{groupId}/errors"] =
+                parameters => GetGroupErrorsCount(parameters.GroupId);
         }
 
         dynamic ReclassifyErrors()
@@ -50,7 +56,23 @@ namespace ServiceControl.Recoverability
                     .ToArray();
 
                 return Negotiate.WithModel(results)
-                    .WithTotalCount(stats);
+                    .WithTotalCount(stats)
+                    .WithEtagAndLastModified(stats);
+            }
+        }
+
+        dynamic GetAllGroupsCount()
+        {
+            using (var session = Store.OpenSession())
+            {
+                RavenQueryStatistics stats;
+                var results = session.Query<FailureGroupView, FailureGroupsViewIndex>()
+                    .Statistics(out stats)
+                    .Count();
+                   
+                return Negotiate
+                    .WithTotalCount(results)
+                    .WithEtagAndLastModified(stats);
             }
         }
 
@@ -73,7 +95,25 @@ namespace ServiceControl.Recoverability
                     .ToArray();
 
                 return Negotiate.WithModel(results)
-                    .WithPagingLinksAndTotalCount(stats, Request);
+                    .WithPagingLinksAndTotalCount(stats, Request)
+                    .WithEtagAndLastModified(stats);
+            }
+        }
+
+        dynamic GetGroupErrorsCount(string groupId)
+        {
+            using (var session = Store.OpenSession())
+            {
+                var queryResult = session.Advanced
+                    .LuceneQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                    .WhereEquals(view => view.FailureGroupId, groupId)
+                    .FilterByStatusWhere(Request)
+                    .FilterByLastModifiedRange(Request)
+                    .QueryResult;
+
+                return Negotiate
+                         .WithTotalCount(queryResult.TotalResults)
+                         .WithEtagAndLastModified(queryResult.IndexEtag, queryResult.IndexTimestamp);
             }
         }
     }
