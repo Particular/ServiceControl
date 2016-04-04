@@ -7,7 +7,6 @@ namespace ServiceControlInstaller.PowerShell
     using System;
     using System.IO;
     using System.Management.Automation;
-    using Microsoft.PowerShell.Commands;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
 
@@ -16,6 +15,7 @@ namespace ServiceControlInstaller.PowerShell
     {
         [ValidateNotNullOrEmpty]
         [Alias("FullName")]
+        [ValidatePath]
         [Parameter(Mandatory = true, ValueFromPipeline = true,ValueFromPipelineByPropertyName= true, Position = 0, HelpMessage = "Specify the path to the XML file")]
         public string UnattendFile { get; set; }
 
@@ -36,14 +36,7 @@ namespace ServiceControlInstaller.PowerShell
             ProviderInfo provider;
             PSDriveInfo drive;
             var psPath =  SessionState.Path.GetUnresolvedProviderPathFromPSPath(UnattendFile, out provider, out drive);
-
-            if (provider.ImplementingType != typeof(FileSystemProvider))
-            {
-                var ex = new ArgumentException(string.Format("{0} does not resolve to a path on the FileSystem provider.", psPath));
-                var error = new ErrorRecord(ex, "InvalidProvider", ErrorCategory.InvalidArgument, psPath);
-                WriteError(error);
-                return;
-            }
+            
             var details = ServiceControlInstanceMetadata.Load(psPath);
             details.ServiceAccount = ServiceAccount;
             details.ServiceAccountPwd = Password;

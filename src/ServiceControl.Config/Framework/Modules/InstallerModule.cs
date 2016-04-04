@@ -130,7 +130,7 @@
                     return instance.ReportCard;
                 }
             
-                instance.ApplyConfigChange(instance.UnsupportedKeys());
+                instance.ApplyConfigChange();
                 if (!instance.ReportCard.HasErrors)
                 {
                     if (startService && !instance.TryStartService())

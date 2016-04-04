@@ -34,8 +34,6 @@
                 new ForwardingOption { Name = "On", Value = true },
                 new ForwardingOption { Name = "Off", Value = false }
             };
-
-
         }
 
         [DoNotNotify]
@@ -92,6 +90,9 @@
 
         public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; private set;}
         public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; private set; }
+
+        public TimeSpan AuditRetentionPeriod { get; set; }
+        public TimeSpan ErrorRetentionPeriod { get; set; }
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
 

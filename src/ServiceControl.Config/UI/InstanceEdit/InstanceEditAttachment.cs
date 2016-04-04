@@ -75,6 +75,8 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.ForwardErrorMessages = viewModel.ErrorForwarding.Value;
             instance.ErrorQueue = viewModel.ErrorQueueName;
             instance.ErrorLogQueue = viewModel.ErrorForwardingQueueName;
+            instance.AuditRetentionPeriod = viewModel.AuditRetentionPeriod;
+            instance.ErrorRetentionPeriod = viewModel.ErrorRetentionPeriod;
             instance.TransportPackage = viewModel.SelectedTransport.Name;
             instance.ConnectionString = viewModel.ConnectionString;
 

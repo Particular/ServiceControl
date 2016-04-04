@@ -84,6 +84,35 @@
                         BorderThickness="0,0,0,1">
                     <TextBlock FontSize="13px"
                                FontWeight="Bold"
+                               Text="DATABASE RETENTION CONFIGURATION" />
+                </Border>
+                
+                <controls:FormSlider Header="AUDIT RETENTION PERIOD"
+                        Minimum="1"
+                        Maximum="365"
+                        Units="Days"
+                        Explaination="Audit Messages will be removed after this period"
+                        TimeSpan="{Binding AuditRetentionPeriod, Mode=TwoWay}"
+                        SmallChange="1"
+                        LargeChange="5"
+                />
+
+                <controls:FormSlider Header="ERROR RETENTION PERIOD"
+                        Minimum="8"
+                        Maximum="720"
+                        Units="Hours"
+                        Explaination="Error Messages that have been archived or resolved will be removed after this period"
+                        TimeSpan="{Binding ErrorRetentionPeriod, Mode=TwoWay}"
+                        SmallChange="1"
+                        LargeChange="1"
+                />
+
+
+                <Border Margin="0,40,0,20"
+                        BorderBrush="{StaticResource Gray90Brush}"
+                        BorderThickness="0,0,0,1">
+                        <TextBlock FontSize="13px"
+                               FontWeight="Bold"
                                Text="TRANSPORT CONFIGURATION" />
                 </Border>
 
@@ -98,13 +127,12 @@
                                       Text="{Binding ConnectionString}"
                                       TextWrapping="Wrap"
                                       Visibility="{Binding ShowConnectionString,
-                                                           Converter={StaticResource boolToVis}}" />
+                    Converter={StaticResource boolToVis}}" />
 
                 <TextBlock FontSize="14px"
                            Foreground="{StaticResource Gray60Brush}"
                            Text="SAMPLE CONNECTION STRING"
-                           Visibility="{Binding ShowConnectionString,
-                                                Converter={StaticResource boolToVis}}" />
+                           Visibility="{Binding ShowConnectionString, Converter={StaticResource boolToVis}}" />
 
                 <TextBox BorderThickness="0"
                          FontSize="14px"

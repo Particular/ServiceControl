@@ -93,6 +93,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Reactive.Core">
       <HintPath>..\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
     </Reference>
@@ -109,6 +110,7 @@
       <HintPath>..\packages\Rx-XAML.2.2.5\lib\net45\System.Reactive.Windows.Threading.dll</HintPath>
     </Reference>
     <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -223,6 +225,7 @@
     <Compile Include="Xaml\Controls\AppHeader.xaml.cs">
       <DependentUpon>AppHeader.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Xaml\Controls\FormSlider.cs" />
     <Compile Include="Xaml\Controls\FormCheckBox.cs" />
     <Compile Include="Xaml\Controls\FormPasswordBox.cs" />
     <Compile Include="Xaml\Controls\FormToggleButton.cs" />

@@ -5,6 +5,7 @@
     using System.IO;
     using System.Linq;
     using Microsoft.Deployment.WindowsInstaller;
+    using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.LicenseMgmt;
@@ -49,7 +50,29 @@
             {
                 forwardErrorMessages = null;
             }
-            
+
+            var auditRetentionPeriodPropertyValue = session["AUDITRETENTIONPERIOD"];
+            TimeSpan? auditRetentionPeriod;
+            try
+            {
+                auditRetentionPeriod = TimeSpan.Parse(auditRetentionPeriodPropertyValue);
+            }
+            catch
+            {
+                auditRetentionPeriod = null;
+            }
+
+            var errorRetentionPeriodPropertyValue = session["ERRORRETENTIONPERIOD"];
+            TimeSpan? errorRetentionPeriod;
+            try
+            {
+                errorRetentionPeriod = TimeSpan.Parse(errorRetentionPeriodPropertyValue);
+            }
+            catch
+            {
+                errorRetentionPeriod = null;
+            }
+
             //determine what to upgrade
             var instancesToUpgrade = new List<ServiceControlInstance>();
             if (upgradeInstancesPropertyValue.Equals("*", StringComparison.OrdinalIgnoreCase) || upgradeInstancesPropertyValue.Equals("ALL", StringComparison.OrdinalIgnoreCase))
@@ -67,11 +90,24 @@
             {
                 if (zipInfo.Version > instance.Version)
                 {
-                    if ((!instance.AppSettingExists("ServiceControl/ForwardErrorMessages") && (!forwardErrorMessages.HasValue)))
+                    if ((!instance.AppSettingExists(SettingsList.ForwardErrorMessages.Name) && (!forwardErrorMessages.HasValue)))
                     {
-                        logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for 'ServiceControl/ForwardErrorMessages'", instance.Name, zipInfo.Version));
+                        logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{2}'", instance.Name, zipInfo.Version, SettingsList.ForwardErrorMessages.Name));
                         continue;
                     }
+
+                    if ((!instance.AppSettingExists(SettingsList.AuditRetentionPeriod.Name) && (!auditRetentionPeriod.HasValue)))
+                    {
+                        logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. AUDITRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{2}'", instance.Name, zipInfo.Version, SettingsList.AuditRetentionPeriod.Name));
+                        continue;
+                    }
+
+                    if ((!instance.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name) && (!errorRetentionPeriod.HasValue)))
+                    {
+                        logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{2}'", instance.Name, zipInfo.Version, SettingsList.ErrorRetentionPeriod.Name));
+                        continue;
+                    }
+
 
                     if (!unattendedInstaller.Upgrade(instance, forwardErrorMessages))
                     {

@@ -3,6 +3,7 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
+    using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
 
@@ -28,7 +29,7 @@ namespace ServiceControlInstaller.PowerShell
                 ForwardAuditMessages = instance.ForwardAuditMessages,
                 ServiceAccount = instance.ServiceAccount,
                 Version = instance.Version,
-                ForwardErrorMessages = instance.Version < new Version(1, 11, 2) || instance.ForwardErrorMessages
+                ForwardErrorMessages = instance.Version < SettingsList.ForwardErrorMessages.SupportedFrom || instance.ForwardErrorMessages
             };
             return result;
         }
