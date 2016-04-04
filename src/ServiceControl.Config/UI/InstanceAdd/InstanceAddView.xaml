@@ -92,7 +92,7 @@
                         Maximum="365"
                         Units="Days"
                         Explaination="Audit Messages will be removed after this period"
-                        TimeSpan="{Binding AuditRetentionPeriod, Mode=TwoWay}"
+                        TimeSpan="{Binding AuditRetentionPeriod}"
                         SmallChange="1"
                         LargeChange="5"
                 />
@@ -102,7 +102,7 @@
                         Maximum="720"
                         Units="Hours"
                         Explaination="Error Messages that have been archived or resolved will be removed after this period"
-                        TimeSpan="{Binding ErrorRetentionPeriod, Mode=TwoWay}"
+                        TimeSpan="{Binding ErrorRetentionPeriod}"
                         SmallChange="1"
                         LargeChange="1"
                 />

@@ -101,7 +101,9 @@
         }
 
         public static readonly DependencyProperty TimeSpanProperty =
-            DependencyProperty.Register("TimeSpan", typeof(TimeSpan), typeof(FormSlider), new PropertyMetadata { DefaultValue = TimeSpan.MinValue });
+            DependencyProperty.Register("TimeSpan", typeof(TimeSpan), typeof(FormSlider),
+                        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault)
+                            { DefaultValue = TimeSpan.MinValue });
 
         public static readonly DependencyProperty ExplainationProperty =
             DependencyProperty.Register("Explaination", typeof(string), typeof(FormSlider), new PropertyMetadata(""));
