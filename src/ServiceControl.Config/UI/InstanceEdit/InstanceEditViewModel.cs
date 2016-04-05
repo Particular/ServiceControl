@@ -45,15 +45,15 @@
             ConnectionString = instance.ConnectionString;
             ServiceControlInstance = instance;
 
-            ErrorForwardingVisible = instance.Version > SettingsList.ForwardErrorMessages.SupportedFrom;
-            ErrorRetentionPeriodVisible = instance.Version > SettingsList.ErrorRetentionPeriod.SupportedFrom;
-            AuditRetentionPeriodVisible = instance.Version > SettingsList.AuditRetentionPeriod.SupportedFrom;
+            ErrorForwardingVisible = instance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom;
+
+            //Both Audit and Error Retention Property was introduced in same version
+            RetentionPeriodsVisible = instance.Version >= SettingsList.ErrorRetentionPeriod.SupportedFrom; 
         }
 
         public bool ErrorForwardingVisible { get; set; }
-        public bool ErrorRetentionPeriodVisible { get; set; }
-        public bool AuditRetentionPeriodVisible { get; set; }
-
+        public bool RetentionPeriodsVisible { get; set; }
+        
         public ServiceControlInstance ServiceControlInstance { get; set; }
     }
 }

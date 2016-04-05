@@ -6,6 +6,7 @@
     using PropertyChanged;
     using ServiceControl.Config.Framework.Rx;
     using ServiceControl.Config.Validation;
+    using ServiceControl.Config.Xaml.Controls;
     using ServiceControlInstaller.Engine.Instances;
 
     public class ForwardingOption
@@ -26,13 +27,29 @@
             Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
             AuditForwardingOptions = new[]
             {
-                new ForwardingOption { Name = "On", Value = true },
-                new ForwardingOption { Name = "Off", Value = false }
+                new ForwardingOption
+                {
+                    Name = "On",
+                    Value = true
+                },
+                new ForwardingOption
+                {
+                    Name = "Off",
+                    Value = false
+                }
             };
             ErrorForwardingOptions = new[]
             {
-                new ForwardingOption { Name = "On", Value = true },
-                new ForwardingOption { Name = "Off", Value = false }
+                new ForwardingOption
+                {
+                    Name = "On",
+                    Value = true
+                },
+                new ForwardingOption
+                {
+                    Name = "Off",
+                    Value = false
+                }
             };
         }
 
@@ -77,7 +94,11 @@
             set { password = value; }
         }
 
-        public bool UseSystemAccount { get { return !UseProvidedAccount; } }
+        public bool UseSystemAccount
+        {
+            get { return !UseProvidedAccount; }
+        }
+
         public bool UseProvidedAccount { get; set; }
 
         public string ErrorQueueName { get; set; }
@@ -87,6 +108,14 @@
 
         public ForwardingOption AuditForwarding { get; set; }
         public ForwardingOption ErrorForwarding { get; set; }
+
+        public int MaximumErrorRetentionPeriod {get { return 45; }}
+        public int MinimumErrorRetentionPeriod { get { return 10; }}
+        public TimeSpanUnits ErrorRetentionUnits { get { return TimeSpanUnits.Days; }}
+
+        public int MinimumAuditRetentionPeriod  {get { return 1;}}
+        public int MaximumAuditRetentionPeriod { get { return 8760; }}  //365 days
+        public TimeSpanUnits AuditRetentionUnits { get { return TimeSpanUnits.Hours; }}
 
         public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; private set;}
         public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; private set; }
