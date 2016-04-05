@@ -40,7 +40,7 @@
                             Field = "LastModified",
                             Descending = false
                         }
-                    },
+                    }
                 };
                 var indexName = new ExpiryErrorMessageIndex().IndexName;
                 database.Query(indexName, query, database.WorkContext.CancellationToken,

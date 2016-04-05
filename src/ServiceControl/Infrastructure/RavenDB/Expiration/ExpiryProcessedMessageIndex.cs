@@ -12,9 +12,8 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
             Map = messages => from message in messages
                 select new
                 {
-                    MessageId = (string)message.MessageMetadata["MessageId"],
                     Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
-                    ProcessedAt = message.ProcessedAt,
+                    ProcessedAt = message.ProcessedAt.Ticks
                 };
 
             DisableInMemoryIndexing = true;

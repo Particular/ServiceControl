@@ -5,7 +5,6 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Threading;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -17,84 +16,70 @@
 
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
-            using (var cts = new CancellationTokenSource())
+            var stopwatch = Stopwatch.StartNew();
+            var items = new List<ICommandData>(deletionBatchSize);
+            try
             {
-                var stopwatch = Stopwatch.StartNew();
-                var documentWithCurrentThresholdTimeReached = false;
-                var items = new List<ICommandData>(deletionBatchSize);
-                try
+                var query = new IndexQuery
                 {
-                    var query = new IndexQuery
+                    Start = 0,
+                    DisableCaching = true,
+                    Cutoff = SystemTime.UtcNow,
+                    PageSize = deletionBatchSize,
+                    Query = string.Format("LastModified:[* TO {0}]", expiryThreshold.Ticks),
+                    FieldsToFetch = new[]
                     {
-                        Start = 0,
-                        DisableCaching = true,
-                        Cutoff = SystemTime.UtcNow,
-                        PageSize = deletionBatchSize,
-                        FieldsToFetch = new[]
+                        "__document_id",
+                    },
+                    SortedFields = new[]
+                    {
+                        new SortedField("LastModified")
                         {
-                            "__document_id",
-                            "LastModified",
-                        },
-                        SortedFields = new[]
+                            Field = "LastModified",
+                            Descending = false
+                        }
+                    }
+                };
+                var indexName = new ExpirySagaAuditIndex().IndexName;
+                database.Query(indexName, query, database.WorkContext.CancellationToken,
+                    null,
+                    doc =>
+                    {
+                        var id = doc.Value<string>("__document_id");
+                        if (string.IsNullOrEmpty(id))
                         {
-                            new SortedField("LastModified")
-                            {
-                                Descending = false
-                            }
-                        },
-                    };
-                    var indexName = new ExpirySagaAuditIndex().IndexName;
-                    database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(database.WorkContext.CancellationToken, cts.Token).Token,
-                        null,
-                        doc =>
-                        {
-                            if (documentWithCurrentThresholdTimeReached)
-                            {
-                                return;
-                            }
+                            return;
+                        }
 
-                            if (doc.Value<DateTime>("LastModified") >= expiryThreshold)
-                            {
-                                documentWithCurrentThresholdTimeReached = true;
-                                cts.Cancel();
-                                return;
-                            }
-
-                            var id = doc.Value<string>("__document_id");
-                            if (string.IsNullOrEmpty(id))
-                            {
-                                return;
-                            }
-                            items.Add(new DeleteCommandData
-                            {
-                                Key = id
-                            });
+                        items.Add(new DeleteCommandData
+                        {
+                            Key = id
                         });
-                }
-                catch (OperationCanceledException)
-                {
-                    //Ignore
-                }
+                    });
+            }
+            catch (OperationCanceledException)
+            {
+                //Ignore
+            }
 
-                var deletionCount = 0;
+            var deletionCount = 0;
 
-                Chunker.ExecuteInChunks(items.Count, (s, e) =>
-                {
-                    logger.InfoFormat("Batching deletion of {0}-{1} sagahistory documents.", s, e);
-                    var results = database.Batch(items.GetRange(s, e - s + 1));
-                    logger.InfoFormat("Batching deletion of {0}-{1} sagahistory documents completed.", s, e);
+            Chunker.ExecuteInChunks(items.Count, (s, e) =>
+            {
+                logger.InfoFormat("Batching deletion of {0}-{1} sagahistory documents.", s, e);
+                var results = database.Batch(items.GetRange(s, e - s + 1));
+                logger.InfoFormat("Batching deletion of {0}-{1} sagahistory documents completed.", s, e);
 
-                    deletionCount += results.Count(x => x.Deleted == true);
-                });
-                
-                if (deletionCount == 0)
-                {
-                    logger.Info("No expired sagahistory documents found");
-                }
-                else
-                {
-                    logger.InfoFormat("Deleted {0} expired sagahistory documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
-                }
+                deletionCount += results.Count(x => x.Deleted == true);
+            });
+
+            if (deletionCount == 0)
+            {
+                logger.Info("No expired sagahistory documents found");
+            }
+            else
+            {
+                logger.InfoFormat("Deleted {0} expired sagahistory documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
             }
         }
     }

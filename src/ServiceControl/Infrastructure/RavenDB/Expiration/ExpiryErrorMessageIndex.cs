@@ -14,7 +14,6 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                 let last = message.ProcessingAttempts.Last()
                 select new
                 {
-                    MessageId = last.MessageId,
                     Status = message.Status,
                     LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
                 };

@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Threading;
     using NServiceBus.Logging;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
@@ -18,107 +17,91 @@
 
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
-            using (var cts = new CancellationTokenSource())
+            var stopwatch = Stopwatch.StartNew();
+            var items = new List<ICommandData>(deletionBatchSize);
+            var attachments = new List<string>(deletionBatchSize);
+            try
             {
-                var stopwatch = Stopwatch.StartNew();
-                var documentWithCurrentThresholdTimeReached = false;
-                var items = new List<ICommandData>(deletionBatchSize);
-                var attachments = new List<string>(deletionBatchSize);
-                try
+                var query = new IndexQuery
                 {
-                    var query = new IndexQuery
+                    Start = 0,
+                    PageSize = deletionBatchSize,
+                    Cutoff = SystemTime.UtcNow,
+                    DisableCaching = true,
+                    Query = string.Format("Status:[3 TO 4] AND ProcessedAt:[* TO {0}]", expiryThreshold.Ticks),
+                    FieldsToFetch = new[]
                     {
-                        Start = 0,
-                        PageSize = deletionBatchSize,
-                        Cutoff = SystemTime.UtcNow,
-                        DisableCaching = true,
-                        Query = "Status:3 OR Status:4",
-                        FieldsToFetch = new[]
+                        "__document_id",
+                        "MessageMetadata"
+                    },
+                    SortedFields = new[]
+                    {
+                        new SortedField("ProcessedAt")
                         {
-                            "__document_id",
-                            "ProcessedAt",
-                            "MessageMetadata"
-                        },
-                        SortedFields = new[]
-                        {
-                            new SortedField("ProcessedAt")
-                            {
-                                Field = "ProcessedAt",
-                                Descending = false
-                            }
+                            Field = "ProcessedAt",
+                            Descending = false
                         }
-                    };
-                    var indexName = new ExpiryProcessedMessageIndex().IndexName;
-                    database.Query(indexName, query, CancellationTokenSource.CreateLinkedTokenSource(database.WorkContext.CancellationToken, cts.Token).Token,
-                        null,
-                        doc =>
+                    }
+                };
+                var indexName = new ExpiryProcessedMessageIndex().IndexName;
+                database.Query(indexName, query, database.WorkContext.CancellationToken,
+                    null,
+                    doc =>
+                    {
+                        var id = doc.Value<string>("__document_id");
+                        if (string.IsNullOrEmpty(id))
                         {
-                            if (documentWithCurrentThresholdTimeReached)
-                            {
-                                return;
-                            }
+                            return;
+                        }
 
-                            if (doc.Value<DateTime>("ProcessedAt") >= expiryThreshold)
-                            {
-                                documentWithCurrentThresholdTimeReached = true;
-                                cts.Cancel();
-                                return;
-                            }
-
-                            var id = doc.Value<string>("__document_id");
-                            if (string.IsNullOrEmpty(id))
-                            {
-                                return;
-                            }
-                            items.Add(new DeleteCommandData
-                            {
-                                Key = id
-                            });
-
-                            string bodyId;
-                            if (TryGetBodyId(doc, out bodyId))
-                            {
-                                attachments.Add(bodyId);
-                            }
+                        items.Add(new DeleteCommandData
+                        {
+                            Key = id
                         });
-                }
-                catch (OperationCanceledException)
-                {
-                    //Ignore
-                }
 
-                var deletionCount = 0;
-
-                Chunker.ExecuteInChunks(items.Count, (s, e) =>
-                {
-                    logger.InfoFormat("Batching deletion of {0}-{1} audit documents.", s, e);
-                    var results = database.Batch(items.GetRange(s, e - s + 1));
-                    logger.InfoFormat("Batching deletion of {0}-{1} audit documents completed.", s, e);
-
-                    deletionCount += results.Count(x => x.Deleted == true);
-                });
-
-                Chunker.ExecuteInChunks(attachments.Count, (s, e) =>
-                {
-                    database.TransactionalStorage.Batch(accessor =>
-                    {
-                        logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents.", s, e);
-                        for (var idx = s; idx <= e; idx++)
+                        string bodyId;
+                        if (TryGetBodyId(doc, out bodyId))
                         {
-                            accessor.Attachments.DeleteAttachment(attachments[idx], null);
+                            attachments.Add(bodyId);
                         }
-                        logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents completed.", s, e);
                     });
-                });
+            }
+            catch (OperationCanceledException)
+            {
+                //Ignore
+            }
 
-                if (deletionCount == 0)
+            var deletionCount = 0;
+
+            Chunker.ExecuteInChunks(items.Count, (s, e) =>
+            {
+                logger.InfoFormat("Batching deletion of {0}-{1} audit documents.", s, e);
+                var results = database.Batch(items.GetRange(s, e - s + 1));
+                logger.InfoFormat("Batching deletion of {0}-{1} audit documents completed.", s, e);
+
+                deletionCount += results.Count(x => x.Deleted == true);
+            });
+
+            Chunker.ExecuteInChunks(attachments.Count, (s, e) =>
+            {
+                database.TransactionalStorage.Batch(accessor =>
                 {
-                    logger.Info("No expired audit documents found");
-                }
-                else
-                {
-                    logger.InfoFormat("Deleted {0} expired audit documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
-                }
+                    logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents.", s, e);
+                    for (var idx = s; idx <= e; idx++)
+                    {
+                        accessor.Attachments.DeleteAttachment(attachments[idx], null);
+                    }
+                    logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents completed.", s, e);
+                });
+            });
+
+            if (deletionCount == 0)
+            {
+                logger.Info("No expired audit documents found");
+            }
+            else
+            {
+                logger.InfoFormat("Deleted {0} expired audit documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
             }
         }
 
