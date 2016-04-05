@@ -1,11 +1,12 @@
-﻿<UserControl x:Class="ServiceControl.Config.UI.MessageBox.YesNoCancelView"
+﻿<UserControl x:Class="ServiceControl.Config.UI.MessageBox.SliderDialogView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviours="clr-namespace:ServiceControl.Config.Xaml.Behaviours"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls"
              d:DesignHeight="300"
-             d:DesignWidth="300"
+             d:DesignWidth="600"
              mc:Ignorable="d">
 
     <Grid Background="{StaticResource Gray10Brush}">
@@ -40,16 +41,21 @@
                          IsReadOnlyCaretVisible="False"
                          behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message}" />
 
-            <RichTextBox Grid.Row="3"
-                         Margin="0,24,-10,27.4"
-                         Background="Transparent"
-                         BorderThickness="0"
-                         FontSize="14"
-                         Foreground="{StaticResource LightWarnigBrush}"
-                         IsReadOnly="True"
-                         IsReadOnlyCaretVisible="False"
-                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Question}" />
-
+            <controls:FormSlider 
+                        Grid.Row="3"
+                        Margin="0,24,-10,27.4"
+                        Background="Transparent"                                 
+                        Foreground="{StaticResource WhiteBrush}"
+                        Header="{Binding PeriodHeader}"
+                        Maximum="{Binding PeriodMaximum}"
+                        Minimum="{Binding PeriodMinimum}"
+                        Units="{Binding PeriodUnits}"
+                        Explanation="{Binding PeriodExplanation}"
+                        TimeSpan="{Binding Period}"
+                        SmallChange="{Binding PeriodSmallStep}"
+                        LargeChange="{Binding PeriodLargeStep}"
+                />
+            
             <StackPanel Grid.Row="4"
                         Margin="-321,1.6,0,0"
                         HorizontalAlignment="Right"
@@ -58,17 +64,10 @@
                 <Button Width="100"
                         Height="30"
                         Margin="0"
-                        Command="{Binding Yes}"
-                        Content="Disable"
+                        Command="{Binding Save}"
+                        Content="Ok"
                         Padding="0"
                         Style="{StaticResource HiliteButton}"
-                />
-                <Button Width="100"
-                        Height="30"
-                        Margin="10,0,0,0"
-                        Command="{Binding No}"
-                        Content="Enable"
-                        Padding="0"
                 />
                 <Button Width="100"
                         Height="30"

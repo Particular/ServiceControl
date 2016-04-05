@@ -2,8 +2,7 @@
 {
     using System;
     using System.Configuration;
-    using System.Linq;
-
+    
     static class ConfigurationSectionExtensions
     {
         public static void Set(this ConnectionStringSettingsCollection collection, string key, string value)
@@ -15,26 +14,25 @@
             }
         }
         
-        public static void Set(this KeyValueConfigurationCollection collection, string key, string value)
+        public static void Set(this KeyValueConfigurationCollection collection, SettingInfo keyInfo, string value, Version currentVersion = null)
         {
-            collection.Remove(key);
-            if (!string.IsNullOrWhiteSpace(value))
+            if (keyInfo.SupportedFrom != null || keyInfo.RemovedFrom != null)
             {
-                collection.Add(new KeyValueConfigurationElement(key, value));
+                if (currentVersion == null)
+                    throw new ArgumentNullException("currentVersion", string.Format("Version info is required before setting {0} as it's not applicable to all versions", keyInfo.Name));
             }
-        }
-        /// <summary>
-        /// if the key matches a value in unsupportedKeys then this is a no-op.  This is provide some backward compat when a new SCMU is editing an old SC instance
-        /// </summary>
-        public static void Set(this KeyValueConfigurationCollection collection, string key, string value, string[] unsupportedKeys)
-        {
-            if ((unsupportedKeys != null) && (unsupportedKeys.Any(p => p.Equals(key, StringComparison.OrdinalIgnoreCase))))
-                    return;
+            
+            collection.Remove(keyInfo.Name);
+            
+            if (keyInfo.SupportedFrom != null && currentVersion < keyInfo.SupportedFrom) 
+                return;
 
-            collection.Remove(key);
+            if (keyInfo.RemovedFrom != null && currentVersion >= keyInfo.RemovedFrom)
+                return;     
+            
             if (!string.IsNullOrWhiteSpace(value))
             {
-                collection.Add(new KeyValueConfigurationElement(key, value));
+                collection.Add(new KeyValueConfigurationElement(keyInfo.Name, value));
             }
         }
     }

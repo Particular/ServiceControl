@@ -5,7 +5,6 @@ namespace ServiceControlInstaller.PowerShell
 {
     using System;
     using System.Management.Automation;
-    using Microsoft.PowerShell.Commands;
     using ServiceControlInstaller.Engine.Instances;
 
     [Cmdlet(VerbsCommon.New, "ServiceControlUnattendedFile")]
@@ -16,14 +15,17 @@ namespace ServiceControlInstaller.PowerShell
         public string Name { get; set; }
 
         [ValidateNotNullOrEmpty]
+        [ValidatePath]
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this ServiceControl Instance")]
         public string InstallPath { get; set; }
 
         [ValidateNotNullOrEmpty]
+        [ValidatePath]
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this ServiceControl RavenDB")]
         public string DBPath { get; set; }
 
         [ValidateNotNullOrEmpty]
+        [ValidatePath]
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this ServiceControl Logs")]
         public string LogPath { get; set; }
 
@@ -77,9 +79,19 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = true, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue")]
         public bool ForwardErrorMessages { get; set; }
 
-
-        [ValidateNotNullOrEmpty]
+        [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Audit Data")]
+        [ValidateNotNull]
+        [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8070)] //1 hour to 365 days
+        public TimeSpan AuditRetentionPeriod {get; set;}
+        
+        [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Error Data")]
+        [ValidateNotNull]
+        [ValidateTimeSpanRange(MinimumHours = 240, MaximumHours = 1080)] //10 to 45 days
+        public TimeSpan ErrorRetentionPeriod { get; set; }
+        
         [Parameter(Mandatory = true, HelpMessage = "The path of the XML file save the output to")]
+        [ValidateNotNullOrEmpty]
+        [ValidatePath]
         public string OutputFile { get; set; }
 
         protected override void BeginProcessing()
@@ -90,37 +102,6 @@ namespace ServiceControlInstaller.PowerShell
             AuditQueue = AuditQueue ?? "audit";
             ErrorLogQueue = ErrorLogQueue ?? "errorlog";
             AuditLogQueue = AuditLogQueue ?? "auditlog";
-            
-            ProviderInfo provider;
-            PSDriveInfo drive;
-
-            InstallPath = SessionState.Path.GetUnresolvedProviderPathFromPSPath(InstallPath, out provider, out drive);
-            if (provider.ImplementingType != typeof(FileSystemProvider))
-            {
-                WriteObject(new ErrorRecord(new ArgumentException("InstallPath is invalid"), "InvalidProvider", ErrorCategory.InvalidArgument, InstallPath));
-                StopProcessing();
-            }
-
-            LogPath = SessionState.Path.GetUnresolvedProviderPathFromPSPath(LogPath, out provider, out drive);
-            if (provider.ImplementingType != typeof(FileSystemProvider))
-            {
-                WriteObject(new ErrorRecord(new ArgumentException("LogPath is invalid"), "InvalidProvider", ErrorCategory.InvalidArgument, LogPath));
-                StopProcessing();
-            }
-
-            DBPath = SessionState.Path.GetUnresolvedProviderPathFromPSPath(DBPath, out provider, out drive);
-            if (provider.ImplementingType != typeof(FileSystemProvider))
-            {
-                WriteObject(new ErrorRecord(new ArgumentException("DBPath is invalid"), "InvalidProvider", ErrorCategory.InvalidArgument, DBPath));
-                StopProcessing();
-            }
-
-            OutputFile = SessionState.Path.GetUnresolvedProviderPathFromPSPath(OutputFile, out provider, out drive);
-            if (provider.ImplementingType != typeof(FileSystemProvider))
-            {
-                WriteObject(new ErrorRecord(new ArgumentException("OutputFile is invalid"), "InvalidProvider", ErrorCategory.InvalidArgument, OutputFile));
-                StopProcessing();
-            }
         }
 
         protected override void ProcessRecord()
@@ -132,6 +113,7 @@ namespace ServiceControlInstaller.PowerShell
                 DBPath = DBPath,
                 Name = Name,
                 DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName,
+                ServiceDescription = Description,
                 HostName = HostName,
                 Port = Port,
                 VirtualDirectory = VirtualDirectory,
@@ -142,7 +124,9 @@ namespace ServiceControlInstaller.PowerShell
 		        ForwardAuditMessages = ForwardAuditMessages,
                 ForwardErrorMessages = ForwardErrorMessages,
                 ConnectionString = ConnectionString,
-		        TransportPackage = Transport
+		        TransportPackage = Transport,
+                AuditRetentionPeriod = AuditRetentionPeriod,
+                ErrorRetentionPeriod = ErrorRetentionPeriod
             };
             details.Save(OutputFile);
         }

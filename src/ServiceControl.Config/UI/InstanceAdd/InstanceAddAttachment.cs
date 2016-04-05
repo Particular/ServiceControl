@@ -71,6 +71,8 @@
                 ErrorLogQueue = viewModel.ErrorForwardingQueueName,
                 TransportPackage = viewModel.SelectedTransport.Name,
                 ConnectionString = viewModel.ConnectionString,
+                ErrorRetentionPeriod = viewModel.ErrorRetentionPeriod,
+                AuditRetentionPeriod = viewModel.AuditRetentionPeriod,
                 ServiceAccount = viewModel.ServiceAccount,
                 ServiceAccountPwd = viewModel.Password
             };

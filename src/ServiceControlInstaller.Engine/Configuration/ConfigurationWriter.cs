@@ -31,18 +31,21 @@
         {
             configuration.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
             var settings = configuration.AppSettings.Settings;
-            settings.Set("ServiceControl/VirtualDirectory", details.VirtualDirectory);
-            settings.Set("ServiceControl/Port", details.Port.ToString());
-            settings.Set("ServiceControl/HostName", details.HostName);
-            settings.Set("ServiceControl/LogPath", details.LogPath);
-            settings.Set("ServiceControl/DBPath", details.DBPath);
-            settings.Set("ServiceControl/ForwardAuditMessages", details.ForwardAuditMessages.ToString());
-            settings.Set("ServiceControl/ForwardErrorMessages", details.ForwardErrorMessages.ToString());
-            settings.Set("ServiceControl/TransportType", Transports.FindByName(details.TransportPackage).TypeName);
-            settings.Set("ServiceBus/AuditQueue", details.AuditQueue);
-            settings.Set("ServiceBus/ErrorQueue", details.ErrorQueue);
-            settings.Set("ServiceBus/ErrorLogQueue", details.ErrorLogQueue);
-            settings.Set("ServiceBus/AuditLogQueue", details.AuditLogQueue);
+            var version = details.Version;
+            settings.Set(SettingsList.VirtualDirectory, details.VirtualDirectory);
+            settings.Set(SettingsList.Port, details.Port.ToString());
+            settings.Set(SettingsList.HostName, details.HostName);
+            settings.Set(SettingsList.LogPath, details.LogPath);
+            settings.Set(SettingsList.DBPath, details.DBPath);
+            settings.Set(SettingsList.ForwardAuditMessages, details.ForwardAuditMessages.ToString());
+            settings.Set(SettingsList.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
+            settings.Set(SettingsList.TransportType, Transports.FindByName(details.TransportPackage).TypeName, version);
+            settings.Set(SettingsList.AuditQueue, details.AuditQueue);
+            settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
+            settings.Set(SettingsList.ErrorLogQueue, details.ErrorLogQueue);
+            settings.Set(SettingsList.AuditLogQueue, details.AuditLogQueue);
+            settings.Set(SettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
+            settings.Set(SettingsList.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
 
             // Add Settings for performance tuning 
             // See https://github.com/Particular/ServiceControl/issues/655
