@@ -78,9 +78,15 @@
                 {
                     upgradeOptions.AuditRetentionPeriod = new TimeSpan(viewModel.Period.Days, viewModel.Period.Hours, 0, 0);
                 }
+                else
+                {
+                    //Dialog was cancelled
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    return;
+                }
             }
 
-            
+
             if (!instance.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
             {
                 var viewModel = new SliderDialogViewModel("UPGRADE QUESTION - DATABASE RETENTION",
@@ -97,6 +103,12 @@
                 if (windowManager.ShowSliderDialog(viewModel))
                 {
                     upgradeOptions.ErrorRetentionPeriod = TimeSpan.FromHours(Math.Truncate(viewModel.Period.TotalHours));
+                }
+                else
+                {
+                    //Dialog was cancelled
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    return;
                 }
             }
             
