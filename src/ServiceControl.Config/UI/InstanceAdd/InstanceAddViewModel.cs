@@ -40,7 +40,7 @@
             }
 
             AuditRetentionPeriod = TimeSpan.FromDays(30);
-            ErrorRetentionPeriod = TimeSpan.FromDays(10);
+            ErrorRetentionPeriod = TimeSpan.FromDays(15);
             Description = "A ServiceControl Instance";
             HostName = "localhost"; 
             AuditQueueName = "audit";
