@@ -963,7 +963,7 @@
                                         Padding="0,10"
                                         FontSize="13px"
                                         Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Explanation}"
-                                        Foreground="{StaticResource BlackBrush}" />          
+                                        Foreground="{TemplateBinding Foreground}" />          
                                 
                                 <Slider x:Name="PART_Slider"
                                          VerticalAlignment="Center"
@@ -981,7 +981,7 @@
                                 <TextBlock x:Name="summaryElement"
                                         FontSize="13px"
                                         Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Summary}"
-                                        Foreground="{StaticResource BlackBrush}"/>
+                                        Foreground="{TemplateBinding Foreground}"/>
                             </StackPanel>
                         </Border>
                     </Grid>

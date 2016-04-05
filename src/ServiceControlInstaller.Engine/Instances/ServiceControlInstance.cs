@@ -284,7 +284,7 @@ namespace ServiceControlInstaller.Engine.Instances
             return ReadAppSetting(keyInfo.Name, defaultValue);
         }
 
-        T ReadAppSetting<T>(string key, T defaultValue)
+        public T ReadAppSetting<T>(string key, T defaultValue)
         {
             if (File.Exists(Service.ExePath))
             {

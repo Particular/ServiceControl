@@ -69,7 +69,7 @@
             return instanceInstaller.ReportCard;
         }
 
-        internal ReportCard Upgrade(string instanceName, bool? overrideErrorForwarding, IProgress<ProgressDetails> progress = null)
+        internal ReportCard Upgrade(string instanceName, InstanceUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
         {
             progress = progress ?? new Progress<ProgressDetails>();
 
@@ -99,11 +99,8 @@
                 progress.Report(3, 5, "Restoring app.config...");
                 instance.RestoreAppConfig(backupFile);
             }
-            if (overrideErrorForwarding.HasValue)
-            {
-                instance.ForwardErrorMessages = overrideErrorForwarding.Value;
-                instance.ApplyConfigChange();
-            }
+
+            upgradeOptions.ApplyChangesToInstance(instance);
 
             progress.Report(4, 5, "Running Queue Creation...");
             instance.RunInstanceToCreateQueues();
@@ -192,5 +189,7 @@
             instance.ReportCard.SetStatus();
             return instance.ReportCard;
         }
+
+        
     }
 }

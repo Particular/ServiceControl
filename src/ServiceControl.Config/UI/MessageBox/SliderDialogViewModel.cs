@@ -5,29 +5,56 @@
     using Caliburn.Micro;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Rx;
+    using ServiceControl.Config.Xaml.Controls;
 
     public class SliderDialogViewModel : RxScreen
     {
-        public SliderDialogViewModel(string title, string message, string saveText, string periodHeader, string periodExplanation, TimeSpan period)
+        public SliderDialogViewModel(string title, 
+                                    string message, 
+                                    string periodHeader, 
+                                    string periodExplanation,
+                                    TimeSpanUnits periodUnits,
+                                    int periodMinimumUnits,
+                                    int periodMaximumUnits,
+                                    int periodSmallStep,
+                                    int periodLargeStep,
+                                    TimeSpan currentValue)
         {
             Title = title;
             Message = message;
-            SaveText = saveText;
-            Period = period;
+            Period = currentValue;
             PeriodHeader = periodHeader;
+            PeriodUnits = periodUnits;
+            PeriodMinimum = periodMinimumUnits;
+            PeriodMaximum = periodMaximumUnits;
             PeriodExplanation = periodExplanation;
-            Cancel = Command.Create(() => { Result = null; ((IDeactivate)this).Deactivate(true); });
-            Save = Command.Create(() => { Result = true; ((IDeactivate)this).Deactivate(true); });
+            PeriodSmallStep = periodSmallStep;
+            PeriodLargeStep = periodLargeStep;
+            Cancel = Command.Create(() =>{Result = null;((IDeactivate)this).Deactivate(true);});
+            Save = Command.Create(() =>{Result = true; ((IDeactivate)this).Deactivate(true);});
 
+            
         }
+        
+        
 
         public string PeriodHeader { get; set; }
         public string PeriodExplanation { get; set; }
+        public int PeriodMinimum { get; set; }
+        public int PeriodMaximum { get; set; }
+        public int PeriodSmallStep { get; set; }
+        public int PeriodLargeStep { get; set; }
+
+        public TimeSpanUnits PeriodUnits { get; set; }
+        
         public TimeSpan Period { get; set; }
+
         public string Title { get; set; }
+
         public string Message { get; set; }
+        
         public ICommand Cancel { get; private set; }
         public ICommand Save { get; private set; }
-        public string SaveText { get; private set; }
+        
     }
 }
