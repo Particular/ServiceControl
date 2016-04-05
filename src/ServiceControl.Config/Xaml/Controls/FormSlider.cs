@@ -52,22 +52,6 @@
         static FormSlider()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(FormSlider), new FrameworkPropertyMetadata(typeof(FormSlider)));
-
-            /*
-            
-            ### PETE - Help
-
-            var originalMetadata = ValueProperty.GetMetadata(typeof(Slider));
-
-            ValueProperty.OverrideMetadata(typeof(FormSlider),
-                new FrameworkPropertyMetadata(
-                    originalMetadata.DefaultValue,
-                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault | FrameworkPropertyMetadataOptions.Journal,
-                    originalMetadata.PropertyChangedCallback,
-                    originalMetadata.CoerceValueCallback,
-                    true,
-                    UpdateSourceTrigger.PropertyChanged));
-            */
         }
 
         public string Header
@@ -82,10 +66,10 @@
             set { SetValue(SummaryProperty, value); }
         }
 
-        public string Explaination
+        public string Explanation
         {
-            get { return (string)GetValue(ExplainationProperty); }
-            set { SetValue(ExplainationProperty, value); }
+            get { return (string)GetValue(ExplanationProperty); }
+            set { SetValue(ExplanationProperty, value); }
         }
 
         public TimeSpanUnits Units
@@ -105,8 +89,8 @@
                         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault)
                             { DefaultValue = TimeSpan.MinValue });
 
-        public static readonly DependencyProperty ExplainationProperty =
-            DependencyProperty.Register("Explaination", typeof(string), typeof(FormSlider), new PropertyMetadata(""));
+        public static readonly DependencyProperty ExplanationProperty =
+            DependencyProperty.Register("Explanation", typeof(string), typeof(FormSlider), new PropertyMetadata(""));
 
         public static readonly DependencyProperty SummaryProperty =
             DependencyProperty.Register("Summary", typeof(string), typeof(FormSlider), new PropertyMetadata(""));

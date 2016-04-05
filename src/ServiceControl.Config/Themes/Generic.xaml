@@ -957,12 +957,12 @@
                                 BorderThickness="1"
                                 Padding="5,0">
                             
-                            <StackPanel >
+                            <StackPanel>
                                 
-                                <TextBlock x:Name="explainationElement"
+                                <TextBlock x:Name="explanationElement"
                                         Padding="0,10"
                                         FontSize="13px"
-                                        Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Explaination}"
+                                        Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Explanation}"
                                         Foreground="{StaticResource BlackBrush}" />          
                                 
                                 <Slider x:Name="PART_Slider"
