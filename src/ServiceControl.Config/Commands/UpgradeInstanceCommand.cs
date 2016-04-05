@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
-    using System.Reactive.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;

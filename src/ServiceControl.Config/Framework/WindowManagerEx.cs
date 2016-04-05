@@ -9,8 +9,6 @@ using ServiceControlInstaller.Engine.ReportCard;
 
 namespace ServiceControl.Config.Framework
 {
-    using ServiceControl.Config.Xaml.Controls;
-
     public interface IWindowManagerEx : IWindowManager
     {
         void NavigateTo(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
