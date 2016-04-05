@@ -54,7 +54,7 @@
                         Minimum="8"
                         Maximum="720"
                         Units="Hours"
-                        Explaination="{Binding PeriodExplanation}"
+                        Explanation="{Binding PeriodExplanation}"
                         TimeSpan="{Binding Period}"
                         SmallChange="1"
                         LargeChange="1"
