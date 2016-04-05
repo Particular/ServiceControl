@@ -159,6 +159,10 @@
     <Compile Include="UI\MessageBox\ExceptionMessageBox.xaml.cs">
       <DependentUpon>ExceptionMessageBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\MessageBox\SliderDialogView.xaml.cs">
+      <DependentUpon>SliderDialogView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MessageBox\SliderDialogViewModel.cs" />
     <Compile Include="UI\MessageBox\YesNoCancelDialogView.xaml.cs">
       <DependentUpon>YesNoCancelDialogView.xaml</DependentUpon>
     </Compile>
@@ -274,6 +278,10 @@
     <Compile Include="Xaml\Behaviours\BorderlessWindowBehavior.cs" />
     <Compile Include="Xaml\Behaviours\StylizedBehaviors.cs" />
     <Compile Include="Xaml\Converters\BoolToVisibilityConverter.cs" />
+    <Page Include="UI\MessageBox\SliderDialogView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\MessageBox\YesNoCancelDialogView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
