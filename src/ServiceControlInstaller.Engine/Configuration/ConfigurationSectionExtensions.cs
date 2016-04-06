@@ -16,10 +16,11 @@
         
         public static void Set(this KeyValueConfigurationCollection collection, SettingInfo keyInfo, string value, Version currentVersion = null)
         {
+            // If either SupportedFrom or RemovedFrom exists then we need the currentVersion
             if (keyInfo.SupportedFrom != null || keyInfo.RemovedFrom != null)
             {
                 if (currentVersion == null)
-                    throw new ArgumentNullException("currentVersion", string.Format("Version info is required before setting {0} as it's not applicable to all versions", keyInfo.Name));
+                    throw new ArgumentNullException("currentVersion", string.Format("Version info is required before setting or removing {0}", keyInfo.Name));
             }
             
             collection.Remove(keyInfo.Name);
@@ -33,6 +34,23 @@
             if (!string.IsNullOrWhiteSpace(value))
             {
                 collection.Add(new KeyValueConfigurationElement(keyInfo.Name, value));
+            }
+        }
+
+
+        public static void RemoveIfRetired(this KeyValueConfigurationCollection collection, SettingInfo keyInfo, Version currentVersion)
+        {
+            if (keyInfo.RemovedFrom == null)
+                return;
+
+            if (currentVersion == null)
+            { 
+               throw new ArgumentNullException("currentVersion", string.Format("Version info is required before setting or removing {0}", keyInfo.Name));
+            }
+
+            if (currentVersion >= keyInfo.RemovedFrom)
+            {
+                collection.Remove(keyInfo.Name);
             }
         }
     }

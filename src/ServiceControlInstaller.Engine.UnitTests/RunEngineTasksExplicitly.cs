@@ -31,7 +31,7 @@
             var installer = new UnattendInstaller(new TestLogger(), deploymentCache);
             foreach (var instance in ServiceControlInstance.Instances())  //.Where(p => p.Name.StartsWith("Test.ServiceControl", StringComparison.OrdinalIgnoreCase)))
             {
-                installer.Upgrade(instance);
+                installer.Upgrade(instance, new InstanceUpgradeOptions {AuditRetentionPeriod = TimeSpan.FromDays(30), ErrorRetentionPeriod = TimeSpan.FromDays(15), OverrideEnableErrorForwarding = true});
             }
         }
 

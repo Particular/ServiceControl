@@ -1,9 +1,8 @@
-namespace ServiceControl.Config.Framework.Modules
+namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
-    using ServiceControlInstaller.Engine.Instances;
 
-    class InstanceUpgradeOptions
+    public class InstanceUpgradeOptions
     {
         public bool? OverrideEnableErrorForwarding { get; set; }
         public TimeSpan? ErrorRetentionPeriod { get; set; }

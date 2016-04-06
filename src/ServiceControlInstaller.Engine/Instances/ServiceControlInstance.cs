@@ -205,7 +205,9 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
             settings.Set(SettingsList.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), version);
             settings.Set(SettingsList.ErrorRetentionPeriod, ErrorRetentionPeriod.ToString(), version);
-            
+
+            settings.RemoveIfRetired(SettingsList.HoursToKeepMessagesBeforeExpiring, version);
+
             settings.Set(SettingsList.AuditQueue, AuditQueue);
             settings.Set(SettingsList.ErrorQueue, ErrorQueue);
             settings.Set(SettingsList.ErrorLogQueue, ErrorLogQueue);
@@ -536,6 +538,9 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
+
+            
+
         }
 
         public void ValidateChanges()

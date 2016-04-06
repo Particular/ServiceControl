@@ -172,11 +172,19 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 instanceData = (ServiceControlInstanceMetadata) serializer.Deserialize(stream);
             }
-
-            //Validate that the XML contained a setting for ForwardErrorMessages, this was introduced in v1.12 so older unattended files won't have the setting.
+            
             var doc = new XmlDocument();
             doc.Load(path);
             if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)
+            {
+                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
+            }
+
+            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/AuditRetentionPeriod") == null)
+            {
+                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
+            }
+            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ErrorRetentionPeriod") == null)
             {
                 throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
             }

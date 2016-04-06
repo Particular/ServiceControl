@@ -81,7 +81,7 @@ namespace ServiceControlInstaller.PowerShell
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Audit Data")]
         [ValidateNotNull]
-        [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8070)] //1 hour to 365 days
+        [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8760)] //1 hour to 365 days
         public TimeSpan AuditRetentionPeriod {get; set;}
         
         [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Error Data")]

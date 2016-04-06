@@ -21,7 +21,7 @@ namespace ServiceControlInstaller.PowerShell
 
         [Parameter(HelpMessage = "Specify the timespan to keep Audit Data")]
         [ValidateNotNull]
-        [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8070)] //1 hour to 365 days
+        [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8760)] //1 hour to 365 days
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
         [Parameter(HelpMessage = "Specify the timespan to keep Error Data")]
@@ -44,6 +44,7 @@ namespace ServiceControlInstaller.PowerShell
             
             foreach (var name in Name)
             {
+                var options = new InstanceUpgradeOptions { AuditRetentionPeriod = AuditRetentionPeriod, ErrorRetentionPeriod = ErrorRetentionPeriod, OverrideEnableErrorForwarding =  ForwardErrorMessages};
                 var instance = ServiceControlInstance.FindByName(name);
                 if (instance == null)
                 {
@@ -51,32 +52,38 @@ namespace ServiceControlInstaller.PowerShell
                     break;
                 }
 
-                if (!ForwardErrorMessages.HasValue)
+                options.OverrideEnableErrorForwarding = ForwardErrorMessages;
+                
+                
+                // Migrate Value
+                if (!options.AuditRetentionPeriod.HasValue)
                 {
-                    if (!instance.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
+                    if (instance.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
                     {
-                        ThrowTerminatingError(new ErrorRecord(new Exception(string.Format("Upgrade of {0} aborted. ForwardErrorMessages parameter must be set to true or false because the configuration file has no setting for ForwardErrorMessages. This setting is mandatory as of version 1.12", instance.Name)), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+                        var i = instance.ReadAppSetting(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
+                        if (i != -1)
+                        {
+                            options.AuditRetentionPeriod = TimeSpan.FromHours(i);
+                        }
                     }
                 }
-
-                if (!ErrorRetentionPeriod.HasValue)
+                
+                if (!options.OverrideEnableErrorForwarding.HasValue & !instance.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
                 {
-                    if (!instance.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
-                    {
-                        ThrowTerminatingError(new ErrorRecord(new Exception(string.Format("Upgrade of {0} aborted. ErrorRetentionPeriod parameter must be set to timespan because the configuration file has no setting for ErrorRetentionPeriod. This setting is mandatory as of version 1.13", instance.Name)), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
-                    }
+                    ThrowTerminatingError(new ErrorRecord(new Exception(string.Format("Upgrade of {0} aborted. ForwardErrorMessages parameter must be set to true or false because the configuration file has no setting for ForwardErrorMessages. This setting is mandatory as of version 1.12", instance.Name)), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
                 }
 
-                if (!AuditRetentionPeriod.HasValue)
+                if (!options.ErrorRetentionPeriod.HasValue & !instance.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
                 {
-                    if (!instance.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
-                    {
-                        ThrowTerminatingError(new ErrorRecord(new Exception(string.Format("Upgrade of {0} aborted. AuditRetentionPeriod parameter must be set to timespan because the configuration file has no setting for AuditRetentionPeriod. This setting is mandatory as of version 1.13", instance.Name)), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
-                    }
+                    ThrowTerminatingError(new ErrorRecord(new Exception(string.Format("Upgrade of {0} aborted. ErrorRetentionPeriod parameter must be set to timespan because the configuration file has no setting for ErrorRetentionPeriod. This setting is mandatory as of version 1.13", instance.Name)), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
                 }
-
-
-                if (!installer.Upgrade(instance, ForwardErrorMessages))
+                
+                if (!options.AuditRetentionPeriod.HasValue & !instance.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception(string.Format("Upgrade of {0} aborted. AuditRetentionPeriod parameter must be set to timespan because the configuration file has no setting for AuditRetentionPeriod. This setting is mandatory as of version 1.13", instance.Name)), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+                }
+                
+                if (!installer.Upgrade(instance, options))
                 {
                     ThrowTerminatingError(new ErrorRecord(new Exception(string.Format("Upgrade of {0} failed",  instance.Name)), "UpgradeFailure", ErrorCategory.InvalidResult, null));
                 }
