@@ -47,6 +47,11 @@
                 Instances.Remove(item);
             }
 
+            foreach (var instance in Instances)
+            {
+                instance.ServiceControlInstance.Reload();
+            }
+
             // Existing instances are updated in the InstanceDetailsViewModel
         }
     }
