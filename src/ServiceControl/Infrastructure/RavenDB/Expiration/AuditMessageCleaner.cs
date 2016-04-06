@@ -28,7 +28,7 @@
                     PageSize = deletionBatchSize,
                     Cutoff = SystemTime.UtcNow,
                     DisableCaching = true,
-                    Query = string.Format("Status:[3 TO 4] AND ProcessedAt:[* TO {0}]", expiryThreshold.Ticks),
+                    Query = string.Format("ProcessedAt:[* TO {0}]", expiryThreshold.Ticks),
                     FieldsToFetch = new[]
                     {
                         "__document_id",

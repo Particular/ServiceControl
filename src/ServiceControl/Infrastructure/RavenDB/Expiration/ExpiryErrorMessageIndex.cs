@@ -11,7 +11,6 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
         {
             Map = messages => from message in messages
                 where message.Status != FailedMessageStatus.Unresolved
-                let last = message.ProcessingAttempts.Last()
                 select new
                 {
                     Status = message.Status,
