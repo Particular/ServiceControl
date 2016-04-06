@@ -10,6 +10,7 @@
     using ServiceControl.Infrastructure.SignalR;
     using ServiceControl.Plugin.CustomChecks;
     using Microsoft.AspNet.SignalR.Client;
+
     [TestFixture]
     public class Custom_check_transition_should_trigger_signalr_event : AcceptanceTest
     {
@@ -36,7 +37,6 @@
             public bool SignalrEventReceived { get; set; }
             public int SCPort { get; set; }
             public string SignalrData { get; set; }
-            public bool SignalRConnected { get; set; }
         }
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
@@ -69,7 +69,6 @@
                         try
                         {
                             connection.Start().Wait();
-                            context.SignalRConnected = true;
                             break;
                         }
                         catch (AggregateException ex)

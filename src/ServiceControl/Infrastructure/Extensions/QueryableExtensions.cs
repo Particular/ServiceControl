@@ -2,12 +2,12 @@ namespace ServiceControl.Infrastructure.Extensions
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Text;
     using CompositeViews.Messages;
     using MessageFailures;
-    using MessageFailures.Api;
     using Nancy;
     using Raven.Client;
     using Raven.Client.Linq;
@@ -64,7 +64,7 @@ namespace ServiceControl.Infrastructure.Extensions
             var sortOptions = new[]
             {
                 "id", "message_id", "message_type", 
-                "time_sent", "status"
+                "time_sent", "status", "modified", "time_of_failure"
             };
 
             var sort = "time_sent";
@@ -95,6 +95,14 @@ namespace ServiceControl.Infrastructure.Extensions
                     keySelector = "Status";
                     break;
 
+                case "modified":
+                    keySelector = "LastModified";
+                    break;
+
+                case "time_of_failure":
+                    keySelector = "TimeOfFailure";
+                    break;
+
                 default:
                     keySelector = "TimeSent";
                     break;
@@ -103,7 +111,7 @@ namespace ServiceControl.Infrastructure.Extensions
             return source.AddOrder(keySelector, descending);
         }
 
-        public static IDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions> FilterByStatusWhere(this IDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions> source, Request request)
+        public static IDocumentQuery<T> FilterByStatusWhere<T>(this IDocumentQuery<T> source, Request request)
         {
             string status = null;
 
@@ -161,7 +169,48 @@ namespace ServiceControl.Infrastructure.Extensions
             }
             sb.Append(")");
 
+            source.AndAlso();
             source.Where(string.Format("Status: {0}", sb));
+
+            return source;
+        }
+
+
+        public static IDocumentQuery<T> FilterByLastModifiedRange<T>(this IDocumentQuery<T> source, Request request)
+        {
+            string modified = null;
+
+            if ((bool) request.Query.modified.HasValue)
+            {
+                modified = (string) request.Query.modified;
+            }
+
+            if (modified == null)
+            {
+                return source;
+            }
+
+            var filters = modified.Split(new[]
+            {
+                "..."
+            }, StringSplitOptions.None);
+
+            if (filters.Length != 2)
+            {
+                throw new Exception("Invalid modified date range, dates need to be in ISO8601 format and it needs to be a range eg. 2016-03-11T00:27:15.474Z...2016-03-16T03:27:15.474Z");
+            }
+            try
+            {
+                var from = DateTime.Parse(filters[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                var to = DateTime.Parse(filters[1], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+
+                source.AndAlso();
+                source.WhereBetweenOrEqual("LastModified", from.Ticks, to.Ticks);
+            }
+            catch (Exception)
+            {
+                throw new Exception("Invalid modified date range, dates need to be in ISO8601 format and it needs to be a range eg. 2016-03-11T00:27:15.474Z...2016-03-16T03:27:15.474Z");
+            }
 
             return source;
         }

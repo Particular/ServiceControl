@@ -4,12 +4,10 @@
     using System.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
-    using NServiceBus.Transports;
     using Raven.Client;
 
     public class EventMappingHandler : IHandleMessages<IEvent>
     {
-        public ISendMessages MessageSender { get; set; }
         public IDocumentSession Session { get; set; }
         public IEnumerable<IEventPublisher> EventPublishers { get; set; } 
 

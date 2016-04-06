@@ -28,14 +28,22 @@
 
             logger.Info("Running deletion of expired documents every {0} seconds", deleteFrequencyInSeconds);
             logger.Info("Deletion batch size set to {0}", deletionBatchSize);
-            logger.Info("Retention period is {0} hours", Settings.HoursToKeepMessagesBeforeExpiring);
+            logger.Info("Retention period for audits and sagahistory is {0}", Settings.AuditRetentionPeriod);
+            logger.Info("Retention period for errors is {0}", Settings.ErrorRetentionPeriod);
 
             var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
             timer = new Timer(executor =>
             {
                 ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database);
-                
-                timer.Change(due, Timeout.InfiniteTimeSpan);
+
+                try
+                {
+                    timer.Change(due, Timeout.InfiniteTimeSpan);
+                }
+                catch (ObjectDisposedException)
+                {
+                    //Ignored, we are shuting down
+                }
             }, null, due, Timeout.InfiniteTimeSpan);
         }
 

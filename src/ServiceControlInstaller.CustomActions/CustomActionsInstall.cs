@@ -5,6 +5,7 @@
     using System.IO;
     using System.Linq;
     using Microsoft.Deployment.WindowsInstaller;
+    using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.LicenseMgmt;
@@ -34,22 +35,44 @@
         
         static void UpgradeInstances(Session session, ServiceControlZipInfo zipInfo, MSILogger logger, UnattendInstaller unattendedInstaller)
         {
+
+            var options = new InstanceUpgradeOptions();
+
             var upgradeInstancesPropertyValue = session["UPGRADEINSTANCES"];
             if (string.IsNullOrWhiteSpace(upgradeInstancesPropertyValue))
                 return;
             upgradeInstancesPropertyValue = upgradeInstancesPropertyValue.Trim();
             
             var forwardErrorMessagesPropertyValue = session["FORWARDERRORMESSAGES"];
-            bool? forwardErrorMessages;
             try
             {
-                forwardErrorMessages = bool.Parse(forwardErrorMessagesPropertyValue);
+                options.OverrideEnableErrorForwarding = bool.Parse(forwardErrorMessagesPropertyValue);
             }
             catch
             {
-                forwardErrorMessages = null;
+                options.OverrideEnableErrorForwarding = null;
             }
-            
+
+            var auditRetentionPeriodPropertyValue = session["AUDITRETENTIONPERIOD"];
+            try
+            {
+                options.AuditRetentionPeriod = TimeSpan.Parse(auditRetentionPeriodPropertyValue);
+            }
+            catch
+            {
+                options.AuditRetentionPeriod = null;
+            }
+
+            var errorRetentionPeriodPropertyValue = session["ERRORRETENTIONPERIOD"];
+            try
+            {
+               options.ErrorRetentionPeriod = TimeSpan.Parse(errorRetentionPeriodPropertyValue);
+            }
+            catch
+            {
+                options.ErrorRetentionPeriod = null;
+            }
+
             //determine what to upgrade
             var instancesToUpgrade = new List<ServiceControlInstance>();
             if (upgradeInstancesPropertyValue.Equals("*", StringComparison.OrdinalIgnoreCase) || upgradeInstancesPropertyValue.Equals("ALL", StringComparison.OrdinalIgnoreCase))
@@ -67,13 +90,41 @@
             {
                 if (zipInfo.Version > instance.Version)
                 {
-                    if ((!instance.AppSettingExists("ServiceControl/ForwardErrorMessages") && (!forwardErrorMessages.HasValue)))
+                    if (!instance.AppSettingExists(SettingsList.ForwardErrorMessages.Name) & !options.OverrideEnableErrorForwarding.Value)
                     {
-                        logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for 'ServiceControl/ForwardErrorMessages'", instance.Name, zipInfo.Version));
+                        logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{2}'", instance.Name, zipInfo.Version, SettingsList.ForwardErrorMessages.Name));
                         continue;
                     }
 
-                    if (!unattendedInstaller.Upgrade(instance, forwardErrorMessages))
+
+                    if (!options.AuditRetentionPeriod.HasValue)
+                    {
+                        if (!instance.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
+                        {
+                            //Try migration first
+                            if (instance.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
+                            {
+                                var i = instance.ReadAppSetting(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
+                                if (i > 0)
+                                {
+                                    options.AuditRetentionPeriod = TimeSpan.FromHours(i);
+                                }
+                            }
+                            else
+                            {
+                                logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. AUDITRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{2}'", instance.Name, zipInfo.Version, SettingsList.AuditRetentionPeriod.Name));
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (!instance.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name) & !options.ErrorRetentionPeriod.HasValue)
+                    {
+                        logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{2}'", instance.Name, zipInfo.Version, SettingsList.ErrorRetentionPeriod.Name));
+                        continue;
+                    }
+                    
+                    if (!unattendedInstaller.Upgrade(instance, options))
                     {
                         logger.Warn(string.Format("Failed to upgrade {0} to {1}", instance.Name, zipInfo.Version));
                     }

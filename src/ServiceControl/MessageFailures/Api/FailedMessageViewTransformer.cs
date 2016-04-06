@@ -20,8 +20,10 @@
                     TimeSent = (DateTime?)rec.MessageMetadata["TimeSent"],
                     MessageId = rec.MessageMetadata["MessageId"],
                     rec.FailureDetails.Exception,
-                    NumberOfProcessingAttempts = failure.ProcessingAttempts.Count(),
+                    NumberOfProcessingAttempts = failure.ProcessingAttempts.Count,
                     failure.Status,
+                    TimeOfFailure = rec.FailureDetails.TimeOfFailure,
+                    LastModified = MetadataFor(failure)["Last-Modified"].Value<DateTime>()
                 };
         }
     }

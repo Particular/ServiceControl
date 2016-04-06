@@ -14,15 +14,18 @@
 
         public static void RunCleanup(int deletionBatchSize, DocumentDatabase database)
         {
-            var hoursToKeep = Settings.HoursToKeepMessagesBeforeExpiring;
-            var expiryThreshold = SystemTime.UtcNow.AddHours(-hoursToKeep);
-
-            logger.Debug("Trying to find expired documents to delete (with threshold {0})", expiryThreshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
-
             try
             {
-                ExpiredProcessedMessageCleaner.ExpireProcessedMessages(deletionBatchSize, database, expiryThreshold);
-                ExpiredSagaAuditsCleaner.ExpireSagaAudits(deletionBatchSize, database, expiryThreshold);
+                var threshold = SystemTime.UtcNow.Add(-Settings.AuditRetentionPeriod);
+
+                logger.Debug("Trying to find expired ProcessedMessage and SagaHistory documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
+                AuditMessageCleaner.Clean(deletionBatchSize, database, threshold);
+                SagaHistoryCleaner.Clean(deletionBatchSize, database, threshold);
+
+                threshold = SystemTime.UtcNow.Add(-Settings.ErrorRetentionPeriod);
+
+                logger.Debug("Trying to find expired FailedMessage documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
+                ErrorMessageCleaner.Clean(deletionBatchSize, database, threshold);
             }
             catch (Exception e)
             {

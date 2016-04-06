@@ -40,12 +40,11 @@
 
             configurationBuilderCustomization(builder);
 
-            var bootstrapper = new Bootstrapper(configuration: builder);
-
             LogManager.Configuration = SetupLogging(endpointConfiguration);
 
-            endpointConfiguration.SelfHost(() => bootstrapper.Bus, () => bootstrapper.Stop());
+            var bootstrapper = new Bootstrapper(configuration: builder);
 
+            endpointConfiguration.SelfHost(() => bootstrapper.Bus, () => bootstrapper.Stop());
 
             return builder;
         }

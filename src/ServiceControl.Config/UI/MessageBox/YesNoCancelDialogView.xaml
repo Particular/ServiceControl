@@ -12,16 +12,17 @@
         <Grid Margin="170,30,158,24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="30" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="11*" />
+                <RowDefinition Height="34*"/>
+                <RowDefinition Height="45*" />
                 <RowDefinition Height="36" />
             </Grid.RowDefinitions>
 
-            <Border Margin="-170,0"
+            <Border Margin="-170,0,-170,0.4"
                     BorderBrush="{StaticResource Gray20Brush}"
                     BorderThickness="0,0,0,1" />
 
-            <TextBlock Margin="0,7"
+            <TextBlock Margin="0,0,0,6.4"
                        VerticalAlignment="Bottom"
                        FontSize="14"
                        FontWeight="Bold"
@@ -29,8 +30,8 @@
                        Text="{Binding Title}"
                        Grid.Row="0"/>
 
-            <RichTextBox Grid.Row="1"
-                         Margin="0,24,0,28"
+            <RichTextBox Grid.Row="2"
+                         Margin="0,1.877,-10,28"
                          Background="Transparent"
                          BorderThickness="0"
                          FontSize="14"
@@ -39,8 +40,8 @@
                          IsReadOnlyCaretVisible="False"
                          behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message}" />
 
-            <RichTextBox Grid.Row="2"
-                         Margin="0,24,0,28"
+            <RichTextBox Grid.Row="3"
+                         Margin="0,24,-10,27.4"
                          Background="Transparent"
                          BorderThickness="0"
                          FontSize="14"
@@ -49,8 +50,8 @@
                          IsReadOnlyCaretVisible="False"
                          behaviours:RichTextBoxHelper.DocumentXaml="{Binding Question}" />
 
-            <StackPanel Grid.Row="3"
-                        Margin="0,2,0,0"
+            <StackPanel Grid.Row="4"
+                        Margin="-321,1.6,0,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Orientation="Horizontal">
@@ -80,5 +81,5 @@
             </StackPanel>
         </Grid>
     </Grid>
-  
+
 </UserControl>

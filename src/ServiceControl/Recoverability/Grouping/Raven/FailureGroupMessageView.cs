@@ -12,5 +12,7 @@ namespace ServiceControl.Recoverability
         public string MessageId { get; set; }
         public DateTime TimeSent { get; set; }
         public string MessageType { get; set; }
+        public DateTime TimeOfFailure { get; set; }
+        public long LastModified { get; set; }
     }
 }

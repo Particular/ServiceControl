@@ -55,7 +55,9 @@ namespace ServiceControlInstaller.Engine.Instances
         public string Description { get; set; }
         public string ServiceAccount { get; set; }
         public string ServiceAccountPwd { get; set; }
-        
+        public TimeSpan ErrorRetentionPeriod { get; set; }
+        public TimeSpan AuditRetentionPeriod { get; set; }
+
         public string Name
         {
             get { return Service.ServiceName; }
@@ -154,7 +156,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         string DetermineTransportPackage()
         {
-            var transportAppSetting = ReadAppSetting("ServiceControl/TransportType", "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
+            var transportAppSetting = ReadAppSetting(SettingsList.TransportType, "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
             var transport = Transports.All.FirstOrDefault(p => transportAppSetting.StartsWith(p.MatchOn , StringComparison.OrdinalIgnoreCase));
             if (transport != null)
             {
@@ -163,7 +165,7 @@ namespace ServiceControlInstaller.Engine.Instances
             return Transports.All.First(p => p.Default).Name;
         }
 
-        public void ApplyConfigChange(string[] unsupportedKeys = null)
+        public void ApplyConfigChange()
         {
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = FindByName(Name);
@@ -195,15 +197,21 @@ namespace ServiceControlInstaller.Engine.Instances
 
             var configuration = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
             var settings = configuration.AppSettings.Settings;
-            settings.Set("ServiceControl/Port", Port.ToString());
-            settings.Set("ServiceControl/HostName", HostName);
-            settings.Set("ServiceControl/LogPath", LogPath);
-            settings.Set("ServiceControl/ForwardAuditMessages", ForwardAuditMessages.ToString());
-            settings.Set("ServiceControl/ForwardErrorMessages", ForwardErrorMessages.ToString(), unsupportedKeys);
-            settings.Set("ServiceBus/AuditQueue", AuditQueue);
-            settings.Set("ServiceBus/ErrorQueue", ErrorQueue);
-            settings.Set("ServiceBus/ErrorLogQueue", ErrorLogQueue);
-            settings.Set("ServiceBus/AuditLogQueue", AuditLogQueue);
+            var version = Version;
+            settings.Set(SettingsList.HostName, HostName);
+            settings.Set(SettingsList.Port, Port.ToString());
+            settings.Set(SettingsList.LogPath, LogPath);
+            settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
+            settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
+            settings.Set(SettingsList.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), version);
+            settings.Set(SettingsList.ErrorRetentionPeriod, ErrorRetentionPeriod.ToString(), version);
+
+            settings.RemoveIfRetired(SettingsList.HoursToKeepMessagesBeforeExpiring, version);
+
+            settings.Set(SettingsList.AuditQueue, AuditQueue);
+            settings.Set(SettingsList.ErrorQueue, ErrorQueue);
+            settings.Set(SettingsList.ErrorLogQueue, ErrorLogQueue);
+            settings.Set(SettingsList.AuditLogQueue, AuditLogQueue);
             configuration.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", ConnectionString);
             configuration.Save();
 
@@ -239,7 +247,7 @@ namespace ServiceControlInstaller.Engine.Instances
         string DefaultDBPath()
         {
             var host = (HostName == "*") ? "%" : HostName;
-            var dbFolder = String.Format("{0}-{1}", host, Port);
+            var dbFolder = string.Format("{0}-{1}", host, Port);
             if (!string.IsNullOrEmpty(VirtualDirectory))
             {
                 dbFolder += String.Format("-{0}", FileUtils.SanitizeFolderName(VirtualDirectory));
@@ -273,7 +281,12 @@ namespace ServiceControlInstaller.Engine.Instances
             return false;
         }
 
-        T ReadAppSetting<T>(string key, T defaultValue)
+        T ReadAppSetting<T>(SettingInfo keyInfo, T defaultValue)
+        {
+            return ReadAppSetting(keyInfo.Name, defaultValue);
+        }
+
+        public T ReadAppSetting<T>(string key, T defaultValue)
         {
             if (File.Exists(Service.ExePath))
             {
@@ -498,21 +511,36 @@ namespace ServiceControlInstaller.Engine.Instances
         void ReadConfiguration()
         {
             Service.Refresh();
-            HostName = ReadAppSetting("ServiceControl/HostName", "localhost");
-            Port = ReadAppSetting("ServiceControl/Port", 33333);
-            VirtualDirectory = ReadAppSetting("ServiceControl/VirtualDirectory", (string) null);
-            LogPath = ReadAppSetting("ServiceControl/LogPath", DefaultLogPath());
-            DBPath = ReadAppSetting("ServiceControl/DBPath", DefaultDBPath());
-            AuditQueue = ReadAppSetting("ServiceBus/AuditQueue", "audit");
-            AuditLogQueue = ReadAppSetting("ServiceBus/AuditLogQueue", string.Format("{0}.log", AuditQueue));
-            ForwardAuditMessages = ReadAppSetting("ServiceControl/ForwardAuditMessages", false);
-            ForwardErrorMessages = ReadAppSetting("ServiceControl/ForwardErrorMessages", false);
-            ErrorQueue = ReadAppSetting("ServiceBus/ErrorQueue", "error");
-            ErrorLogQueue = ReadAppSetting("ServiceBus/ErrorLogQueue", string.Format("{0}.log", ErrorQueue));
+            HostName = ReadAppSetting(SettingsList.HostName, "localhost");
+            Port = ReadAppSetting(SettingsList.Port, 33333);
+            VirtualDirectory = ReadAppSetting(SettingsList.VirtualDirectory, (string) null);
+            LogPath = ReadAppSetting(SettingsList.LogPath, DefaultLogPath());
+            DBPath = ReadAppSetting(SettingsList.DBPath, DefaultDBPath());
+            AuditQueue = ReadAppSetting(SettingsList.AuditQueue, "audit");
+            AuditLogQueue = ReadAppSetting(SettingsList.AuditLogQueue, string.Format("{0}.log", AuditQueue));
+            ForwardAuditMessages = ReadAppSetting(SettingsList.ForwardAuditMessages, false);
+            ForwardErrorMessages = ReadAppSetting(SettingsList.ForwardErrorMessages, false);
+            ErrorQueue = ReadAppSetting(SettingsList.ErrorQueue, "error");
+            ErrorLogQueue = ReadAppSetting(SettingsList.ErrorLogQueue, string.Format("{0}.log", ErrorQueue));
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
             Description = GetDescription();
             ServiceAccount = Service.Account;
+
+            TimeSpan errorRetentionPeriod;
+            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.ErrorRetentionPeriod, (string) null), out errorRetentionPeriod))
+            {
+                ErrorRetentionPeriod = errorRetentionPeriod;
+
+            }
+            TimeSpan auditRetentionPeriod;
+            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.AuditRetentionPeriod, (string) null), out auditRetentionPeriod))
+            {
+                AuditRetentionPeriod = auditRetentionPeriod;
+            }
+
+            
+
         }
 
         public void ValidateChanges()
@@ -563,11 +591,6 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-        }
-
-        public string[] UnsupportedKeys()
-        {
-            return Version < new Version(1,11,2) ? new[]{"ServiceControl/ForwardErrorMessages"} : null;
         }
     }
 }

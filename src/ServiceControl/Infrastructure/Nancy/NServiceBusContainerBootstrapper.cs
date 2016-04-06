@@ -14,6 +14,11 @@
 
     public class NServiceBusContainerBootstrapper : AutofacNancyBootstrapper
     {
+        public NServiceBusContainerBootstrapper()
+        {
+            StaticConfiguration.EnableHeadRouting = true;
+        }
+
         protected override NancyInternalConfiguration InternalConfiguration
         {
             get
@@ -24,7 +29,13 @@
 
         protected override DiagnosticsConfiguration DiagnosticsConfiguration
         {
-            get { return new DiagnosticsConfiguration {Password = @"password"}; }
+            get
+            {
+                return new DiagnosticsConfiguration
+                {
+                    Password = @"password"
+                };
+            }
         }
 
         protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)

@@ -1,7 +1,7 @@
 namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
+    using System;
     using System.Linq;
-    using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
     using Raven.Json.Linq;
     using ServiceControl.SagaAudit;
@@ -15,16 +15,13 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
 
         public ExpirySagaAuditIndex()
         {
-            Map = (sagaHistories => from sagaHistory in sagaHistories
+            Map = sagaHistories => from sagaHistory in sagaHistories
                 select new Result
                 {
-                    LastModified = MetadataFor(sagaHistory)["Last-Modified"],
-                });
+                    LastModified = MetadataFor(sagaHistory).Value<DateTime>("Last-Modified").Ticks
+                };
 
             DisableInMemoryIndexing = true;
-
-            Sort(result => result.LastModified, SortOptions.String);
-            Stores.Add(result => result.LastModified, FieldStorage.Yes);
         }
 
     }

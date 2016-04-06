@@ -15,20 +15,24 @@ namespace ServiceControl.MessageFailures.Api
             public string MessageType { get; set; }
             public FailedMessageStatus Status { get; set; }
             public string ReceivingEndpointName { get; set; }
+            public DateTime TimeOfFailure { get; set; }
+            public long LastModified { get; set; }
         }
 
         public FailedMessageViewIndex()
         {
             Map = messages => from message in messages
-                              let metadata = message.ProcessingAttempts.Last().MessageMetadata
-           select new
-            {
-                MessageId = metadata["MessageId"],
-                MessageType = metadata["MessageType"], 
-                message.Status,
-                TimeSent = (DateTime)metadata["TimeSent"],
-                ReceivingEndpointName = ((EndpointDetails)metadata["ReceivingEndpoint"]).Name,
-            };
+                let processingAttemptsLast = message.ProcessingAttempts.Last()
+                select new
+                {
+                    MessageId = processingAttemptsLast.MessageMetadata["MessageId"],
+                    MessageType = processingAttemptsLast.MessageMetadata["MessageType"],
+                    message.Status,
+                    TimeSent = (DateTime) processingAttemptsLast.MessageMetadata["TimeSent"],
+                    ReceivingEndpointName = ((EndpointDetails) processingAttemptsLast.MessageMetadata["ReceivingEndpoint"]).Name,
+                    TimeOfFailure = processingAttemptsLast.FailureDetails.TimeOfFailure,
+                    LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
+                };
 
             DisableInMemoryIndexing = true;
         }

@@ -52,6 +52,8 @@
 
             var jsonSerializer = new JsonNetSerializer(SerializationSettingsFactoryForSignalR.CreateDefault());
             GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => jsonSerializer);
+
+            GlobalEventHandler.SignalrIsReady = true;
         }
     }
 

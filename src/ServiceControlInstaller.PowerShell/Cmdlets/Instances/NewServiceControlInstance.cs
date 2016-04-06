@@ -6,7 +6,6 @@ namespace ServiceControlInstaller.PowerShell
     using System;
     using System.IO;
     using System.Management.Automation;
-    using Microsoft.PowerShell.Commands;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
     
@@ -18,14 +17,17 @@ namespace ServiceControlInstaller.PowerShell
         public string Name { get; set; }
 
         [ValidateNotNullOrEmpty]
+        [ValidatePath]
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this ServiceControl Instance")]
         public string InstallPath { get; set; }
 
         [ValidateNotNullOrEmpty]
+        [ValidatePath]
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory that will contain the RavenDB database for this ServiceControl Instance")]
         public string DBPath { get; set; }
 
         [ValidateNotNullOrEmpty]
+        [ValidatePath]
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this ServiceControl Logs")]
         public string LogPath { get; set; }
 
@@ -84,7 +86,17 @@ namespace ServiceControlInstaller.PowerShell
 
         [Parameter(HelpMessage = "The password for the ServiceAccount.  Do not use for LocalSystem or NetworkService")]
         public string ServiceAccountPassword { get; set; }
-        
+
+        [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Audit Data")]
+        [ValidateNotNull]
+        [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8760)] //1 hour to 365 days
+        public TimeSpan AuditRetentionPeriod { get; set; }
+
+        [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Error Data")]
+        [ValidateNotNull]
+        [ValidateTimeSpanRange(MinimumHours = 240, MaximumHours = 1080)] //10 to 45 days
+        public TimeSpan ErrorRetentionPeriod { get; set; }
+
         protected override void BeginProcessing()
         {
             //Set default values
@@ -92,30 +104,6 @@ namespace ServiceControlInstaller.PowerShell
             ErrorQueue = ErrorQueue ?? "error";
             AuditQueue = AuditQueue ?? "audit";
             ServiceAccount = ServiceAccount ?? "LocalSystem";
-
-            ProviderInfo provider;
-            PSDriveInfo drive;
-
-            InstallPath = SessionState.Path.GetUnresolvedProviderPathFromPSPath(InstallPath, out provider, out drive);
-            if (provider.ImplementingType != typeof(FileSystemProvider))
-            {
-                WriteObject(new ErrorRecord(new ArgumentException("InstallPath is invalid"), "InvalidProvider", ErrorCategory.InvalidArgument, InstallPath));
-                StopProcessing();
-            }
-
-            LogPath = SessionState.Path.GetUnresolvedProviderPathFromPSPath(LogPath, out provider, out drive);
-            if (provider.ImplementingType != typeof(FileSystemProvider))
-            {
-                WriteObject(new ErrorRecord(new ArgumentException("LogPath is invalid"), "InvalidProvider", ErrorCategory.InvalidArgument, LogPath));
-                StopProcessing();
-            }
-
-            DBPath = SessionState.Path.GetUnresolvedProviderPathFromPSPath(DBPath, out provider, out drive);
-            if (provider.ImplementingType != typeof(FileSystemProvider))
-            {
-                WriteObject(new ErrorRecord(new ArgumentException("DBPath is invalid"), "InvalidProvider", ErrorCategory.InvalidArgument, DBPath));
-                StopProcessing();
-            }
         }
 
         protected override void ProcessRecord()

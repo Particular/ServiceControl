@@ -21,6 +21,8 @@ namespace ServiceControl.Config.Framework
 
         bool? ShowYesNoCancelDialog(string title, string message, string yesText, string noText);
 
+        bool ShowSliderDialog(SliderDialogViewModel viewModel);
+
         bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage, string warningsMessage);
     }
 
@@ -71,7 +73,6 @@ namespace ServiceControl.Config.Framework
             screen.RunModal();
             shell.Overlay = null;
             shell.ActiveContext = previousContext;
-
             return screen.Result;
         }
 
@@ -79,7 +80,6 @@ namespace ServiceControl.Config.Framework
         {
             var messageBox = new MessageBoxViewModel(title, message, acceptText);
             var result = ShowOverlayDialog(messageBox);
-
             return result ?? false;
         }
 
@@ -89,7 +89,12 @@ namespace ServiceControl.Config.Framework
             return ShowOverlayDialog(messageBox);
         }
 
-
+        public bool ShowSliderDialog(SliderDialogViewModel viewModel)
+        {
+            var result =  ShowOverlayDialog(viewModel);
+            return result ?? false;
+        }
+        
         public bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage, string warningsMessage)
         {
             var messageBox = reportCardViewModelFactory(reportcard);
@@ -97,7 +102,6 @@ namespace ServiceControl.Config.Framework
             messageBox.ErrorsMessage = errorsMessage;
             messageBox.WarningsMessage = warningsMessage;
             var result = ShowOverlayDialog(messageBox);
-
             return result ?? false;
         }
 
@@ -109,7 +113,6 @@ namespace ServiceControl.Config.Framework
             {
                 throw new Exception("Main window is not a shell.");
             }
-
             return shell;
         }
     }

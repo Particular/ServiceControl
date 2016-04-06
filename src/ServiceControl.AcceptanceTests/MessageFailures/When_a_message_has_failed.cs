@@ -3,7 +3,6 @@
     using System;
     using System.Linq;
     using System.Net;
-    using System.Text.RegularExpressions;
     using System.Threading;
     using Contexts;
     using NServiceBus;
@@ -60,8 +59,6 @@
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
-
-          
 
             // The message Ids may contain a \ if they are from older versions. 
             Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");
@@ -136,19 +133,9 @@
 
             class SignalRStarter : IWantToRunWhenBusStartsAndStops
             {
-                const string pattern = @"\{
-\s*""message"": \{
-\s*""total"": 1,
-\s*""raised_at"": ""\S*""
-\s*\},
-\s*""types"": \[
-\s*""MessageFailuresUpdated""
-\s*\]
-\}";
                 private readonly MyContext context;
                 private readonly IBus bus;
                 private Connection connection;
-                private Regex dataRegex = new Regex(pattern, RegexOptions.Multiline | RegexOptions.Compiled);
 
                 public SignalRStarter(MyContext context, IBus bus)
                 {
@@ -167,7 +154,6 @@
                         try
                         {
                             connection.Start().Wait();
-                            context.SignalRConnected = true;
                             break;
                         }
                         catch (AggregateException ex)
@@ -196,7 +182,7 @@
 
                 private void ConnectionOnReceived(string s)
                 {
-                    if (dataRegex.IsMatch(s))
+                    if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
                     {
                         context.SignalrData = s;
                         context.SignalrEventReceived = true;
@@ -259,7 +245,6 @@
             public int SCPort { get; set; }
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
-            public bool SignalRConnected { get; set; }
         }
     }
 }

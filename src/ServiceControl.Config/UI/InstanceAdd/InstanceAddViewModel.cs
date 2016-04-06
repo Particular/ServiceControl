@@ -21,8 +21,6 @@
             SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
 
             var serviceControlInstances = ServiceControlInstance.Instances();
-
-            // Defaults
             if (!serviceControlInstances.Any())
             {
                 InstanceName = "Particular.ServiceControl";
@@ -40,6 +38,9 @@
                     }
                 }
             }
+
+            AuditRetentionPeriod = TimeSpan.FromDays(30);
+            ErrorRetentionPeriod = TimeSpan.FromDays(15);
             Description = "A ServiceControl Instance";
             HostName = "localhost"; 
             AuditQueueName = "audit";
@@ -54,7 +55,6 @@
 
         public string DatabasePath { get; set; }
         public ICommand SelectDatabasePath { get; private set; }
-
         
         protected override void OnInstanceNameChanged()
         {

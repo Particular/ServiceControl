@@ -83,7 +83,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             return true;
         }
 
-        public bool Upgrade(ServiceControlInstance instance, bool? forwardErrorMessages = null)
+        public bool Upgrade(ServiceControlInstance instance, InstanceUpgradeOptions options)
         {
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
@@ -105,12 +105,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                     instance.RestoreAppConfig(backupFile);
                 }
             
-                if (forwardErrorMessages.HasValue)
-                {
-                    instance.ForwardErrorMessages = forwardErrorMessages.Value;
-                    instance.ApplyConfigChange();
-                }
-           
+                options.ApplyChangesToInstance(instance);
                 instance.RunInstanceToCreateQueues();
                 
                 if (instance.ReportCard.HasErrors)

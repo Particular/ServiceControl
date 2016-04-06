@@ -5,6 +5,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Xml;
@@ -23,6 +24,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public string LogPath { get; set; }
         public string DBPath { get; set; }
         public string HostName { get; set; }
+        public TimeSpan AuditRetentionPeriod { get; set; }
+        public TimeSpan ErrorRetentionPeriod { get; set; }
         public string InstallPath { get; set; }
         public int Port { get; set; }
         public string VirtualDirectory { get; set; }
@@ -39,12 +42,22 @@ namespace ServiceControlInstaller.Engine.Instances
         public string ServiceDescription { get; set; }
 
         [XmlIgnore]
+        public Version Version { get; set; }
+        [XmlIgnore]
         public string ServiceAccount { get; set; }
         [XmlIgnore]
         public string ServiceAccountPwd { get; set; }
         [XmlIgnore]
         public ReportCard ReportCard { get; set; }
-        
+
+        public ServiceControlInstanceMetadata()
+        {
+            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var zipInfo = ServiceControlZipInfo.Find(appDirectory);
+            Version = zipInfo.Version;
+        }
+
+
         public string Url
         {
             get
@@ -159,11 +172,19 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 instanceData = (ServiceControlInstanceMetadata) serializer.Deserialize(stream);
             }
-
-            //Validate that the XML contained a setting for ForwardErrorMessages, this was introduced in v1.12 so older unattended files won't have the setting.
+            
             var doc = new XmlDocument();
             doc.Load(path);
             if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)
+            {
+                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
+            }
+
+            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/AuditRetentionPeriod") == null)
+            {
+                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
+            }
+            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ErrorRetentionPeriod") == null)
             {
                 throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
             }
