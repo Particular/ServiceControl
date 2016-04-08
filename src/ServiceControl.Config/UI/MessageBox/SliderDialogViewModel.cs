@@ -32,11 +32,7 @@
             PeriodLargeStep = periodLargeStep;
             Cancel = Command.Create(() =>{Result = null;((IDeactivate)this).Deactivate(true);});
             Save = Command.Create(() =>{Result = true; ((IDeactivate)this).Deactivate(true);});
-
-            
         }
-        
-        
 
         public string PeriodHeader { get; set; }
         public string PeriodExplanation { get; set; }

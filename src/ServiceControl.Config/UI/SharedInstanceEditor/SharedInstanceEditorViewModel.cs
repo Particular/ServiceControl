@@ -7,6 +7,7 @@
     using ServiceControl.Config.Framework.Rx;
     using ServiceControl.Config.Validation;
     using ServiceControl.Config.Xaml.Controls;
+    using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
 
     public class ForwardingOption
@@ -109,12 +110,12 @@
         public ForwardingOption AuditForwarding { get; set; }
         public ForwardingOption ErrorForwarding { get; set; }
 
-        public int MaximumErrorRetentionPeriod {get { return 45; }}
-        public int MinimumErrorRetentionPeriod { get { return 10; }}
+        public int MaximumErrorRetentionPeriod {get { return SettingConstants.ErrorRetentionPeriodMaxInDays; }}
+        public int MinimumErrorRetentionPeriod { get { return SettingConstants.ErrorRetentionPeriodMinInDays; }}
         public TimeSpanUnits ErrorRetentionUnits { get { return TimeSpanUnits.Days; }}
 
-        public int MinimumAuditRetentionPeriod  {get { return 1;}}
-        public int MaximumAuditRetentionPeriod { get { return 8760; }}  //365 days
+        public int MinimumAuditRetentionPeriod  {get { return SettingConstants.AuditRetentionPeriodMinInHours;}}
+        public int MaximumAuditRetentionPeriod { get { return SettingConstants.AuditRetentionPeriodMaxInHours; }}  
         public TimeSpanUnits AuditRetentionUnits { get { return TimeSpanUnits.Hours; }}
 
         public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; private set;}
