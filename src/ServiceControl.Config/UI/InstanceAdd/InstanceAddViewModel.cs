@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Windows.Input;
     using ServiceControl.Config.Commands;
+    using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
     using Validar;
@@ -39,8 +40,8 @@
                 }
             }
 
-            AuditRetentionPeriod = TimeSpan.FromDays(30);
-            ErrorRetentionPeriod = TimeSpan.FromDays(15);
+            AuditRetentionPeriod = TimeSpan.FromHours(SettingConstants.AuditRetentionPeriodDefaultInHoursForUI);
+            ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI);
             Description = "A ServiceControl Instance";
             HostName = "localhost"; 
             AuditQueueName = "audit";

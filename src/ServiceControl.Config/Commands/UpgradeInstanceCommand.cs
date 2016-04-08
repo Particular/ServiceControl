@@ -56,36 +56,36 @@
                     var i = instance.ReadAppSetting(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
                     if (i != -1)
                     {
-                       upgradeOptions.AuditRetentionPeriod = TimeSpan.FromHours(i);
+                        upgradeOptions.AuditRetentionPeriod = TimeSpan.FromHours(i);
+                    }
+                }
+
+                // No setting to migrate so display dialog
+                if (!upgradeOptions.AuditRetentionPeriod.HasValue)
+                {
+                    var viewModel = new SliderDialogViewModel("UPGRADE QUESTION - DATABASE RETENTION",
+                        "Service Control periodically purges audit messages from the database.",
+                        "AUDIT RETENTION PERIOD",
+                        "Please specify the age at which these records should be removed",
+                        TimeSpanUnits.Hours,
+                        SettingConstants.AuditRetentionPeriodMinInHours,
+                        SettingConstants.AuditRetentionPeriodMaxInHours,
+                        1,
+                        5,
+                        TimeSpan.FromHours(SettingConstants.AuditRetentionPeriodDefaultInHoursForUI));
+
+                    if (windowManager.ShowSliderDialog(viewModel))
+                    {
+                        upgradeOptions.AuditRetentionPeriod = new TimeSpan(viewModel.Period.Days, viewModel.Period.Hours, 0, 0);
+                    }
+                    else
+                    {
+                        //Dialog was cancelled
+                        eventAggregator.PublishOnUIThread(new RefreshInstances());
+                        return;
                     }
                 }
             }
-
-            if (!upgradeOptions.AuditRetentionPeriod.HasValue)
-            {
-                var viewModel = new SliderDialogViewModel("UPGRADE QUESTION - DATABASE RETENTION",
-                    "Service Control periodically purges audit messages from the database.",
-                    "AUDIT RETENTION PERIOD",
-                    "Please specify the age at which these records should be removed",
-                    TimeSpanUnits.Hours,
-                    1, 
-                    (int)Math.Truncate(TimeSpan.FromDays(365).TotalHours),
-                    1,
-                    5,
-                    TimeSpan.FromDays(30));
-
-                if (windowManager.ShowSliderDialog(viewModel))
-                {
-                    upgradeOptions.AuditRetentionPeriod = new TimeSpan(viewModel.Period.Days, viewModel.Period.Hours, 0, 0);
-                }
-                else
-                {
-                    //Dialog was cancelled
-                    eventAggregator.PublishOnUIThread(new RefreshInstances());
-                    return;
-                }
-            }
-
 
             if (!instance.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
             {
@@ -94,11 +94,11 @@
                         "ERROR RETENTION PERIOD",
                         "Please specify the age at which these records should be removed",
                         TimeSpanUnits.Days,
-                        10,
-                        50, 
+                        SettingConstants.ErrorRetentionPeriodMinInDays,
+                        SettingConstants.ErrorRetentionPeriodMaxInDays, 
                         1,
                         5, 
-                        TimeSpan.FromDays(15));
+                        TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI));
 
                 if (windowManager.ShowSliderDialog(viewModel))
                 {
@@ -113,7 +113,7 @@
             }
             
             var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
-            windowManager.ShowMessage(string.Format("STOP INSTANCE AND UPGRADE TO {0}", installer.ZipInfo.Version), string.Format("{0} needs to be stopped in order to upgrade to version {1}. Do you want to proceed?", instanceViewModel.Name, installer.ZipInfo.Version));
+                          windowManager.ShowMessage(string.Format("STOP INSTANCE AND UPGRADE TO {0}", installer.ZipInfo.Version), string.Format("{0} needs to be stopped in order to upgrade to version {1}. Do you want to proceed?", instanceViewModel.Name, installer.ZipInfo.Version));
             
             if (confirm)
             {

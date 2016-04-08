@@ -220,31 +220,29 @@
                 Logger.Fatal(message);
                 throw new Exception(message);
             }
-            try
-            {
-                result = TimeSpan.Parse(valueRead);
 
-                if (result < TimeSpan.FromDays(10))
+            if (TimeSpan.TryParse(valueRead, out result))
+            { 
+                if (errorRetentionPeriod < TimeSpan.FromDays(10))
                 {
                     message = "ErrorRetentionPeriod settings is invalid, value should be minimum 10 days.";
                     Logger.Fatal(message);
                     throw new Exception(message);
                 }
 
-                if (result > TimeSpan.FromDays(45))
+                if (errorRetentionPeriod > TimeSpan.FromDays(45))
                 {
                     message = "ErrorRetentionPeriod settings is invalid, value should be maximum 45 days.";
                     Logger.Fatal(message);
                     throw new Exception(message);
                 }
-            }
-            catch (Exception)
-            {
+            } 
+            else
+            { 
                 message = "ErrorRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
                 Logger.Fatal(message);
                 throw new Exception(message);
             }
-
             return result;
         }
 
@@ -259,31 +257,29 @@
                 Logger.Fatal(message);
                 throw new Exception(message);
             }
-            try
-                {
-                    result = TimeSpan.Parse(valueRead);
 
-                    if (result < TimeSpan.FromHours(1))
-                    {
-                        message = "AuditRetentionPeriod settings is invalid, value should be minimum 1 hour.";
-                        InternalLogger.Fatal(message);
-                        throw new Exception(message);
-                    }
-
-                    if (result > TimeSpan.FromDays(365))
-                    {
-                        message = "AuditRetentionPeriod settings is invalid, value should be maximum 365 days.";
-                        InternalLogger.Fatal(message);
-                        throw new Exception(message);
-                    }
-                }
-                catch (Exception)
+            if (TimeSpan.TryParse(valueRead, out result))
+            { 
+                if (result < TimeSpan.FromHours(1))
                 {
-                    message = "AuditRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
+                    message = "AuditRetentionPeriod settings is invalid, value should be minimum 1 hour.";
                     InternalLogger.Fatal(message);
                     throw new Exception(message);
                 }
-            
+
+                if (result > TimeSpan.FromDays(365))
+                {
+                    message = "AuditRetentionPeriod settings is invalid, value should be maximum 365 days.";
+                    InternalLogger.Fatal(message);
+                    throw new Exception(message);
+                }
+            }
+            else
+            {
+                message = "AuditRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
+                InternalLogger.Fatal(message);
+                throw new Exception(message);
+            }
             return result;
         }
 
