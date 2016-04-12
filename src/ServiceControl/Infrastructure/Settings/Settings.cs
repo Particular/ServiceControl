@@ -223,14 +223,14 @@
 
             if (TimeSpan.TryParse(valueRead, out result))
             { 
-                if (errorRetentionPeriod < TimeSpan.FromDays(10))
+                if (result < TimeSpan.FromDays(10))
                 {
                     message = "ErrorRetentionPeriod settings is invalid, value should be minimum 10 days.";
                     Logger.Fatal(message);
                     throw new Exception(message);
                 }
 
-                if (errorRetentionPeriod > TimeSpan.FromDays(45))
+                if (result > TimeSpan.FromDays(45))
                 {
                     message = "ErrorRetentionPeriod settings is invalid, value should be maximum 45 days.";
                     Logger.Fatal(message);
