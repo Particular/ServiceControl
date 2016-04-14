@@ -3,26 +3,25 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
     using System;
     using System.Linq;
     using Raven.Client.Indexes;
-    using Raven.Json.Linq;
     using ServiceControl.SagaAudit;
 
-    public class ExpirySagaAuditIndex : AbstractIndexCreationTask<SagaHistory, ExpirySagaAuditIndex.Result>
+    public class ExpirySagaAuditIndex : AbstractMultiMapIndexCreationTask
     {
-        public class Result
-        {
-            public RavenJToken LastModified { get; set; }
-        }
-
         public ExpirySagaAuditIndex()
         {
-            Map = sagaHistories => from sagaHistory in sagaHistories
-                select new Result
+            AddMap<SagaSnapshot>(messages => from message in messages
+                select new
+                {
+                    LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
+                });
+
+            AddMap<SagaHistory>(sagaHistories => from sagaHistory in sagaHistories
+                select new
                 {
                     LastModified = MetadataFor(sagaHistory).Value<DateTime>("Last-Modified").Ticks
-                };
+                });
 
             DisableInMemoryIndexing = true;
         }
-
     }
 }

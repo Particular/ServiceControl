@@ -505,15 +505,16 @@
     <Compile Include="SagaAudit\Messages\SagaChangeOutput.cs" />
     <Compile Include="SagaAudit\Messages\SagaUpdatedMessage.cs" />
     <Compile Include="SagaAudit\SagaAuditing.cs" />
-    <Compile Include="SagaAudit\ProcessingState.cs" />
+    <Compile Include="SagaAudit\SagaDetailsIndex.cs" />
     <Compile Include="SagaAudit\SagaInfo.cs" />
+    <Compile Include="SagaAudit\SagaListIndex.cs" />
+    <Compile Include="SagaAudit\SagaSnapshot.cs" />
     <Compile Include="SagaAudit\SagaUpdatedHandler.cs" />
     <Compile Include="SagaAudit\InitiatingMessage.cs" />
     <Compile Include="SagaAudit\SagaHistory.cs" />
     <Compile Include="SagaAudit\ResultingMessage.cs" />
     <Compile Include="SagaAudit\SagaStateChange.cs" />
     <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
-    <Compile Include="SagaAudit\SageMessageState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
