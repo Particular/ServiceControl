@@ -5,6 +5,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -43,23 +44,22 @@
                     }
                 };
                 var indexName = new ExpiryErrorMessageIndex().IndexName;
-                database.Query(indexName, query, database.WorkContext.CancellationToken,
-                    null,
-                    doc =>
+                var docs = database.Queries.Query(indexName, query, database.WorkContext.CancellationToken).Results;
+                foreach (var doc in docs)
+                {
+                    var id = doc.Value<string>("__document_id");
+                    if (string.IsNullOrEmpty(id))
                     {
-                        var id = doc.Value<string>("__document_id");
-                        if (string.IsNullOrEmpty(id))
-                        {
-                            return;
-                        }
+                        continue;
+                    }
 
-                        items.Add(new DeleteCommandData
-                        {
-                            Key = id
-                        });
-
-                        attachments.Add(doc.Value<string>("MessageId"));
+                    items.Add(new DeleteCommandData
+                    {
+                        Key = id
                     });
+
+                    attachments.Add(doc.Value<string>("MessageId"));
+                }
             }
             catch (OperationCanceledException)
             {
@@ -71,7 +71,7 @@
             Chunker.ExecuteInChunks(items.Count, (s, e) =>
             {
                 logger.InfoFormat("Batching deletion of {0}-{1} error documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1));
+                var results = database.Batch(items.GetRange(s, e - s + 1), CancellationToken.None);
                 logger.InfoFormat("Batching deletion of {0}-{1} error documents completed.", s, e);
 
                 deletionCount += results.Count(x => x.Deleted == true);

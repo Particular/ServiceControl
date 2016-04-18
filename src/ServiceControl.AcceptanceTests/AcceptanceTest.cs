@@ -126,6 +126,7 @@
             }
 
             Console.Out.WriteLine("Using transport " + transportToUse.Name);
+            Console.Out.WriteLine("Using port " + port);
 
             Conventions.EndpointNamingConvention = t =>
             {

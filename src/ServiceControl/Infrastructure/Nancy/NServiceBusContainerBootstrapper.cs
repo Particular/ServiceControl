@@ -15,9 +15,10 @@
     {
         private readonly IContainer container;
 
-		public NServiceBusContainerBootstrapper()
+        public NServiceBusContainerBootstrapper(IContainer container)
         {
             StaticConfiguration.EnableHeadRouting = true;
+            this.container = container;
         }
 
         protected override NancyInternalConfiguration InternalConfiguration
@@ -105,10 +106,5 @@
         }
 
         static ILog Logger = LogManager.GetLogger(typeof(NServiceBusContainerBootstrapper));
-
-        public NServiceBusContainerBootstrapper(IContainer container)
-        {
-            this.container = container;
-        }
     }
 }

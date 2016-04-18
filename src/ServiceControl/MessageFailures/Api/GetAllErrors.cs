@@ -18,7 +18,7 @@
                 using (var session = Store.OpenSession())
                 {
                     var queryResult = session.Advanced
-                        .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                        .DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .FilterByStatusWhere(Request)
                         .FilterByLastModifiedRange(Request)
                         .QueryResult;

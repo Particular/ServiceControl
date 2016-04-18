@@ -19,7 +19,6 @@ namespace ServiceControl.ExternalIntegrations
 
         protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
         {
-            
             var documentIds = contexts.Select(x => x.FailedMessageId).Cast<ValueType>().ToArray();
             var failedMessageData = session.Load<FailedMessage>(documentIds); 
             return failedMessageData.Where(p => p != null).Select(x => x.ToEvent());

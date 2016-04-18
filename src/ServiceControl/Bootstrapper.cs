@@ -44,11 +44,14 @@ namespace Particular.ServiceControl
         {
             this.host = host;
             this.configuration = configuration;
-            LogManager.Use<NLogFactory>();
 
             // ServiceName is required to determine the default logging path
-            Settings.ServiceName = DetermineServiceName(host, hostArguments);
+            LoggingSettings.ServiceName = DetermineServiceName(host, hostArguments);
+
             logger = ConfigureLogging();
+
+            Settings.ServiceName = DetermineServiceName(host, hostArguments);
+
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = Settings.HttpDefaultConnectionLimit;
 
