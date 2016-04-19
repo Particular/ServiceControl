@@ -178,17 +178,6 @@ namespace ServiceControl.Recoverability
 
         static byte[] ReadFully(Stream input)
         {
-            var memoryStream = input as MemoryStream;
-            if (memoryStream != null)
-            {
-                var outArray = new byte[memoryStream.Length];
-
-                Array.Copy(memoryStream.GetBuffer(), outArray, outArray.Length);
-
-                return outArray;
-            }
-
-
             var buffer = new byte[16 * 1024];
             using (var ms = new MemoryStream())
             {
