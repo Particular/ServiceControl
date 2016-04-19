@@ -7,7 +7,8 @@
     using Autofac;
     using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
-    using Microsoft.AspNet.SignalR.Json;
+    using Microsoft.Owin.Cors;
+    using Newtonsoft.Json;
     using NServiceBus.Logging;
     using Owin;
     using Particular.ServiceControl.Licensing;
@@ -17,7 +18,6 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.OWIN;
     using ServiceControl.Infrastructure.SignalR;
-    using JsonNetSerializer = Microsoft.AspNet.SignalR.Json.JsonNetSerializer;
 
     public class Startup
     {
@@ -103,18 +103,20 @@
         private void ConfigureSignalR(IAppBuilder app)
         {
             var resolver = new AutofacDependencyResolver(container);
-
-            app.MapConnection<MessageStreamerConnection>("/messagestream",
-                new ConnectionConfiguration
+            app.Map("/messagestream", map =>
+            {
+                map.UseCors(CorsOptions.AllowAll);
+                map.RunSignalR<MessageStreamerConnection>(new ConnectionConfiguration
                 {
-                    EnableCrossDomain = true,
+                    EnableJSONP = true,
                     Resolver = resolver
                 });
+            });
 
             GlobalHost.DependencyResolver = resolver;
 
-            var jsonSerializer = new JsonNetSerializer(SerializationSettingsFactoryForSignalR.CreateDefault());
-            GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => jsonSerializer);
+            var jsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
+            GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
 
             GlobalEventHandler.SignalrIsReady = true;
         }
