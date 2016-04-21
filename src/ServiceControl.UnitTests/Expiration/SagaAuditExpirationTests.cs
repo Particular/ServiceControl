@@ -98,7 +98,7 @@
         {
             new ExpirySagaAuditIndex().Execute(documentStore);
             documentStore.WaitForIndexing();
-            SagaHistoryCleaner.Clean(100, documentStore, expiryThreshold);
+            SagaHistoryCleaner.Clean(100, documentStore, expiryThreshold, new CancellationToken());
             documentStore.WaitForIndexing();
         }
 

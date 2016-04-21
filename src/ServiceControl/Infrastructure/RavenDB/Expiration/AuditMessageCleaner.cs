@@ -1,26 +1,21 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Threading;
     using NServiceBus.Logging;
     using Raven.Abstractions;
-    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Json.Linq;
-    using System.Linq;
-    using System.Threading.Tasks;
 
     public static class AuditMessageCleaner
     {
         static ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
 
-        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold)
+        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token)
         {
             var stopwatch = Stopwatch.StartNew();
-            var items = new List<ICommandData>(deletionBatchSize);
-            var attachments = new List<string>(deletionBatchSize);
 
             var query = new IndexQuery
             {
@@ -46,10 +41,19 @@
 
             var indexName = new ExpiryProcessedMessageIndex().IndexName;
             QueryHeaderInformation _;
+            var deletionCount = 0;
+
+            logger.Info("Batching deletion of audit documents.");
+
             using (var ie = store.DatabaseCommands.StreamQuery(indexName, query, out _))
             {
                 while (ie.MoveNext())
                 {
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
                     var doc = ie.Current;
                     var id = doc.Value<string>("__document_id");
                     if (string.IsNullOrEmpty(id))
@@ -57,51 +61,38 @@
                         continue;
                     }
 
-                    items.Add(new DeleteCommandData
-                    {
-                        Key = id
-                    });
+                    store.DatabaseCommands.Delete(id, null);
+                    deletionCount++;
 
                     string bodyId;
                     if (TryGetBodyId(doc, out bodyId))
                     {
-                        attachments.Add(bodyId);
+                        try
+                        {
+                            store.DatabaseCommands.DeleteAttachment(bodyId, null);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Warn("Deletion of attachment failed.", ex);
+                        }
+                    }
+
+                    if (deletionCount >= deletionBatchSize)
+                    {
+                        break;
                     }
                 }
             }
 
-            var deletionCount = 0;
-
-            Chunker.ExecuteInChunks(items.Count, (s, e) =>
-            {
-                logger.InfoFormat("Batching deletion of {0}-{1} audit documents.", s, e);
-                var results = store.DatabaseCommands.Batch(items.GetRange(s, e - s + 1));
-                logger.InfoFormat("Batching deletion of {0}-{1} audit documents completed.", s, e);
-
-                deletionCount += results.Count(x => x.Deleted == true);
-            });
-
-            logger.InfoFormat("Deletion of {0}-{1} attachment audit documents.", 0, attachments.Count);
-            try
-            {
-                Parallel.ForEach(attachments, attach =>
-                {
-                    store.DatabaseCommands.DeleteAttachment(attach, null);
-                });
-            }
-            catch (AggregateException ex)
-            {
-                logger.Warn("Deletion of attachments failed", ex);
-            }
-            logger.InfoFormat("Deletion of {0}-{1} attachment audit documents completed.", 0, attachments.Count);
+            logger.Info("Batching deletion of audit documents completed.");
 
             if (deletionCount == 0)
             {
-                logger.Info("No expired audit documents found");
+                logger.Info("No expired audit documents found.");
             }
             else
             {
-                logger.InfoFormat("Deleted {0} expired audit documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
+                logger.InfoFormat("Deleted {0} expired audit documents. Batch execution took {1}ms.", deletionCount, stopwatch.ElapsedMilliseconds);
             }
         }
 

@@ -26,6 +26,7 @@
             private ILog logger = LogManager.GetLogger(typeof(Cleaner));
             private Timer timer;
             private bool stopping;
+            private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
             public Cleaner(TimeKeeper timeKeeper, IDocumentStore store)
             {
@@ -61,7 +62,7 @@
 
             protected override void OnStop()
             {
-                stopping = true;
+                cancellationTokenSource.Cancel();
 
                 timeKeeper.Release(timer);
             }
@@ -70,7 +71,7 @@
             {
                 var threshold = DateTime.UtcNow.Add(-Settings.AuditRetentionPeriod);
 
-                if (stopping)
+                if (cancellationTokenSource.IsCancellationRequested)
                 {
                     return;
                 }
@@ -78,21 +79,21 @@
                 logger.DebugFormat("Trying to find expired ProcessedMessage and SagaHistory documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
                 try
                 {
-                    AuditMessageCleaner.Clean(deletionBatchSize, store, threshold);
+                    AuditMessageCleaner.Clean(deletionBatchSize, store, threshold, cancellationTokenSource.Token);
                 }
                 catch (Exception ex)
                 {
                     logger.Error("Cleaning of audit expired documents failed.", ex);
                 }
 
-                if (stopping)
+                if (cancellationTokenSource.IsCancellationRequested)
                 {
                     return;
                 }
 
                 try
                 {
-                    SagaHistoryCleaner.Clean(deletionBatchSize, store, threshold);
+                    SagaHistoryCleaner.Clean(deletionBatchSize, store, threshold, cancellationTokenSource.Token);
                 }
                 catch (Exception ex)
                 {
@@ -101,7 +102,7 @@
 
                 threshold = SystemTime.UtcNow.Add(-Settings.ErrorRetentionPeriod);
 
-                if (stopping)
+                if (cancellationTokenSource.IsCancellationRequested)
                 {
                     return;
                 }
@@ -109,7 +110,7 @@
                 logger.DebugFormat("Trying to find expired FailedMessage documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
                 try
                 {
-                    ErrorMessageCleaner.Clean(deletionBatchSize, store, threshold);
+                    ErrorMessageCleaner.Clean(deletionBatchSize, store, threshold, cancellationTokenSource.Token);
                 }
                 catch (Exception ex)
                 {

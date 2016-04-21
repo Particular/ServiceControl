@@ -103,7 +103,7 @@
         {
             new ExpiryProcessedMessageIndex().Execute(documentStore);
             documentStore.WaitForIndexing();
-            AuditMessageCleaner.Clean(100, documentStore, expiryThreshold);
+            AuditMessageCleaner.Clean(100, documentStore, expiryThreshold, new CancellationToken());
             documentStore.WaitForIndexing();
         }
 

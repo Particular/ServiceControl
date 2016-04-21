@@ -2,12 +2,9 @@
 {
 
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
-    using System.Threading.Tasks;
+    using System.Threading;
     using Raven.Abstractions;
-    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Client;
 
@@ -15,11 +12,9 @@
     {
         static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(ErrorMessageCleaner));
 
-        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold)
+        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token)
         {
             var stopwatch = Stopwatch.StartNew();
-            var items = new List<ICommandData>(deletionBatchSize);
-            var attachments = new List<string>(deletionBatchSize);
             var query = new IndexQuery
             {
                 Start = 0,
@@ -43,10 +38,19 @@
             };
             var indexName = new ExpiryErrorMessageIndex().IndexName;
             QueryHeaderInformation _;
+            var deletionCount = 0;
+
+            logger.Info("Batching deletion of error documents.");
+
             using (var ie = store.DatabaseCommands.StreamQuery(indexName, query, out _))
             {
                 while (ie.MoveNext())
                 {
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
                     var doc = ie.Current;
                     var id = doc.Value<string>("__document_id");
                     if (string.IsNullOrEmpty(id))
@@ -54,39 +58,25 @@
                         continue;
                     }
 
-                    items.Add(new DeleteCommandData
+                    store.DatabaseCommands.Delete(id, null);
+                    deletionCount++;
+                    try
                     {
-                        Key = id
-                    });
+                        store.DatabaseCommands.DeleteAttachment("messagebodies/" + doc.Value<string>("MessageId"), null);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warn("Deletion of attachment failed.", ex);
+                    }
 
-                    attachments.Add(doc.Value<string>("MessageId"));
+                    if (deletionCount >= deletionBatchSize)
+                    {
+                        break;
+                    }
                 }
             }
 
-            var deletionCount = 0;
-
-            Chunker.ExecuteInChunks(items.Count, (s, e) =>
-            {
-                logger.InfoFormat("Batching deletion of {0}-{1} error documents.", s, e);
-                var results = store.DatabaseCommands.Batch(items.GetRange(s, e - s + 1));
-                logger.InfoFormat("Batching deletion of {0}-{1} error documents completed.", s, e);
-
-                deletionCount += results.Count(x => x.Deleted == true);
-            });
-
-            logger.InfoFormat("Deletion of {0}-{1} attachment error documents.", 0, attachments.Count);
-            try
-            {
-                Parallel.ForEach(attachments, attach =>
-                {
-                    store.DatabaseCommands.DeleteAttachment("messagebodies/" + attach, null);
-                });
-            }
-            catch (AggregateException ex)
-            {
-                logger.Warn("Deletion of attachments failed", ex);
-            }
-            logger.InfoFormat("Deletion of {0}-{1} attachment error documents completed.", 0, attachments.Count);
+            logger.Info("Batching deletion of error documents completed.");
 
             if (deletionCount == 0)
             {
