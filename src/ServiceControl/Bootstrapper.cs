@@ -179,7 +179,6 @@ namespace Particular.ServiceControl
                         Id = "ServiceControl",
                         Settings =
                         {
-                            {"Raven/ActiveBundles", "CustomDocumentExpiration"},
                             {"Raven/StorageTypeName", "esent"},
                             {"Raven/DataDir", Path.Combine(Settings.DbPath, "Databases", "ServiceControl")},
                             {"Raven/Counters/DataDir", Path.Combine(Settings.DbPath, "Data", "Counters")},

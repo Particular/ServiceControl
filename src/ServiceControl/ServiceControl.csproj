@@ -339,7 +339,6 @@
     <Compile Include="Infrastructure\OWIN\ApiLogger.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\SagaHistoryCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\AuditMessageCleaner.cs" />
-    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpirySagaAuditIndex.cs" />
     <Compile Include="Infrastructure\Settings\NullableRegistryReader.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryProcessedMessageIndex.cs" />
@@ -411,7 +410,7 @@
     <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
-    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleanerBundle.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleaner.cs" />
     <Compile Include="Infrastructure\SubscribeToOwnEvents.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
     <Compile Include="Licensing\ActiveLicense.cs" />

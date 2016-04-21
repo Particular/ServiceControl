@@ -3,51 +3,54 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
-    using System.Threading;
     using NServiceBus.Logging;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
-    using Raven.Database;
+    using Raven.Client;
     using Raven.Json.Linq;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     public static class AuditMessageCleaner
     {
         static ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
 
-        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
+        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold)
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
             var attachments = new List<string>(deletionBatchSize);
-            try
+
+            var query = new IndexQuery
             {
-                var query = new IndexQuery
+                Start = 0,
+                PageSize = deletionBatchSize,
+                Cutoff = SystemTime.UtcNow,
+                DisableCaching = true,
+                Query = string.Format("ProcessedAt:[* TO {0}]", expiryThreshold.Ticks),
+                FieldsToFetch = new[]
                 {
-                    Start = 0,
-                    PageSize = deletionBatchSize,
-                    Cutoff = SystemTime.UtcNow,
-                    DisableCaching = true,
-                    Query = string.Format("ProcessedAt:[* TO {0}]", expiryThreshold.Ticks),
-                    FieldsToFetch = new[]
+                    "__document_id",
+                    "MessageMetadata"
+                },
+                SortedFields = new[]
+                {
+                    new SortedField("ProcessedAt")
                     {
-                        "__document_id",
-                        "MessageMetadata"
-                    },
-                    SortedFields = new[]
-                    {
-                        new SortedField("ProcessedAt")
-                        {
-                            Field = "ProcessedAt",
-                            Descending = false
-                        }
+                        Field = "ProcessedAt",
+                        Descending = false
                     }
-                };
-                var indexName = new ExpiryProcessedMessageIndex().IndexName;
-                var docs = database.Queries.Query(indexName, query, database.WorkContext.CancellationToken).Results;
-                foreach (var doc in docs)
+                }
+            };
+
+            var indexName = new ExpiryProcessedMessageIndex().IndexName;
+            QueryHeaderInformation _;
+            using (var ie = store.DatabaseCommands.StreamQuery(indexName, query, out _))
+            {
+                while (ie.MoveNext())
                 {
+                    var doc = ie.Current;
                     var id = doc.Value<string>("__document_id");
                     if (string.IsNullOrEmpty(id))
                     {
@@ -66,34 +69,31 @@
                     }
                 }
             }
-            catch (OperationCanceledException)
-            {
-                //Ignore
-            }
 
             var deletionCount = 0;
 
             Chunker.ExecuteInChunks(items.Count, (s, e) =>
             {
                 logger.InfoFormat("Batching deletion of {0}-{1} audit documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1), CancellationToken.None);
+                var results = store.DatabaseCommands.Batch(items.GetRange(s, e - s + 1));
                 logger.InfoFormat("Batching deletion of {0}-{1} audit documents completed.", s, e);
 
                 deletionCount += results.Count(x => x.Deleted == true);
             });
 
-            Chunker.ExecuteInChunks(attachments.Count, (s, e) =>
+            logger.InfoFormat("Deletion of {0}-{1} attachment audit documents.", 0, attachments.Count);
+            try
             {
-                database.TransactionalStorage.Batch(accessor =>
+                Parallel.ForEach(attachments, attach =>
                 {
-                    logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents.", s, e);
-                    for (var idx = s; idx <= e; idx++)
-                    {
-                        accessor.Attachments.DeleteAttachment(attachments[idx], null);
-                    }
-                    logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents completed.", s, e);
+                    store.DatabaseCommands.DeleteAttachment(attach, null);
                 });
-            });
+            }
+            catch (AggregateException ex)
+            {
+                logger.Warn("Deletion of attachments failed", ex);
+            }
+            logger.InfoFormat("Deletion of {0}-{1} attachment audit documents completed.", 0, attachments.Count);
 
             if (deletionCount == 0)
             {

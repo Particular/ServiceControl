@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using Autofac;
     using global::Nancy.Owin;
@@ -94,7 +93,6 @@
 
                 configuration.FileSystem.DataDirectory = Path.Combine(Settings.DbPath, "FileSystems");
                 configuration.FileSystem.IndexStoragePath = Path.Combine(Settings.DbPath, "FileSystems", "Indexes");
-                configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
 
                 app.UseRavenDB(new RavenDBOptions(configuration));
             });

@@ -1,13 +1,16 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System;
+    using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Persistence;
     using NServiceBus.Pipeline;
+    using Raven.Abstractions.Connection;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Embedded;
@@ -35,14 +38,30 @@
             documentStore.DefaultDatabase = "ServiceControl";
             documentStore.EnlistInDistributedTransactions = false;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
+            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
+
             documentStore.Initialize();
 
             Logger.Info("Index creation started");
-            
+
             //Create this index synchronously as we are using it straight away
             //Should be quick as number of endpoints will always be a small number
-            documentStore.ExecuteIndex(new KnownEndpointIndex());
-            
+            while (true)
+            {
+                try
+                {
+                    documentStore.ExecuteIndex(new KnownEndpointIndex());
+                    break;
+                }
+                catch (ErrorResponseException ex)
+                {
+                    Logger.Error("Failed to create indexes, waiting to try again", ex);
+                }
+
+                Thread.Sleep(2000);
+            }
+
+
             if (Settings.CreateIndexSync)
             {
                 IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
