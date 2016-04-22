@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -73,20 +75,15 @@
       <ResourceFiles Include="res\**\*.*" />
       <Prerequisites Include="Prerequisites\**\*.*" />
     </ItemGroup>
-
     <PropertyGroup>
       <SetupExeOutputFolder>$(SolutionDir)..\Assets\</SetupExeOutputFolder>
       <SetupExeName>Particular.ServiceControl-$(GfvLegacySemVerPadded).exe</SetupExeName>
     </PropertyGroup>
-
     <MakeDir Directories="$(SetupExeOutputFolder)" />
-    
     <ItemGroup>
       <ExistingExes Include="$(SetupExeOutputFolder)*.exe" />
-    </ItemGroup>  
-    
+    </ItemGroup>
     <Delete Files="@(ExistingExes)" />
-    
     <Copy SourceFiles="$(AIPFile)" DestinationFolder="$(IntermediateOutputPath)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(ResourceFiles)" DestinationFolder="$(IntermediateOutputPath)res\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(Prerequisites)" DestinationFolder="$(IntermediateOutputPath)Prerequisites\%(RecursiveDir)" SkipUnchangedFiles="true" />

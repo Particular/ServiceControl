@@ -49,7 +49,7 @@
             }
             catch (SecurityException exception)
             {
-                throw new Exception(string.Format("Failed to access '{0}'. Do you have permission to read this key?", FullPath), exception);
+                throw new Exception($"Failed to access '{FullPath}'. Do you have permission to read this key?", exception);
             }
         }
 
@@ -62,7 +62,7 @@
                 {
                     if (registryKey == null)
                     {
-                        throw new Exception(string.Format("CreateSubKey for '{0}' returned null. Do you have permission to write to this key", keyPath));
+                        throw new Exception($"CreateSubKey for '{keyPath}' returned null. Do you have permission to write to this key");
                     }
 
                     registryKey.SetValue(keyName, license, RegistryValueKind.String);
@@ -70,14 +70,11 @@
             }
             catch (UnauthorizedAccessException exception)
             {
-                throw new Exception(string.Format("Failed to access '{0}'. Do you have permission to write to this key?", FullPath), exception);
+                throw new Exception($"Failed to access '{FullPath}'. Do you have permission to write to this key?", exception);
             }
         }
 
-        string FullPath
-        {
-            get { return string.Format("{0} : {1} : {2}", regKey.Name, keyPath, keyName); }
-        }
+        string FullPath => $"{regKey.Name} : {keyPath} : {keyName}";
 
         string keyPath;
         string keyName;
