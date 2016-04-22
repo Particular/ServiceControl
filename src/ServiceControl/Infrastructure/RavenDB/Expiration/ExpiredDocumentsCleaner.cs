@@ -25,7 +25,6 @@
             private readonly IDocumentStore store;
             private ILog logger = LogManager.GetLogger(typeof(Cleaner));
             private Timer timer;
-            private bool stopping;
             private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
             public Cleaner(TimeKeeper timeKeeper, IDocumentStore store)
@@ -36,8 +35,6 @@
 
             protected override void OnStart()
             {
-                stopping = false;
-
                 var deleteFrequencyInSeconds = Settings.ExpirationProcessTimerInSeconds;
                 var deletionBatchSize = Settings.ExpirationProcessBatchSize;
 
