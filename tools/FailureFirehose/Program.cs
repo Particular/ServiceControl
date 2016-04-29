@@ -140,7 +140,7 @@ namespace FailureFirehose
 
                 for (var i = retries; i < groups.Length; i++)
                 {
-                    client.UploadData("http://localhost:33333/api/recoverability/groups/{ids[i]}/errors/archive", "POST", new byte[0]);
+                    client.UploadData($"http://localhost:33333/api/recoverability/groups/{ids[i]}/errors/archive", "POST", new byte[0]);
                 }
 
             }
