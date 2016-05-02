@@ -20,12 +20,10 @@ namespace ServiceControlInstaller.PowerShell
         public bool? ForwardErrorMessages;
 
         [Parameter(HelpMessage = "Specify the timespan to keep Audit Data")]
-        [ValidateNotNull]
         [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8760)] //1 hour to 365 days
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
         [Parameter(HelpMessage = "Specify the timespan to keep Error Data")]
-        [ValidateNotNull]
         [ValidateTimeSpanRange(MinimumHours = 240, MaximumHours = 1080)] //10 to 45 days
         public TimeSpan? ErrorRetentionPeriod { get; set; }
 
