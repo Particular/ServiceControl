@@ -16,8 +16,8 @@ namespace ServiceControlInstaller.PowerShell
             if (span.TotalHours < MinimumHours)
                 throw new Exception(string.Format("Timespan value is lower than the minimum of {0} hours", MinimumHours));
 
-            if (span.TotalHours > MinimumHours)
-                throw new Exception(string.Format("Timespan value is lower than the minimum of {0} hours", MinimumHours));
+            if (span.TotalHours > MaximumHours)
+                throw new Exception(string.Format("Timespan value is greater than the maximum of {0} hours", MaximumHours));
         }
     }
 }
