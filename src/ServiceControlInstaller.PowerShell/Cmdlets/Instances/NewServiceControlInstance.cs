@@ -127,6 +127,8 @@ namespace ServiceControlInstaller.PowerShell
                 ErrorLogQueue = string.IsNullOrWhiteSpace(ErrorLogQueue) ? null : ErrorLogQueue,
                 ForwardAuditMessages = ForwardAuditMessages,
                 ForwardErrorMessages = ForwardErrorMessages,
+                AuditRetentionPeriod = AuditRetentionPeriod,
+                ErrorRetentionPeriod = ErrorRetentionPeriod,
                 ConnectionString = ConnectionString,
                 TransportPackage = Transport
             };

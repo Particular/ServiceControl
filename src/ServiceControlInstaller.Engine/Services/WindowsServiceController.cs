@@ -29,7 +29,7 @@ namespace ServiceControlInstaller.Engine.Services
             }
             set
             {
-                WriteValue("Description", value);
+                WriteValue("Description", value ?? string.Empty);
             }
         }
 
