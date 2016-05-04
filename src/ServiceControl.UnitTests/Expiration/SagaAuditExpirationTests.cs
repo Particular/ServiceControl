@@ -23,7 +23,7 @@
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
 
                 var sagaHistoryId = Guid.NewGuid();
-                var sagaHistory = new SagaHistory
+                var sagaHistory = new SagaSnapshot
                 {
                     Id = sagaHistoryId,
                 };
@@ -38,7 +38,7 @@
 
                 using (var session = documentStore.OpenSession())
                 {
-                    Assert.IsEmpty(session.Query<SagaHistory>());
+                    Assert.IsEmpty(session.Query<SagaSnapshot>());
                 }
             }
         }
@@ -67,7 +67,7 @@
                 using (new RavenLastModifiedScope(recentDate))
                 using (var session = documentStore.OpenSession())
                 {
-                    var recentSagaHistory = new SagaHistory
+                    var recentSagaHistory = new SagaSnapshot
                     {
                         Id = Guid.NewGuid(),
                     };
@@ -78,7 +78,7 @@
 
                 using (var session = documentStore.OpenSession())
                 {
-                    Assert.AreEqual(1, session.Query<SagaHistory>().Count());
+                    Assert.AreEqual(1, session.Query<SagaSnapshot>().Count());
                 }
             }
         }
@@ -87,7 +87,7 @@
         {
             for (var i = 0; i < 10; i++)
             {
-                yield return new SagaHistory
+                yield return new SagaSnapshot
                 {
                     Id = Guid.NewGuid(),
                 };
@@ -103,7 +103,7 @@
         }
 
         [Test]
-        public void Only_expred_being_deleted()
+        public void Only_expired_being_deleted()
         {
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -111,7 +111,7 @@
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
                 var recentDate = DateTime.UtcNow.AddDays(-1);
 
-                var expiredSagaHistory = new SagaHistory
+                var expiredSagaHistory = new SagaSnapshot
                 {
                     Id = Guid.NewGuid(),
                 };
@@ -123,7 +123,7 @@
                     session.SaveChanges();
                 }
 
-                var recentSagaHistory = new SagaHistory
+                var recentSagaHistory = new SagaSnapshot
                 {
                     Id = Guid.NewGuid(),
                 };
@@ -137,8 +137,8 @@
 
                 using (var session = documentStore.OpenSession())
                 {
-                    Assert.Null(session.Load<SagaHistory>(expiredSagaHistory.Id));
-                    Assert.NotNull(session.Load<SagaHistory>(recentSagaHistory.Id));
+                    Assert.Null(session.Load<SagaSnapshot>(expiredSagaHistory.Id));
+                    Assert.NotNull(session.Load<SagaSnapshot>(recentSagaHistory.Id));
                 }
             }
         }
@@ -151,7 +151,7 @@
             {
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
                 var recentDate = DateTime.UtcNow.AddDays(-1);
-                var sagaHistory = new SagaHistory
+                var sagaHistory = new SagaSnapshot
                 {
                     Id = Guid.NewGuid(),
                 };
@@ -165,7 +165,7 @@
                 RunExpiry(documentStore, thresholdDate);
                 using (var session = documentStore.OpenSession())
                 {
-                    Assert.AreEqual(1, session.Query<SagaHistory>().Count());
+                    Assert.AreEqual(1, session.Query<SagaSnapshot>().Count());
                 }
             }
         }

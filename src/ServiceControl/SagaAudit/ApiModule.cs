@@ -3,7 +3,6 @@ namespace ServiceControl.SagaAudit
     using System;
     using Infrastructure.Extensions;
     using Raven.Client;
-    using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using Nancy;
@@ -17,20 +16,27 @@ namespace ServiceControl.SagaAudit
             {
                 using (var session = Store.OpenSession())
                 {
-                    Guid id = parameters.id;
-                    var sagaHistory = session.Load<SagaHistory>(id);
+                    Guid sagaId = parameters.id;
+                    RavenQueryStatistics stats;
+                    var sagaHistory =
+                        session.Query<SagaHistory, SagaDetailsIndex>()
+                            .Statistics(out stats)
+                            .SingleOrDefault(x => x.SagaId == sagaId);
+
                     if (sagaHistory == null)
                     {
                         return HttpStatusCode.NotFound;
                     }
-                    var etag = session.Advanced.GetEtagFor(sagaHistory);
-                    var metadata = session.Advanced.GetMetadataFor(sagaHistory);
-                    var lastModified = metadata.Value<DateTime>("Last-Modified");
+
+                    var lastModified = sagaHistory.Changes.OrderByDescending(x => x.FinishTime)
+                        .Select(y => y.FinishTime)
+                        .Single();
                     return Negotiate
                         .WithModel(sagaHistory)
-                        .WithEtagAndLastModified(etag, lastModified);
+                        .WithLastModified(lastModified);
                 }
             };
+
 
             Get["/sagas"] = _ =>
             {
@@ -38,10 +44,9 @@ namespace ServiceControl.SagaAudit
                 {
                     RavenQueryStatistics stats;
                     var results =
-                        session.Query<SagaHistory>()
+                        session.Query<SagaListIndex.Result, SagaListIndex>()
                             .Statistics(out stats)
                             .Paging(Request)
-                            .TransformWith<SagaListView, SagaListView.Result>()
                             .ToArray();
 
                     return Negotiate
@@ -50,34 +55,6 @@ namespace ServiceControl.SagaAudit
                         .WithEtagAndLastModified(stats);
                 }
             };
-
         }
-
-        public class SagaListView : AbstractTransformerCreationTask<SagaHistory>
-        {
-            public class Result
-            {
-                // ReSharper disable once NotAccessedField.Global
-                public Guid Id;
-
-                // ReSharper disable once NotAccessedField.Global
-                public string Uri;
-
-                // ReSharper disable once NotAccessedField.Global
-                public string SagaType;
-            }
-            public SagaListView()
-            {
-                TransformResults = sagas => from saga in sagas
-                                               select new Result
-                                               {
-                                                   Id = saga.SagaId,
-                                                   SagaType = saga.SagaType,
-                                                   Uri = "api/sagas/" + saga.SagaId
-                                               };
-            }
-        }
-
-
     }
 }

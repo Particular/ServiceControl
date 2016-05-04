@@ -35,6 +35,18 @@
     <LangVersion>6</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ApprovalTests, Version=3.0.0.0, Culture=neutral, PublicKeyToken=11bd7d124fc62e0f, processorArchitecture=MSIL">
+      <HintPath>..\packages\ApprovalTests.3.0.11\lib\net40\ApprovalTests.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="ApprovalUtilities, Version=3.0.0.0, Culture=neutral, PublicKeyToken=11bd7d124fc62e0f, processorArchitecture=MSIL">
+      <HintPath>..\packages\ApprovalUtilities.3.0.11\lib\net45\ApprovalUtilities.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="ApprovalUtilities.Net45, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ApprovalUtilities.3.0.11\lib\net45\ApprovalUtilities.Net45.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Data.Edm.5.6.4\lib\net40\Microsoft.Data.Edm.dll</HintPath>
@@ -106,6 +118,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApprovalTestConfig.cs" />
     <Compile Include="CompositeViews\FailedMessagesTests.cs" />
     <Compile Include="Expiration\ChunkerTests.cs" />
     <Compile Include="Expiration\ProcessedMessageExpirationTests.cs" />
@@ -119,10 +132,13 @@
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapperTests.cs" />
     <Compile Include="Infrastructure\SerializationTests.cs" />
     <Compile Include="MessageExtensions.cs" />
+    <Compile Include="ObjectApprover.cs" />
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
     <Compile Include="Recoverability\ExceptionTypeAndStackTraceMessageGrouperTest.cs" />
+    <Compile Include="SagaAudit\SagaDetailsIndexTests.cs" />
+    <Compile Include="SagaAudit\SagaListIndexTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -137,7 +153,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="AuditImport\" />
+    <Content Include="SagaAudit\SagaDetailsIndexTests.RunMapReduce.approved.txt" />
+    <Content Include="SagaAudit\SagaListIndexTests.RunMapReduce.approved.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />

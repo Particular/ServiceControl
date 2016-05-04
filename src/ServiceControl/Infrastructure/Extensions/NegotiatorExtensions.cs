@@ -137,6 +137,12 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 .WithHeader("Last-Modified", responseLastModified.ToString("R"));
         }
 
+        public static Negotiator WithLastModified(this Negotiator negotiator, DateTime responseLastModified)
+        {
+            return negotiator
+                .WithHeader("Last-Modified", responseLastModified.ToString("R"));
+        }
+
         public static Negotiator WithRavenQueryStats(this Negotiator negotiator, RavenQueryStatistics stats)
         {
             return negotiator
