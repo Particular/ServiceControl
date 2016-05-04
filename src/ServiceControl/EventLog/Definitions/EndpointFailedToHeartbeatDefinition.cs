@@ -8,7 +8,7 @@
         {
             TreatAsError();
 
-            Description(m => "Endpoint has failed to send expected heartbeat to ServiceControl. It is possible that the endpoint could be down or is unresponsive. If this condition persists, you might want to restart your endpoint.");
+            Description(m => "Endpoint has failed to send expected heartbeat to ServiceControl. It is possible that the endpoint could be down or is unresponsive. If this condition persists restart the endpoint.");
 
             RelatesToEndpoint(m => m.Endpoint.Name);
             RelatesToHost(m => m.Endpoint.HostId);
