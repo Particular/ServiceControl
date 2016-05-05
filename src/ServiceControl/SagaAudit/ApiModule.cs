@@ -30,7 +30,8 @@ namespace ServiceControl.SagaAudit
 
                     var lastModified = sagaHistory.Changes.OrderByDescending(x => x.FinishTime)
                         .Select(y => y.FinishTime)
-                        .Single();
+                        .First();
+
                     return Negotiate
                         .WithModel(sagaHistory)
                         .WithLastModified(lastModified);
