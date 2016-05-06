@@ -373,7 +373,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
             catch
             {
-                ReportCard.Warnings.Add($"Could not delete the logs directory '{LogPath}'. Please remove manually");
+                ReportCard.Warnings.Add($"Could not delete the installation directory '{InstallPath}'. Please remove manually");
             }
         }
 
