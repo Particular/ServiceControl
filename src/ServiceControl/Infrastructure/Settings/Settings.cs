@@ -279,15 +279,9 @@
             return result;
         }
 
-        public static TimeSpan AuditRetentionPeriod
-        {
-            get { return auditRetentionPeriod; }
-        }
+        public static TimeSpan AuditRetentionPeriod => auditRetentionPeriod;
 
-        public static TimeSpan ErrorRetentionPeriod
-        {
-            get { return errorRetentionPeriod; }
-        }
+        public static TimeSpan ErrorRetentionPeriod => errorRetentionPeriod;
 
         const int ExpirationProcessBatchSizeDefault = 65512;
         const int ExpirationProcessBatchSizeMinimum = 10240;

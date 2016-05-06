@@ -44,13 +44,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         }
 
 
-        public static string LogPath
-        {
-            get
-            {
-                return Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", DefaultLogPathForInstance()));
-            }
-        }
+        public static string LogPath => Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", DefaultLogPathForInstance()));
 
         private static string DefaultLogPathForInstance()
         {

@@ -4,12 +4,6 @@
     {
         public const uint InitializeConfig = 0x00000002;
 
-        public static HttpApiVersion Version1
-        {
-            get
-            {
-                return new HttpApiVersion(1, 0);
-            }
-        }
+        public static HttpApiVersion Version1 => new HttpApiVersion(1, 0);
     }
 }

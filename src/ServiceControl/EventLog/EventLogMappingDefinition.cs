@@ -7,13 +7,7 @@
 
     public abstract class EventLogMappingDefinition<T> : IEventLogMappingDefinition where T : IEvent
     {
-        public virtual string Category
-        {
-            get
-            {
-                return typeof(T).Namespace.Split('.').Last();
-            }
-        }
+        public virtual string Category => typeof(T).Namespace.Split('.').Last();
 
         public EventLogItem Apply(string messageId, IEvent @event)
         {

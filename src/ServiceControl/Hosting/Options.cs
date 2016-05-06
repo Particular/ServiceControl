@@ -163,15 +163,9 @@ namespace Particular.ServiceControl.Hosting
             (values as ICollection).CopyTo(array, index);
         }
 
-        bool ICollection.IsSynchronized
-        {
-            get { return (values as ICollection).IsSynchronized; }
-        }
+        bool ICollection.IsSynchronized => (values as ICollection).IsSynchronized;
 
-        object ICollection.SyncRoot
-        {
-            get { return (values as ICollection).SyncRoot; }
-        }
+        object ICollection.SyncRoot => (values as ICollection).SyncRoot;
 
         #endregion
 
@@ -182,15 +176,9 @@ namespace Particular.ServiceControl.Hosting
             values.Clear();
         }
 
-        public int Count
-        {
-            get { return values.Count; }
-        }
+        public int Count => values.Count;
 
-        public bool IsReadOnly
-        {
-            get { return false; }
-        }
+        public bool IsReadOnly => false;
 
         public void Add(string item)
         {
@@ -264,10 +252,7 @@ namespace Particular.ServiceControl.Hosting
             (values as IList).RemoveAt(index);
         }
 
-        bool IList.IsFixedSize
-        {
-            get { return false; }
-        }
+        bool IList.IsFixedSize => false;
 
         object IList.this[int index]
         {
@@ -358,9 +343,9 @@ namespace Particular.ServiceControl.Hosting
 
         public int OptionIndex { get; set; }
 
-        public OptionSet OptionSet { get; private set; }
+        public OptionSet OptionSet { get; }
 
-        public OptionValueCollection OptionValues { get; private set; }
+        public OptionValueCollection OptionValues { get; }
     }
 
     public enum OptionValueType
@@ -421,15 +406,15 @@ namespace Particular.ServiceControl.Hosting
             }
         }
 
-        public string Prototype { get; private set; }
+        public string Prototype { get; }
 
-        public string Description { get; private set; }
+        public string Description { get; }
 
-        public OptionValueType OptionValueType { get; private set; }
+        public OptionValueType OptionValueType { get; }
 
-        public int MaxValueCount { get; private set; }
+        public int MaxValueCount { get; }
 
-        internal string[] Names { get; private set; }
+        internal string[] Names { get; }
 
         internal string[] ValueSeparators { get; private set; }
 
@@ -613,7 +598,7 @@ namespace Particular.ServiceControl.Hosting
             OptionName = info.GetString("OptionName");
         }
 
-        public string OptionName { get; private set; }
+        public string OptionName { get; }
 
         [SecurityPermission(SecurityAction.LinkDemand, SerializationFormatter = true)]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
@@ -637,7 +622,7 @@ namespace Particular.ServiceControl.Hosting
             MessageLocalizer = localizer;
         }
 
-        public Converter<string, string> MessageLocalizer { get; private set; }
+        public Converter<string, string> MessageLocalizer { get; }
 
         protected override string GetKeyForItem(Option item)
         {

@@ -5,7 +5,8 @@ namespace ServiceControl.Recoverability
 
     public class ExceptionTypeAndStackTraceMessageGrouper : IFailureClassifier
     {
-        public string Name { get { return "Exception Type and Stack Trace"; } }
+        public string Name => "Exception Type and Stack Trace";
+
         public string ClassifyFailure(FailureDetails failureDetails)
         {
             var exception = failureDetails.Exception;

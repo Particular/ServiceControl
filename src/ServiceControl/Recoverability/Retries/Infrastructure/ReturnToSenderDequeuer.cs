@@ -85,10 +85,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        bool IsCounting
-        {
-            get { return targetMessageCount.HasValue; }
-        }
+        bool IsCounting => targetMessageCount.HasValue;
 
         void CountMessageAndStopIfReachedTarget()
         {
@@ -145,8 +142,9 @@ namespace ServiceControl.Recoverability
             Log.InfoFormat("{0} stopped", GetType().Name);
         }
 
-        public Address InputAddress { get; private set; }
-        public bool Disabled { get { return false; } }
+        public Address InputAddress { get; }
+        public bool Disabled => false;
+
         public Action<TransportReceiver> GetReceiverCustomization()
         {
             return r =>

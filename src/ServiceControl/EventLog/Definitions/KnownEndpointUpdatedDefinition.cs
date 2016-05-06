@@ -11,9 +11,6 @@
             RelatesToEndpoint(m => m.Endpoint.Name);
         }
 
-        public override string Category
-        {
-            get { return "Endpoints"; }
-        }
+        public override string Category => "Endpoints";
     }
 }

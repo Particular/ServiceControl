@@ -11,9 +11,6 @@
             return Settings.ErrorLogQueue != Address.Undefined;
         }
 
-        public Address Address
-        {
-            get { return Settings.ErrorLogQueue; }
-        }
+        public Address Address => Settings.ErrorLogQueue;
     }
 }

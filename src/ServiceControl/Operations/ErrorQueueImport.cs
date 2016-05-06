@@ -86,15 +86,9 @@
         {
         }
 
-        public Address InputAddress
-        {
-            get { return Settings.ErrorQueue; }
-        }
+        public Address InputAddress => Settings.ErrorQueue;
 
-        public bool Disabled
-        {
-            get { return InputAddress == Address.Undefined; }
-        }
+        public bool Disabled => InputAddress == Address.Undefined;
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
