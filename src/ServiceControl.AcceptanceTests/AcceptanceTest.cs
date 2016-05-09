@@ -118,7 +118,7 @@
             pathToAppConfig = null;
 
             ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            port = FindAvailablePort(33333);
+            port = FindAvailablePort(33338);
 
             if (transportToUse == null)
             {
