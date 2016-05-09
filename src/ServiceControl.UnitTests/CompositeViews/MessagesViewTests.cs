@@ -132,13 +132,13 @@
             {
                 var firstByTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.TimeSent)
-                    .OfType<ProcessedMessage>()
+                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
                     .First();
                 Assert.AreEqual("3", firstByTimeSent.Id);
 
                 var firstByTimeSentDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.TimeSent)
-                    .OfType<ProcessedMessage>()
+                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
                     .First();
                 Assert.AreEqual("1", firstByTimeSentDescription.Id);
             }
@@ -214,7 +214,7 @@
         public void SetUp()
         {
             documentStore = InMemoryStoreBuilder.GetInMemoryStore();
-
+            
             var customIndex = new MessagesViewIndex();
             customIndex.Execute(documentStore);
 

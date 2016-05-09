@@ -10,15 +10,16 @@ public class InMemoryStoreBuilder
             Configuration =
             {
                 RunInUnreliableYetFastModeThatIsNotSuitableForProduction = true,
-                RunInMemory = true
+                RunInMemory = true,
+                CompiledIndexCacheDirectory = Path.GetTempPath(), // RavenDB-2236
             },
             Conventions =
             {
                 SaveEnumsAsIntegers = true
             }
         };
-        store.Configuration.CompiledIndexCacheDirectory = Path.GetTempPath(); // RavenDB-2236
         store.Initialize();
+
         return store;
     }
 }
