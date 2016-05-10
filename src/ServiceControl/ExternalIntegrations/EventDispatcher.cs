@@ -23,7 +23,7 @@
         {
             tokenSource = new CancellationTokenSource();
             circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventDispatcher",
-                TimeSpan.FromMinutes(2),
+                TimeSpan.FromMinutes(5),
                 ex => CriticalError.Raise("Repeated failures when dispatching external integration events.", ex),
                 TimeSpan.FromSeconds(20));
             StartDispatcher();
@@ -65,6 +65,8 @@
                 {
                     token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1));
                 }
+
+                circuitBreaker.Success();
             }
         }
 
