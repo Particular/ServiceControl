@@ -40,12 +40,15 @@
         {
             var resolver = new AutofacDependencyResolver();
 
-            app.MapConnection<MessageStreamerConnection>("/messagestream",
-                new ConnectionConfiguration
-                {
-                    EnableCrossDomain = true,
-                    Resolver = resolver
-                });
+            app.Map("/messagestream", map =>
+            {
+                map.RunSignalR<MessageStreamerConnection>(
+                    new ConnectionConfiguration
+                    {
+                        EnableJSONP = true,
+                        Resolver = resolver
+                    });
+            });
 
             GlobalHost.DependencyResolver = resolver;
 
