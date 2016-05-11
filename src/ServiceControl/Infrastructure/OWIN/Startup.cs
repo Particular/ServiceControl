@@ -54,7 +54,7 @@
 
             GlobalHost.DependencyResolver = resolver;
 
-            var jsonSerializer = new JsonSerializer();
+            var jsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
 
             GlobalEventHandler.SignalrIsReady = true;
