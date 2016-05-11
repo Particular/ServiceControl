@@ -10,9 +10,8 @@
     using Particular.ServiceControl;
     using ServiceControl.Infrastructure.SignalR;
     using Autofac;
-    using Microsoft.AspNet.SignalR.Json;
+    using Newtonsoft.Json;
     using ServiceControl.Infrastructure.OWIN;
-    using JsonNetSerializer = Microsoft.AspNet.SignalR.Json.JsonNetSerializer;
 
     public class Startup
     {
@@ -50,8 +49,8 @@
 
             GlobalHost.DependencyResolver = resolver;
 
-            var jsonSerializer = new JsonNetSerializer(SerializationSettingsFactoryForSignalR.CreateDefault());
-            GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => jsonSerializer);
+            var jsonSerializer = new JsonSerializer();
+            GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
 
             GlobalEventHandler.SignalrIsReady = true;
         }
