@@ -10,6 +10,7 @@
     using Particular.ServiceControl;
     using ServiceControl.Infrastructure.SignalR;
     using Autofac;
+    using Microsoft.Owin.Cors;
     using Newtonsoft.Json;
     using ServiceControl.Infrastructure.OWIN;
 
@@ -42,6 +43,7 @@
 
             app.Map("/messagestream", map =>
             {
+                map.UseCors(CorsOptions.AllowAll);
                 map.RunSignalR<MessageStreamerConnection>(
                     new ConnectionConfiguration
                     {
