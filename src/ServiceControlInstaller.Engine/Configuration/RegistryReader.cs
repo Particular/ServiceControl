@@ -16,14 +16,11 @@
 
                     using (var registryKey = rootKey.OpenSubKey(regPath))
                     {
-                        if (registryKey != null)
-                        {
-                            var value = registryKey.GetValue(name);
+                        var value = registryKey?.GetValue(name);
 
-                            if (value != null)
-                            {
-                                return (T)Convert.ChangeType(value, typeof(T));
-                            }
+                        if (value != null)
+                        {
+                            return (T)Convert.ChangeType(value, typeof(T));
                         }
                     }
 

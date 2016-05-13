@@ -64,7 +64,7 @@
                     if (File.Exists(flagFile))
                         continue;  // flagfile will be present if we've unpacked and had a config failure.  In this case it's OK for the directory to have content
                     if (directory.GetFileSystemInfos().Any())
-                        throw new EngineValidationException(string.Format("The directory specified as the {0} is not empty.", pathInfo.Name));
+                        throw new EngineValidationException($"The directory specified as the {pathInfo.Name} is not empty.");
                 }
             }
         }
@@ -96,7 +96,7 @@
             existingInstancePaths = existingInstancePaths.Distinct().ToList();
             foreach (var path in paths.Where(path => existingInstancePaths.Contains(path.Path, StringComparer.OrdinalIgnoreCase)))
             {
-                throw new EngineValidationException(string.Format("The {0} specified is already assigned to another instance", path.Name));
+                throw new EngineValidationException($"The {path.Name} specified is already assigned to another instance");
             }
         }
 
@@ -110,7 +110,7 @@
                         continue;
                     if (possibleChild.Path.IndexOf(path.Path, StringComparison.OrdinalIgnoreCase) > -1)
                     {
-                        throw new EngineValidationException(string.Format("Nested paths are not supported. The {0} is nested under {1}", possibleChild.Name, path.Name));
+                        throw new EngineValidationException($"Nested paths are not supported. The {possibleChild.Name} is nested under {path.Name}");
                     }
                 }
             }
@@ -136,28 +136,28 @@
 
                 if (!Uri.TryCreate(path.Path, UriKind.Absolute, out uri))
                 {
-                    throw new EngineValidationException(string.Format("The {0} is set to an invalid path", path.Name));
+                    throw new EngineValidationException($"The {path.Name} is set to an invalid path");
                 }
 
                 if (uri.IsUnc)
                 {
-                    throw new EngineValidationException(string.Format("The {0} is invalid,  UNC paths are not supported.", path.Name));
+                    throw new EngineValidationException($"The {path.Name} is invalid,  UNC paths are not supported.");
                 }
 
                 if (uri.Scheme != Uri.UriSchemeFile)
                 {
-                    throw new EngineValidationException(string.Format("The {0} is set to an invalid path", path.Name));
+                    throw new EngineValidationException($"The {path.Name} is set to an invalid path");
                 }
 
                 if (!Path.IsPathRooted(uri.LocalPath))
                 {
-                    throw new EngineValidationException(string.Format("A full path is required for {0}", path.Name));
+                    throw new EngineValidationException($"A full path is required for {path.Name}");
                 }
 
                 var pathDriveLetter = Path.GetPathRoot(uri.LocalPath)[0].ToString();
                 if (!driveletters.Contains(pathDriveLetter, StringComparer.OrdinalIgnoreCase))
                 {
-                    throw new EngineValidationException(string.Format("The {0} does not go to a supported drive", path.Name));
+                    throw new EngineValidationException($"The {path.Name} does not go to a supported drive");
                 }
             }
         }

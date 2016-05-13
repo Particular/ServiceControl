@@ -19,7 +19,7 @@
 
     public class Installer
     {
-        public ServiceControlZipInfo ZipInfo { get; private set; }
+        public ServiceControlZipInfo ZipInfo { get; }
 
         public Installer()
         {
@@ -62,7 +62,7 @@
                 var instance = ServiceControlInstance.FindByName(instanceInstaller.Name);
                 if (!instance.TryStartService())
                 {
-                    instance.ReportCard.Warnings.Add(string.Format("New instance did not startup - please check configuration for {0}", instance.Name));
+                    instance.ReportCard.Warnings.Add($"New instance did not startup - please check configuration for {instance.Name}");
                 }
             }
             instanceInstaller.ReportCard.SetStatus();
@@ -132,7 +132,7 @@
                 {
                     if (startService && !instance.TryStartService())
                     {
-                        instance.ReportCard.Warnings.Add(string.Format("Service did not start after changes - please check configuration for {0}", instance.Name));
+                        instance.ReportCard.Warnings.Add($"Service did not start after changes - please check configuration for {instance.Name}");
                     }
                 }
                 instance.ReportCard.SetStatus();

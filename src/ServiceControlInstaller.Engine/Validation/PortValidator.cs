@@ -12,7 +12,7 @@
             }
 
             if (!PortUtils.CheckAvailable(instance.Port))
-                throw new EngineValidationException(string.Format("Port {0} is not available", instance.Port));
+                throw new EngineValidationException($"Port {instance.Port} is not available");
         }
     }
 }

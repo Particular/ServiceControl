@@ -13,7 +13,7 @@ namespace ServiceControlInstaller.Engine.Unattended
     {
         Logging logger;
 
-        public ServiceControlZipInfo ZipInfo { private set; get; }
+        public ServiceControlZipInfo ZipInfo { get; }
 
         public UnattendInstaller(ILogging loggingInstance)
         {

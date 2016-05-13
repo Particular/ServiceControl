@@ -41,12 +41,8 @@
         protected string GetVersion()
         {
             var assemblyInfo = Assembly.GetExecutingAssembly().GetAttribute<AssemblyInformationalVersionAttribute>();
-            if (assemblyInfo == null)
-            {
-                return null;
-            }
-            var versionParts = assemblyInfo.InformationalVersion.Split('+');
-            return versionParts[0];
+            var versionParts = assemblyInfo?.InformationalVersion.Split('+');
+            return versionParts?[0];
         }
     }
 }

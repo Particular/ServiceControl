@@ -105,12 +105,12 @@
 
             if (duplicates.Count == 1)
             {
-                throw new EngineValidationException(string.Format("The queue name for {0} is already assigned to another ServiceControl instance", duplicates[0]));
+                throw new EngineValidationException($"The queue name for {duplicates[0]} is already assigned to another ServiceControl instance");
             }
 
             if (duplicates.Count > 1)
             {
-                throw new EngineValidationException(string.Format("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for {0}", string.Join(", ", duplicates)));
+                throw new EngineValidationException($"Some queue names specified are already assigned to another ServiceControl instance - Correct the values for {string.Join(", ", duplicates)}");
             }
         }
     }

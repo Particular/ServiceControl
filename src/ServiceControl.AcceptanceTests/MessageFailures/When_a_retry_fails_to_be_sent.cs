@@ -42,7 +42,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                     },
                         (bus, ctx) =>
                         {
-                            Post<object>(String.Format("/api/errors/{0}/retry", ctx.DecommissionedEndpointUniqueMessageId));
+                            Post<object>($"/api/errors/{ctx.DecommissionedEndpointUniqueMessageId}/retry");
                             bus.SendLocal(new MessageThatWillFail());
                             ctx.RetryForInvalidAddressIssued = true;
                         })
@@ -53,7 +53,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                     },
                         (bus, ctx) =>
                         {
-                            Post<object>(String.Format("/api/errors/{0}/retry", ctx.MessageThatWillFailUniqueMessageId));
+                            Post<object>($"/api/errors/{ctx.MessageThatWillFailUniqueMessageId}/retry");
                             ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued = true;
                         }))
                 .Done(ctx =>

@@ -26,10 +26,7 @@
 
         protected override void OnStop()
         {
-            if (bootstrapper != null)
-            {
-                bootstrapper.Stop();
-            }
+            bootstrapper?.Stop();
 
             OnStopping();
         }

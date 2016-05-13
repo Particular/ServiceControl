@@ -59,7 +59,7 @@ namespace ServiceControl.Recoverability
             {
                 if (context == null)
                     return null;
-                return string.Format("Retry '{0}' batch {1} of {2}", context, pageNum, totalPages);
+                return $"Retry '{context}' batch {pageNum} of {totalPages}";
             }
         }
 

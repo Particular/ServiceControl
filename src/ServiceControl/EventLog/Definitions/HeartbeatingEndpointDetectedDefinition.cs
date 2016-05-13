@@ -6,7 +6,7 @@
     {
         public HeartbeatingEndpointDetectedDefinition()
         {
-            Description(m => string.Format("Endpoint {0} running on host {1} has been confirmed to have heartbeats enabled", m.Endpoint.Name, m.Endpoint.Host));
+            Description(m => $"Endpoint {m.Endpoint.Name} running on host {m.Endpoint.Host} has been confirmed to have heartbeats enabled");
 
             RelatesToEndpoint(m => m.Endpoint.Host);
             RelatesToHost(m => m.Endpoint.HostId);

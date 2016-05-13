@@ -297,7 +297,7 @@ namespace Particular.ServiceControl.Hosting
             }
             if (index >= c.Option.MaxValueCount)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
             if (c.Option.OptionValueType == OptionValueType.Required &&
                 index >= values.Count)
@@ -366,15 +366,15 @@ namespace Particular.ServiceControl.Hosting
         {
             if (prototype == null)
             {
-                throw new ArgumentNullException("prototype");
+                throw new ArgumentNullException(nameof(prototype));
             }
             if (prototype.Length == 0)
             {
-                throw new ArgumentException("Cannot be the empty string.", "prototype");
+                throw new ArgumentException("Cannot be the empty string.", nameof(prototype));
             }
             if (maxValueCount < 0)
             {
-                throw new ArgumentOutOfRangeException("maxValueCount");
+                throw new ArgumentOutOfRangeException(nameof(maxValueCount));
             }
 
             Prototype = prototype;
@@ -388,13 +388,13 @@ namespace Particular.ServiceControl.Hosting
                 throw new ArgumentException(
                     "Cannot provide maxValueCount of 0 for OptionValueType.Required or " +
                     "OptionValueType.Optional.",
-                    "maxValueCount");
+                    nameof(maxValueCount));
             }
             if (OptionValueType == OptionValueType.None && maxValueCount > 1)
             {
                 throw new ArgumentException(
-                    string.Format("Cannot provide maxValueCount of {0} for OptionValueType.None.", maxValueCount),
-                    "maxValueCount");
+                    $"Cannot provide maxValueCount of {maxValueCount} for OptionValueType.None.",
+                    nameof(maxValueCount));
             }
             if (Array.IndexOf(Names, "<>") >= 0 &&
                 ((Names.Length == 1 && OptionValueType != OptionValueType.None) ||
@@ -402,7 +402,7 @@ namespace Particular.ServiceControl.Hosting
             {
                 throw new ArgumentException(
                     "The default option handler '<>' cannot require values.",
-                    "prototype");
+                    nameof(prototype));
             }
         }
 
@@ -478,7 +478,7 @@ namespace Particular.ServiceControl.Hosting
                 }
                 else
                 {
-                    throw new Exception(string.Format("Conflicting option types: '{0}' vs. '{1}'.", type, name[end]));
+                    throw new Exception($"Conflicting option types: '{type}' vs. '{name[end]}'.");
                 }
                 AddSeparators(name, end, seps);
             }
@@ -490,7 +490,7 @@ namespace Particular.ServiceControl.Hosting
 
             if (MaxValueCount <= 1 && seps.Count != 0)
             {
-                throw new Exception(string.Format("Cannot provide key/value separators for Options taking {0} value(s).", MaxValueCount));
+                throw new Exception($"Cannot provide key/value separators for Options taking {MaxValueCount} value(s).");
             }
             if (MaxValueCount > 1)
             {
@@ -525,14 +525,14 @@ namespace Particular.ServiceControl.Hosting
                     case '{':
                         if (start != -1)
                         {
-                            throw new Exception(string.Format("Ill-formed name/value separator found in \"{0}\".", name));
+                            throw new Exception($"Ill-formed name/value separator found in \"{name}\".");
                         }
                         start = i + 1;
                         break;
                     case '}':
                         if (start == -1)
                         {
-                            throw new Exception(string.Format("Ill-formed name/value separator found in \"{0}\".", name));
+                            throw new Exception($"Ill-formed name/value separator found in \"{name}\".");
                         }
                         seps.Add(name.Substring(start, i - start));
                         start = -1;
@@ -547,7 +547,7 @@ namespace Particular.ServiceControl.Hosting
             }
             if (start != -1)
             {
-                throw new Exception(string.Format("Ill-formed name/value separator found in \"{0}\".", name));
+                throw new Exception($"Ill-formed name/value separator found in \"{name}\".");
             }
         }
 
@@ -628,7 +628,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (item == null)
             {
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
             }
             if (item.Names != null && item.Names.Length > 0)
             {
@@ -644,7 +644,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (option == null)
             {
-                throw new ArgumentNullException("option");
+                throw new ArgumentNullException(nameof(option));
             }
             try
             {
@@ -684,7 +684,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (option == null)
             {
-                throw new ArgumentNullException("option");
+                throw new ArgumentNullException(nameof(option));
             }
             var added = new List<string>(option.Names.Length);
             try
@@ -719,7 +719,7 @@ namespace Particular.ServiceControl.Hosting
             {
                 if (action == null)
                 {
-                    throw new ArgumentNullException("action");
+                    throw new ArgumentNullException(nameof(action));
                 }
                 this.action = action;
             }
@@ -741,7 +741,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (action == null)
             {
-                throw new ArgumentNullException("action");
+                throw new ArgumentNullException(nameof(action));
             }
             Option p = new ActionOption(prototype, description, 1,
                 delegate(OptionValueCollection v) { action(v[0]); });
@@ -758,7 +758,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (action == null)
             {
-                throw new ArgumentNullException("action");
+                throw new ArgumentNullException(nameof(action));
             }
             Option p = new ActionOption(prototype, description, 2,
                 delegate(OptionValueCollection v) { action(v[0], v[1]); });
@@ -773,7 +773,7 @@ namespace Particular.ServiceControl.Hosting
             {
                 if (action == null)
                 {
-                    throw new ArgumentNullException("action");
+                    throw new ArgumentNullException(nameof(action));
                 }
                 this.action = action;
             }
@@ -793,7 +793,7 @@ namespace Particular.ServiceControl.Hosting
             {
                 if (action == null)
                 {
-                    throw new ArgumentNullException("action");
+                    throw new ArgumentNullException(nameof(action));
                 }
                 this.action = action;
             }
@@ -887,10 +887,7 @@ namespace Particular.ServiceControl.Hosting
                     Unprocessed(unprocessed, def, c, argument);
                 }
             }
-            if (c.Option != null)
-            {
-                c.Option.Invoke(c);
-            }
+            c.Option?.Invoke(c);
             return unprocessed;
         }
 #endif
@@ -915,7 +912,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (argument == null)
             {
-                throw new ArgumentNullException("argument");
+                throw new ArgumentNullException(nameof(argument));
             }
 
             flag = name = sep = value = null;
@@ -1001,9 +998,7 @@ namespace Particular.ServiceControl.Hosting
             }
             else if (c.OptionValues.Count > c.Option.MaxValueCount)
             {
-                throw new OptionException(MessageLocalizer(string.Format(
-                    "Error: Found {0} option values when expecting {1}.",
-                    c.OptionValues.Count, c.Option.MaxValueCount)),
+                throw new OptionException(MessageLocalizer($"Error: Found {c.OptionValues.Count} option values when expecting {c.Option.MaxValueCount}."),
                     c.OptionName);
             }
         }
@@ -1202,7 +1197,7 @@ namespace Particular.ServiceControl.Hosting
                 do
                 {
                     start = description.IndexOf(nameStart[i], j);
-                } while (start >= 0 && j != 0 ? description[j++ - 1] == '{' : false);
+                } while (start >= 0 && j != 0 && description[j++ - 1] == '{');
                 if (start == -1)
                 {
                     continue;

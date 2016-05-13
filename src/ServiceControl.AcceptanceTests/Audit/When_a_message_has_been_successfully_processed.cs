@@ -155,7 +155,7 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c =>c.MessageId != null && TryGetMany(string.Format("/api/endpoints/{0}/messages/search/{1}",c.EndpointNameOfReceivingEndpoint, c.MessageId), out response))
+                .Done(c =>c.MessageId != null && TryGetMany($"/api/endpoints/{c.EndpointNameOfReceivingEndpoint}/messages/search/{c.MessageId}", out response))
                 .Run(TimeSpan.FromSeconds(40));
         }
 

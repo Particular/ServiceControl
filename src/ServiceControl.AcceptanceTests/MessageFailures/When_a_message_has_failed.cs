@@ -141,7 +141,7 @@
                 {
                     this.context = context;
                     this.bus = bus;
-                    connection = new Connection(string.Format("http://localhost:{0}/api/messagestream", context.SCPort));
+                    connection = new Connection($"http://localhost:{context.SCPort}/api/messagestream");
                 }
 
                 public void Start()

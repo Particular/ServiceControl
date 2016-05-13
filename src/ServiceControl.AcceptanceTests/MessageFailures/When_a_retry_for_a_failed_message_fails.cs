@@ -85,7 +85,7 @@
 
         void IssueRetry(MyContext c)
         {
-            Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId));
+            Post<object>($"/api/errors/{c.UniqueMessageId}/retry");
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder

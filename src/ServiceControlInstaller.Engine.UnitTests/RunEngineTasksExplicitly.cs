@@ -64,7 +64,7 @@
             details.Validate();
             if (details.ReportCard.HasErrors)
             {
-                throw new Exception(string.Format("Validation errors:  {0}", string.Join("\r\n", details.ReportCard.Errors)));
+                throw new Exception($"Validation errors:  {string.Join("\r\n", details.ReportCard.Errors)}");
             }
             Assert.DoesNotThrow(() => installer.Add(details));
         }

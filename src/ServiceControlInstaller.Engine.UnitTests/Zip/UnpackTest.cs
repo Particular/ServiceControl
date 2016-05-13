@@ -17,20 +17,20 @@
         public void Setup()
         {
             var identifier = Guid.NewGuid().ToString("N");
-            zipFilePath = Path.Combine(Path.GetTempPath(), string.Format("{0}.zip", identifier));
+            zipFilePath = Path.Combine(Path.GetTempPath(), $"{identifier}.zip");
             var folders = new [] { "a", "b", "c"};
             workingFolder =  Directory.CreateDirectory( Path.Combine(Path.GetTempPath(), identifier ));
 
             foreach (var folder in folders)
             {
                 var sub = workingFolder.CreateSubdirectory(folder);
-                using (var x = File.CreateText(Path.Combine(sub.FullName, string.Format("{0}root.txt", folder))))
+                using (var x = File.CreateText(Path.Combine(sub.FullName, $"{folder}root.txt")))
                 {
                     x.WriteLine("temp");
                 }
 
                 var subsub = sub.CreateSubdirectory(string.Format("{0}{0}", folder));
-                using (var x = File.CreateText(Path.Combine(subsub.FullName, string.Format("{0}sub.txt", folder))))
+                using (var x = File.CreateText(Path.Combine(subsub.FullName, $"{folder}sub.txt")))
                 {
                     x.WriteLine("temp");
                 }

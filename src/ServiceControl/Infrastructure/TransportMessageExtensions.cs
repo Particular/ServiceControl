@@ -29,10 +29,10 @@
             string messageTypes;
             if (message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes))
             {
-                throw new Exception(string.Format("No processing endpoint could be determined for message ({0}) with EnclosedMessageTypes ({1})", message.Id, messageTypes));
+                throw new Exception($"No processing endpoint could be determined for message ({message.Id}) with EnclosedMessageTypes ({messageTypes})");
             }
 
-            throw new Exception(string.Format("No processing endpoint could be determined for message ({0})", message.Id));
+            throw new Exception($"No processing endpoint could be determined for message ({message.Id})");
         }
 
         public static string UniqueId(this TransportMessage message)

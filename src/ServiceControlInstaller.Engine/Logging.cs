@@ -11,23 +11,17 @@
 
         public void Info(string message, params object[] args)
         {
-            if (logger == null)
-                return;
-            logger.Info(string.Format(message, args));
+            logger?.Info(string.Format(message, args));
         }
 
         public void Error(string message, params object[] args)
         {
-            if (logger == null)
-                return;
-            logger.Error(string.Format(message, args));
+            logger?.Error(string.Format(message, args));
         }
 
         public void Warn(string message, params object[] args)
         {
-            if (logger == null)
-                return;
-            logger.Warn(string.Format(message, args));
+            logger?.Warn(string.Format(message, args));
         }
     }
 }

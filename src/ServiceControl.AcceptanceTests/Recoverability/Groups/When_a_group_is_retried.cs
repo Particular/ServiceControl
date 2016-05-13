@@ -43,7 +43,7 @@
                             return false;
                         }
 
-                        Patch<object>(String.Format("/api/errors/{0}/archive", messageToBeArchived.UniqueMessageId));
+                        Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
 
                         c.ArchiveIssued = true;
 
@@ -61,7 +61,7 @@
 
                         c.RetryIssued = true;
                         
-                        Post<object>(String.Format("/api/recoverability/groups/{0}/errors/retry", messageToBeRetriedAsPartOfGroupRetry.FailureGroups[0].Id));
+                        Post<object>($"/api/recoverability/groups/{messageToBeRetriedAsPartOfGroupRetry.FailureGroups[0].Id}/errors/retry");
 
                         return false;
                     }

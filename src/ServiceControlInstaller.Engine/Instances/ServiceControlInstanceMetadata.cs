@@ -63,12 +63,12 @@ namespace ServiceControlInstaller.Engine.Instances
             get
             {
                 //TODO: Introduce option for https?
-                var baseUrl = string.Format("http://{0}:{1}/api/", HostName, Port);
+                var baseUrl = $"http://{HostName}:{Port}/api/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
                     return baseUrl;
                 }
-                return string.Format("{0}{1}{2}api/", baseUrl, VirtualDirectory, VirtualDirectory.EndsWith("/") ? "" : "/");
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? "" : "/")}api/";
             }
         }
 
@@ -101,7 +101,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             // Copy the binaries from a zip
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, string.Format(@"Transports\{0}", TransportPackage));
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
         }
 
         public void WriteConfigurationFile()
@@ -119,7 +119,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 ServiceAccountPwd = ServiceAccountPwd,
                 DisplayName = DisplayName,
                 Name = Name,
-                ImagePath = string.Format("\"{0}\" --serviceName={1}", Path.Combine(InstallPath, "ServiceControl.exe"), Name),
+                ImagePath = $"\"{Path.Combine(InstallPath, "ServiceControl.exe")}\" --serviceName={Name}",
                 ServiceDescription = ServiceDescription
             };
             var dependencies = new List<string>();
@@ -264,7 +264,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 if ((reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && !HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase)) ||
                     (!reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase)))
                 {
-                    throw new EngineValidationException(string.Format("Conflicting UrlAcls found - {0} vs {1}", Url, reservation.Url));
+                    throw new EngineValidationException($"Conflicting UrlAcls found - {Url} vs {reservation.Url}");
                 }
             }
         }

@@ -18,7 +18,7 @@ namespace Particular.ServiceControl
         {
             return new MessageForwardingInCaseOfFaultConfig
             {
-                ErrorQueue = string.Format("{0}.Errors", endpointName)
+                ErrorQueue = $"{endpointName}.Errors"
             };
         }
     }

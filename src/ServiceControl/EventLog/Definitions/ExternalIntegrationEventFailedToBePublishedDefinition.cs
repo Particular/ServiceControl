@@ -6,7 +6,7 @@ namespace ServiceControl.EventLog.Definitions
     {
         public ExternalIntegrationEventFailedToBePublishedDefinition()
         {
-            Description(m => string.Format("'{0}' failed to be published to other integration points. Reason for failure: {1}", m.EventType, m.Reason));
+            Description(m => $"'{m.EventType}' failed to be published to other integration points. Reason for failure: {m.Reason}");
             TreatAsError();
         }
     }

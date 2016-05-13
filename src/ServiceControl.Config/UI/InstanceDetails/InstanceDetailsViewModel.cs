@@ -36,7 +36,7 @@
             StopCommand = Command.Create(() => StopService());
         }
 
-        public ServiceControlInstance ServiceControlInstance { get; private set; }
+        public ServiceControlInstance ServiceControlInstance { get; }
 
         public string Name
         {
@@ -77,7 +77,7 @@
             get { return ServiceControlInstance.Version; }
         }
 
-        public Version NewVersion { get; private set; }
+        public Version NewVersion { get; }
 
         public bool HasNewVersion
         {

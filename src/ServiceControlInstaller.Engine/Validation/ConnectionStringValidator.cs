@@ -67,11 +67,11 @@
             }
             catch (ArgumentException argumentException)
             {
-                throw new EngineValidationException(string.Format("Connection String is invalid - {0}", argumentException.Message));
+                throw new EngineValidationException($"Connection String is invalid - {argumentException.Message}");
             }
             catch (SqlException sqlEx)
             {
-                throw new EngineValidationException(string.Format("SQL connection failed - {0}", sqlEx.Message));
+                throw new EngineValidationException($"SQL connection failed - {sqlEx.Message}");
             }
         }
     }

@@ -128,10 +128,7 @@
 
         public void Dispose()
         {
-            if (satelliteImportFailuresHandler != null)
-            {
-                satelliteImportFailuresHandler.Dispose();
-            }
+            satelliteImportFailuresHandler?.Dispose();
         }
 
         SatelliteImportFailuresHandler satelliteImportFailuresHandler;

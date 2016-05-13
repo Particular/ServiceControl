@@ -179,7 +179,7 @@ namespace ServiceControl.Recoverability
                 {
                     var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
                     var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
-                    Log.Warn(string.Format("Failed to send '{0}' message to '{1}' for retry. Attempting to revert message status to unresolved so it can be tried again.", messageUniqueId, destination), e);
+                    Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", e);
 
                     using (var session = store.OpenSession())
                     {

@@ -40,7 +40,7 @@
             busAndContextAction = actionWithContext;
         }
 
-        public Guid Id { get; private set; }
+        public Guid Id { get; }
 
         public bool ExecuteAction(ScenarioContext context, IBus bus)
         {

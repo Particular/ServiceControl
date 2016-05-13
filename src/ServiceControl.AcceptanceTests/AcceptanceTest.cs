@@ -276,8 +276,7 @@
             {
                 emptyTempDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
                 emptyTempDirectory.Create();
-                var arguments = string.Format("\"{0}\" \"{1}\" /W:1  /R:1 /FFT /MIR /NFL",
-                    emptyTempDirectory.FullName, path.TrimEnd('\\'));
+                var arguments = $"\"{emptyTempDirectory.FullName}\" \"{path.TrimEnd('\\')}\" /W:1  /R:1 /FFT /MIR /NFL";
                 using (var process = Process.Start(new ProcessStartInfo("robocopy")
                 {
                     Arguments = arguments,
@@ -302,10 +301,7 @@
             }
             finally
             {
-                if (emptyTempDirectory != null)
-                {
-                    emptyTempDirectory.Delete();
-                }
+                emptyTempDirectory?.Delete();
             }
         }
 
@@ -320,7 +316,7 @@
             }
             else
             {
-                request = (HttpWebRequest) WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
+                request = (HttpWebRequest) WebRequest.Create($"http://localhost:{port}{url}");
             }
             request.Accept = "application/json";
 
@@ -355,8 +351,7 @@
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                throw new InvalidOperationException(String.Format("Call failed: {0} - {1}", (int) response.StatusCode,
-                    response.StatusDescription));
+                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.StatusDescription}");
             }
 
             using (var stream = response.GetResponseStream())
@@ -411,7 +406,7 @@
                 var urlToMessageBody = url;
                 if (!url.StartsWith("http"))
                 {
-                    urlToMessageBody = string.Format("http://localhost:{0}/api{1}", port, url);
+                    urlToMessageBody = $"http://localhost:{port}/api{url}";
                 }
 
                 Console.Out.Write(urlToMessageBody);
@@ -467,7 +462,7 @@
 
         protected HttpStatusCode HttpAction<T>(string url, string action, T payload = null, bool throwOnFailure = true) where T : class
         {
-            var request = (HttpWebRequest)WebRequest.Create(string.Format("http://localhost:{0}{1}", port, url));
+            var request = (HttpWebRequest)WebRequest.Create($"http://localhost:{port}{url}");
 
             request.ContentType = "application/json";
             request.Method = action;
@@ -505,8 +500,7 @@
                 {
                     body = reader.ReadToEnd();
                 }
-                throw new InvalidOperationException(String.Format("Call failed: {0} - {1} - {2}",
-                    (int)response.StatusCode, response.StatusDescription, body));
+                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.StatusDescription} - {body}");
             }
 
             return response.StatusCode;

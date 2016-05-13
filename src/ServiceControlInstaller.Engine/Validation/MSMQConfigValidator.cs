@@ -60,7 +60,7 @@
 
             if (componentsToRemove.Length > 0)
             {
-                throw new EngineValidationException(string.Format("The MSMQ service has unsupported optional features installed. Please remove the following via control panel or DISM.exe: {0}", string.Join(", ", componentsToRemove)));
+                throw new EngineValidationException($"The MSMQ service has unsupported optional features installed. Please remove the following via control panel or DISM.exe: {string.Join(", ", componentsToRemove)}");
             }
         }
     }

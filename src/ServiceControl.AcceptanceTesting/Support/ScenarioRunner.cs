@@ -88,8 +88,7 @@ namespace NServiceBus.AcceptanceTesting.Support
             {
                 DisplayRunResult(runSummary, totalRuns);
 
-                if (reports != null)
-                    reports(runSummary);
+                reports?.Invoke(runSummary);
             }
 
             return results;
@@ -272,8 +271,7 @@ namespace NServiceBus.AcceptanceTesting.Support
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine(string.Format("The maximum time limit for this test({0}s) has been reached",
-                                        maxTime.TotalSeconds));
+            sb.AppendLine($"The maximum time limit for this test({maxTime.TotalSeconds}s) has been reached");
             sb.AppendLine("----------------------------------------------------------------------------");
 
             return sb.ToString();
@@ -324,7 +322,7 @@ namespace NServiceBus.AcceptanceTesting.Support
 
                 if (endpointName.Length > 77)
                 {
-                    throw new Exception(string.Format("Endpoint name '{0}' is larger than 77 characters and will cause issues with MSMQ queue names. Please rename your test class or endpoint!",endpointName));
+                    throw new Exception($"Endpoint name '{endpointName}' is larger than 77 characters and will cause issues with MSMQ queue names. Please rename your test class or endpoint!");
                 }
 
                 var runner = PrepareRunner(endpointName, behaviorDescriptor.AppConfig, runDescriptor.UseSeparateAppdomains);
@@ -342,7 +340,7 @@ namespace NServiceBus.AcceptanceTesting.Support
 
                 if (result.Failed)
                 {
-                    throw new ScenarioException(string.Format("Endpoint {0} failed to initialize", runner.Instance.Name()), result.Exception);
+                    throw new ScenarioException($"Endpoint {runner.Instance.Name()} failed to initialize", result.Exception);
                 }
 
                 runners.Add(runner);

@@ -36,7 +36,7 @@
                     suffix = VirtualDirectory + "/";
                 }
 
-                return string.Format("http://{0}:{1}/{2}", Hostname, Port, suffix);
+                return $"http://{Hostname}:{Port}/{suffix}";
             }
         }
 
@@ -51,7 +51,7 @@
                     suffix = VirtualDirectory;
                 }
 
-                return string.Format("http://{0}:{1}/{2}", Hostname, Port, suffix);
+                return $"http://{Hostname}:{Port}/{suffix}";
             }
         }
 
@@ -111,11 +111,11 @@
             {
                 host = "%";
             }
-            var dbFolder = String.Format("{0}-{1}", host, Port);
+            var dbFolder = $"{host}-{Port}";
 
             if (!string.IsNullOrEmpty(VirtualDirectory))
             {
-                dbFolder += String.Format("-{0}", SanitiseFolderName(VirtualDirectory));
+                dbFolder += $"-{SanitiseFolderName(VirtualDirectory)}";
             }
 
             var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);

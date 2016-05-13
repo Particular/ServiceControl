@@ -32,10 +32,7 @@
 
         public void Dispose()
         {
-            if (timer != null)
-            {
-                timer.Dispose();
-            }
+            timer?.Dispose();
         }
     }
 }

@@ -27,7 +27,7 @@
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
             Assert.IsNotNull(failure);
-            Assert.IsTrue(failure.ReceivingEndpoint.Name.Contains("SomeEndpoint"), string.Format("The sending endpoint should be SomeEndpoint and not {0}", failure.ReceivingEndpoint.Name));
+            Assert.IsTrue(failure.ReceivingEndpoint.Name.Contains("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
             
          }
 
@@ -47,7 +47,7 @@
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
             Assert.IsNotNull(failure);
-            Assert.IsTrue(failure.ReceivingEndpoint.Name.Contains("SomeEndpoint"), string.Format("The sending endpoint should be SomeEndpoint and not {0}", failure.ReceivingEndpoint.Name));
+            Assert.IsTrue(failure.ReceivingEndpoint.Name.Contains("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
 
         }
 

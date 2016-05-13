@@ -52,7 +52,7 @@
             {
                 var bodyId = message.MessageId;
                 var storedInBodyStorage = false;
-                var bodyUrl = string.Format("/messages/{0}/body", bodyId);
+                var bodyUrl = $"/messages/{bodyId}/body";
                 var isFailedMessage = message is ImportFailedMessage;
                 var isBinary = contentType.Contains("binary");
                 var isBelowMaxSize = bodySize <= Settings.MaxBodySizeToStore;

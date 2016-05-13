@@ -37,7 +37,7 @@
             IsModal = false;
 
             LoadAppVersion();
-            CopyrightInfo = string.Format("{0} © Particular Software", DateTime.Now.Year);
+            CopyrightInfo = $"{DateTime.Now.Year} © Particular Software";
 
             RefreshInstancesCmd = Command.Create(() =>
             {

@@ -136,7 +136,7 @@
             rule.Filters.Add(new ConditionBasedFilter
             {
                 Action = FilterResult.Ignore,
-                Condition = string.Format("level < LogLevel.{0}", logLevel.Name)
+                Condition = $"level < LogLevel.{logLevel.Name}"
             });
 
             return rule;

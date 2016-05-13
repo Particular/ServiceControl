@@ -92,7 +92,7 @@
                 {
                     if (!instance.AppSettingExists(SettingsList.ForwardErrorMessages.Name) & !options.OverrideEnableErrorForwarding.Value)
                     {
-                        logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{2}'", instance.Name, zipInfo.Version, SettingsList.ForwardErrorMessages.Name));
+                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{SettingsList.ForwardErrorMessages.Name}'");
                         continue;
                     }
 
@@ -112,7 +112,7 @@
                             }
                             else
                             {
-                                logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. AUDITRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{2}'", instance.Name, zipInfo.Version, SettingsList.AuditRetentionPeriod.Name));
+                                logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. AUDITRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{SettingsList.AuditRetentionPeriod.Name}'");
                                 continue;
                             }
                         }
@@ -120,13 +120,13 @@
 
                     if (!instance.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name) & !options.ErrorRetentionPeriod.HasValue)
                     {
-                        logger.Warn(string.Format("Unattend upgrade {0} to {1} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{2}'", instance.Name, zipInfo.Version, SettingsList.ErrorRetentionPeriod.Name));
+                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{SettingsList.ErrorRetentionPeriod.Name}'");
                         continue;
                     }
                     
                     if (!unattendedInstaller.Upgrade(instance, options))
                     {
-                        logger.Warn(string.Format("Failed to upgrade {0} to {1}", instance.Name, zipInfo.Version));
+                        logger.Warn($"Failed to upgrade {instance.Name} to {zipInfo.Version}");
                     }
                 }
             }
@@ -142,15 +142,15 @@
 
             var serviceAccount = session["SERVICEACCOUNT"];
             var password = session["PASSWORD"];
-            logger.Info(string.Format("UNATTENDEDFILE: {0}", unattendedFilePropertyValue));
+            logger.Info($"UNATTENDEDFILE: {unattendedFilePropertyValue}");
             var currentDirectory = session["CURRENTDIRECTORY"];
             var unattendedFilePath = Environment.ExpandEnvironmentVariables(Path.IsPathRooted(unattendedFilePropertyValue) ? unattendedFilePropertyValue : Path.Combine(currentDirectory, unattendedFilePropertyValue));
 
-            logger.Info(string.Format("Expanded unattended filepath to : {0}", unattendedFilePropertyValue));
+            logger.Info($"Expanded unattended filepath to : {unattendedFilePropertyValue}");
 
             if (File.Exists(unattendedFilePath))
             {
-                logger.Info(string.Format("File Exists : {0}", unattendedFilePropertyValue));
+                logger.Info($"File Exists : {unattendedFilePropertyValue}");
                 var instanceToInstallDetails = ServiceControlInstanceMetadata.Load(unattendedFilePath);
 
                 if (!string.IsNullOrWhiteSpace(serviceAccount))
@@ -162,7 +162,7 @@
             }
             else
             {
-                logger.Error(string.Format("The specified unattended install file was not found : '{0}'", unattendedFilePath));
+                logger.Error($"The specified unattended install file was not found : '{unattendedFilePath}'");
             }
         }
 
@@ -174,15 +174,15 @@
             if (string.IsNullOrWhiteSpace(licenseFilePropertyValue))
                 return;
 
-            logger.Info(string.Format("LICENSEFILE: {0}", licenseFilePropertyValue));
+            logger.Info($"LICENSEFILE: {licenseFilePropertyValue}");
             var currentDirectory = session["CURRENTDIRECTORY"];
             var licenseFilePath = Environment.ExpandEnvironmentVariables(Path.IsPathRooted(licenseFilePropertyValue) ? licenseFilePropertyValue : Path.Combine(currentDirectory, licenseFilePropertyValue));
 
-            logger.Info(string.Format("Expanded license filepath to : {0}", licenseFilePropertyValue));
+            logger.Info($"Expanded license filepath to : {licenseFilePropertyValue}");
 
             if (File.Exists(licenseFilePath))
             {
-                logger.Info(string.Format("File Exists : {0}", licenseFilePropertyValue));
+                logger.Info($"File Exists : {licenseFilePropertyValue}");
                 string errormessage;
                 if (!LicenseManager.TryImportLicense(licenseFilePath, out errormessage))
                 {
@@ -191,7 +191,7 @@
             }
             else
             {
-                logger.Error(string.Format("The specified license install file was not found : '{0}'", licenseFilePath));
+                logger.Error($"The specified license install file was not found : '{licenseFilePath}'");
             }
         }
 

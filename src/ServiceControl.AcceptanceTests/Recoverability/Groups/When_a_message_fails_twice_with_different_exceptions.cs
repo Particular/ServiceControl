@@ -37,17 +37,17 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                     if (!ctx.Retrying)
                     {
                         FailedMessage originalMessageTemp;
-                        if (TryGet(string.Format("/api/errors/{0}", ctx.UniqueMessageId), out originalMessageTemp))
+                        if (TryGet($"/api/errors/{ctx.UniqueMessageId}", out originalMessageTemp))
                         {
                             originalMessage = originalMessageTemp;
                             ctx.Retrying = true;
-                            Post<object>(string.Format("/api/errors/{0}/retry", ctx.UniqueMessageId));
+                            Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         }
                     }
                     else
                     {
                         return TryGet(
-                            string.Format("/api/errors/{0}", ctx.UniqueMessageId), 
+                            $"/api/errors/{ctx.UniqueMessageId}", 
                             out retriedMessage, 
                             err => err.ProcessingAttempts.Count == 2
                             );

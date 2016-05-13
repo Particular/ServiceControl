@@ -23,7 +23,7 @@
         {
             get
             {
-                return string.Format(@"{0}\{1}", Domain, Name);
+                return $@"{Domain}\{Name}";
             }
         }
 

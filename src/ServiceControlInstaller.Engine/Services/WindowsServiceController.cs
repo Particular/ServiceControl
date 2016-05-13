@@ -38,11 +38,11 @@ namespace ServiceControlInstaller.Engine.Services
             var validModes = new[] { "Automatic", "Manual", "Disabled" };
             if (!validModes.Any(p => p.Equals(startMode, StringComparison.OrdinalIgnoreCase)))
             {
-                throw new ArgumentException(string.Format("Invalid startmode:'{0}'. Valid options are: {1}", startMode, string.Join(", ", validModes)));
+                throw new ArgumentException($"Invalid startmode:'{startMode}'. Valid options are: {string.Join(", ", validModes)}");
             }
 
             // ReSharper disable once StringLiteralTypo
-            using (var classInstance = new ManagementObject(@"\\.\root\cimv2", string.Format("Win32_Service.Name='{0}'", ServiceName), null))
+            using (var classInstance = new ManagementObject(@"\\.\root\cimv2", $"Win32_Service.Name='{ServiceName}'", null))
             using (var inParams = classInstance.GetMethodParameters("ChangeStartMode"))
             {
                 inParams["StartMode"] = startMode;
@@ -50,12 +50,12 @@ namespace ServiceControlInstaller.Engine.Services
                 {
                     if (outParams == null)
                     {
-                        throw new ManagementException(string.Format("Failed to set service to {0}", startMode));
+                        throw new ManagementException($"Failed to set service to {startMode}");
                     }
                     var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                     if (wmiReturnCode != 0)
                     {
-                        throw new ManagementException(string.Format("Failed to set service to {0} - {1}", startMode, Win32ServiceErrorMessages[wmiReturnCode]));
+                        throw new ManagementException($"Failed to set service to {startMode} - {Win32ServiceErrorMessages[wmiReturnCode]}");
                     }
                 }
             }
@@ -88,7 +88,7 @@ namespace ServiceControlInstaller.Engine.Services
                 }
             }
             
-            var  objPath = string.Format("Win32_Service.Name='{0}'", ServiceName);
+            var  objPath = $"Win32_Service.Name='{ServiceName}'";
             using (var win32Service = new ManagementObject(new ManagementPath(objPath)))
             {
                 var inParams = win32Service.GetMethodParameters("Change");
@@ -98,14 +98,14 @@ namespace ServiceControlInstaller.Engine.Services
                 var outParams = win32Service.InvokeMethod("Change", inParams, null);
                 if (outParams == null)
                 {
-                    throw new ManagementException(string.Format("Failed to set account credentials service {0}", ServiceName));
+                    throw new ManagementException($"Failed to set account credentials service {ServiceName}");
                 }
 
                 var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                 if (wmiReturnCode != 0)
                 {
                     var message = (wmiReturnCode < Win32ChangeErrorMessages.Length)
-                        ? string.Format("Failed to change service credentials on service {0} - {1}", ServiceName, Win32ChangeErrorMessages[wmiReturnCode])
+                        ? $"Failed to change service credentials on service {ServiceName} - {Win32ChangeErrorMessages[wmiReturnCode]}"
                         : "An unknown error occurred";
                     throw new ManagementException(message);
                 }
@@ -135,13 +135,13 @@ namespace ServiceControlInstaller.Engine.Services
                 var outParams = win32Service.InvokeMethod("create", inParams, null);
                 if (outParams == null)
                 {
-                    throw new ManagementException(string.Format("Failed to create service {0}", serviceInfo.Name));
+                    throw new ManagementException($"Failed to create service {serviceInfo.Name}");
                 }
                 var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                 if (wmiReturnCode != 0)
                 {
                     var message = (wmiReturnCode < Win32ChangeErrorMessages.Length)
-                        ? string.Format("Failed to create service to {0} - {1}", serviceInfo.Name, Win32ServiceErrorMessages[wmiReturnCode])
+                        ? $"Failed to create service to {serviceInfo.Name} - {Win32ServiceErrorMessages[wmiReturnCode]}"
                         : "An unknown error occurred";
                     throw new ManagementException(message);
                 }
@@ -154,10 +154,7 @@ namespace ServiceControlInstaller.Engine.Services
                         {
                             using (var serviceKey = servicesBaseKey.OpenSubKey(serviceInfo.Name, true))
                             {
-                                if (serviceKey != null)
-                                {
-                                    serviceKey.SetValue("Description", serviceInfo.ServiceDescription);
-                                }
+                                serviceKey?.SetValue("Description", serviceInfo.ServiceDescription);
                             }
                         }
                     }
@@ -169,12 +166,12 @@ namespace ServiceControlInstaller.Engine.Services
         public void Delete()
         {
             // ReSharper disable once StringLiteralTypo
-            using (var classInstance = new ManagementObject(@"\\.\root\cimv2", string.Format("Win32_Service.Name='{0}'", ServiceName), null))
+            using (var classInstance = new ManagementObject(@"\\.\root\cimv2", $"Win32_Service.Name='{ServiceName}'", null))
             using (var outParams = classInstance.InvokeMethod("Delete", null, null))
             {
                 if ((outParams == null) || (Convert.ToInt32(outParams["ReturnValue"]) != 0))
                 {
-                    throw new ManagementException(string.Format("Failed to delete service to {0}", ServiceName));
+                    throw new ManagementException($"Failed to delete service to {ServiceName}");
                 }
             }
         }
@@ -205,10 +202,7 @@ namespace ServiceControlInstaller.Engine.Services
                 {
                     using (var serviceKey = servicesBaseKey.OpenSubKey(ServiceName, true))
                     {
-                        if (serviceKey != null)
-                        {
-                            serviceKey.SetValue(name, value);
-                        }
+                        serviceKey?.SetValue(name, value);
                     }
                 }
             }

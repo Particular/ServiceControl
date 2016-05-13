@@ -17,11 +17,11 @@
 
             if (userAccount.IsLocalSystem())
             {
-                args = string.Format("-setup --serviceName={0}", instance.Name);
+                args = $"-setup --serviceName={instance.Name}";
             }
             else
             {
-                args = string.Format("-setup --serviceName={0} {1}", instance.Name, userAccount.QualifiedName);
+                args = $"-setup --serviceName={instance.Name} {userAccount.QualifiedName}";
             }
 
             var processStartupInfo = new ProcessStartInfo
@@ -47,7 +47,7 @@
 
                 if (p.ExitCode != 0)
                 {
-                    throw new ServiceControlQueueCreationFailedException(string.Format("ServiceControl.exe threw an error when creating queues. This typically indicates a configuration error such a as an invalid connection string. The error output from ServiceControl.exe was:\r\n {0}",  error));
+                    throw new ServiceControlQueueCreationFailedException($"ServiceControl.exe threw an error when creating queues. This typically indicates a configuration error such a as an invalid connection string. The error output from ServiceControl.exe was:\r\n {error}");
                 }
             }
             else

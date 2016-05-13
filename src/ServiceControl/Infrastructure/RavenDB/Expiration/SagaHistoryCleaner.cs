@@ -22,7 +22,7 @@
                 DisableCaching = true,
                 Cutoff = SystemTime.UtcNow,
                 PageSize = deletionBatchSize,
-                Query = string.Format("LastModified:[* TO {0}]", expiryThreshold.Ticks),
+                Query = $"LastModified:[* TO {expiryThreshold.Ticks}]",
                 FieldsToFetch = new[]
                 {
                     "__document_id",

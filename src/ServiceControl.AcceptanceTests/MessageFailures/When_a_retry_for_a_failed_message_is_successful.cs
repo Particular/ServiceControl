@@ -43,7 +43,7 @@
                             && TryGetMany("/api/eventlogitems", out eventLogItems);
                     }
 
-                    IssueRetry(c, () => Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId)));
+                    IssueRetry(c, () => Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
 
                     return false;
                 })
@@ -137,7 +137,7 @@
                         return true;
                     }
 
-                    IssueRetry(c, () => Post<object>(String.Format("/api/errors/{0}/retry/all", c.EndpointNameOfReceivingEndpoint)));
+                    IssueRetry(c, () => Post<object>($"/api/errors/{c.EndpointNameOfReceivingEndpoint}/retry/all"));
 
                     return false;
                 })

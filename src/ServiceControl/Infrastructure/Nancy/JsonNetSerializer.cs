@@ -89,13 +89,10 @@
             catch (IOException ex)
             {
                 var innerException = ex.InnerException as HttpListenerException;
-                if (innerException != null)
+                if (innerException?.ErrorCode == 1229)
+                    // An operation was attempted on a nonexistent network connection, this error happens when the client has dropped the connection so it is safe to ignore
                 {
-                    if (innerException.ErrorCode == 1229)
-                        // An operation was attempted on a nonexistent network connection, this error happens when the client has dropped the connection so it is safe to ignore
-                    {
-                        return;
-                    }
+                    return;
                 }
 
                 throw;

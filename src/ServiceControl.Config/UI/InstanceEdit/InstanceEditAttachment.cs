@@ -55,7 +55,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             var instance = viewModel.ServiceControlInstance;
             if (instance.Service.Status == ServiceControllerStatus.Running)
             {
-                if (!windowManager.ShowMessage("STOP INSTANCE AND MODIFY", string.Format("{0} needs to be stopped in order to modify the settings. Do you want to proceed.", instance.Name)))
+                if (!windowManager.ShowMessage("STOP INSTANCE AND MODIFY", $"{instance.Name} needs to be stopped in order to modify the settings. Do you want to proceed."))
                 {
                     return;
                 }

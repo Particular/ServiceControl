@@ -67,7 +67,7 @@
 
                 if (genericType == null)
                 {
-                    throw new ArgumentException("When modelType is an enumerable it must specify the type", "modelType");
+                    throw new ArgumentException("When modelType is an enumerable it must specify the type", nameof(modelType));
                 }
             }
 
@@ -117,12 +117,7 @@
 
         private IDictionary<string, string> ConvertDynamicDictionary(DynamicDictionary dictionary)
         {
-            if (dictionary == null)
-            {
-                return null;
-            }
-
-            return dictionary.GetDynamicMemberNames().ToDictionary(
+            return dictionary?.GetDynamicMemberNames().ToDictionary(
                 memberName => fieldNameConverter.Convert(memberName),
                 memberName => (string) dictionary[memberName]);
         }

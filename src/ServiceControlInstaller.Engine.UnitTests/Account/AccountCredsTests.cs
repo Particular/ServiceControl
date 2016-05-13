@@ -17,13 +17,10 @@
             var adminGroup = GroupPrincipal.FindByIdentity(context, IdentityType.Name, "Administrators");
 
             // User the local administrator account and check the guessed password fails.
-            if (adminGroup != null)
+            var adminAccount = adminGroup?.Members.FirstOrDefault(p => ((p.Context.ContextType == ContextType.Machine) && (p.Sid.IsWellKnown(WellKnownSidType.AccountAdministratorSid))));
+            if (adminAccount != null)
             {
-                var adminAccount = adminGroup.Members.FirstOrDefault(p => ((p.Context.ContextType == ContextType.Machine) && (p.Sid.IsWellKnown(WellKnownSidType.AccountAdministratorSid))));
-                if (adminAccount != null)
-                {
-                    Assert.IsFalse(UserAccount.ParseAccountName(adminAccount.Name).CheckPassword(string.Format("XXX{0:B}", Guid.NewGuid())), "Test for Local Admin account should have been false");
-                }
+                Assert.IsFalse(UserAccount.ParseAccountName(adminAccount.Name).CheckPassword($"XXX{Guid.NewGuid():B}"), "Test for Local Admin account should have been false");
             }
 
             Assert.IsTrue(UserAccount.ParseAccountName("System").CheckPassword(null), "Test for LocalSystem should have been true");

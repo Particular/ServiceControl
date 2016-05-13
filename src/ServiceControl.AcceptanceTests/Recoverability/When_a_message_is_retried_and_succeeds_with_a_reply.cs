@@ -33,7 +33,7 @@
                         if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure))
                             return false;
                         c.RetryIssued = true;
-                        Post<object>(string.Format("/api/errors/{0}/retry", c.UniqueMessageId));
+                        Post<object>($"/api/errors/{c.UniqueMessageId}/retry");
                         return false;
                     }
 

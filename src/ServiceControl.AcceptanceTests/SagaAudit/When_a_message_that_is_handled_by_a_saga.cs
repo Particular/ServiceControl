@@ -60,7 +60,7 @@
         void AssertStateChange<T>(IEnumerable<MessagesView> messages, Guid sagaId, string stateChange)
         {
             var m = messages.First(message => message.MessageType == typeof(T).FullName);
-            Assert.AreEqual(string.Format("{0}:{1}", sagaId, stateChange), m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value);
+            Assert.AreEqual($"{sagaId}:{stateChange}", m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value);
         }
 
         public class EndpointThatIsHostingSagas : EndpointConfigurationBuilder

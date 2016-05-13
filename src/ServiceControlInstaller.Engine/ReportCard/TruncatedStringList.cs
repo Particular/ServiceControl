@@ -14,7 +14,7 @@
         {
             if (maxLengthsOfItems < 1)
             {
-                throw new ArgumentOutOfRangeException("maxLengthsOfItems", "Must greater than 0");
+                throw new ArgumentOutOfRangeException(nameof(maxLengthsOfItems), "Must greater than 0");
             }
             maxLength = maxLengthsOfItems;
 

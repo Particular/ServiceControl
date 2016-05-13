@@ -6,7 +6,7 @@
     {
         public CustomCheckSucceededDefinition()
         {
-            Description(m => string.Format("{0}: Working as expected.", m.CustomCheckId));
+            Description(m => $"{m.CustomCheckId}: Working as expected.");
 
             RelatesToCustomCheck(m => m.CustomCheckId);
 
