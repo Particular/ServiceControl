@@ -22,6 +22,7 @@ namespace Particular.ServiceControl
     using Raven.Client;
     using Raven.Client.Document;
     using Raven.Client.Embedded;
+    using Raven.Database.Config;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
     using LogLevel = NLog.LogLevel;
@@ -179,7 +180,7 @@ namespace Particular.ServiceControl
                         Id = "ServiceControl",
                         Settings =
                         {
-                            {"Raven/StorageTypeName", "esent"},
+                            {"Raven/StorageTypeName", InMemoryRavenConfiguration.EsentTypeName},
                             {"Raven/DataDir", Path.Combine(Settings.DbPath, "Databases", "ServiceControl")},
                             {"Raven/Counters/DataDir", Path.Combine(Settings.DbPath, "Data", "Counters")},
                             {"Raven/WebDir", Path.Combine(Settings.DbPath, "Raven", "WebUI")},
