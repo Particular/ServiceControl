@@ -303,7 +303,7 @@ namespace Particular.ServiceControl
             }
 
             // Try to get HostName from Windows Service Name, default to "Particular.ServiceControl"
-            if ((service == null) || (string.IsNullOrWhiteSpace(service.ServiceName)))
+            if (string.IsNullOrWhiteSpace(service?.ServiceName))
             {
                 return "Particular.ServiceControl";
             }
