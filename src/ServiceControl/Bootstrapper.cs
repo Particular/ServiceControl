@@ -51,7 +51,7 @@ namespace Particular.ServiceControl
 
             logger = ConfigureLogging();
 
-            Settings.ServiceName = DetermineServiceName(host, hostArguments);
+            Settings.ServiceName = LoggingSettings.ServiceName;
 
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = Settings.HttpDefaultConnectionLimit;
