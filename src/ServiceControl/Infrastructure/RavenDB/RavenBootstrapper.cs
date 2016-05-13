@@ -2,7 +2,6 @@
 {
     using System;
     using System.ComponentModel.Composition.Hosting;
-    using System.IO;
     using System.Linq;
     using System.Threading;
     using NServiceBus;
@@ -22,15 +21,6 @@
 
     public class RavenBootstrapper : INeedInitialization
     {
-        public static string ReadLicense()
-        {
-            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
-            using (var reader = new StreamReader(resourceStream))
-            {
-                return reader.ReadToEnd();
-            }
-        }
-
         public void Customize(BusConfiguration configuration)
         {
             var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
