@@ -58,16 +58,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
 
-        public string Name
-        {
-            get { return Service.ServiceName; }
-        }
-
-        public void Reload()
-        {
-            ReadConfiguration();
-        }
-
         public Version Version
         {
             get
@@ -82,6 +72,16 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+        public string Name
+        {
+            get { return Service.ServiceName; }
+        }
+
+        public void Reload()
+        {
+            ReadConfiguration();
+        }
+
         public string Url
         {
             get
@@ -91,7 +91,20 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return baseUrl;
                 }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? "" : "/")}api/";
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+            }
+        }
+
+        public string AclUrl
+        {
+            get
+            {
+                var baseUrl = $"http://{HostName}:{Port}/";
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return baseUrl;
+                }
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
             }
         }
 
@@ -169,22 +182,15 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = FindByName(Name);
-            var urlaclChanged = !(oldSettings.Port == Port
-                                  && string.Equals(oldSettings.Name, Name, StringComparison.OrdinalIgnoreCase)
-                                  && string.Equals(oldSettings.VirtualDirectory, VirtualDirectory, StringComparison.OrdinalIgnoreCase));
-
+           
             var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
 
             var queueNamesChanged = !(string.Equals(oldSettings.AuditQueue, AuditQueue, StringComparison.OrdinalIgnoreCase)
                                       && string.Equals(oldSettings.ErrorQueue, ErrorQueue, StringComparison.OrdinalIgnoreCase)
                                       && string.Equals(oldSettings.AuditLogQueue, AuditLogQueue, StringComparison.OrdinalIgnoreCase)
                                       && string.Equals(oldSettings.ErrorLogQueue, ErrorLogQueue, StringComparison.OrdinalIgnoreCase));
-            if (urlaclChanged)
-            {
-                oldSettings.RemoveUrlAcl();
-                var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-                reservation.Create();
-            }
+            
+            RecreateUrlAcl(oldSettings);
 
             if (fileSystemChanged)
             {
@@ -242,6 +248,13 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 Service.ChangeAccountDetails(accountName, ServiceAccountPwd);
             }
+        }
+
+        private void RecreateUrlAcl(ServiceControlInstance oldSettings)
+        {
+            oldSettings.RemoveUrlAcl();
+            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            reservation.Create();
         }
 
         string DefaultDBPath()
@@ -311,7 +324,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RemoveUrlAcl()
         {
-            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.Equals(Url, StringComparison.OrdinalIgnoreCase)))
+            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.Equals(Url, StringComparison.OrdinalIgnoreCase) || p.Url.Equals(AclUrl, StringComparison.OrdinalIgnoreCase)))
             {
                 try
                 {
@@ -451,6 +464,34 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
         }
 
+        public void MoveDatabaseFiles(string dbPath)
+        {
+            if (!File.Exists(Path.Combine(dbPath, "Data")))
+            {
+                return;
+            }
+
+            var tempDestDirName = Path.Combine(dbPath + "-temp", "Databases");
+            Directory.CreateDirectory(tempDestDirName);
+            Directory.Move(dbPath, Path.Combine(tempDestDirName, "ServiceControl"));
+            var tries = 0;
+            do
+            {
+                try
+                {
+                    Directory.Move(dbPath + "-temp", dbPath);
+                    return;
+                }
+                catch (IOException)
+                {
+                    tries++;
+                    Thread.Sleep(1000);
+                }
+            } while (tries < 3);
+            
+            throw new Exception("Could not move database to new location");
+        }
+
         public static ReadOnlyCollection<ServiceControlInstance> Instances()
         {
             var services = WindowsServiceController.FindInstancesByExe("ServiceControl.exe");
@@ -538,9 +579,6 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
-
-            
-
         }
 
         public void ValidateChanges()

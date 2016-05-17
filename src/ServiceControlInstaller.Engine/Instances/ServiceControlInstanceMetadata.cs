@@ -68,7 +68,21 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return baseUrl;
                 }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? "" : "/")}api/";
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+            }
+        }
+
+        public string AclUrl
+        {
+            get
+            {
+                //TODO: Introduce option for https?
+                var baseUrl = $"http://{HostName}:{Port}/";
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return baseUrl;
+                }
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
             }
         }
 
@@ -135,7 +149,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RegisterUrlAcl()
         {
-            var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             reservation.Create();
         }
 
