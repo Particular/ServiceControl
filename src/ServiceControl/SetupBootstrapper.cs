@@ -4,9 +4,11 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.Net;
     using System.Security.Principal;
+    using Autofac;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using Raven.Abstractions.Data;
+    using Raven.Client;
     using Raven.Client.Document;
     using Raven.Database.Config;
     using Raven.Database.Server;
@@ -26,8 +28,16 @@ namespace Particular.ServiceControl
                 configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
                 configuration.EnableInstallers();
                 CreateDatabase(username);
+                SetupContainer();
                 ConfigureNServiceBus(configuration).Dispose();
             }
+        }
+
+        private void SetupContainer()
+        {
+            var containerBuilder = new ContainerBuilder();
+            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            container = containerBuilder.Build();
         }
 
         public static void CreateDatabase(string username)
