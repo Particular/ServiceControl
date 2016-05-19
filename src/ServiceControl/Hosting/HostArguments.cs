@@ -53,7 +53,7 @@ namespace Particular.ServiceControl.Hosting
                     , s =>
                     {
 
-                        Commands = new List<Type>{typeof(RunBootstrapperAndNServiceBusInstallers)};
+                        Commands = new List<Type>{typeof(SetupCommand)};
                         executionMode = ExecutionMode.RunInstallers;
                     }
                 },

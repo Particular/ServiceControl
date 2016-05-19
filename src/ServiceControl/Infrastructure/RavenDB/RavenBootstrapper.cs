@@ -4,7 +4,6 @@
     using System.ComponentModel.Composition.Hosting;
     using System.Linq;
     using System.Net;
-    using System.Security.Principal;
     using System.Threading;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;

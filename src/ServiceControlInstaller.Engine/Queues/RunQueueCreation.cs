@@ -13,15 +13,11 @@
             var accountName = overrideUserName ?? instance.ServiceAccount;
             var userAccount =  UserAccount.ParseAccountName(accountName);
 
-            string args;
+            string args = $"--setup --serviceName={instance.Name}";
 
-            if (userAccount.IsLocalSystem())
+            if (!userAccount.IsLocalSystem())
             {
-                args = $"-setup --serviceName={instance.Name}";
-            }
-            else
-            {
-                args = $"-setup --serviceName={instance.Name} {userAccount.QualifiedName}";
+                args += $" --userName={userAccount.QualifiedName}";
             }
 
             var processStartupInfo = new ProcessStartInfo

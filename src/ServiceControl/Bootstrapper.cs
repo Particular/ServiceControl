@@ -11,39 +11,28 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.SignalR;
     using Microsoft.Owin.Hosting;
+    using NLog;
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
-    using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Features;
     using NServiceBus.Logging;
     using Particular.ServiceControl.Hosting;
-    using Raven.Abstractions.Data;
     using Raven.Client;
-    using Raven.Client.Document;
-    using Raven.Client.Embedded;
-    using Raven.Database.Config;
-    using Raven.Database.Server;
-    using Raven.Database.Server.Security.Windows;
-    using Raven.Json.Linq;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
     using LogLevel = NLog.LogLevel;
+    using LogManager = NServiceBus.Logging.LogManager;
 
-    public class Bootstrapper
+    public class Bootstrapper : BootstrapperBase
     {
-        private readonly ServiceBase host;
+        public IStartableBus Bus;
+
         private BusConfiguration configuration;
-        private IContainer container;
-        EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
-        private ILog logger;
         ShutdownNotifier notifier = new ShutdownNotifier();
         private Startup startup;
         TimeKeeper timeKeeper;
         private IDisposable webApp;
-
-        public IStartableBus Bus;
 
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
@@ -73,174 +62,22 @@ namespace Particular.ServiceControl
             startup = new Startup(container);
         }
 
-        private void ConfigureNServiceBus()
+        public void Start()
         {
-            if (configuration == null)
-            {
-                configuration = new BusConfiguration();
-                configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
-            }
-
-            // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
-            configuration.GetSettings().Set("ServiceControl.EmbeddableDocumentStore", documentStore);
-
-            // Disable Auditing for the service control endpoint
-            configuration.DisableFeature<Audit>();
-            configuration.DisableFeature<AutoSubscribe>();
-            configuration.DisableFeature<SecondLevelRetries>();
-            configuration.DisableFeature<TimeoutManager>();
-
-            configuration.UseSerialization<JsonSerializer>();
-
-            configuration.Transactions()
-                .DisableDistributedTransactions()
-                .DoNotWrapHandlersExecutionInATransactionScope();
-
-            configuration.ScaleOut().UseSingleBrokerQueue();
-
-            var transportType = DetermineTransportType();
-
-            configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-            configuration.EndpointName(Settings.ServiceName);
-            configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-            configuration.UseTransport(transportType);
-            configuration.DefineCriticalErrorAction((s, exception) =>
-            {
-                host?.Stop();
-            });
+            webApp = WebApp.Start(new StartOptions(Settings.ApiUrl), startup.Configuration);
 
             if (Environment.UserInteractive && Debugger.IsAttached)
             {
-                configuration.EnableInstallers();
+                SetupBootstrapper.CreateDatabase(WindowsIdentity.GetCurrent().Name);
             }
 
-            Bus = NServiceBus.Bus.Create(configuration);
+            Bus = ConfigureNServiceBus(configuration);
 
             container.Resolve<SubscribeToOwnEvents>().Run();
-        }
 
-        Type DetermineTransportType()
-        {
-            var transportType = Type.GetType(Settings.TransportType);
-            if (transportType != null)
-            {
-                return transportType;
-            }
-            var errorMsg = $"Configuration of transport Failed. Could not resolve type '{Settings.TransportType}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
-            logger.Error(errorMsg);
-            throw new Exception(errorMsg);
-        }
-
-        static bool IsExternalContract(Type t)
-        {
-            return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts");
-        }
-
-        public void Start()
-        {
-            if (Settings.MaintenanceMode)
-            {
-                try
-                {
-                    webApp = WebApp.Start(new StartOptions(Settings.ApiUrl), startup.ConfigureRavenDB);
-                    LinkExistingDatabase();
-
-                    logger.InfoFormat("RavenDB is now accepting requests on {0}", Settings.StorageUrl);
-                    logger.Warn("RavenDB Maintenance Mode - Press Enter to exit");
-                    Console.ReadLine();
-                }
-                finally
-                {
-                    Stop();
-                }
-
-                return;
-            }
-
-            webApp = WebApp.Start(new StartOptions(Settings.ApiUrl), startup.Configuration);
-
-            LinkExistingDatabase();
-
-            ConfigureNServiceBus();
             Bus.Start();
 
             logger.InfoFormat("Api is now accepting requests on {0}", Settings.ApiUrl);
-        }
-
-        private static void LinkExistingDatabase()
-        {
-            using (var documentStore = new DocumentStore
-            {
-                Url = Settings.ApiUrl + "storage",
-                Credentials = CredentialCache.DefaultNetworkCredentials
-            }.Initialize())
-            {
-                try
-                {
-                    documentStore.DatabaseCommands.GlobalAdmin.CreateDatabase(new DatabaseDocument
-                    {
-                        Id = "ServiceControl",
-                        Settings =
-                        {
-                            {"Raven/StorageTypeName", InMemoryRavenConfiguration.EsentTypeName},
-                            {"Raven/DataDir", Path.Combine(Settings.DbPath, "Databases", "ServiceControl")},
-                            {"Raven/Counters/DataDir", Path.Combine(Settings.DbPath, "Data", "Counters")},
-                            {"Raven/WebDir", Path.Combine(Settings.DbPath, "Raven", "WebUI")},
-                            {"Raven/PluginsDirectory", Path.Combine(Settings.DbPath, "Plugins")},
-                            {"Raven/AssembliesDirectory", Path.Combine(Settings.DbPath, "Assemblies")},
-                            {"Raven/CompiledIndexCacheDirectory", Path.Combine(Settings.DbPath, "CompiledIndexes")},
-                            {"Raven/FileSystem/DataDir", Path.Combine(Settings.DbPath, "FileSystems")},
-                            {"Raven/FileSystem/IndexStoragePath", Path.Combine(Settings.DbPath, "FileSystems", "Indexes")},
-                            {"Raven/AnonymousAccess", AnonymousUserAccessMode.None.ToString()}
-                        }
-                    });
-
-                    var windowsAuthDocument = new WindowsAuthDocument();
-                    var localAdministratorsGroupName = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null).Translate(typeof(NTAccount)).ToString();
-
-                    var group = new WindowsAuthData
-                    {
-                        Enabled = true,
-                        Name = localAdministratorsGroupName
-                    };
-                    group.Databases.Add(new ResourceAccess
-                    {
-                        Admin = true,
-                        ReadOnly = false,
-                        TenantId = "ServiceControl"
-                    });
-                    group.Databases.Add(new ResourceAccess
-                    {
-                        Admin = true,
-                        ReadOnly = false,
-                        TenantId = "<system>"
-                    });
-                    windowsAuthDocument.RequiredGroups.Add(group);
-
-                    var user = new WindowsAuthData
-                    {
-                        Enabled = true,
-                        Name = WindowsIdentity.GetCurrent().Name
-                    };
-                    user.Databases.Add(new ResourceAccess
-                    {
-                        Admin = false,
-                        ReadOnly = false,
-                        TenantId = "ServiceControl"
-                    });
-                    windowsAuthDocument.RequiredUsers.Add(user);
-
-                    var ravenJObject = RavenJObject.FromObject(windowsAuthDocument);
-
-                    documentStore.DatabaseCommands.ForSystemDatabase().Put("Raven/Authorization/WindowsSettings", null, ravenJObject, new RavenJObject());
-
-                    Console.Out.WriteLine("Database created and secured");
-                }
-                catch (Exception)
-                {
-                    Console.Out.WriteLine("Database already exists");
-                }
-            }
         }
 
         public void Stop()
@@ -333,11 +170,14 @@ namespace Particular.ServiceControl
             NLog.LogManager.Configuration = nlogConfig;
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
-            var logEventInfo = new NLog.LogEventInfo { TimeStamp = DateTime.Now };
+            var logEventInfo = new LogEventInfo
+            {
+                TimeStamp = DateTime.Now
+            };
             logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName.Render(logEventInfo), LoggingSettings.LoggingLevel.Name);
             logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName.Render(logEventInfo), LoggingSettings.RavenDBLogLevel.Name);
-            
-			return logger;
+
+            return logger;
         }
 
         static string DetermineServiceName(ServiceBase service, HostArguments hostArguments)
@@ -354,6 +194,18 @@ namespace Particular.ServiceControl
                 return "Particular.ServiceControl";
             }
             return service.ServiceName;
+        }
+
+        private Type DetermineTransportType()
+        {
+            var transportType = Type.GetType(Settings.TransportType);
+            if (transportType != null)
+            {
+                return transportType;
+            }
+            var errorMsg = $"Configuration of transport Failed. Could not resolve type '{Settings.TransportType}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
+            logger.Error(errorMsg);
+            throw new Exception(errorMsg);
         }
     }
 }
