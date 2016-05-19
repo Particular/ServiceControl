@@ -3,6 +3,8 @@
     using System;
     using System.ComponentModel.Composition.Hosting;
     using System.Linq;
+    using System.Net;
+    using System.Security.Principal;
     using System.Threading;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;
@@ -29,9 +31,9 @@
             documentStore.EnlistInDistributedTransactions = false;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
-
+            documentStore.Credentials = CredentialCache.DefaultNetworkCredentials;
+            
             documentStore.Initialize();
-
             Logger.Info("Index creation started");
 
             //Create this index synchronously as we are using it straight away
@@ -86,7 +88,8 @@
                  }, DependencyLifecycle.InstancePerCall));
 
             configuration.UsePersistence<RavenDBPersistence>()
-                         .SetDefaultDocumentStore(documentStore);
+                         .SetDefaultDocumentStore(documentStore)
+                         .DoNotSetupDatabasePermissions();
 
             configuration.Pipeline.Register<RavenRegisterStep>();
         }

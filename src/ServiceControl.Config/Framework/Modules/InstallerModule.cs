@@ -95,7 +95,7 @@
                 instance.UpgradeFiles(ZipInfo.FilePath);
 
                 progress.Report(3, 6, "Upgrading Database...");
-                instance.MoveDatabaseFiles(instance.DBPath);
+                instance.UpgradeRavenDatabase(instance.DBPath);
             }
             finally
             {

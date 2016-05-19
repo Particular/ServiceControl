@@ -5,6 +5,7 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Security.Principal;
     using System.ServiceProcess;
     using Autofac;
     using global::ServiceControl.Infrastructure;
@@ -23,6 +24,9 @@ namespace Particular.ServiceControl
     using Raven.Client.Document;
     using Raven.Client.Embedded;
     using Raven.Database.Config;
+    using Raven.Database.Server;
+    using Raven.Database.Server.Security.Windows;
+    using Raven.Json.Linq;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
     using LogLevel = NLog.LogLevel;
@@ -167,7 +171,8 @@ namespace Particular.ServiceControl
         {
             using (var documentStore = new DocumentStore
             {
-                Url = Settings.ApiUrl + "storage"
+                Url = Settings.ApiUrl + "storage",
+                Credentials = CredentialCache.DefaultNetworkCredentials
             }.Initialize())
             {
                 try
@@ -185,14 +190,55 @@ namespace Particular.ServiceControl
                             {"Raven/AssembliesDirectory", Path.Combine(Settings.DbPath, "Assemblies")},
                             {"Raven/CompiledIndexCacheDirectory", Path.Combine(Settings.DbPath, "CompiledIndexes")},
                             {"Raven/FileSystem/DataDir", Path.Combine(Settings.DbPath, "FileSystems")},
-                            {"Raven/FileSystem/IndexStoragePath", Path.Combine(Settings.DbPath, "FileSystems", "Indexes")}
+                            {"Raven/FileSystem/IndexStoragePath", Path.Combine(Settings.DbPath, "FileSystems", "Indexes")},
+                            {"Raven/AnonymousAccess", AnonymousUserAccessMode.None.ToString()}
                         }
                     });
-                    Console.Out.WriteLine("Database linked");
+
+                    var windowsAuthDocument = new WindowsAuthDocument();
+                    var localAdministratorsGroupName = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null).Translate(typeof(NTAccount)).ToString();
+
+                    var group = new WindowsAuthData
+                    {
+                        Enabled = true,
+                        Name = localAdministratorsGroupName
+                    };
+                    group.Databases.Add(new ResourceAccess
+                    {
+                        Admin = true,
+                        ReadOnly = false,
+                        TenantId = "ServiceControl"
+                    });
+                    group.Databases.Add(new ResourceAccess
+                    {
+                        Admin = true,
+                        ReadOnly = false,
+                        TenantId = "<system>"
+                    });
+                    windowsAuthDocument.RequiredGroups.Add(group);
+
+                    var user = new WindowsAuthData
+                    {
+                        Enabled = true,
+                        Name = WindowsIdentity.GetCurrent().Name
+                    };
+                    user.Databases.Add(new ResourceAccess
+                    {
+                        Admin = false,
+                        ReadOnly = false,
+                        TenantId = "ServiceControl"
+                    });
+                    windowsAuthDocument.RequiredUsers.Add(user);
+
+                    var ravenJObject = RavenJObject.FromObject(windowsAuthDocument);
+
+                    documentStore.DatabaseCommands.ForSystemDatabase().Put("Raven/Authorization/WindowsSettings", null, ravenJObject, new RavenJObject());
+
+                    Console.Out.WriteLine("Database created and secured");
                 }
                 catch (Exception)
                 {
-                    Console.Out.WriteLine("Database already linked");
+                    Console.Out.WriteLine("Database already exists");
                 }
             }
         }

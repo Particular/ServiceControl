@@ -464,16 +464,29 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
         }
 
-        public void MoveDatabaseFiles(string dbPath)
+        public void UpgradeRavenDatabase(string dbPath)
         {
             if (!File.Exists(Path.Combine(dbPath, "Data")))
             {
                 return;
             }
 
+            MoveDatabaseFiles(dbPath);
+            LinkDatabase(dbPath);
+        }
+
+        private void LinkDatabase(string dbPath) 
+        {
+            
+        }
+
+        private static void MoveDatabaseFiles(string dbPath)
+        {
             var tempDestDirName = Path.Combine(dbPath + "-temp", "Databases");
             Directory.CreateDirectory(tempDestDirName);
             Directory.Move(dbPath, Path.Combine(tempDestDirName, "ServiceControl"));
+
+            // The following code is needed because we are renaming a directory that we have just moved and sometimes the OS is still holding certain file handlers opened.
             var tries = 0;
             do
             {
@@ -488,7 +501,7 @@ namespace ServiceControlInstaller.Engine.Instances
                     Thread.Sleep(1000);
                 }
             } while (tries < 3);
-            
+
             throw new Exception("Could not move database to new location");
         }
 

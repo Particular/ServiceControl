@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Net;
     using Autofac;
     using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
@@ -62,11 +63,14 @@
         {
             builder.Map("/storage", app =>
             {
-                string virtualDirectory = "storage";
+                var virtualDirectory = "storage";
+
                 if (!String.IsNullOrEmpty(Settings.VirtualDirectory))
                 {
                     virtualDirectory = Settings.VirtualDirectory + "/" + virtualDirectory;
                 }
+
+                ConfigureWindowsAuth(app, virtualDirectory);
 
                 var configuration = new RavenConfiguration
                 {
@@ -77,6 +81,8 @@
                     WebDir = Path.Combine(Settings.DbPath, "Raven", "WebUI"),
                     PluginsDirectory = Path.Combine(Settings.DbPath, "Plugins"),
                     AssembliesDirectory = Path.Combine(Settings.DbPath, "Assemblies"),
+                    AnonymousUserAccessMode = AnonymousUserAccessMode.None,
+                    TurnOffDiscoveryClient = true,
                 };
 
                 var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
@@ -96,6 +102,24 @@
 
                 app.UseRavenDB(new RavenDBOptions(configuration));
             });
+        }
+
+        private static void ConfigureWindowsAuth(IAppBuilder app, string virtualDirectory)
+        {
+            var pathToLookFor = "/" + virtualDirectory;
+            var listener = (HttpListener) app.Properties["System.Net.HttpListener"];
+            listener.AuthenticationSchemes = AuthenticationSchemes.IntegratedWindowsAuthentication | AuthenticationSchemes.Anonymous;
+            listener.AuthenticationSchemeSelectorDelegate += request =>
+            {
+                if (!request.Url.AbsolutePath.StartsWith(pathToLookFor, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return AuthenticationSchemes.Anonymous;
+                }
+
+                var hasSingleUseToken = string.IsNullOrEmpty(request.Headers["Single-Use-Auth-Token"]) == false || string.IsNullOrEmpty(request.QueryString["singleUseAuthToken"]) == false;
+
+                return hasSingleUseToken ? AuthenticationSchemes.Anonymous : AuthenticationSchemes.IntegratedWindowsAuthentication;
+            };
         }
 
         private void ConfigureSignalR(IAppBuilder app)
