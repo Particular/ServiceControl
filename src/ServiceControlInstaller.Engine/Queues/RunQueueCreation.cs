@@ -17,7 +17,7 @@
 
             if (!userAccount.IsLocalSystem())
             {
-                args += $" --userName={userAccount.QualifiedName}";
+                args += $" --userName=\"{userAccount.QualifiedName}\"";
             }
 
             var processStartupInfo = new ProcessStartInfo
