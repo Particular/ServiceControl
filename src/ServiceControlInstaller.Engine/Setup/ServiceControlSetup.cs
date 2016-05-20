@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.Queues
+﻿namespace ServiceControlInstaller.Engine.Setup
 {
     using System;
     using System.Diagnostics;
@@ -6,9 +6,9 @@
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Instances;
 
-    internal class QueueCreation
+    internal static class ServiceControlSetup
     {
-        public static void RunQueueCreation(IServiceControlInstance instance, string overrideUserName = null)
+        public static void RunInSetupMode(IServiceControlInstance instance, string overrideUserName = null)
         {
             var accountName = overrideUserName ?? instance.ServiceAccount;
             var userAccount =  UserAccount.ParseAccountName(accountName);
@@ -38,12 +38,12 @@
                 if (!p.HasExited)
                 {
                     p.Kill();
-                    throw new ServiceControlQueueCreationTimeoutException("Timed out waiting for ServiceControl to created queues. This usually indicates a configuration error.");
+                    throw new ServiceControlSetupTimeoutException("Timed out waiting for ServiceControl to created queues. This usually indicates a configuration error.");
                 }
 
                 if (p.ExitCode != 0)
                 {
-                    throw new ServiceControlQueueCreationFailedException($"ServiceControl.exe threw an error when creating queues. This typically indicates a configuration error such a as an invalid connection string. The error output from ServiceControl.exe was:\r\n {error}");
+                    throw new ServiceControlSetupFailedException($"ServiceControl.exe threw an error when creating queues. This typically indicates a configuration error such a as an invalid connection string. The error output from ServiceControl.exe was:\r\n {error}");
                 }
             }
             else

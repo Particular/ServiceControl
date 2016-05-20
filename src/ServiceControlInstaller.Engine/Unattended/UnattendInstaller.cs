@@ -106,7 +106,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 }
             
                 options.ApplyChangesToInstance(instance);
-                instance.RunInstanceToCreateQueues();
+                instance.SetupInstance();
                 
                 if (instance.ReportCard.HasErrors)
                 {

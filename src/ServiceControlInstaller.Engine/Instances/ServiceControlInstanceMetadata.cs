@@ -13,7 +13,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Queues;
+    using ServiceControlInstaller.Engine.Setup;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
     using ServiceControlInstaller.Engine.UrlAcl;
@@ -157,13 +157,13 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             try
             {
-                QueueCreation.RunQueueCreation(this);
+                ServiceControlSetup.RunInSetupMode(this);
             }
-            catch (ServiceControlQueueCreationFailedException ex)
+            catch (ServiceControlSetupFailedException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-            catch (ServiceControlQueueCreationTimeoutException ex)
+            catch (ServiceControlSetupTimeoutException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }

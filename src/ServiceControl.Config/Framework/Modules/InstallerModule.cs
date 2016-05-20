@@ -94,8 +94,8 @@
                 progress.Report(2, 6, "Upgrading Files...");
                 instance.UpgradeFiles(ZipInfo.FilePath);
 
-                progress.Report(3, 6, "Upgrading Database...");
-                instance.UpgradeRavenDatabase(instance.DBPath);
+                progress.Report(3, 6, "Moving database...");
+                instance.MoveRavenDatabase(instance.DBPath);
             }
             finally
             {
@@ -105,8 +105,8 @@
 
             upgradeOptions.ApplyChangesToInstance(instance);
 
-            progress.Report(5, 6, "Running Queue Creation...");
-            instance.RunInstanceToCreateQueues();
+            progress.Report(5, 6, "Upgrading instance...");
+            instance.SetupInstance();
             instance.ReportCard.SetStatus();
             return instance.ReportCard;
         }

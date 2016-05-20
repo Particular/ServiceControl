@@ -16,9 +16,9 @@ namespace ServiceControlInstaller.Engine.Instances
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Queues;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
+    using ServiceControlInstaller.Engine.Setup;
     using ServiceControlInstaller.Engine.UrlAcl;
     using ServiceControlInstaller.Engine.Validation;
     using TimeoutException = System.ServiceProcess.TimeoutException;
@@ -229,16 +229,16 @@ namespace ServiceControlInstaller.Engine.Instances
 
             if (queueNamesChanged || accountChanged || connectionStringChanged )
             {
-                QueueCreation.RunQueueCreation(this, accountName);
+                ServiceControlSetup.RunInSetupMode(this, accountName);
                 try
                 {
-                    QueueCreation.RunQueueCreation(this);
+                    ServiceControlSetup.RunInSetupMode(this);
                 }
-                catch (ServiceControlQueueCreationFailedException ex)
+                catch (ServiceControlSetupFailedException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }
-                catch (ServiceControlQueueCreationTimeoutException ex)
+                catch (ServiceControlSetupTimeoutException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }
@@ -464,7 +464,7 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
         }
 
-        public void UpgradeRavenDatabase(string dbPath)
+        public void MoveRavenDatabase(string dbPath)
         {
             if (!File.Exists(Path.Combine(dbPath, "Data")))
             {
@@ -472,12 +472,6 @@ namespace ServiceControlInstaller.Engine.Instances
             }
 
             MoveDatabaseFiles(dbPath);
-            LinkDatabase(dbPath);
-        }
-
-        private void LinkDatabase(string dbPath) 
-        {
-            
         }
 
         private static void MoveDatabaseFiles(string dbPath)
@@ -529,17 +523,17 @@ namespace ServiceControlInstaller.Engine.Instances
                 throw new Exception($"Invalid Service Name. There is already a windows service called '{instanceName}'");
         }
 
-        public void RunInstanceToCreateQueues()
+        public void SetupInstance()
         {
             try
             {
-                QueueCreation.RunQueueCreation(this);
+                ServiceControlSetup.RunInSetupMode(this);
             }
-            catch (ServiceControlQueueCreationFailedException ex)
+            catch (ServiceControlSetupFailedException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-            catch (ServiceControlQueueCreationTimeoutException ex)
+            catch (ServiceControlSetupTimeoutException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
