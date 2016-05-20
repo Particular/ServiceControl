@@ -23,8 +23,6 @@
             errorRetentionPeriod = GetErrorRetentionPeriod();
         }
 
-        public static bool MaintenanceMode;
-
         public static string ApiUrl
         {
             get

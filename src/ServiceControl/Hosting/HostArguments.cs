@@ -6,7 +6,6 @@ namespace Particular.ServiceControl.Hosting
     using System.Reflection;
     using Commands;
     using global::ServiceControl.Hosting.Commands;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     public class HostArguments
     {
@@ -80,7 +79,6 @@ namespace Particular.ServiceControl.Hosting
                 maintenanceOptions.Parse(args);
                 if (executionMode == ExecutionMode.Maintenance)
                 {
-                    Settings.MaintenanceMode = true;
                     return;
                 }
 
