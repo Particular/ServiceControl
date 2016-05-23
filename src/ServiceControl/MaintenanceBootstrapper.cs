@@ -10,7 +10,7 @@ namespace Particular.ServiceControl
         public void Run()
         {
             var startup = new Startup(null);
-            using (WebApp.Start(new StartOptions(Settings.ApiUrl), startup.ConfigureRavenDB))
+            using (WebApp.Start(new StartOptions(Settings.RootUrl), startup.ConfigureRavenDB))
             {
                 Console.Out.WriteLine("RavenDB is now accepting requests on {0}", Settings.StorageUrl);
                 Console.Out.WriteLine("RavenDB Maintenance Mode - Press Enter to exit");

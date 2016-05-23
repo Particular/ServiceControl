@@ -23,7 +23,7 @@
             errorRetentionPeriod = GetErrorRetentionPeriod();
         }
 
-        public static string ApiUrl
+        public static string RootUrl
         {
             get
             {
@@ -38,21 +38,10 @@
             }
         }
 
-        public static string StorageUrl
-        {
-            get
-            {
-                var suffix = String.Empty;
+        public static string ApiUrl => RootUrl + "api";
 
-                if (!string.IsNullOrEmpty(VirtualDirectory))
-                {
-                    suffix = VirtualDirectory;
-                }
-
-                return $"http://{Hostname}:{Port}/{suffix}";
-            }
-        }
-
+        public static string StorageUrl => RootUrl + "storage";
+        
         static Address GetAuditLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);

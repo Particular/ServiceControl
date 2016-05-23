@@ -27,7 +27,7 @@ namespace Particular.ServiceControl
         public void Run(string username)
         {
             var startup = new Startup(null);
-            using (WebApp.Start(new StartOptions(Settings.ApiUrl), startup.ConfigureRavenDB))
+            using (WebApp.Start(new StartOptions(Settings.RootUrl), startup.ConfigureRavenDB))
             {
                 var configuration = new BusConfiguration();
                 configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
@@ -50,7 +50,7 @@ namespace Particular.ServiceControl
         {
             using (var documentStore = new DocumentStore
             {
-                Url = Settings.ApiUrl + "storage",
+                Url = Settings.StorageUrl,
                 DefaultDatabase = "ServiceControl",
                 Conventions =
                 {
@@ -89,7 +89,7 @@ namespace Particular.ServiceControl
         {
             using (var documentStore = new DocumentStore
             {
-                Url = Settings.ApiUrl + "storage",
+                Url = Settings.StorageUrl,
                 Credentials = CredentialCache.DefaultNetworkCredentials
             }.Initialize())
             {

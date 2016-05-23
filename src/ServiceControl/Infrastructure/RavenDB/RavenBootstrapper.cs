@@ -22,7 +22,7 @@
         public void Customize(BusConfiguration configuration)
         {
             var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
-            documentStore.Url = Settings.ApiUrl + "storage";
+            documentStore.Url = Settings.StorageUrl;
             documentStore.DefaultDatabase = "ServiceControl";
             documentStore.EnlistInDistributedTransactions = false;
             documentStore.Conventions.SaveEnumsAsIntegers = true;

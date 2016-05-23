@@ -64,7 +64,7 @@ namespace Particular.ServiceControl
 
         public void Start()
         {
-            webApp = WebApp.Start(new StartOptions(Settings.ApiUrl), startup.Configuration);
+            webApp = WebApp.Start(new StartOptions(Settings.RootUrl), startup.Configuration);
 
             if (Environment.UserInteractive && Debugger.IsAttached)
             {

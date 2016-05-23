@@ -31,8 +31,8 @@ httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a 
                 return;
             }
 
-            Logger.InfoFormat("Granting user '{0}' HttpListener permissions to {1}", identity, Settings.ApiUrl);
-            var reservation = new UrlReservation(Settings.ApiUrl, accountSid);
+            Logger.InfoFormat("Granting user '{0}' HttpListener permissions to {1}", identity, Settings.RootUrl);
+            var reservation = new UrlReservation(Settings.RootUrl, accountSid);
             reservation.Create();
         }
         
