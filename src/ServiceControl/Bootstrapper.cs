@@ -69,6 +69,7 @@ namespace Particular.ServiceControl
             if (Environment.UserInteractive && Debugger.IsAttached)
             {
                 SetupBootstrapper.CreateDatabase(WindowsIdentity.GetCurrent().Name);
+                SetupBootstrapper.InitialiseDatabase();
             }
 
             Bus = ConfigureNServiceBus(configuration);

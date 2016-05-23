@@ -153,7 +153,7 @@ namespace ServiceControlInstaller.Engine.Instances
             reservation.Create();
         }
 
-        public void RunInstanceToCreateQueues()
+        public void SetupInstance()
         {
             try
             {

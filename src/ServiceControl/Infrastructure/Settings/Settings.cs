@@ -182,7 +182,6 @@
         public static bool ForwardAuditMessages { get; set; }
         public static bool ForwardErrorMessages { get; set; }
         
-        public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;
 
         const int ExpirationProcessTimerInSecondsDefault = 600;

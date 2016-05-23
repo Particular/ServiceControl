@@ -27,28 +27,41 @@
                 FileName = Path.Combine(instance.InstallPath, "ServiceControl.exe"),
                 Arguments = args,
                 WorkingDirectory = instance.InstallPath,
+#if DEBUG
+                RedirectStandardOutput = true,
+#endif
                 RedirectStandardError = true
             };
 
-            var p = Process.Start(processStartupInfo);
-            if (p != null)
+            using (var p = Process.Start(processStartupInfo))
             {
-                var error = p.StandardError.ReadToEnd();
-                p.WaitForExit((int) TimeSpan.FromMinutes(1).TotalMilliseconds);
-                if (!p.HasExited)
+                if (p != null)
                 {
-                    p.Kill();
-                    throw new ServiceControlSetupTimeoutException("Timed out waiting for ServiceControl to created queues. This usually indicates a configuration error.");
-                }
+#if DEBUG
+                    p.OutputDataReceived += (sender, eventArgs) =>
+                    {
+                        Debug.WriteLine(eventArgs.Data);
+                    };
 
-                if (p.ExitCode != 0)
-                {
-                    throw new ServiceControlSetupFailedException($"ServiceControl.exe threw an error when creating queues. This typically indicates a configuration error such a as an invalid connection string. The error output from ServiceControl.exe was:\r\n {error}");
+                    p.BeginOutputReadLine();
+#endif
+                    var error = p.StandardError.ReadToEnd();
+                    p.WaitForExit((int) TimeSpan.FromMinutes(3).TotalMilliseconds);
+                    if (!p.HasExited)
+                    {
+                        p.Kill();
+                        throw new ServiceControlSetupTimeoutException("Timed out waiting for ServiceControl to setup instance. This usually indicates a configuration error.");
+                    }
+
+                    if (p.ExitCode != 0)
+                    {
+                        throw new ServiceControlSetupFailedException($"ServiceControl.exe threw an error when setting up. This typically indicates a configuration error such as an invalid connection string. The error output from ServiceControl.exe was:\r\n {error}");
+                    }
                 }
-            }
-            else
-            {
-                throw new Exception("Attempt to launch ServiceControl.exe failed.");
+                else
+                {
+                    throw new Exception("Attempt to launch ServiceControl.exe failed.");
+                }
             }
         }
     }

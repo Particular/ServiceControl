@@ -50,8 +50,8 @@
             instanceInstaller.WriteConfigurationFile();
             progress.Report(5, 9, "Registering URL ACLs...");
             instanceInstaller.RegisterUrlAcl();
-            progress.Report(6, 9, "Creating queues...");
-            instanceInstaller.RunInstanceToCreateQueues();
+            progress.Report(6, 9, "Setup instance... (this can take some time)");
+            instanceInstaller.SetupInstance();
 
             if (!instanceInstaller.ReportCard.HasErrors)
             {
@@ -105,7 +105,7 @@
 
             upgradeOptions.ApplyChangesToInstance(instance);
 
-            progress.Report(5, 6, "Upgrading instance...");
+            progress.Report(5, 6, "Upgrading instance... (this can take some time)");
             instance.SetupInstance();
             instance.ReportCard.SetStatus();
             return instance.ReportCard;

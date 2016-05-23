@@ -4,17 +4,14 @@
     using System.ComponentModel.Composition.Hosting;
     using System.Linq;
     using System.Net;
-    using System.Threading;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Persistence;
     using NServiceBus.Pipeline;
-    using Raven.Abstractions.Connection;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Embedded;
-    using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.EndpointControl;
@@ -33,41 +30,6 @@
             documentStore.Credentials = CredentialCache.DefaultNetworkCredentials;
             
             documentStore.Initialize();
-            Logger.Info("Index creation started");
-
-            //Create this index synchronously as we are using it straight away
-            //Should be quick as number of endpoints will always be a small number
-            while (true)
-            {
-                try
-                {
-                    documentStore.ExecuteIndex(new KnownEndpointIndex());
-                    break;
-                }
-                catch (ErrorResponseException ex)
-                {
-                    Logger.Error("Failed to create indexes, waiting to try again", ex);
-                }
-
-                Thread.Sleep(2000);
-            }
-
-
-            if (Settings.CreateIndexSync)
-            {
-                IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
-            }
-            else
-            {
-                IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore)
-                    .ContinueWith(c =>
-                    {
-                        if (c.IsFaulted)
-                        {
-                            Logger.Error("Index creation failed", c.Exception);
-                        }
-                    });
-            }
 
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
 
