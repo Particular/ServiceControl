@@ -6,7 +6,6 @@
     using System.Net;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Logging;
     using NServiceBus.Persistence;
     using NServiceBus.Pipeline;
     using Raven.Abstractions.Extensions;
@@ -73,7 +72,5 @@
                 }
             }
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
     }
 }
