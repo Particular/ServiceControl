@@ -137,7 +137,6 @@
 
         public static int Port = SettingsReader<int>.Read("Port", 33333);
       
-        public static bool ExposeRavenDB = SettingsReader<bool>.Read("ExposeRavenDB");
         public static string Hostname = SettingsReader<string>.Read("Hostname", "localhost");
         public static string VirtualDirectory = SettingsReader<string>.Read("VirtualDirectory", String.Empty);
 
