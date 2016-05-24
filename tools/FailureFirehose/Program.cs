@@ -10,101 +10,224 @@ using Newtonsoft.Json;
 using NServiceBus;
 using NServiceBus.Features;
 using NServiceBus.Logging;
+using ServiceControl.Plugin.CustomChecks;
 
 namespace FailureFirehose
 {
     internal class Program
     {
-        public const int MAX_BODY_SIZE = 10000;
-        public const int MESSAGE_COUNT = 350;
+        public const int MAX_BODY_SIZE = 1024 * 1024; // 2MB
+        public const int MIM_BODY_SIZE = 70;
+        public const int MAX_MESSAGE_COUNT = 350;
+        public const int MIN_MESSAGE_COUNT = 50;
         public const int FAILURE_PERCENTAGE = 5;
-        public const int FAILURE_THRESHOLD = (int)(MESSAGE_COUNT * (FAILURE_PERCENTAGE / 100m));
 
         private static void Main()
         {
             LogManager.Use<DefaultFactory>()
                 .Level(LogLevel.Fatal);
 
-            var config = new EndpointConfiguration("FailureFirehose");
-            config.UseTransport<MsmqTransport>().Transactions(TransportTransactionMode.None);
-            config.UseSerialization<NServiceBus.JsonSerializer>();
+            var source = new CancellationTokenSource();
+
+            Console.CancelKeyPress += (sender, args) =>
+            {
+                args.Cancel = true;
+                source.Cancel();
+            };
+
+            Console.WriteLine("Mode of operation:");
+            Console.WriteLine("1 - Sender");
+            Console.WriteLine("2 - Receiver");
+            Console.WriteLine("3 - Retry/Archive");
+
+            Action action = () => {};
+            bool wrongOption;
+
+            do
+            {
+                var key = Console.ReadKey(true);
+                wrongOption = false;
+
+                switch (key.KeyChar)
+                {
+                    case '1':
+                        action = () => RunSender(source.Token);
+                        break;
+                    case '2':
+                        action = () => RunReceiver(source.Token);
+                        break;
+
+                    case '3':
+                        action = () => ExecuteRestAPI(source.Token);
+                        break;
+
+                    default:
+                        Console.Out.WriteLine("Invalid option, try again!");
+                        wrongOption = true;
+                        break;
+
+                }
+            } while (wrongOption);
+
+            Console.WriteLine("Press Ctrl+C to exit");
+
+            Task.Run(action, CancellationToken.None).GetAwaiter().GetResult();
+               
+        }
+
+        private static void ExecuteRestAPI(CancellationToken token)
+        {
+            var timer = new Timer(state =>
+            {
+                Console.WriteLine("Firing off Archive/Retry Requests");
+                ServiceControl.ArchiveAllGroups();
+            }, null, TimeSpan.FromMinutes(20), TimeSpan.FromMinutes(20));
+
+            token.WaitHandle.WaitOne();
+            using (var manualResetEvent = new ManualResetEvent(false))
+            {
+                timer.Dispose(manualResetEvent);
+            }
+        }
+
+        static void RunReceiver(CancellationToken token)
+        {
+            var config = new BusConfiguration();
+            config.EndpointName("FailureFirehose_Receiver");
+            config.UseTransport<MsmqTransport>();
+            config.Transactions().DisableDistributedTransactions().DoNotWrapHandlersExecutionInATransactionScope();
             config.UsePersistence<InMemoryPersistence>();
             config.DisableFeature<SecondLevelRetries>();
             config.EnableFeature<Audit>();
             config.EnableInstallers();
 
-            var alphabet = " abcdefghijklmnopqrstuzwxyz".ToArray();
+            using (Bus.Create(config).Start())
+            {
+                Console.WriteLine("Receiver Bus Started");
+
+                token.WaitHandle.WaitOne();
+            }
+        }
+
+        private static void RunSender(CancellationToken token)
+        {
+            var config = new BusConfiguration();
+            config.EndpointName("FailureFirehose");
+            config.UseTransport<MsmqTransport>();
+            config.Transactions().DisableDistributedTransactions().DoNotWrapHandlersExecutionInATransactionScope();
+            config.UsePersistence<InMemoryPersistence>();
+            config.DisableFeature<SecondLevelRetries>();
+            config.EnableFeature<Audit>();
+            config.EnableInstallers();
 
             var rnd = new Random();
 
-            var bodies = new string[MESSAGE_COUNT];
+            var body = new string('a', MAX_BODY_SIZE);
 
-            for (var i = 0; i < MESSAGE_COUNT; i++)
+            using (var bus = Bus.Create(config).Start())
             {
-                bodies[i] = new string(Enumerable.Range(0, rnd.Next(MAX_BODY_SIZE))
-                    .Select(x => alphabet.OrderBy(y => rnd.Next()).First())
-                    .ToArray());
-            }
+                Console.WriteLine("Sender Bus Started");
 
+                var iteration = 1;
 
-            var bus = Endpoint.Start(config).GetAwaiter().GetResult();
+                while (!token.IsCancellationRequested)
+                {
+                    var total = rnd.Next(MIN_MESSAGE_COUNT, MAX_MESSAGE_COUNT + 1);
+                    Console.Write($"Iteration {iteration++}, sending {total} message(s)");
+                    var stopwatch = new Stopwatch();
 
-            Console.WriteLine("Bus Started");
+                    stopwatch.Start();
+                    var failureThreashold = (int)(total * (FAILURE_PERCENTAGE / 100m));
 
-            var iteration = 1;
-
-            while (true)
-            {
-                Console.WriteLine($"Iteration {iteration++}");
-                var stopwatch = new Stopwatch();
-
-                stopwatch.Start();
-                Parallel.ForEach(
-                    Enumerable.Range(0, MESSAGE_COUNT),
-                    i => bus.SendLocal(new PerformSomeTaskThatFails
+                    Parallel.For(0, total, i =>
                     {
-                        Id = i,
-                        Body = bodies[i]
-                    }));
+                        PerformSomeTaskThatFails performSomeTaskThatFails;
+                        unsafe
+                        {
+                            fixed (char* p = body)
+                            {
+                                performSomeTaskThatFails = new PerformSomeTaskThatFails
+                                {
+                                    Id = i,
+                                    FailureThreashold = failureThreashold,
+                                    Body = new string(p, 0, rnd.Next(MIM_BODY_SIZE, MAX_BODY_SIZE)) // Saving on memory allocations by using a pointer
+                                };
+                            }
+                        }
+                        bus.Send("FailureFirehose_Receiver", performSomeTaskThatFails);
+                    });
 
-                if ((iteration%200) == 0)
-                {
-                    Thread.Sleep(TimeSpan.FromMinutes(2));
-                }
+                    stopwatch.Stop();
 
-                if (iteration > 60*60 /* one hour or so */)
-                {
-                    Console.WriteLine("Firing off Archive Requests");
-                    ServiceControl.ArchiveAllGroups();
-                    Console.WriteLine("Restarting Iterations");
-                    iteration = 1;
-                }
+                    Console.Write($", completed in {stopwatch.Elapsed}");
+                    Console.WriteLine();
 
-                stopwatch.Stop();
-                var remainingTime = (int) (TimeSpan.FromSeconds(1) - stopwatch.Elapsed).TotalMilliseconds;
-                if (remainingTime > 0)
-                    Thread.Sleep(remainingTime);
-                else
-                {
-                    Console.WriteLine("Running Late!");
+                    var remainingTime = (int) (TimeSpan.FromSeconds(1) - stopwatch.Elapsed).TotalMilliseconds;
+                    if (remainingTime > 0)
+                    {
+                        Thread.Sleep(remainingTime);
+                    }
+
+                    if (iteration > 20*60) // About every 20 minutes
+                    {
+                        Console.WriteLine("Restarting Iterations");
+                        iteration = 1;
+                    }
                 }
             }
+        }
+    }
 
+    public class MyCheck : PeriodicCheck
+    {
+        Random rnd = new Random();
+
+        public MyCheck() : base("MyCheck", "Testing", TimeSpan.FromMinutes(1))
+        {
         }
 
+        public override CheckResult PerformCheck()
+        {
+            if (rnd.Next(0, 1) == 0)
+            {
+                return CheckResult.Pass;
+            }
+
+            return CheckResult.Failed("Because I can");
+        }
     }
+
+    public class MyCheck2 : PeriodicCheck
+    {
+        Random rnd = new Random();
+
+        public MyCheck2() : base("MyCheck2", "Testing", TimeSpan.FromSeconds(45))
+        {
+        }
+
+        public override CheckResult PerformCheck()
+        {
+            if (rnd.Next(0, 1) == 0)
+            {
+                return CheckResult.Pass;
+            }
+
+            return CheckResult.Failed("Because I can");
+        }
+    }
+
     public class PerformSomeTaskThatFails : ICommand
     {
         public int Id { get; set; }
         public string Body { get; set; }
+        public int FailureThreashold { get; set; }
     }
-
 
     public class FailingHandler : IHandleMessages<PerformSomeTaskThatFails>
     {
-        public Task Handle(PerformSomeTaskThatFails message, IMessageHandlerContext context)
+        public void Handle(PerformSomeTaskThatFails message)
         {
-            if (message.Id < Program.FAILURE_THRESHOLD)
+            if (message.Id < message.FailureThreashold)
             {
                 switch (message.Id % 4)
                 {
@@ -114,8 +237,6 @@ namespace FailureFirehose
                     default: throw new Exception("Some business thing happened");
                 }
             }
-
-            return Task.FromResult(0);
         }
     }
 
@@ -142,7 +263,6 @@ namespace FailureFirehose
                 {
                     client.UploadData($"http://localhost:33333/api/recoverability/groups/{ids[i]}/errors/archive", "POST", new byte[0]);
                 }
-
             }
         }
     }
