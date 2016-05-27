@@ -313,23 +313,6 @@
     </Compile>
     <Compile Include="Hosting\HostArguments.cs" />
     <Compile Include="Hosting\Options.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\ErrorCode.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpApi.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpApiConstants.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpApiVersion.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigId.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigIPListenParam.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigIPListenQuery.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigQueryType.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigSslKey.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigSslParam.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigSslQuery.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigSslSet.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclKey.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclParam.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclQuery.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\Api\HttpServiceConfigUrlAclSet.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAcl\UrlReservation.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\Chunker.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ErrorMessageCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryErrorMessageIndex.cs" />
@@ -425,7 +408,6 @@
     <Compile Include="Infrastructure\SignalR\Envelope.cs" />
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensions.cs" />
-    <Compile Include="Infrastructure\Installers\UrlAclInstaller.cs" />
     <Compile Include="MessageAuditing\Handlers\AuditMessageHandler.cs" />
     <Compile Include="Infrastructure\DictionaryExtensions.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
