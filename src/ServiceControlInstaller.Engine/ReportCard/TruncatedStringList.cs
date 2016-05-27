@@ -26,7 +26,7 @@
             {
                 return s;
             }
-            var suffix = (s.Length > maxLength) ? "... " : "";
+            var suffix = (s.Length > maxLength) ? "... " : String.Empty;
             return s.Substring(0, Math.Min(s.Length, maxLength)) + suffix;
         }
 

@@ -174,7 +174,7 @@
 
         public async Task StartService()
         {
-            using (var progress = this.GetProgressObject(""))
+            using (var progress = this.GetProgressObject(String.Empty))
             {
                 progress.Report(new ProgressDetails("Starting Service"));
                 await Task.Run(() => ServiceControlInstance.TryStartService());
@@ -184,7 +184,7 @@
 
         public async Task StopService()
         {
-            using (var progress = this.GetProgressObject(""))
+            using (var progress = this.GetProgressObject(String.Empty))
             {
                 progress.Report(new ProgressDetails("Stopping Service"));
                 await Task.Run(() => ServiceControlInstance.TryStopService());

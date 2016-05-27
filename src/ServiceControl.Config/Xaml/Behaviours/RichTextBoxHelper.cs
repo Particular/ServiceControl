@@ -32,7 +32,7 @@ namespace ServiceControl.Config.Xaml.Behaviours
             new FrameworkPropertyMetadata
             {
                 AffectsRender = true,
-                DefaultValue = "",
+                DefaultValue = String.Empty,
                 BindsTwoWayByDefault = true,
                 PropertyChangedCallback = (obj, e) =>
                 {
@@ -44,7 +44,7 @@ namespace ServiceControl.Config.Xaml.Behaviours
                     try
                     {
                         var parser = new ParserContext();
-                        parser.XmlnsDictionary.Add("", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
+                        parser.XmlnsDictionary.Add(String.Empty, "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
                         parser.XmlnsDictionary.Add("x", "http://schemas.microsoft.com/winfx/2006/xaml");
                         var doc = new FlowDocument();
 

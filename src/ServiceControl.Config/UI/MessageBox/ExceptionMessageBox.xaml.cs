@@ -174,7 +174,7 @@
             finally
             {
                 ProgressTitle = "Processing";
-                ProgressMessage = "";
+                ProgressMessage = String.Empty;
                 InProgress = false;
             }
         }

@@ -73,7 +73,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                     transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = "";
+                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
                     transportMessage.Headers["NServiceBus.FailedQ"] = settings.LocalAddress().ToString();
                     transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
                     

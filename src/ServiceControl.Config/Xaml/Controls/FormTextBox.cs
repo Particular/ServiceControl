@@ -4,6 +4,8 @@ using System.Windows.Data;
 
 namespace ServiceControl.Config.Xaml.Controls
 {
+    using System;
+
     public class FormTextBox : TextBox
     {
         static FormTextBox()
@@ -29,7 +31,7 @@ namespace ServiceControl.Config.Xaml.Controls
         }
 
         public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormTextBox), new PropertyMetadata(""));
+            DependencyProperty.Register("Header", typeof(string), typeof(FormTextBox), new PropertyMetadata(String.Empty));
 
         public string Warning
         {
@@ -41,7 +43,7 @@ namespace ServiceControl.Config.Xaml.Controls
         }
 
         public static readonly DependencyProperty WarningProperty =
-            DependencyProperty.Register("Warning", typeof(string), typeof(FormTextBox), new PropertyMetadata(""));
+            DependencyProperty.Register("Warning", typeof(string), typeof(FormTextBox), new PropertyMetadata(String.Empty));
 
         
     }

@@ -103,11 +103,11 @@ namespace NServiceBus.AcceptanceTesting.Support
             Console.Out.WriteLine("Test summary for: {0}", runDescriptor.Key);
             if (totalRuns > 1)
                 Console.Out.WriteLine(" - Permutation: {0}({1})", runDescriptor.Permutation, totalRuns);
-            Console.Out.WriteLine("");
+            Console.Out.WriteLine(String.Empty);
 
             PrintSettings(runDescriptor.Settings);
 
-            Console.WriteLine("");
+            Console.WriteLine(String.Empty);
             Console.WriteLine("Endpoints:");
 
             foreach (var endpoint in runResult.ActiveEndpoints)
@@ -125,7 +125,7 @@ namespace NServiceBus.AcceptanceTesting.Support
             }
 
             //dump trace and context regardless since asserts outside the should could still fail the test
-            Console.WriteLine("");
+            Console.WriteLine(String.Empty);
             Console.Out.WriteLine("Context:");
 
             foreach (var prop in runResult.ScenarioContext.GetType().GetProperties())
@@ -135,7 +135,7 @@ namespace NServiceBus.AcceptanceTesting.Support
                 Console.Out.WriteLine("{0} = {1}", prop.Name, prop.GetValue(runResult.ScenarioContext, null));
             }
 
-            Console.WriteLine("");
+            Console.WriteLine(String.Empty);
             Console.Out.WriteLine("Trace:");
             Console.Out.WriteLine(runResult.ScenarioContext.Trace);
 
@@ -232,7 +232,7 @@ namespace NServiceBus.AcceptanceTesting.Support
 
         private static void PrintSettings(IEnumerable<KeyValuePair<string, string>> settings)
         {
-            Console.WriteLine("");
+            Console.WriteLine(String.Empty);
             Console.WriteLine("Using settings:");
             foreach (var pair in settings)
             {

@@ -3,6 +3,8 @@ using System.Windows.Controls;
 
 namespace ServiceControl.Config.Xaml.Controls
 {
+    using System;
+
     [TemplatePart(Name = "PART_PasswordBox", Type = typeof(PasswordBox))]
     public class FormPasswordBox : Control
     {
@@ -32,7 +34,7 @@ namespace ServiceControl.Config.Xaml.Controls
         }
 
         public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormPasswordBox), new PropertyMetadata(""));
+            DependencyProperty.Register("Header", typeof(string), typeof(FormPasswordBox), new PropertyMetadata(String.Empty));
 
         public string Text
         {
@@ -42,7 +44,7 @@ namespace ServiceControl.Config.Xaml.Controls
 
         public static readonly DependencyProperty TextProperty =
             DependencyProperty.Register("Text", typeof(string), typeof(FormPasswordBox),
-                new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, (dp, e) => ((FormPasswordBox)dp).PasswordTextChanged(e)));
+                new FrameworkPropertyMetadata(String.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, (dp, e) => ((FormPasswordBox)dp).PasswordTextChanged(e)));
 
         private void PasswordTextChanged(DependencyPropertyChangedEventArgs e)
         {

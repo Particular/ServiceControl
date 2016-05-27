@@ -68,7 +68,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return baseUrl;
                 }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? "" : "/")}api/";
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
             }
         }
 

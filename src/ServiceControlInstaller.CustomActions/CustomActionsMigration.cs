@@ -95,8 +95,8 @@
                             if (productKey != null)
                             {
                                 productKeyPresent = true;
-                                var displayName = (string) productKey.GetValue("DisplayName", "");
-                                var displayVersion = (string)productKey.GetValue("DisplayVersion", "");
+                                var displayName = (string) productKey.GetValue("DisplayName", String.Empty);
+                                var displayVersion = (string)productKey.GetValue("DisplayVersion", String.Empty);
 
                                 var descriptiveVersion = $"{displayName} {displayVersion}";
 

@@ -3,6 +3,8 @@ using System.Windows.Controls.Primitives;
 
 namespace ServiceControl.Config.Xaml.Controls
 {
+    using System;
+
     public class FormToggleButton : ToggleButton
     {
         static FormToggleButton()
@@ -17,6 +19,6 @@ namespace ServiceControl.Config.Xaml.Controls
         }
 
         public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormToggleButton), new PropertyMetadata(""));
+            DependencyProperty.Register("Header", typeof(string), typeof(FormToggleButton), new PropertyMetadata(String.Empty));
     }
 }

@@ -138,9 +138,9 @@
                     transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.HelpLink"] = "";
+                    transportMessage.Headers["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty;
                     transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = "";
+                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
                     transportMessage.Headers["NServiceBus.FailedQ"] = "SomeEndpoint@SELENE";
                     transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
                     transportMessage.Headers["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z";

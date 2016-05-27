@@ -91,7 +91,7 @@
 
         public string Password
         {
-            get { return UseProvidedAccount ? password : ""; }
+            get { return UseProvidedAccount ? password : String.Empty; }
             set { password = value; }
         }
 
@@ -137,7 +137,7 @@
         public string ConnectionString { get; set; }
         
         // ReSharper disable once UnusedMember.Global
-        public string SampleConnectionString => SelectedTransport != null ? SelectedTransport.SampleConnectionString : "";
+        public string SampleConnectionString => SelectedTransport != null ? SelectedTransport.SampleConnectionString : String.Empty;
 
         // ReSharper disable once UnusedMember.Global
         public bool ShowConnectionString => SelectedTransport != null && !string.IsNullOrEmpty(SelectedTransport.SampleConnectionString);
