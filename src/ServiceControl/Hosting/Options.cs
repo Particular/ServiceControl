@@ -297,7 +297,7 @@ namespace Particular.ServiceControl.Hosting
             }
             if (index >= c.Option.MaxValueCount)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
             if (c.Option.OptionValueType == OptionValueType.Required &&
                 index >= values.Count)
@@ -366,15 +366,15 @@ namespace Particular.ServiceControl.Hosting
         {
             if (prototype == null)
             {
-                throw new ArgumentNullException("prototype");
+                throw new ArgumentNullException(nameof(prototype));
             }
             if (prototype.Length == 0)
             {
-                throw new ArgumentException("Cannot be the empty string.", "prototype");
+                throw new ArgumentException("Cannot be the empty string.", nameof(prototype));
             }
             if (maxValueCount < 0)
             {
-                throw new ArgumentOutOfRangeException("maxValueCount");
+                throw new ArgumentOutOfRangeException(nameof(maxValueCount));
             }
 
             Prototype = prototype;
@@ -388,13 +388,13 @@ namespace Particular.ServiceControl.Hosting
                 throw new ArgumentException(
                     "Cannot provide maxValueCount of 0 for OptionValueType.Required or " +
                     "OptionValueType.Optional.",
-                    "maxValueCount");
+                    nameof(maxValueCount));
             }
             if (OptionValueType == OptionValueType.None && maxValueCount > 1)
             {
                 throw new ArgumentException(
                     $"Cannot provide maxValueCount of {maxValueCount} for OptionValueType.None.",
-                    "maxValueCount");
+                    nameof(maxValueCount));
             }
             if (Array.IndexOf(Names, "<>") >= 0 &&
                 ((Names.Length == 1 && OptionValueType != OptionValueType.None) ||
@@ -402,7 +402,7 @@ namespace Particular.ServiceControl.Hosting
             {
                 throw new ArgumentException(
                     "The default option handler '<>' cannot require values.",
-                    "prototype");
+                    nameof(prototype));
             }
         }
 
@@ -628,7 +628,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (item == null)
             {
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
             }
             if (item.Names != null && item.Names.Length > 0)
             {
@@ -644,7 +644,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (option == null)
             {
-                throw new ArgumentNullException("option");
+                throw new ArgumentNullException(nameof(option));
             }
             try
             {
@@ -684,7 +684,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (option == null)
             {
-                throw new ArgumentNullException("option");
+                throw new ArgumentNullException(nameof(option));
             }
             var added = new List<string>(option.Names.Length);
             try
@@ -719,7 +719,7 @@ namespace Particular.ServiceControl.Hosting
             {
                 if (action == null)
                 {
-                    throw new ArgumentNullException("action");
+                    throw new ArgumentNullException(nameof(action));
                 }
                 this.action = action;
             }
@@ -741,7 +741,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (action == null)
             {
-                throw new ArgumentNullException("action");
+                throw new ArgumentNullException(nameof(action));
             }
             Option p = new ActionOption(prototype, description, 1,
                 delegate(OptionValueCollection v) { action(v[0]); });
@@ -758,7 +758,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (action == null)
             {
-                throw new ArgumentNullException("action");
+                throw new ArgumentNullException(nameof(action));
             }
             Option p = new ActionOption(prototype, description, 2,
                 delegate(OptionValueCollection v) { action(v[0], v[1]); });
@@ -773,7 +773,7 @@ namespace Particular.ServiceControl.Hosting
             {
                 if (action == null)
                 {
-                    throw new ArgumentNullException("action");
+                    throw new ArgumentNullException(nameof(action));
                 }
                 this.action = action;
             }
@@ -793,7 +793,7 @@ namespace Particular.ServiceControl.Hosting
             {
                 if (action == null)
                 {
-                    throw new ArgumentNullException("action");
+                    throw new ArgumentNullException(nameof(action));
                 }
                 this.action = action;
             }
@@ -912,7 +912,7 @@ namespace Particular.ServiceControl.Hosting
         {
             if (argument == null)
             {
-                throw new ArgumentNullException("argument");
+                throw new ArgumentNullException(nameof(argument));
             }
 
             flag = name = sep = value = null;

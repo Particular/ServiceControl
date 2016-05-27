@@ -67,7 +67,7 @@
 
                 if (genericType == null)
                 {
-                    throw new ArgumentException("When modelType is an enumerable it must specify the type", "modelType");
+                    throw new ArgumentException("When modelType is an enumerable it must specify the type", nameof(modelType));
                 }
             }
 

@@ -16,7 +16,7 @@ namespace ServiceControl.Config.Framework.Commands
         public DelegateCommand(Action<T> executeMethod, Func<T, bool> canExecuteMethod = null) : base(canExecuteMethod)
         {
             if (executeMethod == null)
-                throw new ArgumentNullException("executeMethod", @"Execute Method cannot be null");
+                throw new ArgumentNullException(nameof(executeMethod), @"Execute Method cannot be null");
 
             this.executeMethod = executeMethod;
         }
