@@ -62,7 +62,7 @@
                 var instance = ServiceControlInstance.FindByName(instanceInstaller.Name);
                 if (!instance.TryStartService())
                 {
-                    instance.ReportCard.Warnings.Add($"New instance did not startup - please check configuration for {instance.Name}");
+                    instanceInstaller.ReportCard.Warnings.Add($"New instance did not startup - please check configuration for {instance.Name}");
                 }
             }
             instanceInstaller.ReportCard.SetStatus();
