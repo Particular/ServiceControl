@@ -69,26 +69,8 @@
 
             Logger.Info("Index creation started");
             
-            //Create this index synchronously as we are using it straight away
-            //Should be quick as number of endpoints will always be a small number
-            documentStore.ExecuteIndex(new KnownEndpointIndex());
+            IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
             
-            if (Settings.CreateIndexSync)
-            {
-                IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
-            }
-            else
-            {
-                IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore)
-                    .ContinueWith(c =>
-                    {
-                        if (c.IsFaulted)
-                        {
-                            Logger.Error("Index creation failed", c.Exception);
-                        }
-                    });
-            }
-
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
 
             configuration.RegisterComponents(c => 
