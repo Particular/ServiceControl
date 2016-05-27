@@ -306,7 +306,7 @@
     <Compile Include="Hosting\Commands\AbstractCommand.cs" />
     <Compile Include="Hosting\Commands\CommandRunner.cs" />
     <Compile Include="Hosting\Commands\MaintCommand.cs" />
-    <Compile Include="Hosting\Commands\RunBootstrapperAndNServiceBusInstallers.cs" />
+    <Compile Include="Hosting\Commands\SetupCommand.cs" />
     <Compile Include="Hosting\Commands\RunCommand.cs" />
     <Compile Include="Hosting\Host.cs">
       <SubType>Component</SubType>

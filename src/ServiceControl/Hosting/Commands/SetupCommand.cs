@@ -3,7 +3,7 @@
     using Hosting;
     using NServiceBus;
 
-    class RunBootstrapperAndNServiceBusInstallers : AbstractCommand
+    class SetupCommand : AbstractCommand
     {
         public override void Execute(HostArguments args)
         {
