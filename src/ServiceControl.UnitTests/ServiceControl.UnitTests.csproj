@@ -141,7 +141,6 @@
     <Compile Include="SagaAudit\SagaListIndexTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

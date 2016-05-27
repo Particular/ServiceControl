@@ -1197,7 +1197,7 @@ namespace Particular.ServiceControl.Hosting
                 do
                 {
                     start = description.IndexOf(nameStart[i], j);
-                } while (start >= 0 && j != 0 ? description[j++ - 1] == '{' : false);
+                } while (start >= 0 && j != 0 && description[j++ - 1] == '{');
                 if (start == -1)
                 {
                     continue;

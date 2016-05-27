@@ -83,7 +83,6 @@
             {
                 using (var writer = new JsonTextWriter(new StreamWriter(new UnclosableStreamWrapper(outputStream))))
                 {
-
                     serializer.Serialize(writer, model);
                 }
             }
@@ -98,7 +97,6 @@
 
                 throw;
             }
-
         }
 
         readonly JsonSerializer serializer;
