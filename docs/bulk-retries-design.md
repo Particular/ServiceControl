@@ -62,8 +62,8 @@ There is no status to indicate that a batch is `Done`. When the `Forwarding` sta
 7. Each message that is sent as a part of a forwarding operation is Received from the staging queue and Dispatched to it's final destination as a part of the same Transport Transaction. If a message is recieved but cannot be forwarded then the recieve should be rolled back. The satellite that handles forwaring includes a custom Fault Manager that will attempt to eject the failed message from the batch. Under this circumstance, it is possible for a message to be retried multiple times. 
 
 ### Technicalities of retrying messages
- * `Headers.FailedQ` header is used as a new destination of the message
-  * FailedQ is populated with the queue name to send the message back to
+ * `Headers.FailedQ` header is used as a new destination of the message.
+  * FailedQ is populated with the queue name to send the message back to.
  * The original message headers are striped from following header values: 
   * `NServiceBus.Retries`
   * `NServiceBus.FailedQ`
