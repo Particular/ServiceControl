@@ -18,9 +18,9 @@
             ConnectionString = "host=localhost"; // Default connstr
         }
 
-        public string Name { get { return "RabbitMq"; } }
-        public Type Type { get { return typeof(RabbitMQTransport); } }
-        public string TypeName { get { return "NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ"; } }
+        public string Name => "RabbitMq";
+        public Type Type => typeof(RabbitMQTransport);
+        public string TypeName => "NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ";
         public string ConnectionString { get; set; }
 
         public void OnEndpointShutdown(string endpointName)

@@ -67,7 +67,7 @@
 
         public bool HasNativePubSubSupport { get; set; }
 
-        public string Trace { get { return string.Join(Environment.NewLine, traceQueue.ToArray()); } }
+        public string Trace => string.Join(Environment.NewLine, traceQueue.ToArray());
 
         public void AddTrace(string trace)
         {

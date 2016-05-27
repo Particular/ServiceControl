@@ -183,12 +183,9 @@ namespace ServiceControl.Config.Framework.Rx
 			}
 		}
 
-		bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly
-		{
-			get { return false; }
-		}
+		bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => false;
 
-		/// <summary>
+	    /// <summary>
 		/// Adds the specified key and value to the dictionary.
 		/// </summary>
 		/// <param name="key">The key of the element to add.</param>
@@ -280,20 +277,14 @@ namespace ServiceControl.Config.Framework.Rx
 		/// <summary>
 		/// Gets a collection containing the keys in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.
 		/// </summary>
-		public ICollection<TKey> Keys
-		{
-			get { return inner.Keys; }
-		}
+		public ICollection<TKey> Keys => inner.Keys;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a collection containing the values in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.
 		/// </summary>
-		public ICollection<TValue> Values
-		{
-			get { return new ValueCollection(this); }
-		}
+		public ICollection<TValue> Values => new ValueCollection(this);
 
-		#region Inner Types
+	    #region Inner Types
 
 		private sealed class ValueCollection : ICollection<TValue>
 		{
@@ -347,15 +338,9 @@ namespace ServiceControl.Config.Framework.Rx
 				throw new NotSupportedException();
 			}
 
-			public int Count
-			{
-				get { return inner.Count; }
-			}
+			public int Count => inner.Count;
 
-			bool ICollection<TValue>.IsReadOnly
-			{
-				get { return true; }
-			}
+		    bool ICollection<TValue>.IsReadOnly => true;
 		}
 
 		#endregion Inner Types

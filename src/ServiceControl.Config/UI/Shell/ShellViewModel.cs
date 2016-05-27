@@ -51,9 +51,9 @@
 
         public bool IsModal { get; set; }
 
-        public bool ShowOverlay { get { return Overlay != null; } }
+        public bool ShowOverlay => Overlay != null;
 
-        public bool ShowRefresh { get { return HasInstances && !ShowOverlay && !IsModal; } }
+        public bool ShowRefresh => HasInstances && !ShowOverlay && !IsModal;
 
         public RxScreen Overlay { get; set; }
 

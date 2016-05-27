@@ -95,10 +95,7 @@
             set { password = value; }
         }
 
-        public bool UseSystemAccount
-        {
-            get { return !UseProvidedAccount; }
-        }
+        public bool UseSystemAccount => !UseProvidedAccount;
 
         public bool UseProvidedAccount { get; set; }
 
@@ -110,13 +107,13 @@
         public ForwardingOption AuditForwarding { get; set; }
         public ForwardingOption ErrorForwarding { get; set; }
 
-        public int MaximumErrorRetentionPeriod {get { return SettingConstants.ErrorRetentionPeriodMaxInDays; }}
-        public int MinimumErrorRetentionPeriod { get { return SettingConstants.ErrorRetentionPeriodMinInDays; }}
-        public TimeSpanUnits ErrorRetentionUnits { get { return TimeSpanUnits.Days; }}
+        public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;
+        public int MinimumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMinInDays;
+        public TimeSpanUnits ErrorRetentionUnits => TimeSpanUnits.Days;
 
-        public int MinimumAuditRetentionPeriod  {get { return SettingConstants.AuditRetentionPeriodMinInHours;}}
-        public int MaximumAuditRetentionPeriod { get { return SettingConstants.AuditRetentionPeriodMaxInHours; }}  
-        public TimeSpanUnits AuditRetentionUnits { get { return TimeSpanUnits.Hours; }}
+        public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInHours;
+        public int MaximumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMaxInHours;
+        public TimeSpanUnits AuditRetentionUnits => TimeSpanUnits.Hours;
 
         public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; private set;}
         public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; private set; }
@@ -140,10 +137,10 @@
         public string ConnectionString { get; set; }
         
         // ReSharper disable once UnusedMember.Global
-        public string SampleConnectionString { get { return SelectedTransport != null ? SelectedTransport.SampleConnectionString : ""; } }
-        
+        public string SampleConnectionString => SelectedTransport != null ? SelectedTransport.SampleConnectionString : "";
+
         // ReSharper disable once UnusedMember.Global
-        public bool ShowConnectionString { get { return SelectedTransport != null && !string.IsNullOrEmpty(SelectedTransport.SampleConnectionString); } }
+        public bool ShowConnectionString => SelectedTransport != null && !string.IsNullOrEmpty(SelectedTransport.SampleConnectionString);
 
         public string LogPath { get; set; }
         public ICommand SelectLogPath { get; set; }

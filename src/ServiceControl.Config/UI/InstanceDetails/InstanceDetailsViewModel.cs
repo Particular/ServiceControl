@@ -38,56 +38,25 @@
 
         public ServiceControlInstance ServiceControlInstance { get; }
 
-        public string Name
-        {
-            get { return ServiceControlInstance.Name; }
-        }
+        public string Name => ServiceControlInstance.Name;
 
-        public string Host
-        {
-            get { return ServiceControlInstance.Url; }
-        }
+        public string Host => ServiceControlInstance.Url;
 
-        public string BrowsableUrl
-        {
-            get
-            {
-                // When hostname is a wildcard this returns a URL based on localhost or machinename
-                return ServiceControlInstance.BrowsableUrl;
-            }
-        }
+        public string BrowsableUrl => ServiceControlInstance.BrowsableUrl;
 
-        public string InstallPath
-        {
-            get { return ServiceControlInstance.InstallPath; }
-        }
+        public string InstallPath => ServiceControlInstance.InstallPath;
 
-        public string DBPath
-        {
-            get { return ServiceControlInstance.DBPath; }
-        }
+        public string DBPath => ServiceControlInstance.DBPath;
 
-        public string LogPath
-        {
-            get { return ServiceControlInstance.LogPath; }
-        }
+        public string LogPath => ServiceControlInstance.LogPath;
 
-        public Version Version
-        {
-            get { return ServiceControlInstance.Version; }
-        }
+        public Version Version => ServiceControlInstance.Version;
 
         public Version NewVersion { get; }
 
-        public bool HasNewVersion
-        {
-            get { return Version < NewVersion; }
-        }
+        public bool HasNewVersion => Version < NewVersion;
 
-        public string Transport
-        {
-            get { return ServiceControlInstance.TransportPackage; }
-        }
+        public string Transport => ServiceControlInstance.TransportPackage;
 
         public string Status
         {

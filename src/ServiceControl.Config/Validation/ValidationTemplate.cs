@@ -80,10 +80,7 @@
                 .Select(x => x.ErrorMessage);
         }
 
-        public bool HasErrors
-        {
-            get { return validationResults.Any(); }
-        }
+        public bool HasErrors => validationResults.Any();
 
         public string Error
         {
@@ -110,10 +107,7 @@
 
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
-        public IObservable<DataErrorsChangedEventArgs> ErrorsChangedObservable
-        {
-            get { return errorsChangedSubject.AsObservable(); }
-        }
+        public IObservable<DataErrorsChangedEventArgs> ErrorsChangedObservable => errorsChangedSubject.AsObservable();
 
         void RaiseErrorsChanged()
         {

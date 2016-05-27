@@ -12,9 +12,9 @@
             ConnectionString = @"cacheSendConnection=false;journal=false;"; // Default connstr
         }
 
-        public string Name { get { return "Msmq"; } }
-        public Type Type { get { return typeof(MsmqTransport); } }
-        public string TypeName { get { return "NServiceBus.MsmqTransport, NServiceBus.Core"; }}
+        public string Name => "Msmq";
+        public Type Type => typeof(MsmqTransport);
+        public string TypeName => "NServiceBus.MsmqTransport, NServiceBus.Core";
         public string ConnectionString { get; set; }
 
         public void OnEndpointShutdown(string endpointName)

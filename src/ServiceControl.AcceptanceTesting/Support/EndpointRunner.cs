@@ -236,10 +236,7 @@
         {
             public Exception Exception { get; set; }
 
-            public bool Failed
-            {
-                get { return Exception != null; }
-            }
+            public bool Failed => Exception != null;
 
             public static Result Success()
             {

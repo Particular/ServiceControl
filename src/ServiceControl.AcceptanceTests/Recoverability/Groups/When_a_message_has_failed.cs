@@ -77,10 +77,7 @@
             public string MessageId { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
-            public string UniqueMessageId
-            {
-                get { return DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString(); }
-            }
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
         }
     }
 }

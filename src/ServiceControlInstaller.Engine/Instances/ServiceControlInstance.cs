@@ -32,11 +32,8 @@ namespace ServiceControlInstaller.Engine.Instances
             ReadConfiguration();
         }
 
-        public string InstallPath
-        {
-            get { return Path.GetDirectoryName(Service.ExePath); }
-        }
-      
+        public string InstallPath => Path.GetDirectoryName(Service.ExePath);
+
         public ReportCard ReportCard { get; set; }
         public WindowsServiceController Service { get; set; }
         public string LogPath { get; set; }
@@ -72,10 +69,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public string Name
-        {
-            get { return Service.ServiceName; }
-        }
+        public string Name => Service.ServiceName;
 
         public void Reload()
         {
@@ -162,10 +156,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        string DebuggerDisplay
-        {
-            get { return $"{Name} - {Url} - {Version}"; }
-        }
+        string DebuggerDisplay => $"{Name} - {Url} - {Version}";
 
         string DetermineTransportPackage()
         {
