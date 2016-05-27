@@ -733,6 +733,7 @@
 
                             <PasswordBox x:Name="PART_PasswordBox"
                                          Grid.Row="1"
+                                         Grid.Column="0"
                                          Grid.ColumnSpan="2"
                                          VerticalAlignment="Center"
                                          AllowDrop="True"
@@ -792,6 +793,11 @@
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                     </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="PART_PasswordBox" Property="FocusManager.FocusedElement" Value="{Binding ElementName=PART_PasswordBox}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
