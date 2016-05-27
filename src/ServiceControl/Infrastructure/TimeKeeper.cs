@@ -9,9 +9,13 @@
     {
         ConcurrentDictionary<Timer, object> timers = new ConcurrentDictionary<Timer, object>();
         private ILog log = LogManager.GetLogger<TimeKeeper>();
+        private bool disposed;
+        private int disposeSignaled;
 
         public Timer NewTimer(Func<bool> callback, TimeSpan dueTime, TimeSpan period)
         {
+            ThrowIfDisposed();
+
             Timer timer = null;
 
             timer = new Timer(_ =>
@@ -45,6 +49,8 @@
 
         public Timer New(Action callback, TimeSpan dueTime, TimeSpan period)
         {
+            ThrowIfDisposed();
+
             return NewTimer(() =>
             {
                 callback();
@@ -54,6 +60,8 @@
 
         public void Release(Timer timer)
         {
+            ThrowIfDisposed();
+
             object _;
             timers.TryRemove(timer, out _);
             WaitAndDispose(timer);
@@ -61,10 +69,17 @@
 
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref disposeSignaled, 1) != 0)
+            {
+                return;
+            }
+
             foreach (var pair in timers)
             {
                 WaitAndDispose(pair.Key);
             }
+
+            disposed = true;
         }
 
         private static void WaitAndDispose(Timer timer)
@@ -73,6 +88,14 @@
             {
                 timer.Dispose(manualResetEvent);
                 manualResetEvent.WaitOne();
+            }
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (disposed)
+            {
+                throw new ObjectDisposedException("TimeKeeper");
             }
         }
     }
