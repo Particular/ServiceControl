@@ -11,17 +11,13 @@
         public static void RunQueueCreation(IServiceControlInstance instance, string overrideUserName = null)
         {
             var accountName = overrideUserName ?? instance.ServiceAccount;
-            var userAccount =  UserAccount.ParseAccountName(accountName);
+            var userAccount = UserAccount.ParseAccountName(accountName);
 
-            string args;
+            string args = $"--setup --serviceName={instance.Name}";
 
-            if (userAccount.IsLocalSystem())
+            if (!userAccount.IsLocalSystem())
             {
-                args = $"-setup --serviceName={instance.Name}";
-            }
-            else
-            {
-                args = $"-setup --serviceName={instance.Name} {userAccount.QualifiedName}";
+                args += $" --userName=\"{userAccount.QualifiedName}\"";
             }
 
             var processStartupInfo = new ProcessStartInfo
@@ -38,7 +34,7 @@
             if (p != null)
             {
                 var error = p.StandardError.ReadToEnd();
-                p.WaitForExit((int) TimeSpan.FromMinutes(1).TotalMilliseconds);
+                p.WaitForExit((int)TimeSpan.FromMinutes(1).TotalMilliseconds);
                 if (!p.HasExited)
                 {
                     p.Kill();
