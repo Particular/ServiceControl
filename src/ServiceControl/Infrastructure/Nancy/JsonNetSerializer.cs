@@ -97,7 +97,6 @@
 
                 throw;
             }
-
         }
 
         readonly JsonSerializer serializer;

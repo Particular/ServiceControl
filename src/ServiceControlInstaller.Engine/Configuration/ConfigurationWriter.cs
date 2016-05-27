@@ -53,10 +53,6 @@
             {
                 settings.Add("Raven/Esent/MaxVerPages", "2048");
             }
-            if (!settings.AllKeys.Contains("Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse"))
-            {
-                settings.Add("Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse", Boolean.TrueString);
-            }
             UpdateRuntimeSection();
             
             configuration.Save();
