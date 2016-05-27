@@ -113,7 +113,7 @@
             }
             
             var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
-                          windowManager.ShowMessage(string.Format("STOP INSTANCE AND UPGRADE TO {0}", installer.ZipInfo.Version), string.Format("{0} needs to be stopped in order to upgrade to version {1}. Do you want to proceed?", instanceViewModel.Name, installer.ZipInfo.Version));
+                          windowManager.ShowMessage($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{instanceViewModel.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}. Do you want to proceed?");
             
             if (confirm)
             {

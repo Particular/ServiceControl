@@ -28,7 +28,7 @@ namespace ServiceControlInstaller.PowerShell
 
             if (provider.ImplementingType != typeof(FileSystemProvider))
             {
-                var ex = new ArgumentException(string.Format("{0} does not resolve to a path on the FileSystem provider.", psPath));
+                var ex = new ArgumentException($"{psPath} does not resolve to a path on the FileSystem provider.");
                 var error = new ErrorRecord(ex, "InvalidProvider", ErrorCategory.InvalidArgument, psPath);
                 WriteError(error);
                 return;

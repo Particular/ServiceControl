@@ -16,12 +16,9 @@ namespace ServiceControl.Config.Framework.Rx
 		/// <summary>
 		/// The view chache for this instance.
 		/// </summary>
-		protected IDictionary<object, object> Views
-		{
-			get { return views; }
-		}
+		protected IDictionary<object, object> Views => views;
 
-		/// <summary>
+	    /// <summary>
 		/// Creates an instance of <see cref="ViewAware"/>.
 		/// </summary>
 		public RxViewAware()

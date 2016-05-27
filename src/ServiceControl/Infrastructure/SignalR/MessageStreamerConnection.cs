@@ -51,7 +51,7 @@
             }
             catch (Exception ex)
             {
-                Log.Error(string.Format("Failed to process SignalR message. AuditMessage={0}", data), ex);
+                Log.Error($"Failed to process SignalR message. AuditMessage={data}", ex);
                 throw;
             }
         }

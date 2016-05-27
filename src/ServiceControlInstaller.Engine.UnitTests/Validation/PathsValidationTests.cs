@@ -137,7 +137,8 @@
             Assert.That(ex.Message, Is.EqualTo("The install path is set to an invalid path"));
 
             //No Drive
-            p = new PathsValidator(new ServiceControlInstanceMetadata { InstallPath = string.Format( @"{0}:\test\1\bin", GetAnUnsedDriveLetter()) })
+            p = new PathsValidator(new ServiceControlInstanceMetadata { InstallPath = $@"{GetAnUnsedDriveLetter()}:\test\1\bin"
+            })
             {
                 Instances = instances
             };

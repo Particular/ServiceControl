@@ -31,14 +31,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
                     using (var registryKey = rootKey.OpenSubKey(regPath))
                     {
-                        if (registryKey != null)
-                        {
-                            var value = registryKey.GetValue(name);
+                        var value = registryKey?.GetValue(name);
 
-                            if (value != null)
-                            {
-                                return (T)Convert.ChangeType(value, typeof(T));
-                            }
+                        if (value != null)
+                        {
+                            return (T)Convert.ChangeType(value, typeof(T));
                         }
                     }
 
@@ -67,7 +64,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
             catch (Exception ex)
             {
-                Logger.Warn(string.Format(@"We couldn't read the registry to retrieve the {0}, from '{1}'.", name, regPath), ex);
+                Logger.Warn($@"We couldn't read the registry to retrieve the {name}, from '{regPath}'.", ex);
             }
 
             return defaultValue;

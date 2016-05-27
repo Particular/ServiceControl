@@ -43,7 +43,7 @@
                             return false;
                         }
 
-                        Patch<object>(String.Format("/api/errors/{0}/archive", messageToBeArchived.UniqueMessageId));
+                        Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
 
                         c.ArchiveIssued = true;
 

@@ -24,15 +24,9 @@ namespace ServiceControl.Config.UI.MessageBox
         public IList<string> Warnings { get; set; }
         public IList<string> Errors { get; set; }
 
-        public bool HasErrors
-        {
-            get { return Errors.Count > 0; }
-        }
+        public bool HasErrors => Errors.Count > 0;
 
-        public bool HasWarnings
-        {
-            get { return Warnings.Count > 0; }
-        }
+        public bool HasWarnings => Warnings.Count > 0;
 
         public ICommand Cancel { get; private set; }
     }

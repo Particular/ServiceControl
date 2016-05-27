@@ -6,10 +6,7 @@
 
     public abstract class BaseModule : NancyModule
     {
-        protected string BaseUrl
-        {
-            get { return Request.Url.SiteBase + Request.Url.BasePath; }
-        }
+        protected string BaseUrl => Request.Url.SiteBase + Request.Url.BasePath;
 
         protected new Negotiator Negotiate
         {

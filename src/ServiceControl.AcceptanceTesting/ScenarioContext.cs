@@ -67,11 +67,11 @@
 
         public bool HasNativePubSubSupport { get; set; }
 
-        public string Trace { get { return string.Join(Environment.NewLine, traceQueue.ToArray()); } }
+        public string Trace => string.Join(Environment.NewLine, traceQueue.ToArray());
 
         public void AddTrace(string trace)
         {
-            traceQueue.Enqueue(String.Format("{0:HH:mm:ss.ffffff} - {1}", DateTime.Now, trace));
+            traceQueue.Enqueue($"{DateTime.Now:HH:mm:ss.ffffff} - {trace}");
         }
 
         ConcurrentQueue<string> traceQueue = new ConcurrentQueue<string>();

@@ -44,7 +44,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                     {
                         object failure;
                         return ctx.IssueRetry && TryGet("/api/errors/" + ctx.UniqueMessageId, out failure);
-                    }, (bus, ctx) => Post<object>(string.Format("/api/errors/{0}/retry", ctx.UniqueMessageId))))
+                    }, (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")))
                 .Done(ctx => ctx.Done)
                 .Run(TimeSpan.FromMinutes(3));
 

@@ -117,12 +117,7 @@
 
         private IDictionary<string, string> ConvertDynamicDictionary(DynamicDictionary dictionary)
         {
-            if (dictionary == null)
-            {
-                return null;
-            }
-
-            return dictionary.GetDynamicMemberNames().ToDictionary(
+            return dictionary?.GetDynamicMemberNames().ToDictionary(
                 memberName => fieldNameConverter.Convert(memberName),
                 memberName => (string) dictionary[memberName]);
         }

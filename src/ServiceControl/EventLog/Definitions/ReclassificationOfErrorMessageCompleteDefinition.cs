@@ -6,7 +6,7 @@ namespace ServiceControl.EventLog.Definitions
     {
         public ReclassificationOfErrorMessageCompleteDefinition()
         {
-            Description(m => string.Format("Reclassification of {0} error messages without existing classification complete.", m.NumberofMessageReclassified));
+            Description(m => $"Reclassification of {m.NumberofMessageReclassified} error messages without existing classification complete.");
         }
     }
 }

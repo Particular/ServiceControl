@@ -6,7 +6,7 @@
     {
         public FailedMessageGroupArchivedDefinition()
         {
-            Description(m => string.Format("Archived {0} messages from group: {1}", m.MessagesCount, m.GroupName));
+            Description(m => $"Archived {m.MessagesCount} messages from group: {m.GroupName}");
             RelatesToGroup(m => m.GroupId);
         }
     }

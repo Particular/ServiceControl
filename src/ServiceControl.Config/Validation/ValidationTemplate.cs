@@ -45,7 +45,7 @@
             IValidator validator;
             if (!validators.TryGetValue(modelType.TypeHandle, out validator))
             {
-                var typeName = string.Format("{0}.{1}Validator", modelType.Namespace, modelType.Name);
+                var typeName = $"{modelType.Namespace}.{modelType.Name}Validator";
                 var type = modelType.Assembly.GetType(typeName, true);
                 validators[modelType.TypeHandle] = validator = (IValidator)Activator.CreateInstance(type);
             }
@@ -80,10 +80,7 @@
                 .Select(x => x.ErrorMessage);
         }
 
-        public bool HasErrors
-        {
-            get { return validationResults.Any(); }
-        }
+        public bool HasErrors => validationResults.Any();
 
         public string Error
         {
@@ -110,10 +107,7 @@
 
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
-        public IObservable<DataErrorsChangedEventArgs> ErrorsChangedObservable
-        {
-            get { return errorsChangedSubject.AsObservable(); }
-        }
+        public IObservable<DataErrorsChangedEventArgs> ErrorsChangedObservable => errorsChangedSubject.AsObservable();
 
         void RaiseErrorsChanged()
         {
@@ -135,10 +129,7 @@
             var dataErrorsChangedEventArgs = new DataErrorsChangedEventArgs(propertyName);
 
             var handler = ErrorsChanged;
-            if (handler != null)
-            {
-                handler(this, dataErrorsChangedEventArgs);
-            }
+            handler?.Invoke(this, dataErrorsChangedEventArgs);
 
             errorsChangedSubject.OnNext(dataErrorsChangedEventArgs);
         }

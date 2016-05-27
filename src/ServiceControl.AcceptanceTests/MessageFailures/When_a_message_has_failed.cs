@@ -141,7 +141,7 @@
                 {
                     this.context = context;
                     this.bus = bus;
-                    connection = new Connection(string.Format("http://localhost:{0}/api/messagestream", context.SCPort));
+                    connection = new Connection($"http://localhost:{context.SCPort}/api/messagestream");
                 }
 
                 public void Start()
@@ -234,13 +234,7 @@
             public string MessageId { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
-            public string UniqueMessageId
-            {
-                get
-                {
-                    return DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
-                }
-            }
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
 
             public int SCPort { get; set; }
             public bool SignalrEventReceived { get; set; }

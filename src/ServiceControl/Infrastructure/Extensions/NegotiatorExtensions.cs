@@ -110,7 +110,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
         {
             url.Query = queryParams + "page=" + page;
 
-            links.Add(String.Format("<{0}>; rel=\"{1}\"", url, rel));
+            links.Add($"<{url}>; rel=\"{rel}\"");
         }
 
         public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, QueryHeaderInformation stats)

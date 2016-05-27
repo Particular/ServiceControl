@@ -44,13 +44,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         }
 
 
-        public static string LogPath
-        {
-            get
-            {
-                return Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", DefaultLogPathForInstance()));
-            }
-        }
+        public static string LogPath => Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", DefaultLogPathForInstance()));
 
         private static string DefaultLogPathForInstance()
         {
@@ -58,7 +52,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             {
                 return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Particular\\ServiceControl\\logs");
             }
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), String.Format("Particular\\{0}\\logs", Settings.ServiceName));
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"Particular\\{Settings.ServiceName}\\logs");
         }
     }
 }

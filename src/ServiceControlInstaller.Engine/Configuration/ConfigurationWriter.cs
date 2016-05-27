@@ -23,7 +23,7 @@
         {
             if (Transports.FindByName(details.TransportPackage) == null)
             {
-                throw new Exception(string.Format("Invalid Transport - Must be one of: {0}", string.Join(",", Transports.All.Select(p => p.Name))));
+                throw new Exception($"Invalid Transport - Must be one of: {string.Join(",", Transports.All.Select(p => p.Name))}");
             }
         }
         

@@ -46,7 +46,7 @@
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(string.Format("Error thrown when removing instance {0} - {1}", instance.Name, ex));
+                    logger.Error($"Error thrown when removing instance {instance.Name} - {ex}");
                 }
             }
             return ActionResult.Success;

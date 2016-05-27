@@ -23,7 +23,7 @@
             RefreshInstances();
         }
 
-        public IList<InstanceDetailsViewModel> Instances { get; private set; }
+        public IList<InstanceDetailsViewModel> Instances { get; }
 
         public void Handle(RefreshInstances message)
         {

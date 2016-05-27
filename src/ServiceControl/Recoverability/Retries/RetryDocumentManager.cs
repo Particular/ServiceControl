@@ -64,12 +64,11 @@ namespace ServiceControl.Recoverability
                         Value = batchDocumentId
                     }
                 },
-                RavenJObject.Parse(String.Format(@"
+                RavenJObject.Parse($@"
                                     {{
-                                        ""Raven-Entity-Name"": ""{0}"", 
-                                        ""Raven-Clr-Type"": ""{1}""
-                                    }}", FailedMessageRetry.CollectionName, 
-                    typeof(FailedMessageRetry).AssemblyQualifiedName))
+                                        ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"", 
+                                        ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
+                                    }}")
                 );
             return failureRetryId;
         }

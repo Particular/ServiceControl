@@ -11,9 +11,6 @@ namespace ServiceBus.Management.Infrastructure.Installers
             return Settings.AuditLogQueue != Address.Undefined;
         }
 
-        public Address Address
-        {
-            get { return Settings.AuditLogQueue; }
-        }
+        public Address Address => Settings.AuditLogQueue;
     }
 }

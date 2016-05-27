@@ -55,16 +55,10 @@
             return itemList.Remove(item);
         }
 
-        public int Count
-        {
-            get { return itemList.Count; } 
-        }
+        public int Count => itemList.Count;
 
 
-        public bool IsReadOnly
-        {
-            get { return true;}
-        }
+        public bool IsReadOnly => true;
 
         public void AddRange(IEnumerable<string> items)
         {

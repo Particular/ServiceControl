@@ -59,8 +59,7 @@
         {
             return ruleBuilder.Must((model, connectionString) =>
             {
-                if (model.SelectedTransport == null) return true; // swallow because transport not selected yet
-                if (string.IsNullOrEmpty(model.SelectedTransport.SampleConnectionString)) return true;
+                if (string.IsNullOrEmpty(model.SelectedTransport?.SampleConnectionString)) return true;
                 return !string.IsNullOrWhiteSpace(connectionString);
             })
             .WithMessage(MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING, model => model.SelectedTransport.Name);

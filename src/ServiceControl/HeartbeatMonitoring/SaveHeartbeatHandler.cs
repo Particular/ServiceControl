@@ -92,13 +92,11 @@ output('isNew');
                     {"endpointDetails_HostId", endpointDetails.HostId.ToString()},
                     {"endpointDetails_Name", endpointDetails.Name}
                 }
-            }, RavenJObject.Parse(String.Format(@"
+            }, RavenJObject.Parse($@"
                                     {{
-                                        ""Raven-Entity-Name"": ""{0}"", 
-                                        ""Raven-Clr-Type"": ""{1}""
-                                    }}",
-                store.Conventions.GetTypeTagName(typeof(Heartbeat)),
-                typeof(Heartbeat).AssemblyQualifiedName)));
+                                        ""Raven-Entity-Name"": ""{store.Conventions.GetTypeTagName(typeof(Heartbeat))}"", 
+                                        ""Raven-Clr-Type"": ""{typeof(Heartbeat).AssemblyQualifiedName}""
+                                    }}"));
 
             var debugStatements = patchResult.Value<RavenJArray>("Debug");
             var ravenJToken = debugStatements.SingleOrDefault();

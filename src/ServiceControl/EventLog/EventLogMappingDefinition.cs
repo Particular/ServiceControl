@@ -7,13 +7,7 @@
 
     public abstract class EventLogMappingDefinition<T> : IEventLogMappingDefinition where T : IEvent
     {
-        public virtual string Category
-        {
-            get
-            {
-                return typeof(T).Namespace.Split('.').Last();
-            }
-        }
+        public virtual string Category => typeof(T).Namespace.Split('.').Last();
 
         public EventLogItem Apply(string messageId, IEvent @event)
         {
@@ -21,7 +15,7 @@
 
             var item = new EventLogItem
             {
-                Id = string.Format("EventLogItem/{0}/{1}/{2}", Category, typeof(T).Name, messageId),
+                Id = $"EventLogItem/{Category}/{typeof(T).Name}/{messageId}",
                 Category = Category,
                 RaisedAt = raisedAtFunc(eventMessage),
                 Description = descriptionFunc(eventMessage),
@@ -48,37 +42,37 @@
 
         protected void RelatesToMessage(Func<T, string> relatedTo)
         {
-            relatedToLinks.Add(m => string.Format("/message/{0}", relatedTo(m)));
+            relatedToLinks.Add(m => $"/message/{relatedTo(m)}");
         }
 
         protected void RelatesToMessages(Func<T, IEnumerable<string>> relatedTo)
         {
-            relatedToMultiLinks.Add(m => relatedTo(m).Select(x => string.Format("/message/{0}", x)));
+            relatedToMultiLinks.Add(m => relatedTo(m).Select(x => $"/message/{x}"));
         }
 
         protected void RelatesToEndpoint(Func<T, string> relatedTo)
         {
-            relatedToLinks.Add(m => string.Format("/endpoint/{0}", relatedTo(m)));
+            relatedToLinks.Add(m => $"/endpoint/{relatedTo(m)}");
         }
 
         protected void RelatesToMachine(Func<T, string> relatedTo)
         {
-            relatedToLinks.Add(m => string.Format("/machine/{0}", relatedTo(m)));
+            relatedToLinks.Add(m => $"/machine/{relatedTo(m)}");
         }
 
         protected void RelatesToHost(Func<T, Guid> relatedTo)
         {
-            relatedToLinks.Add(m => string.Format("/host/{0}", relatedTo(m)));
+            relatedToLinks.Add(m => $"/host/{relatedTo(m)}");
         }
 
         protected void RelatesToCustomCheck(Func<T, string> relatedTo)
         {
-            relatedToLinks.Add(m => string.Format("/customcheck/{0}", relatedTo(m)));
+            relatedToLinks.Add(m => $"/customcheck/{relatedTo(m)}");
         }
 
         protected void RelatesToGroup(Func<T, string> relatedTo)
         {
-            relatedToLinks.Add(m => string.Format("/recoverability/groups/{0}", relatedTo(m)));
+            relatedToLinks.Add(m => $"/recoverability/groups/{relatedTo(m)}");
         }
 
         protected void TreatAsError()

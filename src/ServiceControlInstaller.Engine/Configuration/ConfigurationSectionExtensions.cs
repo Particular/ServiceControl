@@ -20,7 +20,7 @@
             if (keyInfo.SupportedFrom != null || keyInfo.RemovedFrom != null)
             {
                 if (currentVersion == null)
-                    throw new ArgumentNullException("currentVersion", string.Format("Version info is required before setting or removing {0}", keyInfo.Name));
+                    throw new ArgumentNullException("currentVersion", $"Version info is required before setting or removing {keyInfo.Name}");
             }
             
             collection.Remove(keyInfo.Name);
@@ -45,7 +45,7 @@
 
             if (currentVersion == null)
             { 
-               throw new ArgumentNullException("currentVersion", string.Format("Version info is required before setting or removing {0}", keyInfo.Name));
+               throw new ArgumentNullException("currentVersion", $"Version info is required before setting or removing {keyInfo.Name}");
             }
 
             if (currentVersion >= keyInfo.RemovedFrom)

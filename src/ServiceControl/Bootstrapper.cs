@@ -25,7 +25,7 @@ namespace Particular.ServiceControl
     public class Bootstrapper
     {
         public static IContainer Container { get; set; }
-        public IStartableBus Bus { get; private set; }
+        public IStartableBus Bus { get; }
 
         ShutdownNotifier notifier = new ShutdownNotifier();
         EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
@@ -85,10 +85,7 @@ namespace Particular.ServiceControl
             configuration.UseTransport(transportType);
             configuration.DefineCriticalErrorAction((s, exception) =>
             {
-                if (host != null)
-                {
-                    host.Stop();
-                }
+                host?.Stop();
             });
 
             if (Environment.UserInteractive && Debugger.IsAttached)
@@ -109,7 +106,7 @@ namespace Particular.ServiceControl
             {
                 return transportType;
             }
-            var errorMsg = string.Format("Configuration of transport Failed. Could not resolve type '{0}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings", Settings.TransportType);
+            var errorMsg = $"Configuration of transport Failed. Could not resolve type '{Settings.TransportType}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
             Logger.Error(errorMsg);
             throw new Exception(errorMsg);
         }

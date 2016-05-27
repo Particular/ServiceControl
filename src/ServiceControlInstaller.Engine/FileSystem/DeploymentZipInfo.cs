@@ -53,7 +53,7 @@
                 throw new Exception("No ServiceControl zip file found");
 
             if (!ZipFile.CheckZip(FilePath))
-                throw new Exception(string.Format("Corrupt Zip File - {0}", FilePath));
+                throw new Exception($"Corrupt Zip File - {FilePath}");
         }
     }
 }

@@ -85,7 +85,7 @@
 
         void IssueRetry(MyContext c)
         {
-            Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId));
+            Post<object>($"/api/errors/{c.UniqueMessageId}/retry");
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder
@@ -137,13 +137,7 @@
 
             public bool Succeed { get; set; }
 
-            public string UniqueMessageId
-            {
-                get
-                {
-                    return DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
-                }
-            }
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
         }
     }
 }

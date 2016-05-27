@@ -12,7 +12,7 @@
 
         public int ProgressPercent { get; set; }
 
-        public bool ProgressIndeterminate { get { return ProgressPercent < 0; } }
+        public bool ProgressIndeterminate => ProgressPercent < 0;
 
         public override void CanClose(Action<bool> callback)
         {

@@ -40,10 +40,7 @@ namespace ServiceControl.Config.Framework.Rx
                     };
                 }
 
-                public IObservableCollection<T> Items
-                {
-                    get { return items; }
-                }
+                public IObservableCollection<T> Items => items;
 
                 public override IEnumerable<T> GetChildren()
                 {

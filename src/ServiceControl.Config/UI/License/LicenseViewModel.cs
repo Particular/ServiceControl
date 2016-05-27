@@ -79,7 +79,7 @@
             }
             else
             {
-                ApplyLicenseError = string.Format("{0} - '{1}' was not imported", importError, Path.GetFileName(path));
+                ApplyLicenseError = $"{importError} - '{Path.GetFileName(path)}' was not imported";
             }
         }
 

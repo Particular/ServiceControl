@@ -32,11 +32,8 @@ namespace ServiceControlInstaller.Engine.Instances
             ReadConfiguration();
         }
 
-        public string InstallPath
-        {
-            get { return Path.GetDirectoryName(Service.ExePath); }
-        }
-      
+        public string InstallPath => Path.GetDirectoryName(Service.ExePath);
+
         public ReportCard ReportCard { get; set; }
         public WindowsServiceController Service { get; set; }
         public string LogPath { get; set; }
@@ -58,10 +55,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
 
-        public string Name
-        {
-            get { return Service.ServiceName; }
-        }
+        public string Name => Service.ServiceName;
 
         public void Reload()
         {
@@ -86,12 +80,12 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = string.Format("http://{0}:{1}/api/", HostName, Port);
+                var baseUrl = $"http://{HostName}:{Port}/api/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
                     return baseUrl;
                 }
-                return string.Format("{0}{1}{2}api/", baseUrl, VirtualDirectory, VirtualDirectory.EndsWith("/") ? "" : "/");
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? "" : "/")}api/";
             }
         }
 
@@ -114,12 +108,12 @@ namespace ServiceControlInstaller.Engine.Instances
                         break;
                 }
 
-                var baseUrl = string.Format("http://{0}:{1}/api/", host, Port);
+                var baseUrl = $"http://{host}:{Port}/api/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
                     return baseUrl;
                 }
-                return string.Format("{0}{1}{2}api/", baseUrl, VirtualDirectory, VirtualDirectory.EndsWith("/") ? "" : "/");
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? "" : "/")}api/";
             }
         }
 
@@ -149,10 +143,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        string DebuggerDisplay
-        {
-            get { return string.Format("{0} - {1} - {2}", Name, Url, Version); }
-        }
+        string DebuggerDisplay => $"{Name} - {Url} - {Version}";
 
         string DetermineTransportPackage()
         {
@@ -247,10 +238,10 @@ namespace ServiceControlInstaller.Engine.Instances
         string DefaultDBPath()
         {
             var host = (HostName == "*") ? "%" : HostName;
-            var dbFolder = string.Format("{0}-{1}", host, Port);
+            var dbFolder = $"{host}-{Port}";
             if (!string.IsNullOrEmpty(VirtualDirectory))
             {
-                dbFolder += String.Format("-{0}", FileUtils.SanitizeFolderName(VirtualDirectory));
+                dbFolder += $"-{FileUtils.SanitizeFolderName(VirtualDirectory)}";
             }
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
         }
@@ -319,7 +310,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 }
                 catch
                 {
-                    ReportCard.Warnings.Add(string.Format("Failed to remove the URLACL for {0} - Please remove manually via Netsh.exe", Url));
+                    ReportCard.Warnings.Add($"Failed to remove the URLACL for {Url} - Please remove manually via Netsh.exe");
                 }
             }
         }
@@ -382,7 +373,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
             catch
             {
-                ReportCard.Warnings.Add(string.Format("Could not delete the logs directory '{0}'. Please remove manually", LogPath));
+                ReportCard.Warnings.Add($"Could not delete the logs directory '{LogPath}'. Please remove manually");
             }
         }
 
@@ -394,7 +385,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
             catch
             {
-                ReportCard.Warnings.Add(string.Format("Could not delete the logs directory '{0}'. Please remove manually", LogPath));
+                ReportCard.Warnings.Add($"Could not delete the logs directory '{LogPath}'. Please remove manually");
             }
         }
 
@@ -406,7 +397,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
             catch
             {
-                ReportCard.Warnings.Add(string.Format("Could not delete the database directory '{0}'. Please remove manually", DBPath));
+                ReportCard.Warnings.Add($"Could not delete the database directory '{DBPath}'. Please remove manually");
             }
         }
 
@@ -417,13 +408,13 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 Directory.CreateDirectory(backupDirectory);
             }
-            var configFile = string.Format("{0}.config", Service.ExePath);
+            var configFile = $"{Service.ExePath}.config";
             if (!File.Exists(configFile))
             {
                 return null;
             }
 
-            var destinationFile = Path.Combine(backupDirectory, string.Format("{0:N}.config", Guid.NewGuid()));
+            var destinationFile = Path.Combine(backupDirectory, $"{Guid.NewGuid():N}.config");
             File.Copy(configFile, destinationFile);
             return destinationFile;
         }
@@ -434,7 +425,7 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 return;
             }
-            var configFile = string.Format("{0}.config", Service.ExePath);
+            var configFile = $"{Service.ExePath}.config";
             File.Copy(sourcePath, configFile, true);
 
             // Ensure Transport type is correct and populate the config with common settings even if they are defaults
@@ -448,7 +439,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", "servicecontrol.exe.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, string.Format(@"Transports\{0}", TransportPackage));
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
         }
 
         public static ReadOnlyCollection<ServiceControlInstance> Instances()
@@ -472,7 +463,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public static void CheckIfServiceNameTaken(string instanceName)
         {
             if (ServiceController.GetServices().SingleOrDefault(p => p.ServiceName.Equals(instanceName, StringComparison.OrdinalIgnoreCase)) != null)
-                throw new Exception(string.Format("Invalid Service Name. There is already a windows service called '{0}'", instanceName));
+                throw new Exception($"Invalid Service Name. There is already a windows service called '{instanceName}'");
         }
 
         public void RunInstanceToCreateQueues()
@@ -517,11 +508,11 @@ namespace ServiceControlInstaller.Engine.Instances
             LogPath = ReadAppSetting(SettingsList.LogPath, DefaultLogPath());
             DBPath = ReadAppSetting(SettingsList.DBPath, DefaultDBPath());
             AuditQueue = ReadAppSetting(SettingsList.AuditQueue, "audit");
-            AuditLogQueue = ReadAppSetting(SettingsList.AuditLogQueue, string.Format("{0}.log", AuditQueue));
+            AuditLogQueue = ReadAppSetting(SettingsList.AuditLogQueue, $"{AuditQueue}.log");
             ForwardAuditMessages = ReadAppSetting(SettingsList.ForwardAuditMessages, false);
             ForwardErrorMessages = ReadAppSetting(SettingsList.ForwardErrorMessages, false);
             ErrorQueue = ReadAppSetting(SettingsList.ErrorQueue, "error");
-            ErrorLogQueue = ReadAppSetting(SettingsList.ErrorLogQueue, string.Format("{0}.log", ErrorQueue));
+            ErrorLogQueue = ReadAppSetting(SettingsList.ErrorLogQueue, $"{ErrorQueue}.log");
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
             Description = GetDescription();

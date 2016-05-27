@@ -17,7 +17,7 @@
 
         const int GENERIC_EXECUTE = 536870912;
         
-        public string Url {get; private set; }
+        public string Url {get; }
 
         List<SecurityIdentifier> securityIdentifiers = new List<SecurityIdentifier>();
 
@@ -94,7 +94,7 @@
         public int Port { get; private set; }
         public string HostName { get; private set; }
         public string VirtualDirectory { get; private set; }
-        public bool HTTPS { get; private set; }
+        public bool HTTPS { get; }
 
         public static ReadOnlyCollection<UrlReservation> GetAll()
         {

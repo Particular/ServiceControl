@@ -38,7 +38,7 @@
 
                 suffix += "api/";
 
-                return string.Format("http://{0}:{1}/{2}", Hostname, Port, suffix);
+                return $"http://{Hostname}:{Port}/{suffix}";
             }
         }
 
@@ -55,7 +55,7 @@
 
                 suffix += "storage/";
 
-                return string.Format("http://{0}:{1}/{2}", Hostname, Port, suffix);
+                return $"http://{Hostname}:{Port}/{suffix}";
             }
         }
 
@@ -115,11 +115,11 @@
             {
                 host = "%";
             }
-            var dbFolder = String.Format("{0}-{1}", host, Port);
+            var dbFolder = $"{host}-{Port}";
 
             if (!string.IsNullOrEmpty(VirtualDirectory))
             {
-                dbFolder += String.Format("-{0}", SanitiseFolderName(VirtualDirectory));
+                dbFolder += $"-{SanitiseFolderName(VirtualDirectory)}";
             }
 
             var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
@@ -283,15 +283,9 @@
             return result;
         }
 
-        public static TimeSpan AuditRetentionPeriod
-        {
-            get { return auditRetentionPeriod; }
-        }
+        public static TimeSpan AuditRetentionPeriod => auditRetentionPeriod;
 
-        public static TimeSpan ErrorRetentionPeriod
-        {
-            get { return errorRetentionPeriod; }
-        }
+        public static TimeSpan ErrorRetentionPeriod => errorRetentionPeriod;
 
         const int ExpirationProcessBatchSizeDefault = 65512;
         const int ExpirationProcessBatchSizeMinimum = 10240;

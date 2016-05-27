@@ -110,12 +110,9 @@
         {
         }
 
-        public Address InputAddress
-        {
-            get { return Settings.AuditQueue; }
-        }
+        public Address InputAddress => Settings.AuditQueue;
 
-        public bool Disabled { get { return false; } }
+        public bool Disabled => false;
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
@@ -131,10 +128,7 @@
 
         public void Dispose()
         {
-            if (satelliteImportFailuresHandler != null)
-            {
-                satelliteImportFailuresHandler.Dispose();
-            }
+            satelliteImportFailuresHandler?.Dispose();
         }
 
         SatelliteImportFailuresHandler satelliteImportFailuresHandler;

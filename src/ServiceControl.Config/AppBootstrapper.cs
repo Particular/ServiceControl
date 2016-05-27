@@ -71,7 +71,7 @@ namespace ServiceControl.Config
                     return result;
                 }
             }
-            throw new Exception(string.Format("Could not locate any instances of contract {0}.", key ?? service.Name));
+            throw new Exception($"Could not locate any instances of contract {key ?? service.Name}.");
         }
 
         protected override IEnumerable<object> GetAllInstances(Type service)

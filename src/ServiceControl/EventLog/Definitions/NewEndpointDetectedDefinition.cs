@@ -6,7 +6,7 @@
     {
         public NewEndpointDetectedDefinition()
         {
-            Description(m => string.Format("New  '{0}' endpoint detected at '{1}'. In order for this endpoint to be monitored the plugin needs to be installed.", m.Endpoint.Name, m.Endpoint.Host));
+            Description(m => $"New  '{m.Endpoint.Name}' endpoint detected at '{m.Endpoint.Host}'. In order for this endpoint to be monitored the plugin needs to be installed.");
 
             RelatesToEndpoint(m => m.Endpoint.Name);
             RelatesToHost(m => m.Endpoint.HostId);

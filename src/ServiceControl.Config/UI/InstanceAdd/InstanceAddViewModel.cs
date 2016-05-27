@@ -32,7 +32,7 @@
                 var i = 0;
                 while (true)
                 {
-                    InstanceName = string.Format("Particular.ServiceControl.{0}", ++i);
+                    InstanceName = $"Particular.ServiceControl.{++i}";
                     if (!serviceControlInstances.Any(p => p.Name.Equals(InstanceName, StringComparison.OrdinalIgnoreCase)))
                     {
                         break;

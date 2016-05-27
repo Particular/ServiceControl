@@ -27,16 +27,10 @@
             }
         }
 
-        protected override DiagnosticsConfiguration DiagnosticsConfiguration
+        protected override DiagnosticsConfiguration DiagnosticsConfiguration => new DiagnosticsConfiguration
         {
-            get
-            {
-                return new DiagnosticsConfiguration
-                {
-                    Password = @"password"
-                };
-            }
-        }
+            Password = @"password"
+        };
 
         protected override void ApplicationStartup(ILifetimeScope container, IPipelines pipelines)
         {

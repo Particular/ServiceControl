@@ -8,7 +8,7 @@
         {
             TreatAsError();
 
-            Description(m=> string.Format("{0}: {1}", m.CustomCheckId, m.FailureReason));
+            Description(m=> $"{m.CustomCheckId}: {m.FailureReason}");
 
             RelatesToEndpoint(m => m.OriginatingEndpoint.Name);
             RelatesToHost(m => m.OriginatingEndpoint.HostId);

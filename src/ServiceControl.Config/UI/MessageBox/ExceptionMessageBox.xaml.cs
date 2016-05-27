@@ -158,13 +158,7 @@
             Clipboard.SetText(ErrorDetails.Text);
         }
 
-        public ICommand ReportClick
-        {
-            get
-            {
-                return new AwaitableDelegateCommand(CallReportClick);
-            }
-        }
+        public ICommand ReportClick => new AwaitableDelegateCommand(CallReportClick);
 
         async Task CallReportClick(object sender)
         {

@@ -19,13 +19,7 @@
             return SID.IsWellKnown(WellKnownSidType.LocalSystemSid);
         }
 
-        public string QualifiedName
-        {
-            get
-            {
-                return string.Format(@"{0}\{1}", Domain, Name);
-            }
-        }
+        public string QualifiedName => $@"{Domain}\{Name}";
 
         // ReSharper disable once InconsistentNaming
         static string LocalizedNTAuthority()

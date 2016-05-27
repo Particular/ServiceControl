@@ -6,7 +6,7 @@
     {
         public EndpointStartedDefinition()
         {
-            Description(m => string.Format("Endpoint '{0}' started on host {1}", m.EndpointDetails.Name, m.EndpointDetails.Host));
+            Description(m => $"Endpoint '{m.EndpointDetails.Name}' started on host {m.EndpointDetails.Host}");
 
             RelatesToEndpoint(m => m.EndpointDetails.Name);
             RelatesToHost(m => m.EndpointDetails.HostId);

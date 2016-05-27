@@ -76,7 +76,7 @@
                 public SignalrStarter(MyContext context)
                 {
                     this.context = context;
-                    connection = new Connection(string.Format("http://localhost:{0}/api/messagestream", context.SCPort));
+                    connection = new Connection($"http://localhost:{context.SCPort}/api/messagestream");
                 }
 
                 public void Start()
@@ -94,7 +94,7 @@
                         }
                         catch (AggregateException ex)
                         {
-                            context.AddTrace(string.Format("Signalr connection failed, exception={0}", ex));
+                            context.AddTrace($"Signalr connection failed, exception={ex}");
 
                             var exception = ex.GetBaseException();
                             var webException = exception as WebException;

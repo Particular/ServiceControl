@@ -49,13 +49,13 @@
 
         public static void RemoveProductFromMSIList(ILogging logger)
         {
-            var upgradeKeyPath = string.Format(@"SOFTWARE\Classes\Installer\UpgradeCodes\{0:N}", UpgradeCode.Flip());
+            var upgradeKeyPath = $@"SOFTWARE\Classes\Installer\UpgradeCodes\{UpgradeCode.Flip():N}";
             using (var installerKey = Registry.LocalMachine.OpenSubKey(upgradeKeyPath, true))
             {
                 if (installerKey == null)
                     return;
                 
-                logger.Info(string.Format("Found upgrade code for old version {0:B}", UpgradeCode));
+                logger.Info($"Found upgrade code for old version {UpgradeCode:B}");
                 foreach (var flippedProductCodeString in installerKey.GetValueNames())
                 {
                     Guid flippedProductCode;
@@ -66,8 +66,8 @@
 
                     var keysToDelete = new[]
                     {
-                        string.Format(@"SOFTWARE\Classes\Installer\Products\{0:N}", flippedProductCode),
-                        string.Format(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products\{0:N}", flippedProductCode)
+                        $@"SOFTWARE\Classes\Installer\Products\{flippedProductCode:N}",
+                        $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products\{flippedProductCode:N}"
                     };
                     foreach (var regkey in keysToDelete)
                     {
@@ -79,14 +79,14 @@
 
                         if (keyExists)
                         {
-                            logger.Info(string.Format(@"Removing HKEY_LOCAL_MACHINE\{0}", regkey));
+                            logger.Info($@"Removing HKEY_LOCAL_MACHINE\{regkey}");
                             Registry.LocalMachine.DeleteSubKeyTree(regkey, false);
                         }
                     }
 
                     var productCode = flippedProductCode.Flip().ToString("B");
 
-                    var uninstallKey = string.Format(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{0}", productCode);
+                    var uninstallKey = $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{productCode}";
                     using (var wowRegistryRoot = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32))
                     {
                         var productKeyPresent = false;
@@ -98,11 +98,11 @@
                                 var displayName = (string) productKey.GetValue("DisplayName", "");
                                 var displayVersion = (string)productKey.GetValue("DisplayVersion", "");
 
-                                var descriptiveVersion = string.Format("{0} {1}", displayName, displayVersion);
+                                var descriptiveVersion = $"{displayName} {displayVersion}";
 
                                 if (!string.IsNullOrWhiteSpace(descriptiveVersion))
                                 {
-                                    var descriptiveUninstallKeyPath = string.Format(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{0}", descriptiveVersion);
+                                    var descriptiveUninstallKeyPath = $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{descriptiveVersion}";
                                     bool descriptiveUninstallPresent;
                                     using (var descriptiveUninstallkey = wowRegistryRoot.OpenSubKey(descriptiveUninstallKeyPath))
                                     {
@@ -112,13 +112,13 @@
                                     {
                                         if (Environment.Is64BitOperatingSystem)
                                         {
-                                            logger.Info(string.Format(@"Removing HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{0}", descriptiveVersion));
+                                            logger.Info($@"Removing HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{descriptiveVersion}");
                                         }
                                         else
                                         {
-                                            logger.Info(string.Format(@"Removing HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{0}", descriptiveVersion));
+                                            logger.Info($@"Removing HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{descriptiveVersion}");
                                         }
-                                        logger.Info(string.Format(@"Removing HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{0}", descriptiveVersion));
+                                        logger.Info($@"Removing HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{descriptiveVersion}");
                                         wowRegistryRoot.DeleteSubKeyTree(descriptiveUninstallKeyPath);
                                     }
                                 }
@@ -128,18 +128,18 @@
                         {
                             if (Environment.Is64BitOperatingSystem)
                             {
-                                logger.Info(string.Format(@"Removing HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{0}", productCode));
+                                logger.Info($@"Removing HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{productCode}");
                             }
                             else
                             {
-                                logger.Info(string.Format(@"Removing HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{0}", productCode));
+                                logger.Info($@"Removing HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{productCode}");
                             }
                             Registry.LocalMachine.DeleteSubKeyTree(upgradeKeyPath, false);
                         }
                     }
                 }
             }
-            logger.Info(string.Format(@"Removing HKEY_LOCAL_MACHINE\{0}", upgradeKeyPath));
+            logger.Info($@"Removing HKEY_LOCAL_MACHINE\{upgradeKeyPath}");
             Registry.LocalMachine.DeleteSubKeyTree(upgradeKeyPath, false);
         }
 
@@ -147,13 +147,13 @@
         {
             using (var wowRegistryRoot = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32))
             {
-                foreach (var uninstallKey in oldProducts.Select(product => string.Format(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{0}", product.Value)))
+                foreach (var uninstallKey in oldProducts.Select(product => $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{product.Value}"))
                 {
                     wowRegistryRoot.DeleteSubKeyTree(uninstallKey, false);
                 }
             }
 
-            foreach (var uninstallKey in oldProducts.Select(product => string.Format(@"SOFTWARE\Classes\Installer\Products\{0:N}", new Guid(product.Value).Flip() )))
+            foreach (var uninstallKey in oldProducts.Select(product => $@"SOFTWARE\Classes\Installer\Products\{new Guid(product.Value).Flip():N}"))
             {
                 Registry.LocalMachine.DeleteSubKey(uninstallKey, false);
             }

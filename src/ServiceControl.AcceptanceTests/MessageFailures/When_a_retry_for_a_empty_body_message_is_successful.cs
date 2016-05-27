@@ -31,7 +31,7 @@
                 {
                     if (!c.RetryIssued && GetFailedMessage(c, out failure))
                     {
-                        IssueRetry(c, () => Post<object>(String.Format("/api/errors/{0}/retry", c.UniqueMessageId)));
+                        IssueRetry(c, () => Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
                            
                         return false;
                     }

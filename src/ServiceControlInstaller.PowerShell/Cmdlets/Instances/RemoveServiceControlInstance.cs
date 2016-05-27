@@ -38,7 +38,7 @@ namespace ServiceControlInstaller.PowerShell
                 var instance = ServiceControlInstance.FindByName(name);
                 if (instance == null)
                 {
-                    WriteWarning(string.Format("No action taken. An instance called {0} was not found", name));
+                    WriteWarning($"No action taken. An instance called {name} was not found");
                     break;
                 }
                 WriteObject(installer.Delete(instance.Name, RemoveDB.ToBool(), RemoveLogs.ToBool()));

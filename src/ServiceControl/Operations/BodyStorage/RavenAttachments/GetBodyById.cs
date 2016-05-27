@@ -18,10 +18,7 @@
             Get["/messages/{id*}/body"] = parameters =>
             {
                 string messageId = parameters.id;
-                if (messageId != null)
-                {
-                    messageId = messageId.Replace("/", @"\");
-                }
+                messageId = messageId?.Replace("/", @"\");
                 Action<Stream> contents;
                 string contentType;
                 int bodySize;

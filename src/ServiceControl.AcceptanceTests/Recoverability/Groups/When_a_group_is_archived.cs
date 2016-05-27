@@ -44,7 +44,7 @@
                         foreach (var group in beforeArchiveGroups)
                         {
                             List<FailedMessage> failedMessages;
-                            if (TryGetMany(string.Format("/api/recoverability/groups/{0}/errors", group.Id), out failedMessages))
+                            if (TryGetMany($"/api/recoverability/groups/{@group.Id}/errors", out failedMessages))
                             {
                                 if (failedMessages.Count == 2)
                                 {
@@ -58,7 +58,7 @@
 
                     }, (bus, ctx) =>
                     {
-                        Post<object>(string.Format("/api/recoverability/groups/{0}/errors/archive", ctx.GroupId));
+                        Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive");
                         ctx.ArchiveIssued = true;
                     })
                 )
@@ -116,7 +116,7 @@
                             return false;
 
                         c.RetryIssued = true;
-                        Post<object>(String.Format("/api/errors/{0}/retry", c.SecondMessageId));
+                        Post<object>($"/api/errors/{c.SecondMessageId}/retry");
                     }
 
                     if (!c.ArchiveIssued)
@@ -125,7 +125,7 @@
                         if (!TryGet("/api/errors/" + c.SecondMessageId, out secondFailure, e => e.Status != FailedMessageStatus.Unresolved))
                             return false;
 
-                        Post<object>(String.Format("/api/recoverability/groups/{0}/errors/archive", failureGroupId));
+                        Post<object>($"/api/recoverability/groups/{failureGroupId}/errors/archive");
                         c.ArchiveIssued = true;
                     }
 

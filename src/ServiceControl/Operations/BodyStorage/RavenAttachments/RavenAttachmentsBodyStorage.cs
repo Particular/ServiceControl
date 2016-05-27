@@ -16,7 +16,7 @@
                 {"ContentLength", bodySize}
             });
 
-            return string.Format("/messages/{0}/body", bodyId);
+            return $"/messages/{bodyId}/body";
         }
 
         public bool TryFetch(string bodyId, out Stream stream)

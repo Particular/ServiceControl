@@ -18,20 +18,11 @@
             ConnectionString = String.Empty; // empty on purpose
         }
 
-        public string Name
-        {
-            get { return "AzureServiceBus"; }
-        }
+        public string Name => "AzureServiceBus";
 
-        public Type Type
-        {
-            get { return typeof(AzureServiceBusTransport); }
-        }
+        public Type Type => typeof(AzureServiceBusTransport);
 
-        public string TypeName
-        {
-            get { return "NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus"; }
-        }
+        public string TypeName => "NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus";
 
         public string ConnectionString { get; set; }
 

@@ -170,7 +170,7 @@ namespace ServiceControl.Infrastructure.Extensions
             sb.Append(")");
 
             source.AndAlso();
-            source.Where(string.Format("Status: {0}", sb));
+            source.Where($"Status: {sb}");
 
             return source;
         }

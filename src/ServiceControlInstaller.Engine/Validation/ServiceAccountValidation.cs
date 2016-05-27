@@ -23,7 +23,7 @@
             }
             catch (Exception)
             {
-                throw new Exception(string.Format("Failed to enable the LogonAsAService privilege on {0}", instance.ServiceAccount));
+                throw new Exception($"Failed to enable the LogonAsAService privilege on {instance.ServiceAccount}");
             }
         }
 

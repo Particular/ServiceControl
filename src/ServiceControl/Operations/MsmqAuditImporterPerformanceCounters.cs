@@ -9,14 +9,8 @@ namespace ServiceControl.Operations
     {
         public void Dispose()
         {
-            if (successRateCounter != null)
-            {
-                successRateCounter.Dispose();
-            }
-            if (throughputCounter != null)
-            {
-                throughputCounter.Dispose();
-            }
+            successRateCounter?.Dispose();
+            throughputCounter?.Dispose();
         }
 
         public void MessageProcessed()
