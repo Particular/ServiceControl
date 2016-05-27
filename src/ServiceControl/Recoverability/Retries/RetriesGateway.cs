@@ -11,7 +11,6 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using Raven.Client.Indexes;
     using Raven.Client.Linq;
-    using Raven.Database.Util;
     using ServiceControl.MessageFailures;
 
     public class RetriesGateway
@@ -114,12 +113,12 @@ namespace ServiceControl.Recoverability
 
             log.InfoFormat("Created Batch {0} with {1} messages for context `{2}`", batchDocumentId, messageIds.Length, context);
 
-            var retryIds = new ConcurrentSet<string>();
+            var retryIds = new ConcurrentDictionary<string, object>();
             Parallel.ForEach(
                 messageIds,
-                id => retryIds.Add(RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, id)));
+                id => retryIds.TryAdd(RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, id), null));
 
-            RetryDocumentManager.MoveBatchToStaging(batchDocumentId, retryIds.ToArray());
+            RetryDocumentManager.MoveBatchToStaging(batchDocumentId, retryIds.Keys.ToArray());
             log.InfoFormat("Moved Batch {0} to Staging", batchDocumentId);
         }
 

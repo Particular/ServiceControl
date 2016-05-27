@@ -51,7 +51,7 @@
             progress.Report(5, 9, "Registering URL ACLs...");
             instanceInstaller.RegisterUrlAcl();
             progress.Report(6, 9, "Creating queues...");
-            instanceInstaller.RunInstanceToCreateQueues();
+            instanceInstaller.SetupInstance();
 
             if (!instanceInstaller.ReportCard.HasErrors)
             {
@@ -103,7 +103,7 @@
             upgradeOptions.ApplyChangesToInstance(instance);
 
             progress.Report(4, 5, "Running Queue Creation...");
-            instance.RunInstanceToCreateQueues();
+            instance.SetupInstance();
             instance.ReportCard.SetStatus();
             return instance.ReportCard;
         }

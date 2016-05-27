@@ -24,6 +24,7 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 instance.AuditRetentionPeriod = AuditRetentionPeriod.Value;
             }
+
             instance.ApplyConfigChange();
         }
     }

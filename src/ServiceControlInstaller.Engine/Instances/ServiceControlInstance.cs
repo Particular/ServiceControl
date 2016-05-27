@@ -466,7 +466,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 throw new Exception($"Invalid Service Name. There is already a windows service called '{instanceName}'");
         }
 
-        public void RunInstanceToCreateQueues()
+        public void SetupInstance()
         {
             try
             {

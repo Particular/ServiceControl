@@ -52,7 +52,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 instanceInstaller.CopyFiles(ZipInfo.FilePath);
                 instanceInstaller.WriteConfigurationFile();
                 instanceInstaller.RegisterUrlAcl();
-                instanceInstaller.RunInstanceToCreateQueues();
+                instanceInstaller.SetupInstance();
                 instanceInstaller.RegisterService();
                 foreach (var warning in instanceInstaller.ReportCard.Warnings)
                 {
@@ -106,7 +106,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 }
             
                 options.ApplyChangesToInstance(instance);
-                instance.RunInstanceToCreateQueues();
+                instance.SetupInstance();
                 
                 if (instance.ReportCard.HasErrors)
                 {

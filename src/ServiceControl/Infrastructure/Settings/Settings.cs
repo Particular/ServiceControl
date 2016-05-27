@@ -25,39 +25,24 @@
 
         public static bool MaintenanceMode;
 
-        public static string ApiUrl
+        public static string RootUrl
         {
             get
             {
-                var suffix = VirtualDirectory;
+                var suffix = String.Empty;
 
-                if (!string.IsNullOrEmpty(suffix))
+                if (!string.IsNullOrEmpty(VirtualDirectory))
                 {
-                    suffix += "/";
+                    suffix = VirtualDirectory + "/";
                 }
-
-                suffix += "api/";
 
                 return $"http://{Hostname}:{Port}/{suffix}";
             }
         }
 
-        public static string StorageUrl
-        {
-            get
-            {
-                var suffix = VirtualDirectory;
+        public static string ApiUrl => RootUrl + "api";
 
-                if (!string.IsNullOrEmpty(suffix))
-                {
-                    suffix += "/";
-                }
-
-                suffix += "storage/";
-
-                return $"http://{Hostname}:{Port}/{suffix}";
-            }
-        }
+        public static string StorageUrl => RootUrl + "storage";
 
         static Address GetAuditLogQueue()
         {
@@ -188,7 +173,6 @@
         public static bool ForwardAuditMessages { get; set; }
         public static bool ForwardErrorMessages { get; set; }
         
-        public static bool CreateIndexSync = SettingsReader<bool>.Read("CreateIndexSync");
         public static Address AuditLogQueue;
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
