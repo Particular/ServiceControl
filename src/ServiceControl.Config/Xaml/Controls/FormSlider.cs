@@ -90,13 +90,13 @@
                             { DefaultValue = TimeSpan.MinValue });
 
         public static readonly DependencyProperty ExplanationProperty =
-            DependencyProperty.Register("Explanation", typeof(string), typeof(FormSlider), new PropertyMetadata(""));
+            DependencyProperty.Register("Explanation", typeof(string), typeof(FormSlider), new PropertyMetadata(String.Empty));
 
         public static readonly DependencyProperty SummaryProperty =
-            DependencyProperty.Register("Summary", typeof(string), typeof(FormSlider), new PropertyMetadata(""));
+            DependencyProperty.Register("Summary", typeof(string), typeof(FormSlider), new PropertyMetadata(String.Empty));
 
         public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormSlider), new PropertyMetadata(""));
+            DependencyProperty.Register("Header", typeof(string), typeof(FormSlider), new PropertyMetadata(String.Empty));
 
         public static readonly DependencyProperty UnitsProperty =
             DependencyProperty.Register("Units", typeof(TimeSpanUnits), typeof(FormSlider), new PropertyMetadata { DefaultValue = TimeSpanUnits.Days});
@@ -117,10 +117,10 @@
                 }
                 else
                 {
-                    s.AppendFormat("{0} Day{1}", period.Days, (period.Days > 1) ? "s" : "");
+                    s.AppendFormat("{0} Day{1}", period.Days, (period.Days > 1) ? "s" : String.Empty);
                     if (period.Hours != 0)
                     {
-                        s.AppendFormat(" {0} Hour{1}", period.Hours, (period.Hours > 1) ? "s" : ""); 
+                        s.AppendFormat(" {0} Hour{1}", period.Hours, (period.Hours > 1) ? "s" : String.Empty); 
                     }
                 }
                 SetValue(SummaryProperty, s.ToString());

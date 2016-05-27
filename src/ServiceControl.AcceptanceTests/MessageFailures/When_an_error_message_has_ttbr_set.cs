@@ -64,7 +64,7 @@
                     message.Headers["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened";
                     message.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
                     message.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    message.Headers["NServiceBus.ExceptionInfo.StackTrace"] = "";
+                    message.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
                     message.Headers["NServiceBus.FailedQ"] = "Error.SourceEndpoint";
                     message.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
 

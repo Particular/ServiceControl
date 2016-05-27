@@ -5,6 +5,8 @@ using System.Windows.Input;
 
 namespace ServiceControl.Config.Xaml.Controls
 {
+    using System;
+
     public class FormPathTextBox : TextBox
     {
         static FormPathTextBox()
@@ -30,7 +32,7 @@ namespace ServiceControl.Config.Xaml.Controls
         }
 
         public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormPathTextBox), new PropertyMetadata(""));
+            DependencyProperty.Register("Header", typeof(string), typeof(FormPathTextBox), new PropertyMetadata(String.Empty));
 
         public ICommand SelectCommand
         {

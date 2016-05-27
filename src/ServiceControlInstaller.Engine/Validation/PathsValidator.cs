@@ -21,9 +21,9 @@
         {
             var pathList = new List<PathInfo>
             {
-                new PathInfo{ Name = "log path", Path = Environment.ExpandEnvironmentVariables(instance.LogPath ?? "")},
-                new PathInfo{ Name = "DB path", Path = Environment.ExpandEnvironmentVariables(instance.DBPath ?? "")},
-                new PathInfo{ Name = "install path", Path = Environment.ExpandEnvironmentVariables(instance.InstallPath ?? "")},
+                new PathInfo{ Name = "log path", Path = Environment.ExpandEnvironmentVariables(instance.LogPath ?? String.Empty)},
+                new PathInfo{ Name = "DB path", Path = Environment.ExpandEnvironmentVariables(instance.DBPath ?? String.Empty)},
+                new PathInfo{ Name = "install path", Path = Environment.ExpandEnvironmentVariables(instance.InstallPath ?? String.Empty)},
             };
             paths = pathList.Where(p => !string.IsNullOrWhiteSpace(p.Path)).ToList();
         }

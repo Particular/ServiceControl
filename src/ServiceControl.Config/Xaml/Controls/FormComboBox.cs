@@ -3,6 +3,8 @@ using System.Windows.Controls;
 
 namespace ServiceControl.Config.Xaml.Controls
 {
+    using System;
+
     public class FormComboBox : ComboBox
     {
         static FormComboBox()
@@ -17,6 +19,6 @@ namespace ServiceControl.Config.Xaml.Controls
         }
 
         public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormComboBox), new PropertyMetadata(""));
+            DependencyProperty.Register("Header", typeof(string), typeof(FormComboBox), new PropertyMetadata(String.Empty));
     }
 }

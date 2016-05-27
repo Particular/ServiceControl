@@ -3,6 +3,8 @@ using System.Windows.Controls;
 
 namespace ServiceControl.Config.Xaml.Controls
 {
+    using System;
+
     [TemplatePart(Name = "PART_On", Type = typeof(RadioButton))]
     [TemplatePart(Name = "PART_Off", Type = typeof(RadioButton))]
     public class FormCheckBox : CheckBox
@@ -22,7 +24,7 @@ namespace ServiceControl.Config.Xaml.Controls
         }
 
         public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormCheckBox), new PropertyMetadata(""));
+            DependencyProperty.Register("Header", typeof(string), typeof(FormCheckBox), new PropertyMetadata(String.Empty));
 
         public override void OnApplyTemplate()
         {
