@@ -60,3 +60,17 @@ There is no status to indicate that a batch is `Done`. When the `Forwarding` sta
 5. If an attempt to stage a batch is interrupted, the next attempt will result in the entire batch being staged again. As each staging attempt has it's own `Staging Id`, only one staging attempt will make it to `Forwarding`. Any messages from a previous attempt will be dropped as a part of the `Forwarding` process. This makes the staging step idempotent.
 6. If an attempt to forward a batch is interrupted, the next attempt will simply forward matching staged messages until the staging queue is empty. During this phase, any message that does not match the recorded `Staging Id` is dropped. When the staging queue is empty, every previously staged message must have been sent. This makes the forwarding step idempotent.
 7. Each message that is sent as a part of a forwarding operation is Received from the staging queue and Dispatched to it's final destination as a part of the same Transport Transaction. If a message is recieved but cannot be forwarded then the recieve should be rolled back. The satellite that handles forwaring includes a custom Fault Manager that will attempt to eject the failed message from the batch. Under this circumstance, it is possible for a message to be retried multiple times. 
+
+### Technicalities of retrying messages
+ * `Headers.FailedQ` header is used as a new destination of the message.
+  * FailedQ is populated with the queue name to send the message back to.
+ * The original message headers are striped from following header values: 
+  * `NServiceBus.Retries`
+  * `NServiceBus.FailedQ`
+  * `NServiceBus.TimeOfFailure`
+  * `NServiceBus.ExceptionInfo.ExceptionType`
+  * `NServiceBus.ExceptionInfo.AuditMessage`
+  * `NServiceBus.ExceptionInfo.Source`
+  * `NServiceBus.ExceptionInfo.StackTrace"`
+
+ * Message is sent using above destination calling `ISendMessages.Send` implementation of given transport. 
