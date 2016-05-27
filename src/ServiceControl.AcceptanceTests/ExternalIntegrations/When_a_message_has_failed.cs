@@ -68,10 +68,6 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
-
-                public IBus Bus { get; set; }
-
                 public void Handle(MyMessage message)
                 {
                     throw new Exception(message.Body);
