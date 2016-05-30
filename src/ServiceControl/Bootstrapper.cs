@@ -66,7 +66,7 @@ namespace Particular.ServiceControl
         {
             webApp = WebApp.Start(new StartOptions(Settings.RootUrl), startup.Configuration);
 
-            if (Environment.UserInteractive && Debugger.IsAttached)
+            if (IsRunningAcceptanceTests() || (Environment.UserInteractive && Debugger.IsAttached))
             {
                 SetupBootstrapper.CreateDatabase(WindowsIdentity.GetCurrent().Name);
                 SetupBootstrapper.InitialiseDatabase();
@@ -79,6 +79,11 @@ namespace Particular.ServiceControl
             Bus.Start();
 
             logger.InfoFormat("Api is now accepting requests on {0}", Settings.ApiUrl);
+        }
+
+        private bool IsRunningAcceptanceTests()
+        {
+            return configuration != null;
         }
 
         public void Stop()
@@ -195,18 +200,6 @@ namespace Particular.ServiceControl
                 return "Particular.ServiceControl";
             }
             return service.ServiceName;
-        }
-
-        private Type DetermineTransportType()
-        {
-            var transportType = Type.GetType(Settings.TransportType);
-            if (transportType != null)
-            {
-                return transportType;
-            }
-            var errorMsg = $"Configuration of transport Failed. Could not resolve type '{Settings.TransportType}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
-            logger.Error(errorMsg);
-            throw new Exception(errorMsg);
         }
     }
 }
