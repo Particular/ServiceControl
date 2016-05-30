@@ -16,7 +16,9 @@
     using System.Xml.XPath;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
     using ServiceControl.Infrastructure.SignalR;
@@ -319,9 +321,6 @@
             }
             request.Accept = "application/json";
 
-            var reportStatus = new StringBuilder();
-            reportStatus.Append(request.RequestUri);
-
             HttpWebResponse response;
             try
             {
@@ -338,8 +337,7 @@
                 return null;
             }
 
-            reportStatus.AppendFormat(" - {0}", (int) response.StatusCode);
-            Console.WriteLine(reportStatus.ToString());
+            scenarioContext.AddTrace($"{request.RequestUri} - {(int)response.StatusCode}");
 
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
@@ -408,7 +406,7 @@
                     urlToMessageBody = $"http://localhost:{port}/api{url}";
                 }
 
-                Console.Out.Write(urlToMessageBody);
+                scenarioContext.AddTrace(urlToMessageBody);
 
                 return client.DownloadData(urlToMessageBody);
             }
@@ -469,8 +467,6 @@
             var json = JsonConvert.SerializeObject(payload, serializerSettings);
             request.ContentLength = json.Length;
 
-            Console.Out.Write(request.RequestUri);
-
             using (var stream = request.GetRequestStream())
             {
                 using (var sw = new StreamWriter(stream))
@@ -490,7 +486,7 @@
                 response = ex.Response as HttpWebResponse;
             }
 
-            Console.Out.WriteLine(" - {0}", (int)response.StatusCode);
+            scenarioContext.AddTrace($"{request.RequestUri} - {(int) response.StatusCode}");
 
             if (throwOnFailure && response.StatusCode != HttpStatusCode.OK && response.StatusCode != HttpStatusCode.Accepted)
             {
@@ -503,6 +499,33 @@
             }
 
             return response.StatusCode;
+        }
+
+        public IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
+        {
+            Func<T> instance = () => new T();
+            return Define(instance);
+        }
+
+        public IScenarioWithEndpointBehavior<T> Define<T>(T context) where T : ScenarioContext, new()
+        {
+            return Define(() => context);
+        }
+
+        public IScenarioWithEndpointBehavior<T> Define<T>(Func<T> contextFactory) where T : ScenarioContext, new()
+        {
+            return new ScenarioWithContext<T>(() =>
+            {
+                scenarioContext = contextFactory();
+
+                return (T) scenarioContext;
+            });
+        }
+
+        ScenarioContext scenarioContext = new ConsoleContext();
+
+        class ConsoleContext : ScenarioContext
+        {
         }
     }
 }

@@ -21,7 +21,7 @@
             };
          
             FailedMessageView failure = null;
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
@@ -41,7 +41,7 @@
             };
 
             FailedMessageView failure = null;
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))

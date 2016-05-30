@@ -22,7 +22,7 @@
                 SCPort = port
             };
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()

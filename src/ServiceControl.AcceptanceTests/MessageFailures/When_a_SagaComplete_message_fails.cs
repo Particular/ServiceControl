@@ -25,7 +25,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 
             var context = new MyContext();
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>()
                 .Done(c => TryGetSingle("/api/errors/", out failure, m => m.Id == c.UniqueMessageId))

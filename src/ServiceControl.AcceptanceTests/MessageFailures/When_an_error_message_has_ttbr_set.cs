@@ -17,7 +17,7 @@
         {
             var context = new MyContext();
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(
                     c => c.AppConfig(PathToAppConfig)
                           .CustomConfig(config =>

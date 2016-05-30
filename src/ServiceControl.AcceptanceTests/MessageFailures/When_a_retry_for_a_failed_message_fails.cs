@@ -21,7 +21,7 @@
 
             FailedMessage failure = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>(b => 
                     b.Given(bus => bus.SendLocal(new MyMessage()))
@@ -44,7 +44,7 @@
 
             FailedMessage failure = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>(b => 
                     b.Given(bus => bus.SendLocal(new MyMessage()))
@@ -130,10 +130,6 @@
             public string MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
-
-            public int RetryCount { get; set; }
-
-            public DateTimeOffset LastRetry { get; set; }
 
             public bool Succeed { get; set; }
 

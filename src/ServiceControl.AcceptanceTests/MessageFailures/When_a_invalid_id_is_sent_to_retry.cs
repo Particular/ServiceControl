@@ -20,7 +20,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             var context = new MyContext();
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(cfg => cfg.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>(cfg => cfg
                     .When(bus =>

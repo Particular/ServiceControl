@@ -23,7 +23,7 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
                 MessageId = Guid.NewGuid().ToString()
             };
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ThridPartyEndpoint>()
                 .Done(c => TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))

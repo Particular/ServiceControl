@@ -16,7 +16,7 @@
         {
             var context = new RetryReplyContext();
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ServiceControlEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<OriginatingEndpoint>(c => c.Given(bus => bus.Send(new OriginalMessage())))
                 .WithEndpoint<ReceivingEndpoint>()

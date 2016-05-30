@@ -39,7 +39,7 @@
 
             HeartbeatSummary summary = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Endpoint1>()
                 .WithEndpoint<Endpoint2>()

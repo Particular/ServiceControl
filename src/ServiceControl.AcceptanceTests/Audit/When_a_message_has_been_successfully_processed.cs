@@ -23,7 +23,7 @@
             MessagesView auditedMessage = null;
             byte[] body = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
@@ -92,7 +92,7 @@
             //search for the message type
             var searchString = typeof(MyMessage).Name;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
@@ -109,7 +109,7 @@
             var context = new MyContext();
             List<MessagesView> response;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
@@ -127,7 +127,7 @@
             var context = new MyContext();
             List<MessagesView> response;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
@@ -148,7 +148,7 @@
             var context = new MyContext();
             List<MessagesView> response;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
@@ -169,7 +169,7 @@
 
             List<MessagesView> response;
 
-             Scenario.Define(context)
+             Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
@@ -191,7 +191,7 @@
 
             List<EndpointsView> knownEndpoints = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {

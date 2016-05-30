@@ -30,7 +30,7 @@
 
             FailedMessage failedMessage = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c => c.MessageId != null && TryGet("/api/errors/" + c.UniqueMessageId, out failedMessage))
@@ -54,7 +54,7 @@
 
             FailedMessageView failure = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
@@ -73,7 +73,7 @@
 
             var failure = new MessagesView();
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c => TryGetSingle("/api/messages", out failure,m=>m.MessageId == c.MessageId))
@@ -93,7 +93,7 @@
 
             EventLogItem entry = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name))
@@ -113,7 +113,7 @@
                 SCPort = port
             };
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>()
                 .WithEndpoint<EndpointThatUsesSignalR>()

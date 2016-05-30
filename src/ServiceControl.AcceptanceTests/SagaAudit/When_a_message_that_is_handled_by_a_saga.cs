@@ -18,7 +18,7 @@
             var context = new MyContext();
             var messages = new List<MessagesView>();
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingSagas>(b => b.Given((bus, c) => bus.SendLocal(new InitiateSaga())))
                 .Done(c =>
