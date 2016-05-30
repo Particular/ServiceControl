@@ -50,7 +50,7 @@
 
                     if (method == nameof(ScenarioContext.AddTrace))
                     {
-                        Console.Out.WriteLine(call.GetArg(0));
+                        Console.Out.WriteLine($"{DateTime.Now:HH:mm:ss.ffffff} - {call.GetArg(0)}");
                     }
 
                     if (Target.ContextPropertyChanged != null && method.StartsWith("set"))
