@@ -26,7 +26,7 @@
             };
             EventLogItem entry = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.EventType == typeof(CustomCheckFailed).Name))
@@ -40,7 +40,7 @@
         [Test]
         public void Should_raise_a_signalr_event()
         {
-            var context = Scenario.Define(() => new MyContext
+            var context = Define(() => new MyContext
             {
                 SCPort = port
             })

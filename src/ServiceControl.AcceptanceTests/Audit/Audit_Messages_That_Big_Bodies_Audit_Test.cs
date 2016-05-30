@@ -21,7 +21,7 @@
             byte[] body = null;
 
             //Act
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig)) // I want ServiceControl running
                 .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
@@ -67,7 +67,7 @@
             byte[] body = null;
 
             //Act
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig)) // I want ServiceControl running
                 .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit

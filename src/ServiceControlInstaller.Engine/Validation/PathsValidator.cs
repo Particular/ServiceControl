@@ -108,7 +108,8 @@
                 {
                     if (path.Name == possibleChild.Name)
                         continue;
-                    if (possibleChild.Path.IndexOf(path.Path, StringComparison.OrdinalIgnoreCase) > -1)
+
+                    if (Path.GetDirectoryName(possibleChild.Path).IndexOf(path.Path, StringComparison.OrdinalIgnoreCase) > -1)
                     {
                         throw new EngineValidationException($"Nested paths are not supported. The {possibleChild.Name} is nested under {path.Name}");
                     }

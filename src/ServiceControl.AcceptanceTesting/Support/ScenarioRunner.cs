@@ -130,14 +130,8 @@ namespace NServiceBus.AcceptanceTesting.Support
 
             foreach (var prop in runResult.ScenarioContext.GetType().GetProperties())
             {
-                if (prop.Name == "Trace") continue;
-
                 Console.Out.WriteLine("{0} = {1}", prop.Name, prop.GetValue(runResult.ScenarioContext, null));
             }
-
-            Console.WriteLine(String.Empty);
-            Console.Out.WriteLine("Trace:");
-            Console.Out.WriteLine(runResult.ScenarioContext.Trace);
 
             Console.Out.WriteLine("------------------------------------------------------");
         }

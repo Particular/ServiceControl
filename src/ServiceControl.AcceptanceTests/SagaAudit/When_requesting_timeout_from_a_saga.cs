@@ -18,7 +18,7 @@
             var context = new MyContext();
             SagaHistory sagaHistory = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new StartSagaMessage())))
                 .Done(c => c.ReceivedTimeoutMessage && 

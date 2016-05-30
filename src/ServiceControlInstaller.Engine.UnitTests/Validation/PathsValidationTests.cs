@@ -165,6 +165,23 @@
         }
 
         [Test]
+        public void CheckNoNestedSiblingPaths_ShouldSucceed()
+        {
+            var newInstance = new ServiceControlInstanceMetadata
+            {
+                InstallPath = @"c:\test\1\servicecontrol",
+                LogPath = @"c:\test\1\servicecontrollog",
+                DBPath = @"c:\test\1\servicecontroldb"
+            };
+
+            var p = new PathsValidator(newInstance)
+            {
+                Instances = instances
+            };
+            Assert.DoesNotThrow(() => p.CheckNoNestedPaths());
+        }
+
+        [Test]
         public void CheckNoNestedPaths_ShouldSucceed()
         {
             var newInstance = new ServiceControlInstanceMetadata

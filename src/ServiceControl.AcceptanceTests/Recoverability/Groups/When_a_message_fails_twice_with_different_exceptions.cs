@@ -24,7 +24,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
             FailedMessage originalMessage = null;
             FailedMessage retriedMessage = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<MeowReceiver>(b => b.Given(bus => bus.SendLocal(new Meow())))
                 .Done(ctx =>

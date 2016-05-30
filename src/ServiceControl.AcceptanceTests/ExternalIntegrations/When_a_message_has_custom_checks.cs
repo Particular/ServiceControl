@@ -18,7 +18,7 @@
         {
             var context = new MyContext();
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.When(c => c.ExternalProcessorSubscribed, bus =>
                 {
                     bus.Publish(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded

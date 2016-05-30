@@ -25,7 +25,7 @@
         {
             var context = new MyContext();
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpointEx>(b => b.AppConfig(PathToAppConfig)
                     .When(_ =>
                     {

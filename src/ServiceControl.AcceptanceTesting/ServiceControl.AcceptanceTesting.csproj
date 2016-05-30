@@ -55,7 +55,6 @@
     <Compile Include="Customization\Conventions.cs" />
     <Compile Include="EndpointConfigurationBuilder.cs" />
     <Compile Include="IScenarioVerification.cs" />
-    <Compile Include="Scenario.cs" />
     <Compile Include="ScenarioContext.cs" />
     <Compile Include="ScenarioVerification.cs" />
     <Compile Include="ScenarioWithContext.cs" />

@@ -21,7 +21,7 @@
             FailedMessage messageToBeRetriedAsPartOfRetryAll = null;
             FailedMessage messageToBeArchived = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {

@@ -1,9 +1,6 @@
 ﻿namespace NServiceBus.AcceptanceTesting
 {
     using System;
-    using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Runtime.Remoting.Activation;
     using System.Runtime.Remoting.Contexts;
     using System.Runtime.Remoting.Messaging;
@@ -51,6 +48,10 @@
                 {
                     var method = call.MethodName;
 
+                    if (method == nameof(ScenarioContext.AddTrace))
+                    {
+                        Console.Out.WriteLine(call.GetArg(0));
+                    }
 
                     if (Target.ContextPropertyChanged != null && method.StartsWith("set"))
                     {
@@ -67,39 +68,9 @@
 
         public bool HasNativePubSubSupport { get; set; }
 
-        public string Trace => string.Join(Environment.NewLine, traceQueue.ToArray());
-
         public void AddTrace(string trace)
         {
-            traceQueue.Enqueue($"{DateTime.Now:HH:mm:ss.ffffff} - {trace}");
-        }
-
-        ConcurrentQueue<string> traceQueue = new ConcurrentQueue<string>();
-
-        public void RecordEndpointLog(string endpointName,string level ,string message)
-        {
-            endpointLogs.Add(new EndpointLogItem
-            {
-                Endpoint = endpointName,
-                Level = level,
-                Message = message
-            });
-        }
-
-
-        public List<EndpointLogItem> GetAllLogs()
-        {
-            return endpointLogs.ToList();
-        }
-
-
-        List<EndpointLogItem> endpointLogs = new List<EndpointLogItem>();
-
-        public class EndpointLogItem
-        {
-            public string Endpoint { get; set; }
-            public string Message { get; set; }
-            public string Level { get; set; }
+            // This is redirected to Console.Out via InterceptSink
         }
     }
 }

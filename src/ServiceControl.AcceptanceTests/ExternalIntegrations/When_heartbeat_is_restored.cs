@@ -22,7 +22,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         {
             var context = new MyContext();
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointHeartbeatRestored
                 {
                     RestoredAt = new DateTime(2013,09,13,13,15,13),

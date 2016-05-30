@@ -27,7 +27,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            Scenario.Define<MyContext>()
+            Define<MyContext>()
                 .WithEndpoint<ManagementEndpointEx>(ctx => ctx.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>(b => b.Given((bus, ctx) =>
                 {

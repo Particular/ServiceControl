@@ -49,7 +49,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
             List<FailedMessageView> localErrors = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>()
                 .Done(c =>

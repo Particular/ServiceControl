@@ -17,7 +17,7 @@
             var context = new MyContext();
             EndpointsView auditedMessage = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {

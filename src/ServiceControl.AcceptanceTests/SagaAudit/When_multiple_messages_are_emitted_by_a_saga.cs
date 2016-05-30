@@ -19,7 +19,7 @@
             var context = new MyContext();
             SagaHistory sagaHistory = null;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(c => c.Done && TryGet("/api/sagas/" + c.SagaId, out sagaHistory))

@@ -25,7 +25,7 @@
             };
             
             MessagesView auditMessage = null;
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c => TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
@@ -45,7 +45,7 @@
             };
 
             MessagesView auditMessage = null;
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c => TryGetSingle("/api/messages?include_system_messages=true&sort=id", out auditMessage, r => r.MessageId == c.MessageId))
@@ -67,7 +67,7 @@
 
             var containsItem = true;
 
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c =>
@@ -103,7 +103,7 @@
             };
 
             MessagesView auditMessage = null;
-            Scenario.Define(context)
+            Define(context)
                 .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c => TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
