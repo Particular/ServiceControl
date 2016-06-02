@@ -7,6 +7,7 @@ namespace Particular.Licensing
         public static bool IsNotSystemSid()
         {
             var windowsIdentity = WindowsIdentity.GetCurrent();
+            // ReSharper disable once ConstantConditionalAccessQualifier
             return windowsIdentity?.User != null && !windowsIdentity.User.IsWellKnown(WellKnownSidType.LocalSystemSid);
         }
     }
