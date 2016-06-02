@@ -7,9 +7,7 @@ namespace Particular.Licensing
         public static bool IsNotSystemSid()
         {
             var windowsIdentity = WindowsIdentity.GetCurrent();
-            return windowsIdentity != null &&
-                   windowsIdentity.User != null &&
-                   !windowsIdentity.User.IsWellKnown(WellKnownSidType.LocalSystemSid);
+            return windowsIdentity?.User != null && !windowsIdentity.User.IsWellKnown(WellKnownSidType.LocalSystemSid);
         }
     }
 }

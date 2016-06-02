@@ -4,7 +4,6 @@
     using System.Globalization;
     using System.Security;
     using Microsoft.Win32;
-    using ServiceControlInstaller.Engine.LicenseMgmt;
 
     class RegistryLicenseStore
     {
@@ -36,9 +35,10 @@
 
                     var licenseValue = registryKey.GetValue("License", null);
 
-                    if (licenseValue is string[])
+                    var value = licenseValue as string[];
+                    if (value != null)
                     {
-                        license = string.Join(" ", (string[]) licenseValue);
+                        license = string.Join(" ", value);
                     }
                     else
                     {
@@ -50,7 +50,7 @@
             }
             catch (SecurityException exception)
             {
-                throw new Exception(string.Format("Failed to access '{0}'. Do you have permission to read this key?", FullPath), exception);
+                throw new Exception($"Failed to access '{FullPath}'. Do you have permission to read this key?", exception);
             }
         }
 
@@ -62,20 +62,15 @@
 
                 using (var registryKey = regKey.OpenSubKey(keyPath))
                 {
-                    if (registryKey == null)
-                    {
-                        license = null;
-                        return false;
-                    }
+                    var licenseValue = registryKey?.GetValue("TrialStart", null);
 
-                    var licenseValue = registryKey.GetValue("TrialStart", null);
-
-                    if (licenseValue is string)
+                    var value = licenseValue as string;
+                    if (value != null)
                     {
                         DateTime trialStartDate;
-                        if (DateTime.TryParseExact((string)licenseValue, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out trialStartDate))
+                        if (DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out trialStartDate))
                         {
-                            license = Particular.Licensing.License.TrialLicense(trialStartDate);
+                            license = License.TrialLicense(trialStartDate);
                             return true;
                         }
                     }
@@ -84,7 +79,7 @@
             }
             catch (SecurityException exception)
             {
-                throw new Exception(string.Format("Failed to access '{0}'. Do you have permission to read this key?", FullPath), exception);
+                throw new Exception($"Failed to access '{FullPath}'. Do you have permission to read this key?", exception);
             }
         }
 
@@ -97,7 +92,7 @@
                 {
                     if (registryKey == null)
                     {
-                        throw new Exception(string.Format("CreateSubKey for '{0}' returned null. Do you have permission to write to this key", keyPath));
+                        throw new Exception($"CreateSubKey for '{keyPath}' returned null. Do you have permission to write to this key");
                     }
 
                     registryKey.SetValue(keyName, license, RegistryValueKind.String);
@@ -105,14 +100,11 @@
             }
             catch (UnauthorizedAccessException exception)
             {
-                throw new Exception(string.Format("Failed to access '{0}'. Do you have permission to write to this key?", FullPath), exception);
+                throw new Exception($"Failed to access '{FullPath}'. Do you have permission to write to this key?", exception);
             }
         }
 
-        string FullPath
-        {
-            get { return string.Format("{0} : {1} : {2}", regKey.Name, keyPath, keyName); }
-        }
+        string FullPath => $"{regKey.Name} : {keyPath} : {keyName}";
 
         string keyPath;
         string keyName;
