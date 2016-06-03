@@ -11,4 +11,5 @@
                                           IsHidden="True" />
 
     <converters:StringNullOrEmptyToVisibilityConverter x:Key="nullOrEmptyToVis" />
+    <converters:NegaterConverter x:Key="negate" />
 </ResourceDictionary>
