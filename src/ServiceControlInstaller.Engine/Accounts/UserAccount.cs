@@ -64,8 +64,10 @@
             }
 
             var localAccount = Domain.Equals(Environment.MachineName, StringComparison.OrdinalIgnoreCase);
-            var context = localAccount ? new PrincipalContext(ContextType.Machine) : new PrincipalContext(ContextType.Domain, Domain);
-            return context.ValidateCredentials(Name, password, ContextOptions.Negotiate);
+            using (var context = localAccount ? new PrincipalContext(ContextType.Machine) : new PrincipalContext(ContextType.Domain, Domain))
+            {
+                return context.ValidateCredentials(Name, password, ContextOptions.Negotiate);
+            }
         }
         
         public static UserAccount ParseAccountName(string accountName)
