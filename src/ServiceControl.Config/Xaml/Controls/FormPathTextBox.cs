@@ -42,5 +42,17 @@ namespace ServiceControl.Config.Xaml.Controls
 
         public static readonly DependencyProperty SelectCommandProperty =
             DependencyProperty.Register("SelectCommand", typeof(ICommand), typeof(FormPathTextBox), new PropertyMetadata(null));
+
+        public string Warning
+        {
+            get { return (string)GetValue(WarningProperty); }
+            set
+            {
+                SetValue(WarningProperty, value);
+            }
+        }
+
+        public static readonly DependencyProperty WarningProperty =
+            DependencyProperty.Register("Warning", typeof(string), typeof(FormPathTextBox), new PropertyMetadata(String.Empty));
     }
 }

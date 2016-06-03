@@ -20,5 +20,17 @@ namespace ServiceControl.Config.Xaml.Controls
 
         public static readonly DependencyProperty HeaderProperty =
             DependencyProperty.Register("Header", typeof(string), typeof(FormComboBox), new PropertyMetadata(String.Empty));
+
+        public string Warning
+        {
+            get { return (string)GetValue(WarningProperty); }
+            set
+            {
+                SetValue(WarningProperty, value);
+            }
+        }
+
+        public static readonly DependencyProperty WarningProperty =
+            DependencyProperty.Register("Warning", typeof(string), typeof(FormComboBox), new PropertyMetadata(String.Empty));
     }
 }

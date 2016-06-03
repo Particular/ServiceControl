@@ -53,5 +53,17 @@ namespace ServiceControl.Config.Xaml.Controls
             if (passwordBox != null && passwordBox.Password != newPassword)
                 passwordBox.Password = newPassword;
         }
+
+        public string Warning
+        {
+            get { return (string)GetValue(WarningProperty); }
+            set
+            {
+                SetValue(WarningProperty, value);
+            }
+        }
+
+        public static readonly DependencyProperty WarningProperty =
+            DependencyProperty.Register("Warning", typeof(string), typeof(FormPasswordBox), new PropertyMetadata(String.Empty));
     }
 }

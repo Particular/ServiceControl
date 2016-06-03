@@ -44,7 +44,5 @@ namespace ServiceControl.Config.Xaml.Controls
 
         public static readonly DependencyProperty WarningProperty =
             DependencyProperty.Register("Warning", typeof(string), typeof(FormTextBox), new PropertyMetadata(String.Empty));
-
-        
     }
 }

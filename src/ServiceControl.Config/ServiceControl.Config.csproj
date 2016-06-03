@@ -230,9 +230,7 @@
       <DependentUpon>AppHeader.xaml</DependentUpon>
     </Compile>
     <Compile Include="Xaml\Controls\FormSlider.cs" />
-    <Compile Include="Xaml\Controls\FormCheckBox.cs" />
     <Compile Include="Xaml\Controls\FormPasswordBox.cs" />
-    <Compile Include="Xaml\Controls\FormToggleButton.cs" />
     <Compile Include="Xaml\Controls\FormPathTextBox.cs" />
     <Compile Include="Xaml\Controls\CleanWindow.cs" />
     <Compile Include="Xaml\Controls\FormComboBox.cs" />
