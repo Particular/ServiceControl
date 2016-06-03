@@ -88,15 +88,14 @@
                 </Border>
 
                 <controls:FormSlider Header="AUDIT RETENTION PERIOD"
-                        Minimum="{Binding MinimumAuditRetentionPeriod}"
-                        Maximum="{Binding MaximumAuditRetentionPeriod}"
-                        Units="{Binding AuditRetentionUnits}"
-                        Explanation="Audit Messages will be removed after this period"
-                        TimeSpan="{Binding AuditRetentionPeriod}"
-                        SmallChange="1"
-                        LargeChange="24"
+                                     Minimum="{Binding MinimumAuditRetentionPeriod}"
+                                     Maximum="{Binding MaximumAuditRetentionPeriod}"
+                                     Units="{Binding AuditRetentionUnits}"
+                                     Explanation="Audit Messages will be removed after this period"
+                                     TimeSpan="{Binding AuditRetentionPeriod}"
+                                     SmallChange="1"
+                                     LargeChange="24"
                 />
-
                 <controls:FormSlider Header="ERROR RETENTION PERIOD"
                         Minimum="{Binding MinimumErrorRetentionPeriod}"
                         Maximum="{Binding MaximumErrorRetentionPeriod}"
