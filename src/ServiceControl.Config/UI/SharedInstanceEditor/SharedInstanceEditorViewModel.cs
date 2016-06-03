@@ -85,7 +85,20 @@
 
         public string ServiceAccount
         {
-            get { return UseProvidedAccount ? serviceAccount : "System"; }
+            get
+            {
+                if (UseProvidedAccount)
+                {
+                    return serviceAccount;
+                }
+
+                if (UseSystemAccount)
+                {
+                    return "LocalSystem";
+                }
+
+                return "LocalService";
+            }
             set { serviceAccount = value; }
         }
 
@@ -95,7 +108,9 @@
             set { password = value; }
         }
 
-        public bool UseSystemAccount => !UseProvidedAccount;
+        public bool UseSystemAccount { get; set; }
+
+        public bool UseServiceAccount { get; set; }
 
         public bool UseProvidedAccount { get; set; }
 

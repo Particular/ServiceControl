@@ -53,8 +53,11 @@
 
                 <GroupBox Header="USER ACCOUNT">
                     <StackPanel>
-                        <RadioButton IsChecked="{Binding UseSystemAccount, Mode=OneWay}">
-                            <TextBlock Text="SYSTEM" />
+                        <RadioButton IsChecked="{Binding UseSystemAccount}">
+                            <TextBlock Text="LOCAL SYSTEM" />
+                        </RadioButton>
+                        <RadioButton IsChecked="{Binding UseServiceAccount}">
+                            <TextBlock Text="LOCAL SERVICE" />
                         </RadioButton>
                         <RadioButton HorizontalContentAlignment="Stretch" IsChecked="{Binding UseProvidedAccount}">
                             <TextBlock Text="USER" />

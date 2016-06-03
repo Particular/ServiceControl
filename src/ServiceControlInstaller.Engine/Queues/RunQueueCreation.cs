@@ -15,7 +15,10 @@
 
             string args = $"--setup --serviceName={instance.Name}";
 
-            if (!userAccount.IsLocalSystem())
+            if (userAccount.IsLocalService())
+            {
+                args += $" --userName=\"NT AUTHORITY\\Local Service\"";
+            } else if (!userAccount.IsLocalSystem())
             {
                 args += $" --userName=\"{userAccount.QualifiedName}\"";
             }

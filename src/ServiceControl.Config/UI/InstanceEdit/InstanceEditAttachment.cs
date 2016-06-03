@@ -65,7 +65,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
             viewModel.InProgress = true;
             instance.LogPath = viewModel.LogPath;
-            instance.ServiceAccount = viewModel.UseSystemAccount ? "localSystem" : viewModel.ServiceAccount;
+            instance.ServiceAccount = viewModel.ServiceAccount;
             instance.ServiceAccountPwd = viewModel.Password;
             instance.Description = viewModel.Description;
             instance.HostName = viewModel.HostName;

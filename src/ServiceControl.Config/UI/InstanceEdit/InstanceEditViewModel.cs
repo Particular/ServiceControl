@@ -19,7 +19,8 @@
             InstanceName = instance.Name;
             Description = instance.Description;
 
-            UseProvidedAccount = !StringComparer.OrdinalIgnoreCase.Equals(instance.ServiceAccount, "localsystem");
+            UseSystemAccount = StringComparer.OrdinalIgnoreCase.Equals(instance.ServiceAccount, "LocalSystem");
+            UseServiceAccount = StringComparer.OrdinalIgnoreCase.Equals(instance.ServiceAccount, "LocalService");
             if (UseProvidedAccount)
             {
                 ServiceAccount = instance.ServiceAccount;

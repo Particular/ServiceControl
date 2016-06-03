@@ -19,6 +19,11 @@
             return SID.IsWellKnown(WellKnownSidType.LocalSystemSid);
         }
 
+        public bool IsLocalService()
+        {
+            return SID.IsWellKnown(WellKnownSidType.LocalServiceSid);
+        }
+
         public string QualifiedName => $@"{Domain}\{Name}";
 
         // ReSharper disable once InconsistentNaming
