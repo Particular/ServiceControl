@@ -8,37 +8,6 @@
         <ResourceDictionary Source="/ServiceControlConfig;component/Styles/CleanWindow.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <ControlTemplate x:Key="ErrorHeader">
-        <StackPanel Orientation="Horizontal">
-
-            <Control x:Name="errorIcon"
-                     Width="16"
-                     Height="16"
-                     Margin="5,0,0,0"
-                     Template="{StaticResource WarningIcon}"
-                     Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                          Path=(Validation.HasError),
-                                          Converter={StaticResource boolToVisHidden}}" />
-
-            <TextBlock x:Name="errorElement"
-                       Margin="5,0,0,0"
-                       FontSize="13px"
-                       Foreground="{StaticResource ErrorBrush}"
-                       Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                      Path=(Validation.Errors).CurrentItem.ErrorContent}" />
-
-            <TextBlock x:Name="warningElement"
-                       Margin="5,0,0,0"
-                       FontSize="13px"
-                       Foreground="{StaticResource WarningBrush}"
-                       Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                      Path=(Warning)}"
-                       Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                            Path=(Validation.HasError),
-                                            Converter={StaticResource boolToVisHiddenInverted}}" />
-        </StackPanel>
-    </ControlTemplate>
-
     <!--  ==================== FormTextBox ====================  -->
 
     <Style TargetType="{x:Type controls:FormTextBox}">
@@ -86,33 +55,35 @@
                                     BorderThickness="{TemplateBinding BorderThickness}">
                                 <ScrollViewer x:Name="PART_ContentHost" />
                             </Border>
-                            <StackPanel Grid.Row="2" Orientation="Horizontal">
+                            <StackPanel Grid.Row="2">
+                                <StackPanel Orientation="Horizontal" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Validation.HasError), Converter={StaticResource boolToVis}}">
+                                    <Control Width="16"
+                                             Height="16"
+                                             Margin="5,0,0,0"
+                                             Foreground="{StaticResource ErrorBrush}"
+                                             Template="{StaticResource WarningIcon}" />
 
-                                <Control x:Name="errorIcon"
-                                         Width="16"
-                                         Height="16"
-                                         Margin="5,0,0,0"
-                                         Template="{StaticResource WarningIcon}"
-                                         Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                              Path=(Validation.HasError),
-                                                              Converter={StaticResource boolToVisHidden}}" />
+                                    <TextBlock Margin="5,0,0,0"
+                                               FontSize="13px"
+                                               Foreground="{StaticResource ErrorBrush}"
+                                               Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=(Validation.Errors).CurrentItem.ErrorContent}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Warning), Converter={StaticResource nullOrEmptyToVis}}">
+                                    <Control x:Name="errorIcon"
+                                             Width="16"
+                                             Height="16"
+                                             Margin="5,0,0,0"
+                                             Foreground="{StaticResource WarningBrush}"
+                                             Template="{StaticResource WarningIcon}" />
 
-                                <TextBlock x:Name="errorElement"
-                                           Margin="5,0,0,0"
-                                           FontSize="13px"
-                                           Foreground="{StaticResource ErrorBrush}"
-                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Validation.Errors).CurrentItem.ErrorContent}" />
-
-                                <TextBlock x:Name="warningElement"
-                                           Margin="5,0,0,0"
-                                           FontSize="13px"
-                                           Foreground="{StaticResource WarningBrush}"
-                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Warning)}"
-                                           Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                                Path=(Validation.HasError),
-                                                                Converter={StaticResource boolToVisHiddenInverted}}" />
+                                    <TextBlock x:Name="warningElement"
+                                               Margin="5,0,0,0"
+                                               FontSize="13px"
+                                               Foreground="{StaticResource WarningBrush}"
+                                               Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=(Warning)}" />
+                                </StackPanel>
                             </StackPanel>
                         </Grid>
 
@@ -348,33 +319,35 @@
                                                           Mode=TwoWay,
                                                           RelativeSource={RelativeSource TemplatedParent}}"
                                       Template="{StaticResource FormComboBoxToggleButton}" />
-                        <StackPanel Grid.Row="2" Orientation="Horizontal">
+                        <StackPanel Grid.Row="2">
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Validation.HasError), Converter={StaticResource boolToVis}}">
+                                <Control Width="16"
+                                         Height="16"
+                                         Margin="5,0,0,0"
+                                         Foreground="{StaticResource ErrorBrush}"
+                                         Template="{StaticResource WarningIcon}" />
 
-                            <Control x:Name="errorIcon"
-                                     Width="16"
-                                     Height="16"
-                                     Margin="5,0,0,0"
-                                     Template="{StaticResource WarningIcon}"
-                                     Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Validation.HasError),
-                                                          Converter={StaticResource boolToVisHidden}}" />
+                                <TextBlock Margin="5,0,0,0"
+                                           FontSize="13px"
+                                           Foreground="{StaticResource ErrorBrush}"
+                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                          Path=(Validation.Errors).CurrentItem.ErrorContent}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Warning), Converter={StaticResource nullOrEmptyToVis}}">
+                                <Control x:Name="errorIcon"
+                                         Width="16"
+                                         Height="16"
+                                         Margin="5,0,0,0"
+                                         Foreground="{StaticResource WarningBrush}"
+                                         Template="{StaticResource WarningIcon}" />
 
-                            <TextBlock x:Name="errorElement"
-                                       Margin="5,0,0,0"
-                                       FontSize="13px"
-                                       Foreground="{StaticResource ErrorBrush}"
-                                       Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                      Path=(Validation.Errors).CurrentItem.ErrorContent}" />
-
-                            <TextBlock x:Name="warningElement"
-                                       Margin="5,0,0,0"
-                                       FontSize="13px"
-                                       Foreground="{StaticResource WarningBrush}"
-                                       Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                      Path=(Warning)}"
-                                       Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                            Path=(Validation.HasError),
-                                                            Converter={StaticResource boolToVisHiddenInverted}}" />
+                                <TextBlock x:Name="warningElement"
+                                           Margin="5,0,0,0"
+                                           FontSize="13px"
+                                           Foreground="{StaticResource WarningBrush}"
+                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                          Path=(Warning)}" />
+                            </StackPanel>
                         </StackPanel>
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -491,34 +464,36 @@
                                 Padding="10,4" />
                         <StackPanel Grid.Row="2"
                                     Grid.Column="0"
-                                    Grid.ColumnSpan="2"
-                                    Orientation="Horizontal">
+                                    Grid.ColumnSpan="2">
 
-                            <Control x:Name="errorIcon"
-                                     Width="16"
-                                     Height="16"
-                                     Margin="5,0,0,0"
-                                     Template="{StaticResource WarningIcon}"
-                                     Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Validation.HasError),
-                                                          Converter={StaticResource boolToVisHidden}}" />
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Validation.HasError), Converter={StaticResource boolToVis}}">
+                                <Control Width="16"
+                                         Height="16"
+                                         Margin="5,0,0,0"
+                                         Foreground="{StaticResource ErrorBrush}"
+                                         Template="{StaticResource WarningIcon}" />
 
-                            <TextBlock x:Name="errorElement"
-                                       Margin="5,0,0,0"
-                                       FontSize="13px"
-                                       Foreground="{StaticResource ErrorBrush}"
-                                       Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                      Path=(Validation.Errors).CurrentItem.ErrorContent}" />
+                                <TextBlock Margin="5,0,0,0"
+                                           FontSize="13px"
+                                           Foreground="{StaticResource ErrorBrush}"
+                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                          Path=(Validation.Errors).CurrentItem.ErrorContent}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Warning), Converter={StaticResource nullOrEmptyToVis}}">
+                                <Control x:Name="errorIcon"
+                                         Width="16"
+                                         Height="16"
+                                         Margin="5,0,0,0"
+                                         Foreground="{StaticResource WarningBrush}"
+                                         Template="{StaticResource WarningIcon}" />
 
-                            <TextBlock x:Name="warningElement"
-                                       Margin="5,0,0,0"
-                                       FontSize="13px"
-                                       Foreground="{StaticResource WarningBrush}"
-                                       Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                      Path=(Warning)}"
-                                       Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                            Path=(Validation.HasError),
-                                                            Converter={StaticResource boolToVisHiddenInverted}}" />
+                                <TextBlock x:Name="warningElement"
+                                           Margin="5,0,0,0"
+                                           FontSize="13px"
+                                           Foreground="{StaticResource WarningBrush}"
+                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                          Path=(Warning)}" />
+                            </StackPanel>
                         </StackPanel>
                     </Grid>
                 </ControlTemplate>
@@ -577,33 +552,36 @@
                                          Padding="{TemplateBinding Padding}"
                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
                                          Validation.ErrorTemplate="{x:Null}" />
-                            <StackPanel Grid.Row="2" Orientation="Horizontal">
+                            <StackPanel Grid.Row="2">
 
-                                <Control x:Name="errorIcon"
-                                         Width="16"
-                                         Height="16"
-                                         Margin="5,0,0,0"
-                                         Template="{StaticResource WarningIcon}"
-                                         Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                              Path=(Validation.HasError),
-                                                              Converter={StaticResource boolToVisHidden}}" />
+                                <StackPanel Orientation="Horizontal" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Validation.HasError), Converter={StaticResource boolToVis}}">
+                                    <Control Width="16"
+                                             Height="16"
+                                             Margin="5,0,0,0"
+                                             Foreground="{StaticResource ErrorBrush}"
+                                             Template="{StaticResource WarningIcon}" />
 
-                                <TextBlock x:Name="errorElement"
-                                           Margin="5,0,0,0"
-                                           FontSize="13px"
-                                           Foreground="{StaticResource ErrorBrush}"
-                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Validation.Errors).CurrentItem.ErrorContent}" />
+                                    <TextBlock Margin="5,0,0,0"
+                                               FontSize="13px"
+                                               Foreground="{StaticResource ErrorBrush}"
+                                               Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=(Validation.Errors).CurrentItem.ErrorContent}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Warning), Converter={StaticResource nullOrEmptyToVis}}">
+                                    <Control x:Name="errorIcon"
+                                             Width="16"
+                                             Height="16"
+                                             Margin="5,0,0,0"
+                                             Foreground="{StaticResource WarningBrush}"
+                                             Template="{StaticResource WarningIcon}" />
 
-                                <TextBlock x:Name="warningElement"
-                                           Margin="5,0,0,0"
-                                           FontSize="13px"
-                                           Foreground="{StaticResource WarningBrush}"
-                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Warning)}"
-                                           Visibility="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                                Path=(Validation.HasError),
-                                                                Converter={StaticResource boolToVisHiddenInverted}}" />
+                                    <TextBlock x:Name="warningElement"
+                                               Margin="5,0,0,0"
+                                               FontSize="13px"
+                                               Foreground="{StaticResource WarningBrush}"
+                                               Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=(Warning)}" />
+                                </StackPanel>
                             </StackPanel>
                         </Grid>
 
@@ -717,48 +695,46 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="auto" />
                                     </Grid.ColumnDefinitions>
-                                    
-                                    <Button x:Name="PART_SliderUp"
-                                       FontFamily="Marlett" 
-                                       FontSize="20" 
-                                       Content="4"    
-                                       Grid.Column="2"
-                                       Width="16"
-                                       Height="16"
-                                       Padding="0"
-                                       Margin="0"
-                                       BorderThickness="0"
-                                       Background="Transparent"
-                                       Foreground ="{TemplateBinding Foreground}"     
-                                    />
                                     <Button x:Name="PART_SliderDown"
-                                       FontFamily="Marlett" 
-                                       FontSize="20" 
-                                       Content="3"
-                                       Grid.Column="0"
-                                       Width="16"
-                                       Height="16"
-                                       Padding="0"
-                                       Margin="0"
-                                       BorderThickness="0"
-                                       Background="Transparent"
-                                       Foreground ="{TemplateBinding Foreground}"      
-                                    />
+                                            Grid.Column="0"
+                                            Width="16"
+                                            Height="16"
+                                            Margin="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Content="3"
+                                            FontFamily="Marlett"
+                                            FontSize="20"
+                                            Foreground="{TemplateBinding Foreground}"
+                                            Padding="0" />
                                     <Slider x:Name="PART_Slider"
-                                         Grid.Column="1"
-                                        VerticalAlignment="Center"
-                                        AllowDrop="True"
-                                        Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="0"
-                                        FocusVisualStyle="{x:Null}"
-                                        Foreground="{TemplateBinding Foreground}"
-                                        KeyboardNavigation.TabNavigation="None"
-                                        Padding="10,5"
-                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                        Validation.ErrorTemplate="{x:Null}" />
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            AllowDrop="True"
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="0"
+                                            FocusVisualStyle="{x:Null}"
+                                            Foreground="{TemplateBinding Foreground}"
+                                            KeyboardNavigation.TabNavigation="None"
+                                            Padding="10,5"
+                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                            Validation.ErrorTemplate="{x:Null}" />
+
+                                    <Button x:Name="PART_SliderUp"
+                                            Grid.Column="2"
+                                            Width="16"
+                                            Height="16"
+                                            Margin="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Content="4"
+                                            FontFamily="Marlett"
+                                            FontSize="20"
+                                            Foreground="{TemplateBinding Foreground}"
+                                            Padding="0" />
                                 </Grid>
-     
+
                                 <TextBlock x:Name="summaryElement"
                                            FontSize="13px"
                                            Foreground="{TemplateBinding Foreground}"

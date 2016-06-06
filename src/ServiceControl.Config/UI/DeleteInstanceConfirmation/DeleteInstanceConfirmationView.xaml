@@ -7,12 +7,12 @@
                       Title="DeleteInstanceConfirmationView"
                       Width="500"
                       Height="370"
-                      Padding="0"
+                      d:DataContext="{d:DesignData /UI/DeleteInstanceConfirmation/SampleData.xaml}"
                       Background="{StaticResource Gray10Brush}"
                       Foreground="{StaticResource WhiteBrush}"
+                      Padding="0"
                       ResizeMode="NoResize"
                       WindowStartupLocation="CenterOwner"
-                      d:DataContext="{d:DesignData /UI/DeleteInstanceConfirmation/SampleData.xaml}"
                       mc:Ignorable="d">
     <controls:CleanWindow.Resources>
         <Style TargetType="{x:Type TextBlock}">
@@ -29,7 +29,7 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="8.6" />
-            <RowDefinition Height="56.2"/>
+            <RowDefinition Height="56.2" />
             <RowDefinition Height="5*" />
         </Grid.RowDefinitions>
 
@@ -61,6 +61,7 @@
                      Margin="0,0,10,0"
                      HorizontalAlignment="Center"
                      VerticalAlignment="Center"
+                     Foreground="{StaticResource ErrorBrush}"
                      Template="{StaticResource WarningIcon}" />
             <TextBlock Grid.Column="1"
                        VerticalAlignment="Center"
@@ -69,17 +70,23 @@
         </Grid>
 
         <TextBlock Grid.Row="1"
+                   Grid.RowSpan="3"
+                   Margin="0,110,-0.4,27.6"
                    FontWeight="Bold"
-                   Text="Optional - remove associated data:" Margin="0,110,-0.4,27.6" Grid.RowSpan="3" />
+                   Text="Optional - remove associated data:" />
         <CheckBox Grid.Row="2"
-                  IsChecked="{Binding RemoveDatabase}" 
-                  VerticalContentAlignment="Center" Margin="0,34.6,-0.4,0.6" Grid.RowSpan="2">
-            <Label Foreground="{StaticResource WhiteBrush}" FontSize="14">Remove associated DB data</Label>
+                  Grid.RowSpan="2"
+                  Margin="0,34.6,-0.4,0.6"
+                  VerticalContentAlignment="Center"
+                  IsChecked="{Binding RemoveDatabase}">
+            <Label FontSize="14" Foreground="{StaticResource WhiteBrush}">Remove associated DB data</Label>
         </CheckBox>
         <CheckBox Grid.Row="3"
-                  IsChecked="{Binding RemoveLogs}" 
-                  VerticalContentAlignment="Center" Margin="0,27.4,-0.4,0.6" Grid.RowSpan="2">
-            <Label Foreground="{StaticResource WhiteBrush}" FontSize="14" >Remove associated Logs</Label>
+                  Grid.RowSpan="2"
+                  Margin="0,27.4,-0.4,0.6"
+                  VerticalContentAlignment="Center"
+                  IsChecked="{Binding RemoveLogs}">
+            <Label FontSize="14" Foreground="{StaticResource WhiteBrush}">Remove associated Logs</Label>
         </CheckBox>
 
         <Grid Grid.Row="6"

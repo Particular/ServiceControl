@@ -31,26 +31,26 @@
                         <RadioButton HorizontalContentAlignment="Stretch" IsChecked="{Binding UseProvidedAccount}">
                             <TextBlock Text="USER" />
                         </RadioButton>
-                            <Grid Margin="15,0,0,0">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="auto" />
-                                    <RowDefinition Height="auto" />
-                                </Grid.RowDefinitions>
-                                <controls:FormTextBox Grid.Row="1"
-                                                      Header="SERVICE ACCOUNT"
+                        <Grid Margin="15,0,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" />
+                            </Grid.RowDefinitions>
+                            <controls:FormTextBox Grid.Row="1"
+                                                  Header="SERVICE ACCOUNT"
+                                                  IsEnabled="{Binding UseProvidedAccount}"
+                                                  Text="{Binding ServiceAccount}"
+                                                  Visibility="{Binding UseProvidedAccount,
+                                                                       Converter={StaticResource boolToVis}}" />
+
+                            <controls:FormPasswordBox Grid.Row="2"
+                                                      Header="PASSWORD"
                                                       IsEnabled="{Binding UseProvidedAccount}"
-                                                      Text="{Binding ServiceAccount}"
+                                                      Text="{Binding Password}"
                                                       Visibility="{Binding UseProvidedAccount,
                                                                            Converter={StaticResource boolToVis}}" />
-
-                                <controls:FormPasswordBox Grid.Row="2"
-                                                          Header="PASSWORD"
-                                                          IsEnabled="{Binding UseProvidedAccount}"
-                                                          Text="{Binding Password}"
-                                                          Visibility="{Binding UseProvidedAccount,
-                                                                               Converter={StaticResource boolToVis}}" />
-                            </Grid>
+                        </Grid>
                     </StackPanel>
                 </GroupBox>
 
@@ -87,29 +87,27 @@
                                Text="DATABASE RETENTION CONFIGURATION" />
                 </Border>
 
-                <controls:FormSlider Header="AUDIT RETENTION PERIOD"
-                                     Minimum="{Binding MinimumAuditRetentionPeriod}"
-                                     Maximum="{Binding MaximumAuditRetentionPeriod}"
-                                     Units="{Binding AuditRetentionUnits}"
-                                     Explanation="Audit Messages will be removed after this period"
-                                     TimeSpan="{Binding AuditRetentionPeriod}"
-                                     SmallChange="1"
+                <controls:FormSlider Explanation="Audit Messages will be removed after this period"
+                                     Header="AUDIT RETENTION PERIOD"
                                      LargeChange="24"
-                />
-                <controls:FormSlider Header="ERROR RETENTION PERIOD"
-                        Minimum="{Binding MinimumErrorRetentionPeriod}"
-                        Maximum="{Binding MaximumErrorRetentionPeriod}"
-                        Units="{Binding ErrorRetentionUnits}"
-                        Explanation="Error Messages that have been archived or resolved will be removed after this period"
-                        TimeSpan="{Binding ErrorRetentionPeriod}"
-                        SmallChange="1"
-                        LargeChange="1"
-                />
+                                     Maximum="{Binding MaximumAuditRetentionPeriod}"
+                                     Minimum="{Binding MinimumAuditRetentionPeriod}"
+                                     SmallChange="1"
+                                     TimeSpan="{Binding AuditRetentionPeriod}"
+                                     Units="{Binding AuditRetentionUnits}" />
+                <controls:FormSlider Explanation="Error Messages that have been archived or resolved will be removed after this period"
+                                     Header="ERROR RETENTION PERIOD"
+                                     LargeChange="1"
+                                     Maximum="{Binding MaximumErrorRetentionPeriod}"
+                                     Minimum="{Binding MinimumErrorRetentionPeriod}"
+                                     SmallChange="1"
+                                     TimeSpan="{Binding ErrorRetentionPeriod}"
+                                     Units="{Binding ErrorRetentionUnits}" />
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
                         BorderThickness="0,0,0,1">
-                        <TextBlock FontSize="13px"
+                    <TextBlock FontSize="13px"
                                FontWeight="Bold"
                                Text="TRANSPORT CONFIGURATION" />
                 </Border>
@@ -125,12 +123,13 @@
                                       Text="{Binding ConnectionString}"
                                       TextWrapping="Wrap"
                                       Visibility="{Binding ShowConnectionString,
-                    Converter={StaticResource boolToVis}}" />
+                                                           Converter={StaticResource boolToVis}}" />
 
                 <TextBlock FontSize="14px"
                            Foreground="{StaticResource Gray60Brush}"
                            Text="SAMPLE CONNECTION STRING"
-                           Visibility="{Binding ShowConnectionString, Converter={StaticResource boolToVis}}" />
+                           Visibility="{Binding ShowConnectionString,
+                                                Converter={StaticResource boolToVis}}" />
 
                 <TextBox BorderThickness="0"
                          FontSize="14px"
@@ -155,16 +154,16 @@
                 <controls:FormComboBox HorizontalAlignment="Stretch"
                                        DisplayMemberPath="Name"
                                        Header="ERROR FORWARDING"
-                                       SelectedValue="{Binding ErrorForwarding}"
-                                       ItemsSource="{Binding ErrorForwardingOptions}" />
+                                       ItemsSource="{Binding ErrorForwardingOptions}"
+                                       SelectedValue="{Binding ErrorForwarding}" />
 
                 <controls:FormTextBox Header="ERROR FORWARDING QUEUE NAME" Text="{Binding ErrorForwardingQueueName}" />
                 <controls:FormTextBox Header="AUDIT QUEUE NAME" Text="{Binding AuditQueueName}" />
                 <controls:FormComboBox HorizontalAlignment="Stretch"
                                        DisplayMemberPath="Name"
                                        Header="AUDIT FORWARDING"
-                                       SelectedValue="{Binding AuditForwarding}"
-                                       ItemsSource="{Binding AuditForwardingOptions}" />
+                                       ItemsSource="{Binding AuditForwardingOptions}"
+                                       SelectedValue="{Binding AuditForwarding}" />
                 <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME"
                                       Text="{Binding AuditForwardingQueueName}"
                                       ToolTip="The audit forwarding queue will be created even if Audit Forwarding is not enabled." />

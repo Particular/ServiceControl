@@ -67,18 +67,18 @@
                             </Grid.RowDefinitions>
 
                             <controls:FormTextBox Grid.Row="1"
-                                                    Header="SERVICE ACCOUNT"
-                                                    IsEnabled="{Binding UseProvidedAccount}"
-                                                    Text="{Binding ServiceAccount}"
-                                                    Visibility="{Binding UseProvidedAccount,
-                                                                        Converter={StaticResource boolToVis}}" />
+                                                  Header="SERVICE ACCOUNT"
+                                                  IsEnabled="{Binding UseProvidedAccount}"
+                                                  Text="{Binding ServiceAccount}"
+                                                  Visibility="{Binding UseProvidedAccount,
+                                                                       Converter={StaticResource boolToVis}}" />
 
                             <controls:FormPasswordBox Grid.Row="2"
-                                                        Header="PASSWORD"
-                                                        IsEnabled="{Binding UseProvidedAccount}"
-                                                        Text="{Binding Password}"
-                                                        Visibility="{Binding UseProvidedAccount,
-                                                                            Converter={StaticResource boolToVis}}" />
+                                                      Header="PASSWORD"
+                                                      IsEnabled="{Binding UseProvidedAccount}"
+                                                      Text="{Binding Password}"
+                                                      Visibility="{Binding UseProvidedAccount,
+                                                                           Converter={StaticResource boolToVis}}" />
                         </Grid>
                     </StackPanel>
                 </GroupBox>
@@ -105,34 +105,36 @@
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
                         BorderThickness="0,0,0,1"
-                        Visibility="{Binding RetentionPeriodsVisible, Converter={StaticResource boolToVis}}" >
+                        Visibility="{Binding RetentionPeriodsVisible,
+                                             Converter={StaticResource boolToVis}}">
                     <TextBlock FontSize="13px"
                                FontWeight="Bold"
-                               Text="DATABASE RETENTION CONFIGURATION" 
-                               Visibility="{Binding RetentionPeriodsVisible, Converter={StaticResource boolToVis}}" />
+                               Text="DATABASE RETENTION CONFIGURATION"
+                               Visibility="{Binding RetentionPeriodsVisible,
+                                                    Converter={StaticResource boolToVis}}" />
                 </Border>
 
-                <controls:FormSlider Header="AUDIT RETENTION PERIOD"
-                        Minimum="{Binding MinimumAuditRetentionPeriod}"
-                        Maximum="{Binding MaximumAuditRetentionPeriod}"
-                        Units="{Binding AuditRetentionUnits}"
-                        Explanation="Audit Messages will be removed after this period"
-                        TimeSpan="{Binding AuditRetentionPeriod}"
-                        SmallChange="1"
-                        LargeChange="24"
-                        Visibility="{Binding RetentionPeriodsVisible, Converter={StaticResource boolToVis}}" 
-                />
+                <controls:FormSlider Explanation="Audit Messages will be removed after this period"
+                                     Header="AUDIT RETENTION PERIOD"
+                                     LargeChange="24"
+                                     Maximum="{Binding MaximumAuditRetentionPeriod}"
+                                     Minimum="{Binding MinimumAuditRetentionPeriod}"
+                                     SmallChange="1"
+                                     TimeSpan="{Binding AuditRetentionPeriod}"
+                                     Units="{Binding AuditRetentionUnits}"
+                                     Visibility="{Binding RetentionPeriodsVisible,
+                                                          Converter={StaticResource boolToVis}}" />
 
-                <controls:FormSlider Header="ERROR RETENTION PERIOD"
-                        Minimum="{Binding MinimumErrorRetentionPeriod}"
-                        Maximum="{Binding MaximumErrorRetentionPeriod}"
-                        Units="{Binding ErrorRetentionUnits}"
-                        Explanation="Error Messages that have been archived or resolved will be removed after this period"
-                        TimeSpan="{Binding ErrorRetentionPeriod}"
-                        SmallChange="1"
-                        LargeChange="1"
-                        Visibility="{Binding RetentionPeriodsVisible, Converter={StaticResource boolToVis}}" 
-                />
+                <controls:FormSlider Explanation="Error Messages that have been archived or resolved will be removed after this period"
+                                     Header="ERROR RETENTION PERIOD"
+                                     LargeChange="1"
+                                     Maximum="{Binding MaximumErrorRetentionPeriod}"
+                                     Minimum="{Binding MinimumErrorRetentionPeriod}"
+                                     SmallChange="1"
+                                     TimeSpan="{Binding ErrorRetentionPeriod}"
+                                     Units="{Binding ErrorRetentionUnits}"
+                                     Visibility="{Binding RetentionPeriodsVisible,
+                                                          Converter={StaticResource boolToVis}}" />
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
@@ -194,27 +196,27 @@
                                FontWeight="Bold"
                                Text="QUEUES CONFIGURATION" />
                 </Border>
-                
 
-                <controls:FormTextBox Header="ERROR QUEUE NAME" 
-                                      Text="{Binding ErrorQueueName}" />
-                
+
+                <controls:FormTextBox Header="ERROR QUEUE NAME" Text="{Binding ErrorQueueName}" />
+
                 <controls:FormComboBox HorizontalAlignment="Stretch"
                                        DisplayMemberPath="Name"
                                        Header="ERROR FORWARDING"
-                                       SelectedValue="{Binding ErrorForwarding}"
                                        ItemsSource="{Binding ErrorForwardingOptions}"
-                                       Visibility="{Binding ErrorForwardingVisible, Converter={StaticResource boolToVis}}" />
+                                       SelectedValue="{Binding ErrorForwarding}"
+                                       Visibility="{Binding ErrorForwardingVisible,
+                                                            Converter={StaticResource boolToVis}}" />
 
                 <controls:FormTextBox Header="ERROR FORWARDING QUEUE NAME" Text="{Binding ErrorForwardingQueueName}" />
-                
+
                 <controls:FormTextBox Header="AUDIT QUEUE NAME" Text="{Binding AuditQueueName}" />
-                
+
                 <controls:FormComboBox HorizontalAlignment="Stretch"
                                        DisplayMemberPath="Name"
                                        Header="AUDIT FORWARDING"
-                                       SelectedValue="{Binding AuditForwarding}"
-                                       ItemsSource="{Binding AuditForwardingOptions}" />
+                                       ItemsSource="{Binding AuditForwardingOptions}"
+                                       SelectedValue="{Binding AuditForwarding}" />
                 <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME"
                                       Text="{Binding AuditForwardingQueueName}"
                                       ToolTip="The audit forwarding queue will be created even if Audit Forwarding is not enabled." />
