@@ -33,6 +33,44 @@
                 BorderBrush="{StaticResource Gray90Brush}"
                 BorderThickness="0,1,0,0" />
 
+        <Border Grid.RowSpan="7"
+                Grid.ColumnSpan="2"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Background="#CCFFFFFF"
+                Visibility="{Binding InProgress,
+                                     Converter={StaticResource boolToVis}}">
+            <Border.Resources>
+                <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="HorizontalAlignment" Value="Center" />
+                    <Setter Property="FontSize" Value="14" />
+                </Style>
+            </Border.Resources>
+
+            <Border HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Background="White">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               FontWeight="Bold"
+                               Text="{Binding ProgressTitle}" />
+                    <ProgressBar Grid.Row="1"
+                                 Width="420"
+                                 Height="20"
+                                 IsIndeterminate="{Binding ProgressIndeterminate}"
+                                 Maximum="100"
+                                 Value="{Binding ProgressPercent}" />
+                    <TextBlock Grid.Row="2" Text="{Binding ProgressMessage}" />
+                </Grid>
+            </Border>
+        </Border>
+
         <StackPanel Grid.Row="1"
                     Grid.ColumnSpan="2"
                     Orientation="Horizontal">
@@ -115,6 +153,13 @@
                   Grid.ColumnSpan="2"
                   Header="HOST">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding BrowsableUrl}"
+                                  Header="Copy to Clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
                 <TextBlock Text="{Binding Host}" />
             </Hyperlink>
         </GroupBox>
@@ -123,6 +168,13 @@
                   Grid.ColumnSpan="2"
                   Header="INSTALLATION PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding InstallPath}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding InstallPath}"
+                                  Header="Copy to Clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
                 <TextBlock FontSize="12px" Text="{Binding InstallPath}" />
             </Hyperlink>
         </GroupBox>
@@ -131,6 +183,13 @@
                   Grid.ColumnSpan="2"
                   Header="DATA PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding DBPath}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding DBPath}"
+                                  Header="Copy to Clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
                 <TextBlock FontSize="12px" Text="{Binding DBPath}" />
             </Hyperlink>
         </GroupBox>
@@ -139,47 +198,15 @@
                   Grid.ColumnSpan="2"
                   Header="LOG PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding LogPath}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding LogPath}"
+                                  Header="Copy to Clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
                 <TextBlock FontSize="12px" Text="{Binding LogPath}" />
             </Hyperlink>
         </GroupBox>
-
-        <Border x:Name="progressOverlay"
-                Grid.RowSpan="7"
-                Grid.ColumnSpan="2"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                Background="#CCFFFFFF"
-                Visibility="{Binding InProgress,
-                                     Converter={StaticResource boolToVis}}">
-            <Border.Resources>
-                <Style TargetType="{x:Type TextBlock}">
-                    <Setter Property="HorizontalAlignment" Value="Center" />
-                    <Setter Property="FontSize" Value="14" />
-                </Style>
-            </Border.Resources>
-
-            <Border HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Background="White">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Grid.Row="0"
-                               FontWeight="Bold"
-                               Text="{Binding ProgressTitle}" />
-                    <ProgressBar Grid.Row="1"
-                                 Width="420"
-                                 Height="20"
-                                 IsIndeterminate="{Binding ProgressIndeterminate}"
-                                 Maximum="100"
-                                 Value="{Binding ProgressPercent}" />
-                    <TextBlock Grid.Row="2" Text="{Binding ProgressMessage}" />
-                </Grid>
-            </Border>
-        </Border>
     </Grid>
 </UserControl>

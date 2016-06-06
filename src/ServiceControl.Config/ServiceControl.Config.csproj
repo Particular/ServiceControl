@@ -137,6 +137,7 @@
     </Page>
     <Compile Include="AppBootstrapper.cs" />
     <Compile Include="Commands\AddInstanceCommand.cs" />
+    <Compile Include="Commands\CopyToClipboardCommand.cs" />
     <Compile Include="Commands\EditInstanceCommand.cs" />
     <Compile Include="Commands\OpenURLCommand.cs" />
     <Compile Include="Commands\DeleteInstanceCommand.cs" />
