@@ -116,7 +116,8 @@
                                        DisplayMemberPath="Name"
                                        Header="TRANSPORT"
                                        ItemsSource="{Binding Transports}"
-                                       SelectedItem="{Binding SelectedTransport}" />
+                                       SelectedItem="{Binding SelectedTransport}"
+                                       Warning="{Binding SelectedTransportWarning}" />
 
                 <controls:FormTextBox AcceptsReturn="True"
                                       Header="TRANSPORT CONNECTION STRING"
