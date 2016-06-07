@@ -48,6 +48,8 @@
             {
                 viewModel.NotifyOfPropertyChange(string.Empty);
                 viewModel.SubmitAttempted = false;
+                windowManager.ScrollIntoView();
+                
                 return;
             }
 
