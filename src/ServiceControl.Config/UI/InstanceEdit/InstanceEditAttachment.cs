@@ -49,7 +49,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             {
                 viewModel.NotifyOfPropertyChange(string.Empty);
                 viewModel.SubmitAttempted = false;
-                windowManager.ScrollFirstErrorIntoView();
+                windowManager.ScrollFirstErrorIntoView(viewModel);
                 
                 return;
             }

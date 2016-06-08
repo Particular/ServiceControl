@@ -9,9 +9,7 @@ using ServiceControlInstaller.Engine.ReportCard;
 
 namespace ServiceControl.Config.Framework
 {
-    using System.Linq;
-    using System.Windows.Controls;
-    using System.Windows.Media;
+    using ServiceControl.Config.Extensions;
 
     public interface IWindowManagerEx : IWindowManager
     {
@@ -29,7 +27,7 @@ namespace ServiceControl.Config.Framework
 
         bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage, string warningsMessage);
 
-        void ScrollFirstErrorIntoView();
+        void ScrollFirstErrorIntoView(object viewModel, object context = null);
     }
 
     class WindowManagerEx : WindowManager, IWindowManagerEx
@@ -111,63 +109,11 @@ namespace ServiceControl.Config.Framework
             return result ?? false;
         }
 
-        public void ScrollFirstErrorIntoView()
+        public void ScrollFirstErrorIntoView(object viewModel, object context = null)
         {
-            var controlInError = FindChild(Application.Current.MainWindow);
+            var view = ViewLocator.LocateForModel(viewModel, null, context);
+            var controlInError = view?.FindControlWithError();
             controlInError?.BringIntoView();
-        }
-
-        static Control FindChild(DependencyObject parent)
-        {
-            // Confirm parent and childName are valid.
-            if (parent == null)
-            {
-                return null;
-            }
-
-            Control foundChild = null;
-
-            var childrenCount = VisualTreeHelper.GetChildrenCount(parent);
-            for (var i = 0; i < childrenCount; i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                // If the child is not of the request child type child
-                var childType = child;
-                if (childType == null)
-                {
-                    // recursively drill down the tree
-                    foundChild = FindChild(child);
-
-                    // If the child is found, break so we do not overwrite the found child.
-                    if (foundChild != null)
-                    {
-                        break;
-                    }
-                }
-                else
-                {
-                    var frameworkElement = child as FrameworkElement;
-
-                    // If the child is in error
-                    if (frameworkElement != null && Validation.GetHasError(frameworkElement))
-                    {
-                        foundChild = (Control)child;
-                        break;
-                    }
-                    
-                    // recursively drill down the tree
-                    foundChild = FindChild(child);
-
-                    // If the child is found, break so we do not overwrite the found child.
-                    if (foundChild != null)
-                    {
-                        break;
-                    }
-                    
-                }
-            }
-
-            return foundChild;
         }
 
         private ShellViewModel GetShell()
