@@ -39,7 +39,7 @@
     <ControlTemplate x:Key="WarningIcon">
         <Viewbox SnapsToDevicePixels="False" Stretch="Uniform">
             <Canvas Width="60" Height="60">
-                <Path Data="M30,0 60,30 30,60 0,30" Fill="{StaticResource ErrorBrush}" />
+                <Path Data="M30,0 60,30 30,60 0,30" Fill="{TemplateBinding Foreground}" />
                 <Path Data="M25,15 h10 v20 h-10" Fill="{StaticResource WhiteBrush}" />
                 <Path Data="M25,40 h10 v5 h-10" Fill="{StaticResource WhiteBrush}" />
             </Canvas>

@@ -24,7 +24,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Pow
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.CustomActions", "ServiceControlInstaller.CustomActions\ServiceControlInstaller.CustomActions.csproj", "{2343779D-26D4-4F9D-A42F-32E146632EF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Packaging", "ServicControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj", "{15F811B7-314C-4E9E-B5E9-35596045BBC4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Packaging", "ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj", "{15F811B7-314C-4E9E-B5E9-35596045BBC4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4C6B71B2-74EF-4B9E-88FF-C56532727C6D} = {4C6B71B2-74EF-4B9E-88FF-C56532727C6D}
 	EndProjectSection

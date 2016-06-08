@@ -27,6 +27,7 @@
     <WarningLevel>4</WarningLevel>
     <LangVersion>6</LangVersion>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -38,6 +39,7 @@
     <WarningLevel>4</WarningLevel>
     <LangVersion>6</LangVersion>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -135,6 +137,7 @@
     </Page>
     <Compile Include="AppBootstrapper.cs" />
     <Compile Include="Commands\AddInstanceCommand.cs" />
+    <Compile Include="Commands\CopyToClipboardCommand.cs" />
     <Compile Include="Commands\EditInstanceCommand.cs" />
     <Compile Include="Commands\OpenURLCommand.cs" />
     <Compile Include="Commands\DeleteInstanceCommand.cs" />
@@ -147,6 +150,7 @@
     <Compile Include="Extensions\DeactivateExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\ValidatorExtensions.cs" />
+    <Compile Include="Extensions\VisualTreeExtensions.cs" />
     <Compile Include="Framework\Commands\AwaitableAbstractCommand.cs" />
     <Compile Include="Framework\IProgressViewModel.cs" />
     <Compile Include="Framework\Modules\InstallerModule.cs" />
@@ -230,9 +234,7 @@
       <DependentUpon>AppHeader.xaml</DependentUpon>
     </Compile>
     <Compile Include="Xaml\Controls\FormSlider.cs" />
-    <Compile Include="Xaml\Controls\FormCheckBox.cs" />
     <Compile Include="Xaml\Controls\FormPasswordBox.cs" />
-    <Compile Include="Xaml\Controls\FormToggleButton.cs" />
     <Compile Include="Xaml\Controls\FormPathTextBox.cs" />
     <Compile Include="Xaml\Controls\CleanWindow.cs" />
     <Compile Include="Xaml\Controls\FormComboBox.cs" />

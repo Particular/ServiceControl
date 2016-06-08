@@ -6,6 +6,8 @@
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Data;
+    using Binding = System.Windows.Data.Binding;
+    using Button = System.Windows.Controls.Button;
 
     [DefaultEvent("ValueChanged")]
     [DefaultProperty("TimeSpan")]
@@ -19,8 +21,25 @@
             base.OnApplyTemplate();
 
             var slider = GetTemplateChild(SliderPartName) as Slider;
+            var downButton = GetTemplateChild("PART_SliderDown") as Button;
+            var upButton = GetTemplateChild("PART_SliderUp") as Button;
+            
             if (slider != null)
             {
+                if (downButton != null)
+                {
+                    downButton.Click += (sender, args) => {
+                        slider.Value = slider.Value - slider.SmallChange;
+                    };
+                }
+
+                if (upButton !=  null )
+                {
+                    upButton.Click += (sender, args) => {
+                        slider.Value = slider.Value + slider.SmallChange;
+                    };
+                }
+
                 BindingOperations.SetBinding(slider, ValueProperty, new Binding("Value")
                 {
                     Mode = BindingMode.TwoWay,

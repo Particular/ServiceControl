@@ -1,15 +1,11 @@
 ﻿namespace ServiceControl.Config.UI.MessageBox
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Windows;
-    using System.Windows.Controls;
     using System.Windows.Input;
-    using System.Windows.Media;
     using System.Windows.Threading;
     using PropertyChanged;
-    using ServiceControl.Config.Extensions;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Commands;
     using ICommand = System.Windows.Input.ICommand;
@@ -17,8 +13,6 @@
     [ImplementPropertyChanged]
     public partial class ExceptionMessageBox: IProgressViewModel
     {
-        List<string> ExceptionInformationList = new List<string>();
-
         static RaygunFeedback reporter;
 
         static ExceptionMessageBox()
@@ -37,7 +31,9 @@
         {
             var ex = e.ExceptionObject as Exception;
             if (ex != null)
+            {
                 handleException(ex);
+            }
         }
 
         static void CurrentDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
@@ -55,10 +51,11 @@
         static Action<Exception> handleException = ex =>
         {
             if (ex == null)
+            {
                 return;
+            }
 
             var rootError = ex.GetBaseException();
-
          
             ShowExceptionDialog(rootError);
         };
@@ -68,33 +65,14 @@
 
             reporter = new RaygunFeedback();
 
-            var treeViewItem = new TreeViewItem
-            {
-                Header = "Exception",
-                BorderThickness = new Thickness(0),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(0, 255, 255, 255)) // transparent
-
-            };
-
-            treeViewItem.ExpandSubtree();
-
             var dialog = new ExceptionMessageBox
             {
-                TraceTree =
+                Exception = ex,
+                ErrorDetails =
                 {
-                    BorderThickness = new Thickness(0),
-                    BorderBrush = new SolidColorBrush(Color.FromArgb(0, 255, 255, 255))
-                },
-               
-                Message =
-                {
-                    Text = ex.Message.TruncateSentence(200)
-                } ,
-                Exception = ex
+                    Text = ex.ToString()
+                }
             };
-
-            dialog.BuildTreeLayer(ex, treeViewItem);
-            dialog.TraceTree.Items.Add(treeViewItem);
 
             if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsLoaded)
             {
@@ -102,37 +80,6 @@
             }
             dialog.ShowDialog();
 
-        }
-
-        void BuildTreeLayer(Exception e, TreeViewItem parent)
-        {
-            var exceptionInformation = "\n\r\n\r" + e.GetType() + "\n\r\n\r";
-            parent.DisplayMemberPath = "Header";
-            parent.Items.Add(new TreeViewItem { Header = "Type", Tag = e.GetType().ToString() });
-            var memberList = e.GetType().GetProperties();
-            foreach (var info in memberList)
-            {
-                var value = info.GetValue(e, null);
-                if (value != null)
-                {
-                    if (info.Name == "InnerException")
-                    {
-                        var treeViewItem = new TreeViewItem
-                        {
-                            Header = info.Name,
-                            Tag = e.InnerException.GetType().ToString()
-                        };
-                        BuildTreeLayer(e.InnerException, treeViewItem);
-                        parent.Items.Add(treeViewItem);
-                    }
-                    else
-                    {
-                        parent.Items.Add(new TreeViewItem { Header = info.Name, Tag = value.ToString()} );
-                        exceptionInformation += info.Name + "\n\r\n\r" + value + "\n\r\n\r";
-                    }
-                }
-            }
-            ExceptionInformationList.Add(exceptionInformation);
         }
 
         public ExceptionMessageBox()
@@ -178,13 +125,6 @@
                 InProgress = false;
             }
         }
-
-        private void TraceTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            var item = e.NewValue as TreeViewItem;
-            ErrorDetails.Text = (item != null ) ? item.Tag.ToString() :  "Exception";
-        }
-
 
         public string ProgressTitle { get; set; }
         public bool InProgress { get; set; }

@@ -27,6 +27,7 @@
             NewVersion = installer.ZipInfo.Version;
 
             OpenUrl = new OpenURLCommand();
+            CopyToClipboard = new CopyToClipboardCommand();
 
             EditCommand = showEditInstanceScreenCommand;
             DeleteCommand = deleteInstanceCommand;
@@ -146,6 +147,8 @@
         }
 
         public ICommand OpenUrl { get; private set; }
+
+        public ICommand CopyToClipboard { get; private set; }
 
         public ICommand EditCommand { get; private set; }
 

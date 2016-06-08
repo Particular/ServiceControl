@@ -57,10 +57,9 @@
             }
             
             var componentsToRemove = undesirableMsmqComponents.Where(undesirableComponent => valueNames.Contains(undesirableComponent.Name, StringComparer.OrdinalIgnoreCase)).Select(p => p.DisplayName).ToArray();
-
             if (componentsToRemove.Length > 0)
             {
-                throw new EngineValidationException($"The MSMQ service has unsupported optional features installed. Please remove the following via control panel or DISM.exe: {string.Join(", ", componentsToRemove)}");
+                throw new EngineValidationException($"The MSMQ service has unsupported optional features installed. Please remove the following via control panel or the DISM command line tool,  The unsupported feature(s) are: {string.Join(", ", componentsToRemove)}");
             }
         }
     }

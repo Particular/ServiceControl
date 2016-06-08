@@ -23,17 +23,11 @@
 
         public DateTime? ExpirationDate { get; set; }
 
-        public bool IsTrialLicense
-        {
-            get { return !IsCommercialLicense; }
-        }
+        public bool IsTrialLicense => !IsCommercialLicense;
 
         public bool IsExtendedTrial { get; set; }
 
-        public bool IsCommercialLicense
-        {
-            get { return LicenseType.ToLower() != "trial"; }
-        }
+        public bool IsCommercialLicense => LicenseType.ToLower() != "trial";
 
         public string LicenseType { get; set; }
 

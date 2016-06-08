@@ -16,12 +16,11 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <ScrollViewer IsTabStop="False">
+        <ScrollViewer x:Name="ContentScroller" IsTabStop="False">
             <ContentPresenter Content="{Binding SharedContent, ElementName=uc}" />
         </ScrollViewer>
 
-        <Border x:Name="progressOverlay"
-                Grid.RowSpan="2"
+        <Border Grid.RowSpan="2"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 Background="#CCFFFFFF"
@@ -34,10 +33,10 @@
                 </Style>
             </Border.Resources>
 
-            <Border Padding="100"
-                    HorizontalAlignment="Center"
+            <Border HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Background="White">
+                    Background="White"
+                    Padding="100">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
@@ -73,7 +72,8 @@
                         <ColumnDefinition Width="auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Control Template="{StaticResource WarningIcon}" />
+
+                    <Control Foreground="{StaticResource ErrorBrush}" Template="{StaticResource WarningIcon}" />
                     <TextBlock Grid.Column="1"
                                Margin="5,0,0,0"
                                HorizontalAlignment="Left"

@@ -3,6 +3,7 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/Styles/Palette.xaml" />
         <ResourceDictionary Source="pack://application:,,,/Styles/Icons.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Styles/Converters.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <Style x:Key="BasicButton" TargetType="{x:Type Button}">
@@ -329,6 +330,7 @@
     <Style x:Key="IconButtonToolTipStyle" TargetType="{x:Type ToolTip}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="HasDropShadow" Value="False" />
         <Setter Property="Foreground" Value="{StaticResource ThemeBrush}" />
         <Setter Property="Placement" Value="Center" />
     </Style>
@@ -347,7 +349,7 @@
                                  Template="{StaticResource ConfigurationIcon}" />
 
                         <Border.ToolTip>
-                            <ToolTip Style="{StaticResource IconButtonToolTipStyle}" VerticalOffset="{TemplateBinding Height}">
+                            <ToolTip Style="{StaticResource IconButtonToolTipStyle}" VerticalOffset="{TemplateBinding Height, Converter={StaticResource negate}}">
                                 <TextBlock Text="CONFIGURATION" />
                             </ToolTip>
                         </Border.ToolTip>
@@ -380,7 +382,7 @@
                                  Template="{StaticResource RemoveIcon}" />
 
                         <Border.ToolTip>
-                            <ToolTip Style="{StaticResource IconButtonToolTipStyle}" VerticalOffset="{TemplateBinding Height}">
+                            <ToolTip Style="{StaticResource IconButtonToolTipStyle}" VerticalOffset="{TemplateBinding Height, Converter={StaticResource negate}}">
                                 <TextBlock Text="REMOVE" />
                             </ToolTip>
                         </Border.ToolTip>
@@ -446,7 +448,7 @@
                                  Template="{StaticResource StartIcon}" />
 
                         <Border.ToolTip>
-                            <ToolTip Style="{StaticResource IconButtonToolTipStyle}" VerticalOffset="{TemplateBinding Height}">
+                            <ToolTip Style="{StaticResource IconButtonToolTipStyle}" VerticalOffset="{TemplateBinding Height, Converter={StaticResource negate}}">
                                 <TextBlock Text="START" />
                             </ToolTip>
                         </Border.ToolTip>
@@ -479,7 +481,7 @@
                                  Template="{StaticResource StopIcon}" />
 
                         <Border.ToolTip>
-                            <ToolTip Style="{StaticResource IconButtonToolTipStyle}" VerticalOffset="{TemplateBinding Height}">
+                            <ToolTip Style="{StaticResource IconButtonToolTipStyle}" VerticalOffset="{TemplateBinding Height, Converter={StaticResource negate}}">
                                 <TextBlock Text="STOP" />
                             </ToolTip>
                         </Border.ToolTip>
@@ -543,19 +545,6 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <Control x:Name="Icon" Height="12" Width="12" SnapsToDevicePixels="True"
-                                 Background="{TemplateBinding Background}"
-                                 BorderBrush="{TemplateBinding BorderBrush}"
-                                 Foreground="{TemplateBinding Foreground}"
-                                 Template="{StaticResource LicenseIcon}" />
-
-                        <TextBlock x:Name="Text" Margin="5,0,0,0"
-                                   Grid.Column="1"
-                                   FontSize="14"
-                                   FontWeight="Bold"
-                                   Foreground="{TemplateBinding Foreground}"
-                                   Text="LICENSE" />
-
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal" />
@@ -564,6 +553,23 @@
                                 <VisualState Name="Disabled" Storyboard="{StaticResource LinkButtonDisabledStoryboard}" />
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
+
+                        <Control x:Name="Icon"
+                                 Width="12"
+                                 Height="12"
+                                 Background="{TemplateBinding Background}"
+                                 BorderBrush="{TemplateBinding BorderBrush}"
+                                 Foreground="{TemplateBinding Foreground}"
+                                 SnapsToDevicePixels="True"
+                                 Template="{StaticResource LicenseIcon}" />
+
+                        <TextBlock x:Name="Text"
+                                   Grid.Column="1"
+                                   Margin="5,0,0,0"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   Text="LICENSE" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -582,19 +588,6 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <Control x:Name="Icon" Height="12" Width="12" SnapsToDevicePixels="True"
-                                 Background="{TemplateBinding Background}"
-                                 BorderBrush="{TemplateBinding BorderBrush}"
-                                 Foreground="{TemplateBinding Foreground}"
-                                 Template="{StaticResource NewIcon}" />
-
-                        <TextBlock x:Name="Text" Margin="5,0,0,0"
-                                   Grid.Column="1"
-                                   FontSize="14"
-                                   FontWeight="Bold"
-                                   Foreground="{TemplateBinding Foreground}"
-                                   Text="NEW INSTANCE" />
-
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal" />
@@ -603,6 +596,23 @@
                                 <VisualState Name="Disabled" Storyboard="{StaticResource LinkButtonDisabledStoryboard}" />
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
+
+                        <Control x:Name="Icon"
+                                 Width="12"
+                                 Height="12"
+                                 Background="{TemplateBinding Background}"
+                                 BorderBrush="{TemplateBinding BorderBrush}"
+                                 Foreground="{TemplateBinding Foreground}"
+                                 SnapsToDevicePixels="True"
+                                 Template="{StaticResource NewIcon}" />
+
+                        <TextBlock x:Name="Text"
+                                   Grid.Column="1"
+                                   Margin="5,0,0,0"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   Text="NEW INSTANCE" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -649,14 +659,17 @@
             <Setter.Value>
                 <ControlTemplate>
                     <Border Background="{TemplateBinding Background}">
-                        <Control x:Name="Icon" Height="24" Width="24" SnapsToDevicePixels="True"
+                        <Control x:Name="Icon"
+                                 Width="24"
+                                 Height="24"
                                  Background="{TemplateBinding Background}"
                                  BorderBrush="{TemplateBinding BorderBrush}"
                                  Foreground="{TemplateBinding Foreground}"
+                                 SnapsToDevicePixels="True"
                                  Template="{StaticResource RefreshIcon}" />
 
                         <Border.ToolTip>
-                            <ToolTip Style="{StaticResource IconButtonToolTipStyle}" Placement="Right">
+                            <ToolTip Placement="Right" Style="{StaticResource IconButtonToolTipStyle}">
                                 <TextBlock Text="REFRESH" />
                             </ToolTip>
                         </Border.ToolTip>
