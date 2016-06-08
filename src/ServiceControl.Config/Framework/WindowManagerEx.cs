@@ -9,6 +9,8 @@ using ServiceControlInstaller.Engine.ReportCard;
 
 namespace ServiceControl.Config.Framework
 {
+    using ServiceControl.Config.Extensions;
+
     public interface IWindowManagerEx : IWindowManager
     {
         void NavigateTo(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
@@ -24,6 +26,8 @@ namespace ServiceControl.Config.Framework
         bool ShowSliderDialog(SliderDialogViewModel viewModel);
 
         bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage, string warningsMessage);
+
+        void ScrollFirstErrorIntoView(object viewModel, object context = null);
     }
 
     class WindowManagerEx : WindowManager, IWindowManagerEx
@@ -103,6 +107,13 @@ namespace ServiceControl.Config.Framework
             messageBox.WarningsMessage = warningsMessage;
             var result = ShowOverlayDialog(messageBox);
             return result ?? false;
+        }
+
+        public void ScrollFirstErrorIntoView(object viewModel, object context = null)
+        {
+            var view = ViewLocator.LocateForModel(viewModel, null, context);
+            var controlInError = view?.FindControlWithError();
+            controlInError?.BringIntoView();
         }
 
         private ShellViewModel GetShell()

@@ -4,6 +4,7 @@ namespace ServiceControl.Config.UI.SharedInstanceEditor
 {
     public partial class SharedInstanceEditorView
     {
+
         public SharedInstanceEditorView()
         {
             InitializeComponent();
@@ -11,7 +12,7 @@ namespace ServiceControl.Config.UI.SharedInstanceEditor
 
         public string SaveText
         {
-            get { return (string)GetValue(SaveTextProperty); }
+            get { return (string) GetValue(SaveTextProperty); }
             set { SetValue(SaveTextProperty, value); }
         }
 
