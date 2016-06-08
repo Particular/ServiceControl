@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Windows.Input;
     using Microsoft.WindowsAPICodePack.Dialogs;
     using ServiceControl.Config.Commands;
@@ -42,18 +41,13 @@
         {
             var details = new Dictionary<string, string>();
             LicenseWarning = null;
-            license = LicenseManager.FindLicenses().FirstOrDefault(p => p.Details.Valid);
-            if (license == null)
-            {
-                license = LicenseManager.FindTrialLicense(); 
-            }
-
-            if (license == null)
-            {
-                return;
-            }
+            license = LicenseManager.FindLicense();
             
             details.Add("License Type:", license.Details.IsTrialLicense ? "Trial License" : license.Details.LicenseType);
+            if (!license.Details.IsTrialLicense)
+            {
+                details.Add("License Edition:", license.Details.Edition);
+            }
             details.Add("Licensed To:", license.Details.RegisteredTo);
             if (license.Details.ExpirationDate.HasValue)
             {
@@ -63,7 +57,7 @@
                 {
                     LicenseWarning = "This license has expired";
                 }
-                else if (WithinLicenseWarningRange(expirationDate))
+                else if (!license.Details.IsTrialLicense && WithinLicenseWarningRange(expirationDate))
                 {
                     LicenseWarning = "This license will expire soon";
                 }

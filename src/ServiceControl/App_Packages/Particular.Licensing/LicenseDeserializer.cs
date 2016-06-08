@@ -49,7 +49,14 @@ namespace Particular.Licensing
             {
                 license.LicenseType = licenseType.Value;
             }
-          
+
+            var licenseEdition = doc.SelectSingleNode("/license/@Edition");
+
+            if (licenseEdition != null)
+            {
+                license.Edition = licenseEdition.Value;
+            }
+
             var name = doc.SelectSingleNode("/license/name");
 
             if (name != null)
