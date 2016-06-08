@@ -29,7 +29,7 @@ namespace ServiceControl.Config.Framework
 
         bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage, string warningsMessage);
 
-        void ScrollIntoView();
+        void ScrollFirstErrorIntoView();
     }
 
     class WindowManagerEx : WindowManager, IWindowManagerEx
@@ -111,7 +111,7 @@ namespace ServiceControl.Config.Framework
             return result ?? false;
         }
 
-        public void ScrollIntoView()
+        public void ScrollFirstErrorIntoView()
         {
             var controlInError = FindChild(Application.Current.MainWindow);
             controlInError?.BringIntoView();
