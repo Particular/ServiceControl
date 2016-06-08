@@ -28,6 +28,8 @@
 
         public string ApplyLicenseError { get; set; }
 
+        public string ApplyLicenseSuccess { get; set; }
+
         public Dictionary<string, string> LicenseInfo { get; set; }
 
         public ICommand OpenUrl { get; private set; }
@@ -76,10 +78,12 @@
             {
                 ApplyLicenseError = null;
                 RefreshLicenseInfo();
+                ApplyLicenseSuccess = "License imported successfully";
             }
             else
             {
-                ApplyLicenseError = $"{importError} - '{Path.GetFileName(path)}' was not imported";
+                ApplyLicenseSuccess = null;
+                ApplyLicenseError = $"{importError}{Environment.NewLine}'{Path.GetFileName(path)}' was not imported";
             }
         }
 
