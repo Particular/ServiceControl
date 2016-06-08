@@ -88,8 +88,8 @@
                 Style="{StaticResource HiliteButton}" />
 
         <StackPanel Grid.Row="4"
-                    Orientation="Horizontal"
                     HorizontalAlignment="Center"
+                    Orientation="Horizontal"
                     Visibility="{Binding ApplyLicenseSuccess,
                                          Converter={StaticResource nullOrEmptyToVis}}">
             <Control Width="16"
@@ -105,8 +105,8 @@
                        TextWrapping="Wrap" />
         </StackPanel>
         <StackPanel Grid.Row="4"
-                    Orientation="Horizontal"
                     HorizontalAlignment="Center"
+                    Orientation="Horizontal"
                     Visibility="{Binding ApplyLicenseError,
                                          Converter={StaticResource nullOrEmptyToVis}}">
             <Control Width="16"

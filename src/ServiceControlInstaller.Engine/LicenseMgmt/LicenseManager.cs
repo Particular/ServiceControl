@@ -33,14 +33,6 @@
             }
             string regLicense;
 
-            //try HKCU
-            if (new RegistryLicenseStore().TryReadLicense(out regLicense))
-            {
-                if (!string.IsNullOrWhiteSpace(regLicense))
-                {
-                    licenseEntries.Add(new DetectedLicense("HKEY_CURRENT_USER", regLicense));
-                }
-            }
             //try HKLM
             using (var localMachine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Default))
             {
@@ -50,6 +42,15 @@
                     {
                         licenseEntries.Add(new DetectedLicense("HKEY_LOCAL_MACHINE", regLicense));
                     }
+                }
+            }
+
+            //try HKCU
+            if (new RegistryLicenseStore().TryReadLicense(out regLicense))
+            {
+                if (!string.IsNullOrWhiteSpace(regLicense))
+                {
+                    licenseEntries.Add(new DetectedLicense("HKEY_CURRENT_USER", regLicense));
                 }
             }
 
