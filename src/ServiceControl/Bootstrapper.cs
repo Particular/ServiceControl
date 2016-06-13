@@ -71,10 +71,19 @@ namespace Particular.ServiceControl
 
             configuration.UseSerialization<JsonSerializer>();
 
-            configuration.Transactions()
-                .DisableDistributedTransactions()
-                .DoNotWrapHandlersExecutionInATransactionScope();
-            
+            if (Settings.EnableDtc)
+            {
+                configuration.Transactions()
+                    .EnableDistributedTransactions()
+                    .WrapHandlersExecutionInATransactionScope();
+            }
+            else
+            {
+                configuration.Transactions()
+                    .DisableDistributedTransactions()
+                    .DoNotWrapHandlersExecutionInATransactionScope();
+            }
+
             configuration.ScaleOut().UseSingleBrokerQueue();
             
             var transportType = DetermineTransportType();

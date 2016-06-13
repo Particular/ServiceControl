@@ -158,6 +158,22 @@
                 }
             }
         }
+
+        public static bool EnableDtc
+        {
+            get
+            {
+                try
+                {
+                    return SettingsReader<bool>.Read("EnableDtc");
+                }
+                catch (Exception ex)
+                {
+                    Logger.ErrorFormat("EnableDtc setting invalid - {0}. Defaulting EnableDtc to 'false'", ex);
+                    return false;
+                }
+            }
+        }
         
         public static string TransportType { get; set; }
 
