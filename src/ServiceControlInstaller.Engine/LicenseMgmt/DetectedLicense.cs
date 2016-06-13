@@ -1,8 +1,5 @@
 ﻿namespace ServiceControlInstaller.Engine.LicenseMgmt
 {
-    using System;
-    using Particular.Licensing;
-
     public class DetectedLicense
     {
         public LicenseDetails Details;
@@ -13,30 +10,10 @@
             Details = new LicenseDetails();
         }
 
-        public DetectedLicense(string licensePath, string licenseText)
+        public DetectedLicense(string licensePath, LicenseDetails detais) : this()
         {
-            Details = new LicenseDetails();
-
             Location = licensePath;
-            Exception validationFailure;
-            License license;
-            
-            if (!LicenseVerifier.TryVerify(licenseText, out validationFailure))
-            {
-                return;
-            }
-
-            if (!LicenseManager.TryDeserializeLicense(licenseText, out license))
-            {
-                return;
-            }
-
-            if (!license.ValidForApplication("ServiceControl"))
-            {
-                return;
-            }
-            Details = LicenseDetails.FromLicense(license);
+            Details = detais;
         }
-       
     }
 }

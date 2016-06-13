@@ -31,6 +31,8 @@
 
         public string LicenseType { get; set; }
 
+        public string Edition { get; set; }
+
         public string RegisteredTo { get; set; }
 
         public DateTime? UpgradeProtectionExpiration { get; internal set; }

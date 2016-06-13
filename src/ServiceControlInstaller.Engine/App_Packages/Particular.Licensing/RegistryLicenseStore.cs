@@ -1,7 +1,6 @@
 ﻿namespace Particular.Licensing
 {
     using System;
-    using System.Globalization;
     using System.Security;
     using Microsoft.Win32;
 
@@ -12,6 +11,7 @@
             keyPath = DefaultKeyPath;
             keyName = DefaultKeyName;
             regKey = Registry.CurrentUser;
+
         }
 
         public RegistryLicenseStore(RegistryKey regKey, string keyPath = DefaultKeyPath, string keyName = DefaultKeyName)
@@ -35,10 +35,9 @@
 
                     var licenseValue = registryKey.GetValue("License", null);
 
-                    var value = licenseValue as string[];
-                    if (value != null)
+                    if (licenseValue is string[])
                     {
-                        license = string.Join(" ", value);
+                        license = string.Join(" ", (string[]) licenseValue);
                     }
                     else
                     {
@@ -46,35 +45,6 @@
                     }
                     
                     return !string.IsNullOrEmpty(license);
-                }
-            }
-            catch (SecurityException exception)
-            {
-                throw new Exception($"Failed to access '{FullPath}'. Do you have permission to read this key?", exception);
-            }
-        }
-
-        public bool TryReadTrialLicense(out License license)
-        {
-            license = null;
-            try
-            {
-
-                using (var registryKey = regKey.OpenSubKey(keyPath))
-                {
-                    var licenseValue = registryKey?.GetValue("TrialStart", null);
-
-                    var value = licenseValue as string;
-                    if (value != null)
-                    {
-                        DateTime trialStartDate;
-                        if (DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out trialStartDate))
-                        {
-                            license = License.TrialLicense(trialStartDate);
-                            return true;
-                        }
-                    }
-                    return false;
                 }
             }
             catch (SecurityException exception)
@@ -109,6 +79,7 @@
         string keyPath;
         string keyName;
         RegistryKey regKey;
+
 
         const string DefaultKeyPath = @"SOFTWARE\ParticularSoftware";
         const string DefaultKeyName = "License";

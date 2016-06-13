@@ -10,18 +10,16 @@
         [Test, Explicit]
         public void FindLicenses()
         {
-            var licenses = LicenseManager.FindLicenses();
-            foreach (var license in licenses)
+            var license = LicenseManager.FindLicense();
+
+            Console.WriteLine(license.Location);
+            if (license.Details != null)
             {
-                Console.WriteLine(license.Location);
-                if (license.Details != null)
+                Console.WriteLine(license.Details.RegisteredTo);
+                Console.WriteLine(license.Details.LicenseType);
+                if (license.Details.ExpirationDate.HasValue)
                 {
-                    Console.WriteLine(license.Details.RegisteredTo);
-                    Console.WriteLine(license.Details.LicenseType);
-                    if (license.Details.ExpirationDate.HasValue)
-                    {
-                        Console.WriteLine("Exp Date : {0}", license.Details.ExpirationDate.Value);
-                    }
+                    Console.WriteLine("Exp Date : {0}", license.Details.ExpirationDate.Value);
                 }
             }
         }
