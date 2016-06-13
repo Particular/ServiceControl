@@ -33,44 +33,6 @@
                 BorderBrush="{StaticResource Gray90Brush}"
                 BorderThickness="0,1,0,0" />
 
-        <Border Grid.RowSpan="7"
-                Grid.ColumnSpan="2"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                Background="#CCFFFFFF"
-                Visibility="{Binding InProgress,
-                                     Converter={StaticResource boolToVis}}">
-            <Border.Resources>
-                <Style TargetType="{x:Type TextBlock}">
-                    <Setter Property="HorizontalAlignment" Value="Center" />
-                    <Setter Property="FontSize" Value="14" />
-                </Style>
-            </Border.Resources>
-
-            <Border HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Background="White">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Grid.Row="0"
-                               FontWeight="Bold"
-                               Text="{Binding ProgressTitle}" />
-                    <ProgressBar Grid.Row="1"
-                                 Width="420"
-                                 Height="20"
-                                 IsIndeterminate="{Binding ProgressIndeterminate}"
-                                 Maximum="100"
-                                 Value="{Binding ProgressPercent}" />
-                    <TextBlock Grid.Row="2" Text="{Binding ProgressMessage}" />
-                </Grid>
-            </Border>
-        </Border>
-
         <StackPanel Grid.Row="1"
                     Grid.ColumnSpan="2"
                     Orientation="Horizontal">
@@ -208,5 +170,43 @@
                 <TextBlock FontSize="12px" Text="{Binding LogPath}" />
             </Hyperlink>
         </GroupBox>
+        <Border Grid.Row="0"
+                Grid.RowSpan="7"
+                Grid.ColumnSpan="2"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Background="#CCFFFFFF"
+                Visibility="{Binding InProgress,
+                                     Converter={StaticResource boolToVis}}">
+            <Border.Resources>
+                <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="HorizontalAlignment" Value="Center" />
+                    <Setter Property="FontSize" Value="14" />
+                </Style>
+            </Border.Resources>
+
+            <Border HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Background="White">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               FontWeight="Bold"
+                               Text="{Binding ProgressTitle}" />
+                    <ProgressBar Grid.Row="1"
+                                 Width="420"
+                                 Height="20"
+                                 IsIndeterminate="{Binding ProgressIndeterminate}"
+                                 Maximum="100"
+                                 Value="{Binding ProgressPercent}" />
+                    <TextBlock Grid.Row="2" Text="{Binding ProgressMessage}" />
+                </Grid>
+            </Border>
+        </Border>
     </Grid>
 </UserControl>
