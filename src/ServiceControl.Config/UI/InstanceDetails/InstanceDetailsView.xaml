@@ -25,14 +25,14 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="30" />
         </Grid.RowDefinitions>
 
-        <Border Grid.ColumnSpan="2"
+        <Border Grid.Row="0"
+                Grid.ColumnSpan="2"
                 BorderBrush="{StaticResource Gray90Brush}"
                 BorderThickness="0,1,0,0" />
-
         <StackPanel Grid.Row="1"
                     Grid.ColumnSpan="2"
                     Orientation="Horizontal">
@@ -59,7 +59,6 @@
                        Foreground="{StaticResource Gray70Brush}"
                        Text="{Binding Status}" />
         </StackPanel>
-
         <StackPanel Grid.Row="1"
                     Grid.ColumnSpan="2"
                     Margin="0,0,0,7"
@@ -76,6 +75,9 @@
                     Visibility="{Binding AllowStart,
                                          Converter={StaticResource boolToVis}}" />
             <Button Margin="5,0"
+                    Command="{Binding StartInMaintenanceCommand}"
+                    Style="{StaticResource StartInMaintenanceButton}" />
+            <Button Margin="5,0"
                     Command="{Binding EditCommand}"
                     CommandParameter="{Binding DataContext,
                                                ElementName=root}"
@@ -85,8 +87,39 @@
                     CommandParameter="{Binding}"
                     Style="{StaticResource RemoveButton}" />
         </StackPanel>
+        <Border Grid.Row="2"
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                HorizontalAlignment="Stretch"
+                BorderBrush="{StaticResource LightThemeBrush}"
+                BorderThickness="1"
+                Padding="4"
+                Visibility="{Binding InMaintenanceMode,
+                                     Converter={StaticResource boolToVis}}">
+            <Border.Resources>
+                <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="HorizontalAlignment" Value="Center" />
+                    <Setter Property="FontSize" Value="14" />
+                </Style>
+            </Border.Resources>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-        <GroupBox Grid.Row="2" Header="SERVICECONTROL VERSION">
+                <TextBlock Grid.Row="0" Foreground="{StaticResource BlackBrush}">
+                    INSTANCE IN MAINTENANCE MODE
+                </TextBlock>
+                <TextBlock Grid.Row="1" Visibility="{Binding AllowStop, Converter={StaticResource boolToVis}}">
+                    <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding StorageUrl}">
+                        LAUNCH RAVENDB STUDIO
+                    </Hyperlink>
+                </TextBlock>
+            </Grid>
+        </Border>
+
+        <GroupBox Grid.Row="3" Header="SERVICECONTROL VERSION">
             <GroupBox.HeaderTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
@@ -105,13 +138,13 @@
             <TextBlock Text="{Binding Version, StringFormat=ServiceControl v{0}}" />
         </GroupBox>
 
-        <GroupBox Grid.Row="2"
+        <GroupBox Grid.Row="3"
                   Grid.Column="1"
                   Header="TRANSPORT">
             <TextBlock Text="{Binding Transport}" />
         </GroupBox>
 
-        <GroupBox Grid.Row="3"
+        <GroupBox Grid.Row="4"
                   Grid.ColumnSpan="2"
                   Header="HOST">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
@@ -126,7 +159,7 @@
             </Hyperlink>
         </GroupBox>
 
-        <GroupBox Grid.Row="4"
+        <GroupBox Grid.Row="5"
                   Grid.ColumnSpan="2"
                   Header="INSTALLATION PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding InstallPath}">
@@ -141,7 +174,7 @@
             </Hyperlink>
         </GroupBox>
 
-        <GroupBox Grid.Row="5"
+        <GroupBox Grid.Row="6"
                   Grid.ColumnSpan="2"
                   Header="DATA PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding DBPath}">
@@ -156,7 +189,7 @@
             </Hyperlink>
         </GroupBox>
 
-        <GroupBox Grid.Row="6"
+        <GroupBox Grid.Row="7"
                   Grid.ColumnSpan="2"
                   Header="LOG PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding LogPath}">
@@ -170,8 +203,8 @@
                 <TextBlock FontSize="12px" Text="{Binding LogPath}" />
             </Hyperlink>
         </GroupBox>
-        <Border Grid.Row="0"
-                Grid.RowSpan="7"
+        <Border Grid.Row="1"
+                Grid.RowSpan="8"
                 Grid.ColumnSpan="2"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"

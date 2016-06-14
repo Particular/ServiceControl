@@ -401,6 +401,39 @@
         </Setter>
     </Style>
 
+    <Style x:Key="StartInMaintenanceButton"
+           BasedOn="{StaticResource IconButton}"
+           TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}">
+                        <Control x:Name="Icon"
+                                 Background="{TemplateBinding Background}"
+                                 BorderBrush="{TemplateBinding BorderBrush}"
+                                 Foreground="{TemplateBinding Foreground}"
+                                 Template="{StaticResource MaintenanceIcon}" />
+
+                        <Border.ToolTip>
+                            <ToolTip Style="{StaticResource IconButtonToolTipStyle}" VerticalOffset="{TemplateBinding Height, Converter={StaticResource negate}}">
+                                <TextBlock Text="START IN MAINTENANCE" />
+                            </ToolTip>
+                        </Border.ToolTip>
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal" />
+                                <VisualState Name="MouseOver" Storyboard="{StaticResource IconButtonMouseOverStoryboard}" />
+                                <VisualState Name="Pressed" Storyboard="{StaticResource IconButtonPressedStoryboard}" />
+                                <VisualState Name="Disabled" Storyboard="{StaticResource IconButtonDisabledStoryboard}" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="SaveButton"
            BasedOn="{StaticResource IconButton}"
            TargetType="{x:Type Button}">
