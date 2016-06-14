@@ -14,8 +14,8 @@ namespace ServiceControlInstaller.Engine.LicenseMgmt
         public bool IsCommercialLicense { get; private set; }
         public bool IsExtendedTrial { get; private set; }
         public string LicenseType { get; private set; }
+        public string Edition { get; set; }
         public string RegisteredTo { get; private set; }
-        public bool Valid { get; private set; }
 
         internal static LicenseDetails FromLicense(License license)
         {
@@ -31,7 +31,7 @@ namespace ServiceControlInstaller.Engine.LicenseMgmt
                 IsExtendedTrial = license.IsExtendedTrial,
                 IsTrialLicense = license.IsTrialLicense,
                 LicenseType = license.LicenseType,
-                Valid = true
+                Edition = license.Edition,
             };
         }
     }

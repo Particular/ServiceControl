@@ -46,6 +46,29 @@
         </Viewbox>
     </ControlTemplate>
 
+    <ControlTemplate x:Key="SuccessIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="14" Height="11">
+                <Canvas.RenderTransform>
+                    <TranslateTransform X="0" Y="0" />
+                </Canvas.RenderTransform>
+                <Canvas.Resources />
+                <Canvas>
+                    <Canvas.RenderTransform>
+                        <MatrixTransform Matrix="1.49443 -1.33173e-18 -1.365e-18 1.46343 -662.42 -503.964" />
+                    </Canvas.RenderTransform>
+                    <Path Fill="{TemplateBinding Foreground}"
+                          StrokeLineJoin="Round"
+                          StrokeMiterLimit="1.41421">
+                        <Path.Data>
+                            <PathGeometry Figures="M452.629 345.629L446.629 351.629L446.59 351.664C446.509 351.732 446.423 351.789 446.324 351.828C446.044 351.937 445.72 351.896 445.477 351.719C445.391 351.656 445.322 351.579 445.26 351.493L443.26 348.493L444.74 347.507L446.138 349.605L451.371 344.371C451.79 344.79 452.21 345.21 452.629 345.629Z" FillRule="nonzero" />
+                        </Path.Data>
+                    </Path>
+                </Canvas>
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
+
     <ControlTemplate x:Key="RunningIcon">
         <Viewbox Stretch="Uniform">
             <Canvas Width="10" Height="10">
