@@ -193,6 +193,8 @@
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
         <Setter Property="ScrollViewer.CanContentScroll" Value="true" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
         <Setter Property="Template">
             <Setter.Value>
@@ -249,6 +251,16 @@
                                         </ColorAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="FocusStates">
+                                <VisualState x:Name="Focused">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Border" Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource ThemeBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Unfocused" />
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                         <TextBlock Grid.Row="0"
