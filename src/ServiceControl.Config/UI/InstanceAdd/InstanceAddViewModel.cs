@@ -49,6 +49,7 @@
             ErrorQueueName = "error";
             ErrorForwardingQueueName = "error.log";
             ErrorForwarding = ErrorForwardingOptions.First(p => !p.Value); //Default to Off.
+            UseSystemAccount = true;
         }
 
         public string DestinationPath { get; set; }

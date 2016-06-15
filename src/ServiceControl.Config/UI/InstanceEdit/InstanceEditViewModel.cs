@@ -2,7 +2,9 @@
 {
     using System;
     using System.Linq;
+    using System.Security.Principal;
     using Commands;
+    using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
@@ -19,7 +21,9 @@
             InstanceName = instance.Name;
             Description = instance.Description;
 
-            UseProvidedAccount = !StringComparer.OrdinalIgnoreCase.Equals(instance.ServiceAccount, "localsystem");
+            var userAccount = UserAccount.ParseAccountName(instance.ServiceAccount);
+            UseSystemAccount = userAccount.IsLocalSystem();
+            UseServiceAccount = userAccount.IsLocalService();
             if (UseProvidedAccount)
             {
                 ServiceAccount = instance.ServiceAccount;
