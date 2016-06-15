@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Net;
     using Extensions;
     using Mindscape.Raygun4Net;
     using Mindscape.Raygun4Net.Messages;
@@ -16,10 +15,6 @@
         public RaygunFeedback()
         {
             InitializeTrackingId();
-
-            Enabled = TestAndSetCreds(null) ||
-                      TestAndSetCreds(CredentialCache.DefaultCredentials) ||
-                      TestAndSetCreds(CredentialCache.DefaultNetworkCredentials);
         }
 
         void InitializeTrackingId()
@@ -46,7 +41,7 @@
 
             var raygunMessage = RaygunMessageBuilder.New
                 .SetUser(raygunClient.UserInfo)
-                .SetVersion(GetVersion())
+                .SetVersion(Version)
                 .SetExceptionDetails(new Feedback(message));
 
             if (includeSystemInfo)
@@ -68,7 +63,7 @@
 
             var raygunMessage = RaygunMessageBuilder.New
                 .SetUser(raygunClient.UserInfo)
-                .SetVersion(GetVersion())
+                .SetVersion(Version)
                 .SetExceptionDetails(ex);
 
             if (includeSystemInfo)

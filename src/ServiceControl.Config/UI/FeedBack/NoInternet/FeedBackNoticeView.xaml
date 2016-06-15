@@ -59,7 +59,7 @@
                    FontSize="12"
                    Foreground="White"
                    TextWrapping="Wrap">
-            Let us know what you think my sending an email to
+            Let us know what you think by sending an email to
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="mailto:contactus@particular.net?subject=Feedback ServiceControl Installation">contactus@particular.net</Hyperlink>
         </TextBlock>
     </Grid>
