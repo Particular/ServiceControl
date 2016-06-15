@@ -72,11 +72,11 @@
                         SettingConstants.AuditRetentionPeriodMaxInHours,
                         1,
                         5,
-                        TimeSpan.FromHours(SettingConstants.AuditRetentionPeriodDefaultInHoursForUI));
+                        SettingConstants.AuditRetentionPeriodDefaultInHoursForUI);
 
                     if (windowManager.ShowSliderDialog(viewModel))
                     {
-                        upgradeOptions.AuditRetentionPeriod = new TimeSpan(viewModel.Period.Days, viewModel.Period.Hours, 0, 0);
+                        upgradeOptions.AuditRetentionPeriod = viewModel.Period;
                     }
                     else
                     {
@@ -98,7 +98,7 @@
                         SettingConstants.ErrorRetentionPeriodMaxInDays, 
                         1,
                         5, 
-                        TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI));
+                        SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI);
 
                 if (windowManager.ShowSliderDialog(viewModel))
                 {

@@ -719,7 +719,12 @@
                                             KeyboardNavigation.TabNavigation="None"
                                             Padding="10,5"
                                             SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                            Validation.ErrorTemplate="{x:Null}" />
+                                            Validation.ErrorTemplate="{x:Null}"
+                                            Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Value, Mode=TwoWay}"
+                                            Maximum="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Maximum, Mode=TwoWay}"
+                                            Minimum="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Minimum, Mode=TwoWay}"
+                                            SmallChange="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SmallChange, Mode=TwoWay}"
+                                            LargeChange="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=LargeChange, Mode=TwoWay}" />
 
                                     <Button x:Name="PART_SliderUp"
                                             Grid.Column="2"

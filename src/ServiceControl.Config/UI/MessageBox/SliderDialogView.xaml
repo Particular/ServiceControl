@@ -44,14 +44,14 @@
             <controls:FormSlider 
                         Grid.Row="3"
                         Margin="0,24,-10,27.4"
-                        Background="Transparent"                                 
+                        Background="Transparent"
                         Foreground="{StaticResource WhiteBrush}"
                         Header="{Binding PeriodHeader}"
                         Maximum="{Binding PeriodMaximum}"
                         Minimum="{Binding PeriodMinimum}"
                         Units="{Binding PeriodUnits}"
                         Explanation="{Binding PeriodExplanation}"
-                        TimeSpan="{Binding Period}"
+                        Value="{Binding Period}"
                         SmallChange="{Binding PeriodSmallStep}"
                         LargeChange="{Binding PeriodLargeStep}"
                 />
