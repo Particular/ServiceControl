@@ -135,6 +135,7 @@
                          FontSize="14px"
                          Foreground="{StaticResource Gray60Brush}"
                          IsReadOnly="True"
+                         IsTabStop="False"
                          Text="{Binding SampleConnectionString,
                                         Mode=OneWay}"
                          TextWrapping="Wrap"
