@@ -18,11 +18,11 @@
                                     int periodMaximumUnits,
                                     int periodSmallStep,
                                     int periodLargeStep,
-                                    TimeSpan currentValue)
+                                    int currentValue)
         {
             Title = title;
             Message = message;
-            Period = currentValue;
+            Value = currentValue;
             PeriodHeader = periodHeader;
             PeriodUnits = periodUnits;
             PeriodMinimum = periodMinimumUnits;
@@ -43,7 +43,9 @@
 
         public TimeSpanUnits PeriodUnits { get; set; }
         
-        public TimeSpan Period { get; set; }
+        public double Value { get; set; }
+
+        public TimeSpan Period => PeriodUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(Value) : TimeSpan.FromHours(Value);
 
         public string Title { get; set; }
 
@@ -51,6 +53,5 @@
         
         public ICommand Cancel { get; private set; }
         public ICommand Save { get; private set; }
-        
     }
 }

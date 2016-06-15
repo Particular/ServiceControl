@@ -36,8 +36,8 @@
             AuditForwarding = AuditForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardAuditMessages);
             ErrorForwarding = ErrorForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardErrorMessages);
 
-            ErrorRetentionPeriod = instance.ErrorRetentionPeriod;
-            AuditRetentionPeriod = instance.AuditRetentionPeriod;
+            UpdateErrorRetention(instance.ErrorRetentionPeriod);
+            UpdateAuditRetention(instance.AuditRetentionPeriod);
 
             ErrorQueueName = instance.ErrorQueue;
             ErrorForwardingQueueName = instance.ErrorLogQueue;

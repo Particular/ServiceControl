@@ -118,10 +118,23 @@
         public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; private set;}
         public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; private set; }
 
-        public TimeSpan AuditRetentionPeriod { get; set; }
-        public TimeSpan ErrorRetentionPeriod { get; set; }
+        public double AuditRetention { get; set; }
+        public TimeSpan AuditRetentionPeriod => AuditRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(AuditRetention) : TimeSpan.FromHours(AuditRetention);
+
+        public double ErrorRetention { get; set; }
+        public TimeSpan ErrorRetentionPeriod => ErrorRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(ErrorRetention) : TimeSpan.FromHours(ErrorRetention);
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
+
+        protected void UpdateAuditRetention(TimeSpan value)
+        {
+            AuditRetention = AuditRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
+        }
+
+        protected void UpdateErrorRetention(TimeSpan value)
+        {
+            ErrorRetention = ErrorRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
+        }
 
         [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]
         public TransportInfo SelectedTransport

@@ -93,16 +93,16 @@
                                      Maximum="{Binding MaximumAuditRetentionPeriod}"
                                      Minimum="{Binding MinimumAuditRetentionPeriod}"
                                      SmallChange="1"
-                                     TimeSpan="{Binding AuditRetentionPeriod}"
-                                     Units="{Binding AuditRetentionUnits}" />
+                                     Units="{Binding AuditRetentionUnits}"
+                                     Value="{Binding AuditRetention}" />
                 <controls:FormSlider Explanation="Error Messages that have been archived or resolved will be removed after this period"
                                      Header="ERROR RETENTION PERIOD"
                                      LargeChange="1"
                                      Maximum="{Binding MaximumErrorRetentionPeriod}"
                                      Minimum="{Binding MinimumErrorRetentionPeriod}"
                                      SmallChange="1"
-                                     TimeSpan="{Binding ErrorRetentionPeriod}"
-                                     Units="{Binding ErrorRetentionUnits}" />
+                                     Units="{Binding ErrorRetentionUnits}"
+                                     Value="{Binding ErrorRetention}" />
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"

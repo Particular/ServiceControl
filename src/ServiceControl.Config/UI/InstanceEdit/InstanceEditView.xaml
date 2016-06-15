@@ -120,8 +120,8 @@
                                      Maximum="{Binding MaximumAuditRetentionPeriod}"
                                      Minimum="{Binding MinimumAuditRetentionPeriod}"
                                      SmallChange="1"
-                                     TimeSpan="{Binding AuditRetentionPeriod}"
                                      Units="{Binding AuditRetentionUnits}"
+                                     Value="{Binding AuditRetention}"
                                      Visibility="{Binding RetentionPeriodsVisible,
                                                           Converter={StaticResource boolToVis}}" />
 
@@ -131,8 +131,8 @@
                                      Maximum="{Binding MaximumErrorRetentionPeriod}"
                                      Minimum="{Binding MinimumErrorRetentionPeriod}"
                                      SmallChange="1"
-                                     TimeSpan="{Binding ErrorRetentionPeriod}"
                                      Units="{Binding ErrorRetentionUnits}"
+                                     Value="{Binding ErrorRetention}"
                                      Visibility="{Binding RetentionPeriodsVisible,
                                                           Converter={StaticResource boolToVis}}" />
 
