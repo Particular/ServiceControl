@@ -53,9 +53,8 @@
                         Explanation="{Binding PeriodExplanation}"
                         Value="{Binding Value}"
                         SmallChange="{Binding PeriodSmallStep}"
-                        LargeChange="{Binding PeriodLargeStep}"
-                />
-            
+                        LargeChange="{Binding PeriodLargeStep}" />
+
             <StackPanel Grid.Row="4"
                         Margin="-321,1.6,0,0"
                         HorizontalAlignment="Right"
