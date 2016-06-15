@@ -126,12 +126,12 @@
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
 
-        public void UpdateAuditRetention(TimeSpan value)
+        protected void UpdateAuditRetention(TimeSpan value)
         {
             AuditRetention = AuditRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
         }
 
-        public void UpdateErrorRetention(TimeSpan value)
+        protected void UpdateErrorRetention(TimeSpan value)
         {
             ErrorRetention = ErrorRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
         }

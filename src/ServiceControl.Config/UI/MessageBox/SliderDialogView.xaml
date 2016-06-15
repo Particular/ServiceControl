@@ -51,7 +51,7 @@
                         Minimum="{Binding PeriodMinimum}"
                         Units="{Binding PeriodUnits}"
                         Explanation="{Binding PeriodExplanation}"
-                        Value="{Binding Period}"
+                        Value="{Binding Value}"
                         SmallChange="{Binding PeriodSmallStep}"
                         LargeChange="{Binding PeriodLargeStep}"
                 />
