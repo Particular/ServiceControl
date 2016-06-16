@@ -21,7 +21,9 @@ namespace ServiceControl.Config.Framework
 
         bool ShowMessage(string title, string message, string acceptText = "Ok");
 
-        bool? ShowYesNoCancelDialog(string title, string message, string yesText, string noText);
+        bool? ShowYesNoCancelDialog(string title, string message, string question, string yesText, string noText);
+
+        bool ShowYesNoDialog(string title, string message, string question, string yesText, string noText);
 
         bool ShowSliderDialog(SliderDialogViewModel viewModel);
 
@@ -61,7 +63,9 @@ namespace ServiceControl.Config.Framework
 
             var modalResult = screen as IModalResult;
             if (modalResult != null)
+            {
                 return modalResult.Result;
+            }
 
             return true;
         }
@@ -87,10 +91,19 @@ namespace ServiceControl.Config.Framework
             return result ?? false;
         }
 
-        public bool? ShowYesNoCancelDialog(string title, string message, string yesText, string noText)
+        public bool? ShowYesNoCancelDialog(string title, string message, string question, string yesText, string noText)
         {
-            var messageBox = new YesNoCancelViewModel(title, message, yesText, noText);
+            var messageBox = new YesNoCancelViewModel(title, message, question, yesText, noText);
             return ShowOverlayDialog(messageBox);
+        }
+
+        public bool ShowYesNoDialog(string title, string message, string question, string yesText, string noText)
+        {
+            var messageBox = new YesNoCancelViewModel(title, message, question, yesText, noText)
+            {
+                ShowCancelButton = false
+            };
+            return ShowOverlayDialog(messageBox).Value;
         }
 
         public bool ShowSliderDialog(SliderDialogViewModel viewModel)

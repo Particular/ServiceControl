@@ -2,7 +2,6 @@
 {
     using System;
     using System.Linq;
-    using System.Security.Principal;
     using Commands;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;

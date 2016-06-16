@@ -37,7 +37,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             instanceInstaller.ReportCard = new ReportCard();
 
             //Validation
-            instanceInstaller.Validate();
+            instanceInstaller.Validate(s => false);
             if (instanceInstaller.ReportCard.HasErrors)
             {
                 foreach (var error in instanceInstaller.ReportCard.Errors)
