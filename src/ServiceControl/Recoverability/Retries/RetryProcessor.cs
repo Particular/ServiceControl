@@ -10,6 +10,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Unicast;
     using Raven.Client;
     using ServiceControl.MessageFailures;
+    using ServiceControl.MessageRedirects;
     using ServiceControl.Operations.BodyStorage;
 
     class RetryProcessor
@@ -61,10 +62,14 @@ namespace ServiceControl.Recoverability
 
             if (stagingBatch != null)
             {
-                if (Stage(stagingBatch, session))
+                var redirects = session.Query<MessageRedirect>().ToDictionary(r => r.FromPhysicalAddress, r => r);
+
+                if (Stage(stagingBatch, redirects, session))
                 {
                     session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id }, RetryBatchNowForwarding.Id);
                 }
+                session.SaveChanges();
+
                 return true;
             }
 
@@ -98,7 +103,7 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        bool Stage(RetryBatch stagingBatch, IDocumentSession session)
+        bool Stage(RetryBatch stagingBatch, Dictionary<string, MessageRedirect> redirects, IDocumentSession session)
         {
             var stagingId = Guid.NewGuid().ToString();
 
@@ -121,7 +126,7 @@ namespace ServiceControl.Recoverability
 
             foreach (var message in messages)
             {
-                StageMessage(message, stagingId);
+                StageMessage(message, redirects, stagingId);
             }
 
             bus.Publish<MessagesSubmittedForRetry>(m =>
@@ -140,7 +145,7 @@ namespace ServiceControl.Recoverability
             return true;
         }
 
-        void StageMessage(FailedMessage message, string stagingId)
+        void StageMessage(FailedMessage message, Dictionary<string, MessageRedirect> redirects, string stagingId)
         {
             message.Status = FailedMessageStatus.RetryIssued;
 
@@ -149,7 +154,15 @@ namespace ServiceControl.Recoverability
             var headersToRetryWith = attempt.Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key))
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            headersToRetryWith["ServiceControl.TargetEndpointAddress"] = attempt.FailureDetails.AddressOfFailingEndpoint;
+            var addressOfFailingEndpoint = attempt.FailureDetails.AddressOfFailingEndpoint;
+
+            if (redirects.ContainsKey(addressOfFailingEndpoint))
+            {
+                addressOfFailingEndpoint = redirects[addressOfFailingEndpoint].FromPhysicalAddress;
+                redirects[addressOfFailingEndpoint].LastUsed = DateTime.UtcNow;
+            }
+
+            headersToRetryWith["ServiceControl.TargetEndpointAddress"] = addressOfFailingEndpoint;
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
             if (!string.IsNullOrWhiteSpace(attempt.ReplyToAddress))
