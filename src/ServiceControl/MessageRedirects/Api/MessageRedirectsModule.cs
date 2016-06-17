@@ -1,12 +1,9 @@
 ﻿namespace ServiceControl.MessageRedirects.Api
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using Nancy;
-    using Nancy.ModelBinding;
     using NServiceBus;
-    using NServiceBus.Faults;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -95,7 +92,15 @@
                         .Statistics(out stats)
                         .Sort(Request)
                         .Paging(Request)
-                        .ToArray();
+                        .ToArray()
+                        .Select(r => new
+                        {
+                            MessageRedirectId = MessageRedirect.GetMessageRedirectIdFromDocumentId(r.Id),
+                            r.FromPhysicalAddress,
+                            r.ToPhysicalAddress,
+                            r.Created,
+                            r.LastUsed
+                        });
 
                     return Negotiate
                         .WithModel(queryResult)
