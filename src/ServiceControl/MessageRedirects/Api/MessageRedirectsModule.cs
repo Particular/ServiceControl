@@ -1,12 +1,17 @@
 ﻿namespace ServiceControl.MessageRedirects.Api
 {
     using System;
-    using Microsoft.CSharp.RuntimeBinder;
+    using System.Collections.Generic;
+    using System.Linq;
     using Nancy;
+    using Nancy.ModelBinding;
     using NServiceBus;
+    using NServiceBus.Faults;
+    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.Extensions;
     using ServiceControl.MessageRedirects.InternalMessages;
 
     public class MessageRedirectsModule : BaseModule
@@ -17,34 +22,48 @@
         {
             Post["/redirects"] = parameters =>
             {
-                var message = new CreateMessageRedirect();
+                var message = new CreateMessageRedirect
+                {
+                    FromPhysicalAddress = parameters.fromphysicaladdress,
+                    ToPhysicalAddress = parameters.tophysicaladdress
+                };
 
-                DecorateMessage(message, parameters);
+                if (string.IsNullOrWhiteSpace(message.FromPhysicalAddress) || string.IsNullOrWhiteSpace(message.ToPhysicalAddress))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+
+                message.MessageRedirectId = DeterministicGuid.MakeId(message.FromPhysicalAddress, message.ToPhysicalAddress);
+
+                using (var session = Store.OpenSession())
+                {
+                    var redirect = session.Load<MessageRedirect>(MessageRedirect.GetDocumentIdFromMessageRedirectId(message.MessageRedirectId));
+
+                    if (redirect != null)
+                    {
+                        return Negotiate.WithReasonPhrase("Duplicate").WithModel(redirect).WithStatusCode(HttpStatusCode.Conflict);
+                    }
+
+                    var dependents = session.Query<MessageRedirect>().Where(r => r.ToPhysicalAddress == message.FromPhysicalAddress).ToList();
+
+                    if (dependents.Any())
+                    {
+                        return Negotiate.WithReasonPhrase("Dependents").WithModel(dependents).WithStatusCode(HttpStatusCode.Conflict);
+                    }
+                }
 
                 Bus.SendLocal(message);
 
                 return HttpStatusCode.Created;
             };
 
-            Put["/redirects/{id}"] = parameters =>
+            Delete["/redirects/{messageredirectid}"] = parameters =>
             {
-                var message = new UpdateMessageRedirect();
-
-                DecorateMessage(message, parameters);
-
-                Bus.SendLocal(message);
-
-                return HttpStatusCode.Accepted;
-            };
-
-            Delete["/redirects/{id}"] = parameters =>
-            {
-                Guid id = parameters.id;
+                Guid messageRedirectId = parameters.messageredirectid;
 
                 Bus.SendLocal(new EndMessageRedirect
                 {
-                    MessageRedirectId = id,
-                    ExpiresDateTime = DateTime.UtcNow
+                    MessageRedirectId = messageRedirectId
                 });
 
                 return HttpStatusCode.Accepted;
@@ -54,58 +73,36 @@
             {
                 using (var session = Store.OpenSession())
                 {
-                    var queryResult = session.Advanced
-                        .LuceneQuery<MessageRedirectsViewIndex>()
-                        .QueryResult;
+                    RavenQueryStatistics stats;
+
+                    session
+                        .Query<MessageRedirect>()
+                        .Statistics(out stats);
 
                     return Negotiate
-                        .WithTotalCount(queryResult.TotalResults)
-                        .WithEtagAndLastModified(queryResult.IndexEtag, queryResult.IndexTimestamp);
+                        .WithTotalCount(stats)
+                        .WithEtagAndLastModified(stats);
                 }
             };
-        }
 
-        private static void DecorateMessage(IHaveMessageRedirectData message, dynamic parameters)
-        {
-            message.MatchMessageType = parameters.matchmessagetype;
-            message.MatchSourceEndpoint = parameters.matchsourceendpoint;
-            message.RedirectToEndpoint = parameters.redirecttoendpoint;
-
-            Guid id;
-
-            try
+            Get["/redirects"] = _ =>
             {
-                message.MessageRedirectId = parameters.id;
-            }
-            catch (RuntimeBinderException)
-            {
-                message.MessageRedirectId = DeterministicGuid.MakeId(message.MatchSourceEndpoint, message.MatchMessageType);
-            }
+                using (var session = Store.OpenSession())
+                {
+                    RavenQueryStatistics stats;
 
-            long asofTicks = 0;
+                    var queryResult = session.Query<MessageRedirect>()
+                        .Statistics(out stats)
+                        .Sort(Request)
+                        .Paging(Request)
+                        .ToArray();
 
-            try
-            {
-                asofTicks = parameters.asofticks;
-            }
-            catch (RuntimeBinderException)
-            {
-                //not always provided
-            }
-
-            long expiresTicks = 0;
-
-            try
-            {
-                expiresTicks = parameters.expiresticks;
-            }
-            catch (RuntimeBinderException)
-            {
-                //not always provided
-            }
-
-            message.AsOfDateTime = asofTicks == 0 ? DateTime.UtcNow : new DateTime(asofTicks);
-            message.ExpiresDateTime = expiresTicks == 0 ? DateTime.MaxValue : new DateTime(expiresTicks);
+                    return Negotiate
+                        .WithModel(queryResult)
+                        .WithPagingLinksAndTotalCount(stats, Request)
+                        .WithEtagAndLastModified(stats);
+                }
+            };
         }
     }
 }

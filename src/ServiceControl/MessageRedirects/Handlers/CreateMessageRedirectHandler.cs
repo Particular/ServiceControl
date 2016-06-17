@@ -16,12 +16,9 @@
             var messageRedirect = new MessageRedirect
             {
                 Id = MessageRedirect.GetDocumentIdFromMessageRedirectId(message.MessageRedirectId),
-                MatchMessageType = message.MatchMessageType,
-                MatchSourceEndpoint = message.MatchSourceEndpoint,
-                RedirectToEndpoint = message.RedirectToEndpoint,
-                AsOfDateTime = message.AsOfDateTime,
-                ExpiresDateTime = message.ExpiresDateTime,
-                LastModified = DateTime.UtcNow.Ticks
+                FromPhysicalAddress = message.FromPhysicalAddress,
+                ToPhysicalAddress = message.ToPhysicalAddress,
+                Created = DateTime.UtcNow
             };
 
             Session.Store(messageRedirect);
@@ -29,11 +26,9 @@
             Bus.Publish(new MessageRedirectCreated
             {
                 MessageRedirectId = messageRedirect.Id,
-                MatchMessageType = messageRedirect.MatchMessageType,
-                MatchSourceEndpoint = messageRedirect.MatchSourceEndpoint,
-                RedirectToEndpoint = messageRedirect.RedirectToEndpoint,
-                AsOfDateTime = messageRedirect.AsOfDateTime,
-                ExpiresDateTime = messageRedirect.ExpiresDateTime
+                FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
+                ToPhysicalAddress = messageRedirect.ToPhysicalAddress,
+                Created = messageRedirect.Created
             });
         }
     }

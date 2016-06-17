@@ -348,10 +348,9 @@
     <Compile Include="MessageFailures\InternalMessages\UnArchiveMessages.cs" />
     <Compile Include="MessageFailures\InternalMessages\UnArchiveMessagesByRange.cs" />
     <Compile Include="MessageRedirects\Api\MessageRedirectsModule.cs" />
-    <Compile Include="MessageRedirects\Api\MessageRedirectsViewIndex.cs" />
+    <Compile Include="MessageRedirects\Api\RavenQueryableExtensions.cs" />
     <Compile Include="MessageRedirects\Handlers\CreateMessageRedirectHandler.cs" />
     <Compile Include="MessageRedirects\Handlers\EndMessageRedirectHandler.cs" />
-    <Compile Include="MessageRedirects\Handlers\UpdateMessageRedirectHandler.cs" />
     <Compile Include="MessageRedirects\InternalMessages\CreateMessageRedirect.cs" />
     <Compile Include="MessageRedirects\InternalMessages\EndMessageRedirect.cs" />
     <Compile Include="MessageRedirects\InternalMessages\IHaveMessageRedirectData.cs" />

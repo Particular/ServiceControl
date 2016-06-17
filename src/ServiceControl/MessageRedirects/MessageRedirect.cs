@@ -8,13 +8,11 @@ namespace ServiceControl.MessageRedirects
 
         public string Id { get; set; }
 
-        public string MatchMessageType { get; set; }
+        public string FromPhysicalAddress { get; set; }
+        public string ToPhysicalAddress { get; set; }
 
-        public string MatchSourceEndpoint { get; set; }
-        public string RedirectToEndpoint { get; set; }
-        public DateTime AsOfDateTime { get; set; }
-        public DateTime ExpiresDateTime { get; set; }
-        public long LastModified { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime? LastUsed { get; set; }
 
         public static string GetDocumentIdFromMessageRedirectId(Guid messageRedirectId)
         {
