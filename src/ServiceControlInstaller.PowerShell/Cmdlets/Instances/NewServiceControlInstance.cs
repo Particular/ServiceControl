@@ -8,7 +8,9 @@ namespace ServiceControlInstaller.PowerShell
     using System.Management.Automation;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
-    
+    using ServiceControlInstaller.Engine.Validation;
+    using PathInfo = ServiceControlInstaller.Engine.Validation.PathInfo;
+
     [Cmdlet(VerbsCommon.New, "ServiceControlInstance")]
     public class NewServiceControlInstance : PSCmdlet
     {
@@ -96,6 +98,9 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateNotNull]
         [ValidateTimeSpanRange(MinimumHours = 240, MaximumHours = 1080)] //10 to 45 days
         public TimeSpan ErrorRetentionPeriod { get; set; }
+        
+        [Parameter(Mandatory = false)]
+        public SwitchParameter Force { get; set; }
 
         protected override void BeginProcessing()
         {
@@ -140,7 +145,7 @@ namespace ServiceControlInstaller.PowerShell
             try
             {
                 logger.Info("Installing Service Control instance...");
-                if (installer.Add(details))
+                if (installer.Add(details, PromptToProceed))
                 {
                     var instance = ServiceControlInstance.FindByName(details.Name);
                     if (instance != null)
@@ -157,6 +162,15 @@ namespace ServiceControlInstaller.PowerShell
             {
                 ThrowTerminatingError(new ErrorRecord(ex, null, ErrorCategory.NotSpecified, null));
             }
+        }
+
+        private bool PromptToProceed(PathInfo pathInfo)
+        {
+            if (!pathInfo.CheckIfEmpty) return false;
+            if (!Force.ToBool())
+                throw new EngineValidationException($"Thr directory specified for {pathInfo.Name} is not empty.  Use -Force to if you are sure you want to use this path");
+            WriteWarning($"The directory specified for {pathInfo.Name} is not empty but will be used as -Force was specified");
+            return false;
         }
     }
 }

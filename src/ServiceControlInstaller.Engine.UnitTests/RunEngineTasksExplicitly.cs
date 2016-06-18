@@ -66,7 +66,7 @@
             {
                 throw new Exception($"Validation errors:  {string.Join("\r\n", details.ReportCard.Errors)}");
             }
-            Assert.DoesNotThrow(() => installer.Add(details));
+            Assert.DoesNotThrow(() => installer.Add(details, s => false));
         }
 
         [Test, Explicit]

@@ -8,6 +8,7 @@ namespace ServiceControlInstaller.Engine.Unattended
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
+    using ServiceControlInstaller.Engine.Validation;
 
     public class UnattendInstaller
     {
@@ -29,7 +30,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             ZipInfo = ServiceControlZipInfo.Find(sourceroot);
         }
 
-        public bool Add(ServiceControlInstanceMetadata details)
+        public bool Add(ServiceControlInstanceMetadata details, Func<PathInfo, bool> promptToProceed)
         {
             ZipInfo.ValidateZip();
 
@@ -37,7 +38,8 @@ namespace ServiceControlInstaller.Engine.Unattended
             instanceInstaller.ReportCard = new ReportCard();
 
             //Validation
-            instanceInstaller.Validate(s => false);
+            instanceInstaller.Validate(promptToProceed);
+
             if (instanceInstaller.ReportCard.HasErrors)
             {
                 foreach (var error in instanceInstaller.ReportCard.Errors)
