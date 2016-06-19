@@ -529,9 +529,6 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
-
-            
-
         }
 
         public void ValidateChanges()

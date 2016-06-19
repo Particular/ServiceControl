@@ -79,14 +79,14 @@
                   Margin="0,34.6,-0.4,0.6"
                   VerticalContentAlignment="Center"
                   IsChecked="{Binding RemoveDatabase}">
-            <Label FontSize="14" Foreground="{StaticResource WhiteBrush}">Remove associated DB data</Label>
+            <Label FontSize="14" Foreground="{StaticResource WhiteBrush}">Remove DB subdirectory and data</Label>
         </CheckBox>
         <CheckBox Grid.Row="3"
                   Grid.RowSpan="2"
                   Margin="0,27.4,-0.4,0.6"
                   VerticalContentAlignment="Center"
                   IsChecked="{Binding RemoveLogs}">
-            <Label FontSize="14" Foreground="{StaticResource WhiteBrush}">Remove associated Logs</Label>
+            <Label FontSize="14" Foreground="{StaticResource WhiteBrush}">Remove Logs subdirectory and data</Label>
         </CheckBox>
 
         <Grid Grid.Row="6"

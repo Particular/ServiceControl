@@ -191,7 +191,7 @@ namespace ServiceControlInstaller.Engine.Instances
             return instanceData;
         }
 
-        public void Validate()
+        public void Validate(Func<PathInfo, bool> promptToProceed)
         {
             if (TransportPackage.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
             {
@@ -216,7 +216,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             try
             {
-                PathsValidator.Validate(this);
+                ReportCard.CancelRequested = PathsValidator.Validate(this, promptToProceed);
             }
             catch (EngineValidationException ex)
             {
