@@ -71,7 +71,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public string RavenStudioUrl
+        public string StorageUrl
         {
             get
             {
@@ -90,8 +90,8 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{host}:{Port}/storage/";
                 }
-                var virt = VirtualDirectory.Replace("/", "");
-                return $"http://{host}:{Port}/{virt}/storage/";
+                var virt = $"{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
+                return $"http://{host}:{Port}/{virt}storage/";
             }
         }
 
@@ -161,7 +161,7 @@ namespace ServiceControlInstaller.Engine.Instances
             var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             reservation.Create();
 
-            var ravenReservation = new UrlReservation(RavenStudioUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            var ravenReservation = new UrlReservation(StorageUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             ravenReservation.Create();
         }
 
