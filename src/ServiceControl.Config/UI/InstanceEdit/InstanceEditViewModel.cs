@@ -23,10 +23,12 @@
             var userAccount = UserAccount.ParseAccountName(instance.ServiceAccount);
             UseSystemAccount = userAccount.IsLocalSystem();
             UseServiceAccount = userAccount.IsLocalService();
+
+            UseProvidedAccount = !(UseServiceAccount || UseServiceAccount);
+
             if (UseProvidedAccount)
             {
                 ServiceAccount = instance.ServiceAccount;
-                Password = instance.ServiceAccountPwd;
             }
 
             HostName = instance.HostName;
