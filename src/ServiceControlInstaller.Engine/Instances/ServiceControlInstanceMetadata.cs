@@ -62,13 +62,36 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                //TODO: Introduce option for https?
-                var baseUrl = $"http://{HostName}:{Port}/api/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return baseUrl;
+                    return $"http://{HostName}:{Port}/api/";
                 }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                var virt = VirtualDirectory.Replace("/", "");
+                return $"http://{HostName}:{Port}/{virt}/api/";
+            }
+        }
+
+        public string StorageUrl
+        {
+            get
+            {
+                string host;
+                switch (HostName)
+                {
+                    case "*":
+                    case "+":
+                        host = "localhost";
+                        break;
+                    default:
+                        host = HostName;
+                        break;
+                }
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return $"http://{host}:{Port}/storage/";
+                }
+                var virt = $"{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
+                return $"http://{host}:{Port}/{virt}storage/";
             }
         }
 
@@ -137,7 +160,12 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             reservation.Create();
+
+            var ravenReservation = new UrlReservation(StorageUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            ravenReservation.Create();
         }
+
+
 
         public void SetupInstance()
         {
