@@ -81,12 +81,36 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = $"http://{HostName}:{Port}/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"{baseUrl}api/";
+                    return $"http://{HostName}:{Port}/api/";
                 }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                var virt = VirtualDirectory.Replace("/", "");
+                return $"http://{HostName}:{Port}/{virt}/api/";
+            }
+        }
+
+        public string RavenStudioUrl
+        {
+            get
+            {
+                string host;
+                switch (HostName)
+                {
+                    case "*":
+                    case "+":
+                        host = "localhost";
+                        break;
+                    default:
+                        host = HostName;
+                        break;
+                }
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return $"http://{host}:{Port}/storage/";
+                }
+                var virt = VirtualDirectory.Replace("/", "");
+                return $"http://{host}:{Port}/{virt}/storage/";
             }
         }
 
@@ -122,12 +146,12 @@ namespace ServiceControlInstaller.Engine.Instances
                         break;
                 }
 
-                var baseUrl = $"http://{host}:{Port}/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"{baseUrl}api/";
+                    return $"http://{host}:{Port}/api/";
                 }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                var virt = VirtualDirectory.Replace("/", "");
+                return $"http://{host}:{Port}/{virt}/api/";
             }
         }
 
@@ -175,7 +199,7 @@ namespace ServiceControlInstaller.Engine.Instances
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = FindByName(Name);
             var urlaclChanged = !(oldSettings.Port == Port
-                                  && string.Equals(oldSettings.Name, Name, StringComparison.OrdinalIgnoreCase)
+                                  && string.Equals(oldSettings.HostName, HostName, StringComparison.OrdinalIgnoreCase)
                                   && string.Equals(oldSettings.VirtualDirectory, VirtualDirectory, StringComparison.OrdinalIgnoreCase));
 
             var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
@@ -189,6 +213,8 @@ namespace ServiceControlInstaller.Engine.Instances
                 oldSettings.RemoveUrlAcl();
                 var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
                 reservation.Create();
+                var ravenStorageReservation = new UrlReservation(RavenStudioUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+                ravenStorageReservation.Create();
             }
 
             if (fileSystemChanged)
@@ -316,7 +342,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RemoveUrlAcl()
         {
-            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.Equals(Url, StringComparison.OrdinalIgnoreCase)))
+            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.Equals(Url, StringComparison.OrdinalIgnoreCase) || p.Url.Equals(RavenStudioUrl, StringComparison.OrdinalIgnoreCase)))
             {
                 try
                 {
