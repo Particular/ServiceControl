@@ -35,15 +35,21 @@
 
             StartCommand = Command.Create(() => StartService());
             StopCommand = Command.Create(() => StopService());
+
+            StartInMaintenanceCommand = Command.Create(() => StartServiceInMaintenanceMode(), () => AllowStart);
         }
 
         public ServiceControlInstance ServiceControlInstance { get; }
+
+        public bool InMaintenanceMode => ServiceControlInstance.InMaintenanceMode;
 
         public string Name => ServiceControlInstance.Name;
 
         public string Host => ServiceControlInstance.Url;
 
         public string BrowsableUrl => ServiceControlInstance.BrowsableUrl;
+
+        public string StorageUrl => ServiceControlInstance.StorageUrl;
 
         public string InstallPath => ServiceControlInstance.InstallPath;
 
@@ -154,6 +160,8 @@
 
         public ICommand DeleteCommand { get; private set; }
 
+        public ICommand StartInMaintenanceCommand { get; private set; }
+
         public ICommand StartCommand { get; private set; }
 
         public ICommand StopCommand { get; private set; }
@@ -173,12 +181,33 @@
             NotifyOfPropertyChange("HasNewVersion");
             NotifyOfPropertyChange("Transport");
             NotifyOfPropertyChange("BrowsableUrl");
+            NotifyOfPropertyChange("InMaintenanceMode");
         }
+
+        public async Task StartServiceInMaintenanceMode()
+        {
+            using (var progress = this.GetProgressObject(String.Empty))
+            {
+                progress.Report(new ProgressDetails("Starting Service in Maintenance Mode"));
+                await Task.Run(() =>
+                {
+                    ServiceControlInstance.EnableMaintenanceMode();
+                    ServiceControlInstance.TryStartService();
+                });
+                UpdateServiceProperties();
+            }
+        }
+        
 
         public async Task StartService()
         {
             using (var progress = this.GetProgressObject(String.Empty))
             {
+                // We need this one here in case the user stopped the service by other means
+                if (InMaintenanceMode)
+                {
+                    ServiceControlInstance.DisableMaintenanceMode();
+                }
                 progress.Report(new ProgressDetails("Starting Service"));
                 await Task.Run(() => ServiceControlInstance.TryStartService());
                 UpdateServiceProperties();
@@ -190,7 +219,14 @@
             using (var progress = this.GetProgressObject(String.Empty))
             {
                 progress.Report(new ProgressDetails("Stopping Service"));
-                await Task.Run(() => ServiceControlInstance.TryStopService());
+                await Task.Run(() =>
+                {
+                    ServiceControlInstance.TryStopService();
+                    if (InMaintenanceMode)
+                    {
+                        ServiceControlInstance.DisableMaintenanceMode();
+                    }
+                });
                 UpdateServiceProperties();
             }
         }
@@ -203,6 +239,7 @@
             NotifyOfPropertyChange("AllowStart");
             NotifyOfPropertyChange("IsRunning");
             NotifyOfPropertyChange("IsStopped");
+            NotifyOfPropertyChange("InMaintenanceMode");
         }
     }
 }

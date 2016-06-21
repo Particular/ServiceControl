@@ -21,6 +21,7 @@
             ForwardErrorMessages = GetForwardErrorMessages();
             auditRetentionPeriod = GetAuditRetentionPeriod();
             errorRetentionPeriod = GetErrorRetentionPeriod();
+            MaintenanceMode = SettingsReader<bool>.Read("MaintenanceMode");
         }
 
         public static bool MaintenanceMode;

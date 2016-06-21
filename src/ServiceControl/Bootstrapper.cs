@@ -122,9 +122,12 @@ namespace Particular.ServiceControl
             if (Settings.MaintenanceMode)
             {
                 Logger.InfoFormat("RavenDB is now accepting requests on {0}", Settings.StorageUrl);
-                Logger.Warn("RavenDB Maintenance Mode - Press Enter to exit");
-                while (Console.ReadLine() == null)
+                if (Environment.UserInteractive)
                 {
+                    Logger.Warn("RavenDB Maintenance Mode - Press Enter to exit");
+                    while (Console.ReadLine() == null)
+                    {
+                    }
                 }
                 return;
             }
