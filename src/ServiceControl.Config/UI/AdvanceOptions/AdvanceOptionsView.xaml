@@ -1,0 +1,145 @@
+﻿<UserControl x:Class="ServiceControl.Config.UI.AdvanceOptions.AdvanceOptionsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             x:Name="root"
+             d:DesignHeight="300"
+             d:DesignWidth="300"
+             mc:Ignorable="d">
+    <ScrollViewer IsTabStop="False">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <Grid.Resources>
+                <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="FontSize" Value="14px" />
+                </Style>
+            </Grid.Resources>
+
+            <StackPanel Grid.Row="0" Margin="60,0,60,0">
+                <Border Margin="0,40,0,20"
+                        BorderBrush="{StaticResource Gray90Brush}"
+                        BorderThickness="0,0,0,1">
+                    <TextBlock FontSize="13px"
+                               FontWeight="Bold"
+                               Text="MAINTENANCE MODE" />
+                </Border>
+                <TextBlock FontSize="12px">
+                    Learn more about Maintenance Mode by visiting
+                    <Hyperlink Command="{Binding OpenUrl}" CommandParameter="http://docs.particular.net/servicecontrol/">
+                        http://docs.particular.net/servicecontrol/
+                    </Hyperlink>
+                </TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button Command="{Binding StartServiceInMaintenanceModeCommand}"
+                            CommandParameter="{Binding DataContext,
+                                                       ElementName=root}"
+                            Content="Start instance in Maintenance Mode"
+                            Visibility="{Binding InMaintenanceMode,
+                                                 Converter={StaticResource boolToVisInverted}}" />
+                    <Button Command="{Binding StopMaintenanceModeCommand}"
+                            CommandParameter="{Binding DataContext,
+                                                       ElementName=root}"
+                            Content="Stop Maintenance Mode"
+                            Visibility="{Binding InMaintenanceMode,
+                                                 Converter={StaticResource boolToVis}}" />
+                </Grid>
+                <TextBlock Visibility="{Binding LaunchRavenStudio, Converter={StaticResource boolToVis}}">
+                    <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding StorageUrl}">
+                        LAUNCH RAVENDB STUDIO
+                        <Hyperlink.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Command="{Binding CopyToClipboard}"
+                                          CommandParameter="{Binding StorageUrl}"
+                                          Header="Copy to Clipboard" />
+                            </ContextMenu>
+                        </Hyperlink.ContextMenu>
+                    </Hyperlink>
+                </TextBlock>
+
+
+                <Border Margin="0,40,0,20"
+                        BorderBrush="{StaticResource Gray90Brush}"
+                        BorderThickness="0,0,0,1">
+                    <TextBlock FontSize="13px"
+                               FontWeight="Bold"
+                               Text="REMOVE INSTANCE" />
+                </Border>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock FontSize="12px">
+                        Warn user about this destructive action!
+                    </TextBlock>
+                    <Button Grid.Row="1"
+                            Command="{Binding DeleteCommand}"
+                            CommandParameter="{Binding}"
+                            Content="Remove"
+                            Style="{StaticResource ErrorButton}" />
+                </Grid>
+            </StackPanel>
+
+            <Border Grid.Row="0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Background="#CCFFFFFF"
+                    Visibility="{Binding InProgress,
+                                         Converter={StaticResource boolToVis}}">
+                <Border.Resources>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="HorizontalAlignment" Value="Center" />
+                        <Setter Property="FontSize" Value="14" />
+                    </Style>
+                </Border.Resources>
+
+                <Border HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Background="White">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   FontWeight="Bold"
+                                   Text="{Binding ProgressTitle}" />
+                        <ProgressBar Grid.Row="1"
+                                     Width="420"
+                                     Height="20"
+                                     IsIndeterminate="{Binding ProgressIndeterminate}"
+                                     Maximum="100"
+                                     Value="{Binding ProgressPercent}" />
+                        <TextBlock Grid.Row="2" Text="{Binding ProgressMessage}" />
+                    </Grid>
+                </Border>
+            </Border>
+
+            <Grid Grid.Row="1"
+                  Margin="60,40"
+                  HorizontalAlignment="Right">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="1"
+                        Command="{Binding Cancel}"
+                        Content="Done"
+                        IsCancel="True" />
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

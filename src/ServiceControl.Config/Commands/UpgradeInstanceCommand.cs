@@ -13,6 +13,7 @@
     using ServiceControl.Config.Xaml.Controls;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
+    using ServiceControlInstaller.Engine.ReportCard;
 
     class UpgradeInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
@@ -28,9 +29,9 @@
             this.installer = installer;
         }
 
-        public override async Task ExecuteAsync(InstanceDetailsViewModel instanceViewModel)
+        public override async Task ExecuteAsync(InstanceDetailsViewModel model)
         {
-            var instance = ServiceControlInstance.FindByName(instanceViewModel.Name);
+            var instance = ServiceControlInstance.FindByName(model.Name);
             instance.Service.Refresh();
 
             var upgradeOptions = new InstanceUpgradeOptions();
@@ -46,7 +47,6 @@
                 }
                 upgradeOptions.OverrideEnableErrorForwarding = !result.Value;
             }
-
             
             //Grab old setting if it exists
             if (!instance.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
@@ -113,17 +113,29 @@
             }
             
             var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
-                          windowManager.ShowMessage($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{instanceViewModel.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}. Do you want to proceed?");
+                          windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", "Do you want to proceed?", "Yes I want to proceed", "No");
             
             if (confirm)
             {
-                using (var progress = instanceViewModel.GetProgressObject("UPGRADING " + instanceViewModel.Name))
+                using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
                 {
-                    instance.Service.Refresh();
-                    var isRunning = instance.Service.Status == ServiceControllerStatus.Running;
-                    if (isRunning) await instanceViewModel.StopService();
+                    var reportCard = new ReportCard();
+                    var restartAgain = model.IsRunning;
 
-                    var reportCard = await Task.Run(() => installer.Upgrade(instanceViewModel.Name, upgradeOptions, progress));
+                    var stopped = await model.StopService(progress);
+
+                    if (!stopped)
+                    {
+                        eventAggregator.PublishOnUIThread(new RefreshInstances());
+                        
+                        reportCard.Errors.Add("Failed to stop the service");
+                        reportCard.SetStatus();
+                        windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", String.Empty);
+
+                        return;
+                    }
+
+                    reportCard = await Task.Run(() => installer.Upgrade(model.Name, upgradeOptions, progress));
 
                     if (reportCard.HasErrors || reportCard.HasWarnings)
                     {
@@ -131,7 +143,10 @@
                     }
                     else
                     {
-                        if (isRunning) await instanceViewModel.StartService();
+                        if (restartAgain)
+                        {
+                            await model.StartService(progress);
+                        }
                     }
                 }
             }

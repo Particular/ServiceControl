@@ -72,7 +72,7 @@
         </Viewbox>
     </ControlTemplate>
 
-    <ControlTemplate x:Key="MaintenanceIcon">
+    <ControlTemplate x:Key="AdvanceIcon">
         <Viewbox Stretch="Uniform">
             <Canvas Width="24" Height="24">
                 <Ellipse Width="24"

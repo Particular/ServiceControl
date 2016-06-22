@@ -75,20 +75,17 @@
                     Visibility="{Binding AllowStart,
                                          Converter={StaticResource boolToVis}}" />
             <Button Margin="5,0"
-                    Command="{Binding StartInMaintenanceCommand}"
-                    Style="{StaticResource StartInMaintenanceButton}" />
-            <Button Margin="5,0"
                     Command="{Binding EditCommand}"
                     CommandParameter="{Binding DataContext,
                                                ElementName=root}"
                     Style="{StaticResource ConfigurationButton}" />
             <Button Margin="5,0"
-                    Command="{Binding DeleteCommand}"
-                    CommandParameter="{Binding}"
-                    Style="{StaticResource RemoveButton}" />
+                    Command="{Binding AdvanceOptionsCommand}"
+                    CommandParameter="{Binding DataContext,
+                                               ElementName=root}"
+                    Style="{StaticResource AdvanceOptionsButton}" />
         </StackPanel>
         <Border Grid.Row="2"
-                Grid.Column="0"
                 Grid.ColumnSpan="2"
                 HorizontalAlignment="Stretch"
                 BorderBrush="{StaticResource LightThemeBrush}"
@@ -114,6 +111,13 @@
                 <TextBlock Grid.Row="1" Visibility="{Binding AllowStop, Converter={StaticResource boolToVis}}">
                     <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding StorageUrl}">
                         LAUNCH RAVENDB STUDIO
+                        <Hyperlink.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Command="{Binding CopyToClipboard}"
+                                          CommandParameter="{Binding StorageUrl}"
+                                          Header="Copy to Clipboard" />
+                            </ContextMenu>
+                        </Hyperlink.ContextMenu>
                     </Hyperlink>
                 </TextBlock>
             </Grid>
@@ -203,6 +207,7 @@
                 <TextBlock FontSize="12px" Text="{Binding LogPath}" />
             </Hyperlink>
         </GroupBox>
+
         <Border Grid.Row="1"
                 Grid.RowSpan="8"
                 Grid.ColumnSpan="2"

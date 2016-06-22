@@ -28,31 +28,33 @@
 
             <RichTextBox Grid.Row="1"
                          Margin="0,24,0,28"
+                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message}"
                          Background="Transparent"
                          BorderThickness="0"
                          FontSize="14"
                          Foreground="{StaticResource WhiteBrush}"
                          IsReadOnly="True"
-                         IsReadOnlyCaretVisible="False"
-                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message}" />
+                         IsReadOnlyCaretVisible="False" />
 
             <StackPanel Grid.Row="2"
                         Margin="0,2,0,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Orientation="Horizontal">
-                <Button Width="100"
-                        Height="30"
+                <Button Height="30"
+                        MinWidth="100"
                         Margin="0"
                         Command="{Binding Ok}"
                         Content="{Binding AcceptText}"
-                        Padding="0"
+                        FontSize="14"
+                        Padding="3,0,3,0"
                         Style="{StaticResource HiliteButton}" />
                 <Button Width="100"
                         Height="30"
                         Margin="10,0,0,0"
                         Command="{Binding Cancel}"
                         Content="Cancel"
+                        FontSize="14"
                         IsCancel="True"
                         Padding="0" />
             </StackPanel>
