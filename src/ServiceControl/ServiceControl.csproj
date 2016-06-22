@@ -334,9 +334,10 @@
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SignalR\SerializationSettingsFactoryForSignalR.cs" />
-    <Compile Include="MessageFailures\Api\FailedMessageQueueViewIndex.cs" />
-    <Compile Include="MessageFailures\Api\FailedMessageQueueView.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageQueueModule.cs" />
+    <Compile Include="MessageFailures\Api\FailedMessageQueueIndex.cs" />
     <Compile Include="MessageFailures\Api\UnArchiveMessages.cs" />
+    <Compile Include="MessageFailures\FailedMessageQueue.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
