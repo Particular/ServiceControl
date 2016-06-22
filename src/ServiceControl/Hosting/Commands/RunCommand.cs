@@ -8,17 +8,26 @@
     {
         public override void Execute(HostArguments args)
         {
-            if (!Environment.UserInteractive)
+            if (!args.Portable && !Environment.UserInteractive)
             {
-                using (var service = new Host{ServiceName = args.ServiceName})
-                {
-                    service.Run();
-                }
-
+                RunNonBlocking(args);          
                 return;
             }
 
-            using (var service = new Host{ ServiceName = args.ServiceName} )
+            RunAndWait(args);
+        }
+
+        void RunNonBlocking(HostArguments args)
+        {
+            using (var service = new Host { ServiceName = args.ServiceName })
+            {
+                service.Run(false);
+            }
+        }
+
+        void RunAndWait(HostArguments args)
+        {
+            using (var service = new Host { ServiceName = args.ServiceName })
             {
                 using (var waitHandle = new ManualResetEvent(false))
                 {
@@ -28,7 +37,7 @@
                         waitHandle.Set();
                     };
 
-                    service.Run();
+                    service.Run(args.Portable || Environment.UserInteractive);
 
                     var r = new CancelWrapper(waitHandle, service);
                     Console.CancelKeyPress += r.ConsoleOnCancelKeyPress;
