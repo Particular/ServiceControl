@@ -44,6 +44,23 @@
                 return HttpStatusCode.Accepted;
             };
 
+            Post["/errors/{failedqueueaddress}/retry"] = parameters =>
+            {
+                string failedQueueAddress = parameters.failedqueueaddress;
+
+                if (string.IsNullOrWhiteSpace(failedQueueAddress))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+
+                Bus.SendLocal<RetryMessagesByFailedQueueAddress>(m =>
+                {
+                    m.FailedQueueAddress = failedQueueAddress;
+                });
+
+                return HttpStatusCode.Accepted;
+            };
+
             Post["/errors/retry/all"] = _ =>
             {
                 var request = new RequestRetryAll();

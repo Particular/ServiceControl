@@ -512,6 +512,7 @@
     <Compile Include="Recoverability\Retries\RetryBatchStatus.cs" />
     <Compile Include="Recoverability\Retries\RetryDocumentManager.cs" />
     <Compile Include="Recoverability\Retries\Handlers\RetryHandlerForBackwardsCompatability.cs" />
+    <Compile Include="Recoverability\Retries\RetryMessagesByFailedQueueAddress.cs" />
     <Compile Include="Recoverability\Retries\RetryMessagesById.cs" />
     <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />

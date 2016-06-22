@@ -9,7 +9,8 @@ namespace ServiceControl.Recoverability
     public class RetriesHandler : IHandleMessages<RequestRetryAll>,
         IHandleMessages<RetryMessagesById>,
         IHandleMessages<RetryMessage>,
-        IHandleMessages<MessageFailedRepeatedly>
+        IHandleMessages<MessageFailedRepeatedly>,
+        IHandleMessages<RetryMessagesByFailedQueueAddress>
     {
         public RetriesGateway Retries { get; set; }
         public RetryDocumentManager RetryDocumentManager { get; set; }
@@ -39,6 +40,13 @@ namespace ServiceControl.Recoverability
         public void Handle(MessageFailedRepeatedly message)
         {
             RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+        }
+
+        public void Handle(RetryMessagesByFailedQueueAddress message)
+        {
+            var failedQueueAddress = message.FailedQueueAddress.ToLowerInvariant();
+
+            Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(m => m.FailedQueueAddress == failedQueueAddress, "all messages for failed queue address" + message.FailedQueueAddress);
         }
     }
 }
