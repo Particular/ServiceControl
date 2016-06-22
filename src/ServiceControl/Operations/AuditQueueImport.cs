@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Threading;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -99,8 +98,7 @@
             }
             catch (Exception messageForwardingException)
             {
-                //This call to RaiseCriticalError has to be on a seperate thread  otherwise it deadlocks and doesn't stop correctly.  
-                ThreadPool.QueueUserWorkItem(state => CriticalError.Raise("Audit Import cannot start", messageForwardingException));
+                CriticalError.Raise("Audit Import cannot start", messageForwardingException);
                 return true;
             }
         }
