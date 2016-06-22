@@ -20,6 +20,7 @@
                     TimeSent = (DateTime?)rec.MessageMetadata["TimeSent"],
                     MessageId = rec.MessageMetadata["MessageId"],
                     rec.FailureDetails.Exception,
+                    FailedQueueAddress = rec.FailureDetails.AddressOfFailingEndpoint,
                     NumberOfProcessingAttempts = failure.ProcessingAttempts.Count,
                     failure.Status,
                     TimeOfFailure = rec.FailureDetails.TimeOfFailure,

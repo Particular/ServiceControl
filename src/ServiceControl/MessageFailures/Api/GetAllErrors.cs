@@ -22,7 +22,7 @@
                         .FilterByStatusWhere(Request)
                         .FilterByLastModifiedRange(Request)
                         .QueryResult;
-                    
+
                     return Negotiate
                         .WithTotalCount(queryResult.TotalResults)
                         .WithEtagAndLastModified(queryResult.IndexEtag, queryResult.IndexTimestamp);
@@ -40,12 +40,13 @@
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
                         .FilterByLastModifiedRange(Request)
+                        .FilterByFailedQueueAddress(Request)
                         .Sort(Request)
                         .Paging(Request)
                         .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                         .SelectFields<FailedMessageView>()
                         .ToArray();
-                        
+
                     return Negotiate
                         .WithModel(results)
                         .WithPagingLinksAndTotalCount(stats, Request)
@@ -72,7 +73,7 @@
                         .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                         .SelectFields<FailedMessageView>()
                         .ToArray();
-                    
+
                     return Negotiate
                         .WithModel(results)
                         .WithPagingLinksAndTotalCount(stats, Request)
