@@ -79,6 +79,8 @@
 
         public string HostNameWarning { get; set; }
 
+        public string SelectedTransportWarning { get; set; }
+
         public string PortNumber { get; set; }
 
         public string Description { get; set; }
@@ -159,6 +161,8 @@
             {
                 ConnectionString = null;
                 selectedTransport = value;
+
+                SelectedTransportWarning = selectedTransport.Warning;
             }
         }
 
