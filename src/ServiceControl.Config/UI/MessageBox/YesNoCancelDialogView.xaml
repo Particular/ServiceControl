@@ -61,7 +61,7 @@
                         Command="{Binding Yes}"
                         Content="{Binding YesText}"
                         FontSize="14"
-                        Padding="3,0,3,0"
+                        Padding="10,2,10,2"
                         Style="{StaticResource HiliteButton}" />
                 <Button Height="30"
                         MinWidth="100"
@@ -69,7 +69,7 @@
                         Command="{Binding No}"
                         Content="{Binding NoText}"
                         FontSize="14"
-                        Padding="3,0,3,0" />
+                        Padding="10,2,10,2" />
                 <Button Height="30"
                         MinWidth="100"
                         Margin="10,0,0,0"
@@ -77,7 +77,7 @@
                         Content="Cancel"
                         FontSize="14"
                         IsCancel="True"
-                        Padding="0"
+                        Padding="10,2,10,2"
                         Visibility="{Binding ShowCancelButton,
                                              Converter={StaticResource boolToVis}}" />
             </StackPanel>
