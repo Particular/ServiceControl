@@ -416,7 +416,7 @@
 
                         <Border.ToolTip>
                             <ToolTip Style="{StaticResource IconButtonToolTipStyle}" VerticalOffset="{TemplateBinding Height, Converter={StaticResource negate}}">
-                                <TextBlock Text="ADVANCE OPTIONS" />
+                                <TextBlock Text="ADVANCED OPTIONS" />
                             </ToolTip>
                         </Border.ToolTip>
 

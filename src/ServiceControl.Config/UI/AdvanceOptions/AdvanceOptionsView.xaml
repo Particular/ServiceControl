@@ -7,32 +7,43 @@
              d:DesignHeight="300"
              d:DesignWidth="300"
              mc:Ignorable="d">
-    <ScrollViewer IsTabStop="False">
+    <ScrollViewer IsTabStop="False" VerticalScrollBarVisibility="Auto">
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
                 <RowDefinition Height="*" />
-                <RowDefinition Height="auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
+            
             <Grid.Resources>
                 <Style TargetType="{x:Type TextBlock}">
                     <Setter Property="FontSize" Value="14px" />
                 </Style>
             </Grid.Resources>
 
-            <StackPanel Grid.Row="0" Margin="60,0,60,0">
-                <Border Margin="0,40,0,20"
+            
+            <TextBlock Grid.Row="1"
+                    FontSize="18px"
+                    FontWeight="Bold"
+                    Text="{Binding Name}" Margin="60,0,60,0" VerticalAlignment="Center"/>
+
+            <StackPanel Grid.Row="2" Margin="60,10,60,0">
+                <Border Margin="0,0,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
                         BorderThickness="0,0,0,1">
                     <TextBlock FontSize="13px"
                                FontWeight="Bold"
                                Text="MAINTENANCE MODE" />
                 </Border>
-                <TextBlock FontSize="12px">
-                    Learn more about Maintenance Mode by visiting
-                    <Hyperlink Command="{Binding OpenUrl}" CommandParameter="http://docs.particular.net/servicecontrol/">
-                        http://docs.particular.net/servicecontrol/
-                    </Hyperlink>
+                <TextBlock FontSize="12px" TextWrapping="Wrap">
+                Maintenance mode enables access to the  RavenDB Management Studio and disables all message processing.
                 </TextBlock>
+                <TextBlock FontSize="12px" TextWrapping="Wrap" Foreground="Red" Margin="0,0,0,20">
+                While in maintenance mode ServiceInsight and ServicePulse will not be able to connect to this instance
+                </TextBlock>
+
+
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" />
@@ -40,15 +51,15 @@
                     <Button Command="{Binding StartServiceInMaintenanceModeCommand}"
                             CommandParameter="{Binding DataContext,
                                                        ElementName=root}"
-                            Content="Start instance in Maintenance Mode"
+                            Content="Start Maintenance Mode"
                             Visibility="{Binding InMaintenanceMode,
-                                                 Converter={StaticResource boolToVisInverted}}" />
+                                                 Converter={StaticResource boolToVisInverted}}" Style="{StaticResource ErrorButton}" Width="300" />
                     <Button Command="{Binding StopMaintenanceModeCommand}"
                             CommandParameter="{Binding DataContext,
                                                        ElementName=root}"
                             Content="Stop Maintenance Mode"
                             Visibility="{Binding InMaintenanceMode,
-                                                 Converter={StaticResource boolToVis}}" />
+                                                 Converter={StaticResource boolToVis}}" Width="300" />
                 </Grid>
                 <TextBlock Visibility="{Binding LaunchRavenStudio, Converter={StaticResource boolToVis}}">
                     <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding StorageUrl}">
@@ -63,13 +74,13 @@
                     </Hyperlink>
                 </TextBlock>
 
-
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
                         BorderThickness="0,0,0,1">
                     <TextBlock FontSize="13px"
                                FontWeight="Bold"
-                               Text="REMOVE INSTANCE" />
+                               Text="REMOVE INSTANCE"  
+                        />
                 </Border>
 
                 <Grid>
@@ -80,18 +91,18 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock FontSize="12px">
-                        Warn user about this destructive action!
+                    <TextBlock FontSize="12px" TextWrapping="Wrap" Margin="0,0,0,20">
+                        Remove the service instance and delete the installation directory.  Optionally database and logs folder can be removed
                     </TextBlock>
                     <Button Grid.Row="1"
                             Command="{Binding DeleteCommand}"
                             CommandParameter="{Binding}"
                             Content="Remove"
-                            Style="{StaticResource ErrorButton}" />
+                            Style="{StaticResource ErrorButton}" Width="300" HorizontalAlignment="Left"/>
                 </Grid>
             </StackPanel>
 
-            <Border Grid.Row="0"
+            <Border Grid.Row="2"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
                     Background="#CCFFFFFF"
@@ -128,8 +139,8 @@
                 </Border>
             </Border>
 
-            <Grid Grid.Row="1"
-                  Margin="60,40"
+            <Grid Grid.Row="3"
+                  Margin="40,40"
                   HorizontalAlignment="Right">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -137,7 +148,7 @@
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="1"
                         Command="{Binding Cancel}"
-                        Content="Done"
+                        Content="Back"
                         IsCancel="True" />
             </Grid>
         </Grid>
