@@ -21,7 +21,6 @@
                     <Setter Property="FontSize" Value="14px" />
                 </Style>
             </Grid.Resources>
-
             
             <TextBlock Grid.Row="1"
                     FontSize="18px"
@@ -36,34 +35,23 @@
                                FontWeight="Bold"
                                Text="MAINTENANCE MODE" />
                 </Border>
-                <TextBlock FontSize="12px" TextWrapping="Wrap">
-                Maintenance mode enables access to the  RavenDB Management Studio and disables all message processing.
-                </TextBlock>
-                <TextBlock FontSize="12px" TextWrapping="Wrap" Foreground="Red" Margin="0,0,0,20">
-                While in maintenance mode ServiceInsight and ServicePulse will not be able to connect to this instance
-                </TextBlock>
 
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto" />
-                    </Grid.ColumnDefinitions>
-                    <Button Command="{Binding StartServiceInMaintenanceModeCommand}"
-                            CommandParameter="{Binding DataContext,
-                                                       ElementName=root}"
-                            Content="Start Maintenance Mode"
-                            Visibility="{Binding InMaintenanceMode,
-                                                 Converter={StaticResource boolToVisInverted}}" Style="{StaticResource ErrorButton}" Width="300" />
-                    <Button Command="{Binding StopMaintenanceModeCommand}"
-                            CommandParameter="{Binding DataContext,
-                                                       ElementName=root}"
-                            Content="Stop Maintenance Mode"
-                            Visibility="{Binding InMaintenanceMode,
-                                                 Converter={StaticResource boolToVis}}" Width="300" />
-                </Grid>
-                <TextBlock Visibility="{Binding LaunchRavenStudio, Converter={StaticResource boolToVis}}">
-                    <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding StorageUrl}">
-                        LAUNCH RAVENDB STUDIO
+                <TextBlock FontSize="12px" 
+                           TextWrapping="Wrap" 
+                           Visibility="{Binding LaunchRavenStudio, Converter={StaticResource boolToVisInverted}}"
+                           Margin="0,0,0,20"
+                >
+                Enter database maintenance mode to access to RavenDB Management Studio.  While in this mode all message processing is disabled and the REST API is unavailable. This will prevent ServicePulse and ServiceInsight connecting to this instance.
+                </TextBlock>
+                
+                <TextBlock FontSize="12px" 
+                           TextWrapping="Wrap" 
+                           Visibility="{Binding LaunchRavenStudio, Converter={StaticResource boolToVis}}"
+                           Margin="0,0,0,20"
+                >
+                This instance is DB maintenance mode. All message processing is disabled and the REST API is unavailable.<LineBreak />Launch <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding StorageUrl}">
+                        RavenDB Management Studio
                         <Hyperlink.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Command="{Binding CopyToClipboard}"
@@ -71,35 +59,50 @@
                                           Header="Copy to Clipboard" />
                             </ContextMenu>
                         </Hyperlink.ContextMenu>
-                    </Hyperlink>
-                </TextBlock>
+                    </Hyperlink>  to carry out maintenance on the embedded database.</TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <Button Command="{Binding StartServiceInMaintenanceModeCommand}"
+                            CommandParameter="{Binding DataContext, ElementName=root}"
+                            Content="Start Maintenance Mode"
+                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVisInverted}}" Style="{StaticResource ErrorButton}" 
+                            Padding="10,10"
+                            Width="180"
+                            />
+                    
+                    <Button Command="{Binding StopMaintenanceModeCommand}"
+                            CommandParameter="{Binding DataContext, ElementName=root}"
+                            Content="Stop Maintenance Mode"
+                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}"  
+                            Padding="10,10"
+                            Width="180"
+                            />
+                </Grid>
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
                         BorderThickness="0,0,0,1">
-                    <TextBlock FontSize="13px"
+                        <TextBlock FontSize="13px"
                                FontWeight="Bold"
                                Text="REMOVE INSTANCE"  
                         />
                 </Border>
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock FontSize="12px" TextWrapping="Wrap" Margin="0,0,0,20">
-                        Remove the service instance and delete the installation directory.  Optionally database and logs folder can be removed
-                    </TextBlock>
-                    <Button Grid.Row="1"
-                            Command="{Binding DeleteCommand}"
-                            CommandParameter="{Binding}"
-                            Content="Remove"
-                            Style="{StaticResource ErrorButton}" Width="300" HorizontalAlignment="Left"/>
-                </Grid>
+                <TextBlock FontSize="12px" TextWrapping="Wrap" Margin="0,0,0,20" >
+                        Removing this instance of ServiceControl will delete the associated Windows service and installation directory.<LineBreak />The associated database and logs folder can be also removed via the confirmation dialog.
+                </TextBlock>
+                <Button
+                        Command="{Binding DeleteCommand}"
+                        CommandParameter="{Binding}"
+                        Content="Remove"
+                        Style="{StaticResource ErrorButton}"  HorizontalAlignment="Left"
+                        Padding="10,10"
+                        Width="180"
+                        />
+                
             </StackPanel>
 
             <Border Grid.Row="2"
