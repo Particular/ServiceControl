@@ -143,6 +143,23 @@ namespace Particular.ServiceControl
             documentStore.Dispose();
         }
 
+        static long DataSize()
+        {
+            var datafilePath = Path.Combine(Settings.DbPath, "data");
+
+            try
+            {
+                var info = new FileInfo(datafilePath);
+
+                return info.Length;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+            
+        }
+
         static void ConfigureLogging()
         {
             LogManager.Use<NLogFactory>();
@@ -153,8 +170,18 @@ namespace Particular.ServiceControl
                 return;
             }
 
+            var version = typeof(Bootstrapper).Assembly.GetName().Version;
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
+            var header = $@"-------------------------------------------------------------
+ServiceControl Version:				{version}
+Selected Transport:					{Settings.TransportType}
+Audit Retention Period:				{Settings.AuditRetentionPeriod}
+Error Retention Period:				{Settings.ErrorRetentionPeriod}
+Forwarding Error Messages:		{Settings.ForwardErrorMessages}
+Forwarding Audit Messages:		{Settings.ForwardAuditMessages}
+Database Size:							{DataSize()}bytes
+-------------------------------------------------------------";
 
             var fileTarget = new FileTarget
             {
@@ -164,8 +191,10 @@ namespace Particular.ServiceControl
                 ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
-                ArchiveAboveSize =  30 * megaByte
+                ArchiveAboveSize =  30 * megaByte,
+                Header = new SimpleLayout(header)
             };
+
 
             var ravenFileTarget = new FileTarget
             {
@@ -175,7 +204,8 @@ namespace Particular.ServiceControl
                 ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
-                ArchiveAboveSize = 30 * megaByte
+                ArchiveAboveSize = 30 * megaByte,
+                Header = new SimpleLayout(header)
             };
             
             var consoleTarget = new ColoredConsoleTarget
