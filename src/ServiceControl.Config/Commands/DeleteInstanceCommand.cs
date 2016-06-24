@@ -39,8 +39,11 @@
                     {
                         windowManager.ShowActionReport(reportCard, "ISSUES REMOVING INSTANCE", "Could not remove instance because of the following errors:", "There were some warnings while deleting the instance:");
                     }
+                    else
+                    {
+                        model.TryClose(true);
+                    }
                 }
-
                 eventAggregator.PublishOnUIThread(new RefreshInstances());
             }
         }
