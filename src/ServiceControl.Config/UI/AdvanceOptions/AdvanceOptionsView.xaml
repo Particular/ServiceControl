@@ -50,7 +50,7 @@
                            Visibility="{Binding LaunchRavenStudio, Converter={StaticResource boolToVis}}"
                            Margin="0,0,0,20"
                 >
-                This instance is DB maintenance mode. All message processing is disabled and the REST API is unavailable.<LineBreak />Launch <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding StorageUrl}">
+                This instance is in database maintenance mode. All message processing is disabled and the REST API is unavailable.<LineBreak />Launch <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding StorageUrl}">
                         RavenDB Management Studio
                         <Hyperlink.ContextMenu>
                             <ContextMenu>
