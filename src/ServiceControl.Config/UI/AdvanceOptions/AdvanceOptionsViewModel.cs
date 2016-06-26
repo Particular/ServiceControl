@@ -11,16 +11,22 @@
     using ServiceControl.Config.Events;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Rx;
+    using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
 
     class AdvanceOptionsViewModel : RxProgressScreen, IHandle<RefreshInstances>
     {
+        
         public AdvanceOptionsViewModel(ServiceControlInstance instance, IEventAggregator eventAggregator, StartServiceInMaintenanceModeCommand maintenanceModeCommand, DeleteInstanceCommand deleteInstanceCommand)
         {
             ServiceControlInstance = instance;
             DisplayName = "ADVANCED OPTIONS";
 
-            StartServiceInMaintenanceModeCommand = maintenanceModeCommand;
+            StartServiceInMaintenanceModeCommand = new ReactiveCommand().DoAsync(async _ =>
+            {
+                await  maintenanceModeCommand.ExecuteAsync(this);
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
+            });
             DeleteCommand = deleteInstanceCommand;
             OpenUrl = new OpenURLCommand();
             CopyToClipboard = new CopyToClipboardCommand();
@@ -32,7 +38,6 @@
             Cancel = Command.Create(() =>
             {
                 TryClose(false);
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
             }, () => !InProgress);
         }
 
@@ -40,6 +45,8 @@
 
         public ICommand StartServiceInMaintenanceModeCommand { get; set; }
         public ICommand StopMaintenanceModeCommand { get; set; }
+
+        public bool MaintenanceModeSupported => ServiceControlInstance.Version >= SettingsList.MaintenanceMode.SupportedFrom;
 
         public ICommand DeleteCommand { get; set; }
 
@@ -75,6 +82,7 @@
                 });
 
                 return result;
+
             }
             finally
             {
@@ -99,7 +107,7 @@
                 }
             }
         }
-
+        
         public bool IsStopped
         {
             get
@@ -145,6 +153,6 @@
             NotifyOfPropertyChange("IsStopped");
             NotifyOfPropertyChange("InMaintenanceMode");
             NotifyOfPropertyChange("LaunchRavenStudio");
-        }
+         }
     }
 }

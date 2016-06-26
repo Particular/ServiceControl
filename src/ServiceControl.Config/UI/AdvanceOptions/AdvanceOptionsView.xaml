@@ -21,13 +21,17 @@
                     <Setter Property="FontSize" Value="14px" />
                 </Style>
             </Grid.Resources>
+
+            <!--Instance Title -->
             
             <TextBlock Grid.Row="1"
                     FontSize="18px"
                     FontWeight="Bold"
                     Text="{Binding Name}" Margin="60,0,60,0" VerticalAlignment="Center"/>
 
+            <!-- Maintenance Section-->
             <StackPanel Grid.Row="2" Margin="60,10,60,0">
+                <StackPanel  Visibility="{Binding MaintenanceModeSupported, Converter={StaticResource boolToVis}}" Margin="0,0,0,30">
                 <Border Margin="0,0,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
                         BorderThickness="0,0,0,1">
@@ -68,7 +72,8 @@
                     <Button Command="{Binding StartServiceInMaintenanceModeCommand}"
                             CommandParameter="{Binding DataContext, ElementName=root}"
                             Content="Start Maintenance Mode"
-                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVisInverted}}" Style="{StaticResource ErrorButton}" 
+                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVisInverted}}" 
+                            Style="{StaticResource ErrorButton}" 
                             Padding="10,10"
                             Width="180"
                             />
@@ -76,13 +81,16 @@
                     <Button Command="{Binding StopMaintenanceModeCommand}"
                             CommandParameter="{Binding DataContext, ElementName=root}"
                             Content="Stop Maintenance Mode"
+                            Style="{StaticResource HiliteButton}" 
                             Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}"  
                             Padding="10,10"
                             Width="180"
                             />
                 </Grid>
-
-                <Border Margin="0,40,0,20"
+                </StackPanel>
+                
+                <!-- Removal Section-->
+                <Border Margin="0,0,0,0"
                         BorderBrush="{StaticResource Gray90Brush}"
                         BorderThickness="0,0,0,1">
                         <TextBlock FontSize="13px"
@@ -91,19 +99,25 @@
                         />
                 </Border>
 
-                <TextBlock FontSize="12px" TextWrapping="Wrap" Margin="0,0,0,20" >
+                <TextBlock FontSize="12px" 
+                           TextWrapping="Wrap" 
+                           Margin="0,0,0,20">
                         Removing this instance of ServiceControl will delete the associated Windows service and installation directory.<LineBreak />The associated database and logs folder can be also removed via the confirmation dialog.
                 </TextBlock>
                 <Button
                         Command="{Binding DeleteCommand}"
                         CommandParameter="{Binding}"
                         Content="Remove"
-                        Style="{StaticResource ErrorButton}"  HorizontalAlignment="Left"
+                        Style="{StaticResource ErrorButton}" 
+                        HorizontalAlignment="Left"
                         Padding="10,10"
                         Width="180"
                         />
                 
             </StackPanel>
+
+
+            <!-- Progress Bar -->
 
             <Border Grid.Row="2"
                     HorizontalAlignment="Stretch"
@@ -142,9 +156,12 @@
                 </Border>
             </Border>
 
+            <!-- Back Button -->
+           
             <Grid Grid.Row="3"
                   Margin="40,40"
-                  HorizontalAlignment="Right">
+                  HorizontalAlignment="Right" Visibility="{Binding InProgress,
+                                         Converter={StaticResource boolToVisInverted}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="auto" />

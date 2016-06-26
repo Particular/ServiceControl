@@ -19,6 +19,6 @@ namespace ServiceControlInstaller.Engine.Configuration
         public static SettingInfo AuditRetentionPeriod = new SettingInfo { Name = "ServiceControl/AuditRetentionPeriod", SupportedFrom = new Version(1, 12, 1) };
         public static SettingInfo ErrorRetentionPeriod = new SettingInfo { Name = "ServiceControl/ErrorRetentionPeriod", SupportedFrom = new Version(1, 12, 1) };
         public static SettingInfo HoursToKeepMessagesBeforeExpiring = new SettingInfo{Name = "ServiceControl/HoursToKeepMessagesBeforeExpiring", RemovedFrom = new Version(1, 12, 1)};
-        public static SettingInfo MaintenanceMode = new SettingInfo { Name = "ServiceControl/MaintenanceMode" };
+        public static SettingInfo MaintenanceMode = new SettingInfo { Name = "ServiceControl/MaintenanceMode", SupportedFrom = new Version(1, 18, 1) };
     }
 }

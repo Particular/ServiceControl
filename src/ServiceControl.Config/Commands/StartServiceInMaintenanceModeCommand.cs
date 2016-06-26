@@ -51,7 +51,6 @@
                         return model.ServiceControlInstance.TryStartService();
                     });
 
-                    eventAggregator.PublishOnUIThread(new RefreshInstances());
 
                     if (!started)
                     {
@@ -62,6 +61,7 @@
                     }
                 }
             }
+            eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
     }
 }
