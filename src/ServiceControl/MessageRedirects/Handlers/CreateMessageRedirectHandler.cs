@@ -23,7 +23,7 @@
 
             Bus.Publish(new MessageRedirectCreated
             {
-                MessageRedirectId = messageRedirect.Id,
+                MessageRedirectId = message.MessageRedirectId,
                 FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
                 ToPhysicalAddress = messageRedirect.ToPhysicalAddress
             });

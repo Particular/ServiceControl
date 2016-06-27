@@ -4,7 +4,7 @@
 
     public class MessageRedirectCreated
     {
-        public string MessageRedirectId { get; set; }
+        public Guid MessageRedirectId { get; set; }
         public string FromPhysicalAddress { get; set; }
         public string ToPhysicalAddress { get; set; }
     }
