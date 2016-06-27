@@ -73,7 +73,6 @@
                             CommandParameter="{Binding DataContext, ElementName=root}"
                             Content="Start Maintenance Mode"
                             Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVisInverted}}" 
-                            Style="{StaticResource ErrorButton}" 
                             Padding="10,10"
                             Width="180"
                             />
@@ -81,7 +80,6 @@
                     <Button Command="{Binding StopMaintenanceModeCommand}"
                             CommandParameter="{Binding DataContext, ElementName=root}"
                             Content="Stop Maintenance Mode"
-                            Style="{StaticResource HiliteButton}" 
                             Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}"  
                             Padding="10,10"
                             Width="180"
