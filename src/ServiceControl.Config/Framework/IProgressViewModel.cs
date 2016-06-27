@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.Framework
 {
     using System;
+    using System.Windows.Input;
 
     public interface IProgressViewModel
     {
@@ -67,6 +68,7 @@
             public void Dispose()
             {
                 viewModel.InProgress = false;
+                CommandManager.InvalidateRequerySuggested();
             }
         }
     }
