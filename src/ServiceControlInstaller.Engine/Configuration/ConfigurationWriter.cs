@@ -30,7 +30,7 @@
         public void EnableMaintenanceMode()
         {
             var settings = configuration.AppSettings.Settings;
-            settings.Set(SettingsList.MaintenanceMode, Boolean.TrueString);
+            settings.Set(SettingsList.MaintenanceMode, Boolean.TrueString, details.Version);
             configuration.Save();
         }
 
