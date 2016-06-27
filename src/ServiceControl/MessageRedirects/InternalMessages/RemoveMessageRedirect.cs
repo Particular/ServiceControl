@@ -2,7 +2,7 @@
 
 namespace ServiceControl.MessageRedirects.InternalMessages
 {
-    public class EndMessageRedirect
+    public class RemoveMessageRedirect
     {
         public Guid MessageRedirectId { get; set; }
     }

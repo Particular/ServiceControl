@@ -272,6 +272,7 @@
     <Compile Include="Contracts\MessageFailures\MessageFailuresUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\MessageSubmittedForRetry.cs" />
     <Compile Include="Contracts\MessageRedirects\MessageRedirectCreated.cs" />
+    <Compile Include="Contracts\MessageRedirects\MessageRedirectRemoved.cs" />
     <Compile Include="Contracts\Operations\EndpointDetails.cs" />
     <Compile Include="Contracts\EndpointControl\MonitoringDisabledForEndpoint.cs" />
     <Compile Include="Contracts\Operations\DefaultEnrichers.cs" />
@@ -349,9 +350,9 @@
     <Compile Include="MessageRedirects\Api\MessageRedirectsModule.cs" />
     <Compile Include="MessageRedirects\Api\RavenQueryableExtensions.cs" />
     <Compile Include="MessageRedirects\Handlers\CreateMessageRedirectHandler.cs" />
-    <Compile Include="MessageRedirects\Handlers\EndMessageRedirectHandler.cs" />
+    <Compile Include="MessageRedirects\Handlers\RemoveMessageRedirectHandler.cs" />
     <Compile Include="MessageRedirects\InternalMessages\CreateMessageRedirect.cs" />
-    <Compile Include="MessageRedirects\InternalMessages\EndMessageRedirect.cs" />
+    <Compile Include="MessageRedirects\InternalMessages\RemoveMessageRedirect.cs" />
     <Compile Include="MessageRedirects\MessageRedirect.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
