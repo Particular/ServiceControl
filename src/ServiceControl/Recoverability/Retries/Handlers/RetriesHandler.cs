@@ -10,7 +10,7 @@ namespace ServiceControl.Recoverability
         IHandleMessages<RetryMessagesById>,
         IHandleMessages<RetryMessage>,
         IHandleMessages<MessageFailedRepeatedly>,
-        IHandleMessages<RetryMessagesByFailedQueueAddress>
+        IHandleMessages<RetryMessagesByQueueAddress>
     {
         public RetriesGateway Retries { get; set; }
         public RetryDocumentManager RetryDocumentManager { get; set; }
@@ -42,11 +42,11 @@ namespace ServiceControl.Recoverability
             RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
         }
 
-        public void Handle(RetryMessagesByFailedQueueAddress message)
+        public void Handle(RetryMessagesByQueueAddress message)
         {
-            var failedQueueAddress = message.FailedQueueAddress.ToLowerInvariant();
+            var failedQueueAddress = message.QueueAddress.ToLowerInvariant();
 
-            Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(m => m.FailedQueueAddress == failedQueueAddress, "all messages for failed queue address" + message.FailedQueueAddress);
+            Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(m => m.QueueAddress == failedQueueAddress && m.Status == message.Status, "all messages for failed queue address" + message.QueueAddress);
         }
     }
 }

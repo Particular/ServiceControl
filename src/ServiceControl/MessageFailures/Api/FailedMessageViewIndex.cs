@@ -15,7 +15,7 @@ namespace ServiceControl.MessageFailures.Api
             public string MessageType { get; set; }
             public FailedMessageStatus Status { get; set; }
             public string ReceivingEndpointName { get; set; }
-            public string FailedQueueAddress { get; set; }
+            public string QueueAddress { get; set; }
             public DateTime TimeOfFailure { get; set; }
             public long LastModified { get; set; }
         }
@@ -31,7 +31,7 @@ namespace ServiceControl.MessageFailures.Api
                     message.Status,
                     TimeSent = (DateTime) processingAttemptsLast.MessageMetadata["TimeSent"],
                     ReceivingEndpointName = ((EndpointDetails) processingAttemptsLast.MessageMetadata["ReceivingEndpoint"]).Name,
-                    FailedQueueAddress = processingAttemptsLast.FailureDetails.AddressOfFailingEndpoint,
+                    QueueAddress = processingAttemptsLast.FailureDetails.AddressOfFailingEndpoint.ToLowerInvariant(),
                     TimeOfFailure = processingAttemptsLast.FailureDetails.TimeOfFailure,
                     LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
                 };

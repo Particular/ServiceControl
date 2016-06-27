@@ -40,7 +40,7 @@
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
                         .FilterByLastModifiedRange(Request)
-                        .FilterByFailedQueueAddress(Request)
+                        .FilterByQueueAddress(Request)
                         .Sort(Request)
                         .Paging(Request)
                         .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)

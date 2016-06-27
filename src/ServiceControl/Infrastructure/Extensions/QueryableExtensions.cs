@@ -215,22 +215,22 @@ namespace ServiceControl.Infrastructure.Extensions
             return source;
         }
 
-        public static IDocumentQuery<T> FilterByFailedQueueAddress<T>(this IDocumentQuery<T> source, Request request)
+        public static IDocumentQuery<T> FilterByQueueAddress<T>(this IDocumentQuery<T> source, Request request)
         {
-            string failedQueueAddress = null;
+            string queueAddress = null;
 
-            if ((bool) request.Query.failedqueueaddress.HasValue)
+            if ((bool) request.Query.queueaddress.HasValue)
             {
-                failedQueueAddress = (string) request.Query.failedqueueaddress;
+                queueAddress = (string) request.Query.queueaddress;
             }
 
-            if (string.IsNullOrWhiteSpace(failedQueueAddress))
+            if (string.IsNullOrWhiteSpace(queueAddress))
             {
                 return source;
             }
 
             source.AndAlso();
-            source.WhereEquals("FailedQueueAddress", failedQueueAddress);
+            source.WhereEquals("QueueAddress", queueAddress.ToLowerInvariant());
 
             return source;
         }
