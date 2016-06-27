@@ -17,6 +17,7 @@
 
         public MessageRedirectsModule()
         {
+
             Post["/redirects"] = parameters =>
             {
                 var message = new CreateMessageRedirect
@@ -54,11 +55,39 @@
                 return HttpStatusCode.Created;
             };
 
+            Put["/redirects/{messageredirectid}"] = parameters =>
+            {
+                Guid oldMessageRedirectId = parameters.messageredirectid;
+
+                var message = new CreateMessageRedirect
+                {
+                    FromPhysicalAddress = parameters.fromphysicaladdress,
+                    ToPhysicalAddress = parameters.tophysicaladdress
+                };
+
+                if (string.IsNullOrWhiteSpace(message.FromPhysicalAddress) || string.IsNullOrWhiteSpace(message.ToPhysicalAddress))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+
+                message.MessageRedirectId = DeterministicGuid.MakeId(message.FromPhysicalAddress, message.ToPhysicalAddress);
+
+                Bus.SendLocal(new RemoveMessageRedirect
+                {
+                    MessageRedirectId = oldMessageRedirectId
+                });
+
+                Bus.SendLocal(message);
+
+                return Negotiate.WithStatusCode(HttpStatusCode.Accepted);
+            };
+
             Delete["/redirects/{messageredirectid}"] = parameters =>
             {
+
                 Guid messageRedirectId = parameters.messageredirectid;
 
-                Bus.SendLocal(new EndMessageRedirect
+                Bus.SendLocal(new RemoveMessageRedirect
                 {
                     MessageRedirectId = messageRedirectId
                 });
@@ -109,5 +138,7 @@
                 }
             };
         }
+
+        private
     }
 }
