@@ -144,15 +144,12 @@
             }
         }
 
-        public bool LaunchRavenStudio => AllowStop && InMaintenanceMode;
-
         public void Handle(RefreshInstances message)
         {
             NotifyOfPropertyChange("AllowStop");
             NotifyOfPropertyChange("IsRunning");
             NotifyOfPropertyChange("IsStopped");
             NotifyOfPropertyChange("InMaintenanceMode");
-            NotifyOfPropertyChange("LaunchRavenStudio");
          }
     }
 }
