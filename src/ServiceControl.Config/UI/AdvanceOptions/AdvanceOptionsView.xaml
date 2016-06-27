@@ -102,7 +102,7 @@
                 <TextBlock FontSize="12px" 
                            TextWrapping="Wrap" 
                            Margin="0,0,0,20">
-                        Removing this instance of ServiceControl will delete the associated Windows service and installation directory.<LineBreak />The associated database and logs folder can be also removed via the confirmation dialog.
+                        Removing this instance of ServiceControl will delete the associated Windows service and installation directory.<LineBreak />The associated database and logs can be also removed via the confirmation dialog.
                 </TextBlock>
                 <Button
                         Command="{Binding DeleteCommand}"
