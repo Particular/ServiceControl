@@ -54,7 +54,7 @@
                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}"
                            Margin="0,0,0,20"
                 >
-                This instance is in database maintenance mode. All message processing is disabled and the REST API is unavailable.<LineBreak />Launch <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding StorageUrl}">
+                This instance is in database maintenance mode. All message processing is disabled and the REST API is unavailable.<LineBreak />ServicePulse and ServiceInsight cannot connect to this instance while it is in maintenance mode.<LineBreak />Launch <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding StorageUrl}">
                         RavenDB Management Studio
                         <Hyperlink.ContextMenu>
                             <ContextMenu>
