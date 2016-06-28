@@ -38,7 +38,7 @@
 
     public static class ProgressViewModelExtensions
     {
-        public static IProgressObject GetProgressObject(this IProgressViewModel progressViewModel, string progressTitle)
+        public static IProgressObject GetProgressObject(this IProgressViewModel progressViewModel, string progressTitle = "")
         {
             progressViewModel.ProgressTitle = progressTitle;
             return new Progress(progressViewModel);

@@ -29,7 +29,7 @@
 
             if (confirm)
             {
-                using (var progress = model.GetProgressObject(String.Empty))
+                using (var progress = model.GetProgressObject("Stopping Service"))
                 {
                     var stopped = await model.StopService(progress);
 
