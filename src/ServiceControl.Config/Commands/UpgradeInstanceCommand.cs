@@ -21,6 +21,10 @@
         private readonly Installer installer;
         private readonly IWindowManagerEx windowManager;
 
+        public UpgradeInstanceCommand(Func<InstanceDetailsViewModel, bool> canExecuteMethod = null) : base(canExecuteMethod)
+        {
+        }
+
         public UpgradeInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, Installer installer)
         {
             this.windowManager = windowManager;
@@ -130,7 +134,7 @@
                         
                         reportCard.Errors.Add("Failed to stop the service");
                         reportCard.SetStatus();
-                        windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", String.Empty);
+                        windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
 
                         return;
                     }
@@ -139,7 +143,7 @@
 
                     if (reportCard.HasErrors || reportCard.HasWarnings)
                     {
-                        windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading  the instance:");
+                        windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
                     }
                     else
                     {
@@ -149,9 +153,8 @@
                         }
                     }
                 }
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
             }
-
-            eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
     }
 }

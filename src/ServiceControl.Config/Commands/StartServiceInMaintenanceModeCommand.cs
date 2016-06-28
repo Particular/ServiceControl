@@ -39,7 +39,7 @@
                         var reportCard = new ReportCard();
                         reportCard.Errors.Add("Failed to stop the service");
                         reportCard.SetStatus();
-                        windowManager.ShowActionReport(reportCard, "ISSUES STARTING INSTANCE IN MAINTENANCE MODE", "There were some errors when attempting to start instance in Maintenance Mode:", String.Empty);
+                        windowManager.ShowActionReport(reportCard, "ISSUES STARTING INSTANCE IN MAINTENANCE MODE", "There were some errors when attempting to start instance in Maintenance Mode:");
 
                         return;
                     }
@@ -57,7 +57,7 @@
                         var reportCard = new ReportCard();
                         reportCard.Warnings.Add("Failed to start the service");
                         reportCard.SetStatus();
-                        windowManager.ShowActionReport(reportCard, "ISSUES STARTING INSTANCE IN MAINTENANCE MODE", "There were some warnings when attempting to start instance in Maintenance Mode:", String.Empty);
+                        windowManager.ShowActionReport(reportCard, "ISSUES STARTING INSTANCE IN MAINTENANCE MODE", "There were some warnings when attempting to start instance in Maintenance Mode:");
                     }
                 }
             }
