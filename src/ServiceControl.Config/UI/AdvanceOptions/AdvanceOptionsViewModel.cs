@@ -62,6 +62,31 @@
 
         public string StorageUrl => ServiceControlInstance.StorageUrl;
 
+        public async Task<bool> StartServiceInMaintenanceMode(IProgressObject progress)
+        {
+            var disposeProgress = progress == null;
+            var result = false;
+            try
+            {
+                progress = progress ?? this.GetProgressObject();
+
+                progress.Report(new ProgressDetails("Starting Service"));
+                await Task.Run(() => {
+                    ServiceControlInstance.EnableMaintenanceMode();
+                    result = ServiceControlInstance.TryStartService();
+                });
+
+                return result;
+            }
+            finally
+            {
+                if (disposeProgress)
+                {
+                    progress.Dispose();
+                }
+            }
+        }
+
         public async Task<bool> StopService(IProgressObject progress = null)
         {
             var disposeProgress = progress == null;
@@ -69,7 +94,7 @@
 
             try
             {
-                progress = progress ?? this.GetProgressObject(String.Empty);
+                progress = progress ?? this.GetProgressObject();
 
                 progress.Report(new ProgressDetails("Stopping Service"));
                 await Task.Run(() =>
@@ -151,5 +176,7 @@
             NotifyOfPropertyChange("IsStopped");
             NotifyOfPropertyChange("InMaintenanceMode");
          }
+
+        
     }
 }

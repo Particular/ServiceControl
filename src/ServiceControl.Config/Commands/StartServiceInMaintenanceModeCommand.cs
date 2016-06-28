@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Config.Commands
 {
-    using System;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using ServiceControl.Config.Events;
@@ -29,7 +28,7 @@
 
             if (confirm)
             {
-                using (var progress = model.GetProgressObject("Stopping Service"))
+                using (var progress = model.GetProgressObject())
                 {
                     var stopped = await model.StopService(progress);
 
@@ -40,17 +39,10 @@
                         reportCard.Errors.Add("Failed to stop the service");
                         reportCard.SetStatus();
                         windowManager.ShowActionReport(reportCard, "ISSUES STARTING INSTANCE IN MAINTENANCE MODE", "There were some errors when attempting to start instance in Maintenance Mode:");
-
                         return;
                     }
-
-                    progress.Report(new ProgressDetails("Starting Service in Maintenance Mode"));
-                    var started = await Task.Run(() =>
-                    {
-                        model.ServiceControlInstance.EnableMaintenanceMode();
-                        return model.ServiceControlInstance.TryStartService();
-                    });
-
+                    
+                    var started = await model.StartServiceInMaintenanceMode(progress);
 
                     if (!started)
                     {
@@ -60,8 +52,8 @@
                         windowManager.ShowActionReport(reportCard, "ISSUES STARTING INSTANCE IN MAINTENANCE MODE", "There were some warnings when attempting to start instance in Maintenance Mode:");
                     }
                 }
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
             }
-            eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
     }
 }
