@@ -149,7 +149,12 @@
                     {
                         if (restartAgain)
                         {
-                            await model.StartService(progress);
+                           var serviceStarted =  await model.StartService(progress);
+                            if (!serviceStarted)
+                            {
+                                reportCard.Errors.Add("The Service failed to start. Please consult the service control logs for this instance");
+                                windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
+                            }
                         }
                     }
                 }
