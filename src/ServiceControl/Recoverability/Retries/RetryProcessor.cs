@@ -68,7 +68,6 @@ namespace ServiceControl.Recoverability
                 {
                     session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id }, RetryBatchNowForwarding.Id);
                 }
-                session.SaveChanges();
 
                 return true;
             }
@@ -159,7 +158,6 @@ namespace ServiceControl.Recoverability
             if (redirects.ContainsKey(addressOfFailingEndpoint))
             {
                 addressOfFailingEndpoint = redirects[addressOfFailingEndpoint].FromPhysicalAddress;
-                redirects[addressOfFailingEndpoint].LastUsed = DateTime.UtcNow;
             }
 
             headersToRetryWith["ServiceControl.TargetEndpointAddress"] = addressOfFailingEndpoint;

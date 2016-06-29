@@ -27,12 +27,10 @@ namespace ServiceControl.MessageRedirects.Api
             var sortOptions = new[]
             {
                 "from_physicaladdress",
-                "to_physicaladdress",
-                "created",
-                "lastused"
+                "to_physicaladdress"
             };
 
-            var sort = "created";
+            var sort = "from_physicaladdress";
             Expression<Func<TSource, object>> keySelector;
 
             if (request.Query.sort.HasValue)
@@ -42,7 +40,7 @@ namespace ServiceControl.MessageRedirects.Api
 
             if (!sortOptions.Contains(sort))
             {
-                sort = "created";
+                sort = "from_physicaladdress";
             }
 
             switch (sort)
@@ -60,18 +58,10 @@ namespace ServiceControl.MessageRedirects.Api
                     keySelector = m => m.ToPhysicalAddress;
                     break;
 
-                case "created":
-                    keySelector = m => m.Created;
-                    break;
-
-                case "lastused":
-                    keySelector = m => m.LastUsed;
-                    break;
-
                 default:
                     if (defaultKeySelector == null)
                     {
-                        keySelector = m => m.Created;
+                        keySelector = m => m.FromPhysicalAddress;
                     }
                     else
                     {

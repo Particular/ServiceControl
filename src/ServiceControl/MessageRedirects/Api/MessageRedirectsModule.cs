@@ -127,8 +127,7 @@
                             MessageRedirectId = MessageRedirect.GetMessageRedirectIdFromDocumentId(r.Id),
                             r.FromPhysicalAddress,
                             r.ToPhysicalAddress,
-                            r.Created,
-                            r.LastUsed
+                            LastModified = session.Advanced.GetMetadataFor(r)["Last-Modified"].Value<DateTime>()
                         });
 
                     return Negotiate

@@ -11,9 +11,6 @@ namespace ServiceControl.MessageRedirects
         public string FromPhysicalAddress { get; set; }
         public string ToPhysicalAddress { get; set; }
 
-        public DateTime Created { get; set; }
-        public DateTime? LastUsed { get; set; }
-
         public static string GetDocumentIdFromMessageRedirectId(Guid messageRedirectId)
         {
             return DocumentIdNamespace + messageRedirectId;
