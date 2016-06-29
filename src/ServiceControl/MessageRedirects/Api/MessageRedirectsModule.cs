@@ -3,6 +3,8 @@
     using System;
     using System.Linq;
     using Nancy;
+    using Nancy.ModelBinding;
+    using Nancy.Responses.Negotiation;
     using NServiceBus;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
@@ -15,67 +17,63 @@
     {
         public IBus Bus { get; set; }
 
+        private class MessageRedirectRequest
+        {
+            public string fromphysicaladdress { get; set; }
+            public string tophysicaladdress { get; set; }
+        }
+
+        private MessageRedirectRequest BindAndNormalize()
+        {
+            var request = this.Bind<MessageRedirectRequest>();
+
+            request.fromphysicaladdress = request.fromphysicaladdress.ToLowerInvariant();
+            request.tophysicaladdress = request.tophysicaladdress.ToLowerInvariant();
+
+            return request;
+        }
+
         public MessageRedirectsModule()
         {
-
             Post["/redirects"] = parameters =>
             {
-                var message = new CreateMessageRedirect
-                {
-                    FromPhysicalAddress = parameters.fromphysicaladdress,
-                    ToPhysicalAddress = parameters.tophysicaladdress
-                };
+                var request = BindAndNormalize();
 
-                if (string.IsNullOrWhiteSpace(message.FromPhysicalAddress) || string.IsNullOrWhiteSpace(message.ToPhysicalAddress))
+                var result = ValidateRedirectRequest(request);
+
+                if (result.NegotiationContext.StatusCode != HttpStatusCode.OK)
                 {
-                    return HttpStatusCode.BadRequest;
+                    return result;
                 }
 
-                message.MessageRedirectId = DeterministicGuid.MakeId(message.FromPhysicalAddress, message.ToPhysicalAddress);
-
-                using (var session = Store.OpenSession())
+                Bus.SendLocal(new CreateMessageRedirect
                 {
-                    var redirect = session.Load<MessageRedirect>(MessageRedirect.GetDocumentIdFromMessageRedirectId(message.MessageRedirectId));
-
-                    if (redirect != null)
-                    {
-                        return Negotiate.WithReasonPhrase("Duplicate").WithModel(redirect).WithStatusCode(HttpStatusCode.Conflict);
-                    }
-
-                    var dependents = session.Query<MessageRedirect>().Where(r => r.ToPhysicalAddress == message.FromPhysicalAddress).ToList();
-
-                    if (dependents.Any())
-                    {
-                        return Negotiate.WithReasonPhrase("Dependents").WithModel(dependents).WithStatusCode(HttpStatusCode.Conflict);
-                    }
-                }
-
-                Bus.SendLocal(message);
+                    FromPhysicalAddress = request.fromphysicaladdress,
+                    ToPhysicalAddress = request.tophysicaladdress,
+                    MessageRedirectId = DeterministicGuid.MakeId(request.fromphysicaladdress)
+                });
 
                 return HttpStatusCode.Created;
             };
 
-            Put["/redirects/{messageredirectid}"] = parameters =>
+            Put["/redirects/{messageredirectid:guid}"] = parameters =>
             {
-                Guid oldMessageRedirectId = parameters.messageredirectid;
+                Guid messageRedirectId = parameters.messageredirectid;
 
-                var message = new CreateMessageRedirect
-                {
-                    FromPhysicalAddress = parameters.fromphysicaladdress,
-                    ToPhysicalAddress = parameters.tophysicaladdress
-                };
+                var request = BindAndNormalize();
 
-                if (string.IsNullOrWhiteSpace(message.FromPhysicalAddress) || string.IsNullOrWhiteSpace(message.ToPhysicalAddress))
+                var result = ValidateRedirectRequest(request, false);
+
+                if (result.NegotiationContext.StatusCode != HttpStatusCode.OK)
                 {
-                    return HttpStatusCode.BadRequest;
+                    return result;
                 }
 
-                message.MessageRedirectId = DeterministicGuid.MakeId(message.FromPhysicalAddress, message.ToPhysicalAddress);
-
-                Bus.SendLocal(new RemoveMessageRedirect
+                var message = new ChangeMessageRedirect
                 {
-                    MessageRedirectId = oldMessageRedirectId
-                });
+                    ToPhysicalAddress = request.tophysicaladdress,
+                    MessageRedirectId = messageRedirectId
+                };
 
                 Bus.SendLocal(message);
 
@@ -138,6 +136,34 @@
             };
         }
 
-        private
+        private Negotiator ValidateRedirectRequest(MessageRedirectRequest request, bool checkForExisting = true)
+        {
+            if (string.IsNullOrWhiteSpace(request?.fromphysicaladdress) || string.IsNullOrWhiteSpace(request.tophysicaladdress))
+            {
+                return Negotiate.WithStatusCode(HttpStatusCode.BadRequest);
+            }
+
+            using (var session = Store.OpenSession())
+            {
+                if (checkForExisting)
+                {
+                    var existing = session.Query<MessageRedirect>().SingleOrDefault(r => r.FromPhysicalAddress == request.fromphysicaladdress);
+
+                    if (existing != null && existing.ToPhysicalAddress != request.tophysicaladdress)
+                    {
+                        return Negotiate.WithReasonPhrase("Duplicate").WithModel(existing).WithStatusCode(HttpStatusCode.Conflict);
+                    }
+                }
+
+                var dependents = session.Query<MessageRedirect>().Where(r => r.ToPhysicalAddress == request.fromphysicaladdress).ToList();
+
+                if (dependents.Any())
+                {
+                    return Negotiate.WithReasonPhrase("Dependents").WithModel(dependents).WithStatusCode(HttpStatusCode.Conflict);
+                }
+            }
+
+            return Negotiate.WithStatusCode(HttpStatusCode.OK);
+        }
     }
 }
