@@ -10,10 +10,12 @@
     using NServiceBus.Persistence;
     using NServiceBus.Pipeline;
     using Particular.ServiceControl.Licensing;
+    using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
+    using Raven.Json.Linq;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.EndpointControl;
@@ -55,7 +57,7 @@
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
             
             if (!Settings.MaintenanceMode) {
-                documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
+                documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration;PeriodicBackup");
             }
 
             documentStore.Configuration.Port = Settings.Port;
@@ -72,6 +74,19 @@
             IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
             
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
+
+            if (!Settings.MaintenanceMode)
+            {
+                Directory.CreateDirectory(@"c:\temp\ravenbackup");
+                documentStore.DatabaseCommands.Put("Raven/Backup/Periodic/Setup",
+                           null,
+                           RavenJObject.FromObject(new PeriodicBackupSetup
+                           {
+                               LocalFolderName = @"c:\temp\ravenbackup",
+                               IntervalMilliseconds= (int)TimeSpan.FromMinutes(1).TotalMilliseconds
+                           }),
+                           new RavenJObject());
+            }
 
             configuration.RegisterComponents(c => 
                  c.ConfigureComponent(builder =>
