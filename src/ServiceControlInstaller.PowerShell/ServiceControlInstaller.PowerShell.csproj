@@ -125,13 +125,6 @@
       <Output TaskParameter="MajorMinorPatch" PropertyName="MajorMinorPatch" />
     </GetVersion>
     <FileUpdate Files="@(PSModuleFile)" Regex="{{Version}}" ReplacementText="$(MajorMinorPatch)" />
-    
-    <ItemGroup>
-      <OutputFiles Include="..\..\zip\*.zip" />
-      <ExistingZipsToRemove Include="$(OutputPath)*.zip" />
-    </ItemGroup>
-    <Delete Files="@(ExistingZipsToRemove)" />
-    <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="false" />
   </Target>
   
 </Project>
