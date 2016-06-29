@@ -345,10 +345,12 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool TryStopService()
         {
             Service.Refresh();
-            if (Service.Status != ServiceControllerStatus.Stopped)
+            if (Service.Status == ServiceControllerStatus.Stopped)
             {
-                Service.Stop();
+                return true;
             }
+
+            Service.Stop();
 
             try
             {
@@ -372,10 +374,12 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool TryStartService()
         {
             Service.Refresh();
-            if (Service.Status != ServiceControllerStatus.Running)
+            if (Service.Status == ServiceControllerStatus.Running)
             {
-                Service.Start();
+                return true;
             }
+
+            Service.Start();
 
             try
             {

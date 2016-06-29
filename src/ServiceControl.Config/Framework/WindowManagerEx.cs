@@ -27,7 +27,7 @@ namespace ServiceControl.Config.Framework
 
         bool ShowSliderDialog(SliderDialogViewModel viewModel);
 
-        bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage, string warningsMessage);
+        bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage = "", string warningsMessage = "");
 
         void ScrollFirstErrorIntoView(object viewModel, object context = null);
     }
@@ -112,7 +112,7 @@ namespace ServiceControl.Config.Framework
             return result ?? false;
         }
         
-        public bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage, string warningsMessage)
+        public bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage = "", string warningsMessage = "")
         {
             var messageBox = reportCardViewModelFactory(reportcard);
             messageBox.Title = title;

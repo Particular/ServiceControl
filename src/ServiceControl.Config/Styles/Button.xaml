@@ -401,7 +401,7 @@
         </Setter>
     </Style>
 
-    <Style x:Key="StartInMaintenanceButton"
+    <Style x:Key="AdvanceOptionsButton"
            BasedOn="{StaticResource IconButton}"
            TargetType="{x:Type Button}">
         <Setter Property="Template">
@@ -412,11 +412,11 @@
                                  Background="{TemplateBinding Background}"
                                  BorderBrush="{TemplateBinding BorderBrush}"
                                  Foreground="{TemplateBinding Foreground}"
-                                 Template="{StaticResource MaintenanceIcon}" />
+                                 Template="{StaticResource AdvanceIcon}" />
 
                         <Border.ToolTip>
                             <ToolTip Style="{StaticResource IconButtonToolTipStyle}" VerticalOffset="{TemplateBinding Height, Converter={StaticResource negate}}">
-                                <TextBlock Text="START IN MAINTENANCE" />
+                                <TextBlock Text="ADVANCED OPTIONS" />
                             </ToolTip>
                         </Border.ToolTip>
 

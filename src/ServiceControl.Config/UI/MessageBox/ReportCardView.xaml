@@ -104,6 +104,7 @@
                         Height="30"
                         Command="{Binding Cancel}"
                         Content="Ok"
+                        FontSize="14"
                         IsCancel="True"
                         Padding="0" />
             </StackPanel>
