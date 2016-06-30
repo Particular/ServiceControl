@@ -334,7 +334,10 @@
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SignalR\SerializationSettingsFactoryForSignalR.cs" />
+    <Compile Include="MessageFailures\Api\QueueAddressModule.cs" />
+    <Compile Include="MessageFailures\Api\QueueAddressIndex.cs" />
     <Compile Include="MessageFailures\Api\UnArchiveMessages.cs" />
+    <Compile Include="MessageFailures\QueueAddress.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
@@ -509,6 +512,7 @@
     <Compile Include="Recoverability\Retries\RetryBatchStatus.cs" />
     <Compile Include="Recoverability\Retries\RetryDocumentManager.cs" />
     <Compile Include="Recoverability\Retries\Handlers\RetryHandlerForBackwardsCompatability.cs" />
+    <Compile Include="Recoverability\Retries\RetryMessagesByQueueAddress.cs" />
     <Compile Include="Recoverability\Retries\RetryMessagesById.cs" />
     <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />

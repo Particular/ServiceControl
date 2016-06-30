@@ -44,6 +44,31 @@
                 return HttpStatusCode.Accepted;
             };
 
+            Post["/errors/queues/{queueaddress}/retry"] = parameters =>
+            {
+                string queueAddress = parameters.queueaddress;
+
+                if (string.IsNullOrWhiteSpace(queueAddress))
+                {
+                    return Negotiate.WithReasonPhrase("queueaddress URL parameter must be provided").WithStatusCode(HttpStatusCode.BadRequest);
+                }
+
+                FailedMessageStatus status = Request.Query.status.HasValue ? parameters.status : FailedMessageStatus.RetryIssued;
+
+                if (status == FailedMessageStatus.Archived || status == FailedMessageStatus.Resolved)
+                {
+                    return Negotiate.WithReasonPhrase("status value of " + status + " cannot be retried").WithStatusCode(HttpStatusCode.BadRequest);
+                }
+
+                Bus.SendLocal<RetryMessagesByQueueAddress>(m =>
+                {
+                    m.QueueAddress = queueAddress;
+                    m.Status = status;
+                });
+
+                return HttpStatusCode.Accepted;
+            };
+
             Post["/errors/retry/all"] = _ =>
             {
                 var request = new RequestRetryAll();
