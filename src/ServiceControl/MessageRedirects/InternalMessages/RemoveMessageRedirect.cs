@@ -2,7 +2,9 @@
 
 namespace ServiceControl.MessageRedirects.InternalMessages
 {
-    public class RemoveMessageRedirect
+    using NServiceBus;
+
+    public class RemoveMessageRedirect : ICommand
     {
         public Guid MessageRedirectId { get; set; }
     }
