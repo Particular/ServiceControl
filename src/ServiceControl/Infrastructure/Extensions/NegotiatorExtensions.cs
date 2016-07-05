@@ -123,18 +123,18 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
         public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, RavenQueryStatistics stats)
         {
-            var etag = stats.IndexEtag;
-            var responseLastModified = stats.IndexTimestamp;
+            var etag = stats?.IndexEtag;
+            var responseLastModified = stats?.IndexTimestamp;
 
             return WithEtagAndLastModified(negotiator, etag, responseLastModified);
         }
 
-        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, Etag etag, DateTime responseLastModified)
+        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, Etag etag, DateTime? responseLastModified)
         {
-            var currentEtag = etag.ToString();
+            var currentEtag = etag?.ToString();
             return negotiator
                 .WithHeader("ETag", currentEtag)
-                .WithHeader("Last-Modified", responseLastModified.ToString("R"));
+                .WithHeader("Last-Modified", responseLastModified?.ToString("R"));
         }
 
         public static Negotiator WithLastModified(this Negotiator negotiator, DateTime responseLastModified)
