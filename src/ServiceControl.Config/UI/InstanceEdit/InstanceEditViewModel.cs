@@ -24,7 +24,7 @@
             UseSystemAccount = userAccount.IsLocalSystem();
             UseServiceAccount = userAccount.IsLocalService();
 
-            UseProvidedAccount = !(UseServiceAccount || UseServiceAccount);
+            UseProvidedAccount = !(UseServiceAccount || UseSystemAccount);
 
             if (UseProvidedAccount)
             {
