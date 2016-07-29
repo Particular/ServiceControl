@@ -1,8 +1,10 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -19,6 +21,7 @@
     using ServiceControl.MessageFailures.Api;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
+    using NServiceBus.Config;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
@@ -35,8 +38,8 @@
                 .Run();
 
             Assert.AreEqual(context.UniqueMessageId, failedMessage.UniqueMessageId);
-         
-           // The message Ids may contain a \ if they are from older versions. 
+
+           // The message Ids may contain a \ if they are from older versions.
             Assert.AreEqual(context.MessageId, failedMessage.ProcessingAttempts.Last().MessageId,
                 "The returned message should match the processed one");
             Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status, "Status should be set to unresolved");
@@ -57,7 +60,7 @@
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
 
-            // The message Ids may contain a \ if they are from older versions. 
+            // The message Ids may contain a \ if they are from older versions.
             Assert.AreEqual(context.MessageId, failure.MessageId.Replace(@"\", "-"), "The returned message should match the processed one");
             Assert.AreEqual(FailedMessageStatus.Unresolved, failure.Status, "Status of new messages should be failed");
             Assert.AreEqual(1, failure.NumberOfProcessingAttempts, "One attempt should be stored");
@@ -76,7 +79,7 @@
                 .Run(TimeSpan.FromMinutes(2));
 
             Assert.AreEqual(context.UniqueMessageId, failure.Id, "The unique id should be returned");
-            
+
             Assert.AreEqual(MessageStatus.Failed, failure.Status, "Status of new messages should be failed");
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.SendingEndpoint.Name);
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, failure.ReceivingEndpoint.Name);
@@ -117,6 +120,68 @@
             Assert.IsNotNull(context.SignalrData);
         }
 
+        [Test]
+        public void Should_be_able_to_search_queueaddresses()
+        {
+            var searchResults = new List<QueueAddress>();
+
+            Define<QueueSearchContext>()
+                .WithEndpoint<FailingEndpoint>(b =>
+                {
+                    b.Given(bus => bus.SendLocal(new MyMessage())).When(c =>
+                    {
+                        if (c.FailedMessageCount >= 1)
+                        {
+                            return TryGetMany("/api/errors/queues/addresses?search=failing", out searchResults);
+                        }
+
+                        Thread.Sleep(1000);
+                        return false;
+                    }, _ => { });
+                })
+                .Done(c => searchResults.Count == 1)
+                .Run();
+
+            Assert.AreEqual(1, searchResults.Count, "Result count did not match");
+        }
+
+        [Test]
+        public void Should_only_return_queueaddresses_that_startswith_search()
+        {
+            var searchResults = new List<QueueAddress>();
+            const string searchTerm = "another";
+            const string searchEndpointName = "AnotherFailingEndpoint";
+
+            Define<QueueSearchContext>()
+                .WithEndpoint<FailingEndpoint>(b =>
+                {
+                    b.Given(bus => bus.SendLocal(new MyMessage()));
+                })
+                .WithEndpoint<FailingEndpoint>(b =>
+                {
+                    b.CustomConfig(configuration => configuration.EndpointName(searchEndpointName));
+                    b.Given(bus => bus.SendLocal(new MyMessage()));
+                })
+                .WithEndpoint<FailingEndpoint>(b =>
+                {
+                    b.CustomConfig(configuration => configuration.EndpointName("YetAnotherEndpoint"));
+                    b.Given(bus => bus.SendLocal(new MyMessage()));
+                }).Done(c =>
+                {
+                    if (c.FailedMessageCount < 3)
+                    {
+                        Thread.Sleep(1000);
+                        return false;
+                    }
+                    return TryGetMany($"/api/errors/queues/addresses/search/{searchTerm}", out searchResults);
+                })
+                .Run();
+
+
+            Assert.AreEqual(1, searchResults.Count, "Result count did not match");
+            Assert.IsTrue(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName));
+        }
+
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
         {
             public EndpointThatUsesSignalR()
@@ -145,7 +210,7 @@
                 {
                     connection.Received += ConnectionOnReceived;
                     connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
-                    
+
                     bus.Send(new MyMessage());
                 }
 
@@ -189,6 +254,33 @@
             }
         }
 
+        public class FailingEndpoint : EndpointConfigurationBuilder
+        {
+            public FailingEndpoint()
+            {
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
+                    .WithConfig<TransportConfig>(c =>
+                    {
+                        c.MaxRetries = 0;
+                    });
+            }
+
+            public class MyMessageHandler : IHandleMessages<MyMessage>
+            {
+                public QueueSearchContext Context { get; set; }
+                static object lockObj = new object();
+
+                public void Handle(MyMessage message)
+                {
+                    lock (lockObj)
+                    {
+                        Context.FailedMessageCount++;
+                    }
+                    throw new Exception("Simulated exception");
+                }
+            }
+        }
+
         [Serializable]
         public class MyMessage : ICommand
         {
@@ -204,6 +296,11 @@
             public Func<HttpMessageHandler> Handler { get; set; }
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
+        }
+
+        public class QueueSearchContext : ScenarioContext
+        {
+            public int FailedMessageCount { get; set; }
         }
     }
 }

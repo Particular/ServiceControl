@@ -15,9 +15,16 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     {
         public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, RavenQueryStatistics stats,
             Request request)
+
         {
-            return negotiator.WithTotalCount(stats)
-                .WithPagingLinks(stats, request);
+            return negotiator.WithPagingLinksAndTotalCount(stats.TotalResults, request);
+        }
+
+        public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, int totalCount,
+            Request request)
+        {
+            return negotiator.WithTotalCount(totalCount)
+                .WithPagingLinks(totalCount, request);
         }
 
         public static Negotiator WithTotalCount(this Negotiator negotiator, RavenQueryStatistics stats)
@@ -31,6 +38,11 @@ namespace ServiceBus.Management.Infrastructure.Extensions
         }
 
         public static Negotiator WithPagingLinks(this Negotiator negotiator, RavenQueryStatistics stats, Request request)
+        {
+            return negotiator.WithPagingLinks(stats.TotalResults, request);
+        }
+
+        public static Negotiator WithPagingLinks(this Negotiator negotiator, int totalResults, Request request)
         {
             decimal maxResultsPerPage = 50;
 
@@ -57,13 +69,13 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             }
 
             // No need to add a Link header if no paging
-            if (stats.TotalResults <= maxResultsPerPage)
+            if (totalResults <= maxResultsPerPage)
             {
                 return negotiator;
             }
 
             var links = new List<string>();
-            var lastPage = (int) Math.Ceiling(stats.TotalResults/maxResultsPerPage);
+            var lastPage = (int) Math.Ceiling(totalResults / maxResultsPerPage);
 
             // No need to add a Link header if page does not exist!
             if (page > lastPage)
@@ -141,13 +153,6 @@ namespace ServiceBus.Management.Infrastructure.Extensions
         {
             return negotiator
                 .WithHeader("Last-Modified", responseLastModified.ToString("R"));
-        }
-
-        public static Negotiator WithRavenQueryStats(this Negotiator negotiator, RavenQueryStatistics stats)
-        {
-            return negotiator
-                .WithHeader("QueryTimeMs", stats.DurationMilliseconds.ToString(CultureInfo.InvariantCulture))
-                .WithHeader("IsStale", stats.IsStale.ToString());
         }
     }
 }

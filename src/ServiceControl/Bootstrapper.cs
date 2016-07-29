@@ -88,6 +88,12 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
 
+            if (configuration == null)
+            {
+                configuration = new BusConfiguration();
+                configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+            }
+
             Startup = new Startup(containerBuilder.Build(), host, settings, documentStore, configuration, exposeBus);
         }
 

@@ -229,6 +229,7 @@
     <Compile Include="MessageFailures\When_a_message_has_failed.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed_from_send_only_endpoint.cs" />
     <Compile Include="MessageFailures\When_a_invalid_id_is_sent_to_retry.cs" />
+    <Compile Include="MessageFailures\When_a_retry_has_been_sent.cs" />
     <Compile Include="MessageFailures\When_a_SagaComplete_message_fails.cs" />
     <Compile Include="MessageFailures\When_a_message_sent_from_third_party_endpoint_with_missing_metadata_failed.cs" />
     <Compile Include="MessageFailures\When_a_retry_fails_to_be_sent.cs" />
@@ -236,6 +237,12 @@
     <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_fails.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_is_successful.cs" />
     <Compile Include="Contexts\ConfigureExtensions.cs" />
+    <Compile Include="MessageRedirects\MessageRedirect.cs" />
+    <Compile Include="MessageRedirects\RedirectRequest.cs" />
+    <Compile Include="MessageRedirects\When_a_message_is_retried.cs" />
+    <Compile Include="MessageRedirects\When_a_redirect_is_changed.cs" />
+    <Compile Include="MessageRedirects\When_a_redirect_is_created.cs" />
+    <Compile Include="MessageRedirects\When_a_redirect_is_removed.cs" />
     <Compile Include="Contexts\DefaultServerWithAudit.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_retried.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_archived.cs" />

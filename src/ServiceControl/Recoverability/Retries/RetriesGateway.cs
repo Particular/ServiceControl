@@ -94,7 +94,7 @@ namespace ServiceControl.Recoverability
             where TIndex : AbstractIndexCreationTask, new()
             where TType : IHaveStatus
         {
-            log.InfoFormat("Enqueuing index based bulk retry `{0}`", context);
+            log.InfoFormat("Enqueuing index based bulk retry '{0}'", context);
 
             var request = new IndexBasedBulkRetryRequest<TType, TIndex>(context, filter);
 
@@ -105,13 +105,13 @@ namespace ServiceControl.Recoverability
         {
             if (messageIds == null || !messageIds.Any())
             {
-                log.DebugFormat("Context `{0}` contains no messages", context);
+                log.DebugFormat("Context '{0}' contains no messages", context);
                 return;
             }
 
             var batchDocumentId = RetryDocumentManager.CreateBatchDocument(context);
 
-            log.InfoFormat("Created Batch {0} with {1} messages for context `{2}`", batchDocumentId, messageIds.Length, context);
+            log.InfoFormat("Created Batch '{0}' with {1} messages for context '{2}'", batchDocumentId, messageIds.Length, context);
 
             var retryIds = new ConcurrentDictionary<string, object>();
             Parallel.ForEach(
@@ -119,7 +119,7 @@ namespace ServiceControl.Recoverability
                 id => retryIds.TryAdd(RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, id), null));
 
             RetryDocumentManager.MoveBatchToStaging(batchDocumentId, retryIds.Keys.ToArray());
-            log.InfoFormat("Moved Batch {0} to Staging", batchDocumentId);
+            log.InfoFormat("Moved Batch '{0}' to Staging", batchDocumentId);
         }
 
         internal bool ProcessNextBulkRetry()
