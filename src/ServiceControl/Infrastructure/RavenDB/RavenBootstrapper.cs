@@ -17,7 +17,6 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.EndpointControl;
-    using INeedInitialization = NServiceBus.INeedInitialization;
 
     public class RavenBootstrapper : INeedInitialization
     {
@@ -33,11 +32,41 @@
         public void Customize(BusConfiguration configuration)
         {
             var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
+            var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
 
-            Directory.CreateDirectory(Settings.DbPath);
+            Settings = settings;
 
-            documentStore.DataDirectory = Settings.DbPath;
-            documentStore.UseEmbeddedHttpServer = Settings.MaintenanceMode || Settings.ExposeRavenDB;
+            StartRaven(documentStore, settings);
+
+            configuration.RegisterComponents(c => 
+                c.ConfigureComponent(builder =>
+                {
+                    var context = builder.Build<PipelineExecutor>().CurrentContext;
+
+                    IDocumentSession session;
+
+                    if (context.TryGet(out session))
+                    {
+                        return session;
+                    }
+
+                    throw new InvalidOperationException("No session available");
+                }, DependencyLifecycle.InstancePerCall));
+
+            configuration.UsePersistence<RavenDBPersistence>()
+                .SetDefaultDocumentStore(documentStore);
+
+            configuration.Pipeline.Register<RavenRegisterStep>();
+        }
+
+        public static Settings Settings { get; set; }
+
+        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings)
+        {
+            Directory.CreateDirectory(settings.DbPath);
+
+            documentStore.DataDirectory = settings.DbPath;
+            documentStore.UseEmbeddedHttpServer = settings.MaintenanceMode || settings.ExposeRavenDB;
             documentStore.EnlistInDistributedTransactions = false;
 
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
@@ -51,47 +80,29 @@
                 Logger.InfoFormat("Loading Embedded RavenDB license");
                 documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
             }
-
-            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
             
-            if (!Settings.MaintenanceMode) {
+            if (!settings.MaintenanceMode)
+            {
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
             }
 
-            documentStore.Configuration.Port = Settings.Port;
-            documentStore.Configuration.HostName = (Settings.Hostname == "*" || Settings.Hostname == "+")
+            documentStore.Configuration.Port = settings.Port;
+            documentStore.Configuration.HostName = (settings.Hostname == "*" || settings.Hostname == "+")
                 ? "localhost"
-                : Settings.Hostname;
-            documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
-            documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
+                : settings.Hostname;
+            documentStore.Configuration.VirtualDirectory = settings.VirtualDirectory + "/storage";
+            documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
+
+            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
+
             documentStore.Initialize();
 
             Logger.Info("Index creation started");
-            
+
             IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
-            
+
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
-
-            configuration.RegisterComponents(c => 
-                 c.ConfigureComponent(builder =>
-                 {
-                     var context = builder.Build<PipelineExecutor>().CurrentContext;
-
-                     IDocumentSession session;
-
-                     if (context.TryGet(out session))
-                     {
-                         return session;
-                     }
-
-                     throw new InvalidOperationException("No session available");
-                 }, DependencyLifecycle.InstancePerCall));
-
-            configuration.UsePersistence<RavenDBPersistence>()
-                         .SetDefaultDocumentStore(documentStore);
-
-            configuration.Pipeline.Register<RavenRegisterStep>();
         }
 
         static void PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(IDocumentStore documentStore)

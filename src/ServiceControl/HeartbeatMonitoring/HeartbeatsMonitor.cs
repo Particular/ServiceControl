@@ -24,8 +24,9 @@ namespace ServiceControl.HeartbeatMonitoring
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
             context.Container.ConfigureComponent<HeartbeatStatusProvider>(DependencyLifecycle.SingleInstance)
-                        .ConfigureProperty(p => p.GracePeriod, Settings.HeartbeatGracePeriod);
+                        .ConfigureProperty(p => p.GracePeriod, settings.HeartbeatGracePeriod);
         }
 
         class HeartbeatMonitor : FeatureStartupTask

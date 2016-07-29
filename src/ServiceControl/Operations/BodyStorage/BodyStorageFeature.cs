@@ -28,6 +28,7 @@
         public class BodyStorageEnricher : ImportEnricher
         {
             public IBodyStorage BodyStorage { get; set; }
+            public Settings Settings { get; set; }
 
             public override void Enrich(ImportMessage message)
             {

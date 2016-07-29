@@ -10,7 +10,7 @@
             var configuration = new BusConfiguration();
             configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
             configuration.EnableInstallers(args.Username);
-            new Bootstrapper(hostArguments: args, configuration:configuration);
+            new Bootstrapper(args, configuration);
         }
     }
 }

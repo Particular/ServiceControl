@@ -6,6 +6,8 @@
 
     public class ErrorLogQueueInstaller : IWantQueueCreated
     {
+        public Settings Settings { get; set; }
+
         public bool ShouldCreateQueue()
         {
             return Settings.ErrorLogQueue != Address.Undefined;

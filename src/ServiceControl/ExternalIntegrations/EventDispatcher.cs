@@ -18,6 +18,7 @@
         public IBus Bus { get; set; }
         public IEnumerable<IEventPublisher> EventPublishers { get; set; }
         public CriticalError CriticalError { get; set; }
+        public Settings Settings { get; set; }
 
         protected override void OnStart()
         {

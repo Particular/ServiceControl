@@ -4,7 +4,7 @@
     using NServiceBus.Features;
     using ServiceControl.MessageFailures.InternalMessages;
 
-    class FailedMessageClassification : Feature
+    public class FailedMessageClassification : Feature
     {
         public FailedMessageClassification()
         {
