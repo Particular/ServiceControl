@@ -1,9 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts
 {
-    using System;
     using System.Collections.Generic;
     using NServiceBus;
-    using NServiceBus.Configuration.AdvanceExtensibility;
     using TransportIntegration;
 
     public static class ConfigureExtensions
@@ -22,9 +20,6 @@
         {
             var transportDefinitionType = transport.Type;
             var connectionString = transport.ConnectionString;
-
-            Action action = () => transport.OnEndpointShutdown(config.GetSettings().EndpointName());
-            config.GetSettings().Set("CleanupTransport", action);
 
             if (connectionString == null)
             {

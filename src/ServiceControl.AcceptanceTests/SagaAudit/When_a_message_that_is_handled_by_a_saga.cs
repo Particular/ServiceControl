@@ -3,6 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
+    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -19,7 +21,6 @@
             var messages = new List<MessagesView>();
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingSagas>(b => b.Given((bus, c) => bus.SendLocal(new InitiateSaga())))
                 .Done(c =>
                 {
@@ -27,6 +28,11 @@
                     {
                         if (TryGetMany("/api/messages", out messages))
                         {
+                            if (messages.Count != 5)
+                            {
+                                Thread.Sleep(1000);
+                            }
+
                             return messages.Count == 5;
                         }
                     }
@@ -67,8 +73,8 @@
         {
             public EndpointThatIsHostingSagas()
             {
-                EndpointSetup<DefaultServer>()
-                    .AuditTo(Address.Parse("audit"));
+                EndpointSetup<DefaultServerWithAudit>()
+                    .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"));
             }
 
             public class Saga1 : Saga<Saga1.Saga1Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga1>, IHandleMessages<CompleteSaga1>

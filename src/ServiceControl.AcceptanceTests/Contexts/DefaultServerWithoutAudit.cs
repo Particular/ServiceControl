@@ -10,7 +10,7 @@
     {
         public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
-            return new DefaultServer().GetConfiguration(runDescriptor, endpointConfiguration, configSource, b =>
+            return new DefaultServerWithAudit().GetConfiguration(runDescriptor, endpointConfiguration, configSource, b =>
             {
                 b.DisableFeature<Audit>();
                 configurationBuilderCustomization(b);

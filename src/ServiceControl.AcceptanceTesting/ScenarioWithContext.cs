@@ -41,13 +41,6 @@ namespace NServiceBus.AcceptanceTesting
 
         public IEnumerable<TContext> Run(TimeSpan? testExecutionTimeout = null)
         {
-            return Run(new RunSettings
-            {
-                TestExecutionTimeout = testExecutionTimeout
-            });
-        }
-        public IEnumerable<TContext> Run(RunSettings settings)
-        {
             var builder = new RunDescriptorsBuilder();
 
             runDescriptorsBuilderAction(builder);
@@ -63,8 +56,7 @@ namespace NServiceBus.AcceptanceTesting
             foreach (var runDescriptor in runDescriptors)
             {
                 runDescriptor.ScenarioContext = contextFactory();
-                runDescriptor.TestExecutionTimeout = settings.TestExecutionTimeout ?? TimeSpan.FromSeconds(90);
-                runDescriptor.UseSeparateAppdomains = settings.UseSeparateAppDomains;
+                runDescriptor.TestExecutionTimeout = testExecutionTimeout ?? TimeSpan.FromSeconds(90);
             }
 
             var sw = new Stopwatch();
@@ -78,8 +70,6 @@ namespace NServiceBus.AcceptanceTesting
 
             return runDescriptors.Select(r => (TContext)r.ScenarioContext);
         }
-
-  
 
         public IAdvancedScenarioWithEndpointBehavior<TContext> Repeat(Action<RunDescriptorsBuilder> action)
         {
@@ -109,15 +99,7 @@ namespace NServiceBus.AcceptanceTesting
 
         TContext IScenarioWithEndpointBehavior<TContext>.Run(TimeSpan? testExecutionTimeout)
         {
-            return Run(new RunSettings
-            {
-                TestExecutionTimeout = testExecutionTimeout
-            }).Single();
-        }
-
-        TContext IScenarioWithEndpointBehavior<TContext>.Run(RunSettings settings)
-        {
-            return Run(settings).Single();
+            return Run(testExecutionTimeout).Single();
         }
 
         public IAdvancedScenarioWithEndpointBehavior<TContext> Should(Action<TContext> should)

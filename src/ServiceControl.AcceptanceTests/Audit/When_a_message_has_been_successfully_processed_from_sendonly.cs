@@ -21,7 +21,6 @@ namespace ServiceBus.Management.AcceptanceTests
             };
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(c =>
                 {

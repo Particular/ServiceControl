@@ -1,6 +1,4 @@
-﻿
-
-namespace ServiceBus.Management.AcceptanceTests.MessageFailures
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Collections.Generic;
@@ -19,7 +17,6 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
 
-    [Serializable]
     public class When_a_retry_fails_to_be_sent : AcceptanceTest
     {
         [Test]
@@ -27,8 +24,9 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
+            CustomConfiguration = config => { config.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(new SendMessagesWrapper(b.Build<ISendMessages>()), b.Build<IDocumentStore>(), b.Build<IBus>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)); };
+
             Define<MyContext>()
-                .WithEndpoint<ManagementEndpointEx>(ctx => ctx.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>(b => b.Given((bus, ctx) =>
                 {
                     ctx.DecommissionedEndpointName = "DecommissionedEndpoint";
@@ -74,32 +72,23 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             Assert.AreEqual(FailedMessageStatus.Resolved, successfullyRetried.Status);
         }
 
-        public class ManagementEndpointEx : EndpointConfigurationBuilder
+        private class SendMessagesWrapper : ISendMessages
         {
-            public ManagementEndpointEx()
+            private readonly ISendMessages original;
+
+            public SendMessagesWrapper(ISendMessages original)
             {
-                //Need to override the ISendMessages, because Azure does not throw exception when sending to a non existent queue :(
-                EndpointSetup<ManagementEndpointSetup>(c => c.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(new SendMessagesWrapper(b.Build<ISendMessages>()), b.Build<IDocumentStore>(), b.Build<IBus>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)));
+                this.original = original;
             }
 
-            class SendMessagesWrapper : ISendMessages
+            public void Send(TransportMessage message, SendOptions sendOptions)
             {
-                readonly ISendMessages original;
-
-                public SendMessagesWrapper(ISendMessages original)
+                if (sendOptions.Destination.Queue == "nonexistingqueue")
                 {
-                    this.original = original;
+                    throw new QueueNotFoundException();
                 }
 
-                public void Send(TransportMessage message, SendOptions sendOptions)
-                {
-                    if (sendOptions.Destination.Queue == "nonexistingqueue")
-                    {
-                        throw new QueueNotFoundException();
-                    }
-
-                    original.Send(message, sendOptions);
-                }
+                original.Send(message, sendOptions);
             }
         }
 
@@ -107,15 +96,11 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    })
-                    .AuditTo(Address.Parse("audit"));
+                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>())
+                    .WithConfig<TransportConfig>(c => { c.MaxRetries = 1; });
             }
 
-            public class MessageThatWillFailHandler: IHandleMessages<MessageThatWillFail>
+            public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
             {
                 public MyContext Context { get; set; }
                 public IBus Bus { get; set; }
@@ -136,8 +121,8 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 
             public class SendFailedMessage : IWantToRunWhenBusStartsAndStops
             {
-                readonly ISendMessages sendMessages;
-                readonly MyContext context;
+                private readonly MyContext context;
+                private readonly ISendMessages sendMessages;
 
                 public SendFailedMessage(ISendMessages sendMessages, MyContext context)
                 {
@@ -153,21 +138,19 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                     transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
+                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty;
                     transportMessage.Headers["NServiceBus.FailedQ"] = "nonexistingqueue";
                     transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
-                    
+
                     sendMessages.Send(transportMessage, new SendOptions(Address.Parse("error")));
                 }
 
                 public void Stop()
                 {
-
                 }
             }
         }
 
-        [Serializable]
         public class MyContext : ScenarioContext
         {
             public string DecommissionedEndpointMessageId { get; set; }

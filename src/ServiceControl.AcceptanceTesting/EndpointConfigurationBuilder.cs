@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Reflection;
     using Support;
 
     public class EndpointConfigurationBuilder : IEndpointConfigurationFactory
@@ -101,6 +102,13 @@
         public EndpointConfigurationBuilder IncludeType<T>()
         {
             configuration.TypesToInclude.Add(typeof(T));
+
+            return this;
+        }
+
+        public EndpointConfigurationBuilder IncludeAssembly(Assembly assembly)
+        {
+            configuration.TypesToInclude.AddRange(assembly.GetTypes());
 
             return this;
         }

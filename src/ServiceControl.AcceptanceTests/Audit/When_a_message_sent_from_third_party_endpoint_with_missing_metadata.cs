@@ -24,8 +24,7 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
             };
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
-                .WithEndpoint<ThridPartyEndpoint>()
+                .WithEndpoint<ThirdPartyEndpoint>()
                 .Done(c => TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
                 .Run();
 
@@ -33,9 +32,9 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
             Assert.IsNull(auditedMessage.TimeSent);
         }
 
-        public class ThridPartyEndpoint : EndpointConfigurationBuilder
+        public class ThirdPartyEndpoint : EndpointConfigurationBuilder
         {
-            public ThridPartyEndpoint()
+            public ThirdPartyEndpoint()
             {
                 EndpointSetup<DefaultServerWithoutAudit>();
             }

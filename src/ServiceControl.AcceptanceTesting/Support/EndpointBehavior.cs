@@ -2,8 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Threading;
 
     [Serializable]
     public class EndpointBehavior : MarshalByRefObject
@@ -20,7 +18,6 @@
         public List<IWhenDefinition> Whens { get; set; }
 
         public List<Action<BusConfiguration>> CustomConfig { get; set; }
-        public string AppConfig { get; set; }
     }
 
     [Serializable]
@@ -61,8 +58,6 @@
                 busAndContextAction(bus, c);
           
             }
-
-            Debug.WriteLine("Condition {0} has fired - Thread: {1} AppDomain: {2}", Id, Thread.CurrentThread.ManagedThreadId,AppDomain.CurrentDomain.FriendlyName);
 
             return true;
         }

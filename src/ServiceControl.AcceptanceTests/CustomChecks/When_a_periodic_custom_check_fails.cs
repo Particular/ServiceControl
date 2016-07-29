@@ -2,10 +2,10 @@
 {
     using System;
     using System.Linq;
-    using System.Net;
-    using System.Threading;
+    using System.Net.Http;
     using Contexts;
     using Microsoft.AspNet.SignalR.Client;
+    using Microsoft.AspNet.SignalR.Client.Transports;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -27,7 +27,6 @@
             EventLogItem entry = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.EventType == typeof(CustomCheckFailed).Name))
                 .Run();
@@ -42,9 +41,8 @@
         {
             var context = Define(() => new MyContext
             {
-                SCPort = port
+                Handler = () => Handler
             })
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -57,7 +55,7 @@
         {
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
-            public int SCPort { get; set; }
+            public Func<HttpMessageHandler> Handler { get; set; }
             public bool SignalrStarted { get; set; }
         }
 
@@ -76,42 +74,18 @@
                 public SignalrStarter(MyContext context)
                 {
                     this.context = context;
-                    connection = new Connection($"http://localhost:{context.SCPort}/api/messagestream");
+                    connection = new Connection("http://localhost/api/messagestream")
+                    {
+                        JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
+                    };
                 }
 
                 public void Start()
                 {
-                    connection.JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
                     connection.Received += ConnectionOnReceived;
                     connection.StateChanged += change => { context.SignalrStarted = change.NewState == ConnectionState.Connected; };
 
-                    while (true)
-                    {
-                        try
-                        {
-                            connection.Start().Wait();
-                            break;
-                        }
-                        catch (AggregateException ex)
-                        {
-                            context.AddTrace($"Signalr connection failed, exception={ex}");
-
-                            var exception = ex.GetBaseException();
-                            var webException = exception as WebException;
-
-                            if (webException == null)
-                            {
-                                continue;
-                            }
-                            var statusCode = ((HttpWebResponse)webException.Response).StatusCode;
-                            if (statusCode != HttpStatusCode.NotFound && statusCode != HttpStatusCode.ServiceUnavailable)
-                            {
-                                break;
-                            }
-
-                            Thread.Sleep(TimeSpan.FromSeconds(1));
-                        }
-                    }
+                    connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).Wait();
                 }
 
                 private void ConnectionOnReceived(string s)
@@ -134,7 +108,7 @@
         {
             public EndpointWithFailingCustomCheck()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>().IncludeAssembly(typeof(PeriodicCheck).Assembly);
             }
 
             class FailingCustomCheck : PeriodicCheck

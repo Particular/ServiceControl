@@ -19,8 +19,15 @@
         {
             var context = new MyContext();
 
+            CustomConfiguration = config => config.OnEndpointSubscribed(s =>
+            {
+                if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
+                {
+                    context.ExternalProcessorSubscribed = true;
+                }
+            });
+
             Define(context)
-                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(builder => builder.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
@@ -39,20 +46,6 @@
             Assert.IsNotNull(deserializedEvent.MessageDetails.MessageId);
             Assert.IsNotNull(deserializedEvent.SendingEndpoint.Name);
             Assert.IsNotNull(deserializedEvent.ProcessingEndpoint.Name);
-        }
-
-        public class ExternalIntegrationsManagementEndpoint : EndpointConfigurationBuilder
-        {
-            public ExternalIntegrationsManagementEndpoint()
-            {
-                EndpointSetup<ExternalIntegrationsManagementEndpointSetup>(b => b.OnEndpointSubscribed<MyContext>((s, context) =>
-                {
-                    if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
-                    {
-                        context.ExternalProcessorSubscribed = true;
-                    }
-                }));
-            }
         }
 
         public class FailingReceiver : EndpointConfigurationBuilder

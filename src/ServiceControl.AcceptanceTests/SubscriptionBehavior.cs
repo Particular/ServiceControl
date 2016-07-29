@@ -3,34 +3,27 @@
     using System;
     using System.Linq;
     using NServiceBus;
-    using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
     using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Unicast.Subscriptions;
 
     static class SubscriptionBehaviorExtensions
     {
-        public static void OnEndpointSubscribed<TContext>(this BusConfiguration b, Action<SubscriptionEventArgs, TContext> action) where TContext : ScenarioContext
+        public static void OnEndpointSubscribed(this BusConfiguration b, Action<SubscriptionEventArgs> action)
         {
-            b.Pipeline.Register<SubscriptionBehavior<TContext>.Registration>();
-
-            b.RegisterComponents(c => c.ConfigureComponent(builder =>
-            {
-                var context = builder.Build<TContext>();
-                return new SubscriptionBehavior<TContext>(action, context);
-            }, DependencyLifecycle.InstancePerCall));
+            b.Pipeline.Register<SubscriptionBehavior.Registration>();
+            
+            b.RegisterComponents(c => c.ConfigureComponent(builder => new SubscriptionBehavior(action), DependencyLifecycle.InstancePerCall));
         }
     }
 
-    class SubscriptionBehavior<TContext> : IBehavior<IncomingContext> where TContext : ScenarioContext
+    class SubscriptionBehavior : IBehavior<IncomingContext>
     {
-        readonly Action<SubscriptionEventArgs, TContext> action;
-        readonly TContext scenarioContext;
+        readonly Action<SubscriptionEventArgs> action;
 
-        public SubscriptionBehavior(Action<SubscriptionEventArgs, TContext> action, TContext scenarioContext)
+        public SubscriptionBehavior(Action<SubscriptionEventArgs> action)
         {
             this.action = action;
-            this.scenarioContext = scenarioContext;
         }
 
         public void Invoke(IncomingContext context, Action next)
@@ -43,7 +36,7 @@
                 {
                     MessageType = subscriptionMessageType,
                     SubscriberReturnAddress = context.PhysicalMessage.ReplyToAddress
-                }, scenarioContext);
+                });
             }
         }
 
@@ -55,7 +48,7 @@
         internal class Registration : RegisterStep
         {
             public Registration()
-                : base("SubscriptionBehavior", typeof(SubscriptionBehavior<TContext>), "So we can get subscription events")
+                : base("SubscriptionBehavior", typeof(SubscriptionBehavior), "So we can get subscription events")
             {
                 InsertBefore(WellKnownStep.CreateChildContainer);
             }

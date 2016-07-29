@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -20,7 +21,6 @@
             SagaHistory sagaHistory = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(c => c.Done && TryGet("/api/sagas/" + c.SagaId, out sagaHistory))
                 .Run(TimeSpan.FromSeconds(40));
@@ -49,9 +49,9 @@
         {
             public EndpointThatIsHostingTheSaga()
             {
-                EndpointSetup<DefaultServer>(c => c.DisableFeature<AutoSubscribe>())
-                    .AuditTo(Address.Parse("audit"))
-                    .AddMapping<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga));
+                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<AutoSubscribe>())
+                    .AddMapping<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga))
+                    .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"));
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>

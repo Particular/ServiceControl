@@ -18,7 +18,6 @@
             MessagesView auditedMessage = null;
            
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(c => TryGetSingle("/api/messages", out auditedMessage, m => m.MessageId == c.MessageId))
                 .Run(TimeSpan.FromSeconds(40));
@@ -33,8 +32,7 @@
         {
             public EndpointThatIsHostingTheSaga()
             {
-                EndpointSetup<DefaultServer>()
-                    .AuditTo(Address.Parse("audit"));
+                EndpointSetup<DefaultServerWithAudit>();
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>

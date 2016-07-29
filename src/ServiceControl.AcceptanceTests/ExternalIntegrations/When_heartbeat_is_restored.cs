@@ -6,7 +6,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using NServiceBus.Config;
     using NServiceBus.Config.ConfigurationSource;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
@@ -22,18 +21,27 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         {
             var context = new MyContext();
 
-            Define(context)
-                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointHeartbeatRestored
+            CustomConfiguration = config => config.OnEndpointSubscribed(s =>
+            {
+                if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
                 {
-                    RestoredAt = new DateTime(2013,09,13,13,15,13),
-                    Endpoint = new EndpointDetails
-                    {
-                        Host = "LuckyHost",
-                        HostId = Guid.NewGuid(),
-                        Name = "LuckyEndpoint"
-                    }
-                    
-                })).AppConfig(PathToAppConfig))
+                    context.ExternalProcessorSubscribed = true;
+                }
+            });
+
+            ExecuteWhen(() => context.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointHeartbeatRestored
+            {
+                RestoredAt = new DateTime(2013, 09, 13, 13, 15, 13),
+                Endpoint = new EndpointDetails
+                {
+                    Host = "LuckyHost",
+                    HostId = Guid.NewGuid(),
+                    Name = "LuckyEndpoint"
+                }
+
+            }));
+
+            Define(context)
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
                     if (c.HasNativePubSubSupport)
@@ -48,20 +56,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 .Run();
 
             Assert.IsTrue(context.NotificationDelivered);
-        }
-
-        public class ExternalIntegrationsManagementEndpoint : EndpointConfigurationBuilder
-        {
-            public ExternalIntegrationsManagementEndpoint()
-            {
-                EndpointSetup<ExternalIntegrationsManagementEndpointSetup>(b => b.OnEndpointSubscribed<MyContext>((s, context) =>
-                {
-                    if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
-                    {
-                        context.ExternalProcessorSubscribed = true;
-                    }
-                }));
-            }
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder
@@ -83,6 +77,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 
             public class UnicastOverride : IProvideConfiguration<UnicastBusConfig>
             {
+
                 public UnicastBusConfig GetConfiguration()
                 {
                     var config = new UnicastBusConfig();

@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -24,7 +25,6 @@
             byte[] body = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage
@@ -64,12 +64,11 @@
                 "AuditMessage type should be set to the FullName of the message type");
             Assert.False(auditedMessage.IsSystemMessage, "AuditMessage should not be marked as a system message");
 
-
             Assert.NotNull(auditedMessage.ConversationId);
 
-            Assert.AreNotEqual(DateTime.MinValue,auditedMessage.TimeSent, "Time sent should be correctly set");
+            Assert.AreNotEqual(DateTime.MinValue, auditedMessage.TimeSent, "Time sent should be correctly set");
             Assert.AreNotEqual(DateTime.MinValue, auditedMessage.ProcessedAt, "Processed At should be correctly set");
-
+           
             Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
             Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
             Assert.AreEqual(MessageIntentEnum.Send, auditedMessage.MessageIntent, "Message intent should be set");
@@ -93,7 +92,6 @@
             var searchString = typeof(MyMessage).Name;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
@@ -110,7 +108,6 @@
             List<MessagesView> response;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
@@ -128,7 +125,6 @@
             List<MessagesView> response;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     var message = new MyMessage();
@@ -149,7 +145,6 @@
             List<MessagesView> response;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
@@ -170,7 +165,6 @@
             List<MessagesView> response;
 
              Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage
@@ -192,7 +186,6 @@
             List<EndpointsView> knownEndpoints = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
@@ -218,8 +211,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServer>()
-                    .AuditTo(Address.Parse("audit"));
+                EndpointSetup<DefaultServerWithAudit>();
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -234,6 +226,8 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MessageId = Bus.CurrentMessageContext.Id;
+
+                    Thread.Sleep(200);
                 }
             }
         }

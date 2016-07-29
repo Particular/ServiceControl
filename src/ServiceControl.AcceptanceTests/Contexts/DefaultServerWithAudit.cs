@@ -18,22 +18,12 @@
     using NServiceBus.Hosting.Helpers;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
 
-    public class DefaultServer : IEndpointSetupTemplate
+    public class DefaultServerWithAudit : IEndpointSetupTemplate
     {
-        readonly List<Type> typesToInclude;
-
-        public DefaultServer()
-        {
-            typesToInclude = new List<Type>();
-        }
-
-        public DefaultServer(List<Type> typesToInclude)
-        {
-            this.typesToInclude = typesToInclude;
-        }
-
         public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
+            endpointConfiguration.AddressOfAuditQueue = Address.Parse("audit");
+
             ServicePointManager.DefaultConnectionLimit = 100;
 
             var settings = runDescriptor.Settings;
@@ -43,15 +33,17 @@
             SetupLogging(endpointConfiguration);
 
             var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
-            var types = GetTypesScopedByTestClass(transportToUse, endpointConfiguration);
-
-            typesToInclude.AddRange(types);
-
+            var types = GetTypesScopedByTestClass(transportToUse, endpointConfiguration).Concat(new[]
+            {
+                typeof(RegisterWrappers),
+                typeof(SessionCopInBehavior),
+                typeof(SessionCopInBehaviorForMainPipe)
+            });
             var builder = new BusConfiguration();
 
             builder.UsePersistence<InMemoryPersistence>();
             builder.EndpointName(endpointConfiguration.EndpointName);
-            builder.TypesToScan(typesToInclude);
+            builder.TypesToScan(types);
             builder.CustomConfigurationSource(configSource);
             builder.EnableInstallers();
             builder.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
@@ -61,6 +53,12 @@
                 r.RegisterSingleton(runDescriptor.ScenarioContext.GetType(), runDescriptor.ScenarioContext);
                 r.RegisterSingleton(typeof(ScenarioContext), runDescriptor.ScenarioContext);
             });
+            builder.RegisterComponents(r =>
+            {
+                builder.GetSettings().Set("SC.ConfigureComponent", r);
+            });
+            builder.Pipeline.Register<SessionCopInBehavior.Registration>();
+            builder.Pipeline.Register<SessionCopInBehaviorForMainPipe.Registration>();
 
             var serializer = settings.GetOrNull("Serializer");
 
@@ -70,6 +68,7 @@
             }
 
             builder.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
+            builder.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
             configurationBuilderCustomization(builder);
 
             return builder;
@@ -94,7 +93,7 @@
                 File.Delete(logFile);
             }
 
-            var logLevel = "INFO";
+            var logLevel = "WARN";
 
             var nlogConfig = new LoggingConfiguration();
 
@@ -142,9 +141,11 @@
                                       }
                                       return !a.GetName().Name.Contains("Transports");
                                   })
+                                  .Where(a => !a.GetName().Name.StartsWith("ServiceControl.Plugin"))
                                   .Where(a => a.GetName().Name != "ServiceControl")
                                   .SelectMany(a => a.GetTypes());
 
+            types = types.Union(GetNestedTypeRecursive(transportToUse.GetType(), null));
 
             types = types.Union(GetNestedTypeRecursive(endpointConfiguration.BuilderType.DeclaringType, endpointConfiguration.BuilderType));
 

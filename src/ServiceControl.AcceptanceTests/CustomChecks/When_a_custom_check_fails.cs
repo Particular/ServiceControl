@@ -19,7 +19,6 @@
             EventLogItem entry = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.EventType == typeof(CustomCheckFailed).Name))
                 .Run();
@@ -38,7 +37,7 @@
 
             public EndpointWithFailingCustomCheck()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>().IncludeAssembly(typeof(PeriodicCheck).Assembly);
             }
 
             class FailingCustomCheck : CustomCheck

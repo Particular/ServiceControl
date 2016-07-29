@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -12,7 +13,6 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    [Serializable]
     public class When_a_group_is_archived : AcceptanceTest
     {
         [Test]
@@ -24,7 +24,6 @@
             FailedMessage secondFailure = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                     {
                         bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
@@ -39,7 +38,9 @@
 
                         List<FailedMessage.FailureGroup> beforeArchiveGroups;
                         if (!TryGetMany("/api/recoverability/groups/", out beforeArchiveGroups))
+                        {
                             return false;
+                        }
 
                         foreach (var group in beforeArchiveGroups)
                         {
@@ -53,6 +54,8 @@
                                 }
                             }
                         }
+
+                        Thread.Sleep(1000);
 
                         return false;
 
@@ -91,7 +94,6 @@
             string failureGroupId = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {
                     bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
@@ -147,12 +149,11 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServer>(c => c.DisableFeature<SecondLevelRetries>())
+                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>())
                     .WithConfig<TransportConfig>(c =>
                     {
                         c.MaxRetries = 1;
-                    })
-                    .AuditTo(Address.Parse("audit"));
+                    });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -192,7 +193,6 @@
             public int MessageNumber { get; set; }
         }
 
-        [Serializable]
         public class MyContext : ScenarioContext
         {
             public string FirstMessageId { get; set; }

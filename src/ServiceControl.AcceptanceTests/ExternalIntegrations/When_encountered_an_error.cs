@@ -8,7 +8,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using NServiceBus.Config.ConfigurationSource;
     using NUnit.Framework;
     using Raven.Client;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
@@ -26,19 +25,33 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         {
             var context = new MyContext();
 
-            Define(context)
-                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointFailedToHeartbeat
+            CustomConfiguration = config =>
+            {
+                config.OnEndpointSubscribed(s =>
                 {
-                    DetectedAt = new DateTime(2013, 09, 13, 13, 14, 13),
-                    LastReceivedAt = new DateTime(2013, 09, 13, 13, 13, 13),
-                    Endpoint = new EndpointDetails
+                    if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
                     {
-                        Host = "UnluckyHost",
-                        HostId = Guid.NewGuid(),
-                        Name = "UnluckyEndpoint"
+                        context.ExternalProcessorSubscribed = true;
                     }
+                });
 
-                })).AppConfig(PathToAppConfig))
+                config.RegisterComponents(cc => cc.ConfigureComponent<FaultyPublisher>(DependencyLifecycle.SingleInstance));
+            };
+
+            ExecuteWhen(() => context.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointFailedToHeartbeat
+            {
+                DetectedAt = new DateTime(2013, 09, 13, 13, 14, 13),
+                LastReceivedAt = new DateTime(2013, 09, 13, 13, 13, 13),
+                Endpoint = new EndpointDetails
+                {
+                    Host = "UnluckyHost",
+                    HostId = Guid.NewGuid(),
+                    Name = "UnluckyEndpoint"
+                }
+
+            }));
+
+            Define(context)
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
                     if (c.HasNativePubSubSupport)
@@ -53,50 +66,31 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
             Assert.IsTrue(context.Failed);
         }
 
-        public class ExternalIntegrationsManagementEndpoint : EndpointConfigurationBuilder
+        private class FaultyPublisher : IEventPublisher
         {
-            public ExternalIntegrationsManagementEndpoint()
-            {
-                EndpointSetup<ExternalIntegrationsManagementEndpointSetup>(c =>
-                {
-                    c.OnEndpointSubscribed<MyContext>((s, context) =>
-                    {
-                        if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
-                        {
-                            context.ExternalProcessorSubscribed = true;
-                        }
-                    });
+            bool failed;
 
-                    c.RegisterComponents(cc => cc.ConfigureComponent<FaultyPublisher>(DependencyLifecycle.SingleInstance));
-                });
+            public MyContext Context { get; set; }
+
+            public bool Handles(IEvent @event)
+            {
+                return false;
             }
 
-            private class FaultyPublisher : IEventPublisher
+            public object CreateDispatchContext(IEvent @event)
             {
-                bool failed;
+                return null;
+            }
 
-                public MyContext Context { get; set; }
-
-                public bool Handles(IEvent @event)
+            public IEnumerable<object> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IDocumentSession session)
+            {
+                if (!failed)
                 {
-                    return false;
+                    failed = true;
+                    Context.Failed = true;
+                    throw new Exception("Simulated exception");
                 }
-
-                public object CreateDispatchContext(IEvent @event)
-                {
-                    return null;
-                }
-
-                public IEnumerable<object> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IDocumentSession session)
-                {
-                    if (!failed)
-                    {
-                        failed = true;
-                        Context.Failed = true;
-                        throw new Exception("Simulated exception");
-                    }
-                    yield break;
-                }
+                yield break;
             }
         }
 

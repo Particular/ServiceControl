@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
@@ -7,26 +7,43 @@
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Net.Http;
     using System.Net.NetworkInformation;
+    using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
-    using System.Text;
     using System.Threading;
-    using System.Xml.Linq;
-    using System.Xml.XPath;
+    using System.Threading.Tasks;
+    using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using NLog;
+    using NLog.Config;
+    using NLog.Filters;
+    using NLog.Targets;
+    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
+    using NServiceBus.Configuration.AdvanceExtensibility;
+    using NServiceBus.Features;
+    using NServiceBus.Hosting.Helpers;
+    using NServiceBus.MessageInterfaces;
+    using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NUnit.Framework;
+    using Particular.ServiceControl;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
+    using ServiceBus.Management.Infrastructure.Extensions;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.SignalR;
+    using AppBuilderExtensions = ServiceBus.Management.Infrastructure.Extensions.AppBuilderExtensions;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
+    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
+    using LogManager = NServiceBus.Logging.LogManager;
 
-    [TestFixture, Serializable]
+    [TestFixture]
     public abstract class AcceptanceTest
     {
-        static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
         {
             ContractResolver = new UnderscoreMappingResolver(),
             Formatting = Formatting.None,
@@ -44,234 +61,68 @@
             }
         };
 
-        protected Dictionary<string, string> AppConfigurationSettings = new Dictionary<string, string>();
-        string pathToAppConfig;
-        protected int port;
-        string ravenPath;
-        [NonSerialized]
-        ITransportIntegration transportToUse;
+        private Bootstrapper bootstrapper;
+        protected Action<BusConfiguration> CustomConfiguration = _ => { };
+        private ExposeBus exposeBus;
+        protected OwinHttpMessageHandler Handler;
 
-        public AcceptanceTest()
+        private HttpClient httpClient;
+        private int port;
+        private string ravenPath;
+        private ScenarioContext scenarioContext = new ConsoleContext();
+
+        protected Action<Settings> SetSettings = _ => { };
+
+        private ITransportIntegration transportToUse;
+
+        protected AcceptanceTest()
         {
-            ServicePointManager.DefaultConnectionLimit = 100;
-        }
-
-        public AcceptanceTest(Type typeOfTransport, string connectionString)
-        {
-            if (!typeOfTransport.GetInterfaces().Contains(typeof(ITransportIntegration)))
-            {
-                throw new Exception("Unsupported transport type: " + typeOfTransport);
-            }
-
-            transportToUse = (ITransportIntegration) Activator.CreateInstance(typeOfTransport);
-            transportToUse.ConnectionString = connectionString;
-        }
-
-        public string PathToAppConfig
-        {
-            get
-            {
-                if (pathToAppConfig == null)
-                {
-                    pathToAppConfig = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
-                    InitialiseAppConfig();
-                }
-                return pathToAppConfig;
-            }
-        }
-
-        public static ITransportIntegration GetTransportIntegrationFromEnvironmentVar()
-        {
-            ITransportIntegration transportToUse;
-            if ((transportToUse = GetOverrideTransportIntegration()) != null)
-            {
-                return transportToUse;
-            }
-
-            var transportToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport");
-            if (transportToUseString != null)
-            {
-                transportToUse = (ITransportIntegration) Activator.CreateInstance(Type.GetType(typeof(MsmqTransportIntegration).FullName.Replace("Msmq", transportToUseString)) ?? typeof(MsmqTransportIntegration));
-            }
-
-            if (transportToUse == null)
-            {
-                transportToUse = new MsmqTransportIntegration();
-            }
-
-            var connectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
-            if (!string.IsNullOrWhiteSpace(connectionString))
-            {
-                transportToUse.ConnectionString = connectionString;
-            }
-
-            return transportToUse;
-        }
-
-        static ITransportIntegration GetOverrideTransportIntegration()
-        {
-            return null;
+            ServicePointManager.DefaultConnectionLimit = int.MaxValue;
+            ServicePointManager.MaxServicePoints = int.MaxValue;
+            ServicePointManager.UseNagleAlgorithm = false;
+            ServicePointManager.SetTcpKeepAlive(true, 5000, 1000);
         }
 
         [SetUp]
-        public void SetUp()
+        public void Setup()
         {
-            AppConfigurationSettings.Clear();
-            pathToAppConfig = null;
-
-            ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             port = FindAvailablePort(33333);
+            SetSettings = _ => { };
+            CustomConfiguration = _ => { };
 
-            if (transportToUse == null)
-            {
-                transportToUse = GetTransportIntegrationFromEnvironmentVar();
-            }
-
-            Console.Out.WriteLine("Using transport " + transportToUse.Name);
+            transportToUse = GetTransportIntegrationFromEnvironmentVar();
+            Console.Out.WriteLine($"Using transport {transportToUse.Name}");
+            Console.Out.WriteLine($"Using port {port}");
 
             Conventions.EndpointNamingConvention = t =>
             {
                 var baseNs = typeof(AcceptanceTest).Namespace;
                 var testName = GetType().Name;
-                return t.FullName.Replace(baseNs + ".", String.Empty).Replace(testName + "+", String.Empty);
+                return t.FullName.Replace($"{baseNs}.", string.Empty).Replace($"{testName}+", string.Empty);
             };
 
-            Conventions.DefaultConfigForEndpoints = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+            ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         }
 
         [TearDown]
-        public void Cleanup()
+        public void Dispose()
         {
-            Delete(ravenPath);
-
-            if (pathToAppConfig != null)
+            using (new DiagnosticTimer("Test TearDown"))
             {
-                File.Delete(pathToAppConfig);
+                bootstrapper.Stop();
+                httpClient.Dispose();
+                Delete(ravenPath);
             }
-
-            transportToUse.TearDown();
         }
 
-        static int FindAvailablePort(int startPort)
-        {
-            var activeTcpListeners = IPGlobalProperties
-                .GetIPGlobalProperties()
-                .GetActiveTcpListeners();
-
-            for (var port = startPort; port < startPort + 1024; port++)
-            {
-                var portCopy = port;
-                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
-                {
-                    return port;
-                }
-            }
-
-            return startPort;
-        }
-
-        void InitialiseAppConfig()
-        {
-            XDocument doc;
-            using (
-                Stream configStream = File.Open(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile,
-                    FileMode.Open))
-            {
-                doc = XDocument.Load(configStream);
-            }
-
-            var appSettingsElement = doc.XPathSelectElement(@"/configuration/appSettings");
-            var dbPathElement = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/DbPath""]");
-            if (dbPathElement != null)
-            {
-                dbPathElement.SetAttributeValue("value", ravenPath);
-            }
-            else
-            {
-                appSettingsElement.Add(new XElement("add",
-                    new XAttribute("key", "ServiceControl/DbPath"), new XAttribute("value", ravenPath)));
-            }
-
-            var dbPortElement = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/Port""]");
-            if (dbPortElement != null)
-            {
-                dbPortElement.SetAttributeValue("value", port);
-            }
-            else
-            {
-                appSettingsElement.Add(new XElement("add",
-                    new XAttribute("key", "ServiceControl/Port"), new XAttribute("value", port)));
-            }
-
-            var syncIndexElement = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/CreateIndexSync""]");
-            if (syncIndexElement != null)
-            {
-                syncIndexElement.SetAttributeValue("value", true);
-            }
-            else
-            {
-                appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/CreateIndexSync"), new XAttribute("value", true)));
-            }
-
-            var forwardAuditMessagesElement = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/ForwardAuditMessages""]");
-            if (forwardAuditMessagesElement != null)
-            {
-                forwardAuditMessagesElement.SetAttributeValue("value", false);
-            }
-            else
-            {
-                appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/ForwardAuditMessages"), new XAttribute("value", false)));
-            }
-
-            var forwardErrorMessagesElement = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/ForwardErrorMessages""]");
-            if (forwardErrorMessagesElement != null)
-            {
-                forwardErrorMessagesElement.SetAttributeValue("value", true);
-            }
-            else
-            {
-                appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/ForwardErrorMessages"), new XAttribute("value", true)));
-            }
-
-
-
-            // Mash any user defined settings into the config
-            foreach (var configSetting in AppConfigurationSettings)
-            {
-                appSettingsElement.Add(new XElement("add", new XAttribute("key", configSetting.Key), new XAttribute("value", configSetting.Value)));
-            }
-
-            // transport specification
-            if (transportToUse != null)
-            {
-                var el = appSettingsElement.XPathSelectElement(@"add[@key=""ServiceControl/TransportType""]");
-                if (el != null)
-                {
-                    el.SetAttributeValue("value", transportToUse.TypeName);
-                }
-                else
-                {
-                    appSettingsElement.Add(new XElement("add", new XAttribute("key", "ServiceControl/TransportType"), new XAttribute("value", transportToUse.TypeName)));
-                }
-
-                var connectionStringsElement = doc.XPathSelectElement(@"/configuration/connectionStrings");
-                el = connectionStringsElement.XPathSelectElement(@"add[@name=""NServiceBus/Transport""]");
-                if (el != null)
-                {
-                    el.SetAttributeValue("connectionString", transportToUse.ConnectionString);
-                }
-                else
-                {
-                    connectionStringsElement.Add(new XElement("add", new XAttribute("name", "NServiceBus/Transport"), new XAttribute("connectionString", transportToUse.ConnectionString)));
-                }
-            }
-
-            doc.Save(pathToAppConfig);
-        }
-
-        static void Delete(string path)
+        private static void Delete(string path)
         {
             DirectoryInfo emptyTempDirectory = null;
+
+            if (!Directory.Exists(path))
+            {
+                return;
+            }
 
             try
             {
@@ -306,76 +157,70 @@
             }
         }
 
-        public T Get<T>(string url) where T : class
+        protected void ExecuteWhen(Func<bool> execute, Action<IBus> action)
         {
-            HttpWebRequest request;
+            var timeout = TimeSpan.FromSeconds(1);
 
+            Task.Run(() =>
+            {
+                while (!SpinWait.SpinUntil(execute, timeout))
+                {
+                }
 
-            if (url.StartsWith("http://"))
-            {
-                request = (HttpWebRequest) WebRequest.Create(url);
-            }
-            else
-            {
-                request = (HttpWebRequest) WebRequest.Create($"http://localhost:{port}{url}");
-            }
-            request.Accept = "application/json";
+                action(exposeBus.GetBus());
+            });
+        }
 
-            HttpWebResponse response;
-            try
+        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
+        {
+            Func<T> instance = () => new T();
+            return Define(instance);
+        }
+
+        protected IScenarioWithEndpointBehavior<T> Define<T>(T context) where T : ScenarioContext, new()
+        {
+            return Define(() => context);
+        }
+
+        protected IScenarioWithEndpointBehavior<T> Define<T>(Func<T> contextFactory) where T : ScenarioContext, new()
+        {
+            scenarioContext = contextFactory();
+            scenarioContext.SessionId = Guid.NewGuid().ToString();
+
+            InitializeServiceControl(scenarioContext);
+
+            return new ScenarioWithContext<T>(() => (T) scenarioContext);
+        }
+
+        private async Task<T> Get<T>(string url) where T : class
+        {
+            if (!url.StartsWith("http://"))
             {
-                response = request.GetResponse() as HttpWebResponse;
-            }
-            catch (WebException ex)
-            {
-                response = ex.Response as HttpWebResponse;
+                url = $"http://localhost:{port}{url}";
             }
 
-            if (response == null)
-            {
-                Thread.Sleep(1000);
-                return null;
-            }
+            var response = await httpClient.GetAsync(url);
 
-            scenarioContext.AddTrace($"{request.RequestUri} - {(int)response.StatusCode}");
+            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
 
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
                 return null;
             }
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.StatusDescription}");
+                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase}");
             }
 
-            using (var stream = response.GetResponseStream())
+            using (var stream = await response.Content.ReadAsStreamAsync())
             {
                 var serializer = JsonSerializer.Create(serializerSettings);
 
                 return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
             }
-        }
-
-        protected bool TryGet<T>(string url, out T response, Predicate<T> condition = null) where T : class
-        {
-            if (condition == null)
-            {
-                condition = _ => true;
-            }
-
-            response = Get<T>(url);
-
-
-            if (response == null || !condition(response))
-            {
-                Thread.Sleep(1000);
-                return false;
-            }
-
-            return true;
         }
 
         protected bool TryGetMany<T>(string url, out List<T> response, Predicate<T> condition = null) where T : class
@@ -385,31 +230,54 @@
                 condition = _ => true;
             }
 
-            response = Get<List<T>>(url);
+            response = Get<List<T>>(url).GetAwaiter().GetResult();
 
             if (response == null || !response.Any(m => condition(m)))
             {
-                Thread.Sleep(1000);
+                Task.Delay(1000).GetAwaiter().GetResult();
                 return false;
             }
 
             return true;
         }
 
-        protected byte[] DownloadData(string url)
+        protected HttpStatusCode Patch<T>(string url, T payload = null) where T : class
         {
-            using (var client = new WebClient())
+            if (!url.StartsWith("http://"))
             {
-                var urlToMessageBody = url;
-                if (!url.StartsWith("http"))
-                {
-                    urlToMessageBody = $"http://localhost:{port}/api{url}";
-                }
-
-                scenarioContext.AddTrace(urlToMessageBody);
-
-                return client.DownloadData(urlToMessageBody);
+                url = $"http://localhost:{port}{url}";
             }
+
+            var json = JsonConvert.SerializeObject(payload, serializerSettings);
+            var response = httpClient.PatchAsync(url, new StringContent(json, null, "application/json")).GetAwaiter().GetResult();
+
+            Console.WriteLine($"PATCH - {url} - {(int) response.StatusCode}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase} - {body}");
+            }
+
+            return response.StatusCode;
+        }
+
+        protected bool TryGet<T>(string url, out T response, Predicate<T> condition = null) where T : class
+        {
+            if (condition == null)
+            {
+                condition = _ => true;
+            }
+
+            response = Get<T>(url).GetAwaiter().GetResult();
+
+            if (response == null || !condition(response))
+            {
+                Task.Delay(1000).GetAwaiter().GetResult();
+                return false;
+            }
+
+            return true;
         }
 
         protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null) where T : class
@@ -419,113 +287,358 @@
                 condition = _ => true;
             }
 
-            var response = Get<List<T>>(url);
-
+            var response = Get<List<T>>(url).GetAwaiter().GetResult();
+            item = null;
             if (response != null)
             {
                 var items = response.Where(i => condition(i)).ToList();
 
-                if (items.Count() > 1)
+                if (items.Count > 1)
                 {
                     throw new InvalidOperationException("More than one matching element found");
                 }
 
                 item = items.SingleOrDefault();
             }
-            else
+
+            if (item != null)
             {
-                item = null;
+                return true;
             }
 
-            if (item == null)
+            Task.Delay(1000).GetAwaiter().GetResult();
+
+            return false;
+        }
+
+        protected void Post<T>(string url, T payload = null) where T : class
+        {
+            if (!url.StartsWith("http://"))
             {
-                Thread.Sleep(1000);
-
-                return false;
+                url = $"http://localhost:{port}{url}";
             }
-
-            return true;
-        }
-
-        public HttpStatusCode Patch<T>(string url, T payload = null) where T : class
-        {
-            return HttpAction(url, "PATCH", payload, false);
-        }
-
-        public void Post<T>(string url, T payload = null) where T : class
-        {
-            HttpAction(url, "POST", payload);
-        }
-
-        protected HttpStatusCode HttpAction<T>(string url, string action, T payload = null, bool throwOnFailure = true) where T : class
-        {
-            var request = (HttpWebRequest)WebRequest.Create($"http://localhost:{port}{url}");
-
-            request.ContentType = "application/json";
-            request.Method = action;
 
             var json = JsonConvert.SerializeObject(payload, serializerSettings);
-            request.ContentLength = json.Length;
+            var response = httpClient.PostAsync(url, new StringContent(json, null, "application/json")).GetAwaiter().GetResult();
 
-            using (var stream = request.GetRequestStream())
+            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
+
+            if (!response.IsSuccessStatusCode)
             {
-                using (var sw = new StreamWriter(stream))
+                var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase} - {body}");
+            }
+        }
+
+        protected byte[] DownloadData(string url, HttpStatusCode successCode = HttpStatusCode.OK)
+        {
+            if (!url.StartsWith("http://"))
+            {
+                url = $"http://localhost:{port}/api{url}";
+            }
+
+            var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
+            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
+            if (response.StatusCode != successCode)
+            {
+                throw new Exception($"Expected status code of {successCode}, but instead got {response.StatusCode}.");
+            }
+
+            return response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+        }
+
+        private static int FindAvailablePort(int startPort)
+        {
+            var activeTcpListeners = IPGlobalProperties
+                .GetIPGlobalProperties()
+                .GetActiveTcpListeners();
+
+            for (var port = startPort; port < startPort + 1024; port++)
+            {
+                var portCopy = port;
+                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
                 {
-                    sw.Write(json);
+                    return port;
                 }
             }
 
-            HttpWebResponse response;
+            return startPort;
+        }
 
-            try
-            {
-                response = request.GetResponse() as HttpWebResponse;
-            }
-            catch (WebException ex)
-            {
-                response = ex.Response as HttpWebResponse;
-            }
+        private static IEnumerable<Type> GetTypesScopedByTestClass(ITransportIntegration transportToUse)
+        {
+            var assemblies = new AssemblyScanner().GetScannableAssemblies();
 
-            scenarioContext.AddTrace($"{request.RequestUri} - {(int) response.StatusCode}");
-
-            if (throwOnFailure && response.StatusCode != HttpStatusCode.OK && response.StatusCode != HttpStatusCode.Accepted)
-            {
-                string body;
-                using (var reader = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding("utf-8")))
+            var types = assemblies.Assemblies
+                //exclude all test types by default
+                .Where(a => a != Assembly.GetExecutingAssembly())
+                .Where(a =>
                 {
-                    body = reader.ReadToEnd();
-                }
-                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.StatusDescription} - {body}");
+                    if (a == transportToUse.Type.Assembly)
+                    {
+                        return true;
+                    }
+                    return !a.GetName().Name.Contains("Transports");
+                })
+                .Where(a => !a.GetName().Name.StartsWith("ServiceControl.Plugin"))
+                .SelectMany(a => a.GetTypes());
+
+            types = types.Union(GetNestedTypeRecursive(transportToUse.GetType()));
+
+            return types;
+        }
+
+        private static IEnumerable<Type> GetNestedTypeRecursive(Type rootType)
+        {
+            yield return rootType;
+
+            foreach (var nestedType in rootType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                yield return nestedType;
+            }
+        }
+
+        public static ITransportIntegration GetTransportIntegrationFromEnvironmentVar()
+        {
+            ITransportIntegration transportToUse = null;
+
+            var transportToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport");
+            if (transportToUseString != null)
+            {
+                transportToUse = (ITransportIntegration) Activator.CreateInstance(Type.GetType(typeof(MsmqTransportIntegration).FullName.Replace("Msmq", transportToUseString)) ?? typeof(MsmqTransportIntegration));
             }
 
-            return response.StatusCode;
-        }
-
-        public IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
-        {
-            Func<T> instance = () => new T();
-            return Define(instance);
-        }
-
-        public IScenarioWithEndpointBehavior<T> Define<T>(T context) where T : ScenarioContext, new()
-        {
-            return Define(() => context);
-        }
-
-        public IScenarioWithEndpointBehavior<T> Define<T>(Func<T> contextFactory) where T : ScenarioContext, new()
-        {
-            return new ScenarioWithContext<T>(() =>
+            if (transportToUse == null)
             {
-                scenarioContext = contextFactory();
+                transportToUse = new MsmqTransportIntegration();
+            }
 
-                return (T) scenarioContext;
+            var connectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
+            if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                transportToUse.ConnectionString = connectionString;
+            }
+
+            return transportToUse;
+        }
+
+        private LoggingConfiguration SetupLogging(string endpointname)
+        {
+            var logDir = ".\\logfiles\\";
+
+            Directory.CreateDirectory(logDir);
+
+            var logFile = Path.Combine(logDir, $"{endpointname}.txt");
+
+            if (File.Exists(logFile))
+            {
+                File.Delete(logFile);
+            }
+
+            var logLevel = "WARN";
+
+            var nlogConfig = new LoggingConfiguration();
+
+            var fileTarget = new FileTarget
+            {
+                FileName = logFile,
+                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}"
+            };
+
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, LogLevel.Error, "Raven.*"));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", LogLevel.FromString(logLevel), fileTarget));
+            nlogConfig.AddTarget("debugger", fileTarget);
+
+            return nlogConfig;
+        }
+
+        private static LoggingRule MakeFilteredLoggingRule(Target target, LogLevel logLevel, string text)
+        {
+            var rule = new LoggingRule(text, LogLevel.Info, target)
+            {
+                Final = true
+            };
+
+            rule.Filters.Add(new ConditionBasedFilter
+            {
+                Action = FilterResult.Ignore,
+                Condition = $"level < LogLevel.{logLevel.Name}"
             });
+
+            return rule;
         }
 
-        ScenarioContext scenarioContext = new ConsoleContext();
-
-        class ConsoleContext : ScenarioContext
+        private void InitializeServiceControl(ScenarioContext context)
         {
+            LogManager.Use<NLogFactory>();
+            NLog.LogManager.Configuration = SetupLogging(Settings.DEFAULT_SERVICE_NAME);
+
+            var settings = new Settings
+            {
+                Port = port,
+                DbPath = ravenPath,
+                ForwardErrorMessages = false,
+                ForwardAuditMessages = false,
+                TransportType = transportToUse.TypeName,
+                TransportConnectionString = transportToUse.ConnectionString,
+                ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
+                MaximumConcurrencyLevel = 2,
+                HttpDefaultConnectionLimit = int.MaxValue
+            };
+
+            SetSettings(settings);
+
+            var configuration = new BusConfiguration();
+            configuration.TypesToScan(GetTypesScopedByTestClass(transportToUse).Concat(new[]
+            {
+                typeof(MessageMapperInterceptor),
+                typeof(RegisterWrappers),
+                typeof(SessionCopInBehavior),
+                typeof(SessionCopInBehaviorForMainPipe)
+            }));
+            configuration.EnableInstallers();
+
+            configuration.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
+            configuration.GetSettings().Set("SC.ScenarioContext", context);
+
+            // This is a hack to ensure ServiceControl picks the correct type for the messages that come from plugins otherwise we pick the type from the plugins assembly and that is not the type we want, we need to pick the type from ServiceControl assembly.
+            // This is needed because we no longer use the AppDomain separation.
+            configuration.EnableFeature<MessageMapperInterceptor>();
+            configuration.RegisterComponents(r => { configuration.GetSettings().Set("SC.ConfigureComponent", r); });
+
+            configuration.RegisterComponents(r =>
+            {
+                r.RegisterSingleton(context.GetType(), context);
+                r.RegisterSingleton(typeof(ScenarioContext), context);
+            });
+
+            configuration.Pipeline.Register<SessionCopInBehavior.Registration>();
+            configuration.Pipeline.Register<SessionCopInBehaviorForMainPipe.Registration>();
+
+            CustomConfiguration(configuration);
+
+            exposeBus = new ExposeBus();
+
+            using (new DiagnosticTimer("Initializing Bootstrapper"))
+            {
+                bootstrapper = new Bootstrapper(settings, configuration, exposeBus);
+            }
+            using (new DiagnosticTimer("Initializing AppBuilder"))
+            {
+                var app = new AppBuilder();
+                var cts = new CancellationTokenSource();
+                app.Properties[AppBuilderExtensions.HostOnAppDisposing] = cts.Token;
+                bootstrapper.WebApp = new Disposable(() => cts.Cancel(false));
+                bootstrapper.Startup.Configuration(app);
+                var appFunc = app.Build();
+
+                Handler = new OwinHttpMessageHandler(appFunc)
+                {
+                    UseCookies = false,
+                    AllowAutoRedirect = false
+                };
+                httpClient = new HttpClient(Handler);
+            }
+        }
+
+        private class Disposable : MarshalByRefObject, IDisposable
+        {
+            private readonly Action dispose;
+
+            public Disposable(Action dispose)
+            {
+                this.dispose = dispose;
+            }
+
+            public void Dispose()
+            {
+                dispose();
+            }
+        }
+
+        private class MessageMapperInterceptor : Feature
+        {
+            public MessageMapperInterceptor()
+            {
+                DependsOn<JsonSerialization>();
+            }
+
+            protected override void Setup(FeatureConfigurationContext context)
+            {
+                context.Container.ConfigureComponent<IMessageMapper>(builder => new MessageMapperWrapper(), DependencyLifecycle.SingleInstance);
+            }
+        }
+
+        private class MessageMapperWrapper : IMessageMapper
+        {
+            private static string assemblyName;
+
+            private IMessageMapper messageMapper;
+
+            static MessageMapperWrapper()
+            {
+                var s = typeof(Bootstrapper).AssemblyQualifiedName;
+                assemblyName = s.Substring(s.IndexOf(','));
+            }
+
+            public MessageMapperWrapper()
+            {
+                messageMapper = new MessageMapper();
+            }
+
+            public T CreateInstance<T>()
+            {
+                return messageMapper.CreateInstance<T>();
+            }
+
+            public T CreateInstance<T>(Action<T> action)
+            {
+                return messageMapper.CreateInstance(action);
+            }
+
+            public object CreateInstance(Type messageType)
+            {
+                return messageMapper.CreateInstance(messageType);
+            }
+
+            public void Initialize(IEnumerable<Type> types)
+            {
+                messageMapper.Initialize(types);
+            }
+
+            public Type GetMappedTypeFor(Type t)
+            {
+                if (t.Assembly.GetName().Name.StartsWith("ServiceControl.Plugin"))
+                {
+                    return Type.GetType($"{t.FullName}{assemblyName}");
+                }
+                return messageMapper.GetMappedTypeFor(t);
+            }
+
+            public Type GetMappedTypeFor(string typeName)
+            {
+                return messageMapper.GetMappedTypeFor(typeName);
+            }
+        }
+
+        private class ConsoleContext : ScenarioContext
+        {
+        }
+    }
+
+    public static class HttpClientExtensions
+    {
+        public static async Task<HttpResponseMessage> PatchAsync(this HttpClient client, string requestUri, HttpContent iContent)
+        {
+            var method = new HttpMethod("PATCH");
+            var request = new HttpRequestMessage(method, requestUri)
+            {
+                Content = iContent
+            };
+
+            var response = await client.SendAsync(request);
+
+            return response;
         }
     }
 }

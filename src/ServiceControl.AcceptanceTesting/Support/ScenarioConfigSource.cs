@@ -24,9 +24,22 @@
             object configurationSection;
             if (configuration.UserDefinedConfigSections.TryGetValue(type, out configurationSection))
             {
+                if (type == typeof(TransportConfig))
+                {
+                    ((TransportConfig) configurationSection).MaximumConcurrencyLevel = 2;
+                }
+
                 return configurationSection as T;
             }
 
+            if (type == typeof(TransportConfig))
+            {
+                return new TransportConfig
+                {
+                    MaxRetries = 1,
+                    MaximumConcurrencyLevel = 2
+                } as T;
+            }
 
             if (type == typeof(MessageForwardingInCaseOfFaultConfig))
             {

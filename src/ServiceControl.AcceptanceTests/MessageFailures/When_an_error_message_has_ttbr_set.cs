@@ -8,7 +8,6 @@
     using NServiceBus.Unicast;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class When_an_error_message_has_ttbr_set : AcceptanceTest
     {
@@ -16,24 +15,20 @@
         public void Ttbr_is_stripped_before_being_forwarded_to_error_queue()
         {
             var context = new MyContext();
+            SetSettings = settings =>
+            {
+                settings.ErrorLogQueue = Address.Parse("Error.LogPeekEndpoint");
+                settings.ForwardErrorMessages = true;
+            };
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(
-                    c => c.AppConfig(PathToAppConfig)
-                          .CustomConfig(config =>
-                            {
-                                Settings.ErrorLogQueue = Address.Parse("Error.LogPeekEndpoint");
-                            })
-                )
                 .WithEndpoint<SourceEndpoint>()
-                .WithEndpoint<LogPeekEndpoint>(
-                    c => c.CustomConfig(config => config.RegisterComponents(components => components.ConfigureComponent<LogPeekEndpoint.MutateIncomingTransportMessages>(DependencyLifecycle.InstancePerCall)))
-                )
+                .WithEndpoint<LogPeekEndpoint>()
                 .Done(c => c.Done)
                 .Run();
 
             Assert.IsTrue(context.ErrorForwardedToLog, "Failed message never made it to Error Log");
-            Assert.IsTrue(context.TtbrStipped, "TTBR still set");
+            Assert.IsTrue(context.TtbrStripped, "TTBR still set");
         }
 
         public class SourceEndpoint : EndpointConfigurationBuilder
@@ -42,7 +37,6 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
-
 
             public class SendFailedMessageWithTtbrSet : IWantToRunWhenBusStartsAndStops
             {
@@ -68,7 +62,7 @@
                     message.Headers["NServiceBus.FailedQ"] = "Error.SourceEndpoint";
                     message.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
 
-                    message.TimeToBeReceived = TimeSpan.Parse("10:00:00");
+                    message.TimeToBeReceived = TimeSpan.Parse("00:10:00");
 
                     sendMessages.Send(message, new SendOptions("error"));
                 }
@@ -83,7 +77,11 @@
         {
             public LogPeekEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    c.EndpointName("Error.LogPeekEndpoint");
+                    c.RegisterComponents(components => components.ConfigureComponent<MutateIncomingTransportMessages>(DependencyLifecycle.InstancePerCall));
+                });
             }
 
             public class MutateIncomingTransportMessages : IMutateIncomingTransportMessages
@@ -97,30 +95,23 @@
 
                 public void MutateIncoming(TransportMessage transportMessage)
                 {
-                    if (transportMessage.Id == Guid.Empty.ToString("N"))
-                    {
-                        // This is the forwarding smoke test
-                        return;
-                    }
-
                     if (transportMessage.Id == context.MessageId)
                     {
                         // MSMQ gives incoming messages a magic value so we can't compare against MaxValue
                         // Ensure that the TTBR given is greater than the 10:00:00 configured
-                        context.TtbrStipped = transportMessage.TimeToBeReceived > TimeSpan.Parse("10:00:00");
+                        context.TtbrStripped = transportMessage.TimeToBeReceived > TimeSpan.Parse("00:10:00");
                         context.ErrorForwardedToLog = true;
+                        context.Done = true;
                     }
-                    context.Done = true;
                 }
             }
         }
 
-        [Serializable]
         public class MyContext : ScenarioContext
         {
             public bool ErrorForwardedToLog { get; set; }
             public bool Done { get; set; }
-            public bool TtbrStipped { get; set; }
+            public bool TtbrStripped { get; set; }
             public string MessageId { get; set; }
         }
     }

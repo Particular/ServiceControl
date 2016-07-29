@@ -10,5 +10,6 @@
         string ConnectionString { get; set; }
         void OnEndpointShutdown(string endpointName);
         void TearDown();
+        void Setup();
     }
 }

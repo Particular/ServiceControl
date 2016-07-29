@@ -25,7 +25,6 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
             FailedMessage retriedMessage = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<MeowReceiver>(b => b.Given(bus => bus.SendLocal(new Meow())))
                 .Done(ctx =>
                 {

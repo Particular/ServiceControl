@@ -15,7 +15,6 @@
             var context = new MyContext();
            
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MyMessage{OrderId = 1})))
                 .Done(c => c.SagaNotFound)
                 .Run(TimeSpan.FromSeconds(40));
@@ -27,8 +26,7 @@
         {
             public EndpointThatIsHostingTheSaga()
             {
-                EndpointSetup<DefaultServer>()
-                    .AuditTo(Address.Parse("audit"));
+                EndpointSetup<DefaultServerWithAudit>();
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>,

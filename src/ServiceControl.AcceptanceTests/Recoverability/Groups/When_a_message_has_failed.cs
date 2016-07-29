@@ -22,7 +22,6 @@
             FailedMessage failedMessage = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c =>
                 {

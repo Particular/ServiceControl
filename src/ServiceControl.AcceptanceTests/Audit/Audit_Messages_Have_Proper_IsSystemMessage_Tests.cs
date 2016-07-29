@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -26,7 +25,6 @@
             
             MessagesView auditMessage = null;
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c => TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
                 .Run();
@@ -46,7 +44,6 @@
 
             MessagesView auditMessage = null;
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c => TryGetSingle("/api/messages?include_system_messages=true&sort=id", out auditMessage, r => r.MessageId == c.MessageId))
                 .Run();
@@ -68,20 +65,22 @@
             var containsItem = true;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c =>
                 {
-                    var response = Get<List<MessagesView>>("/api/messages");
-
-                    if (response == null)
+                    if (!c.QueryForMessages)
                     {
-                        Thread.Sleep(1000);
-
                         return false;
                     }
 
-                    var items = response.Where(r => r.MessageId == c.MessageId);
+                    List<MessagesView> messages;
+
+                    if (!TryGet("/api/messages", out messages))
+                    {
+                        return false;
+                    }
+
+                    var items = messages.Where(r => r.MessageId == c.MessageId);
 
                     containsItem = items.Any();
 
@@ -104,7 +103,6 @@
 
             MessagesView auditMessage = null;
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c => TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
                 .Run();
@@ -116,7 +114,7 @@
         {
             public ServerEndpoint()
             {
-                EndpointSetup<DefaultServer>();
+                EndpointSetup<DefaultServerWithAudit>();
             }
 
             class SendMessageLowLevel : IWantToRunWhenBusStartsAndStops
@@ -124,6 +122,8 @@
                 public ISendMessages SendMessages { get; set; }
 
                 public SystemMessageTestContext SystemMessageTestContext { get; set; }
+
+                public IBus Bus { get; set; }
 
                 public void Start()
                 {
@@ -144,15 +144,31 @@
                     }
 
                     SendMessages.Send(transportMessage, new SendOptions(Address.Parse("audit")));
+
+                    Bus.SendLocal(new DoQueryAllowed());
                 }
 
                 public void Stop()
                 {
                 }
             }
+
+            class MyHandler : IHandleMessages<DoQueryAllowed>
+            {
+                public SystemMessageTestContext Context { get; set; }
+
+                public void Handle(DoQueryAllowed message)
+                {
+                    Context.QueryForMessages = true;
+                }
+            }
         }
 
         public class MyMessage : IMessage
+        {
+        }
+
+        public class DoQueryAllowed : IMessage
         {
         }
 
@@ -162,6 +178,7 @@
             public bool IncludeControlMessageHeader { get; set; }
             public bool? ControlMessageHeaderValue { get; set; }
             public string EnclosedMessageType { get; set; }
+            public bool QueryForMessages { get; set; }
         }
  
     }

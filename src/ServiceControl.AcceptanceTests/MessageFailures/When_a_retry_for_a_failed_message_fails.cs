@@ -11,7 +11,6 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    [Serializable]
     public class When_a_retry_for_a_failed_message_fails : AcceptanceTest
     {
         [Test]
@@ -22,7 +21,6 @@
             FailedMessage failure = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>(b => 
                     b.Given(bus => bus.SendLocal(new MyMessage()))
                      .When(ctx => CheckProcessingAttemptsIs(ctx, 1),
@@ -45,7 +43,6 @@
             FailedMessage failure = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>(b => 
                     b.Given(bus => bus.SendLocal(new MyMessage()))
                      .When(ctx => CheckProcessingAttemptsIs(ctx, 1),
@@ -92,12 +89,11 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => c.DisableFeature<SecondLevelRetries>())
+                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>())
                     .WithConfig<TransportConfig>(c =>
-                        {
-                            c.MaxRetries = 1;
-                        })
-                    .AuditTo(Address.Parse("audit"));
+                    {
+                        c.MaxRetries = 1;
+                    });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

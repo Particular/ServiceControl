@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Reflection;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -20,7 +21,6 @@
             SagaHistory sagaHistory = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new StartSagaMessage())))
                 .Done(c => 
                     c.ReceivedInitiatingMessage && 
@@ -41,9 +41,9 @@
         {
             public EndpointThatIsHostingTheSaga()
             {
-                EndpointSetup<DefaultServer>(c => c.DisableFeature<AutoSubscribe>())
-                    .AuditTo(Address.Parse("audit"))
-                    .AddMapping<MyEvent>(typeof(EndpointThatIsHostingTheSaga));
+                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<AutoSubscribe>())
+                    .AddMapping<MyEvent>(typeof(EndpointThatIsHostingTheSaga))
+                    .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"));
             }
         }
 
