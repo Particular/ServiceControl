@@ -85,8 +85,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{HostName}:{Port}/api/";
                 }
-                var virt = VirtualDirectory.Replace("/", "");
-                return $"http://{HostName}:{Port}/{virt}/api/";
+                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
             }
         }
 
@@ -109,8 +108,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{host}:{Port}/storage/";
                 }
-                var virt = $"{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
-                return $"http://{host}:{Port}/{virt}storage/";
+                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
             }
         }
 
@@ -137,8 +135,20 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{host}:{Port}/api/";
                 }
-                var virt = VirtualDirectory.Replace("/", "");
-                return $"http://{host}:{Port}/{virt}/api/";
+                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+            }
+        }
+
+        public string AclUrl
+        {
+            get
+            {
+                var baseUrl = $"http://{HostName}:{Port}/";
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return baseUrl;
+                }
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
             }
         }
 
@@ -185,24 +195,15 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = FindByName(Name);
-            var urlaclChanged = !(oldSettings.Port == Port
-                                  && string.Equals(oldSettings.HostName, HostName, StringComparison.OrdinalIgnoreCase)
-                                  && string.Equals(oldSettings.VirtualDirectory, VirtualDirectory, StringComparison.OrdinalIgnoreCase));
-
+            
             var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
 
             var queueNamesChanged = !(string.Equals(oldSettings.AuditQueue, AuditQueue, StringComparison.OrdinalIgnoreCase)
                                       && string.Equals(oldSettings.ErrorQueue, ErrorQueue, StringComparison.OrdinalIgnoreCase)
                                       && string.Equals(oldSettings.AuditLogQueue, AuditLogQueue, StringComparison.OrdinalIgnoreCase)
                                       && string.Equals(oldSettings.ErrorLogQueue, ErrorLogQueue, StringComparison.OrdinalIgnoreCase));
-            if (urlaclChanged)
-            {
-                oldSettings.RemoveUrlAcl();
-                var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-                reservation.Create();
-                var ravenStorageReservation = new UrlReservation(StorageUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-                ravenStorageReservation.Create();
-            }
+
+            RecreateUrlAcl(oldSettings);
 
             if (fileSystemChanged)
             {
@@ -260,6 +261,13 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 Service.ChangeAccountDetails(accountName, ServiceAccountPwd);
             }
+        }
+
+        private void RecreateUrlAcl(ServiceControlInstance oldSettings)
+        {
+            oldSettings.RemoveUrlAcl();
+            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            reservation.Create();
         }
 
         string DefaultDBPath()
@@ -329,7 +337,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RemoveUrlAcl()
         {
-            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.Equals(Url, StringComparison.OrdinalIgnoreCase) || p.Url.Equals(StorageUrl, StringComparison.OrdinalIgnoreCase)))
+            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.Equals(Url, StringComparison.OrdinalIgnoreCase) || p.Url.Equals(AclUrl, StringComparison.OrdinalIgnoreCase)))
             {
                 try
                 {
