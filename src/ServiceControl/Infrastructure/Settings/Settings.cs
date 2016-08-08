@@ -21,10 +21,7 @@
             ForwardErrorMessages = GetForwardErrorMessages();
             auditRetentionPeriod = GetAuditRetentionPeriod();
             errorRetentionPeriod = GetErrorRetentionPeriod();
-            MaintenanceMode = SettingsReader<bool>.Read("MaintenanceMode");
         }
-
-        public static bool MaintenanceMode;
 
         public static string RootUrl
         {
@@ -44,7 +41,7 @@
         public static string ApiUrl => RootUrl + "api";
 
         public static string StorageUrl => RootUrl + "storage";
-
+        
         static Address GetAuditLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
@@ -140,7 +137,6 @@
 
         public static int Port = SettingsReader<int>.Read("Port", 33333);
       
-        public static bool ExposeRavenDB = SettingsReader<bool>.Read("ExposeRavenDB");
         public static string Hostname = SettingsReader<string>.Read("Hostname", "localhost");
         public static string VirtualDirectory = SettingsReader<string>.Read("VirtualDirectory", String.Empty);
 

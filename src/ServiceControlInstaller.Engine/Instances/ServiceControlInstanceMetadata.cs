@@ -13,7 +13,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Queues;
+    using ServiceControlInstaller.Engine.Setup;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
     using ServiceControlInstaller.Engine.UrlAcl;
@@ -95,6 +95,20 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+        public string AclUrl
+        {
+            get
+            {
+                //TODO: Introduce option for https?
+                var baseUrl = $"http://{HostName}:{Port}/";
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return baseUrl;
+                }
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
+            }
+        }
+
         public void CopyFiles(string zipFilePath)
         {
             //Clear out any files from previos runs of Add Instance, just in case user switches transport
@@ -158,7 +172,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RegisterUrlAcl()
         {
-            var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             reservation.Create();
 
             var ravenReservation = new UrlReservation(StorageUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
@@ -171,13 +185,13 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             try
             {
-                QueueCreation.RunQueueCreation(this);
+                ServiceControlSetup.RunInSetupMode(this);
             }
-            catch (ServiceControlQueueCreationFailedException ex)
+            catch (ServiceControlSetupFailedException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-            catch (ServiceControlQueueCreationTimeoutException ex)
+            catch (ServiceControlSetupTimeoutException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }

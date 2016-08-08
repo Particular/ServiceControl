@@ -293,7 +293,7 @@ namespace ServiceControl.Infrastructure.Extensions
 
             var skipResults = (page - 1)*maxResultsPerPage;
 
-            return (IRavenQueryable<TSource>)source.Skip(skipResults)
+            return source.Skip(skipResults)
                 .Take(maxResultsPerPage);
         }
 

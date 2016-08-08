@@ -10,13 +10,15 @@
     using global::Nancy.Bootstrappers.Autofac;
     using global::Nancy.Diagnostics;
     using global::Nancy.Responses;
-    using Particular.ServiceControl;
 
     public class NServiceBusContainerBootstrapper : AutofacNancyBootstrapper
     {
-        public NServiceBusContainerBootstrapper()
+        private readonly IContainer container;
+
+        public NServiceBusContainerBootstrapper(IContainer container)
         {
             StaticConfiguration.EnableHeadRouting = true;
+            this.container = container;
         }
 
         protected override NancyInternalConfiguration InternalConfiguration
@@ -71,7 +73,7 @@
 
         protected override ILifetimeScope GetApplicationContainer()
         {
-            return Bootstrapper.Container;
+            return container;
         }
 
         protected override void RegisterRequestContainerModules(ILifetimeScope container,

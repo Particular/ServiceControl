@@ -81,6 +81,16 @@ namespace Particular.ServiceControl.Hosting
             
             try
             {
+                if (SettingsReader<bool>.Read("MaintenanceMode"))
+                {
+                    Commands = new List<Type>
+                    {
+                        typeof(MaintCommand)
+                    };
+                    executionMode = ExecutionMode.Maintenance;
+                    return;
+                }
+
                 externalInstallerOptions.Parse(args);
                 if (executionMode == ExecutionMode.RunInstallers)
                 {
@@ -90,7 +100,6 @@ namespace Particular.ServiceControl.Hosting
                 maintenanceOptions.Parse(args);
                 if (executionMode == ExecutionMode.Maintenance)
                 {
-                    Settings.MaintenanceMode = true;
                     return;
                 }
 

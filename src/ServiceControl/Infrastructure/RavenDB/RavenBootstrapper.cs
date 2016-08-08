@@ -2,18 +2,15 @@
 {
     using System;
     using System.ComponentModel.Composition.Hosting;
-    using System.IO;
     using System.Linq;
+    using System.Net;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Logging;
     using NServiceBus.Persistence;
     using NServiceBus.Pipeline;
-    using Particular.ServiceControl.Licensing;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Embedded;
-    using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.EndpointControl;
@@ -21,56 +18,18 @@
 
     public class RavenBootstrapper : INeedInitialization
     {
-        public static string ReadLicense()
-        {
-            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
-            using (var reader = new StreamReader(resourceStream))
-            {
-                return reader.ReadToEnd();
-            }
-        }
-
         public void Customize(BusConfiguration configuration)
         {
             var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
-
-            Directory.CreateDirectory(Settings.DbPath);
-
-            documentStore.DataDirectory = Settings.DbPath;
-            documentStore.UseEmbeddedHttpServer = Settings.MaintenanceMode || Settings.ExposeRavenDB;
+            documentStore.Url = Settings.StorageUrl;
+            documentStore.DefaultDatabase = "ServiceControl";
             documentStore.EnlistInDistributedTransactions = false;
-
-            var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
-            if (File.Exists(localRavenLicense))
-            {
-                Logger.InfoFormat("Loading RavenDB license found from {0}", localRavenLicense);
-                documentStore.Configuration.Settings["Raven/License"] = NonLockingFileReader.ReadAllTextWithoutLocking(localRavenLicense);
-            }
-            else
-            {
-                Logger.InfoFormat("Loading Embedded RavenDB license");
-                documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
-            }
-
-            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
-            
-            if (!Settings.MaintenanceMode) {
-                documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
-            }
-
-            documentStore.Configuration.Port = Settings.Port;
-            documentStore.Configuration.HostName = (Settings.Hostname == "*" || Settings.Hostname == "+")
-                ? "localhost"
-                : Settings.Hostname;
-            documentStore.Configuration.CompiledIndexCacheDirectory = Settings.DbPath;
-            documentStore.Configuration.VirtualDirectory = Settings.VirtualDirectory + "/storage";
             documentStore.Conventions.SaveEnumsAsIntegers = true;
+            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
+            documentStore.Credentials = CredentialCache.DefaultNetworkCredentials;
+            
             documentStore.Initialize();
 
-            Logger.Info("Index creation started");
-            
-            IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
-            
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
 
             configuration.RegisterComponents(c => 
@@ -89,7 +48,8 @@
                  }, DependencyLifecycle.InstancePerCall));
 
             configuration.UsePersistence<RavenDBPersistence>()
-                         .SetDefaultDocumentStore(documentStore);
+                         .SetDefaultDocumentStore(documentStore)
+                         .DoNotSetupDatabasePermissions();
 
             configuration.Pipeline.Register<RavenRegisterStep>();
         }
@@ -112,7 +72,5 @@
                 }
             }
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
     }
 }

@@ -2,93 +2,81 @@
 {
 
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
+    using System.Threading;
     using Raven.Abstractions;
-    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
-    using Raven.Database;
+    using Raven.Client;
 
     public static class ErrorMessageCleaner
     {
         static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(ErrorMessageCleaner));
 
-        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
+        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token)
         {
             var stopwatch = Stopwatch.StartNew();
-            var items = new List<ICommandData>(deletionBatchSize);
-            var attachments = new List<string>(deletionBatchSize);
-            try
+            var query = new IndexQuery
             {
-                var query = new IndexQuery
+                Start = 0,
+                PageSize = deletionBatchSize,
+                Cutoff = SystemTime.UtcNow,
+                DisableCaching = true,
+                Query = $"Status:[2 TO 4] AND LastModified:[* TO {expiryThreshold.Ticks}]",
+                FieldsToFetch = new[]
                 {
-                    Start = 0,
-                    PageSize = deletionBatchSize,
-                    Cutoff = SystemTime.UtcNow,
-                    DisableCaching = true,
-                    Query = $"Status:[2 TO 4] AND LastModified:[* TO {expiryThreshold.Ticks}]",
-                    FieldsToFetch = new[]
+                    "__document_id",
+                    "MessageId"
+                },
+                SortedFields = new[]
+                {
+                    new SortedField("LastModified")
                     {
-                        "__document_id",
-                        "MessageId"
-                    },
-                    SortedFields = new[]
-                    {
-                        new SortedField("LastModified")
-                        {
-                            Field = "LastModified",
-                            Descending = false
-                        }
+                        Field = "LastModified",
+                        Descending = false
                     }
-                };
-                var indexName = new ExpiryErrorMessageIndex().IndexName;
-                database.Query(indexName, query, database.WorkContext.CancellationToken,
-                    null,
-                    doc =>
-                    {
-                        var id = doc.Value<string>("__document_id");
-                        if (string.IsNullOrEmpty(id))
-                        {
-                            return;
-                        }
-
-                        items.Add(new DeleteCommandData
-                        {
-                            Key = id
-                        });
-
-                        attachments.Add(doc.Value<string>("MessageId"));
-                    });
-            }
-            catch (OperationCanceledException)
-            {
-                //Ignore
-            }
-
+                }
+            };
+            var indexName = new ExpiryErrorMessageIndex().IndexName;
+            QueryHeaderInformation _;
             var deletionCount = 0;
 
-            Chunker.ExecuteInChunks(items.Count, (s, e) =>
-            {
-                logger.InfoFormat("Batching deletion of {0}-{1} error documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1));
-                logger.InfoFormat("Batching deletion of {0}-{1} error documents completed.", s, e);
+            logger.Info("Batching deletion of error documents.");
 
-                deletionCount += results.Count(x => x.Deleted == true);
-            });
-
-            Chunker.ExecuteInChunks(attachments.Count, (s, e) =>
+            using (var ie = store.DatabaseCommands.StreamQuery(indexName, query, out _))
             {
-                database.TransactionalStorage.Batch(accessor =>
+                while (ie.MoveNext())
                 {
-                    logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents.", s, e);
-                    for (var idx = s; idx <= e; idx++)
+                    if (token.IsCancellationRequested)
                     {
-                        accessor.Attachments.DeleteAttachment("messagebodies/" + attachments[idx], null);
+                        break;
                     }
-                    logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents completed.", s, e);
-                });
-            });
+
+                    var doc = ie.Current;
+                    var id = doc.Value<string>("__document_id");
+                    if (string.IsNullOrEmpty(id))
+                    {
+                        continue;
+                    }
+
+                    store.DatabaseCommands.Delete(id, null);
+                    deletionCount++;
+                    try
+                    {
+                        store.DatabaseCommands.DeleteAttachment("messagebodies/" + doc.Value<string>("MessageId"), null);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warn("Deletion of attachment failed.", ex);
+                    }
+
+                    if (deletionCount >= deletionBatchSize)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            logger.Info("Batching deletion of error documents completed.");
 
             if (deletionCount == 0)
             {

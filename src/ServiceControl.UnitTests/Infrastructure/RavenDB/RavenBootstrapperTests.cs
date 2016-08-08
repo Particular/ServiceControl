@@ -1,4 +1,5 @@
 ﻿
+using System.IO;
 using NUnit.Framework;
 using ServiceControl.Infrastructure.RavenDB;
 
@@ -6,9 +7,18 @@ using ServiceControl.Infrastructure.RavenDB;
 class RavenBootstrapperTests
 {
     [Test]
-    public void ReadLicense()
+    public void CanReadLicense()
     {
-        var readLicense = RavenBootstrapper.ReadLicense();
+        var readLicense = ReadLicense();
         Assert.IsNotNullOrEmpty(readLicense);
+    }
+
+    static string ReadLicense()
+    {
+        using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
+        using (var reader = new StreamReader(resourceStream))
+        {
+            return reader.ReadToEnd();
+        }
     }
 }

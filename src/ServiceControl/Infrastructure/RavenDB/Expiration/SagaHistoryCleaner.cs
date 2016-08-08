@@ -2,76 +2,74 @@
 {
 
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
+    using System.Threading;
     using Raven.Abstractions;
-    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
-    using Raven.Database;
+    using Raven.Client;
 
     public static class SagaHistoryCleaner
     {
         static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(SagaHistoryCleaner));
 
-        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
+        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token)
         {
             var stopwatch = Stopwatch.StartNew();
-            var items = new List<ICommandData>(deletionBatchSize);
-            try
+
+            var query = new IndexQuery
             {
-                var query = new IndexQuery
+                Start = 0,
+                DisableCaching = true,
+                Cutoff = SystemTime.UtcNow,
+                PageSize = deletionBatchSize,
+                Query = $"LastModified:[* TO {expiryThreshold.Ticks}]",
+                FieldsToFetch = new[]
                 {
-                    Start = 0,
-                    DisableCaching = true,
-                    Cutoff = SystemTime.UtcNow,
-                    PageSize = deletionBatchSize,
-                    Query = $"LastModified:[* TO {expiryThreshold.Ticks}]",
-                    FieldsToFetch = new[]
+                    "__document_id",
+                },
+                SortedFields = new[]
+                {
+                    new SortedField("LastModified")
                     {
-                        "__document_id",
-                    },
-                    SortedFields = new[]
-                    {
-                        new SortedField("LastModified")
-                        {
-                            Field = "LastModified",
-                            Descending = false
-                        }
+                        Field = "LastModified",
+                        Descending = false
                     }
-                };
-                var indexName = new ExpirySagaAuditIndex().IndexName;
-                database.Query(indexName, query, database.WorkContext.CancellationToken,
-                    null,
-                    doc =>
-                    {
-                        var id = doc.Value<string>("__document_id");
-                        if (string.IsNullOrEmpty(id))
-                        {
-                            return;
-                        }
+                }
+            };
 
-                        items.Add(new DeleteCommandData
-                        {
-                            Key = id
-                        });
-                    });
-            }
-            catch (OperationCanceledException)
-            {
-                //Ignore
-            }
-
+            var indexName = new ExpirySagaAuditIndex().IndexName;
+            QueryHeaderInformation _;
             var deletionCount = 0;
 
-            Chunker.ExecuteInChunks(items.Count, (s, e) =>
-            {
-                logger.InfoFormat("Batching deletion of {0}-{1} sagahistory documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1));
-                logger.InfoFormat("Batching deletion of {0}-{1} sagahistory documents completed.", s, e);
+            logger.Info("Batching deletion of sagahistory documents.");
 
-                deletionCount += results.Count(x => x.Deleted == true);
-            });
+            using (var ie = store.DatabaseCommands.StreamQuery(indexName, query, out _))
+            {
+                while (ie.MoveNext())
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    var doc = ie.Current;
+                    var id = doc.Value<string>("__document_id");
+                    if (string.IsNullOrEmpty(id))
+                    {
+                        continue;
+                    }
+
+                    store.DatabaseCommands.Delete(id, null);
+                    deletionCount++;
+
+                    if (deletionCount >= deletionBatchSize)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            logger.Info("Batching deletion of sagahistory documents completed.");
 
             if (deletionCount == 0)
             {

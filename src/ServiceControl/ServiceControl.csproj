@@ -156,27 +156,23 @@
       <HintPath>..\packages\NServiceBus.Autofac.5.0.0\lib\net45\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NServiceBus.RavenDB, Version=2.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.RavenDB.2.2.4\lib\net45\NServiceBus.RavenDB.dll</HintPath>
+    <Reference Include="NServiceBus.RavenDB, Version=3.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.RavenDB.3.0.7\lib\net45\NServiceBus.RavenDB.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Owin">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Abstractions, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Database.2.5.2996\lib\net45\Raven.Abstractions.dll</HintPath>
+    <Reference Include="Raven.Abstractions, Version=3.0.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <HintPath>..\packages\RavenDB.Database.3.0.30143\lib\net45\Raven.Abstractions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Raven.Client.Embedded, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Embedded.2.5.2996\lib\net45\Raven.Client.Embedded.dll</HintPath>
+    <Reference Include="Raven.Client.Lightweight, Version=3.0.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <HintPath>..\packages\RavenDB.Client.3.0.30143\lib\net45\Raven.Client.Lightweight.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Raven.Client.Lightweight, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Client.2.5.2996\lib\net45\Raven.Client.Lightweight.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Raven.Database, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Database.2.5.2996\lib\net45\Raven.Database.dll</HintPath>
+    <Reference Include="Raven.Database, Version=3.0.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <HintPath>..\packages\RavenDB.Database.3.0.30143\lib\net45\Raven.Database.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ServiceControl.Contracts, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -211,11 +207,11 @@
       <HintPath>..\packages\System.Spatial.5.6.4\lib\net40\System.Spatial.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Cors, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.Cors.5.2.3\lib\net45\System.Web.Cors.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
@@ -238,6 +234,7 @@
     <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UserSidChecker.cs" />
+    <Compile Include="BootstrapperBase.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
     <Compile Include="CompositeViews\Endpoints\HeartbeatInformation.cs" />
@@ -317,8 +314,10 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Hosting\HostArguments.cs" />
+    <Compile Include="Hosting\MaintenanceHost.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Hosting\Options.cs" />
-    <Compile Include="Infrastructure\RavenDB\Expiration\Chunker.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ErrorMessageCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryErrorMessageIndex.cs" />
     <Compile Include="Infrastructure\Settings\LoggingSettings.cs" />
@@ -326,7 +325,6 @@
     <Compile Include="Infrastructure\OWIN\ApiLogger.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\SagaHistoryCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\AuditMessageCleaner.cs" />
-    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpirySagaAuditIndex.cs" />
     <Compile Include="Infrastructure\Settings\NullableRegistryReader.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryProcessedMessageIndex.cs" />
@@ -334,6 +332,7 @@
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SignalR\SerializationSettingsFactoryForSignalR.cs" />
+    <Compile Include="MaintenanceBootstrapper.cs" />
     <Compile Include="MessageFailures\Api\UnArchiveMessages.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
@@ -398,7 +397,7 @@
     <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
-    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleanerBundle.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleaner.cs" />
     <Compile Include="Infrastructure\SubscribeToOwnEvents.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
     <Compile Include="Licensing\ActiveLicense.cs" />
@@ -443,7 +442,6 @@
     <Compile Include="MessageFailures\InternalMessages\RetryMessage.cs" />
     <Compile Include="CompositeViews\Messages\GetMessages.cs" />
     <Compile Include="Infrastructure\Nancy\Modules\RootModule.cs" />
-    <Compile Include="Infrastructure\OWIN\ApiFeature.cs" />
     <Compile Include="Infrastructure\OWIN\Startup.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
@@ -526,11 +524,15 @@
     <Compile Include="SagaAudit\ResultingMessage.cs" />
     <Compile Include="SagaAudit\SagaStateChange.cs" />
     <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
+    <Compile Include="SetupBootstrapper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
+    </None>
+    <None Include="Raven.Studio.Html5.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -97,13 +97,13 @@
     <Compile Include="Configuration\SettingList.cs" />
     <Compile Include="Configuration\SettingInfo.cs" />
     <Compile Include="Instances\InstanceUpgradeOptions.cs" />
-    <Compile Include="Queues\ServiceControlQueueCreationException.cs" />
-    <Compile Include="Queues\ServiceControlQueueCreationTimeoutException.cs" />
+    <Compile Include="Setup\ServiceControlSetupFailedException.cs" />
+    <Compile Include="Setup\ServiceControlSetupTimeoutException.cs" />
     <Compile Include="ReportCard\TruncatedStringList.cs" />
     <Compile Include="Validation\ConnectionStringValidator.cs" />
     <Compile Include="Validation\IServiceAccount.cs" />
     <Compile Include="Instances\IServiceControlInstance.cs" />
-    <Compile Include="Queues\RunQueueCreation.cs" />
+    <Compile Include="Setup\ServiceControlSetup.cs" />
     <Compile Include="Validation\EngineValidationException.cs" />
     <Compile Include="Validation\IContainPort.cs" />
     <Compile Include="Validation\MSMQConfigValidator.cs" />

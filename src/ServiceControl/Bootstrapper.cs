@@ -5,38 +5,44 @@ namespace Particular.ServiceControl
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Security.Principal;
     using System.ServiceProcess;
     using Autofac;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.SignalR;
+    using Microsoft.Owin.Hosting;
+    using NLog;
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
-    using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Features;
     using NServiceBus.Logging;
     using Particular.ServiceControl.Hosting;
     using Raven.Client;
-    using Raven.Client.Embedded;
+    using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
     using LogLevel = NLog.LogLevel;
+    using LogManager = NServiceBus.Logging.LogManager;
 
-    public class Bootstrapper
+    public class Bootstrapper : BootstrapperBase
     {
-        public static IContainer Container { get; set; }
-        public IStartableBus Bus { get; }
+        public IStartableBus Bus;
 
+        private BusConfiguration configuration;
         ShutdownNotifier notifier = new ShutdownNotifier();
-        EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
+        private Startup startup;
         TimeKeeper timeKeeper;
+        private IDisposable webApp;
 
         public Bootstrapper(ServiceBase host = null, HostArguments hostArguments = null, BusConfiguration configuration = null)
         {
+            this.host = host;
+            this.configuration = configuration;
+
             // ServiceName is required to determine the default logging path
             LoggingSettings.ServiceName = DetermineServiceName(host, hostArguments);
 
-            ConfigureLogging();
+            logger = ConfigureLogging();
 
             Settings.ServiceName = LoggingSettings.ServiceName;
 
@@ -52,87 +58,32 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
 
-            Container = containerBuilder.Build();
-
-            if (configuration == null)
-            {
-                configuration = new BusConfiguration();
-                configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
-            }
-
-            // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
-            configuration.GetSettings().Set("ServiceControl.EmbeddableDocumentStore", documentStore);
-
-            // Disable Auditing for the service control endpoint
-            configuration.DisableFeature<Audit>();
-            configuration.DisableFeature<AutoSubscribe>();
-            configuration.DisableFeature<SecondLevelRetries>();
-            configuration.DisableFeature<TimeoutManager>();
-
-            configuration.UseSerialization<JsonSerializer>();
-
-            configuration.Transactions()
-                .DisableDistributedTransactions()
-                .DoNotWrapHandlersExecutionInATransactionScope();
-            
-            configuration.ScaleOut().UseSingleBrokerQueue();
-            
-            var transportType = DetermineTransportType();
-
-            configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-            configuration.EndpointName(Settings.ServiceName);
-            configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(Container));
-            configuration.UseTransport(transportType);
-            configuration.DefineCriticalErrorAction((s, exception) =>
-            {
-                host?.Stop();
-            });
-
-            if (Environment.UserInteractive && Debugger.IsAttached)
-            {
-                configuration.EnableInstallers();
-            }
-
-            Bus = NServiceBus.Bus.Create(configuration);
-
-            Container.Resolve<SubscribeToOwnEvents>().Run();
-        }
-
-        static Type DetermineTransportType()
-        {
-            var Logger = LogManager.GetLogger(typeof(Bootstrapper));
-            var transportType = Type.GetType(Settings.TransportType);
-            if (transportType != null)
-            {
-                return transportType;
-            }
-            var errorMsg = $"Configuration of transport Failed. Could not resolve type '{Settings.TransportType}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
-            Logger.Error(errorMsg);
-            throw new Exception(errorMsg);
-        }
-
-        static bool IsExternalContract(Type t)
-        {
-            return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts");
+            container = containerBuilder.Build();
+            startup = new Startup(container);
         }
 
         public void Start()
         {
-            var Logger = LogManager.GetLogger(typeof(Bootstrapper));
-            if (Settings.MaintenanceMode)
+            webApp = WebApp.Start(new StartOptions(Settings.RootUrl), startup.Configuration);
+
+            if (IsRunningAcceptanceTests() || (Environment.UserInteractive && Debugger.IsAttached))
             {
-                Logger.InfoFormat("RavenDB is now accepting requests on {0}", Settings.StorageUrl);
-                if (Environment.UserInteractive)
-                {
-                    Logger.Warn("RavenDB Maintenance Mode - Press Enter to exit");
-                    while (Console.ReadLine() == null)
-                    {
-                    }
-                }
-                return;
+                SetupBootstrapper.CreateDatabase(WindowsIdentity.GetCurrent().Name);
+                SetupBootstrapper.InitialiseDatabase();
             }
 
+            Bus = ConfigureNServiceBus(configuration);
+
+            container.Resolve<SubscribeToOwnEvents>().Run();
+
             Bus.Start();
+
+            logger.InfoFormat("Api is now accepting requests on {0}", Settings.ApiUrl);
+        }
+
+        private bool IsRunningAcceptanceTests()
+        {
+            return configuration != null;
         }
 
         public void Stop()
@@ -140,6 +91,7 @@ namespace Particular.ServiceControl
             notifier.Dispose();
             Bus.Dispose();
             timeKeeper.Dispose();
+            webApp.Dispose();
             documentStore.Dispose();
         }
 
@@ -160,14 +112,14 @@ namespace Particular.ServiceControl
             
         }
 
-        static void ConfigureLogging()
+        static ILog ConfigureLogging()
         {
             LogManager.Use<NLogFactory>();
 
             const long megaByte = 1073741824;
             if (NLog.LogManager.Configuration != null)
             {
-                return;
+                return LogManager.GetLogger(typeof(Bootstrapper));
             }
 
             var version = typeof(Bootstrapper).Assembly.GetName().Version;
@@ -207,13 +159,13 @@ Database Size:							{DataSize()}bytes
                 ArchiveAboveSize = 30 * megaByte,
                 Header = new SimpleLayout(header)
             };
-            
+
             var consoleTarget = new ColoredConsoleTarget
             {
                 Layout = simpleLayout,
-                UseDefaultRowHighlightingRules = true,
+                UseDefaultRowHighlightingRules = true
             };
-            
+
             var nullTarget = new NullTarget();
 
             // There lines don't appear to be necessary.  The rules seem to work without implicitly adding the targets?!?
@@ -221,17 +173,23 @@ Database Size:							{DataSize()}bytes
             nlogConfig.AddTarget("debugger", fileTarget);
             nlogConfig.AddTarget("raven", ravenFileTarget);
             nlogConfig.AddTarget("bitbucket", nullTarget);
-            
+
             // Only want to see raven errors
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LoggingSettings.RavenDBLogLevel, ravenFileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));  //Noise reduction - Only RavenDB errors on the console
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget) { Final = true }); //Will swallow debug and above messages
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget)); //Noise reduction - Only RavenDB errors on the console
+            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget)
+            {
+                Final = true
+            }); //Will swallow debug and above messages
 
-            
+
             // Always want to see license logging regardless of default logging level
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget){ Final = true });
-            
+            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget)
+            {
+                Final = true
+            });
+
             // Defaults
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LoggingSettings.LoggingLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", LoggingSettings.LoggingLevel < LogLevel.Info ? LoggingSettings.LoggingLevel : LogLevel.Info, consoleTarget));
@@ -244,17 +202,21 @@ Database Size:							{DataSize()}bytes
                     nlogConfig.LoggingRules.Remove(rule);
                 }
             }
-            
+
             NLog.LogManager.Configuration = nlogConfig;
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
-            var logEventInfo = new NLog.LogEventInfo { TimeStamp = DateTime.Now };
+            var logEventInfo = new LogEventInfo
+            {
+                TimeStamp = DateTime.Now
+            };
             logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName.Render(logEventInfo), LoggingSettings.LoggingLevel.Name);
             logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName.Render(logEventInfo), LoggingSettings.RavenDBLogLevel.Name);
-            
+
+            return logger;
         }
 
-        string DetermineServiceName(ServiceBase host, HostArguments hostArguments)
+        static string DetermineServiceName(ServiceBase service, HostArguments hostArguments)
         {
             //if Arguments not null then bootstrapper was run from installer so use servicename passed to the installer
             if (hostArguments != null)
@@ -263,11 +225,11 @@ Database Size:							{DataSize()}bytes
             }
 
             // Try to get HostName from Windows Service Name, default to "Particular.ServiceControl"
-            if ((host == null) || (string.IsNullOrWhiteSpace(host.ServiceName)))
+            if (string.IsNullOrWhiteSpace(service?.ServiceName))
             {
                 return "Particular.ServiceControl";
             }
-            return host.ServiceName;
+            return service.ServiceName;
         }
     }
 }

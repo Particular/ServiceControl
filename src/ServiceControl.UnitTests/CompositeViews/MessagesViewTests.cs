@@ -12,7 +12,7 @@
     using ServiceControl.CompositeViews.Messages;
 
     [TestFixture]
-    public class MessagesViewTests
+    public class MessagesViewTests 
     {
         [Test]
         public void Filter_out_system_messages()
@@ -20,17 +20,17 @@
             using (var session = documentStore.OpenSession())
             {
                 var processedMessage = new ProcessedMessage
-                {
-                    Id = "1",
-                };
+                                       {
+                                           Id = "1",
+                                       };
 
                 processedMessage.MakeSystemMessage();
                 session.Store(processedMessage);
-
+                
                 var processedMessage2 = new ProcessedMessage
-                {
-                    Id = "2",
-                };
+                                        {
+                                            Id = "2",
+                                        };
                 processedMessage2.MakeSystemMessage(false);
                 session.Store(processedMessage2);
 
@@ -91,7 +91,7 @@
                     .Where(x => x.CriticalTime.HasValue)
                     .ProjectFromIndexFieldsInto<ProcessedMessage>()
                     .First();
-
+                    
                 Assert.AreEqual("1", firstByCriticalTime.Id);
 
                 var firstByCriticalTimeDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
@@ -151,7 +151,7 @@
             {
                 session.Store(new ProcessedMessage
                 {
-                    MessageMetadata = new Dictionary<string, object> { { "MessageIntent", "1" }, { "TimeSent", null } }
+                    MessageMetadata = new Dictionary<string, object> { {"MessageIntent", "1"}, { "TimeSent", null } }
                 });
                 session.Store(new FailedMessage
                 {
@@ -192,7 +192,7 @@
                         new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"}} }
                     },
                 });
-
+         
                 session.SaveChanges();
             }
 
@@ -214,7 +214,7 @@
         public void SetUp()
         {
             documentStore = InMemoryStoreBuilder.GetInMemoryStore();
-
+            
             var customIndex = new MessagesViewIndex();
             customIndex.Execute(documentStore);
 

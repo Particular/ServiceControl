@@ -44,7 +44,11 @@
 
             var bootstrapper = new Bootstrapper(configuration: builder);
 
-            endpointConfiguration.SelfHost(() => bootstrapper.Bus, () => bootstrapper.Stop());
+            endpointConfiguration.SelfHost(() =>
+            {
+                bootstrapper.Start();
+                return bootstrapper.Bus;
+            }, () => bootstrapper.Stop());
 
             return builder;
         }
