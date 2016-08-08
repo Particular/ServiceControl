@@ -74,6 +74,8 @@
 
         public int Port { get; set; }
 
+        public bool SetupOnly { get; set; }
+
         public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);

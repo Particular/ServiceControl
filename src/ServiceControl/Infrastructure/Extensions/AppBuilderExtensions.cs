@@ -71,6 +71,11 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
             var bus = Bus.Create(configuration);
 
+            if (settings.SetupOnly)
+            {
+                return app;
+            }
+
             if (exposeBus != null)
             {
                 exposeBus.GetBus = () => bus;

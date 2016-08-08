@@ -15,7 +15,6 @@ namespace Particular.ServiceControl
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
-    using Particular.ServiceControl.Hosting;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Extensions;
@@ -52,10 +51,10 @@ namespace Particular.ServiceControl
         }
 
         // SetupCommand
-        public Bootstrapper(HostArguments hostArguments, BusConfiguration configuration)
+        public Bootstrapper(Settings settings, BusConfiguration configuration)
         {
             this.configuration = configuration;
-            settings = new Settings(hostArguments.ServiceName);
+            this.settings = settings;
             Initialize();
         }
 

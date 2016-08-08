@@ -40,6 +40,11 @@
         {
             app.UseNServiceBus(settings, container, host, documentStore, configuration, exposeBus);
 
+            if (settings.SetupOnly)
+            {
+                return;
+            }
+
             app.Map("/api", b =>
             {
                 b.Use<LogApiCalls>();
