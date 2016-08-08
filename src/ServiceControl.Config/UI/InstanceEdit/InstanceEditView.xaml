@@ -53,8 +53,11 @@
 
                 <GroupBox Header="USER ACCOUNT">
                     <StackPanel>
-                        <RadioButton IsChecked="{Binding UseSystemAccount, Mode=OneWay}">
-                            <TextBlock Text="SYSTEM" />
+                        <RadioButton IsChecked="{Binding UseSystemAccount}">
+                            <TextBlock Text="LOCAL SYSTEM" />
+                        </RadioButton>
+                        <RadioButton IsChecked="{Binding UseServiceAccount}">
+                            <TextBlock Text="LOCAL SERVICE" />
                         </RadioButton>
                         <RadioButton HorizontalContentAlignment="Stretch" IsChecked="{Binding UseProvidedAccount}">
                             <TextBlock Text="USER" />
@@ -120,10 +123,10 @@
                                      Maximum="{Binding MaximumAuditRetentionPeriod}"
                                      Minimum="{Binding MinimumAuditRetentionPeriod}"
                                      SmallChange="1"
-                                     TimeSpan="{Binding AuditRetentionPeriod}"
                                      Units="{Binding AuditRetentionUnits}"
                                      Visibility="{Binding RetentionPeriodsVisible,
-                                                          Converter={StaticResource boolToVis}}" />
+                                                          Converter={StaticResource boolToVis}}"
+                                     Value="{Binding AuditRetention}" />
 
                 <controls:FormSlider Explanation="Error Messages that have been archived or resolved will be removed after this period"
                                      Header="ERROR RETENTION PERIOD"
@@ -131,10 +134,10 @@
                                      Maximum="{Binding MaximumErrorRetentionPeriod}"
                                      Minimum="{Binding MinimumErrorRetentionPeriod}"
                                      SmallChange="1"
-                                     TimeSpan="{Binding ErrorRetentionPeriod}"
                                      Units="{Binding ErrorRetentionUnits}"
                                      Visibility="{Binding RetentionPeriodsVisible,
-                                                          Converter={StaticResource boolToVis}}" />
+                                                          Converter={StaticResource boolToVis}}"
+                                     Value="{Binding ErrorRetention}" />
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
@@ -183,6 +186,7 @@
                          FontSize="14px"
                          Foreground="{StaticResource Gray60Brush}"
                          IsReadOnly="True"
+                         IsTabStop="False"
                          Text="{Binding SampleConnectionString,
                                         Mode=OneWay}"
                          TextWrapping="Wrap"

@@ -18,8 +18,8 @@
         public InstanceDetailsViewModel(
             ServiceControlInstance serviceControlInstance,
             EditInstanceCommand showEditInstanceScreenCommand,
-            DeleteInstanceCommand deleteInstanceCommand,
             UpgradeInstanceCommand upgradeInstanceToNewVersionCommand,
+            AdvanceOptionsCommand advanceOptionsCommand,
             Installer installer)
         {
             ServiceControlInstance = serviceControlInstance;
@@ -30,20 +30,25 @@
             CopyToClipboard = new CopyToClipboardCommand();
 
             EditCommand = showEditInstanceScreenCommand;
-            DeleteCommand = deleteInstanceCommand;
             UpgradeToNewVersionCommand = upgradeInstanceToNewVersionCommand;
 
             StartCommand = Command.Create(() => StartService());
             StopCommand = Command.Create(() => StopService());
+
+            AdvanceOptionsCommand = advanceOptionsCommand;
         }
 
         public ServiceControlInstance ServiceControlInstance { get; }
+
+        public bool InMaintenanceMode => ServiceControlInstance.InMaintenanceMode;
 
         public string Name => ServiceControlInstance.Name;
 
         public string Host => ServiceControlInstance.Url;
 
         public string BrowsableUrl => ServiceControlInstance.BrowsableUrl;
+
+        public string StorageUrl => ServiceControlInstance.StorageUrl;
 
         public string InstallPath => ServiceControlInstance.InstallPath;
 
@@ -152,7 +157,7 @@
 
         public ICommand EditCommand { get; private set; }
 
-        public ICommand DeleteCommand { get; private set; }
+        public ICommand AdvanceOptionsCommand { get; private set; }
 
         public ICommand StartCommand { get; private set; }
 
@@ -173,25 +178,68 @@
             NotifyOfPropertyChange("HasNewVersion");
             NotifyOfPropertyChange("Transport");
             NotifyOfPropertyChange("BrowsableUrl");
+            NotifyOfPropertyChange("InMaintenanceMode");
         }
 
-        public async Task StartService()
+        public async Task<bool> StartService(IProgressObject progress = null)
         {
-            using (var progress = this.GetProgressObject(String.Empty))
+            var disposeProgress = progress == null;
+            var result = false;
+
+            try
             {
+                progress = progress ?? this.GetProgressObject(String.Empty);
+                
+                // We need this one here in case the user stopped the service by other means
+                if (InMaintenanceMode)
+                {
+                    ServiceControlInstance.DisableMaintenanceMode();
+                }
                 progress.Report(new ProgressDetails("Starting Service"));
-                await Task.Run(() => ServiceControlInstance.TryStartService());
+                await Task.Run(() => result = ServiceControlInstance.TryStartService());
+
                 UpdateServiceProperties();
+
+                return result;
+            }
+            finally
+            {
+                if (disposeProgress)
+                {
+                    progress.Dispose();
+                }
             }
         }
 
-        public async Task StopService()
+        public async Task<bool> StopService(IProgressObject progress = null)
         {
-            using (var progress = this.GetProgressObject(String.Empty))
+            var disposeProgress = progress == null;
+            var result = false;
+
+            try
             {
+                progress = progress ?? this.GetProgressObject(String.Empty);
+
                 progress.Report(new ProgressDetails("Stopping Service"));
-                await Task.Run(() => ServiceControlInstance.TryStopService());
+                await Task.Run(() =>
+                {
+                    result = ServiceControlInstance.TryStopService();
+                    if (InMaintenanceMode)
+                    {
+                        ServiceControlInstance.DisableMaintenanceMode();
+                    }
+                });
+
                 UpdateServiceProperties();
+
+                return result;
+            }
+            finally
+            {
+                if (disposeProgress)
+                {
+                    progress.Dispose();
+                }
             }
         }
 
@@ -203,6 +251,7 @@
             NotifyOfPropertyChange("AllowStart");
             NotifyOfPropertyChange("IsRunning");
             NotifyOfPropertyChange("IsStopped");
+            NotifyOfPropertyChange("InMaintenanceMode");
         }
     }
 }

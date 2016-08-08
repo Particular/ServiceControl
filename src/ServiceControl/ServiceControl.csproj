@@ -314,6 +314,9 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Hosting\HostArguments.cs" />
+    <Compile Include="Hosting\MaintenanceHost.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Hosting\Options.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ErrorMessageCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryErrorMessageIndex.cs" />

@@ -77,8 +77,8 @@ namespace ServiceControlInstaller.Engine.Services
         public void ChangeAccountDetails(string serviceAccount, string servicePassword)
         {
             var userAccount = UserAccount.ParseAccountName(serviceAccount);
-
-            if (!userAccount.Domain.Equals("NT AUTHORITY", StringComparison.OrdinalIgnoreCase))
+            
+            if (!(userAccount.IsLocalService() || userAccount.IsLocalService()))
             {
                 var privileges = Lsa.GetPrivileges(userAccount.QualifiedName).ToList();
                 if (!privileges.Contains(LogonPrivileges.LogonAsAService, StringComparer.OrdinalIgnoreCase))
@@ -92,7 +92,7 @@ namespace ServiceControlInstaller.Engine.Services
             using (var win32Service = new ManagementObject(new ManagementPath(objPath)))
             {
                 var inParams = win32Service.GetMethodParameters("Change");
-                inParams["StartName"] = userAccount.IsLocalSystem() ? "LocalSystem" : userAccount.QualifiedName;
+                inParams["StartName"] = ConvertAccountNameToServiceAccount(userAccount.QualifiedName);
                 inParams["StartPassword"] = servicePassword;
 
                 var outParams = win32Service.InvokeMethod("Change", inParams, null);
@@ -107,6 +107,12 @@ namespace ServiceControlInstaller.Engine.Services
                     var message = (wmiReturnCode < Win32ChangeErrorMessages.Length)
                         ? $"Failed to change service credentials on service {ServiceName} - {Win32ChangeErrorMessages[wmiReturnCode]}"
                         : "An unknown error occurred";
+
+                    if (wmiReturnCode == 22)
+                    {
+                        message += $"( AccountName {userAccount.QualifiedName} converted to {ConvertAccountNameToServiceAccount(userAccount.QualifiedName)})";
+                    }
+
                     throw new ManagementException(message);
                 }
             }
@@ -114,8 +120,6 @@ namespace ServiceControlInstaller.Engine.Services
 
         public static void RegisterNewService(WindowsServiceDetails serviceInfo, params string[] serviceDependencies)
         {
-            var userAccount = UserAccount.ParseAccountName(serviceInfo.ServiceAccount);
-            
             using (var win32Service = new ManagementClass("Win32_Service"))
             using (var inParams = win32Service.GetMethodParameters("Create"))
             {
@@ -126,7 +130,7 @@ namespace ServiceControlInstaller.Engine.Services
                 inParams["ErrorControl"] = 1; //Report to user
                 inParams["StartMode"] = "Automatic";
                 inParams["DesktopInteract"] = false;
-                inParams["StartName"] = userAccount.IsLocalSystem() ? "LocalSystem" : userAccount.QualifiedName;
+                inParams["StartName"] = ConvertAccountNameToServiceAccount(serviceInfo.ServiceAccount);
                 inParams["StartPassword"] = serviceInfo.ServiceAccountPwd;
                 inParams["LoadOrderGroup"] = null;
                 inParams["LoadOrderGroupDependencies"] = null;
@@ -143,6 +147,13 @@ namespace ServiceControlInstaller.Engine.Services
                     var message = (wmiReturnCode < Win32ChangeErrorMessages.Length)
                         ? $"Failed to create service to {serviceInfo.Name} - {Win32ServiceErrorMessages[wmiReturnCode]}"
                         : "An unknown error occurred";
+
+                    if (wmiReturnCode == 22)
+                    {
+                        message += $"( AccountName {serviceInfo.ServiceAccount} converted to {ConvertAccountNameToServiceAccount(serviceInfo.ServiceAccount)})";
+                    }
+
+
                     throw new ManagementException(message);
                 }
 
@@ -161,6 +172,22 @@ namespace ServiceControlInstaller.Engine.Services
                 }
                 ServiceRecoveryHelper.SetRecoveryOptions(serviceInfo.Name);
             }
+        }
+
+        /// When Local System or LocalService  are the service account you must pass these non localized name to the service creation/modification
+        static string ConvertAccountNameToServiceAccount(string account)
+        {
+            var userAccount = UserAccount.ParseAccountName(account);
+            if (userAccount.IsLocalSystem())
+            {
+                return @".\LOCALSYSTEM";
+            }
+            if (userAccount.IsLocalService())
+            {
+               return @"NT AUTHORITY\LOCALSERVICE";
+            }
+            
+            return userAccount.QualifiedName;
         }
 
         public void Delete()

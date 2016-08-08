@@ -18,7 +18,9 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -26,14 +28,160 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="30" />
         </Grid.RowDefinitions>
 
-        <Border Grid.ColumnSpan="2"
+        <Border Grid.Row="0"
+                Grid.ColumnSpan="2"
                 BorderBrush="{StaticResource Gray90Brush}"
                 BorderThickness="0,1,0,0" />
+      
+                    
+                    
+        <TextBlock VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2"
+                       FontSize="18px"
+                       FontWeight="Bold"
+                       Text="{Binding Name}" />
 
-        <Border Grid.RowSpan="7"
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
+            <ContentControl Margin="0,7,0,0"
+                            VerticalAlignment="Center"
+                            Template="{StaticResource RunningIcon}"
+                            Visibility="{Binding IsRunning,
+                                                 Converter={StaticResource boolToVis}}" />
+
+            <ContentControl Margin="0,7,0,0"
+                            VerticalAlignment="Center"
+                            Template="{StaticResource StoppedIcon}"
+                            Visibility="{Binding IsStopped,
+                                                 Converter={StaticResource boolToVis}}" />
+
+            <TextBlock Margin="3,5,0,0"
+                       VerticalAlignment="Center"
+                       FontSize="13px"
+                       Foreground="{StaticResource Gray70Brush}"
+                       Text="{Binding Status}" />
+
+            <TextBlock  Margin="3,5,0,0" 
+                        VerticalAlignment="Center"  
+                        FontSize="13px"
+                        Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}">
+                        <Hyperlink Foreground="DarkOrange" Command="{Binding AdvanceOptionsCommand}" CommandParameter="{Binding DataContext, ElementName=root}">IN MAINTENANCE MODE</Hyperlink>
+            </TextBlock>
+        </StackPanel>
+        <StackPanel Grid.Row="2"
+                    Grid.ColumnSpan="2"
+                    Margin="0,0,0,7"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+            <Button Margin="5,0"
+                    Command="{Binding StopCommand}"
+                    Style="{StaticResource StopButton}"
+                    Visibility="{Binding AllowStop,
+                                         Converter={StaticResource boolToVis}}" />
+            <Button Margin="5,0"
+                    Command="{Binding StartCommand}"
+                    Style="{StaticResource StartButton}"
+                    Visibility="{Binding AllowStart,
+                                         Converter={StaticResource boolToVis}}" />
+            <Button Margin="5,0"
+                    Command="{Binding EditCommand}"
+                    CommandParameter="{Binding DataContext,
+                                               ElementName=root}"
+                    Style="{StaticResource ConfigurationButton}" />
+            <Button Margin="5,0"
+                    Command="{Binding AdvanceOptionsCommand}"
+                    CommandParameter="{Binding DataContext,
+                                               ElementName=root}"
+                    Style="{StaticResource AdvanceOptionsButton}" />
+        </StackPanel>
+
+        <GroupBox Grid.Row="4" Header="SERVICECONTROL VERSION">
+            <GroupBox.HeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,0,5,0"
+                                   FontSize="13"
+                                   Foreground="{StaticResource Gray60Brush}"
+                                   Text="{Binding}" />
+                        <TextBlock Visibility="{Binding DataContext.HasNewVersion, ElementName=root, Converter={StaticResource boolToVis}}">
+                            <Hyperlink Command="{Binding DataContext.UpgradeToNewVersionCommand, ElementName=root}" CommandParameter="{Binding DataContext, ElementName=root}">
+                                <TextBlock FontSize="13" Text="{Binding DataContext.NewVersion, ElementName=root, StringFormat=(Upgrade to V{0})}" />
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                </DataTemplate>
+            </GroupBox.HeaderTemplate>
+            <TextBlock Text="{Binding Version, StringFormat=ServiceControl v{0}}" />
+        </GroupBox>
+
+        <GroupBox Grid.Row="5"
+                  Grid.Column="1"
+                  Header="TRANSPORT">
+            <TextBlock Text="{Binding Transport}" />
+        </GroupBox>
+
+        <GroupBox Grid.Row="6"
+                  Grid.ColumnSpan="2"
+                  Header="HOST">
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding BrowsableUrl}"
+                                  Header="Copy to Clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
+                <TextBlock Text="{Binding Host}" />
+            </Hyperlink>
+        </GroupBox>
+
+        <GroupBox Grid.Row="5"
+                  Grid.ColumnSpan="2"
+                  Header="INSTALLATION PATH">
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding InstallPath}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding InstallPath}"
+                                  Header="Copy to Clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
+                <TextBlock FontSize="12px" Text="{Binding InstallPath}" />
+            </Hyperlink>
+        </GroupBox>
+
+        <GroupBox Grid.Row="7"
+                  Grid.ColumnSpan="2"
+                  Header="DATA PATH">
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding DBPath}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding DBPath}"
+                                  Header="Copy to Clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
+                <TextBlock FontSize="12px" Text="{Binding DBPath}" />
+            </Hyperlink>
+        </GroupBox>
+
+        <GroupBox Grid.Row="8"
+                  Grid.ColumnSpan="2"
+                  Header="LOG PATH">
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding LogPath}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding LogPath}"
+                                  Header="Copy to Clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
+                <TextBlock FontSize="12px" Text="{Binding LogPath}" />
+            </Hyperlink>
+        </GroupBox>
+
+        <Border Grid.Row="1"
+                Grid.RowSpan="8"
                 Grid.ColumnSpan="2"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
@@ -70,143 +218,5 @@
                 </Grid>
             </Border>
         </Border>
-
-        <StackPanel Grid.Row="1"
-                    Grid.ColumnSpan="2"
-                    Orientation="Horizontal">
-            <TextBlock VerticalAlignment="Center"
-                       FontSize="18px"
-                       FontWeight="Bold"
-                       Text="{Binding Name}" />
-
-            <ContentControl Margin="13,7,0,0"
-                            VerticalAlignment="Center"
-                            Template="{StaticResource RunningIcon}"
-                            Visibility="{Binding IsRunning,
-                                                 Converter={StaticResource boolToVis}}" />
-
-            <ContentControl Margin="13,7,0,0"
-                            VerticalAlignment="Center"
-                            Template="{StaticResource StoppedIcon}"
-                            Visibility="{Binding IsStopped,
-                                                 Converter={StaticResource boolToVis}}" />
-
-            <TextBlock Margin="3,5,0,0"
-                       VerticalAlignment="Center"
-                       FontSize="13px"
-                       Foreground="{StaticResource Gray70Brush}"
-                       Text="{Binding Status}" />
-        </StackPanel>
-
-        <StackPanel Grid.Row="1"
-                    Grid.ColumnSpan="2"
-                    Margin="0,0,0,7"
-                    HorizontalAlignment="Right"
-                    Orientation="Horizontal">
-            <Button Margin="5,0"
-                    Command="{Binding StopCommand}"
-                    Style="{StaticResource StopButton}"
-                    Visibility="{Binding AllowStop,
-                                         Converter={StaticResource boolToVis}}" />
-            <Button Margin="5,0"
-                    Command="{Binding StartCommand}"
-                    Style="{StaticResource StartButton}"
-                    Visibility="{Binding AllowStart,
-                                         Converter={StaticResource boolToVis}}" />
-            <Button Margin="5,0"
-                    Command="{Binding EditCommand}"
-                    CommandParameter="{Binding DataContext,
-                                               ElementName=root}"
-                    Style="{StaticResource ConfigurationButton}" />
-            <Button Margin="5,0"
-                    Command="{Binding DeleteCommand}"
-                    CommandParameter="{Binding}"
-                    Style="{StaticResource RemoveButton}" />
-        </StackPanel>
-
-        <GroupBox Grid.Row="2" Header="SERVICECONTROL VERSION">
-            <GroupBox.HeaderTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Margin="0,0,5,0"
-                                   FontSize="13"
-                                   Foreground="{StaticResource Gray60Brush}"
-                                   Text="{Binding}" />
-                        <TextBlock Visibility="{Binding DataContext.HasNewVersion, ElementName=root, Converter={StaticResource boolToVis}}">
-                            <Hyperlink Command="{Binding DataContext.UpgradeToNewVersionCommand, ElementName=root}" CommandParameter="{Binding DataContext, ElementName=root}">
-                                <TextBlock FontSize="13" Text="{Binding DataContext.NewVersion, ElementName=root, StringFormat=(Upgrade to V{0})}" />
-                            </Hyperlink>
-                        </TextBlock>
-                    </StackPanel>
-                </DataTemplate>
-            </GroupBox.HeaderTemplate>
-            <TextBlock Text="{Binding Version, StringFormat=ServiceControl v{0}}" />
-        </GroupBox>
-
-        <GroupBox Grid.Row="2"
-                  Grid.Column="1"
-                  Header="TRANSPORT">
-            <TextBlock Text="{Binding Transport}" />
-        </GroupBox>
-
-        <GroupBox Grid.Row="3"
-                  Grid.ColumnSpan="2"
-                  Header="HOST">
-            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
-                <Hyperlink.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Command="{Binding CopyToClipboard}"
-                                  CommandParameter="{Binding BrowsableUrl}"
-                                  Header="Copy to Clipboard" />
-                    </ContextMenu>
-                </Hyperlink.ContextMenu>
-                <TextBlock Text="{Binding Host}" />
-            </Hyperlink>
-        </GroupBox>
-
-        <GroupBox Grid.Row="4"
-                  Grid.ColumnSpan="2"
-                  Header="INSTALLATION PATH">
-            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding InstallPath}">
-                <Hyperlink.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Command="{Binding CopyToClipboard}"
-                                  CommandParameter="{Binding InstallPath}"
-                                  Header="Copy to Clipboard" />
-                    </ContextMenu>
-                </Hyperlink.ContextMenu>
-                <TextBlock FontSize="12px" Text="{Binding InstallPath}" />
-            </Hyperlink>
-        </GroupBox>
-
-        <GroupBox Grid.Row="5"
-                  Grid.ColumnSpan="2"
-                  Header="DATA PATH">
-            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding DBPath}">
-                <Hyperlink.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Command="{Binding CopyToClipboard}"
-                                  CommandParameter="{Binding DBPath}"
-                                  Header="Copy to Clipboard" />
-                    </ContextMenu>
-                </Hyperlink.ContextMenu>
-                <TextBlock FontSize="12px" Text="{Binding DBPath}" />
-            </Hyperlink>
-        </GroupBox>
-
-        <GroupBox Grid.Row="6"
-                  Grid.ColumnSpan="2"
-                  Header="LOG PATH">
-            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding LogPath}">
-                <Hyperlink.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Command="{Binding CopyToClipboard}"
-                                  CommandParameter="{Binding LogPath}"
-                                  Header="Copy to Clipboard" />
-                    </ContextMenu>
-                </Hyperlink.ContextMenu>
-                <TextBlock FontSize="12px" Text="{Binding LogPath}" />
-            </Hyperlink>
-        </GroupBox>
     </Grid>
 </UserControl>

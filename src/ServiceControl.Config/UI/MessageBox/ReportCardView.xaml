@@ -47,27 +47,17 @@
                 <ItemsControl ItemsSource="{Binding Errors}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Grid Margin="0,0,0,5">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="16" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="4"
+                            <TextBlock Margin="0,5,0,0"
                                        FontSize="14"
-                                       FontFamily="Marlett"
-                                       Grid.Column="0"
-                                       Foreground="{StaticResource ErrorBrush}"   
-                                       ToolTip="Error Message"         
-                                       />
-                                <TextBlock Margin="0,0,0,5"
-                                       Grid.Column="1"
-                                       HorizontalAlignment="Left"
-                                       VerticalAlignment="Center"
-                                       FontSize="14"
-                                       Foreground="{StaticResource WhiteBrush}"
-                                       Text="{Binding}"
-                                       TextWrapping="Wrap" />
-                            </Grid>
+                                       TextWrapping="Wrap">
+                                <Run BaselineAlignment="Bottom"
+                                     FontFamily="Marlett"
+                                     FontSize="14"
+                                     Foreground="{StaticResource ErrorBrush}"
+                                     Text="4"
+                                     ToolTip="Error Message" />
+                                <Run Foreground="{StaticResource WhiteBrush}" Text="{Binding Mode=OneWay}" />
+                            </TextBlock>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -85,27 +75,17 @@
                 <ItemsControl ItemsSource="{Binding Warnings}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="16" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="4"
+                            <TextBlock Margin="0,5,0,0"
                                        FontSize="14"
-                                       FontFamily="Marlett"
-                                       Grid.Column="0"
-                                       Foreground="{StaticResource WarningBrush}"  
-                                       ToolTip="Warning Message"
-                                       />
-                                <TextBlock Margin="0,0,0,5"
-                                       Grid.Column="1"
-                                       HorizontalAlignment="Left"
-                                       VerticalAlignment="Center"
-                                       FontSize="14"
-                                       Foreground="{StaticResource WhiteBrush}"
-                                       Text="{Binding}"
-                                       TextWrapping="Wrap" />
-                            </Grid>
+                                       TextWrapping="Wrap">
+                                <Run BaselineAlignment="Bottom"
+                                     FontFamily="Marlett"
+                                     FontSize="14"
+                                     Foreground="{StaticResource WarningBrush}"
+                                     Text="4"
+                                     ToolTip="Warning Message" />
+                                <Run Foreground="{StaticResource WhiteBrush}" Text="{Binding Mode=OneWay}" />
+                            </TextBlock>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -124,6 +104,7 @@
                         Height="30"
                         Command="{Binding Cancel}"
                         Content="Ok"
+                        FontSize="14"
                         IsCancel="True"
                         Padding="0" />
             </StackPanel>

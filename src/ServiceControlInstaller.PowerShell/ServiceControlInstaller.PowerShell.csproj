@@ -126,4 +126,5 @@
     </GetVersion>
     <FileUpdate Files="@(PSModuleFile)" Regex="{{Version}}" ReplacementText="$(MajorMinorPatch)" />
   </Target>
+  
 </Project>

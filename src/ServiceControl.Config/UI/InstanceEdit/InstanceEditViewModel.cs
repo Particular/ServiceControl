@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using Commands;
+    using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
@@ -19,11 +20,15 @@
             InstanceName = instance.Name;
             Description = instance.Description;
 
-            UseProvidedAccount = !StringComparer.OrdinalIgnoreCase.Equals(instance.ServiceAccount, "localsystem");
+            var userAccount = UserAccount.ParseAccountName(instance.ServiceAccount);
+            UseSystemAccount = userAccount.IsLocalSystem();
+            UseServiceAccount = userAccount.IsLocalService();
+
+            UseProvidedAccount = !(UseServiceAccount || UseSystemAccount);
+
             if (UseProvidedAccount)
             {
                 ServiceAccount = instance.ServiceAccount;
-                Password = instance.ServiceAccountPwd;
             }
 
             HostName = instance.HostName;
@@ -36,8 +41,8 @@
             AuditForwarding = AuditForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardAuditMessages);
             ErrorForwarding = ErrorForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardErrorMessages);
 
-            ErrorRetentionPeriod = instance.ErrorRetentionPeriod;
-            AuditRetentionPeriod = instance.AuditRetentionPeriod;
+            UpdateErrorRetention(instance.ErrorRetentionPeriod);
+            UpdateAuditRetention(instance.AuditRetentionPeriod);
 
             ErrorQueueName = instance.ErrorQueue;
             ErrorForwardingQueueName = instance.ErrorLogQueue;

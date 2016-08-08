@@ -7,6 +7,7 @@ namespace ServiceControl.Config.Commands
     using ServiceControl.Config.UI.InstanceEdit;
     using ServiceControlInstaller.Engine.Instances;
 
+
     class EditInstanceCommand : AbstractCommand<InstanceDetailsViewModel>
     {
         private readonly Func<ServiceControlInstance, InstanceEditViewModel> editViewModel;

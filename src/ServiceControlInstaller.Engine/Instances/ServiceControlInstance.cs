@@ -54,6 +54,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string ServiceAccountPwd { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
+        public bool InMaintenanceMode { get; set; }
 
         public Version Version
         {
@@ -80,12 +81,12 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = $"http://{HostName}:{Port}/api/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return baseUrl;
+                    return $"http://{HostName}:{Port}/api/";
                 }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                var virt = VirtualDirectory.Replace("/", "");
+                return $"http://{HostName}:{Port}/{virt}/api/";
             }
         }
 
@@ -99,6 +100,30 @@ namespace ServiceControlInstaller.Engine.Instances
                     return baseUrl;
                 }
                 return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
+            }
+        }
+
+        public string StorageUrl
+        {
+            get
+            {
+                string host;
+                switch (HostName)
+                {
+                    case "*":
+                    case "+":
+                        host = "localhost";
+                        break;
+                    default:
+                        host = HostName;
+                        break;
+                }
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return $"http://{host}:{Port}/storage/";
+                }
+                var virt = $"{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
+                return $"http://{host}:{Port}/{virt}storage/";
             }
         }
 
@@ -121,12 +146,12 @@ namespace ServiceControlInstaller.Engine.Instances
                         break;
                 }
 
-                var baseUrl = $"http://{host}:{Port}/api/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return baseUrl;
+                    return $"http://{host}:{Port}/api/";
                 }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                var virt = VirtualDirectory.Replace("/", "");
+                return $"http://{host}:{Port}/{virt}/api/";
             }
         }
 
@@ -331,10 +356,12 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool TryStopService()
         {
             Service.Refresh();
-            if (Service.Status != ServiceControllerStatus.Stopped)
+            if (Service.Status == ServiceControllerStatus.Stopped)
             {
-                Service.Stop();
+                return true;
             }
+
+            Service.Stop();
 
             try
             {
@@ -358,10 +385,12 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool TryStartService()
         {
             Service.Refresh();
-            if (Service.Status != ServiceControllerStatus.Running)
+            if (Service.Status == ServiceControllerStatus.Running)
             {
-                Service.Start();
+                return true;
             }
+
+            Service.Start();
 
             try
             {
@@ -559,6 +588,7 @@ namespace ServiceControlInstaller.Engine.Instances
             AuditLogQueue = ReadAppSetting(SettingsList.AuditLogQueue, $"{AuditQueue}.log");
             ForwardAuditMessages = ReadAppSetting(SettingsList.ForwardAuditMessages, false);
             ForwardErrorMessages = ReadAppSetting(SettingsList.ForwardErrorMessages, false);
+            InMaintenanceMode = ReadAppSetting(SettingsList.MaintenanceMode, false);
             ErrorQueue = ReadAppSetting(SettingsList.ErrorQueue, "error");
             ErrorLogQueue = ReadAppSetting(SettingsList.ErrorLogQueue, $"{ErrorQueue}.log");
             TransportPackage = DetermineTransportPackage();
@@ -577,6 +607,19 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
+        }
+
+        public void DisableMaintenanceMode()
+        {
+            var configWriter = new ConfigurationWriter(this);
+            configWriter.DisableMaintenanceMode();
+            InMaintenanceMode = false;
+        }
+        public void EnableMaintenanceMode()
+        {
+            var configWriter = new ConfigurationWriter(this);
+            configWriter.EnableMaintenanceMode();
+            InMaintenanceMode = true;
         }
 
         public void ValidateChanges()

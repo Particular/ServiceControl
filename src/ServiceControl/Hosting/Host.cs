@@ -5,14 +5,25 @@
 
     public class Host : ServiceBase
     {
-        public void Run()
+        public void Run(bool interactive)
         {
-            if (Environment.UserInteractive)
+            if (interactive)
             {
-                OnStart(null);
-                return;
+                RunInteractive();
             }
+            else
+            {
+                RunAsService();
+            }
+        }
 
+        private void RunInteractive()
+        {
+            OnStart(null);
+        }
+
+        private void RunAsService()
+        {
             Run(this);
         }
 

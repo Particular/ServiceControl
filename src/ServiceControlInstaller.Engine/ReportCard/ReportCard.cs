@@ -12,6 +12,8 @@
 
         public bool HasWarnings => Warnings.Count > 0;
 
+        public bool CancelRequested;
+
         public void SetStatus()
         {
             if (HasErrors)

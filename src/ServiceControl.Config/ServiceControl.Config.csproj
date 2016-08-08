@@ -137,12 +137,14 @@
     </Page>
     <Compile Include="AppBootstrapper.cs" />
     <Compile Include="Commands\AddInstanceCommand.cs" />
+    <Compile Include="Commands\AdvanceOptionsCommand.cs" />
     <Compile Include="Commands\CopyToClipboardCommand.cs" />
     <Compile Include="Commands\EditInstanceCommand.cs" />
     <Compile Include="Commands\OpenURLCommand.cs" />
     <Compile Include="Commands\DeleteInstanceCommand.cs" />
     <Compile Include="Commands\OpenViewModelCommand.cs" />
     <Compile Include="Commands\SelectPathCommand.cs" />
+    <Compile Include="Commands\StartServiceInMaintenanceModeCommand.cs" />
     <Compile Include="Commands\UpgradeInstanceCommand.cs" />
     <Compile Include="Events\RefreshInstances.cs" />
     <Compile Include="Extensions\GuidExtensions.cs" />
@@ -159,6 +161,10 @@
     <Compile Include="Framework\RaygunReporter.cs" />
     <Compile Include="Framework\Rx\RxProgressScreen.cs" />
     <Compile Include="Splash.cs" />
+    <Compile Include="UI\AdvanceOptions\AdvanceOptionsViewModel.cs" />
+    <Compile Include="UI\AdvanceOptions\AdvanceOptionsView.xaml.cs">
+      <DependentUpon>AdvanceOptionsView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\FeedBack\FeedBackViewModelValidator.cs" />
     <Compile Include="UI\MessageBox\ExceptionMessageBox.xaml.cs">
       <DependentUpon>ExceptionMessageBox.xaml</DependentUpon>
@@ -280,6 +286,10 @@
     <Compile Include="Xaml\Behaviours\BorderlessWindowBehavior.cs" />
     <Compile Include="Xaml\Behaviours\StylizedBehaviors.cs" />
     <Compile Include="Xaml\Converters\BoolToVisibilityConverter.cs" />
+    <Page Include="UI\AdvanceOptions\AdvanceOptionsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="UI\MessageBox\SliderDialogView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

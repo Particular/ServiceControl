@@ -6,6 +6,7 @@ namespace Particular.ServiceControl.Hosting
     using System.Reflection;
     using Commands;
     using global::ServiceControl.Hosting.Commands;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class HostArguments
     {
@@ -14,6 +15,7 @@ namespace Particular.ServiceControl.Hosting
         public bool Help { get; set; }
         public string ServiceName { get; set; }
         public string Username { get; set; }
+        public bool Portable { get; set; }
         
         public HostArguments(string[] args)
         {
@@ -67,9 +69,28 @@ namespace Particular.ServiceControl.Hosting
                     , s => { Username = s; }
                 }
             };
+
+            var externalUnitTestRunnerOptions = new OptionSet
+            {
+                {
+                    "p|portable", 
+                    @"Internal use - runs as a console app, even non-interactively", 
+                    s => { Portable = true; }
+                }
+            };
             
             try
             {
+                if (SettingsReader<bool>.Read("MaintenanceMode"))
+                {
+                    Commands = new List<Type>
+                    {
+                        typeof(MaintCommand)
+                    };
+                    executionMode = ExecutionMode.Maintenance;
+                    return;
+                }
+
                 externalInstallerOptions.Parse(args);
                 if (executionMode == ExecutionMode.RunInstallers)
                 {
@@ -83,6 +104,7 @@ namespace Particular.ServiceControl.Hosting
                 }
 
                 defaultOptions.Parse(args);
+                externalUnitTestRunnerOptions.Parse(args);
             }
             catch (Exception e)
             {

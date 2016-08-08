@@ -6,11 +6,10 @@
 
     class MaintCommand : AbstractCommand
     {
-
         public override void Execute(HostArguments args)
         {
             var bootstrapper = new MaintenanceBootstrapper();
-            bootstrapper.Run();
+            bootstrapper.Run(args);
         }
     }
 }

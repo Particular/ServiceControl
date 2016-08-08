@@ -26,7 +26,21 @@
                 throw new Exception($"Invalid Transport - Must be one of: {string.Join(",", Transports.All.Select(p => p.Name))}");
             }
         }
-        
+
+        public void EnableMaintenanceMode()
+        {
+            var settings = configuration.AppSettings.Settings;
+            settings.Set(SettingsList.MaintenanceMode, Boolean.TrueString, details.Version);
+            configuration.Save();
+        }
+
+        public void DisableMaintenanceMode()
+        {
+            var settings = configuration.AppSettings.Settings;
+            settings.Remove(SettingsList.MaintenanceMode.Name);
+            configuration.Save();
+        }
+
         public void Save()
         {
             configuration.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);

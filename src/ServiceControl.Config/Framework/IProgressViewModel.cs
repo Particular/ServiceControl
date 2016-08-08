@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.Framework
 {
     using System;
+    using System.Windows.Input;
 
     public interface IProgressViewModel
     {
@@ -37,7 +38,7 @@
 
     public static class ProgressViewModelExtensions
     {
-        public static IProgressObject GetProgressObject(this IProgressViewModel progressViewModel, string progressTitle)
+        public static IProgressObject GetProgressObject(this IProgressViewModel progressViewModel, string progressTitle = "")
         {
             progressViewModel.ProgressTitle = progressTitle;
             return new Progress(progressViewModel);
@@ -67,6 +68,7 @@
             public void Dispose()
             {
                 viewModel.InProgress = false;
+                CommandManager.InvalidateRequerySuggested();
             }
         }
     }

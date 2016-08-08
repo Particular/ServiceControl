@@ -7,6 +7,7 @@
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
+    using ServiceControlInstaller.Engine.Validation;
     using Module = Autofac.Module;
 
     public class InstallerModule : Module
@@ -27,18 +28,16 @@
             ZipInfo = ServiceControlZipInfo.Find(appDirectory);
         }
 
-        internal ReportCard Add(ServiceControlInstanceMetadata details, IProgress<ProgressDetails> progress = null)
+        internal ReportCard Add(ServiceControlInstanceMetadata details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
         {
-            progress = progress ?? new Progress<ProgressDetails>();
-
             ZipInfo.ValidateZip();
 
             var instanceInstaller = details;
             instanceInstaller.ReportCard = new ReportCard();
 
             //Validation
-            instanceInstaller.Validate();
-            if (instanceInstaller.ReportCard.HasErrors)
+            instanceInstaller.Validate(promptToProceed);
+            if (instanceInstaller.ReportCard.HasErrors || instanceInstaller.ReportCard.CancelRequested)
             {
                 instanceInstaller.ReportCard.Status = Status.FailedValidation;
                 return instanceInstaller.ReportCard;

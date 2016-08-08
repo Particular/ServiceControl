@@ -158,7 +158,7 @@
                     instanceToInstallDetails.ServiceAccount = serviceAccount;
                     instanceToInstallDetails.ServiceAccountPwd = password;
                 }
-                unattendedInstaller.Add(instanceToInstallDetails);
+                unattendedInstaller.Add(instanceToInstallDetails, s => false);
             }
             else
             {

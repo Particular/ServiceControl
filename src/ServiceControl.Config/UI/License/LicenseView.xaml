@@ -7,9 +7,9 @@
                       Title="License"
                       Width="350"
                       Height="320"
-                      Padding="0"
                       Background="{StaticResource Gray10Brush}"
                       Foreground="{StaticResource WhiteBrush}"
+                      Padding="0"
                       ResizeMode="NoResize"
                       WindowStartupLocation="CenterOwner"
                       mc:Ignorable="d">
@@ -37,10 +37,9 @@
         <TextBlock Grid.Row="0"
                    Margin="5"
                    VerticalAlignment="Center"
-                   Text="LICENSE INFORMATION" 
                    Foreground="{StaticResource Gray60Brush}"
-                   />
-                    
+                   Text="LICENSE INFORMATION" />
+
         <Border Grid.Row="1"
                 Margin="-15,0"
                 BorderBrush="{StaticResource Gray20Brush}"
@@ -65,6 +64,7 @@
                         <TextBlock Grid.Column="1"
                                    Margin="5,5"
                                    FontSize="12"
+                                   Foreground="{StaticResource Gray90Brush}"
                                    Text="{Binding Path=Value}" />
                     </Grid>
                 </DataTemplate>
@@ -87,14 +87,40 @@
                 FontSize="12"
                 Style="{StaticResource HiliteButton}" />
 
-        <TextBlock Grid.Row="4"
-                   Margin="0,5"
-                   HorizontalAlignment="Center"
-                   FontSize="12"
-                   Foreground="Red"
-                   Text="{Binding ApplyLicenseError}"
-                   TextAlignment="Center"
-                   TextWrapping="Wrap" />
+        <StackPanel Grid.Row="4"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Visibility="{Binding ApplyLicenseSuccess,
+                                         Converter={StaticResource nullOrEmptyToVis}}">
+            <Control Width="16"
+                     Height="16"
+                     Margin="5,0,3,0"
+                     Foreground="{StaticResource SuccessBrush}"
+                     Template="{StaticResource SuccessIcon}" />
+            <TextBlock Margin="0,5"
+                       HorizontalAlignment="Center"
+                       FontSize="12"
+                       Foreground="{StaticResource Gray90Brush}"
+                       Text="{Binding ApplyLicenseSuccess}"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Grid.Row="4"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Visibility="{Binding ApplyLicenseError,
+                                         Converter={StaticResource nullOrEmptyToVis}}">
+            <Control Width="16"
+                     Height="16"
+                     Margin="5,0,3,0"
+                     Foreground="{StaticResource ErrorBrush}"
+                     Template="{StaticResource WarningIcon}" />
+            <TextBlock Margin="0,5"
+                       HorizontalAlignment="Center"
+                       FontSize="12"
+                       Foreground="{StaticResource Gray90Brush}"
+                       Text="{Binding ApplyLicenseError}"
+                       TextWrapping="Wrap" />
+        </StackPanel>
 
         <Border Grid.Row="5"
                 Margin="-15,0"
@@ -103,7 +129,7 @@
 
         <TextBlock Grid.Row="5"
                    Margin="0,15"
-                   FontSize="10"
+                   FontSize="11"
                    Foreground="{StaticResource Gray60Brush}">
             Need Help?
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="http://particular.net/contactus">Contact Us</Hyperlink>

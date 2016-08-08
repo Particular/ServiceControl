@@ -20,6 +20,8 @@
     <Color x:Key="ErrorColor">#E6003D</Color>
     <Color x:Key="DarkErrorColor">#BF0033</Color>
 
+    <Color x:Key="SuccessColor">#3DB982</Color>
+
     <Color x:Key="LightWarningColor">#FFfD0D</Color>
     <Color x:Key="WarningColor">#E6aD00</Color>
     <Color x:Key="DarkWarningColor">#BF7d00</Color>
@@ -44,6 +46,8 @@
     <SolidColorBrush x:Key="LightErrorBrush" Color="{StaticResource LightErrorColor}" />
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
     <SolidColorBrush x:Key="DarkErrorBrush" Color="{StaticResource DarkErrorColor}" />
+
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
 
     <SolidColorBrush x:Key="LightWarnigBrush" Color="{StaticResource LightWarningColor}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />

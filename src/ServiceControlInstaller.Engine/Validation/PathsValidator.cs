@@ -6,14 +6,15 @@
     using System.Linq;
     using ServiceControlInstaller.Engine.Instances;
 
+    public class PathInfo
+    {
+        public string Name { get; set; }
+        public string Path { get; set; }
+        public bool CheckIfEmpty { get; set; }
+    }
+
     internal class PathsValidator
     {
-        class PathInfo
-        {
-            public string Name { get; set; }
-            public string Path { get; set; }
-        }
-
         internal List<IContainInstancePaths> Instances;
         List<PathInfo> paths;
 
@@ -21,14 +22,33 @@
         {
             var pathList = new List<PathInfo>
             {
-                new PathInfo{ Name = "log path", Path = Environment.ExpandEnvironmentVariables(instance.LogPath ?? String.Empty)},
-                new PathInfo{ Name = "DB path", Path = Environment.ExpandEnvironmentVariables(instance.DBPath ?? String.Empty)},
-                new PathInfo{ Name = "install path", Path = Environment.ExpandEnvironmentVariables(instance.InstallPath ?? String.Empty)},
+                new PathInfo
+                {
+                    Name = "log path",
+                    Path = Environment.ExpandEnvironmentVariables(instance.LogPath ?? String.Empty)
+                },
+                new PathInfo
+                {
+                    Name = "DB path",
+                    Path = Environment.ExpandEnvironmentVariables(instance.DBPath ?? String.Empty),
+                    CheckIfEmpty = true
+                },
+                new PathInfo
+                {
+                    Name = "install path",
+                    Path = Environment.ExpandEnvironmentVariables(instance.InstallPath ?? String.Empty),
+                    CheckIfEmpty = true
+                }
             };
             paths = pathList.Where(p => !string.IsNullOrWhiteSpace(p.Path)).ToList();
         }
 
         void RunValidation(bool includeNewInstanceChecks)
+        {
+            RunValidation(includeNewInstanceChecks, info => false);
+        }
+
+        bool RunValidation(bool includeNewInstanceChecks, Func<PathInfo, bool> promptToProceed)
         {
             try
             {
@@ -37,11 +57,13 @@
                 CheckPathsAreUnique();
                 CheckPathsNotUsedInOtherInstances();
 
+                var cancelRequested = false;
                 //Do Checks that only make sense on add instance
                 if (includeNewInstanceChecks)
                 {
-                    CheckPathsAreEmpty();
+                    cancelRequested = CheckPathsAreEmpty(promptToProceed);
                 }
+                return cancelRequested;
             }
             catch (EngineValidationException)
             {
@@ -51,39 +73,56 @@
             {
                 throw new EngineValidationException("An unhandled exception occured while trying to validate the paths.", ex);
             }
+
         }
 
-        void CheckPathsAreEmpty()
+        bool CheckPathsAreEmpty(Func<PathInfo, bool> promptToProceed)
         {
             foreach (var pathInfo in paths)
             {
+                if (!pathInfo.CheckIfEmpty)
+                {
+                    continue;
+                }
+
                 var directory = new DirectoryInfo(pathInfo.Path);
                 if (directory.Exists)
                 {
                     var flagFile = Path.Combine(directory.FullName, ".notconfigured");
                     if (File.Exists(flagFile))
+                    {
                         continue;  // flagfile will be present if we've unpacked and had a config failure.  In this case it's OK for the directory to have content
-                    if (directory.GetFileSystemInfos().Any())
-                        throw new EngineValidationException($"The directory specified as the {pathInfo.Name} is not empty.");
+                    }
+                    if (directory.EnumerateFileSystemInfos().Any())
+                    {
+                        if (!promptToProceed(pathInfo))
+                        {
+                            return true;
+                        }
+                    }
                 }
             }
+
+            return false;
         }
 
-        public static void Validate(ServiceControlInstanceMetadata instance)
+        public static bool Validate(ServiceControlInstanceMetadata instance, Func<PathInfo, bool> promptToProceed)
         {
             var validator = new PathsValidator(instance)
             {
                 Instances = ServiceControlInstance.Instances().AsEnumerable<IContainInstancePaths>().ToList()
             };
-            validator.RunValidation(true);
+            return validator.RunValidation(true, promptToProceed);
         }
 
         public static void Validate(ServiceControlInstance instance)
         {
+            var name = instance.Name;
             var validator = new PathsValidator(instance)
             {
-                Instances = ServiceControlInstance.Instances().Where(p => p.Name != instance.Name).AsEnumerable<IContainInstancePaths>().ToList()
+                Instances = ServiceControlInstance.Instances().Where(p => p.Name != name).AsEnumerable<IContainInstancePaths>().ToList()
             };
+
             validator.RunValidation(false);
         }
 

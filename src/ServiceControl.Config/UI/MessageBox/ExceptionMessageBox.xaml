@@ -87,14 +87,17 @@
             <Button MinWidth="140"
                     Command="{Binding ReportClick}"
                     Content="Report Error"
+                    FontSize="14"
                     ToolTip="Report Error to Particular Software" />
             <Button MinWidth="140"
                     Margin="5 0"
                     Click="CopyClick"
                     Content="Copy"
+                    FontSize="14"
                     ToolTip="Copy to Clipboard" />
             <Button MinWidth="140"
                     Content="Close"
+                    FontSize="14"
                     IsCancel="True"
                     IsDefault="True"
                     Style="{StaticResource HiliteButton}" />

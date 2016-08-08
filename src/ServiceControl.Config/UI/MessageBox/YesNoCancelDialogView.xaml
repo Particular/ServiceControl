@@ -13,7 +13,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="30" />
                 <RowDefinition Height="11*" />
-                <RowDefinition Height="34*"/>
+                <RowDefinition Height="34*" />
                 <RowDefinition Height="45*" />
                 <RowDefinition Height="36" />
             </Grid.RowDefinitions>
@@ -22,62 +22,64 @@
                     BorderBrush="{StaticResource Gray20Brush}"
                     BorderThickness="0,0,0,1" />
 
-            <TextBlock Margin="0,0,0,6.4"
+            <TextBlock Grid.Row="0"
+                       Margin="0,0,0,6.4"
                        VerticalAlignment="Bottom"
                        FontSize="14"
                        FontWeight="Bold"
                        Foreground="{StaticResource Gray60Brush}"
-                       Text="{Binding Title}"
-                       Grid.Row="0"/>
+                       Text="{Binding Title}" />
 
             <RichTextBox Grid.Row="2"
                          Margin="0,1.877,-10,28"
+                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message}"
                          Background="Transparent"
                          BorderThickness="0"
                          FontSize="14"
                          Foreground="{StaticResource WhiteBrush}"
                          IsReadOnly="True"
-                         IsReadOnlyCaretVisible="False"
-                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message}" />
+                         IsReadOnlyCaretVisible="False" />
 
             <RichTextBox Grid.Row="3"
                          Margin="0,24,-10,27.4"
+                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Question}"
                          Background="Transparent"
                          BorderThickness="0"
                          FontSize="14"
                          Foreground="{StaticResource LightWarnigBrush}"
                          IsReadOnly="True"
-                         IsReadOnlyCaretVisible="False"
-                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Question}" />
+                         IsReadOnlyCaretVisible="False" />
 
             <StackPanel Grid.Row="4"
                         Margin="-321,1.6,0,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Orientation="Horizontal">
-                <Button Width="100"
-                        Height="30"
+                <Button Height="30"
+                        MinWidth="100"
                         Margin="0"
                         Command="{Binding Yes}"
-                        Content="Disable"
-                        Padding="0"
-                        Style="{StaticResource HiliteButton}"
-                />
-                <Button Width="100"
-                        Height="30"
+                        Content="{Binding YesText}"
+                        FontSize="14"
+                        Padding="10,2,10,2"
+                        Style="{StaticResource HiliteButton}" />
+                <Button Height="30"
+                        MinWidth="100"
                         Margin="10,0,0,0"
                         Command="{Binding No}"
-                        Content="Enable"
-                        Padding="0"
-                />
-                <Button Width="100"
-                        Height="30"
+                        Content="{Binding NoText}"
+                        FontSize="14"
+                        Padding="10,2,10,2" />
+                <Button Height="30"
+                        MinWidth="100"
                         Margin="10,0,0,0"
                         Command="{Binding Cancel}"
                         Content="Cancel"
+                        FontSize="14"
                         IsCancel="True"
-                        Padding="0"
-                        />
+                        Padding="10,2,10,2"
+                        Visibility="{Binding ShowCancelButton,
+                                             Converter={StaticResource boolToVis}}" />
             </StackPanel>
         </Grid>
     </Grid>

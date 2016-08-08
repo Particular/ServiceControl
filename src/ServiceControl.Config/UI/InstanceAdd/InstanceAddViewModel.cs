@@ -40,8 +40,8 @@
                 }
             }
 
-            AuditRetentionPeriod = TimeSpan.FromHours(SettingConstants.AuditRetentionPeriodDefaultInHoursForUI);
-            ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI);
+            AuditRetention = SettingConstants.AuditRetentionPeriodDefaultInHoursForUI;
+            ErrorRetention = SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI;
             Description = "A ServiceControl Instance";
             HostName = "localhost"; 
             AuditQueueName = "audit";
@@ -49,6 +49,7 @@
             ErrorQueueName = "error";
             ErrorForwardingQueueName = "error.log";
             ErrorForwarding = ErrorForwardingOptions.First(p => !p.Value); //Default to Off.
+            UseSystemAccount = true;
         }
 
         public string DestinationPath { get; set; }

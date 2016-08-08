@@ -61,12 +61,12 @@
                 ReportCard = new ReportCard()
             };
 
-            details.Validate();
+            details.Validate(s => false);
             if (details.ReportCard.HasErrors)
             {
                 throw new Exception($"Validation errors:  {string.Join("\r\n", details.ReportCard.Errors)}");
             }
-            Assert.DoesNotThrow(() => installer.Add(details));
+            Assert.DoesNotThrow(() => installer.Add(details, s => false));
         }
 
         [Test, Explicit]
