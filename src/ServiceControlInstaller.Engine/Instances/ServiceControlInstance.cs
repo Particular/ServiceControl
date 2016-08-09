@@ -337,7 +337,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RemoveUrlAcl()
         {
-            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.Equals(Url, StringComparison.OrdinalIgnoreCase) || p.Url.Equals(AclUrl, StringComparison.OrdinalIgnoreCase)))
+            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase)))
             {
                 try
                 {
