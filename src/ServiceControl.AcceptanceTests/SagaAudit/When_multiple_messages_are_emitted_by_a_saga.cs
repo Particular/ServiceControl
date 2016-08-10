@@ -49,7 +49,11 @@
         {
             public EndpointThatIsHostingTheSaga()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<AutoSubscribe>())
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    c.DisableFeature<AutoSubscribe>();
+                    c.DisableFeature<Outbox>();
+                })
                     .AddMapping<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga))
                     .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"));
             }
@@ -79,11 +83,8 @@
 
             class MessageReplyBySagaHandler : IHandleMessages<MessageReplyBySaga>
             {
-                public MyContext Context { get; set; }
-
                 public void Handle(MessageReplyBySaga message)
                 {
-                    Context.Done = true;
                 }
             }
 
@@ -107,7 +108,7 @@
 
                 public void Handle(MessageSentBySaga message)
                 {
-                    //Context.Done = true;
+                    Context.Done = true;
                 }
             }
         }
