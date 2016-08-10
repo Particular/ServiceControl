@@ -28,5 +28,14 @@
         {
             
         }
+
+        class CustomConfig : INeedInitialization
+        {
+            public void Customize(BusConfiguration configuration)
+            {
+                configuration.UseTransport<RabbitMQTransport>().DisableCallbackReceiver();
+                configuration.EnableOutbox();
+            }
+        }
     }
 }
