@@ -71,17 +71,17 @@
 
                             <controls:FormTextBox Grid.Row="1"
                                                   Header="SERVICE ACCOUNT"
-                                                  IsEnabled="{Binding UseProvidedAccount}"
                                                   Text="{Binding ServiceAccount}"
                                                   Visibility="{Binding UseProvidedAccount,
                                                                        Converter={StaticResource boolToVis}}" />
 
                             <controls:FormPasswordBox Grid.Row="2"
                                                       Header="PASSWORD"
-                                                      IsEnabled="{Binding UseProvidedAccount}"
                                                       Text="{Binding Password}"
-                                                      Visibility="{Binding UseProvidedAccount,
-                                                                           Converter={StaticResource boolToVis}}" />
+                                                      Visibility="{Binding PasswordEnabled, Converter={StaticResource boolToVis}}"
+                                                      />
+                            <TextBlock Grid.Row="2" Visibility="{Binding ManagedAccount, Converter={StaticResource boolToVis}}" Text="No password is required for an AD Group Managed Service Account" />
+
                         </Grid>
                     </StackPanel>
                 </GroupBox>
