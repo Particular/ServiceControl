@@ -79,11 +79,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             public MeowReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
             }
 
             public class FailingMessageHandler : IHandleMessages<Meow>

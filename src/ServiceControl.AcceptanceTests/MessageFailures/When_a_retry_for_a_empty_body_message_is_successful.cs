@@ -75,11 +75,7 @@
                 {
                     c.DisableFeature<SecondLevelRetries>();
                     c.RegisterComponents(cc => cc.ConfigureComponent<LookForControlMessage>(DependencyLifecycle.SingleInstance));
-                })
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
+                });
             }
 
             public class SendControlMessage : IWantToRunWhenBusStartsAndStops

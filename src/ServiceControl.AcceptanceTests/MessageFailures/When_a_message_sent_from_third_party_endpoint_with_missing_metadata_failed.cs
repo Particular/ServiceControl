@@ -41,9 +41,6 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     c.DisableFeature<SecondLevelRetries>();
-                }).WithConfig<TransportConfig>(c =>
-                {
-                    c.MaxRetries = 1;
                 });
             }
 
