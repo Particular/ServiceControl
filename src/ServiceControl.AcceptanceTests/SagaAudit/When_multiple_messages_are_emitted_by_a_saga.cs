@@ -52,7 +52,6 @@
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     c.DisableFeature<AutoSubscribe>();
-                    c.DisableFeature<Outbox>();
                 })
                     .AddMapping<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga))
                     .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"));
