@@ -83,10 +83,10 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = true, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue")]
         public bool ForwardErrorMessages { get; set; }
         
-        [Parameter(HelpMessage = "The Account to run the Windows service. If no specified LocalSystem is used")]
+        [Parameter(HelpMessage = "The Account to run the Windows service. If not specified then LocalSystem is used")]
         public string ServiceAccount { get; set; }
 
-        [Parameter(HelpMessage = "The password for the ServiceAccount.  Do not use for LocalSystem or NetworkService")]
+        [Parameter(HelpMessage = "The password for the ServiceAccount.  Do not use for builtin accounts or managed serviceaccount")]
         public string ServiceAccountPassword { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Audit Data")]

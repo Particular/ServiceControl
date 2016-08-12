@@ -114,6 +114,35 @@
 
         public bool UseProvidedAccount { get; set; }
 
+        public bool PasswordEnabled
+        {
+            get
+            {
+                if (!UseProvidedAccount)
+                {
+                    return false;
+                }
+                if ((ServiceAccount != null) && ServiceAccount.EndsWith("$"))
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        public bool ManagedAccount
+        {
+            get
+            {
+                var managedAccount = UseProvidedAccount && ServiceAccount != null && ServiceAccount.Trim().EndsWith("$");
+                if (managedAccount)
+                {
+                    Password = null;
+                }
+                return managedAccount;
+            }
+        }
+
         public string ErrorQueueName { get; set; }
         public string ErrorForwardingQueueName { get; set; }
         public string AuditQueueName { get; set; }
@@ -163,7 +192,7 @@
         }
 
         public string ConnectionString { get; set; }
-        
+
         // ReSharper disable once UnusedMember.Global
         public string SampleConnectionString => SelectedTransport != null ? SelectedTransport.SampleConnectionString : String.Empty;
 
@@ -175,7 +204,7 @@
 
         public ICommand Save { get; set; }
         public ICommand Cancel { get; set; }
-        
+
         public bool SubmitAttempted { get; set; }
 
         protected virtual void OnInstanceNameChanged()

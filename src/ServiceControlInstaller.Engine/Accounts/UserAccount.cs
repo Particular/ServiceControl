@@ -58,11 +58,18 @@
 
         public bool CheckPassword(string password)
         {
-
             if (Domain.Equals(LocalizedNTAuthority(), StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
+
+            // AD Group Managed Service Account are always named with a trailing $ 
+            // In this case the installing user does not provide a password and Windows handles the password management
+            if (Name.EndsWith("$"))  
+            {
+                return true;
+            }
+
             if (password == null)
             {
                 throw new EngineValidationException("A password is required for this service account");

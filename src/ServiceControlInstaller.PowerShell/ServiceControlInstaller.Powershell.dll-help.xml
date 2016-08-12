@@ -959,7 +959,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>ServiceAccountPassword</maml:name>
 				<maml:description>
-					<maml:para>The password for the Windows account used as the service account. If the Service Account was not specified then the account chosen is localsystem and no password is required.</maml:para>
+					<maml:para>The password for the Windows account used as the service account. If the Service Account was not specified then the account chosen is localsystem and no password is required.  For Active Directory Group Managed Service Accounts no password should be specified.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -1185,7 +1185,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>ServiceAccountPassword</maml:name>
 			<maml:description>
-				<maml:para>The password for the Windows account used as the service account. If the Service Account was not specified then the account chosen is localsystem and no password is required.</maml:para>
+				<maml:para>The password for the Windows account used as the service account. If the Service Account was not specified then the account chosen is localsystem and no password is required. For Active Directory Group Managed Service Accounts no password should be specified</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1271,8 +1271,10 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="2">
 				<maml:name>Password</maml:name>
 				<maml:description>
-					<maml:para>The Password for the Service Account.  When no account is specified then LocalSystem is used. 
-LocalSystem does not require a password</maml:para>
+					<maml:para>
+            The Password for the Service Account.  When no account is specified then LocalSystem is used.
+            LocalSystem does not require a password. For Active Directory Group Managed Service Accounts no password should be specified.
+          </maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -1306,8 +1308,10 @@ LocalSystem does not require a password</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="2">
 			<maml:name>Password</maml:name>
 			<maml:description>
-				<maml:para>The Password for the Service Account.  When no account is specified then LocalSystem is used. 
-LocalSystem does not require a password</maml:para>
+				<maml:para>
+          The Password for the Service Account.  When no account is specified then LocalSystem is used.
+          LocalSystem does not require a password. For Active Directory Group Managed Service Accounts no password should be specified.
+        </maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
