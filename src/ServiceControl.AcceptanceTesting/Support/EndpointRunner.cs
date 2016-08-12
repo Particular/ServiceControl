@@ -156,7 +156,14 @@
             {
                 stopSource.Cancel();
 
-                executeWhens.Wait();
+                try
+                {
+                    executeWhens.Wait();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Failed to execute whens", ex);
+                }
 
                 if (configuration.SendOnly)
                 {
