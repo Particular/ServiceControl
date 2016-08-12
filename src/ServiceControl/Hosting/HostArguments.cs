@@ -21,7 +21,7 @@ namespace Particular.ServiceControl.Hosting
         {
             var executionMode = ExecutionMode.Run;
             Commands = new List<Type> { typeof(RunCommand) };
-            ServiceName = "Particular.ServiceControl";
+            ServiceName = Settings.DEFAULT_SERVICE_NAME;
          
             var defaultOptions = new OptionSet
             {
@@ -90,7 +90,6 @@ namespace Particular.ServiceControl.Hosting
                 maintenanceOptions.Parse(args);
                 if (executionMode == ExecutionMode.Maintenance)
                 {
-                    Settings.MaintenanceMode = true;
                     return;
                 }
 

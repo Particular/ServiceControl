@@ -18,7 +18,6 @@
             EndpointsView auditedMessage = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
@@ -69,12 +68,11 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServer>()
+                EndpointSetup<DefaultServerWithAudit>()
                     .WithConfig<UnicastBusConfig>(c =>
                     {
                         c.ForwardReceivedMessagesTo = "audit";
-                    })
-                    .AuditTo(Address.Parse("audit"));
+                    });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

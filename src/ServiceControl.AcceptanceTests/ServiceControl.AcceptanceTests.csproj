@@ -134,6 +134,10 @@
       <HintPath>..\packages\RabbitMQ.Client.3.6.3\lib\net45\RabbitMQ.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="OwinHttpMessageHandler, Version=1.3.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OwinHttpMessageHandler.1.3.5\lib\net45\OwinHttpMessageHandler.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Raven.Abstractions, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
       <HintPath>..\packages\RavenDB.Client.2.5.2996\lib\net45\Raven.Abstractions.dll</HintPath>
       <Private>True</Private>
@@ -159,7 +163,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="ServiceControl.Plugin.Nsb5.SagaAudit, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ServiceControl.Plugin.Nsb5.SagaAudit.1.0.1\lib\net45\ServiceControl.Plugin.Nsb5.SagaAudit.dll</HintPath>
+      <HintPath>..\packages\ServiceControl.Plugin.Nsb5.SagaAudit.1.0.2\lib\net45\ServiceControl.Plugin.Nsb5.SagaAudit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -200,7 +204,6 @@
     </Compile>
     <Compile Include="Contexts\DefaultServerWithoutAudit.cs" />
     <Compile Include="Audit\When_a_message_sent_from_third_party_endpoint_with_missing_metadata.cs" />
-    <Compile Include="Contexts\ExternalIntegrationsManagementEndpointSetup.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureServiceBusTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\ITransportIntegration.cs" />
@@ -211,7 +214,7 @@
     <Compile Include="CustomChecks\Custom_check_should_only_trigger_events_on_transition.cs" />
     <Compile Include="CustomChecks\When_a_custom_check_fails.cs" />
     <Compile Include="CustomChecks\When_a_periodic_custom_check_fails.cs" />
-    <Compile Include="DebugSessions\When_an_endpoint_is_running_with_debug_sessions_enabled.cs" />
+    <Compile Include="DiagnosticTimer.cs" />
     <Compile Include="ExternalIntegrations\JsonServer.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_custom_checks.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_failed.cs" />
@@ -219,7 +222,6 @@
     <Compile Include="ExternalIntegrations\When_encountered_an_error.cs" />
     <Compile Include="ExternalIntegrations\When_heartbeat_loss_is_detected.cs" />
     <Compile Include="HeartbeatMonitoring\When_an_endpoint_starts_up.cs" />
-    <Compile Include="HeartbeatMonitoring\When_endpoints_heartbeats_are_received_in_a_timely_manner.cs" />
     <Compile Include="MessageFailures\ErrorImportPerformanceTests.cs" />
     <Compile Include="MessageFailures\Is_System_Message_Tests.cs" />
     <Compile Include="MessageFailures\When_all_messages_are_retried.cs" />
@@ -233,11 +235,8 @@
     <Compile Include="MessageFailures\When_a_retry_for_a_empty_body_message_is_successful.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_fails.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_is_successful.cs" />
-    <Compile Include="AcceptanceTest.cs" />
     <Compile Include="Contexts\ConfigureExtensions.cs" />
-    <Compile Include="Contexts\DefaultServer.cs" />
-    <Compile Include="Contexts\ManagementEndpoint.cs" />
-    <Compile Include="Contexts\ManagementEndpointSetup.cs" />
+    <Compile Include="Contexts\DefaultServerWithAudit.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_retried.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_archived.cs" />
     <Compile Include="Recoverability\Groups\When_a_message_fails_twice_with_different_exceptions.cs" />
@@ -254,10 +253,12 @@
     <Compile Include="SagaAudit\When_requesting_timeout_from_a_saga.cs" />
     <Compile Include="SagaAudit\When_publishing_from_a_saga.cs" />
     <Compile Include="SagaAudit\When_a_message_hitting_a_saga_is_audited.cs" />
+    <Compile Include="SessionCopBehavior.cs" />
+    <Compile Include="SignalRHttpClient.cs" />
     <Compile Include="SubscriptionBehavior.cs" />
     <Compile Include="When_a_message_is_imported_twice.cs" />
     <Compile Include="Audit\When_a_message_has_been_successfully_processed.cs" />
-    <Compile Include="When_signalr_receives_a_message.cs" />
+    <Compile Include="AcceptanceTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

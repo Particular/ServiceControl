@@ -26,7 +26,6 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             var context = new MyContext();
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>()
                 .Done(c => TryGetSingle("/api/errors/", out failure, m => m.Id == c.UniqueMessageId))
                 .Run();
@@ -38,13 +37,10 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     c.DisableFeature<SecondLevelRetries>();
-                }).WithConfig<TransportConfig>(c =>
-                {
-                    c.MaxRetries = 1;
-                }).AuditTo(Address.Parse("audit"));
+                });
             }
 
             public class SendFailedMessage : IWantToRunWhenBusStartsAndStops

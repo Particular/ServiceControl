@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using System;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -18,35 +17,44 @@
         {
             var context = new MyContext();
 
-            Define(context)
-                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(b => b.When(c => c.ExternalProcessorSubscribed, bus =>
+            CustomConfiguration = config => config.OnEndpointSubscribed(s =>
+            {
+                if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
                 {
-                    bus.Publish(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded
+                    context.ExternalProcessorSubscribed = true;
+                }
+            });
+
+            ExecuteWhen(() => context.ExternalProcessorSubscribed, bus =>
+            {
+                bus.Publish(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded
+                {
+                    Category = "Testing",
+                    CustomCheckId = "Success custom check",
+                    OriginatingEndpoint = new EndpointDetails
                     {
-                        Category = "Testing",
-                        CustomCheckId = "Success custom check",
-                        OriginatingEndpoint = new EndpointDetails
-                        {
-                            Host = "MyHost",
-                            HostId = Guid.Empty,
-                            Name = "Testing"
-                        },
-                        SucceededAt = DateTime.Now,
-                    });
-                    bus.Publish(new ServiceControl.Contracts.CustomChecks.CustomCheckFailed
+                        Host = "MyHost",
+                        HostId = Guid.Empty,
+                        Name = "Testing"
+                    },
+                    SucceededAt = DateTime.Now,
+                });
+                bus.Publish(new ServiceControl.Contracts.CustomChecks.CustomCheckFailed
+                {
+                    Category = "Testing",
+                    CustomCheckId = "Fail custom check",
+                    OriginatingEndpoint = new EndpointDetails
                     {
-                        Category = "Testing",
-                        CustomCheckId = "Fail custom check",
-                        OriginatingEndpoint = new EndpointDetails
-                        {
-                            Host = "MyHost",
-                            HostId = Guid.Empty,
-                            Name = "Testing"
-                        },
-                        FailedAt = DateTime.Now,
-                        FailureReason = "Because I can",
-                    });
-                }).AppConfig(PathToAppConfig))
+                        Host = "MyHost",
+                        HostId = Guid.Empty,
+                        Name = "Testing"
+                    },
+                    FailedAt = DateTime.Now,
+                    FailureReason = "Because I can",
+                });
+            });
+
+            Define(context)
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
                     if (c.HasNativePubSubSupport)
@@ -59,20 +67,6 @@
 
             Assert.IsTrue(context.CustomCheckFailedReceived);
             Assert.IsTrue(context.CustomCheckSucceededReceived);
-        }
-
-        public class ExternalIntegrationsManagementEndpoint : EndpointConfigurationBuilder
-        {
-            public ExternalIntegrationsManagementEndpoint()
-            {
-                EndpointSetup<ExternalIntegrationsManagementEndpointSetup>(b => b.OnEndpointSubscribed<MyContext>((s, context) =>
-                {
-                    if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
-                    {
-                        context.ExternalProcessorSubscribed = true;
-                    }
-                }));
-            }
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder

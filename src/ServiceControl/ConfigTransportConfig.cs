@@ -2,16 +2,24 @@ namespace Particular.ServiceControl
 {
     using NServiceBus.Config;
     using NServiceBus.Config.ConfigurationSource;
+    using NServiceBus.Settings;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ConfigTransportConfig : IProvideConfiguration<TransportConfig>
     {
+        private Settings settings;
+
+        public ConfigTransportConfig(ReadOnlySettings settings)
+        {
+            this.settings = settings.Get<Settings>("ServiceControl.Settings");
+        }
+
         public TransportConfig GetConfiguration()
         {
             return new TransportConfig
             {
-                MaximumMessageThroughputPerSecond = Settings.MaximumMessageThroughputPerSecond,
-                MaximumConcurrencyLevel = 10,
+                MaximumMessageThroughputPerSecond = settings.MaximumMessageThroughputPerSecond,
+                MaximumConcurrencyLevel = settings.MaximumConcurrencyLevel,
                 MaxRetries = 3,
             };
         }

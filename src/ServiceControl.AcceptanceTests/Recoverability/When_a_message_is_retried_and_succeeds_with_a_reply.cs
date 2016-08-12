@@ -17,7 +17,6 @@
             var context = new RetryReplyContext();
 
             Define(context)
-                .WithEndpoint<ServiceControlEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<OriginatingEndpoint>(c => c.Given(bus => bus.Send(new OriginalMessage())))
                 .WithEndpoint<ReceivingEndpoint>()
                 .Done(c =>
@@ -55,18 +54,6 @@
             public string ReplyHandledBy { get; set; }
         }
 
-        class ServiceControlEndpoint : ManagementEndpoint
-        {
-            public class ReplyHandler : IHandleMessages<ReplyMessage>
-            {
-                public RetryReplyContext Context { get; set; }
-                public void Handle(ReplyMessage message)
-                {
-                    Context.ReplyHandledBy = "Service Control";
-                }
-            }
-        }
-
         class OriginatingEndpoint : EndpointConfigurationBuilder
         {
             public OriginatingEndpoint()
@@ -90,11 +77,7 @@
         {
             public ReceivingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
             }
 
             public class OriginalMessageHandler : IHandleMessages<OriginalMessage>

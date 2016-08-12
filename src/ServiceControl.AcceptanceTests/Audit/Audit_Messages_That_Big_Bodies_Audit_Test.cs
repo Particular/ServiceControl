@@ -15,18 +15,17 @@
         public void Should_not_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_greater_then_message_size()
         {
             //Arrange
-            AppConfigurationSettings.Add("ServiceControl/MaxBodySizeToStore", MAX_BODY_SIZE.ToString());
+            SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
 
             var context = new Context();
             byte[] body = null;
 
             //Act
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig)) // I want ServiceControl running
                 .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
-                        BigFatBody = new byte[MAX_BODY_SIZE - 1000]
+                        BigFatBody = new byte[MAX_BODY_SIZE - 10000]
                     }))
                 )
                 .Done(
@@ -34,20 +33,17 @@
                         {
                             MessagesView auditMessage;
 
-                            if (c.MessageId == null) return false;
-                            if (!TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId)) return false;
+                            if (c.MessageId == null)
+                            {
+                                return false;
+                            }
 
-                            try
+                            if (!TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
                             {
-                                body = DownloadData(auditMessage.BodyUrl);
+                                return false;
                             }
-                            catch (WebException wex)
-                            {
-                                if (((HttpWebResponse) wex.Response).StatusCode != HttpStatusCode.NotFound)
-                                {
-                                    throw;
-                                }
-                            }
+
+                            body = DownloadData(auditMessage.BodyUrl);
 
                             return true;
                         })
@@ -61,14 +57,13 @@
         public void Should_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_less_then_message_size()
         {
             //Arrange
-            AppConfigurationSettings.Add("ServiceControl/MaxBodySizeToStore", MAX_BODY_SIZE.ToString());
+            SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
 
             var context = new Context();
             byte[] body = null;
 
             //Act
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig)) // I want ServiceControl running
                 .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
@@ -81,19 +76,12 @@
                         MessagesView auditMessage;
 
                         if (c.MessageId == null) return false;
-                        if (!TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId)) return false;
+                        if (!TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
+                        {
+                            return false;
+                        }
 
-                        try
-                        {
-                            body = DownloadData(auditMessage.BodyUrl);
-                        }
-                        catch (WebException wex)
-                        {
-                            if (((HttpWebResponse)wex.Response).StatusCode != HttpStatusCode.NotFound)
-                            {
-                                throw;
-                            }
-                        }
+                        body = DownloadData(auditMessage.BodyUrl, HttpStatusCode.NoContent);
 
                         return true;
                     })
@@ -107,8 +95,7 @@
         {
             public ServerEndpoint()
             {
-                EndpointSetup<DefaultServer>()
-                    .AuditTo(Address.Parse("audit"));
+                EndpointSetup<DefaultServerWithAudit>();
             }
 
             public class BigFatMessageHandler : IHandleMessages<BigFatMessage>

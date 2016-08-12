@@ -1,7 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.CustomChecks
 {
     using System;
-    using System.Net;
+    using System.Net.Http;
     using System.Threading;
     using Contexts;
     using NServiceBus;
@@ -10,6 +10,7 @@
     using ServiceControl.Infrastructure.SignalR;
     using ServiceControl.Plugin.CustomChecks;
     using Microsoft.AspNet.SignalR.Client;
+    using Microsoft.AspNet.SignalR.Client.Transports;
 
     [TestFixture]
     public class Custom_check_transition_should_trigger_signalr_event : AcceptanceTest
@@ -19,11 +20,10 @@
         {
             var context = new MyContext
             {
-                SCPort = port
+                Handler = () => Handler
             };
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -35,7 +35,7 @@
         public class MyContext : ScenarioContext
         {
             public bool SignalrEventReceived { get; set; }
-            public int SCPort { get; set; }
+            public Func<HttpMessageHandler> Handler { get; set; }
             public string SignalrData { get; set; }
         }
 
@@ -54,42 +54,19 @@
                 public SignalrStarter(MyContext context)
                 {
                     this.context = context;
-                    connection = new Connection($"http://localhost:{context.SCPort}/api/messagestream");
+                    connection = new Connection("http://localhost/api/messagestream")
+                    {
+                        JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
+                    };
                 }
 
                 public void Start()
                 {
-                    var jsonSerializerSettings = SerializationSettingsFactoryForSignalR.CreateDefault();
-                    jsonSerializerSettings.Converters.Clear();
-                    connection.JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(jsonSerializerSettings);
                     connection.Received += ConnectionOnReceived;
 
-                    while (true)
-                    {
-                        try
-                        {
-                            connection.Start().Wait();
-                            break;
-                        }
-                        catch (AggregateException ex)
-                        {
-                            var exception = ex.GetBaseException();
-                            var webException = exception as WebException;
-
-                            if (webException == null)
-                            {
-                                continue;
-                            }
-                            var statusCode = ((HttpWebResponse)webException.Response).StatusCode;
-                            if (statusCode != HttpStatusCode.NotFound && statusCode != HttpStatusCode.ServiceUnavailable)
-                            {
-                                break;
-                            }
-
-                            Thread.Sleep(TimeSpan.FromSeconds(1));
-                        }
-                    }
+                    connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
                 }
+
 
                 private void ConnectionOnReceived(string s)
                 {
@@ -109,12 +86,13 @@
                 }
             }
         }
+
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
 
             public EndpointWithFailingCustomCheck()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>().IncludeAssembly(typeof(PeriodicCheck).Assembly);
             }
 
             public class EventuallyFailingCustomCheck : PeriodicCheck

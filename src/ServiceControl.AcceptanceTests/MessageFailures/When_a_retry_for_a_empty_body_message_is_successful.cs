@@ -25,7 +25,6 @@
             var context = new MyContext();
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>()
                 .Done(c =>
                 {
@@ -72,16 +71,11 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     c.DisableFeature<SecondLevelRetries>();
-                    c.RegisterComponents(cc=> cc.ConfigureComponent<LookForControlMessage>(DependencyLifecycle.SingleInstance));
-                })
-                    .WithConfig<TransportConfig>(c =>
-                        {
-                            c.MaxRetries = 1;
-                        })
-                    .AuditTo(Address.Parse("audit"));
+                    c.RegisterComponents(cc => cc.ConfigureComponent<LookForControlMessage>(DependencyLifecycle.SingleInstance));
+                });
             }
 
             public class SendControlMessage : IWantToRunWhenBusStartsAndStops

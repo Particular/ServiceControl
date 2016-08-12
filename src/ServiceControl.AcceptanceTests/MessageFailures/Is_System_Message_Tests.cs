@@ -23,7 +23,6 @@
 
             FailedMessageView failure = null;
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
@@ -43,7 +42,6 @@
 
             FailedMessageView failure = null;
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
@@ -64,7 +62,6 @@
 
             FailedMessageView failure = null;
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
@@ -85,7 +82,6 @@
 
             FailedMessageView failure = null;
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
@@ -105,7 +101,6 @@
 
             FailedMessageView failure = null;
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<ServerEndpoint>()
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
@@ -117,7 +112,7 @@
         {
             public ServerEndpoint()
             {
-                EndpointSetup<DefaultServer>();
+                EndpointSetup<DefaultServerWithAudit>();
             }
 
             class Foo : IWantToRunWhenBusStartsAndStops

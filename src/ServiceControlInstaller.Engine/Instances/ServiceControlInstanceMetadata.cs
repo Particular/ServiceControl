@@ -66,8 +66,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{HostName}:{Port}/api/";
                 }
-                var virt = VirtualDirectory.Replace("/", "");
-                return $"http://{HostName}:{Port}/{virt}/api/";
+                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
             }
         }
 
@@ -90,8 +89,20 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{host}:{Port}/storage/";
                 }
-                var virt = $"{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
-                return $"http://{host}:{Port}/{virt}storage/";
+                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
+            }
+        }
+
+        public string AclUrl
+        {
+            get
+            {
+                var baseUrl = $"http://{HostName}:{Port}/";
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return baseUrl;
+                }
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
             }
         }
 
@@ -158,14 +169,9 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RegisterUrlAcl()
         {
-            var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             reservation.Create();
-
-            var ravenReservation = new UrlReservation(StorageUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            ravenReservation.Create();
         }
-
-
 
         public void SetupInstance()
         {

@@ -12,7 +12,6 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
 
-    [Serializable]
     public class When_a_invalid_id_is_sent_to_retry : AcceptanceTest
     {
         [Test]
@@ -21,7 +20,6 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             var context = new MyContext();
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(cfg => cfg.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailureEndpoint>(cfg => cfg
                     .When(bus =>
                     {
@@ -55,12 +53,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    })
-                    .AuditTo(Address.Parse("audit"));
+                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
             }
 
             public class MessageThatWillFailHandler: IHandleMessages<MessageThatWillFail>
@@ -83,7 +76,6 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             }
         }
 
-        [Serializable]
         public class MyContext : ScenarioContext
         {
             public bool Done { get; set; }

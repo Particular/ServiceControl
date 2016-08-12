@@ -16,9 +16,9 @@
 
         public IDictionary<Type, Type> EndpointMappings { get; set; }
 
-        public IList<Type> TypesToExclude { get; set; }
+        public List<Type> TypesToExclude { get; set; }
 
-        public IList<Type> TypesToInclude { get; set; }
+        public List<Type> TypesToInclude { get; set; }
 
         public Func<RunDescriptor, IDictionary<Type, string>, BusConfiguration> GetConfiguration { get; set; }
 

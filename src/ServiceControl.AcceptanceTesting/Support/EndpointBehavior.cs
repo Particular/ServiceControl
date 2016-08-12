@@ -2,11 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Threading;
 
-    [Serializable]
-    public class EndpointBehavior : MarshalByRefObject
+    public class EndpointBehavior
     {
         public EndpointBehavior(Type builderType)
         {
@@ -20,10 +17,8 @@
         public List<IWhenDefinition> Whens { get; set; }
 
         public List<Action<BusConfiguration>> CustomConfig { get; set; }
-        public string AppConfig { get; set; }
     }
 
-    [Serializable]
     public class WhenDefinition<TContext> : IWhenDefinition where TContext : ScenarioContext
     {
         public WhenDefinition(Predicate<TContext> condition, Action<IBus> action)
@@ -61,8 +56,6 @@
                 busAndContextAction(bus, c);
           
             }
-
-            Debug.WriteLine("Condition {0} has fired - Thread: {1} AppDomain: {2}", Id, Thread.CurrentThread.ManagedThreadId,AppDomain.CurrentDomain.FriendlyName);
 
             return true;
         }

@@ -4,18 +4,23 @@
     using System.Collections.Generic;
     using System.Text;
     using Autofac;
+    using Autofac.Core;
+    using Autofac.Core.Lifetime;
+    using Autofac.Core.Resolving;
     using NServiceBus.Logging;
     using global::Nancy;
     using global::Nancy.Bootstrapper;
     using global::Nancy.Bootstrappers.Autofac;
     using global::Nancy.Diagnostics;
     using global::Nancy.Responses;
-    using Particular.ServiceControl;
 
     public class NServiceBusContainerBootstrapper : AutofacNancyBootstrapper
     {
-        public NServiceBusContainerBootstrapper()
+        private readonly ILifetimeScope container;
+
+        public NServiceBusContainerBootstrapper(IContainer container)
         {
+            this.container = new ILifetimeScopeWrapperNotDisposable(container);
             StaticConfiguration.EnableHeadRouting = true;
         }
 
@@ -71,7 +76,7 @@
 
         protected override ILifetimeScope GetApplicationContainer()
         {
-            return Bootstrapper.Container;
+            return container;
         }
 
         protected override void RegisterRequestContainerModules(ILifetimeScope container,
@@ -98,5 +103,68 @@
         }
 
         static ILog Logger = LogManager.GetLogger(typeof(NServiceBusContainerBootstrapper));
+    }
+
+    class ILifetimeScopeWrapperNotDisposable: ILifetimeScope
+    {
+        private readonly ILifetimeScope realScope;
+
+        public ILifetimeScopeWrapperNotDisposable(ILifetimeScope realScope)
+        {
+            this.realScope = realScope;
+        }
+
+        public object ResolveComponent(IComponentRegistration registration, IEnumerable<Parameter> parameters)
+        {
+           return realScope.ResolveComponent(registration, parameters);
+        }
+
+        public IComponentRegistry ComponentRegistry => realScope.ComponentRegistry;
+
+        public void Dispose()
+        {
+            // Not disposed on purpose, because i want NserviceBus to dispose of it.
+        }
+
+        public ILifetimeScope BeginLifetimeScope()
+        {
+           return  realScope.BeginLifetimeScope();
+        }
+
+        public ILifetimeScope BeginLifetimeScope(object tag)
+        {
+            return realScope.BeginLifetimeScope(tag);
+        }
+
+        public ILifetimeScope BeginLifetimeScope(Action<ContainerBuilder> configurationAction)
+        {
+            return realScope.BeginLifetimeScope(configurationAction);
+        }
+
+        public ILifetimeScope BeginLifetimeScope(object tag, Action<ContainerBuilder> configurationAction)
+        {
+            return realScope.BeginLifetimeScope(tag, configurationAction);
+        }
+
+        public IDisposer Disposer => realScope.Disposer;
+        public object Tag => realScope.Tag;
+
+        public event EventHandler<LifetimeScopeBeginningEventArgs> ChildLifetimeScopeBeginning
+        {
+            add { realScope.ChildLifetimeScopeBeginning += value; }
+            remove { realScope.ChildLifetimeScopeBeginning -= value; }
+        }
+
+        public event EventHandler<LifetimeScopeEndingEventArgs> CurrentScopeEnding
+        {
+            add { realScope.CurrentScopeEnding += value; }
+            remove { realScope.CurrentScopeEnding -= value; }
+        }
+
+        public event EventHandler<ResolveOperationBeginningEventArgs> ResolveOperationBeginning
+        {
+            add { realScope.ResolveOperationBeginning += value; }
+            remove { realScope.ResolveOperationBeginning -= value; }
+        }
     }
 }

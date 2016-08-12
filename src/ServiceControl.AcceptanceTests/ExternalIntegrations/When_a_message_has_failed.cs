@@ -19,8 +19,15 @@
         {
             var context = new MyContext();
 
+            CustomConfiguration = config => config.OnEndpointSubscribed(s =>
+            {
+                if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
+                {
+                    context.ExternalProcessorSubscribed = true;
+                }
+            });
+
             Define(context)
-                .WithEndpoint<ExternalIntegrationsManagementEndpoint>(builder => builder.AppConfig(PathToAppConfig))
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
@@ -41,29 +48,11 @@
             Assert.IsNotNull(deserializedEvent.ProcessingEndpoint.Name);
         }
 
-        public class ExternalIntegrationsManagementEndpoint : EndpointConfigurationBuilder
-        {
-            public ExternalIntegrationsManagementEndpoint()
-            {
-                EndpointSetup<ExternalIntegrationsManagementEndpointSetup>(b => b.OnEndpointSubscribed<MyContext>((s, context) =>
-                {
-                    if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
-                    {
-                        context.ExternalProcessorSubscribed = true;
-                    }
-                }));
-            }
-        }
-
         public class FailingReceiver : EndpointConfigurationBuilder
         {
             public FailingReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

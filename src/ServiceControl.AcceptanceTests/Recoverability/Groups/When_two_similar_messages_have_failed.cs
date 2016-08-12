@@ -27,7 +27,6 @@
             FailedMessage secondFailure = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {
                     bus.SendLocal<MyMessage>(m => m.IsFirst = true);
@@ -39,8 +38,16 @@
                     if (!c.FirstDone || !c.SecondDone)
                         return false;
 
-                    if (!(TryGetMany("/api/recoverability/groups/", out groups) && groups.Any(x => x.Count == 2)))
+                    if (!TryGetMany("/api/recoverability/groups/", out groups))
+                    {
                         return false;
+                    }
+
+                    if (groups.Any(x => x.Count != 2))
+                    {
+                        Thread.Sleep(1000);
+                        return false;
+                    }
 
                     if (!TryGet("/api/errors/" + c.FirstMessageId, out firstFailure))
                         return false;
@@ -73,12 +80,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    })
-                    .AuditTo(Address.Parse("audit"));
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

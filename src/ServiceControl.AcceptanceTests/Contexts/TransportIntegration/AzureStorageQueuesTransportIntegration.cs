@@ -1,9 +1,9 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration
 {
     using System;
-    using System.Threading.Tasks;
-    using Microsoft.WindowsAzure.Storage;
     using NServiceBus;
+    using NServiceBus.Config;
+    using NServiceBus.Config.ConfigurationSource;
 
     public class AzureStorageQueuesTransportIntegration : ITransportIntegration
     {
@@ -24,17 +24,23 @@
 
         public void TearDown()
         {
-            var storageAccount = CloudStorageAccount.Parse(ConnectionString);
-            var queueClient = storageAccount.CreateCloudQueueClient();
-            var cloudQueues = queueClient.ListQueues();
-            Parallel.ForEach(cloudQueues, queue =>
+            
+        }
+
+        public void Setup()
+        {
+            
+        }
+
+        class MyConfig : IProvideConfiguration<AzureQueueConfig>
+        {
+            public AzureQueueConfig GetConfiguration()
             {
-                // NOTE: Do not delete the queue as it gets soft-deleted and cleaned up later
-                // If another test tries to create a queue with the same name in the meantime 
-                // you get a 409 - Conflict HttpResponse
-                queue.Clear();
-                Console.WriteLine("Cleared '{0}' queue", queue.Name);
-            });
+                return new AzureQueueConfig
+                {
+                    BatchSize = 5
+                };
+            }
         }
     }
 }

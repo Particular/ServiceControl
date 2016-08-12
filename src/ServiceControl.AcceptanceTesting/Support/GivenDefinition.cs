@@ -2,7 +2,6 @@ namespace NServiceBus.AcceptanceTesting.Support
 {
     using System;
 
-    [Serializable]
     public class GivenDefinition<TContext> : IGivenDefinition where TContext : ScenarioContext
     {
         public GivenDefinition(Action<IBus> action)

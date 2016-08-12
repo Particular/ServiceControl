@@ -1,14 +1,11 @@
-﻿using System.Runtime.Remoting;
-using System.Runtime.Remoting.Lifetime;
-
-namespace NServiceBus.AcceptanceTesting.Support
+﻿namespace NServiceBus.AcceptanceTesting.Support
 {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Reflection;
+    using System.Runtime.ExceptionServices;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -31,7 +28,7 @@ namespace NServiceBus.AcceptanceTesting.Support
             int maxParallelism;
             if (int.TryParse(maxParallelismSetting, out maxParallelism))
             {
-                Console.Out.WriteLine("Parallelism limited to: {0}", maxParallelism);
+                Console.Out.WriteLine($"Parallelism limited to: {maxParallelism}");
 
                 po.MaxDegreeOfParallelism = maxParallelism;
             }
@@ -50,11 +47,11 @@ namespace NServiceBus.AcceptanceTesting.Support
                         return;
                     }
 
-                    Console.Out.WriteLine("{0} - Started @ {1}", runDescriptor.Key, DateTime.Now.ToString());
+                    Console.Out.WriteLine($"{runDescriptor.Key} - Started @ {DateTime.Now}");
 
                     var runResult = PerformTestRun(behaviorDescriptors, shoulds, runDescriptor, done, allowedExceptions);
 
-                    Console.Out.WriteLine("{0} - Finished @ {1}", runDescriptor.Key, DateTime.Now.ToString());
+                    Console.Out.WriteLine($"{runDescriptor.Key} - Finished @ {DateTime.Now}");
 
                     results.Add(new RunSummary
                     {
@@ -100,9 +97,9 @@ namespace NServiceBus.AcceptanceTesting.Support
             var runResult = summary.Result;
 
             Console.Out.WriteLine("------------------------------------------------------");
-            Console.Out.WriteLine("Test summary for: {0}", runDescriptor.Key);
+            Console.Out.WriteLine($"Test summary for: {runDescriptor.Key}");
             if (totalRuns > 1)
-                Console.Out.WriteLine(" - Permutation: {0}({1})", runDescriptor.Permutation, totalRuns);
+                Console.Out.WriteLine($" - Permutation: {runDescriptor.Permutation}({totalRuns})");
             Console.Out.WriteLine(String.Empty);
 
             PrintSettings(runDescriptor.Settings);
@@ -117,11 +114,11 @@ namespace NServiceBus.AcceptanceTesting.Support
 
             if (runResult.Failed)
             {
-                Console.Out.WriteLine("Test failed: {0}", runResult.Exception);
+                Console.Out.WriteLine($"Test failed: {runResult.Exception}");
             }
             else
             {
-                Console.Out.WriteLine("Result: Successful - Duration: {0}", runResult.TotalTime);
+                Console.Out.WriteLine($"Result: Successful - Duration: {runResult.TotalTime}");
             }
 
             //dump trace and context regardless since asserts outside the should could still fail the test
@@ -130,7 +127,7 @@ namespace NServiceBus.AcceptanceTesting.Support
 
             foreach (var prop in runResult.ScenarioContext.GetType().GetProperties())
             {
-                Console.Out.WriteLine("{0} = {1}", prop.Name, prop.GetValue(runResult.ScenarioContext, null));
+                Console.Out.WriteLine($"{prop.Name} = {prop.GetValue(runResult.ScenarioContext, null)}");
             }
 
             Console.Out.WriteLine("------------------------------------------------------");
@@ -151,30 +148,20 @@ namespace NServiceBus.AcceptanceTesting.Support
             {
                 var runners = InitializeRunners(runDescriptor, behaviorDescriptors);
 
-                try
-                {
-                    runResult.ActiveEndpoints = runners.Select(r => r.EndpointName).ToList();
+                runResult.ActiveEndpoints = runners.Select(r => r.EndpointName).ToList();
 
-                    PerformScenarios(runDescriptor, runners, () =>
-                    {
-                        if (!string.IsNullOrEmpty(runDescriptor.ScenarioContext.Exceptions))
-                        {
-                            var ex = new Exception(runDescriptor.ScenarioContext.Exceptions);
-                            if (!allowedExceptions(ex))
-                            {
-                                throw new Exception("Failures in endpoints");
-                            }
-                        }
-                        return done(runDescriptor.ScenarioContext);
-                    });
-                }
-                finally
+                PerformScenarios(runDescriptor, runners, () =>
                 {
-                    if (runDescriptor.UseSeparateAppdomains)
+                    if (!string.IsNullOrEmpty(runDescriptor.ScenarioContext.Exceptions))
                     {
-                        UnloadAppDomains(runners);
+                        var ex = new Exception(runDescriptor.ScenarioContext.Exceptions);
+                        if (!allowedExceptions(ex))
+                        {
+                            throw new Exception("Failures in endpoints");
+                        }
                     }
-                }
+                    return done(runDescriptor.ScenarioContext);
+                });
 
                 runTimer.Stop();
 
@@ -195,21 +182,6 @@ namespace NServiceBus.AcceptanceTesting.Support
             runResult.TotalTime = runTimer.Elapsed;
 
             return runResult;
-        }
-
-        static void UnloadAppDomains(IEnumerable<ActiveRunner> runners)
-        {
-            Parallel.ForEach(runners, runner =>
-            {
-                try
-                {
-                    AppDomain.Unload(runner.AppDomain);
-                }
-                catch (CannotUnloadAppDomainException ex)
-                {
-                    Console.Out.WriteLine("Failed to unload appdomain {0}, reason: {1}", runner.AppDomain.FriendlyName, ex.ToString());
-                }
-            });
         }
 
         static IDictionary<Type, string> CreateRoutingTable(IEnumerable<EndpointBehavior> behaviorDescriptors)
@@ -243,14 +215,30 @@ namespace NServiceBus.AcceptanceTesting.Support
 
             runDescriptor.ScenarioContext.EndpointsStarted = true;
 
-            var startTime = DateTime.UtcNow;
             var maxTime = runDescriptor.TestExecutionTimeout;
+            var timedOut = false;
 
-            Task.WaitAll(Task.Run(() => SpinWait.SpinUntil(done, maxTime)));
+            var tasks = endpoints.Select(endpoint => endpoint.ExecuteWhens());
+            var whenAll = Task.WhenAll(tasks);
+            var timeoutTask = Task.Delay(maxTime);
+
+            var completedTask = Task.WhenAny(whenAll, timeoutTask).GetAwaiter().GetResult();
+
+            if (completedTask.Equals(timeoutTask))
+            {
+                throw new ScenarioException($"Executing whens took longer than {maxTime.TotalSeconds} seconds.");
+            }
+
+            if (completedTask.IsFaulted && completedTask.Exception != null)
+            {
+                ExceptionDispatchInfo.Capture(completedTask.Exception).Throw();
+            }
+
+            Task.Run(() => timedOut = !SpinWait.SpinUntil(done, maxTime)).Wait();
 
             try
             {
-                if ((DateTime.UtcNow - startTime) > maxTime)
+                if (timedOut)
                 {
                     throw new ScenarioException(GenerateTestTimedOutMessage(maxTime));
                 }
@@ -319,18 +307,8 @@ namespace NServiceBus.AcceptanceTesting.Support
                     throw new Exception($"Endpoint name '{endpointName}' is larger than 77 characters and will cause issues with MSMQ queue names. Please rename your test class or endpoint!");
                 }
 
-                var runner = PrepareRunner(endpointName, behaviorDescriptor.AppConfig, runDescriptor.UseSeparateAppdomains);
+                var runner = PrepareRunner(endpointName);
                 var result = runner.Instance.Initialize(runDescriptor, behaviorDescriptor, routingTable, endpointName);
-
-                if (runDescriptor.UseSeparateAppdomains)
-                {
-                    // Extend the lease to the timeout value specified.
-                    var serverLease = (ILease)RemotingServices.GetLifetimeService(runner.Instance);
-
-                    // Add the execution time + additional time for the endpoints to be able to stop gracefully
-                    var totalLifeTime = runDescriptor.TestExecutionTimeout.Add(TimeSpan.FromMinutes(2));
-                    serverLease.Renew(totalLifeTime);
-                }
 
                 if (result.Failed)
                 {
@@ -348,29 +326,11 @@ namespace NServiceBus.AcceptanceTesting.Support
             return Conventions.EndpointNamingConvention(endpointBehavior.EndpointBuilderType);
         }
 
-        static ActiveRunner PrepareRunner(string endpointName, string appConfigPath, bool useSeparateAppdomains)
+        static ActiveRunner PrepareRunner(string endpointName)
         {
-            if (!useSeparateAppdomains)
-            {
-                return new ActiveRunner
-                {
-                    Instance = new EndpointRunner(),
-                    EndpointName = endpointName
-                };
-            }
-            var domainSetup = new AppDomainSetup
-            {
-                ApplicationBase = AppDomain.CurrentDomain.SetupInformation.ApplicationBase,
-                LoaderOptimization = LoaderOptimization.SingleDomain,
-                ConfigurationFile = appConfigPath ?? AppDomain.CurrentDomain.SetupInformation.ConfigurationFile
-            };
-
-            var appDomain = AppDomain.CreateDomain(endpointName, AppDomain.CurrentDomain.Evidence, domainSetup);
-
             return new ActiveRunner
             {
-                Instance = (EndpointRunner)appDomain.CreateInstanceAndUnwrap(Assembly.GetExecutingAssembly().FullName, typeof(EndpointRunner).FullName),
-                AppDomain = appDomain,
+                Instance = new EndpointRunner(),
                 EndpointName = endpointName
             };
         }

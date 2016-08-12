@@ -5,54 +5,42 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using NLog;
     using NLog.Common;
 
-    public static class LoggingSettings
+    public class LoggingSettings
     {
-        public static string ServiceName;
-
-        public static LogLevel LoggingLevel
+        public LoggingSettings(string serviceName)
         {
-            get
-            {
-                var level = LogLevel.Warn;
-                try
-                {
-                    level = LogLevel.FromString(SettingsReader<string>.Read("LogLevel", LogLevel.Warn.Name));
-                }
-                catch
-                {
-                    InternalLogger.Warn("Failed to parse LogLevel setting. Defaulting to Warn");
-                }
-                return level;
-            }
+            LoggingLevel = InitializeLevel("LogLevel");
+            RavenDBLogLevel = InitializeLevel("RavenDBLogLevel");
+            LogPath = Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", DefaultLogPathForInstance(serviceName)));
         }
 
-        public static LogLevel RavenDBLogLevel
+        LogLevel InitializeLevel(string key)
         {
-            get
+            var level = LogLevel.Warn;
+            try
             {
-                var level = LogLevel.Warn;
-                try
-                {
-                    level = LogLevel.FromString(SettingsReader<string>.Read("RavenDBLogLevel", LogLevel.Warn.Name));
-                }
-                catch
-                {
-                    InternalLogger.Warn("Failed to parse RavenDBLogLevel setting. Defaulting to Warn");
-                }
-                return level;
+                level = LogLevel.FromString(SettingsReader<string>.Read(key, LogLevel.Warn.Name));
             }
+            catch
+            {
+                InternalLogger.Warn($"Failed to parse {key} setting. Defaulting to Warn.");
+            }
+            return level;
         }
 
+        public LogLevel LoggingLevel { get; }
 
-        public static string LogPath => Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", DefaultLogPathForInstance()));
+        public LogLevel RavenDBLogLevel { get; }
 
-        private static string DefaultLogPathForInstance()
+        public string LogPath { get; }
+
+        private static string DefaultLogPathForInstance(string serviceName)
         {
-            if (ServiceName.Equals("Particular.ServiceControl", StringComparison.OrdinalIgnoreCase))
+            if (serviceName.Equals(Settings.DEFAULT_SERVICE_NAME, StringComparison.OrdinalIgnoreCase))
             {
                 return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Particular\\ServiceControl\\logs");
             }
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"Particular\\{Settings.ServiceName}\\logs");
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"Particular\\{serviceName}\\logs");
         }
     }
 }

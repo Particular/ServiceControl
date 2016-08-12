@@ -7,10 +7,29 @@
     using NServiceBus;
     using NServiceBus.Logging;
 
-    public static class Settings
+    public class Settings
     {
-        static Settings()
+        public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
+
+        private const int ExpirationProcessTimerInSecondsDefault = 600;
+        private const int ExpirationProcessBatchSizeDefault = 65512;
+        private const int ExpirationProcessBatchSizeMinimum = 10240;
+        private const int MaxBodySizeToStoreDefault = 102400; //100 kb
+
+        private ILog logger = LogManager.GetLogger(typeof(Settings));
+        private int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
+        private int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
+        private int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
+
+        public Settings(string serviceName = null)
         {
+            ServiceName = serviceName;
+
+            if (string.IsNullOrEmpty(serviceName))
+            {
+                ServiceName = DEFAULT_SERVICE_NAME;
+            }
+
             AuditQueue = GetAuditQueue();
             ErrorQueue = GetErrorQueue();
             ErrorLogQueue = GetErrorLogQueue();
@@ -19,82 +38,175 @@
             TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
             ForwardAuditMessages = GetForwardAuditMessages();
             ForwardErrorMessages = GetForwardErrorMessages();
-            auditRetentionPeriod = GetAuditRetentionPeriod();
-            errorRetentionPeriod = GetErrorRetentionPeriod();
+            AuditRetentionPeriod = GetAuditRetentionPeriod();
+            ErrorRetentionPeriod = GetErrorRetentionPeriod();
             MaintenanceMode = SettingsReader<bool>.Read("MaintenanceMode");
+            Port = SettingsReader<int>.Read("Port", 33333);
+            ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
+            MaximumConcurrencyLevel = 10;
+            HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
         }
 
-        public static bool MaintenanceMode;
+        public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
-        public static string RootUrl
+        public int MaximumMessageThroughputPerSecond => SettingsReader<int>.Read("MaximumMessageThroughputPerSecond", 350);
+
+        public bool MaintenanceMode { get; set; }
+
+        public string RootUrl
         {
             get
             {
-                var suffix = String.Empty;
+                var suffix = string.Empty;
 
                 if (!string.IsNullOrEmpty(VirtualDirectory))
                 {
-                    suffix = VirtualDirectory + "/";
+                    suffix = $"{VirtualDirectory}/";
                 }
 
                 return $"http://{Hostname}:{Port}/{suffix}";
             }
         }
 
-        public static string ApiUrl => RootUrl + "api";
+        public string ApiUrl => $"{RootUrl}api";
 
-        public static string StorageUrl => RootUrl + "storage";
+        public string StorageUrl => $"{RootUrl}storage";
 
-        static Address GetAuditLogQueue()
+        public int Port { get; set; }
+
+        public bool SetupOnly { get; set; }
+
+        public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
+        public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
+        public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
+
+        public TimeSpan HeartbeatGracePeriod
+        {
+            get
+            {
+                try
+                {
+                    return TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
+                }
+                catch (Exception ex)
+                {
+                    logger.Error($"HeartbeatGracePeriod settings invalid - {ex}. Defaulting HeartbeatGracePeriod to '00:00:40'");
+                    return TimeSpan.FromSeconds(40);
+                }
+            }
+        }
+
+        public string TransportType { get; set; }
+
+        public string DbPath { get; set; }
+        public Address ErrorLogQueue { get; set; }
+        public Address ErrorQueue { get; }
+        public Address AuditQueue { get; }
+
+        public bool ForwardAuditMessages { get; set; }
+        public bool ForwardErrorMessages { get; set; }
+
+        public Address AuditLogQueue { get; set; }
+
+        public int ExpirationProcessTimerInSeconds
+        {
+            get
+            {
+                if ((expirationProcessTimerInSeconds < 0) || (expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds))
+                {
+                    logger.Error($"ExpirationProcessTimerInSeconds settings is invalid, the valid range is 0 to {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                    return ExpirationProcessTimerInSecondsDefault;
+                }
+                return expirationProcessTimerInSeconds;
+            }
+        }
+
+        public TimeSpan AuditRetentionPeriod { get; }
+
+        public TimeSpan ErrorRetentionPeriod { get; }
+
+        public int ExpirationProcessBatchSize
+        {
+            get
+            {
+                if (expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
+                {
+                    logger.Error($"ExpirationProcessBatchSize settings is invalid, {ExpirationProcessBatchSizeMinimum} is the minimum value. Defaulting to {ExpirationProcessBatchSizeDefault}");
+                    return ExpirationProcessBatchSizeDefault;
+                }
+                return expirationProcessBatchSize;
+            }
+        }
+
+        public int MaxBodySizeToStore
+        {
+            get
+            {
+                if (maxBodySizeToStore <= 0)
+                {
+                    logger.Error($"MaxBodySizeToStore settings is invalid, {1} is the minimum value. Defaulting to {MaxBodySizeToStoreDefault}");
+                    return MaxBodySizeToStoreDefault;
+                }
+                return maxBodySizeToStore;
+            }
+            set { maxBodySizeToStore = value; }
+        }
+
+        public string ServiceName { get; }
+
+        public int HttpDefaultConnectionLimit { get; set; }
+        public string TransportConnectionString { get; set; }
+        public TimeSpan ProcessRetryBatchesFrequency { get; set; }
+        public int MaximumConcurrencyLevel { get; set; }
+
+        private Address GetAuditLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
             if (value == null)
             {
-                Logger.Info("No settings found for audit log queue to import, default name will be used");
+                logger.Info("No settings found for audit log queue to import, default name will be used");
                 return AuditQueue.SubScope("log");
             }
             return Address.Parse(value);
         }
 
-        static Address GetAuditQueue()
+        private Address GetAuditQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
 
             if (value == null)
             {
-                Logger.Warn(
-                    "No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
+                logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
                 return Address.Undefined;
             }
             return Address.Parse(value);
         }
 
-        static Address GetErrorQueue()
+        private Address GetErrorQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
 
             if (value == null)
             {
-                Logger.Warn(
-                    "No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
+                logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
                 return Address.Undefined;
             }
             return Address.Parse(value);
         }
 
-        static Address GetErrorLogQueue()
+        private Address GetErrorLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
 
             if (value == null)
             {
-                Logger.Info("No settings found for error log queue to import, default name will be used");
+                logger.Info("No settings found for error log queue to import, default name will be used");
                 return ErrorQueue.SubScope("log");
             }
             return Address.Parse(value);
         }
 
-        static string GetDbPath()
+        private string GetDbPath()
         {
             var host = Hostname;
             if (host == "*")
@@ -113,7 +225,7 @@
             return SettingsReader<string>.Read("DbPath", defaultPath);
         }
 
-        static bool GetForwardErrorMessages()
+        private static bool GetForwardErrorMessages()
         {
             var forwardErrorMessages = NullableSettingsReader<bool>.Read("ForwardErrorMessages");
             if (forwardErrorMessages.HasValue)
@@ -123,7 +235,7 @@
             throw new Exception("ForwardErrorMessages settings is missing, please make sure it is included.");
         }
 
-        static bool GetForwardAuditMessages()
+        private static bool GetForwardAuditMessages()
         {
             var forwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
             if (forwardAuditMessages.HasValue)
@@ -133,68 +245,12 @@
             throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
         }
 
-        static string SanitiseFolderName(string folderName)
+        private static string SanitiseFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
         }
 
-        public static int Port = SettingsReader<int>.Read("Port", 33333);
-      
-        public static bool ExposeRavenDB = SettingsReader<bool>.Read("ExposeRavenDB");
-        public static string Hostname = SettingsReader<string>.Read("Hostname", "localhost");
-        public static string VirtualDirectory = SettingsReader<string>.Read("VirtualDirectory", String.Empty);
-
-        public static TimeSpan HeartbeatGracePeriod
-        {
-            get
-            {
-                try
-                {
-                    return TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
-                }
-                catch(Exception ex)
-                {
-                    Logger.ErrorFormat("HeartbeatGracePeriod settings invalid - {0}. Defaulting HeartbeatGracePeriod to '00:00:40'", ex);
-                    return TimeSpan.FromSeconds(40);
-                }
-            }
-        }
-        
-        public static string TransportType { get; set; }
-
-        public static int ExternalIntegrationsDispatchingBatchSize = SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
-
-        public static int MaximumMessageThroughputPerSecond = SettingsReader<int>.Read("MaximumMessageThroughputPerSecond", 350);
-
-        public static string DbPath;
-        public static Address ErrorLogQueue;
-        public static Address ErrorQueue;
-        public static Address AuditQueue;
-
-        public static bool ForwardAuditMessages { get; set; }
-        public static bool ForwardErrorMessages { get; set; }
-        
-        public static Address AuditLogQueue;
-
-        const int ExpirationProcessTimerInSecondsDefault = 600;
-        static int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
-        public static int ExpirationProcessTimerInSeconds
-        {
-            get
-            {
-                if ((expirationProcessTimerInSeconds < 0) || (expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds))
-                {
-                    Logger.ErrorFormat("ExpirationProcessTimerInSeconds settings is invalid, the valid range is 0 to {0}. Defaulting to {1}", TimeSpan.FromHours(3).TotalSeconds, ExpirationProcessTimerInSecondsDefault);
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-                return expirationProcessTimerInSeconds;
-            }
-        }
-
-        static TimeSpan auditRetentionPeriod;
-        static TimeSpan errorRetentionPeriod;
-
-        private static TimeSpan GetErrorRetentionPeriod()
+        private TimeSpan GetErrorRetentionPeriod()
         {
             TimeSpan result;
             string message;
@@ -202,36 +258,36 @@
             if (valueRead == null)
             {
                 message = "ErrorRetentionPeriod settings is missing, please make sure it is included.";
-                Logger.Fatal(message);
+                logger.Fatal(message);
                 throw new Exception(message);
             }
 
             if (TimeSpan.TryParse(valueRead, out result))
-            { 
+            {
                 if (result < TimeSpan.FromDays(10))
                 {
                     message = "ErrorRetentionPeriod settings is invalid, value should be minimum 10 days.";
-                    Logger.Fatal(message);
+                    logger.Fatal(message);
                     throw new Exception(message);
                 }
 
                 if (result > TimeSpan.FromDays(45))
                 {
                     message = "ErrorRetentionPeriod settings is invalid, value should be maximum 45 days.";
-                    Logger.Fatal(message);
+                    logger.Fatal(message);
                     throw new Exception(message);
                 }
-            } 
+            }
             else
-            { 
+            {
                 message = "ErrorRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
-                Logger.Fatal(message);
+                logger.Fatal(message);
                 throw new Exception(message);
             }
             return result;
         }
 
-        private static TimeSpan GetAuditRetentionPeriod()
+        private TimeSpan GetAuditRetentionPeriod()
         {
             TimeSpan result;
             string message;
@@ -239,12 +295,12 @@
             if (valueRead == null)
             {
                 message = "AuditRetentionPeriod settings is missing, please make sure it is included.";
-                Logger.Fatal(message);
+                logger.Fatal(message);
                 throw new Exception(message);
             }
 
             if (TimeSpan.TryParse(valueRead, out result))
-            { 
+            {
                 if (result < TimeSpan.FromHours(1))
                 {
                     message = "AuditRetentionPeriod settings is invalid, value should be minimum 1 hour.";
@@ -267,50 +323,5 @@
             }
             return result;
         }
-
-        public static TimeSpan AuditRetentionPeriod => auditRetentionPeriod;
-
-        public static TimeSpan ErrorRetentionPeriod => errorRetentionPeriod;
-
-        const int ExpirationProcessBatchSizeDefault = 65512;
-        const int ExpirationProcessBatchSizeMinimum = 10240;
-        static int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
-
-        public static int ExpirationProcessBatchSize
-        {
-            get
-            {
-                if (expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
-                {
-                    Logger.ErrorFormat("ExpirationProcessBatchSize settings is invalid, {0} is the minimum value. Defaulting to {1}", ExpirationProcessBatchSizeMinimum, ExpirationProcessBatchSizeDefault);
-                    return ExpirationProcessBatchSizeDefault;
-                }
-                return expirationProcessBatchSize;
-            }
-        }
-
-        const int MaxBodySizeToStoreDefault = 102400; //100 kb
-
-        static int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
-
-        public static int MaxBodySizeToStore
-        {
-            get
-            {
-                if (maxBodySizeToStore <= 0)
-                {
-                    Logger.ErrorFormat("MaxBodySizeToStore settings is invalid, {0} is the minimum value. Defaulting to {1}", 1, MaxBodySizeToStoreDefault);
-                    return MaxBodySizeToStoreDefault;
-                }
-                return maxBodySizeToStore;
-            }
-            set { maxBodySizeToStore = value; }
-        }
-
-        public static ILog Logger = LogManager.GetLogger(typeof(Settings));
-
-        public static string ServiceName;
-
-        public static int HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
     }
 }

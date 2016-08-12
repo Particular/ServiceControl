@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Runtime.Remoting.Lifetime;
     using System.Threading;
     using System.Threading.Tasks;
     using Logging;
@@ -11,11 +10,9 @@
     using NServiceBus.Unicast;
     using Transports;
 
-    [Serializable]
-    public class EndpointRunner : MarshalByRefObject
+    public class EndpointRunner
     {
         static ILog Logger = LogManager.GetLogger<EndpointRunner>();
-        readonly SemaphoreSlim contextChanged = new SemaphoreSlim(0);
         EndpointBehavior behavior;
         IStartableBus bus;
         ISendOnlyBus sendOnlyBus;
@@ -25,14 +22,12 @@
         BusConfiguration busConfiguration;
         CancellationToken stopToken;
         readonly CancellationTokenSource stopSource = new CancellationTokenSource();
-        RunDescriptor runDescriptor;
 
         public Result Initialize(RunDescriptor run, EndpointBehavior endpointBehavior,
             IDictionary<Type, string> routingTable, string endpointName)
         {
             try
             {
-                runDescriptor = run;
                 behavior = endpointBehavior;
                 scenarioContext = run.ScenarioContext;
                 configuration =
@@ -48,8 +43,6 @@
                 //apply custom config settings
                 busConfiguration = configuration.GetConfiguration(run, routingTable);
 
-                scenarioContext.ContextPropertyChanged += scenarioContext_ContextPropertyChanged;
-
                 endpointBehavior.CustomConfig.ForEach(customAction => customAction(busConfiguration));
 
                 if (configuration.SendOnly)
@@ -64,66 +57,63 @@
                     scenarioContext.HasNativePubSubSupport = transportDefinition.HasNativePubSubSupport;
                 }
 
-                stopToken = stopSource.Token;
-
-                if (behavior.Whens.Count == 0)
-                {
-                    executeWhens = Task.FromResult(0);
-                }
-                else
-                {
-                    executeWhens = Task.Factory.StartNew(async () =>
-                    {
-                        var executedWhens = new List<Guid>();
-
-                        while (!stopToken.IsCancellationRequested)
-                        {
-                            if (executedWhens.Count == behavior.Whens.Count)
-                            {
-                                break;
-                            }
-
-                            //we spin around each 5s since the callback mechanism seems to be shaky
-                            try
-                            {
-                                await contextChanged.WaitAsync(TimeSpan.FromSeconds(5), stopToken);
-                            }
-                            catch (OperationCanceledException)
-                            {
-                            }
-
-                            foreach (var when in behavior.Whens)
-                            {
-                                if (stopToken.IsCancellationRequested)
-                                {
-                                    return;
-                                }
-
-                                if (executedWhens.Contains(when.Id))
-                                {
-                                    continue;
-                                }
-
-                                if (when.ExecuteAction(scenarioContext, bus))
-                                {
-                                    executedWhens.Add(when.Id);
-                                }
-                            }
-                        }
-                    }).Unwrap();
-                }
                 return Result.Success();
             }
             catch (Exception ex)
             {
-                Logger.Error("Failed to initialize endpoint " + endpointName, ex);
+                Logger.Error($"Failed to initialize endpoint {endpointName}", ex);
                 return Result.Failure(ex);
             }
         }
 
-        private void scenarioContext_ContextPropertyChanged(object sender, EventArgs e)
+        public Task ExecuteWhens()
         {
-            contextChanged.Release();
+            stopToken = stopSource.Token;
+
+            if (behavior.Whens.Count == 0)
+            {
+                executeWhens = Task.FromResult(0);
+            }
+            else
+            {
+                executeWhens = Task.Run(() =>
+                {
+                    var executedWhens = new List<Guid>();
+
+                    while (!stopToken.IsCancellationRequested)
+                    {
+                        if (executedWhens.Count == behavior.Whens.Count)
+                        {
+                            break;
+                        }
+
+                        if (stopToken.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
+                        foreach (var when in behavior.Whens)
+                        {
+                            if (stopToken.IsCancellationRequested)
+                            {
+                                return;
+                            }
+
+                            if (executedWhens.Contains(when.Id))
+                            {
+                                continue;
+                            }
+
+                            if (when.ExecuteAction(scenarioContext, bus))
+                            {
+                                executedWhens.Add(when.Id);
+                            }
+                        }
+                    }
+                });
+            }
+
+            return executeWhens;
         }
 
         public Result Start()
@@ -154,7 +144,7 @@
             }
             catch (Exception ex)
             {
-                Logger.Error("Failed to start endpoint " + configuration.EndpointName, ex);
+                Logger.Error($"Failed to start endpoint {configuration.EndpointName}", ex);
 
                 return Result.Failure(ex);
             }
@@ -166,10 +156,7 @@
             {
                 stopSource.Cancel();
 
-                scenarioContext.ContextPropertyChanged -= scenarioContext_ContextPropertyChanged;
-
                 executeWhens.Wait();
-                contextChanged.Dispose();
 
                 if (configuration.SendOnly)
                 {
@@ -193,7 +180,7 @@
             }
             catch (Exception ex)
             {
-                Logger.Error("Failed to stop endpoint " + configuration.EndpointName, ex);
+                Logger.Error($"Failed to stop endpoint {configuration.EndpointName}", ex);
 
                 return Result.Failure(ex);
             }
@@ -211,27 +198,9 @@
 
         public string Name()
         {
-            if (runDescriptor.UseSeparateAppdomains)
-            {
-                return AppDomain.CurrentDomain.FriendlyName;
-            }
-
             return configuration.EndpointName;
         }
 
-        public override object InitializeLifetimeService()
-        {
-            var lease = (ILease)base.InitializeLifetimeService();
-            if (lease.CurrentState == LeaseState.Initial)
-            {
-                lease.InitialLeaseTime = TimeSpan.FromMinutes(2);
-                lease.SponsorshipTimeout = TimeSpan.FromMinutes(2);
-                lease.RenewOnCallTime = TimeSpan.FromSeconds(2);
-            }
-            return lease;
-        }
-
-        [Serializable]
         public class Result
         {
             public Exception Exception { get; set; }

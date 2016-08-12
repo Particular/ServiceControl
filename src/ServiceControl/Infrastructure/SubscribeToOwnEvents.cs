@@ -3,6 +3,7 @@ namespace ServiceControl.Infrastructure
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Settings;
     using NServiceBus.Transports;
@@ -28,10 +29,7 @@ namespace ServiceControl.Infrastructure
 
         void SubscribeForBrokers(Address address, IEnumerable<Type> eventTypes)
         {
-            foreach (var eventType in eventTypes)
-            {
-                SubscriptionManager.Subscribe(eventType, address);
-            }
+            Parallel.ForEach(eventTypes, eventType => SubscriptionManager.Subscribe(eventType, address));
         }
 
         void SubscribeForNonBrokers(Address address, IEnumerable<Type> eventTypes)

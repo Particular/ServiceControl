@@ -2,8 +2,7 @@
 {
     using System;
     using System.Linq;
-    using System.Net;
-    using System.Threading;
+    using System.Net.Http;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -20,6 +19,7 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using Microsoft.AspNet.SignalR.Client;
+    using Microsoft.AspNet.SignalR.Client.Transports;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
@@ -31,7 +31,6 @@
             FailedMessage failedMessage = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c => c.MessageId != null && TryGet("/api/errors/" + c.UniqueMessageId, out failedMessage))
                 .Run();
@@ -55,7 +54,6 @@
             FailedMessageView failure = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
                 .Run();
@@ -74,7 +72,6 @@
             var failure = new MessagesView();
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c => TryGetSingle("/api/messages", out failure,m=>m.MessageId == c.MessageId))
                 .Run(TimeSpan.FromMinutes(2));
@@ -94,7 +91,6 @@
             EventLogItem entry = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name))
                 .Run();
@@ -110,11 +106,10 @@
         {
             var context = new MyContext
             {
-                SCPort = port
+                Handler = () => Handler
             };
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -141,42 +136,17 @@
                 {
                     this.context = context;
                     this.bus = bus;
-                    connection = new Connection($"http://localhost:{context.SCPort}/api/messagestream");
+                    connection = new Connection("http://localhost/api/messagestream")
+                    {
+                        JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
+                    };
                 }
 
                 public void Start()
                 {
-                    connection.JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
                     connection.Received += ConnectionOnReceived;
-
-                    while (true)
-                    {
-                        try
-                        {
-                            connection.Start().Wait();
-                            break;
-                        }
-                        catch (AggregateException ex)
-                        {
-                            var exception = ex.GetBaseException();
-                            Console.WriteLine(exception.Message);
-                            Console.WriteLine(exception.StackTrace);
-                            var webException = exception as WebException;
-
-                            if (webException == null)
-                            {
-                                continue;
-                            }
-                            var statusCode = ((HttpWebResponse) webException.Response).StatusCode;
-                            if (statusCode != HttpStatusCode.NotFound && statusCode != HttpStatusCode.ServiceUnavailable)
-                            {
-                                break;
-                            }
-
-                            Thread.Sleep(TimeSpan.FromSeconds(1));
-                        }
-                    }
-
+                    connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
+                    
                     bus.Send(new MyMessage());
                 }
 
@@ -200,11 +170,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -236,7 +202,7 @@
 
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
 
-            public int SCPort { get; set; }
+            public Func<HttpMessageHandler> Handler { get; set; }
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
         }

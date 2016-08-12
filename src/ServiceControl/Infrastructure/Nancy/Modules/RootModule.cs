@@ -7,6 +7,9 @@
 
     public class RootModule : BaseModule
     {
+        public LoggingSettings LoggingSettings { get; set; }
+        public Settings Settings { get; set; }
+
         public RootModule()
         {
             Get["/"] = parameters =>

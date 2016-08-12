@@ -2,6 +2,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -50,7 +51,6 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
             List<FailedMessageView> localErrors = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>()
                 .Done(c =>
                 {
@@ -63,6 +63,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
                     if (groups.Count != 1)
                     {
+                        Thread.Sleep(1000);
                         return false;
                     }
 
@@ -73,6 +74,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
                     if (localErrors.Count != 3)
                     {
+                        Thread.Sleep(1000);
                         return false;
                     }
 
@@ -87,13 +89,12 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServer>(c => c.DisableFeature<SecondLevelRetries>())
+                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>())
                     .WithConfig<TransportConfig>(c =>
                     {
                         c.MaxRetries = 1;
                         c.MaximumConcurrencyLevel = 1; // this should mean they get processed one at a time
-                    })
-                    .AuditTo(Address.Parse("audit"));
+                    });
             }
 
             public class SendFailedMessage : IWantToRunWhenBusStartsAndStops
@@ -146,7 +147,6 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
             }
         }
 
-        [Serializable]
         public class MyContext : ScenarioContext
         {
             

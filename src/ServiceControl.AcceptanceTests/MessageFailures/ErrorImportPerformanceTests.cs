@@ -21,7 +21,6 @@
 
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {
                     Parallel.For(0, 100, i =>
@@ -41,7 +40,7 @@
                     {
                         Console.Out.WriteLine("Messages found: " + messages.Count);
                   
-                        Thread.Sleep(2000);
+                        Thread.Sleep(1000);
                     }
 
                     return messages.Count >= 100;
@@ -53,12 +52,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    })
-                    .AuditTo(Address.Parse("audit"));
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

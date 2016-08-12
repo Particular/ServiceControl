@@ -12,17 +12,17 @@
     {
         static ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleaner));
 
-        public static void RunCleanup(int deletionBatchSize, DocumentDatabase database)
+        public static void RunCleanup(int deletionBatchSize, DocumentDatabase database, Settings settings)
         {
             try
             {
-                var threshold = SystemTime.UtcNow.Add(-Settings.AuditRetentionPeriod);
+                var threshold = SystemTime.UtcNow.Add(-settings.AuditRetentionPeriod);
 
                 logger.Debug("Trying to find expired ProcessedMessage and SagaHistory documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
                 AuditMessageCleaner.Clean(deletionBatchSize, database, threshold);
                 SagaHistoryCleaner.Clean(deletionBatchSize, database, threshold);
 
-                threshold = SystemTime.UtcNow.Add(-Settings.ErrorRetentionPeriod);
+                threshold = SystemTime.UtcNow.Add(-settings.ErrorRetentionPeriod);
 
                 logger.Debug("Trying to find expired FailedMessage documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
                 ErrorMessageCleaner.Clean(deletionBatchSize, database, threshold);

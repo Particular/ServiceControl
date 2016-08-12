@@ -27,6 +27,14 @@
                 return configurationSection as T;
             }
 
+            if (type == typeof(TransportConfig))
+            {
+                return new TransportConfig
+                {
+                    MaxRetries = 1,
+                    MaximumConcurrencyLevel = 2
+                } as T;
+            }
 
             if (type == typeof(MessageForwardingInCaseOfFaultConfig))
             {

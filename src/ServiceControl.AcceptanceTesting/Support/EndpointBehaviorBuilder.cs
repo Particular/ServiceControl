@@ -12,10 +12,8 @@
                 {
                     Givens = new List<IGivenDefinition>(),
                     Whens = new List<IWhenDefinition>(),
-                    AppConfig = Customization.Conventions.DefaultConfigForEndpoints
                 };
         }
-
 
         public EndpointBehaviorBuilder<TContext> Given(Action<IBus> action)
         {
@@ -54,13 +52,6 @@
         public EndpointBehaviorBuilder<TContext> CustomConfig(Action<BusConfiguration> action)
         {
             behavior.CustomConfig.Add(action);
-
-            return this;
-        }
-
-        public EndpointBehaviorBuilder<TContext> AppConfig(string appConfig)
-        {
-            behavior.AppConfig = appConfig;
 
             return this;
         }

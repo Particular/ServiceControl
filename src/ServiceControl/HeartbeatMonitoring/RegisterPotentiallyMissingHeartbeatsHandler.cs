@@ -18,19 +18,19 @@ namespace ServiceControl.HeartbeatMonitoring
 
             if (heartbeat == null)
             {
-                Logger.DebugFormat("Heartbeat not saved in database yet, will retry again.");
+                Logger.Debug("Heartbeat not saved in database yet, will retry again.");
                 return;
             }
 
             if (message.LastHeartbeatAt < heartbeat.LastReportAt)
             {
-                Logger.WarnFormat("Heartbeat received after detection, ignoring");
+                Logger.Debug("Heartbeat received after detection, ignoring");
                 return;
             }
 
             if (heartbeat.ReportedStatus == Status.Dead)
             {
-                Logger.WarnFormat("Endpoint already reported as inactive");
+                Logger.Debug("Endpoint already reported as inactive");
                 return;
             }
 

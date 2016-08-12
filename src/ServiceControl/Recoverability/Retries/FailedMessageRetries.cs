@@ -6,6 +6,7 @@
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
 
     public class FailedMessageRetries : Feature
@@ -108,16 +109,19 @@
         {
             static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatches));
             private Timer timer;
-            public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor, TimeKeeper timeKeeper)
+            private readonly Settings settings;
+
+            public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor, TimeKeeper timeKeeper, Settings settings)
             {
                 this.processor = processor;
                 this.timeKeeper = timeKeeper;
                 this.store = store;
+                this.settings = settings;
             }
 
             protected override void OnStart()
             {
-                timer = timeKeeper.New(Process, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+                timer = timeKeeper.New(Process, TimeSpan.Zero, settings.ProcessRetryBatchesFrequency);
             }
 
             protected override void OnStop()

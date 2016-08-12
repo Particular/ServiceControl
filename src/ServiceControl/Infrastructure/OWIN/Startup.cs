@@ -2,44 +2,65 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ServiceProcess;
     using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
-    using Microsoft.Owin;
     using Nancy;
     using Owin;
-    using Particular.ServiceControl;
     using ServiceControl.Infrastructure.SignalR;
     using Autofac;
     using Microsoft.Owin.Cors;
-    using Newtonsoft.Json;
+    using NServiceBus;
+    using Raven.Client.Embedded;
+    using ServiceBus.Management.Infrastructure.Extensions;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.OWIN;
+    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     public class Startup
     {
-        public void Configuration(IAppBuilder app)
+        private readonly IContainer container;
+        private readonly ServiceBase host;
+        private readonly Settings settings;
+        private readonly EmbeddableDocumentStore documentStore;
+        private readonly BusConfiguration configuration;
+        private readonly ExposeBus exposeBus;
+
+        public Startup(IContainer container, ServiceBase host, Settings settings, EmbeddableDocumentStore documentStore, BusConfiguration configuration, ExposeBus exposeBus)
         {
-            app.UseErrorPage();
-
-            app.Use((context, func) =>
-            {
-                if (!context.Request.PathBase.HasValue)
-                {
-                    context.Request.Path = new PathString("/");
-                    context.Request.PathBase = new PathString("/api");
-                }
-
-                return func();
-            });
-
-            app.Use<LogApiCalls>();
-
-            ConfigureSignalR(app);
-            app.UseNancy(new NancyOptions { Bootstrapper = new NServiceBusContainerBootstrapper() });
+            this.container = container;
+            this.host = host;
+            this.settings = settings;
+            this.documentStore = documentStore;
+            this.configuration = configuration;
+            this.exposeBus = exposeBus;
         }
 
-        private static void ConfigureSignalR(IAppBuilder app)
+        public void Configuration(IAppBuilder app)
         {
-            var resolver = new AutofacDependencyResolver();
+            app.UseNServiceBus(settings, container, host, documentStore, configuration, exposeBus);
+
+            if (settings.SetupOnly)
+            {
+                return;
+            }
+
+            app.Map("/api", b =>
+            {
+                b.Use<LogApiCalls>();
+
+                ConfigureSignalR(b);
+
+                b.UseNancy(new NancyOptions
+                {
+                    Bootstrapper = new NServiceBusContainerBootstrapper(container)
+                });
+            });
+        }
+
+        private void ConfigureSignalR(IAppBuilder app)
+        {
+            var resolver = new AutofacDependencyResolver(container);
 
             app.Map("/messagestream", map =>
             {
@@ -63,10 +84,19 @@
 
     class AutofacDependencyResolver : DefaultDependencyResolver
     {
+        static Type IEnumerableType = typeof(IEnumerable<>);
+
+        private readonly IContainer container;
+
+        public AutofacDependencyResolver(IContainer container)
+        {
+            this.container = container;
+        }
+
         public override object GetService(Type serviceType)
         {
             object service;
-            if (Bootstrapper.Container.TryResolve(serviceType, out service))
+            if (container.TryResolve(serviceType, out service))
             {
                 return service;
             }
@@ -76,7 +106,8 @@
         public override IEnumerable<object> GetServices(Type serviceType)
         {
             object services;
-            if (Bootstrapper.Container.TryResolve(typeof(IEnumerable<>).MakeGenericType(serviceType), out services))
+            
+            if (container.TryResolve(IEnumerableType.MakeGenericType(serviceType), out services))
             {
                 return (IEnumerable<object>) services;
             }

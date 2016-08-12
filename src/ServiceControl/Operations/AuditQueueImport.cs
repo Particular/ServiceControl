@@ -26,6 +26,8 @@
         public PipelineExecutor PipelineExecutor { get; set; }
         public LogicalMessageFactory LogicalMessageFactory { get; set; }
         public CriticalError CriticalError { get; set; }
+        public LoggingSettings LoggingSettings { get; set; }
+        public Settings Settings { get; set; }
 
         public bool Handle(TransportMessage message)
         {

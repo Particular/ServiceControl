@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Reflection;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -20,7 +21,6 @@
             EventLogItem entry = null;
 
             Define(context)
-                .WithEndpoint<ManagementEndpoint>(c => c.AppConfig(PathToAppConfig))
                 .WithEndpoint<StartingEndpoint>()
                 .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.RelatedTo.Any(r => r.Contains(typeof(StartingEndpoint).Name)) && e.EventType == typeof(EndpointStarted).Name))
                 .Run();
@@ -43,7 +43,7 @@
                     var hostIdentifier = Guid.NewGuid();
                     c.GetSettings().Set("ServiceControl.CustomHostIdentifier", hostIdentifier);
                     c.UniquelyIdentifyRunningInstance().UsingCustomIdentifier(hostIdentifier);
-                });
+                }).IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.Heartbeat.dll"));
             }
 
             class RetrieveHostIdentifier : IWantToRunWhenBusStartsAndStops
