@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NServiceBus.Transports;

@@ -7,7 +7,6 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;

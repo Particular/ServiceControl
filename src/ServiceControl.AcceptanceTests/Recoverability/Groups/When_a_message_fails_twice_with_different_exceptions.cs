@@ -6,7 +6,6 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using System.Web;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;

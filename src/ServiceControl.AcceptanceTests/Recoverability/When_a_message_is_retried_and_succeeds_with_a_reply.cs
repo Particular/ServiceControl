@@ -3,7 +3,6 @@
     using System;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
