@@ -202,7 +202,7 @@
             Console.WriteLine("Using settings:");
             foreach (var pair in settings)
             {
-                Console.Out.WriteLine("   {0}: {1}", pair.Key, pair.Value);
+                Console.Out.WriteLine($"   {pair.Key}: {pair.Value}");
             }
             Console.WriteLine();
         }
@@ -210,18 +210,46 @@
         static void PerformScenarios(RunDescriptor runDescriptor, IEnumerable<ActiveRunner> runners, Func<bool> done)
         {
             var endpoints = runners.Select(r => r.Instance).ToList();
+            try
+            {
+                StartEndpoints(endpoints);
 
-            StartEndpoints(endpoints);
+                runDescriptor.ScenarioContext.EndpointsStarted = true;
 
-            runDescriptor.ScenarioContext.EndpointsStarted = true;
+                var maxTime = runDescriptor.TestExecutionTimeout;
+                ExecuteWhens(maxTime, endpoints);
 
-            var maxTime = runDescriptor.TestExecutionTimeout;
-            var timedOut = false;
+                var timedOut = false;
 
-            var tasks = endpoints.Select(endpoint => endpoint.ExecuteWhens());
+                Task.Run(() => timedOut = !SpinWait.SpinUntil(done, maxTime)).Wait();
+
+                if (timedOut)
+                {
+                    throw new ScenarioException(GenerateTestTimedOutMessage(maxTime));
+                }
+            }
+            finally
+            {
+                StopEndpoints(endpoints);
+            }
+        }
+
+        private static void ExecuteWhens(TimeSpan maxTime, List<EndpointRunner> endpoints)
+        {
+            var tasks = endpoints.Select(endpoint =>
+            {
+                try
+                {
+                    return endpoint.ExecuteWhens();
+                }
+                catch (Exception ex)
+                {
+                    throw new ScenarioException("Whens failed to execute", ex);
+                }
+            });
+
             var whenAll = Task.WhenAll(tasks);
             var timeoutTask = Task.Delay(maxTime);
-
             var completedTask = Task.WhenAny(whenAll, timeoutTask).GetAwaiter().GetResult();
 
             if (completedTask.Equals(timeoutTask))
@@ -232,20 +260,6 @@
             if (completedTask.IsFaulted && completedTask.Exception != null)
             {
                 ExceptionDispatchInfo.Capture(completedTask.Exception).Throw();
-            }
-
-            Task.Run(() => timedOut = !SpinWait.SpinUntil(done, maxTime)).Wait();
-
-            try
-            {
-                if (timedOut)
-                {
-                    throw new ScenarioException(GenerateTestTimedOutMessage(maxTime));
-                }
-            }
-            finally
-            {
-                StopEndpoints(endpoints);
             }
         }
 
@@ -266,11 +280,15 @@
                 var result = endpoint.Start();
 
                 if (result.Failed)
+                {
                     throw new ScenarioException("Endpoint failed to start", result.Exception);
+                }
             })).ToArray();
 
             if (!Task.WaitAll(tasks, TimeSpan.FromMinutes(2)))
+            {
                 throw new Exception("Starting endpoints took longer than 2 minutes");
+            }
         }
 
         static void StopEndpoints(IEnumerable<EndpointRunner> endpoints)
