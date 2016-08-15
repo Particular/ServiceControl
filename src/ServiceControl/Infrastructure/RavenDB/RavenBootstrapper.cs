@@ -86,6 +86,8 @@
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
             }
 
+            documentStore.Configuration.DisableClusterDiscovery = true;
+            documentStore.Configuration.DisablePerformanceCounters = settings.DisableRavenDBPerformanceCounters;
             documentStore.Configuration.Port = settings.Port;
             documentStore.Configuration.HostName = (settings.Hostname == "*" || settings.Hostname == "+")
                 ? "localhost"
