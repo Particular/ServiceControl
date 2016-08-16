@@ -38,6 +38,9 @@
 
         public void Configuration(IAppBuilder app)
         {
+            var signalrIsReady = new SignalrIsReady();
+
+            configuration.RegisterComponents(components => components.RegisterSingleton(signalrIsReady));
             app.UseNServiceBus(settings, container, host, documentStore, configuration, exposeBus);
 
             if (settings.SetupOnly)
@@ -49,7 +52,7 @@
             {
                 b.Use<LogApiCalls>();
 
-                ConfigureSignalR(b);
+                ConfigureSignalR(b, signalrIsReady);
 
                 b.UseNancy(new NancyOptions
                 {
@@ -58,7 +61,7 @@
             });
         }
 
-        private void ConfigureSignalR(IAppBuilder app)
+        private void ConfigureSignalR(IAppBuilder app, SignalrIsReady signalrIsReady)
         {
             var resolver = new AutofacDependencyResolver(container);
 
@@ -78,7 +81,7 @@
             var jsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
 
-            GlobalEventHandler.SignalrIsReady = true;
+            signalrIsReady.Ready = true;
         }
     }
 

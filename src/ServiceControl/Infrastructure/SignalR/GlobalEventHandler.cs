@@ -7,7 +7,7 @@
 
     public class GlobalEventHandler : IHandleMessages<IEvent>
     {
-        internal static bool SignalrIsReady;
+        public SignalrIsReady SignalrIsReady { get; set; }
 
         public MessageMetadataRegistry MessageMetadataRegistry { get; set; }
 
@@ -15,7 +15,7 @@
 
         public void Handle(IEvent @event)
         {
-            if (!SignalrIsReady)
+            if (!SignalrIsReady.Ready)
             {
                 Bus.HandleCurrentMessageLater();
                 return;
@@ -27,5 +27,10 @@
             context.Connection.Broadcast(new Envelope { Types = metadata.MessageHierarchy.Select(t=>t.Name).ToList(), Message = @event })
                  .Wait();
         }
+    }
+
+    public class SignalrIsReady
+    {
+        public bool Ready { get; set; }
     }
 }
