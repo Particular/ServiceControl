@@ -40,8 +40,7 @@
         {
             var signalrIsReady = new SignalrIsReady();
 
-            configuration.RegisterComponents(components => components.RegisterSingleton(signalrIsReady));
-            app.UseNServiceBus(settings, container, host, documentStore, configuration, exposeBus);
+            app.UseNServiceBus(settings, container, host, documentStore, configuration, exposeBus, signalrIsReady);
 
             if (settings.SetupOnly)
             {

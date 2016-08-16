@@ -13,6 +13,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.SignalR;
 
     public class ExposeBus
     {
@@ -23,13 +24,15 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     {
         public const string HostOnAppDisposing = "host.OnAppDisposing";
 
-        public static IAppBuilder UseNServiceBus(this IAppBuilder app, Settings settings, IContainer container, ServiceBase host, EmbeddableDocumentStore documentStore, BusConfiguration configuration, ExposeBus exposeBus)
+        public static IAppBuilder UseNServiceBus(this IAppBuilder app, Settings settings, IContainer container, ServiceBase host, EmbeddableDocumentStore documentStore, BusConfiguration configuration, ExposeBus exposeBus, SignalrIsReady signalrIsReady)
         {
             if (configuration == null)
             {
                 configuration = new BusConfiguration();
                 configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
             }
+
+            configuration.RegisterComponents(components => components.RegisterSingleton(signalrIsReady));
 
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set("ServiceControl.EmbeddableDocumentStore", documentStore);
