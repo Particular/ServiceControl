@@ -7,7 +7,6 @@ namespace Particular.ServiceControl
     using System.ServiceProcess;
     using Autofac;
     using global::ServiceControl.Infrastructure;
-    using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
     using Microsoft.Owin.Hosting;
     using NLog;
@@ -94,12 +93,12 @@ namespace Particular.ServiceControl
         public void Start()
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
+            var startOptions = new StartOptions(settings.RootUrl);
 
             if (settings.MaintenanceMode)
             {
-                new RavenBootstrapper().StartRaven(documentStore, settings);
-
-                logger.InfoFormat("RavenDB is now accepting requests on {0}", settings.StorageUrl);
+                WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, Startup.ConfigureRavenDB);
+                logger.Info($"RavenDB is now accepting requests on {settings.StorageUrl}");
 
                 if (Environment.UserInteractive)
                 {
@@ -112,10 +111,9 @@ namespace Particular.ServiceControl
                 return;
             }
 
-            var startOptions = new StartOptions(settings.RootUrl);
             WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, Startup.Configuration);
 
-            logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
+            logger.Info($"Api is now accepting requests on {settings.ApiUrl}");
         }
 
         public void Stop()

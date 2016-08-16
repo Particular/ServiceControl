@@ -31,7 +31,7 @@ namespace ServiceControl.Recoverability
                                     Name = "Status",
                                     Value = (int) FailedMessageStatus.Archived
                                 }
-                            }, true).WaitForCompletion();
+                            }, new BulkOperationOptions { AllowStale = true }).WaitForCompletion();
 
             var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
             logger.InfoFormat("Archiving of {0} ended", message.GroupId);

@@ -45,7 +45,6 @@
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = 10;
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
-            DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
         }
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
@@ -53,8 +52,6 @@
         public int MaximumMessageThroughputPerSecond => SettingsReader<int>.Read("MaximumMessageThroughputPerSecond", 350);
 
         public bool MaintenanceMode { get; set; }
-
-        public bool DisableRavenDBPerformanceCounters { get; set; }
 
         public string RootUrl
         {
