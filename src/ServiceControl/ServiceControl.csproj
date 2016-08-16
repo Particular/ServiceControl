@@ -261,6 +261,9 @@
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
+    <Compile Include="Hosting\MaintenanceHost.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
@@ -331,6 +334,7 @@
     <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SignalR\SerializationSettingsFactoryForSignalR.cs" />
+    <Compile Include="MaintenanceBootstrapper.cs" />
     <Compile Include="MessageFailures\Api\UnArchiveMessages.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
@@ -520,6 +524,7 @@
     <Compile Include="SagaAudit\ResultingMessage.cs" />
     <Compile Include="SagaAudit\SagaStateChange.cs" />
     <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
+    <Compile Include="SetupBootstrapper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

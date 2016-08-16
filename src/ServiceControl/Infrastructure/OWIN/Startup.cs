@@ -2,8 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Net;
+    using System.Security.Principal;
     using System.ServiceProcess;
     using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
@@ -14,6 +16,7 @@
     using Microsoft.Owin.Cors;
     using NServiceBus;
     using NServiceBus.Logging;
+    using Particular.ServiceControl;
     using Particular.ServiceControl.Licensing;
     using Raven.Client.Embedded;
     using Raven.Database.Config;
@@ -48,12 +51,16 @@
         {
             var signalrIsReady = new SignalrIsReady();
 
-            app.UseNServiceBus(settings, container, host, documentStore, configuration, exposeBus, signalrIsReady);
+            ConfigureRavenDB(app);
 
-            if (settings.SetupOnly)
+            if (IsRunningAcceptanceTests() || (Environment.UserInteractive && Debugger.IsAttached))
             {
-                return;
+                var setup = new SetupBootstrapper(settings);
+                setup.CreateDatabase(WindowsIdentity.GetCurrent().Name);
+                setup.InitialiseDatabase();
             }
+
+            app.UseNServiceBus(settings, container, host, documentStore, configuration, exposeBus, signalrIsReady);
 
             app.Map("/api", b =>
             {
@@ -66,8 +73,11 @@
                     Bootstrapper = new NServiceBusContainerBootstrapper(container)
                 });
             });
+        }
 
-            ConfigureRavenDB(app);
+        private bool IsRunningAcceptanceTests()
+        {
+            return configuration != null;
         }
 
         static string ReadLicense()
@@ -89,7 +99,7 @@
 
                 if (!String.IsNullOrEmpty(settings.VirtualDirectory))
                 {
-                    virtualDirectory = settings.VirtualDirectory + "/" + virtualDirectory;
+                    virtualDirectory = $"{settings.VirtualDirectory}/{virtualDirectory}";
                 }
 
                 ConfigureWindowsAuth(app, virtualDirectory);
@@ -128,7 +138,7 @@
 
         private static void ConfigureWindowsAuth(IAppBuilder app, string virtualDirectory)
         {
-            var pathToLookFor = "/" + virtualDirectory;
+            var pathToLookFor = $"/{virtualDirectory}";
             var listener = (HttpListener)app.Properties["System.Net.HttpListener"];
             listener.AuthenticationSchemes = AuthenticationSchemes.IntegratedWindowsAuthentication | AuthenticationSchemes.Anonymous;
             listener.AuthenticationSchemeSelectorDelegate += request =>

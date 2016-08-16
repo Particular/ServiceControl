@@ -42,21 +42,6 @@ namespace Particular.ServiceControl
             Initialize();
         }
 
-        // MaintCommand
-        public Bootstrapper(Settings settings)
-        {
-            this.settings = settings;
-            Initialize();
-        }
-
-        // SetupCommand
-        public Bootstrapper(Settings settings, BusConfiguration configuration)
-        {
-            this.configuration = configuration;
-            this.settings = settings;
-            Initialize();
-        }
-
         // Testing
         public Bootstrapper(Settings settings, BusConfiguration configuration, ExposeBus exposeBus)
         {
@@ -94,22 +79,6 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
             var startOptions = new StartOptions(settings.RootUrl);
-
-            if (settings.MaintenanceMode)
-            {
-                WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, Startup.ConfigureRavenDB);
-                logger.Info($"RavenDB is now accepting requests on {settings.StorageUrl}");
-
-                if (Environment.UserInteractive)
-                {
-                    logger.Warn("RavenDB Maintenance Mode - Press Enter to exit");
-                    while (Console.ReadLine() == null)
-                    {
-                    }
-                }
-
-                return;
-            }
 
             WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, Startup.Configuration);
 

@@ -3,6 +3,7 @@ namespace Particular.ServiceControl.Hosting
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using Commands;
     using global::ServiceControl.Hosting.Commands;
@@ -19,6 +20,14 @@ namespace Particular.ServiceControl.Hosting
         
         public HostArguments(string[] args)
         {
+            if (SettingsReader<bool>.Read("MaintenanceMode"))
+            {
+                args = args.Concat(new[]
+                {
+                    "-m"
+                }).ToArray();
+            }
+
             var executionMode = ExecutionMode.Run;
             Commands = new List<Type> { typeof(RunCommand) };
             ServiceName = Settings.DEFAULT_SERVICE_NAME;

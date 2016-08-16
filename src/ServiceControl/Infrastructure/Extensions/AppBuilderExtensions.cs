@@ -24,7 +24,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     {
         public const string HostOnAppDisposing = "host.OnAppDisposing";
 
-        public static IAppBuilder UseNServiceBus(this IAppBuilder app, Settings settings, IContainer container, ServiceBase host, EmbeddableDocumentStore documentStore, BusConfiguration configuration, ExposeBus exposeBus, SignalrIsReady signalrIsReady)
+        public static IAppBuilder UseNServiceBus(this IAppBuilder app, Settings settings, IContainer container, ServiceBase host, EmbeddableDocumentStore documentStore, BusConfiguration configuration, ExposeBus exposeBus, SignalrIsReady signalrIsReady, bool setupOnly = false)
         {
             if (configuration == null)
             {
@@ -74,8 +74,9 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
             var bus = Bus.Create(configuration);
 
-            if (settings.SetupOnly)
+            if (setupOnly)
             {
+                bus.Dispose();
                 return app;
             }
 
@@ -102,14 +103,14 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
         static Type DetermineTransportType(Settings settings)
         {
-            var Logger = LogManager.GetLogger(typeof(AppBuilderExtensions));
+            var logger = LogManager.GetLogger(typeof(AppBuilderExtensions));
             var transportType = Type.GetType(settings.TransportType);
             if (transportType != null)
             {
                 return transportType;
             }
             var errorMsg = $"Configuration of transport Failed. Could not resolve type '{settings.TransportType}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
-            Logger.Error(errorMsg);
+            logger.Error(errorMsg);
             throw new Exception(errorMsg);
         }
 
