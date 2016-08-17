@@ -32,10 +32,9 @@ namespace ServiceBus.Management.AcceptanceTests
     using NUnit.Framework;
     using Particular.ServiceControl;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
-    using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.SignalR;
-    using AppBuilderExtensions = ServiceBus.Management.Infrastructure.Extensions.AppBuilderExtensions;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
     using LogManager = NServiceBus.Logging.LogManager;
@@ -63,7 +62,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         private Bootstrapper bootstrapper;
         protected Action<BusConfiguration> CustomConfiguration = _ => { };
-        private ExposeBus exposeBus;
+        private IBus bus;
         protected OwinHttpMessageHandler Handler;
 
         private HttpClient httpClient;
@@ -168,7 +167,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 {
                 }
 
-                action(exposeBus.GetBus());
+                action(bus);
             });
         }
 
@@ -518,19 +517,17 @@ namespace ServiceBus.Management.AcceptanceTests
 
             CustomConfiguration(configuration);
 
-            exposeBus = new ExposeBus();
-
             using (new DiagnosticTimer("Initializing Bootstrapper"))
             {
-                bootstrapper = new Bootstrapper(settings, configuration, exposeBus);
+                bootstrapper = new Bootstrapper(settings, configuration);
             }
             using (new DiagnosticTimer("Initializing AppBuilder"))
             {
                 var app = new AppBuilder();
                 var cts = new CancellationTokenSource();
-                app.Properties[AppBuilderExtensions.HostOnAppDisposing] = cts.Token;
+                app.Properties[NServiceBusFactory.HostOnAppDisposing] = cts.Token;
                 bootstrapper.WebApp = new Disposable(() => cts.Cancel(false));
-                bootstrapper.Startup.Configuration(app);
+                bootstrapper.Startup.Configuration(app, true);
                 var appFunc = app.Build();
 
                 Handler = new OwinHttpMessageHandler(appFunc)
@@ -539,6 +536,11 @@ namespace ServiceBus.Management.AcceptanceTests
                     AllowAutoRedirect = false
                 };
                 httpClient = new HttpClient(Handler);
+            }
+            
+            using (new DiagnosticTimer("Creating and starting Bus"))
+            {
+                bus = bootstrapper.Start(true, Handler);
             }
         }
 

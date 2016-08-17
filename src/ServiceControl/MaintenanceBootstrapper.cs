@@ -14,8 +14,8 @@ namespace Particular.ServiceControl
 
             if (Environment.UserInteractive)
             {
-                var startup = new Startup(null, null, settings, null, null, null);
-                using (WebApp.Start(new StartOptions(settings.RootUrl), startup.ConfigureRavenDB))
+                var startup = new Startup(null, settings);
+                using (WebApp.Start(new StartOptions(settings.RootUrl), builder => startup.ConfigureRavenDB(builder)))
                 {
                     Console.Out.WriteLine("RavenDB is now accepting requests on {0}", settings.StorageUrl);
                     Console.Out.WriteLine("RavenDB Maintenance Mode - Press Enter to exit");

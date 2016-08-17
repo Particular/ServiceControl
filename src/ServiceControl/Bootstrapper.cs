@@ -1,9 +1,12 @@
 namespace Particular.ServiceControl
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Net.Http;
+    using System.Security.Principal;
     using System.ServiceProcess;
     using Autofac;
     using global::ServiceControl.Infrastructure;
@@ -15,8 +18,7 @@ namespace Particular.ServiceControl
     using NLog.Targets;
     using NServiceBus;
     using Raven.Client;
-    using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure.Extensions;
+    using Raven.Client.Document;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
     using LogLevel = NLog.LogLevel;
@@ -25,14 +27,15 @@ namespace Particular.ServiceControl
     public class Bootstrapper
     {
         private BusConfiguration configuration;
-        private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
-        private ExposeBus exposeBus;
+        private DocumentStore documentStore = new DocumentStore();
         private ServiceBase host;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
         private TimeKeeper timeKeeper;
+        private IContainer container;
 
         public IDisposable WebApp;
+        private IBus bus;
 
         // Windows Service
         public Bootstrapper(ServiceBase host)
@@ -43,10 +46,9 @@ namespace Particular.ServiceControl
         }
 
         // Testing
-        public Bootstrapper(Settings settings, BusConfiguration configuration, ExposeBus exposeBus)
+        public Bootstrapper(Settings settings, BusConfiguration configuration)
         {
             this.configuration = configuration;
-            this.exposeBus = exposeBus;
             this.settings = settings;
             Initialize();
         }
@@ -72,22 +74,45 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
 
-            Startup = new Startup(containerBuilder.Build(), host, settings, documentStore, configuration, exposeBus);
+            container = containerBuilder.Build();
+            Startup = new Startup(container, settings);
         }
 
-        public void Start()
+        public IBus Start(bool isRunningAcceptanceTests = false, HttpMessageHandler handler = null)
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
-            var startOptions = new StartOptions(settings.RootUrl);
 
-            WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, Startup.Configuration);
+            if (!isRunningAcceptanceTests)
+            {
+                var startOptions = new StartOptions(settings.RootUrl);
 
+                WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
+            }
+
+            if (isRunningAcceptanceTests || (Environment.UserInteractive && Debugger.IsAttached))
+            {
+                var setup = new SetupBootstrapper(settings, handler);
+                setup.CreateDatabase(WindowsIdentity.GetCurrent().Name);
+                setup.InitialiseDatabase();
+            }
+
+            if (handler != null)
+            {
+                documentStore.Conventions.HandleUnauthorizedResponseAsync = (message, credentials) => null;
+                documentStore.HttpMessageHandlerFactory = () => handler;
+            }
+
+            bus = NServiceBusFactory.CreateAndStart(settings, container, host, documentStore, configuration);
+            
             logger.Info($"Api is now accepting requests on {settings.ApiUrl}");
+
+            return bus;
         }
 
         public void Stop()
         {
             notifier.Dispose();
+            bus?.Dispose();
             WebApp?.Dispose();
             timeKeeper.Dispose();
             documentStore.Dispose();

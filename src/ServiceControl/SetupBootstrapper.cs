@@ -3,62 +3,61 @@ namespace Particular.ServiceControl
     using System;
     using System.IO;
     using System.Net;
+    using System.Net.Http;
     using System.Security.Principal;
     using System.Text;
     using System.Threading;
     using Autofac;
+    using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.RavenDB;
-    using global::ServiceControl.Infrastructure.SignalR;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using Raven.Abstractions.Connection;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Client.Document;
-    using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using Raven.Database.Config;
     using Raven.Database.Server;
     using Raven.Database.Server.Security.Windows;
     using Raven.Json.Linq;
-    using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class SetupBootstrapper
     {
         private readonly Settings settings;
+        private readonly HttpMessageHandler handler;
 
-        public SetupBootstrapper(Settings settings)
+        public SetupBootstrapper(Settings settings, HttpMessageHandler handler = null)
         {
             this.settings = settings;
+            this.handler = handler;
         }
 
         public void Run(string username)
         {
-            var startup = new Startup(null, null, settings, null, null, null);
-            using (WebApp.Start(new StartOptions(settings.RootUrl), b =>
+            var startup = new Startup(null, settings);
+            using (WebApp.Start(new StartOptions(settings.RootUrl), builder => startup.ConfigureRavenDB(builder)))
             {
+                CreateDatabase(username);
+                InitialiseDatabase();
+
                 var configuration = new BusConfiguration();
                 configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
                 configuration.EnableInstallers();
 
                 var containerBuilder = new ContainerBuilder();
-                var documentStore = new EmbeddableDocumentStore();
+                var documentStore = new DocumentStore();
                 containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-                
-                b.UseNServiceBus(settings, containerBuilder.Build(), null, documentStore, configuration, null, new SignalrIsReady(), true);
-                startup.ConfigureRavenDB(b);
-            }))
-            {
-                CreateDatabase(username);
-                InitialiseDatabase();
+
+                NServiceBusFactory.Create(settings, containerBuilder.Build(), null, documentStore, configuration).Dispose();
             }
         }
 
         public void InitialiseDatabase()
         {
-            using (var documentStore = new DocumentStore
+            var documentStore = new DocumentStore
             {
                 Url = settings.StorageUrl,
                 DefaultDatabase = "ServiceControl",
@@ -67,7 +66,14 @@ namespace Particular.ServiceControl
                     SaveEnumsAsIntegers = true
                 },
                 Credentials = CredentialCache.DefaultNetworkCredentials
-            }.Initialize())
+            };
+
+            if (handler != null)
+            {
+                documentStore.HttpMessageHandlerFactory = () => handler;
+            }
+
+            using (documentStore.Initialize())
             {
                 Console.Out.WriteLine("Index creation started");
 
@@ -97,11 +103,18 @@ namespace Particular.ServiceControl
 
         public void CreateDatabase(string username)
         {
-            using (var documentStore = new DocumentStore
+            var documentStore = new DocumentStore
             {
                 Url = settings.StorageUrl,
                 Credentials = CredentialCache.DefaultNetworkCredentials
-            }.Initialize())
+            };
+
+            if (handler != null)
+            {
+                documentStore.HttpMessageHandlerFactory = () => handler;
+            } 
+
+            using (documentStore.Initialize())
             {
                 try
                 {

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System;
-    using System.ComponentModel.Composition.Hosting;
     using System.Linq;
     using System.Net;
     using NServiceBus;
@@ -11,7 +10,7 @@
     using NServiceBus.Pipeline;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
-    using Raven.Client.Embedded;
+    using Raven.Client.Document;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.EndpointControl;
@@ -20,7 +19,7 @@
     {
         public void Customize(BusConfiguration configuration)
         {
-            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
+            var documentStore = configuration.GetSettings().Get<DocumentStore>("ServiceControl.DocumentStore");
             var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
 
             StartRaven(documentStore, settings);
@@ -47,15 +46,14 @@
             configuration.Pipeline.Register<RavenRegisterStep>();
         }
 
-        void StartRaven(EmbeddableDocumentStore documentStore, Settings settings)
+        void StartRaven(DocumentStore documentStore, Settings settings)
         {
             documentStore.Url = settings.StorageUrl;
             documentStore.DefaultDatabase = "ServiceControl";
             documentStore.EnlistInDistributedTransactions = false;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
-            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
             documentStore.Credentials = CredentialCache.DefaultNetworkCredentials;
-
+            
             documentStore.Initialize();
 
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);

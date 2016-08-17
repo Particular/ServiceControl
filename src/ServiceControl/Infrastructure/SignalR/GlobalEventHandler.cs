@@ -7,20 +7,10 @@
 
     public class GlobalEventHandler : IHandleMessages<IEvent>
     {
-        public SignalrIsReady SignalrIsReady { get; set; }
-
         public MessageMetadataRegistry MessageMetadataRegistry { get; set; }
-
-        public IBus Bus { get; set; }
 
         public void Handle(IEvent @event)
         {
-            if (!SignalrIsReady.Ready)
-            {
-                Bus.HandleCurrentMessageLater();
-                return;
-            }
-
             var metadata = MessageMetadataRegistry.GetMessageMetadata(@event.GetType());
             var context = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
 
@@ -28,9 +18,4 @@
                  .Wait();
         }
     }
-
-    public class SignalrIsReady
-    {
-        public bool Ready { get; set; }
     }
-}

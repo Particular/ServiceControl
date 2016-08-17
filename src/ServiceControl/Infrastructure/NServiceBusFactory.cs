@@ -1,30 +1,21 @@
-namespace ServiceBus.Management.Infrastructure.Extensions
+namespace ServiceControl.Infrastructure
 {
     using System;
     using System.Diagnostics;
     using System.ServiceProcess;
-    using System.Threading;
     using Autofac;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Logging;
-    using Owin;
-    using Raven.Client.Embedded;
+    using Raven.Client.Document;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.SignalR;
 
-    public class ExposeBus
-    {
-        public Func<IStartableBus> GetBus;
-    }
-
-    public static class AppBuilderExtensions
+    public static class NServiceBusFactory
     {
         public const string HostOnAppDisposing = "host.OnAppDisposing";
 
-        public static IAppBuilder UseNServiceBus(this IAppBuilder app, Settings settings, IContainer container, ServiceBase host, EmbeddableDocumentStore documentStore, BusConfiguration configuration, ExposeBus exposeBus, SignalrIsReady signalrIsReady, bool setupOnly = false)
+        public static IStartableBus Create(Settings settings, IContainer container, ServiceBase host, DocumentStore documentStore, BusConfiguration configuration)
         {
             if (configuration == null)
             {
@@ -32,10 +23,8 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
             }
 
-            configuration.RegisterComponents(components => components.RegisterSingleton(signalrIsReady));
-
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
-            configuration.GetSettings().Set("ServiceControl.EmbeddableDocumentStore", documentStore);
+            configuration.GetSettings().Set("ServiceControl.DocumentStore", documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
             // Disable Auditing for the service control endpoint
@@ -72,38 +61,21 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 configuration.EnableInstallers();
             }
 
-            var bus = Bus.Create(configuration);
+            return Bus.Create(configuration);
+        }
 
-            if (setupOnly)
-            {
-                bus.Dispose();
-                return app;
-            }
-
-            if (exposeBus != null)
-            {
-                exposeBus.GetBus = () => bus;
-            }
+        public static IBus CreateAndStart(Settings settings, IContainer container, ServiceBase host, DocumentStore documentStore, BusConfiguration configuration)
+        {
+            var bus = Create(settings, container, host, documentStore, configuration);
 
             container.Resolve<SubscribeToOwnEvents>().Run();
 
-            if (app.Properties.ContainsKey(HostOnAppDisposing))
-            {
-                var appDisposing = (CancellationToken)app.Properties[HostOnAppDisposing];
-                if (appDisposing != CancellationToken.None)
-                {
-                    appDisposing.Register(bus.Dispose);
-                }
-            }
-
-            bus.Start();
-
-            return app;
+            return bus.Start();
         }
 
         static Type DetermineTransportType(Settings settings)
         {
-            var logger = LogManager.GetLogger(typeof(AppBuilderExtensions));
+            var logger = LogManager.GetLogger(typeof(NServiceBusFactory));
             var transportType = Type.GetType(settings.TransportType);
             if (transportType != null)
             {

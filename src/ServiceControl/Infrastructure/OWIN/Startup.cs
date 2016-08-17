@@ -2,11 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Net;
-    using System.Security.Principal;
-    using System.ServiceProcess;
     using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
     using Nancy;
@@ -14,14 +11,10 @@
     using ServiceControl.Infrastructure.SignalR;
     using Autofac;
     using Microsoft.Owin.Cors;
-    using NServiceBus;
     using NServiceBus.Logging;
-    using Particular.ServiceControl;
     using Particular.ServiceControl.Licensing;
-    using Raven.Client.Embedded;
     using Raven.Database.Config;
     using Raven.Database.Server;
-    using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.OWIN;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
@@ -31,53 +24,29 @@
         static readonly ILog Logger = LogManager.GetLogger(typeof(Startup));
 
         private readonly IContainer container;
-        private readonly ServiceBase host;
         private readonly Settings settings;
-        private readonly EmbeddableDocumentStore documentStore;
-        private readonly BusConfiguration configuration;
-        private readonly ExposeBus exposeBus;
 
-        public Startup(IContainer container, ServiceBase host, Settings settings, EmbeddableDocumentStore documentStore, BusConfiguration configuration, ExposeBus exposeBus)
+        public Startup(IContainer container, Settings settings)
         {
             this.container = container;
-            this.host = host;
             this.settings = settings;
-            this.documentStore = documentStore;
-            this.configuration = configuration;
-            this.exposeBus = exposeBus;
         }
 
-        public void Configuration(IAppBuilder app)
+        public void Configuration(IAppBuilder app, bool isRunningAcceptanceTests = false)
         {
-            var signalrIsReady = new SignalrIsReady();
-
-            ConfigureRavenDB(app);
-
-            if (IsRunningAcceptanceTests() || (Environment.UserInteractive && Debugger.IsAttached))
-            {
-                var setup = new SetupBootstrapper(settings);
-                setup.CreateDatabase(WindowsIdentity.GetCurrent().Name);
-                setup.InitialiseDatabase();
-            }
-
-            app.UseNServiceBus(settings, container, host, documentStore, configuration, exposeBus, signalrIsReady);
+            ConfigureRavenDB(app, isRunningAcceptanceTests);
 
             app.Map("/api", b =>
             {
                 b.Use<LogApiCalls>();
 
-                ConfigureSignalR(b, signalrIsReady);
+                ConfigureSignalR(b);
 
                 b.UseNancy(new NancyOptions
                 {
                     Bootstrapper = new NServiceBusContainerBootstrapper(container)
                 });
             });
-        }
-
-        private bool IsRunningAcceptanceTests()
-        {
-            return configuration != null;
         }
 
         static string ReadLicense()
@@ -91,7 +60,7 @@
             }
         }
 
-        public void ConfigureRavenDB(IAppBuilder builder)
+        public void ConfigureRavenDB(IAppBuilder builder, bool isRunningAcceptanceTests = false)
         {
             builder.Map("/storage", app =>
             {
@@ -113,8 +82,8 @@
                     WebDir = Path.Combine(settings.DbPath, "Raven", "WebUI"),
                     PluginsDirectory = Path.Combine(settings.DbPath, "Plugins"),
                     AssembliesDirectory = Path.Combine(settings.DbPath, "Assemblies"),
-                    AnonymousUserAccessMode = AnonymousUserAccessMode.None,
-                    TurnOffDiscoveryClient = true,
+                    AnonymousUserAccessMode = isRunningAcceptanceTests ? AnonymousUserAccessMode.All : AnonymousUserAccessMode.None,
+                    TurnOffDiscoveryClient = true
                 };
 
                 var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
@@ -138,6 +107,11 @@
 
         private static void ConfigureWindowsAuth(IAppBuilder app, string virtualDirectory)
         {
+            if (!app.Properties.ContainsKey("System.Net.HttpListener"))
+            {
+                return;
+            }
+
             var pathToLookFor = $"/{virtualDirectory}";
             var listener = (HttpListener)app.Properties["System.Net.HttpListener"];
             listener.AuthenticationSchemes = AuthenticationSchemes.IntegratedWindowsAuthentication | AuthenticationSchemes.Anonymous;
@@ -154,7 +128,7 @@
             };
         }
 
-        private void ConfigureSignalR(IAppBuilder app, SignalrIsReady signalrIsReady)
+        private void ConfigureSignalR(IAppBuilder app)
         {
             var resolver = new AutofacDependencyResolver(container);
 
@@ -173,8 +147,6 @@
 
             var jsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
-
-            signalrIsReady.Ready = true;
         }
     }
 

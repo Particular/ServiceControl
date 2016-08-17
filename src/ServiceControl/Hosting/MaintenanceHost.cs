@@ -25,8 +25,8 @@
 
         protected override void OnStart(string[] args)
         {
-            var startup = new Startup(null, this, settings, null, null, null);
-            stop = WebApp.Start(new StartOptions(settings.RootUrl), startup.ConfigureRavenDB);
+            var startup = new Startup(null, settings);
+            stop = WebApp.Start(new StartOptions(settings.RootUrl), builder => startup.ConfigureRavenDB(builder));
         }
 
 

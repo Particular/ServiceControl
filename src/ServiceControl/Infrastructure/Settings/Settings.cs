@@ -34,7 +34,6 @@
             ErrorQueue = GetErrorQueue();
             ErrorLogQueue = GetErrorLogQueue();
             AuditLogQueue = GetAuditLogQueue();
-            DbPath = GetDbPath();
             TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
             ForwardAuditMessages = GetForwardAuditMessages();
             ForwardErrorMessages = GetForwardErrorMessages();
@@ -44,6 +43,7 @@
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = 10;
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
+            DbPath = GetDbPath();
         }
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
