@@ -13,7 +13,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Queues;
+    using ServiceControlInstaller.Engine.Setup;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
     using ServiceControlInstaller.Engine.UrlAcl;
@@ -66,30 +66,8 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{HostName}:{Port}/api/";
                 }
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
-            }
-        }
-
-        public string StorageUrl
-        {
-            get
-            {
-                string host;
-                switch (HostName)
-                {
-                    case "*":
-                    case "+":
-                        host = "localhost";
-                        break;
-                    default:
-                        host = HostName;
-                        break;
-                }
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return $"http://{host}:{Port}/storage/";
-                }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
+                var virt = VirtualDirectory.Replace("/", "");
+                return $"http://{HostName}:{Port}/{virt}/api/";
             }
         }
 
@@ -177,13 +155,13 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             try
             {
-                QueueCreation.RunQueueCreation(this);
+                ServiceControlSetup.RunInSetupMode(this);
             }
-            catch (ServiceControlQueueCreationFailedException ex)
+            catch (ServiceControlSetupFailedException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-            catch (ServiceControlQueueCreationTimeoutException ex)
+            catch (ServiceControlSetupTimeoutException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
@@ -204,9 +182,9 @@ namespace ServiceControlInstaller.Engine.Instances
             var serializer = new XmlSerializer(typeof(ServiceControlInstanceMetadata));
             using (var stream = File.OpenRead(path))
             {
-                instanceData = (ServiceControlInstanceMetadata) serializer.Deserialize(stream);
+                instanceData = (ServiceControlInstanceMetadata)serializer.Deserialize(stream);
             }
-            
+
             var doc = new XmlDocument();
             doc.Load(path);
             if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)
@@ -233,7 +211,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     MSMQConfigValidator.Validate();
                 }
-                catch(EngineValidationException ex)
+                catch (EngineValidationException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }

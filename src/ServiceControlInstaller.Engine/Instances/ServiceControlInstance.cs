@@ -16,9 +16,9 @@ namespace ServiceControlInstaller.Engine.Instances
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Queues;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
+    using ServiceControlInstaller.Engine.Setup;
     using ServiceControlInstaller.Engine.UrlAcl;
     using ServiceControlInstaller.Engine.Validation;
     using TimeoutException = System.ServiceProcess.TimeoutException;
@@ -56,13 +56,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan AuditRetentionPeriod { get; set; }
         public bool InMaintenanceMode { get; set; }
 
-        public string Name => Service.ServiceName;
-
-        public void Reload()
-        {
-            ReadConfiguration();
-        }
-
         public Version Version
         {
             get
@@ -77,6 +70,13 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+        public string Name => Service.ServiceName;
+
+        public void Reload()
+        {
+            ReadConfiguration();
+        }
+
         public string Url
         {
             get
@@ -85,7 +85,21 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{HostName}:{Port}/api/";
                 }
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                var virt = VirtualDirectory.Replace("/", "");
+                return $"http://{HostName}:{Port}/{virt}/api/";
+            }
+        }
+
+        public string AclUrl
+        {
+            get
+            {
+                var baseUrl = $"http://{HostName}:{Port}/";
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return baseUrl;
+                }
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
             }
         }
 
@@ -108,7 +122,8 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{host}:{Port}/storage/";
                 }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
+                var virt = $"{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
+                return $"http://{host}:{Port}/{virt}storage/";
             }
         }
 
@@ -120,13 +135,13 @@ namespace ServiceControlInstaller.Engine.Instances
 
                 switch (HostName)
                 {
-                    case "*" :
+                    case "*":
                         host = "localhost";
                         break;
-                    case "+" :
-                          host = Environment.MachineName.ToLower();
+                    case "+":
+                        host = Environment.MachineName.ToLower();
                         break;
-                    default :
+                    default:
                         host = HostName;
                         break;
                 }
@@ -135,20 +150,8 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{host}:{Port}/api/";
                 }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
-            }
-        }
-
-        public string AclUrl
-        {
-            get
-            {
-                var baseUrl = $"http://{HostName}:{Port}/";
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return baseUrl;
-                }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
+                var virt = VirtualDirectory.Replace("/", "");
+                return $"http://{host}:{Port}/{virt}/api/";
             }
         }
 
@@ -183,7 +186,7 @@ namespace ServiceControlInstaller.Engine.Instances
         string DetermineTransportPackage()
         {
             var transportAppSetting = ReadAppSetting(SettingsList.TransportType, "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
-            var transport = Transports.All.FirstOrDefault(p => transportAppSetting.StartsWith(p.MatchOn , StringComparison.OrdinalIgnoreCase));
+            var transport = Transports.All.FirstOrDefault(p => transportAppSetting.StartsWith(p.MatchOn, StringComparison.OrdinalIgnoreCase));
             if (transport != null)
             {
                 return transport.Name;
@@ -195,7 +198,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = FindByName(Name);
-            
+
             var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
 
             var queueNamesChanged = !(string.Equals(oldSettings.AuditQueue, AuditQueue, StringComparison.OrdinalIgnoreCase)
@@ -237,21 +240,21 @@ namespace ServiceControlInstaller.Engine.Instances
             var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
             var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
             var connectionStringChanged = !string.Equals(ConnectionString, oldSettings.ConnectionString, StringComparison.Ordinal);
-            
+
             //have to save config prior to creating queues (if needed)
 
-            if (queueNamesChanged || accountChanged || connectionStringChanged )
+            if (queueNamesChanged || accountChanged || connectionStringChanged)
             {
-                QueueCreation.RunQueueCreation(this, accountName);
+                ServiceControlSetup.RunInSetupMode(this, accountName);
                 try
                 {
-                    QueueCreation.RunQueueCreation(this);
+                    ServiceControlSetup.RunInSetupMode(this);
                 }
-                catch (ServiceControlQueueCreationFailedException ex)
+                catch (ServiceControlSetupFailedException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }
-                catch (ServiceControlQueueCreationTimeoutException ex)
+                catch (ServiceControlSetupTimeoutException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }
@@ -319,7 +322,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 var configManager = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
                 if (configManager.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
                 {
-                    return (T) Convert.ChangeType(configManager.AppSettings.Settings[key].Value, typeof(T));
+                    return (T)Convert.ChangeType(configManager.AppSettings.Settings[key].Value, typeof(T));
                 }
             }
             try
@@ -481,6 +484,41 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
         }
 
+        public void MoveRavenDatabase(string dbPath)
+        {
+            if (!File.Exists(Path.Combine(dbPath, "Data")))
+            {
+                return;
+            }
+
+            MoveDatabaseFiles(dbPath);
+        }
+
+        private static void MoveDatabaseFiles(string dbPath)
+        {
+            var tempDestDirName = Path.Combine(dbPath + "-temp", "Databases");
+            Directory.CreateDirectory(tempDestDirName);
+            Directory.Move(dbPath, Path.Combine(tempDestDirName, "ServiceControl"));
+
+            // The following code is needed because we are renaming a directory that we have just moved and sometimes the OS is still holding certain file handlers opened.
+            var tries = 0;
+            do
+            {
+                try
+                {
+                    Directory.Move(dbPath + "-temp", dbPath);
+                    return;
+                }
+                catch (IOException)
+                {
+                    tries++;
+                    Thread.Sleep(1000);
+                }
+            } while (tries < 3);
+
+            throw new Exception("Could not move database to new location");
+        }
+
         public static ReadOnlyCollection<ServiceControlInstance> Instances()
         {
             var services = WindowsServiceController.FindInstancesByExe("ServiceControl.exe");
@@ -509,13 +547,13 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             try
             {
-                QueueCreation.RunQueueCreation(this);
+                ServiceControlSetup.RunInSetupMode(this);
             }
-            catch (ServiceControlQueueCreationFailedException ex)
+            catch (ServiceControlSetupFailedException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-            catch (ServiceControlQueueCreationTimeoutException ex)
+            catch (ServiceControlSetupTimeoutException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
@@ -543,7 +581,7 @@ namespace ServiceControlInstaller.Engine.Instances
             Service.Refresh();
             HostName = ReadAppSetting(SettingsList.HostName, "localhost");
             Port = ReadAppSetting(SettingsList.Port, 33333);
-            VirtualDirectory = ReadAppSetting(SettingsList.VirtualDirectory, (string) null);
+            VirtualDirectory = ReadAppSetting(SettingsList.VirtualDirectory, (string)null);
             LogPath = ReadAppSetting(SettingsList.LogPath, DefaultLogPath());
             DBPath = ReadAppSetting(SettingsList.DBPath, DefaultDBPath());
             AuditQueue = ReadAppSetting(SettingsList.AuditQueue, "audit");
@@ -559,13 +597,13 @@ namespace ServiceControlInstaller.Engine.Instances
             ServiceAccount = Service.Account;
 
             TimeSpan errorRetentionPeriod;
-            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.ErrorRetentionPeriod, (string) null), out errorRetentionPeriod))
+            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.ErrorRetentionPeriod, (string)null), out errorRetentionPeriod))
             {
                 ErrorRetentionPeriod = errorRetentionPeriod;
 
             }
             TimeSpan auditRetentionPeriod;
-            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.AuditRetentionPeriod, (string) null), out auditRetentionPeriod))
+            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.AuditRetentionPeriod, (string)null), out auditRetentionPeriod))
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }

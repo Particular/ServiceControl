@@ -50,6 +50,7 @@ namespace Particular.ServiceControl
                 var containerBuilder = new ContainerBuilder();
                 var documentStore = new DocumentStore();
                 containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+                containerBuilder.RegisterInstance(settings);
 
                 NServiceBusFactory.Create(settings, containerBuilder.Build(), null, documentStore, configuration).Dispose();
             }
