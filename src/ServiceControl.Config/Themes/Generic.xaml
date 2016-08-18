@@ -33,7 +33,6 @@
                             Background="{TemplateBinding Background}"
                             BorderThickness="0"
                             Padding="{TemplateBinding Padding}">
-
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto" />
@@ -144,6 +143,16 @@
                 <ColumnDefinition />
                 <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
+            <Border Grid.ColumnSpan="2"
+                    Background="Transparent"
+                    BorderThickness="0" />
+
+            <Path x:Name="Arrow"
+                  Grid.Column="1"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Data="M 0 0 L 5 5 L 10 0 Z"
+                  Fill="{StaticResource ThemeBrush}" />
             <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
                     <VisualState x:Name="Normal" />
@@ -163,16 +172,6 @@
                     <VisualState x:Name="Indeterminate" />
                 </VisualStateGroup>
             </VisualStateManager.VisualStateGroups>
-            <Border Grid.ColumnSpan="2"
-                    Background="Transparent"
-                    BorderThickness="0" />
-
-            <Path x:Name="Arrow"
-                  Grid.Column="1"
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Center"
-                  Data="M 0 0 L 5 5 L 10 0 Z"
-                  Fill="{StaticResource ThemeBrush}" />
         </Grid>
     </ControlTemplate>
 
@@ -205,8 +204,8 @@
                             BorderThickness="0"
                             Padding="{TemplateBinding Padding}">
                         <Grid HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                          TextElement.FontSize="14">
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              TextElement.FontSize="14">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto" />
                                 <RowDefinition Height="*" />
@@ -215,6 +214,105 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Row="0"
+                                       FontSize="13px"
+                                       Foreground="{StaticResource Gray60Brush}"
+                                       Text="{TemplateBinding Header}" />
+                            <Border x:Name="Border"
+                                    Grid.Row="1"
+                                    MinWidth="200"
+                                    HorizontalAlignment="Left"
+                                    Background="{StaticResource WhiteBrush}"
+                                    BorderThickness="1">
+                                <Border.BorderBrush>
+                                    <SolidColorBrush x:Name="borderBrush" Color="{StaticResource Gray70Color}" />
+                                </Border.BorderBrush>
+                            </Border>
+                            <ContentPresenter x:Name="ContentSite"
+                                              Grid.Row="1"
+                                              Margin="3,3,23,3"
+                                              HorizontalAlignment="Left"
+                                              VerticalAlignment="Stretch"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              IsHitTestVisible="False" />
+                            <TextBox x:Name="PART_EditableTextBox"
+                                     Grid.Row="1"
+                                     Margin="3,3,23,3"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Bottom"
+                                     Background="Transparent"
+                                     Focusable="True"
+                                     IsReadOnly="{TemplateBinding IsReadOnly}"
+                                     Style="{x:Null}"
+                                     Template="{StaticResource FormComboBoxTextBox}"
+                                     Visibility="Hidden" />
+                            <Popup x:Name="Popup"
+                                   Grid.Row="1"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   HorizontalOffset="-3"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom"
+                                   PlacementTarget="{Binding ElementName=PART_EditableTextBox}"
+                                   PopupAnimation="Slide"
+                                   VerticalOffset="3">
+                                <Grid x:Name="DropDown"
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                      SnapsToDevicePixels="True">
+                                    <Border x:Name="DropDownBorder"
+                                            Background="{StaticResource WhiteBrush}"
+                                            BorderBrush="{StaticResource Gray70Brush}"
+                                            BorderThickness="1" />
+
+                                    <ScrollViewer SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                            <ToggleButton x:Name="ToggleButton"
+                                          Grid.Row="1"
+                                          MinWidth="200"
+                                          HorizontalAlignment="Left"
+                                          ClickMode="Press"
+                                          Focusable="false"
+                                          IsChecked="{Binding IsDropDownOpen,
+                                                              Mode=TwoWay,
+                                                              RelativeSource={RelativeSource TemplatedParent}}"
+                                          Template="{StaticResource FormComboBoxToggleButton}" />
+                            <StackPanel Grid.Row="2">
+                                <StackPanel Orientation="Horizontal" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Validation.HasError), Converter={StaticResource boolToVis}}">
+                                    <Control Width="16"
+                                             Height="16"
+                                             Margin="5,0,0,0"
+                                             Foreground="{StaticResource ErrorBrush}"
+                                             Template="{StaticResource WarningIcon}" />
+
+                                    <TextBlock Margin="5,0,0,0"
+                                               FontSize="13px"
+                                               Foreground="{StaticResource ErrorBrush}"
+                                               Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=(Validation.Errors).CurrentItem.ErrorContent}" />
+                                </StackPanel>
+                                <DockPanel Dock="Bottom" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Warning), Converter={StaticResource nullOrEmptyToVis}}">
+                                    <Control x:Name="errorIcon"
+                                             Width="16"
+                                             Height="16"
+                                             Margin="5,0,0,0"
+                                             Foreground="{StaticResource WarningBrush}"
+                                             Template="{StaticResource WarningIcon}" />
+
+                                    <TextBlock x:Name="warningElement"
+                                               Margin="5,0,0,0"
+                                               FontSize="13px"
+                                               Foreground="{StaticResource DarkWarningBrush}"
+                                               Text="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=(Warning)}"
+                                               TextWrapping="Wrap" />
+                                </DockPanel>
+                            </StackPanel>
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup x:Name="CommonStates">
                                     <VisualState x:Name="Normal" />
@@ -268,104 +366,6 @@
                                     <VisualState x:Name="Unfocused" />
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
-                            <TextBlock Grid.Row="0"
-                                   FontSize="13px"
-                                   Foreground="{StaticResource Gray60Brush}"
-                                   Text="{TemplateBinding Header}" />
-                            <Border x:Name="Border"
-                                Grid.Row="1"
-                                MinWidth="200"
-                                HorizontalAlignment="Left"
-                                Background="{StaticResource WhiteBrush}"
-                                BorderThickness="1">
-                                <Border.BorderBrush>
-                                    <SolidColorBrush x:Name="borderBrush" Color="{StaticResource Gray70Color}" />
-                                </Border.BorderBrush>
-                            </Border>
-                            <ContentPresenter x:Name="ContentSite"
-                                          Grid.Row="1"
-                                          Margin="3,3,23,3"
-                                          HorizontalAlignment="Left"
-                                          VerticalAlignment="Stretch"
-                                          Content="{TemplateBinding SelectionBoxItem}"
-                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                          ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                                          IsHitTestVisible="False" />
-                            <TextBox x:Name="PART_EditableTextBox"
-                                 Grid.Row="1"
-                                 Margin="3,3,23,3"
-                                 HorizontalAlignment="Left"
-                                 VerticalAlignment="Bottom"
-                                 Background="Transparent"
-                                 Focusable="True"
-                                 IsReadOnly="{TemplateBinding IsReadOnly}"
-                                 Style="{x:Null}"
-                                 Template="{StaticResource FormComboBoxTextBox}"
-                                 Visibility="Hidden" />
-                            <Popup x:Name="Popup"
-                               Grid.Row="1"
-                               AllowsTransparency="True"
-                               Focusable="False"
-                               HorizontalOffset="-3"
-                               IsOpen="{TemplateBinding IsDropDownOpen}"
-                               Placement="Bottom"
-                               PlacementTarget="{Binding ElementName=PART_EditableTextBox}"
-                               PopupAnimation="Slide"
-                               VerticalOffset="3">
-                                <Grid x:Name="DropDown"
-                                  MinWidth="{TemplateBinding ActualWidth}"
-                                  MaxHeight="{TemplateBinding MaxDropDownHeight}"
-                                  SnapsToDevicePixels="True">
-                                    <Border x:Name="DropDownBorder"
-                                        Background="{StaticResource WhiteBrush}"
-                                        BorderBrush="{StaticResource Gray70Brush}"
-                                        BorderThickness="1" />
-
-                                    <ScrollViewer SnapsToDevicePixels="True">
-                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
-                                    </ScrollViewer>
-                                </Grid>
-                            </Popup>
-                            <ToggleButton x:Name="ToggleButton"
-                                      Grid.Row="1"
-                                      MinWidth="200"
-                                      HorizontalAlignment="Left"
-                                      ClickMode="Press"
-                                      Focusable="false"
-                                      IsChecked="{Binding IsDropDownOpen,
-                                                          Mode=TwoWay,
-                                                          RelativeSource={RelativeSource TemplatedParent}}"
-                                      Template="{StaticResource FormComboBoxToggleButton}" />
-                            <StackPanel Grid.Row="2">
-                                <StackPanel Orientation="Horizontal" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Validation.HasError), Converter={StaticResource boolToVis}}">
-                                    <Control Width="16"
-                                         Height="16"
-                                         Margin="5,0,0,0"
-                                         Foreground="{StaticResource ErrorBrush}"
-                                         Template="{StaticResource WarningIcon}" />
-
-                                    <TextBlock Margin="5,0,0,0"
-                                           FontSize="13px"
-                                           Foreground="{StaticResource ErrorBrush}"
-                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Validation.Errors).CurrentItem.ErrorContent}" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(Warning), Converter={StaticResource nullOrEmptyToVis}}">
-                                    <Control x:Name="errorIcon"
-                                         Width="16"
-                                         Height="16"
-                                         Margin="5,0,0,0"
-                                         Foreground="{StaticResource WarningBrush}"
-                                         Template="{StaticResource WarningIcon}" />
-
-                                    <TextBlock x:Name="warningElement"
-                                           Margin="5,0,0,0"
-                                           FontSize="13px"
-                                           Foreground="{StaticResource WarningBrush}"
-                                           Text="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                          Path=(Warning)}" />
-                                </StackPanel>
-                            </StackPanel>
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -414,50 +414,6 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="auto" />
                         </Grid.ColumnDefinitions>
-
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup x:Name="CommonStates">
-                                <VisualState x:Name="Normal" />
-                                <VisualState x:Name="Disabled">
-                                    <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="border" Storyboard.TargetProperty="BorderBrush">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource Gray80Brush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </VisualState>
-                                <VisualState x:Name="ReadOnly" />
-                                <VisualState x:Name="MouseOver" />
-                            </VisualStateGroup>
-
-                            <VisualStateGroup x:Name="FocusStates">
-                                <VisualState x:Name="Focused">
-                                    <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="border" Storyboard.TargetProperty="BorderBrush">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource ThemeBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </VisualState>
-                                <VisualState x:Name="Unfocused" />
-                            </VisualStateGroup>
-
-                            <VisualStateGroup x:Name="ValidationStates">
-                                <VisualState x:Name="Valid" />
-                                <VisualState x:Name="InvalidFocused">
-                                    <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="border" Storyboard.TargetProperty="BorderBrush">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource ErrorBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </VisualState>
-                                <VisualState x:Name="InvalidUnfocused">
-                                    <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="border" Storyboard.TargetProperty="BorderBrush">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource ErrorBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </VisualState>
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
 
                         <TextBlock Grid.Row="0"
                                    Grid.Column="0"
@@ -516,6 +472,50 @@
                                                           Path=(Warning)}" />
                             </StackPanel>
                         </StackPanel>
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="Disabled">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="border" Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource Gray80Brush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="ReadOnly" />
+                                <VisualState x:Name="MouseOver" />
+                            </VisualStateGroup>
+
+                            <VisualStateGroup x:Name="FocusStates">
+                                <VisualState x:Name="Focused">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="border" Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource ThemeBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Unfocused" />
+                            </VisualStateGroup>
+
+                            <VisualStateGroup x:Name="ValidationStates">
+                                <VisualState x:Name="Valid" />
+                                <VisualState x:Name="InvalidFocused">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="border" Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource ErrorBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="InvalidUnfocused">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="border" Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource ErrorBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -545,7 +545,6 @@
                             Background="{TemplateBinding Background}"
                             BorderThickness="0"
                             Padding="{TemplateBinding Padding}">
-
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto" />
@@ -738,14 +737,24 @@
                                             FocusVisualStyle="{x:Null}"
                                             Foreground="{TemplateBinding Foreground}"
                                             KeyboardNavigation.TabNavigation="None"
+                                            LargeChange="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                                  Path=LargeChange,
+                                                                  Mode=TwoWay}"
+                                            Maximum="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=Maximum,
+                                                              Mode=TwoWay}"
+                                            Minimum="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Path=Minimum,
+                                                              Mode=TwoWay}"
                                             Padding="10,5"
+                                            SmallChange="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                                  Path=SmallChange,
+                                                                  Mode=TwoWay}"
                                             SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
                                             Validation.ErrorTemplate="{x:Null}"
-                                            Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Value, Mode=TwoWay}"
-                                            Maximum="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Maximum, Mode=TwoWay}"
-                                            Minimum="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Minimum, Mode=TwoWay}"
-                                            SmallChange="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SmallChange, Mode=TwoWay}"
-                                            LargeChange="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=LargeChange, Mode=TwoWay}" />
+                                            Value="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                            Path=Value,
+                                                            Mode=TwoWay}" />
 
                                     <Button x:Name="PART_SliderUp"
                                             Grid.Column="2"

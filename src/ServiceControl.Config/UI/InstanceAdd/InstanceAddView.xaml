@@ -49,9 +49,12 @@
                             <controls:FormPasswordBox Grid.Row="2"
                                                       Header="PASSWORD"
                                                       Text="{Binding Password}"
-                                                      Visibility="{Binding PasswordEnabled, Converter={StaticResource boolToVis}}"
-                                                      />
-                            <TextBlock Grid.Row="2" Visibility="{Binding ManagedAccount, Converter={StaticResource boolToVis}}" Text="No password is required for an AD Group Managed Service Account" />
+                                                      Visibility="{Binding PasswordEnabled,
+                                                                           Converter={StaticResource boolToVis}}" />
+                            <TextBlock Grid.Row="2"
+                                       Text="No password is required for an AD Group Managed Service Account"
+                                       Visibility="{Binding ManagedAccount,
+                                                            Converter={StaticResource boolToVis}}" />
                         </Grid>
                     </StackPanel>
                 </GroupBox>
@@ -158,7 +161,8 @@
                                        DisplayMemberPath="Name"
                                        Header="ERROR FORWARDING"
                                        ItemsSource="{Binding ErrorForwardingOptions}"
-                                       SelectedValue="{Binding ErrorForwarding}" />
+                                       SelectedValue="{Binding ErrorForwarding}"
+                                       Warning="If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled." />
 
                 <controls:FormTextBox Header="ERROR FORWARDING QUEUE NAME" Text="{Binding ErrorForwardingQueueName}" />
                 <controls:FormTextBox Header="AUDIT QUEUE NAME" Text="{Binding AuditQueueName}" />
@@ -166,7 +170,8 @@
                                        DisplayMemberPath="Name"
                                        Header="AUDIT FORWARDING"
                                        ItemsSource="{Binding AuditForwardingOptions}"
-                                       SelectedValue="{Binding AuditForwarding}" />
+                                       SelectedValue="{Binding AuditForwarding}"
+                                       Warning="If you do not have a tool processing messages from the Audit Forwarding Queue this setting should be disabled." />
                 <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME"
                                       Text="{Binding AuditForwardingQueueName}"
                                       ToolTip="The audit forwarding queue will be created even if Audit Forwarding is not enabled." />
