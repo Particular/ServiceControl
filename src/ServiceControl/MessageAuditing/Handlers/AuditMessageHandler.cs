@@ -6,13 +6,22 @@
 
     class AuditMessageHandler : IHandleMessages<ImportSuccessfullyProcessedMessage>
     {
-        public IDocumentSession Session { get; set; }
+        private readonly IDocumentStore store;
+
+        public AuditMessageHandler(IDocumentStore store)
+        {
+            this.store = store;
+        }
 
         public void Handle(ImportSuccessfullyProcessedMessage message)
         {
             var auditMessage = new ProcessedMessage(message);
 
-            Session.Store(auditMessage);
+            using (var session = store.OpenSession())
+            {
+                session.Store(auditMessage);
+                session.SaveChanges();
+            }
         }
 
     }
