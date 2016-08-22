@@ -1,26 +1,31 @@
 ﻿namespace ServiceControl.Config.UI.AdvancedOptions
 {
+    using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
     using System.Windows.Input;
     using Caliburn.Micro;
     using HttpApiWrapper;
+    using PropertyChanged;
     using ReactiveUI;
     using ServiceControl.Config.Events;
     using ServiceControl.Config.Framework.Rx;
+
     using ServiceControlInstaller.Engine.Instances;
 
     class CertificateDialogViewModel : RxScreen
     {
         private IEventAggregator eventAggregator;
 
-        public class X509Summary
-        {
-            public string FriendlyName { get; set; }
-            public string Subject { get; set; }
-            public string Thumbprint { get; set; }
-        }
+        public Dictionary<string, string> X509Summary { get; set; }
 
-        public X509Summary CertificateInfo { get; set; }
+        [AlsoNotifyFor(nameof(X509Summary))]
+        public bool NoX509Summary => X509Summary == null;
+
+        [AlsoNotifyFor(nameof(X509Summary))]
+        public bool X509SummaryHasData => X509Summary != null;
+
+        public bool IsDirty { get; set; }
+
         public ServiceControlInstance Instance;
 
         public CertificateDialogViewModel(IEventAggregator eventAggregator, ServiceControlInstance serviceControlInstance)
@@ -42,13 +47,14 @@
                         var selectedCertificateCollection = X509Certificate2UI.SelectFromCollection(store.Certificates, "Certificate", "Choose a certificate", X509SelectionFlag.SingleSelection);
                         if (selectedCertificateCollection.Count == 1)
                         {
+                            IsDirty = true;
                             SslCert.MigrateToHttps(Instance.AclUrl, selectedCertificateCollection[0].GetCertHash());
                         }
                     }
                     finally
                     {
                         store.Close();
-                        CertificateInfo = RetrieveCertInfo();
+                        RetrieveCertInfo();
                         eventAggregator.PublishOnUIThread(new RefreshInstances());
                     }
                 });
@@ -61,8 +67,9 @@
             {
                 return new ReactiveCommand().DoAction(obj =>
                 {
+                    IsDirty = true;
                     SslCert.MigrateToHttp(Instance.AclUrl);
-                    CertificateInfo = RetrieveCertInfo();
+                    RetrieveCertInfo();
                     eventAggregator.PublishOnUIThread(new RefreshInstances());
                 });
             }
@@ -78,36 +85,40 @@
 
         protected override void OnActivate()
         {
-           CertificateInfo = RetrieveCertInfo();
+           RetrieveCertInfo();
         }
 
-        X509Summary RetrieveCertInfo()
+        void RetrieveCertInfo()
         {
-            var thumbPrint = SslCert.GetThumbprint(Instance.Port);
-            if (thumbPrint == null)
-                return null;
+            var thumbprint = SslCert.GetThumbprint(Instance.Port);
+            if (thumbprint == null)
+            {
+                X509Summary = null;
+                return;
+            }
 
             var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
             try
             {
                 store.Open(OpenFlags.ReadOnly);
-                var selectedCertificateCollection = store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, false);
+                var selectedCertificateCollection = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
                 if (selectedCertificateCollection.Count == 1)
                 {
                     var cert = selectedCertificateCollection[0];
-                    return new X509Summary
+                    X509Summary = new Dictionary<string, string>()
                     {
-                        FriendlyName = cert.FriendlyName,
-                        Subject = cert.Subject,
-                        Thumbprint = cert.Thumbprint
+                        {"Friendly Name", cert.FriendlyName},
+                        {"Issuer", cert.GetNameInfo(X509NameType.SimpleName, true) },
+                        {"Valid From", $"{cert.NotBefore.ToString("d")} to {cert.NotAfter.ToString("d")}"},
+                        {"Thumbprint", cert.Thumbprint}
                     };
                 }
                 else
                 {
-                    return new X509Summary
+                    X509Summary = new Dictionary<string, string>()
                     {
-                        FriendlyName = "<Missing Certificate!>",
-                        Thumbprint = thumbPrint
+                        {"Status", "This certificate was not found in the Certificate store" },
+                        {"Thumbprint", thumbprint},
                     };
                 }
             }

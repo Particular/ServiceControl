@@ -10,19 +10,18 @@
                       Padding="0"
                       ResizeMode="NoResize"
                       WindowStartupLocation="CenterOwner"
+                      Background="{StaticResource Gray10Brush}"
+                      Foreground="{StaticResource WhiteBrush}"
                       mc:Ignorable="d">
 
-    <!-- Background="{StaticResource Gray10Brush}"
-         Foreground="{StaticResource WhiteBrush}"
-     -->
     <controls:CleanWindow.Resources>
         <Style TargetType="{x:Type TextBlock}">
             <Setter Property="FontSize" Value="12" />
-            <!--  <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" /> -->
+            <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
         </Style>
         <Style TargetType="{x:Type Label}">
             <Setter Property="FontSize" Value="12" />
-            <!--  <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" /> -->
+            <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
         </Style>
         <Style TargetType="{x:Type GroupBox}">
             <Setter Property="HeaderTemplate">
@@ -42,7 +41,7 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="10" />
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
@@ -59,32 +58,45 @@
 
         <StackPanel Grid.Row="2" Orientation="Vertical">
 
-            <GroupBox Header="Friendly Name">
-                <Border BorderBrush="{StaticResource Gray70Brush}" BorderThickness="0,0,0,1">
-                    <TextBlock Text="{Binding CertificateInfo.FriendlyName}"/>
-                </Border>
-            </GroupBox>
+            <ItemsControl Margin="0,20,0,0"
+                      VerticalAlignment="Top"
+                      ItemsSource="{Binding Path=X509Summary}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                   Margin="5,5"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Text="{Binding Path=Key}" />
+                            <TextBlock Grid.Column="1"
+                                   Margin="5,5"
+                                   FontSize="12"
+                                   Foreground="{StaticResource Gray90Brush}"
+                                   Text="{Binding Path=Value}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-            <GroupBox Header="Subject">
-                <Border BorderBrush="{StaticResource Gray70Brush}" BorderThickness="0,0,0,1">
-                    <TextBlock Text="{Binding CertificateInfo.Subject}"/>
-                </Border>
-            </GroupBox>
-
-            <GroupBox Header="Thumbprint">
-                <Border BorderBrush="{StaticResource Gray70Brush}" BorderThickness="0,0,0,1">
-                    <TextBlock Text="{Binding CertificateInfo.Thumbprint}"/>
-                </Border>
-            </GroupBox>
+            <TextBlock Visibility="{Binding NoX509Summary, Converter={StaticResource boolToVis}}"
+                       Text="Click Change to select a Certificate"
+            />
         </StackPanel>
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Change"
                             Padding="10,10"
                             Command="{Binding ApplyCertificateCommand}"
+                            Style="{StaticResource HiliteButton}"
                             />
             <Button Content="Clear"
                             Padding="10,10"
                             Command="{Binding RemoveCertificateCommand}"
+                            IsEnabled="{Binding X509SummaryHasData}"
                             />
             <Button Content="Close"
                             Padding="10,10"
