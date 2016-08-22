@@ -89,18 +89,24 @@
         </StackPanel>
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Change"
+                            Margin="5,0,0,0"
                             Padding="10,10"
                             Command="{Binding ApplyCertificateCommand}"
                             Style="{StaticResource HiliteButton}"
+                            Width="100"
                             />
             <Button Content="Clear"
+                            Margin="5,0,0,0"
                             Padding="10,10"
                             Command="{Binding RemoveCertificateCommand}"
                             IsEnabled="{Binding X509SummaryHasData}"
+                            Width="100"
                             />
             <Button Content="Close"
+                            Margin="5,0,0,0"
                             Padding="10,10"
                             Command="{Binding ExitCommand}"
+                            Width="100"
                             />
 
         </StackPanel>
