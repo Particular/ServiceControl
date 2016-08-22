@@ -21,13 +21,32 @@
 
     public class ErrorQueueImport : IAdvancedSatellite, IDisposable
     {
-        public ISendMessages Forwarder { get; set; }
-        public IBuilder Builder { get; set; }
-        public PipelineExecutor PipelineExecutor { get; set; }
-        public LogicalMessageFactory LogicalMessageFactory { get; set; }
-        public CriticalError CriticalError { get; set; }
-        public LoggingSettings LoggingSettings { get; set; }
-        public Settings Settings { get; set; }
+        static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
+
+        private readonly IBuilder builder;
+        private readonly ISendMessages forwarder;
+        private readonly PipelineExecutor pipelineExecutor;
+        private readonly LogicalMessageFactory logicalMessageFactory;
+        private readonly CriticalError criticalError;
+        private readonly LoggingSettings loggingSettings;
+        private readonly Settings settings;
+        private IEnumerable<Type> behaviors;
+        private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
+        private IEnumerable<IEnrichImportedMessages> enrichers;
+
+        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, PipelineExecutor pipelineExecutor, LogicalMessageFactory logicalMessageFactory, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings)
+        {
+            this.builder = builder;
+            this.forwarder = forwarder;
+            this.pipelineExecutor = pipelineExecutor;
+            this.logicalMessageFactory = logicalMessageFactory;
+            this.criticalError = criticalError;
+            this.loggingSettings = loggingSettings;
+            this.settings = settings;
+
+            behaviors = behavioursToAddFirst.Concat(pipelineExecutor.Incoming.SkipWhile(r => r.StepId != WellKnownStep.LoadHandlers).Select(r => r.BehaviorType));
+            enrichers = builder.BuildAll<IEnrichImportedMessages>();
+        }
 
         public bool Handle(TransportMessage message)
         {
@@ -40,36 +59,31 @@
         {
             var errorMessageReceived = new ImportFailedMessage(message);
 
-            using (var childBuilder = Builder.CreateChildBuilder())
+            using (var childBuilder = builder.CreateChildBuilder())
             {
-                PipelineExecutor.CurrentContext.Set(childBuilder);
+                pipelineExecutor.CurrentContext.Set(childBuilder);
 
-                foreach (var enricher in childBuilder.BuildAll<IEnrichImportedMessages>())
+                foreach (var enricher in enrichers)
                 {
                     enricher.Enrich(errorMessageReceived);
                 }
 
-                var logicalMessage = LogicalMessageFactory.Create(errorMessageReceived);
+                var logicalMessage = logicalMessageFactory.Create(errorMessageReceived);
 
-                var context = new IncomingContext(PipelineExecutor.CurrentContext, message)
+                var context = new IncomingContext(pipelineExecutor.CurrentContext, message)
                 {
-                    LogicalMessages = new List<LogicalMessage>
-                    {
-                        logicalMessage
-                    },
                     IncomingLogicalMessage = logicalMessage
                 };
+                context.LogicalMessages.Add(logicalMessage);
 
                 context.Set("NServiceBus.CallbackInvocationBehavior.CallbackWasInvoked", false);
                
-                var behaviors = behavioursToAddFirst.Concat(PipelineExecutor.Incoming.SkipWhile(r => r.StepId != WellKnownStep.LoadHandlers).Select(r => r.BehaviorType));
-
-                PipelineExecutor.InvokePipeline(behaviors, context);
+                pipelineExecutor.InvokePipeline(behaviors, context);
             }
-            if (Settings.ForwardErrorMessages)
+            if (settings.ForwardErrorMessages)
             {
                 TransportMessageCleaner.CleanForForwarding(message);
-                Forwarder.Send(message, new SendOptions(Settings.ErrorLogQueue));
+                forwarder.Send(message, new SendOptions(settings.ErrorLogQueue));
             }
         }
 
@@ -87,24 +101,24 @@
         {
         }
 
-        public Address InputAddress => Settings.ErrorQueue;
+        public Address InputAddress => settings.ErrorQueue;
 
         public bool Disabled => InputAddress == Address.Undefined;
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
-            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(Builder.Build<IDocumentStore>(),
-                Path.Combine(LoggingSettings.LogPath, @"FailedImports\Error"), tm => new FailedErrorImport
+            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(builder.Build<IDocumentStore>(),
+                Path.Combine(loggingSettings.LogPath, @"FailedImports\Error"), tm => new FailedErrorImport
                 {
                     Message = tm,
-                }, CriticalError);
+                }, criticalError);
 
             return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
         }
 
         bool TerminateIfForwardingQueueNotWritable()
         {
-            if (!Settings.ForwardErrorMessages)
+            if (!settings.ForwardErrorMessages)
             {
                 return false;
             }
@@ -113,12 +127,12 @@
             {
                 //Send a message to test the forwarding queue
                 var testMessage = new TransportMessage(Guid.Empty.ToString("N"), new Dictionary<string, string>());
-                Forwarder.Send(testMessage, new SendOptions(Settings.ErrorLogQueue));
+                forwarder.Send(testMessage, new SendOptions(settings.ErrorLogQueue));
                 return false;
             }
             catch (Exception messageForwardingException)
             {
-                CriticalError.Raise("Error Import cannot start", messageForwardingException);
+                criticalError.Raise("Error Import cannot start", messageForwardingException);
                 return true;
             }
         }
@@ -127,9 +141,5 @@
         {
             satelliteImportFailuresHandler?.Dispose();
         }
-
-        SatelliteImportFailuresHandler satelliteImportFailuresHandler;
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
     }
 }
