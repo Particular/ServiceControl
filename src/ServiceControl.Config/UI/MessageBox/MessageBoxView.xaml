@@ -56,7 +56,9 @@
                         Content="Cancel"
                         FontSize="14"
                         IsCancel="True"
-                        Padding="0" />
+                        Padding="0"
+                        Visibility="{Binding HideCancel, Converter={StaticResource boolToVisInverted}}"
+                        />
             </StackPanel>
         </Grid>
     </Grid>
