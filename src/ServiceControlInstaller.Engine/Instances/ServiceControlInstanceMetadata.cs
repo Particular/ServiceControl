@@ -10,13 +10,14 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Security.Principal;
     using System.Xml;
     using System.Xml.Serialization;
+    using HttpApiWrapper;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Queues;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
-    using ServiceControlInstaller.Engine.UrlAcl;
+
     using ServiceControlInstaller.Engine.Validation;
 
     public class ServiceControlInstanceMetadata : IServiceControlInstance
@@ -43,10 +44,16 @@ namespace ServiceControlInstaller.Engine.Instances
 
         [XmlIgnore]
         public Version Version { get; set; }
+
+        [XmlIgnore]
+        public string Protocol =>  SslCert.GetThumbprint(Port) == null ? "http" : "https";
+
         [XmlIgnore]
         public string ServiceAccount { get; set; }
+
         [XmlIgnore]
         public string ServiceAccountPwd { get; set; }
+
         [XmlIgnore]
         public ReportCard ReportCard { get; set; }
 
@@ -57,16 +64,15 @@ namespace ServiceControlInstaller.Engine.Instances
             Version = zipInfo.Version;
         }
 
-
         public string Url
         {
             get
             {
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{HostName}:{Port}/api/";
+                    return $"{Protocol}://{HostName}:{Port}/api/";
                 }
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                return $"{Protocol}://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
             }
         }
 
@@ -75,6 +81,7 @@ namespace ServiceControlInstaller.Engine.Instances
             get
             {
                 string host;
+
                 switch (HostName)
                 {
                     case "*":
@@ -87,9 +94,9 @@ namespace ServiceControlInstaller.Engine.Instances
                 }
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{host}:{Port}/storage/";
+                    return $"{Protocol}://{host}:{Port}/storage/";
                 }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
+                return $"{Protocol}://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
             }
         }
 
@@ -97,7 +104,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = $"http://{HostName}:{Port}/";
+                var baseUrl = $"{Protocol}://{HostName}:{Port}/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
                     return baseUrl;
@@ -127,7 +134,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 FileUtils.CreateDirectoryAndSetAcl(DBPath, modifyAccessRule);
             }
 
-            // Mark these directories with a flag 
+            // Mark these directories with a flag
             // These flags indicate the directory is empty check can be ignored
             // We need this because if an install screws up and doesn't complete it is ok to overwrite on a subsequent attempt
             // First run will still the check
@@ -206,7 +213,7 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 instanceData = (ServiceControlInstanceMetadata) serializer.Deserialize(stream);
             }
-            
+
             var doc = new XmlDocument();
             doc.Load(path);
             if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)

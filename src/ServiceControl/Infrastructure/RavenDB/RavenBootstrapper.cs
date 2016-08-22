@@ -38,7 +38,7 @@
 
             StartRaven(documentStore, settings);
 
-            configuration.RegisterComponents(c => 
+            configuration.RegisterComponents(c =>
                 c.ConfigureComponent(builder =>
                 {
                     var context = builder.Build<PipelineExecutor>().CurrentContext;
@@ -80,7 +80,7 @@
                 Logger.InfoFormat("Loading Embedded RavenDB license");
                 documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
             }
-            
+
             if (!settings.MaintenanceMode)
             {
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
@@ -92,6 +92,7 @@
             documentStore.Configuration.HostName = (settings.Hostname == "*" || settings.Hostname == "+")
                 ? "localhost"
                 : settings.Hostname;
+            documentStore.Configuration.UseSsl = settings.UseSsl;
             documentStore.Configuration.VirtualDirectory = settings.VirtualDirectory + "/storage";
             documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
             documentStore.Conventions.SaveEnumsAsIntegers = true;

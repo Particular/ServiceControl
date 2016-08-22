@@ -1,0 +1,96 @@
+﻿<controls:CleanWindow x:Class="ServiceControl.Config.UI.AdvancedOptions.CertificateDialogView"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls"
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      Title=""
+                      Width="400"
+                      Height="300"
+                      Padding="0"
+                      ResizeMode="NoResize"
+                      WindowStartupLocation="CenterOwner"
+                      mc:Ignorable="d">
+
+    <!-- Background="{StaticResource Gray10Brush}"
+         Foreground="{StaticResource WhiteBrush}"
+     -->
+    <controls:CleanWindow.Resources>
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="12" />
+            <!--  <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" /> -->
+        </Style>
+        <Style TargetType="{x:Type Label}">
+            <Setter Property="FontSize" Value="12" />
+            <!--  <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" /> -->
+        </Style>
+        <Style TargetType="{x:Type GroupBox}">
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <Label Content="{Binding}" FontSize="12"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderThickness" Value="0,0,0,0" />
+        </Style>
+    </controls:CleanWindow.Resources>
+
+    <Grid Margin="15,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
+                   Margin="5"
+                   Foreground="{StaticResource Gray60Brush}"
+                   VerticalAlignment="Center"
+                   Text="SSL CERTIFICATE"
+                   />
+
+        <Border Grid.Row="1"
+                Margin="-15,0"
+                BorderBrush="{StaticResource Gray20Brush}"
+                BorderThickness="0,1,0,0" />
+
+        <StackPanel Grid.Row="2" Orientation="Vertical">
+
+            <GroupBox Header="Friendly Name">
+                <Border BorderBrush="{StaticResource Gray70Brush}" BorderThickness="0,0,0,1">
+                    <TextBlock Text="{Binding CertificateInfo.FriendlyName}"/>
+                </Border>
+            </GroupBox>
+
+            <GroupBox Header="Subject">
+                <Border BorderBrush="{StaticResource Gray70Brush}" BorderThickness="0,0,0,1">
+                    <TextBlock Text="{Binding CertificateInfo.Subject}"/>
+                </Border>
+            </GroupBox>
+
+            <GroupBox Header="Thumbprint">
+                <Border BorderBrush="{StaticResource Gray70Brush}" BorderThickness="0,0,0,1">
+                    <TextBlock Text="{Binding CertificateInfo.Thumbprint}"/>
+                </Border>
+            </GroupBox>
+        </StackPanel>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Change"
+                            Padding="10,10"
+                            Command="{Binding ApplyCertificateCommand}"
+                            />
+            <Button Content="Clear"
+                            Padding="10,10"
+                            Command="{Binding RemoveCertificateCommand}"
+                            />
+            <Button Content="Close"
+                            Padding="10,10"
+                            Command="{Binding ExitCommand}"
+                            />
+
+        </StackPanel>
+    </Grid>
+</controls:CleanWindow>

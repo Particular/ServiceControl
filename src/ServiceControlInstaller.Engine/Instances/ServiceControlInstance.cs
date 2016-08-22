@@ -13,13 +13,13 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.ServiceProcess;
     using System.Threading;
     using System.Threading.Tasks;
+    using HttpApiWrapper;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Queues;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
-    using ServiceControlInstaller.Engine.UrlAcl;
     using ServiceControlInstaller.Engine.Validation;
     using TimeoutException = System.ServiceProcess.TimeoutException;
 
@@ -77,15 +77,17 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+        public string Protocol => SslCert.GetThumbprint(Port) != null ? "https" : "http";
+
         public string Url
         {
             get
             {
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{HostName}:{Port}/api/";
+                    return $"{Protocol}://{HostName}:{Port}/api/";
                 }
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                return $"{Protocol}://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
             }
         }
 
@@ -94,6 +96,7 @@ namespace ServiceControlInstaller.Engine.Instances
             get
             {
                 string host;
+
                 switch (HostName)
                 {
                     case "*":
@@ -106,9 +109,9 @@ namespace ServiceControlInstaller.Engine.Instances
                 }
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{host}:{Port}/storage/";
+                    return $"{Protocol}://{host}:{Port}/storage/";
                 }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
+                return $"{Protocol}://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
             }
         }
 
@@ -130,12 +133,12 @@ namespace ServiceControlInstaller.Engine.Instances
                         host = HostName;
                         break;
                 }
-
+              
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{host}:{Port}/api/";
+                    return $"{Protocol}://{host}:{Port}/api/";
                 }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                return $"{Protocol}://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
             }
         }
 
@@ -143,7 +146,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = $"http://{HostName}:{Port}/";
+                var baseUrl = $"{Protocol}://{HostName}:{Port}/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
                     return baseUrl;
@@ -195,7 +198,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = FindByName(Name);
-            
+
             var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
 
             var queueNamesChanged = !(string.Equals(oldSettings.AuditQueue, AuditQueue, StringComparison.OrdinalIgnoreCase)
@@ -237,7 +240,7 @@ namespace ServiceControlInstaller.Engine.Instances
             var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
             var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
             var connectionStringChanged = !string.Equals(ConnectionString, oldSettings.ConnectionString, StringComparison.Ordinal);
-            
+
             //have to save config prior to creating queues (if needed)
 
             if (queueNamesChanged || accountChanged || connectionStringChanged )
@@ -468,7 +471,7 @@ namespace ServiceControlInstaller.Engine.Instances
             File.Copy(sourcePath, configFile, true);
 
             // Ensure Transport type is correct and populate the config with common settings even if they are defaults
-            // Will not clobber other settings in the config 
+            // Will not clobber other settings in the config
             var configWriter = new ConfigurationWriter(this);
             configWriter.Validate();
             configWriter.Save();
@@ -533,7 +536,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
             catch
             {
-                //Service isn't accessible 
+                //Service isn't accessible
             }
             return true;
         }
