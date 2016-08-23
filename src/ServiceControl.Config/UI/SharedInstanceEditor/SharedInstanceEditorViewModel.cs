@@ -149,7 +149,14 @@
         public string AuditForwardingQueueName { get; set; }
 
         public ForwardingOption AuditForwarding { get; set; }
+
         public ForwardingOption ErrorForwarding { get; set; }
+
+        [AlsoNotifyFor("AuditForwarding")]
+        public string AuditForwardingWarning => (AuditForwarding != null && AuditForwarding.Value) ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
+
+        [AlsoNotifyFor("ErrorForwarding")]
+        public string ErrorForwardingWarning => (ErrorForwarding != null && ErrorForwarding.Value) ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
 
         public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;
         public int MinimumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMinInDays;
