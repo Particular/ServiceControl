@@ -1,7 +1,10 @@
 ﻿namespace ServiceControl.Config.UI.AdvancedOptions
 {
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Security.Cryptography.X509Certificates;
+    using System.Windows;
     using System.Windows.Input;
     using Caliburn.Micro;
     using HttpApiWrapper;
@@ -43,8 +46,17 @@
                     var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                     try
                     {
+                        var handle = IntPtr.Zero;
+                        foreach (var window  in Application.Current.Windows)
+                        {
+                            var view = window as CertificateDialogView;
+                            if (view == null) continue;
+                            handle = new System.Windows.Interop.WindowInteropHelper((Window) window).Handle;
+                            break;
+                        }
+
                         store.Open(OpenFlags.ReadOnly);
-                        var selectedCertificateCollection = X509Certificate2UI.SelectFromCollection(store.Certificates, "Certificate", "Choose a certificate", X509SelectionFlag.SingleSelection);
+                        var selectedCertificateCollection = X509Certificate2UI.SelectFromCollection(store.Certificates, "Certificate", "Choose a certificate", X509SelectionFlag.SingleSelection, handle);
                         if (selectedCertificateCollection.Count == 1)
                         {
                             IsDirty = true;
