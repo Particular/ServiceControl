@@ -111,6 +111,7 @@
     <Reference Include="System.Reactive.Windows.Threading">
       <HintPath>..\packages\Rx-XAML.2.2.5\lib\net45\System.Reactive.Windows.Threading.dll</HintPath>
     </Reference>
+    <Reference Include="System.Security" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
@@ -160,10 +161,14 @@
     <Compile Include="Framework\RaygunFeedback.cs" />
     <Compile Include="Framework\RaygunReporter.cs" />
     <Compile Include="Framework\Rx\RxProgressScreen.cs" />
+    <Compile Include="UI\AdvancedOptions\CertificateDialogView.xaml.cs">
+      <DependentUpon>CertificateDialogView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\AdvancedOptions\CertificateDialogViewModel.cs" />
     <Compile Include="Splash.cs" />
-    <Compile Include="UI\AdvanceOptions\AdvanceOptionsViewModel.cs" />
-    <Compile Include="UI\AdvanceOptions\AdvanceOptionsView.xaml.cs">
-      <DependentUpon>AdvanceOptionsView.xaml</DependentUpon>
+    <Compile Include="UI\AdvancedOptions\AdvancedOptionsViewModel.cs" />
+    <Compile Include="UI\AdvancedOptions\AdvancedOptionsView.xaml.cs">
+      <DependentUpon>AdvancedOptionsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\FeedBack\FeedBackViewModelValidator.cs" />
     <Compile Include="UI\MessageBox\ExceptionMessageBox.xaml.cs">
@@ -286,7 +291,11 @@
     <Compile Include="Xaml\Behaviours\BorderlessWindowBehavior.cs" />
     <Compile Include="Xaml\Behaviours\StylizedBehaviors.cs" />
     <Compile Include="Xaml\Converters\BoolToVisibilityConverter.cs" />
-    <Page Include="UI\AdvanceOptions\AdvanceOptionsView.xaml">
+    <Page Include="UI\AdvancedOptions\CertificateDialogView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\AdvancedOptions\AdvancedOptionsView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -449,6 +458,10 @@
     <Resource Include="App.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HttpSysWrapper\HttpApiWrapper.csproj">
+      <Project>{fde4e765-04ca-49d5-9ee4-8dc20cdfcfa4}</Project>
+      <Name>HttpApiWrapper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj">
       <Project>{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}</Project>
       <Name>ServiceControlInstaller.Engine</Name>

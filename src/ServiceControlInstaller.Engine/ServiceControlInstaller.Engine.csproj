@@ -96,6 +96,7 @@
     <Compile Include="Configuration\SettingConstants.cs" />
     <Compile Include="Configuration\SettingList.cs" />
     <Compile Include="Configuration\SettingInfo.cs" />
+    <Compile Include="Extensions\ByteArrayExtensions.cs" />
     <Compile Include="Instances\InstanceUpgradeOptions.cs" />
     <Compile Include="Queues\ServiceControlQueueCreationException.cs" />
     <Compile Include="Queues\ServiceControlQueueCreationTimeoutException.cs" />
@@ -138,26 +139,14 @@
     <Compile Include="Services\WindowsServiceController.cs" />
     <Compile Include="Services\WindowsServiceDetails.cs" />
     <Compile Include="Unattended\UnattendInstaller.cs" />
-    <Compile Include="UrlAcl\Api\ErrorCode.cs" />
-    <Compile Include="UrlAcl\Api\HttpApi.cs" />
-    <Compile Include="UrlAcl\Api\HttpApiConstants.cs" />
-    <Compile Include="UrlAcl\Api\HttpApiVersion.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigId.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigIPListenParam.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigIPListenQuery.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigQueryType.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigSslKey.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigSslParam.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigSslQuery.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigSslSet.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigUrlAclKey.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigUrlAclParam.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigUrlAclQuery.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigUrlAclSet.cs" />
-    <Compile Include="UrlAcl\UrlReservation.cs" />
     <Compile Include="Validation\ServiceAccountValidation.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\HttpSysWrapper\HttpApiWrapper.csproj">
+      <Project>{fde4e765-04ca-49d5-9ee4-8dc20cdfcfa4}</Project>
+      <Name>HttpApiWrapper</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

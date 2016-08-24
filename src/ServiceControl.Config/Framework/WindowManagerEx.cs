@@ -19,7 +19,7 @@ namespace ServiceControl.Config.Framework
 
         bool? ShowOverlayDialog(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
 
-        bool ShowMessage(string title, string message, string acceptText = "Ok");
+        bool ShowMessage(string title, string message, string acceptText = "Ok", bool hideCancel = false);
 
         bool? ShowYesNoCancelDialog(string title, string message, string question, string yesText, string noText);
 
@@ -84,9 +84,9 @@ namespace ServiceControl.Config.Framework
             return screen.Result;
         }
 
-        public bool ShowMessage(string title, string message, string acceptText = "Ok")
+        public bool ShowMessage(string title, string message, string acceptText = "Ok", bool hideCancel = false)
         {
-            var messageBox = new MessageBoxViewModel(title, message, acceptText);
+            var messageBox = new MessageBoxViewModel(title, message, acceptText, hideCancel);
             var result = ShowOverlayDialog(messageBox);
             return result ?? false;
         }

@@ -3,7 +3,7 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System.Management.Automation;
-    using ServiceControlInstaller.Engine.UrlAcl;
+    using HttpApiWrapper;
 
     [Cmdlet(VerbsCommon.Remove, "UrlAcl")]
     public class RemoveUrlAcl : PSCmdlet
@@ -21,7 +21,7 @@ namespace ServiceControlInstaller.PowerShell
         {
             foreach (var entry in UrlAcl)
             {
-                UrlReservation.Delete(entry);    
+                UrlReservation.Delete(entry);   
             }
         }
     }

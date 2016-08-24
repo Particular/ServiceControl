@@ -60,7 +60,7 @@
             settings.Set(SettingsList.AuditLogQueue, details.AuditLogQueue);
             settings.Set(SettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(SettingsList.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
-
+            
             // Add Settings for performance tuning 
             // See https://github.com/Particular/ServiceControl/issues/655
             if (!settings.AllKeys.Contains("Raven/Esent/MaxVerPages"))
