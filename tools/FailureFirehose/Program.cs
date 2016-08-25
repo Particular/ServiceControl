@@ -72,7 +72,7 @@ namespace FailureFirehose
             Console.WriteLine("Press Ctrl+C to exit");
 
             Task.Run(action, CancellationToken.None).GetAwaiter().GetResult();
-               
+
         }
 
         private static void ExecuteRestAPI(CancellationToken token)
@@ -137,7 +137,7 @@ namespace FailureFirehose
                     var stopwatch = new Stopwatch();
 
                     stopwatch.Start();
-                    var failureThreashold = (int)(total * (FAILURE_PERCENTAGE / 100m));
+                    var failureThreshold = (int)(total * (FAILURE_PERCENTAGE / 100m));
 
                     Parallel.For(0, total, i =>
                     {
@@ -149,7 +149,7 @@ namespace FailureFirehose
                                 performSomeTaskThatFails = new PerformSomeTaskThatFails
                                 {
                                     Id = i,
-                                    FailureThreashold = failureThreashold,
+                                    FailureThreshold = failureThreshold,
                                     Body = new string(p, 0, rnd.Next(MIM_BODY_SIZE, MAX_BODY_SIZE)) // Saving on memory allocations by using a pointer
                                 };
                             }
@@ -220,14 +220,14 @@ namespace FailureFirehose
     {
         public int Id { get; set; }
         public string Body { get; set; }
-        public int FailureThreashold { get; set; }
+        public int FailureThreshold { get; set; }
     }
 
     public class FailingHandler : IHandleMessages<PerformSomeTaskThatFails>
     {
         public void Handle(PerformSomeTaskThatFails message)
         {
-            if (message.Id < message.FailureThreashold)
+            if (message.Id < message.FailureThreshold)
             {
                 switch (message.Id % 4)
                 {
