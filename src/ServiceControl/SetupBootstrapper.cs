@@ -1,9 +1,11 @@
 namespace Particular.ServiceControl
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Net;
     using System.Net.Http;
+    using System.Security.Principal;
     using System.Text;
     using System.Threading;
     using Autofac;
@@ -12,16 +14,18 @@ namespace Particular.ServiceControl
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using Raven.Abstractions.Connection;
+    using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Client.Document;
     using Raven.Client.Indexes;
+    using Raven.Json.Linq;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class SetupBootstrapper
     {
-        private readonly Settings settings;
         private readonly HttpMessageHandler handler;
+        private readonly Settings settings;
 
         public SetupBootstrapper(Settings settings, HttpMessageHandler handler = null)
         {
@@ -98,91 +102,127 @@ namespace Particular.ServiceControl
 
         public void CreateDatabase(string username)
         {
-            //var documentStore = new DocumentStore
-            //{
-            //    Url = settings.StorageUrl,
-            //    Credentials = CredentialCache.DefaultNetworkCredentials
-            //};
+            var documentStore = new DocumentStore
+            {
+                Url = settings.StorageUrl,
+                Credentials = CredentialCache.DefaultNetworkCredentials
+            };
 
-            //if (handler != null)
-            //{
-            //    documentStore.HttpMessageHandlerFactory = () => handler;
-            //} 
+            if (handler != null)
+            {
+                documentStore.HttpMessageHandlerFactory = () => handler;
+            }
 
-            //using (documentStore.Initialize())
-            //{
-            //    try
-            //    {
-            //        Console.Out.WriteLine("Creating database...");
+            using (documentStore.Initialize())
+            {
+                try
+                {
+                    Console.Out.WriteLine("Creating database...");
 
-            //        documentStore.DatabaseCommands.GlobalAdmin.CreateDatabase(new DatabaseDocument
-            //        {
-            //            Id = "ServiceControl",
-            //            Settings =
-            //            {
-            //                {"Raven/StorageTypeName", InMemoryRavenConfiguration.VoronTypeName},
-            //                {"Raven/DataDir", Path.Combine(settings.DbPath, "Databases", "ServiceControl")},
-            //                {"Raven/Counters/DataDir", Path.Combine(settings.DbPath, "Data", "Counters")},
-            //                {"Raven/WebDir", Path.Combine(settings.DbPath, "Raven", "WebUI")},
-            //                {"Raven/PluginsDirectory", Path.Combine(settings.DbPath, "Plugins")},
-            //                {"Raven/AssembliesDirectory", Path.Combine(settings.DbPath, "Assemblies")},
-            //                {"Raven/CompiledIndexCacheDirectory", Path.Combine(settings.DbPath, "CompiledIndexes")},
-            //                {"Raven/FileSystem/DataDir", Path.Combine(settings.DbPath, "FileSystems")},
-            //                {"Raven/FileSystem/IndexStoragePath", Path.Combine(settings.DbPath, "FileSystems", "Indexes")},
-            //                {"Raven/AnonymousAccess", AnonymousUserAccessMode.None.ToString()}
-            //            }
-            //        });
+                    documentStore.DatabaseCommands.GlobalAdmin.CreateDatabase(new DatabaseDocument
+                    {
+                        Id = "ServiceControl",
+                        Settings =
+                        {
+                            {"Raven/StorageTypeName", "voron"},
+                            {"Raven/DataDir", "~/ServiceControl"},
+                            //{"Raven/Counters/DataDir", Path.Combine(settings.DbPath, "Data", "Counters")},
+                            //{"Raven/WebDir", Path.Combine(settings.DbPath, "Raven", "WebUI")},
+                            //{"Raven/PluginsDirectory", Path.Combine(settings.DbPath, "Plugins")},
+                            //{"Raven/AssembliesDirectory", Path.Combine(settings.DbPath, "Assemblies")},
+                            //{"Raven/CompiledIndexCacheDirectory", Path.Combine(settings.DbPath, "CompiledIndexes")},
+                            //{"Raven/FileSystem/DataDir", Path.Combine(settings.DbPath, "FileSystems")},
+                            //{"Raven/FileSystem/IndexStoragePath", Path.Combine(settings.DbPath, "FileSystems", "Indexes")},
+                            {"Raven/AnonymousAccess", "None"}
+                        }
+                    });
 
-            //        var windowsAuthDocument = new WindowsAuthDocument();
-            //        var localAdministratorsGroupName = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null).Translate(typeof(NTAccount)).ToString();
-            //        var localSystem = new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null).Translate(typeof(NTAccount)).ToString();
+                    var windowsAuthDocument = new WindowsAuthDocument();
+                    var localAdministratorsGroupName = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null).Translate(typeof(NTAccount)).ToString();
+                    var localSystem = new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null).Translate(typeof(NTAccount)).ToString();
 
-            //        var group = new WindowsAuthData
-            //        {
-            //            Enabled = true,
-            //            Name = localAdministratorsGroupName
-            //        };
-            //        group.Databases.Add(new ResourceAccess
-            //        {
-            //            Admin = true,
-            //            ReadOnly = false,
-            //            TenantId = "ServiceControl"
-            //        });
-            //        group.Databases.Add(new ResourceAccess
-            //        {
-            //            Admin = true,
-            //            ReadOnly = false,
-            //            TenantId = "<system>"
-            //        });
-            //        windowsAuthDocument.RequiredGroups.Add(group);
+                    var group = new WindowsAuthData
+                    {
+                        Enabled = true,
+                        Name = localAdministratorsGroupName
+                    };
+                    group.Databases.Add(new ResourceAccess
+                    {
+                        Admin = true,
+                        ReadOnly = false,
+                        TenantId = "ServiceControl"
+                    });
+                    //group.Databases.Add(new ResourceAccess
+                    //{
+                    //    Admin = true,
+                    //    ReadOnly = false,
+                    //    TenantId = "<system>"
+                    //});
+                    windowsAuthDocument.RequiredGroups.Add(group);
 
-            //        var user = new WindowsAuthData
-            //        {
-            //            Enabled = true,
-            //            Name = username ?? localSystem
-            //        };
-            //        user.Databases.Add(new ResourceAccess
-            //        {
-            //            Admin = false,
-            //            ReadOnly = false,
-            //            TenantId = "ServiceControl"
-            //        });
-            //        windowsAuthDocument.RequiredUsers.Add(user);
+                    var user = new WindowsAuthData
+                    {
+                        Enabled = true,
+                        Name = username ?? localSystem
+                    };
+                    user.Databases.Add(new ResourceAccess
+                    {
+                        Admin = false,
+                        ReadOnly = false,
+                        TenantId = "ServiceControl"
+                    });
+                    windowsAuthDocument.RequiredUsers.Add(user);
 
-            //        var ravenJObject = RavenJObject.FromObject(windowsAuthDocument);
+                    var ravenJObject = RavenJObject.FromObject(windowsAuthDocument);
 
-            //        documentStore.DatabaseCommands.ForSystemDatabase().Put("Raven/Authorization/WindowsSettings", null, ravenJObject, new RavenJObject());
+                    documentStore.DatabaseCommands.ForSystemDatabase().Put("Raven/Authorization/WindowsSettings", null, ravenJObject, new RavenJObject());
 
-            //        Console.Out.WriteLine("Database created and secured.");
-            //    }
-            //    catch (Exception)
-            //    {
-            //        Console.Out.WriteLine("Database already exists.");
-            //    }
-            //}
+                    Console.Out.WriteLine("Database created and secured.");
+                }
+                catch (Exception)
+                {
+                    Console.Out.WriteLine("Database already exists.");
+                }
+            }
         }
 
-        class UpdatingSchemaInterceptor : TextWriter
+        private class WindowsAuthDocument
+        {
+            public WindowsAuthDocument()
+            {
+                RequiredGroups = new List<WindowsAuthData>();
+                RequiredUsers = new List<WindowsAuthData>();
+            }
+
+            public List<WindowsAuthData> RequiredGroups { get; }
+
+            public List<WindowsAuthData> RequiredUsers { get; }
+        }
+
+        private class WindowsAuthData
+        {
+            public WindowsAuthData()
+            {
+                Databases = new List<ResourceAccess>();
+            }
+
+            public string Name { get; set; }
+
+            public bool Enabled { get; set; }
+
+            public List<ResourceAccess> Databases { get; }
+        }
+
+        private class ResourceAccess
+        {
+            public bool Admin { get; set; }
+
+            public string TenantId { get; set; }
+
+            public bool ReadOnly { get; set; }
+        }
+
+        private class UpdatingSchemaInterceptor : TextWriter
         {
             private readonly TextWriter originalOut;
             public bool Updating;
