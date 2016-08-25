@@ -5,19 +5,17 @@
     using System.IO;
     using System.Linq;
     using Contracts.Operations;
+    using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
-    using NServiceBus.Pipeline;
-    using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
     using NServiceBus.Unicast;
-    using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.RavenDB;
+    using ServiceControl.MessageFailures.Handlers;
 
     public class ErrorQueueImport : IAdvancedSatellite, IDisposable
     {
@@ -25,32 +23,33 @@
 
         private readonly IBuilder builder;
         private readonly ISendMessages forwarder;
-        private readonly PipelineExecutor pipelineExecutor;
-        private readonly LogicalMessageFactory logicalMessageFactory;
         private readonly CriticalError criticalError;
         private readonly LoggingSettings loggingSettings;
         private readonly Settings settings;
-        private IEnumerable<Type> behaviors;
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
-        private IEnumerable<IEnrichImportedMessages> enrichers;
+        private readonly Timer timer = Metric.Timer("Error messages", Unit.Items);
+        private ImportFailedMessageHandler importer;
+        private IEnrichImportedMessages[] enrichers;
 
-        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, PipelineExecutor pipelineExecutor, LogicalMessageFactory logicalMessageFactory, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings)
+        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IBus bus, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings)
         {
             this.builder = builder;
             this.forwarder = forwarder;
-            this.pipelineExecutor = pipelineExecutor;
-            this.logicalMessageFactory = logicalMessageFactory;
             this.criticalError = criticalError;
             this.loggingSettings = loggingSettings;
             this.settings = settings;
 
-            behaviors = behavioursToAddFirst.Concat(pipelineExecutor.Incoming.SkipWhile(r => r.StepId != WellKnownStep.LoadHandlers).Select(r => r.BehaviorType));
-            enrichers = builder.BuildAll<IEnrichImportedMessages>();
+            enrichers = builder.BuildAll<IEnrichImportedMessages>().ToArray();
+
+            importer = new ImportFailedMessageHandler(store, bus, builder.BuildAll<IFailedMessageEnricher>().ToArray());
         }
 
         public bool Handle(TransportMessage message)
         {
-            InnerHandle(message);
+            using (timer.NewContext())
+            {
+                InnerHandle(message);
+            }
 
             return true;
         }
@@ -59,27 +58,13 @@
         {
             var errorMessageReceived = new ImportFailedMessage(message);
 
-            using (var childBuilder = builder.CreateChildBuilder())
+            foreach (var enricher in enrichers)
             {
-                pipelineExecutor.CurrentContext.Set(childBuilder);
-
-                foreach (var enricher in enrichers)
-                {
-                    enricher.Enrich(errorMessageReceived);
-                }
-
-                var logicalMessage = logicalMessageFactory.Create(errorMessageReceived);
-
-                var context = new IncomingContext(pipelineExecutor.CurrentContext, message)
-                {
-                    IncomingLogicalMessage = logicalMessage
-                };
-                context.LogicalMessages.Add(logicalMessage);
-
-                context.Set("NServiceBus.CallbackInvocationBehavior.CallbackWasInvoked", false);
-               
-                pipelineExecutor.InvokePipeline(behaviors, context);
+                enricher.Enrich(errorMessageReceived);
             }
+
+            importer.Handle(errorMessageReceived);
+
             if (settings.ForwardErrorMessages)
             {
                 TransportMessageCleaner.CleanForForwarding(message);
@@ -87,7 +72,6 @@
             }
         }
 
-        Type[] behavioursToAddFirst = new[] { typeof(RavenUnitOfWorkBehavior) };
 
         public void Start()
         {

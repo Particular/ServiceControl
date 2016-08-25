@@ -6,11 +6,16 @@
 
     public class RavenAttachmentsBodyStorage : IBodyStorage
     {
-        public IDocumentStore DocumentStore { get; set; }
+        private readonly IDocumentStore store;
+
+        public RavenAttachmentsBodyStorage(IDocumentStore store)
+        {
+            this.store = store;
+        }
 
         public string Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
-            DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
+            store.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
             {
                 {"ContentType", contentType},
                 {"ContentLength", bodySize}
@@ -21,7 +26,7 @@
 
         public bool TryFetch(string bodyId, out Stream stream)
         {
-            var attachment = DocumentStore.DatabaseCommands.GetAttachment("messagebodies/" + bodyId);
+            var attachment = store.DatabaseCommands.GetAttachment("messagebodies/" + bodyId);
 
             if (attachment == null)
             {

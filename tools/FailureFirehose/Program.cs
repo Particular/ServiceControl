@@ -16,8 +16,8 @@ namespace FailureFirehose
 {
     internal class Program
     {
-        public const int MAX_BODY_SIZE = 1024 * 1024; // 2MB
-        public const int MIM_BODY_SIZE = 70;
+        public const int MAX_BODY_SIZE = 80 * 1024;
+        public const int MIM_BODY_SIZE = 10 * 1024;
         public const int MAX_MESSAGE_COUNT = 350;
         public const int MIN_MESSAGE_COUNT = 50;
         public const int FAILURE_PERCENTAGE = 5;

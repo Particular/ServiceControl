@@ -41,7 +41,7 @@
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
-            MaximumConcurrencyLevel = 10;
+            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DbPath = GetDbPath();
         }
@@ -67,7 +67,7 @@
 
         public string ApiUrl => $"{RootUrl}api";
 
-        public string StorageUrl => $"{RootUrl}storage";
+        public string StorageUrl => SettingsReader<string>.Read("StorageUrl", "http://localhost:8080");
 
         public int Port { get; set; }
 

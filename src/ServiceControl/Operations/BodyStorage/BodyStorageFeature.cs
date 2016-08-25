@@ -64,7 +64,7 @@
                     bodyUrl = StoreBodyInBodyStorage(message, bodyId, contentType, bodySize);
                     storedInBodyStorage = true;
                 }
-
+                
                 if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
                 {
                     message.Metadata.Add("Body", Encoding.UTF8.GetString(message.PhysicalMessage.Body));

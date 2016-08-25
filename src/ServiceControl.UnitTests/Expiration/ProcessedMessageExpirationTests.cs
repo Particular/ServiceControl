@@ -184,10 +184,8 @@
                     5
                 };
 
-                var bodyStorage = new RavenAttachmentsBodyStorage
-                {
-                    DocumentStore = documentStore
-                };
+                var bodyStorage = new RavenAttachmentsBodyStorage(documentStore);
+                
                 using (var stream = new MemoryStream(body))
                 {
                     bodyStorage.Store(messageId, "binary", 5, stream);

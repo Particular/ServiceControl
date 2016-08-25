@@ -2,39 +2,43 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
-    using System.Net;
     using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
     using Nancy;
     using Owin;
     using ServiceControl.Infrastructure.SignalR;
     using Autofac;
+    using Metrics;
     using Microsoft.Owin.Cors;
-    using NServiceBus.Logging;
-    using Particular.ServiceControl.Licensing;
-    using Raven.Database.Config;
-    using Raven.Database.Server;
+    using Owin.Metrics;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.OWIN;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     public class Startup
     {
-        static readonly ILog Logger = LogManager.GetLogger(typeof(Startup));
+        //static readonly ILog Logger = LogManager.GetLogger(typeof(Startup));
 
         private readonly IContainer container;
-        private readonly Settings settings;
+        //private readonly Settings settings;
 
         public Startup(IContainer container, Settings settings)
         {
             this.container = container;
-            this.settings = settings;
+            //this.settings = settings;
         }
 
         public void Configuration(IAppBuilder app, bool isRunningAcceptanceTests = false)
         {
-            ConfigureRavenDB(app, isRunningAcceptanceTests);
+            //ConfigureRavenDB(app, isRunningAcceptanceTests);
+
+            app.Map("/metrics", b =>
+            {
+                Metric.Config
+                    .WithOwin(middleware => b.Use(middleware), config => config
+                        .WithMetricsEndpoint(endpointConfig => endpointConfig.MetricsEndpoint(String.Empty)))
+                    .WithAllCounters();
+            });
 
             app.Map("/api", b =>
             {
@@ -49,84 +53,84 @@
             });
         }
 
-        static string ReadLicense()
-        {
-            using (var resourceStream = typeof(Startup).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
-            {
-                using (var reader = new StreamReader(resourceStream))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
-        }
+        //static string ReadLicense()
+        //{
+        //    using (var resourceStream = typeof(Startup).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
+        //    {
+        //        using (var reader = new StreamReader(resourceStream))
+        //        {
+        //            return reader.ReadToEnd();
+        //        }
+        //    }
+        //}
 
         public void ConfigureRavenDB(IAppBuilder builder, bool isRunningAcceptanceTests = false)
         {
-            builder.Map("/storage", app =>
-            {
-                var virtualDirectory = "storage";
+            //builder.Map("/storage", app =>
+            //{
+            //    var virtualDirectory = "storage";
 
-                if (!String.IsNullOrEmpty(settings.VirtualDirectory))
-                {
-                    virtualDirectory = $"{settings.VirtualDirectory}/{virtualDirectory}";
-                }
+            //    if (!String.IsNullOrEmpty(settings.VirtualDirectory))
+            //    {
+            //        virtualDirectory = $"{settings.VirtualDirectory}/{virtualDirectory}";
+            //    }
 
-                ConfigureWindowsAuth(app, virtualDirectory);
+            //    ConfigureWindowsAuth(app, virtualDirectory);
 
-                var configuration = new RavenConfiguration
-                {
-                    VirtualDirectory = virtualDirectory,
-                    DataDirectory = Path.Combine(settings.DbPath, "Databases", "System"),
-                    CompiledIndexCacheDirectory = Path.Combine(settings.DbPath, "CompiledIndexes"),
-                    CountersDataDirectory = Path.Combine(settings.DbPath, "Data", "Counters"),
-                    WebDir = Path.Combine(settings.DbPath, "Raven", "WebUI"),
-                    PluginsDirectory = Path.Combine(settings.DbPath, "Plugins"),
-                    AssembliesDirectory = Path.Combine(settings.DbPath, "Assemblies"),
-                    AnonymousUserAccessMode = isRunningAcceptanceTests ? AnonymousUserAccessMode.All : AnonymousUserAccessMode.None,
-                    TurnOffDiscoveryClient = true
-                };
+            //    var configuration = new RavenConfiguration
+            //    {
+            //        VirtualDirectory = virtualDirectory,
+            //        DataDirectory = Path.Combine(settings.DbPath, "Databases", "System"),
+            //        CompiledIndexCacheDirectory = Path.Combine(settings.DbPath, "CompiledIndexes"),
+            //        CountersDataDirectory = Path.Combine(settings.DbPath, "Data", "Counters"),
+            //        WebDir = Path.Combine(settings.DbPath, "Raven", "WebUI"),
+            //        PluginsDirectory = Path.Combine(settings.DbPath, "Plugins"),
+            //        AssembliesDirectory = Path.Combine(settings.DbPath, "Assemblies"),
+            //        AnonymousUserAccessMode = isRunningAcceptanceTests ? AnonymousUserAccessMode.All : AnonymousUserAccessMode.None,
+            //        TurnOffDiscoveryClient = true
+            //    };
 
-                var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
-                if (File.Exists(localRavenLicense))
-                {
-                    Logger.Info($"Loading RavenDB license found from {localRavenLicense}");
-                    configuration.Settings["Raven/License"] = NonLockingFileReader.ReadAllTextWithoutLocking(localRavenLicense);
-                }
-                else
-                {
-                    Logger.Info("Loading Embedded RavenDB license");
-                    configuration.Settings["Raven/License"] = ReadLicense();
-                }
+            //    var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
+            //    if (File.Exists(localRavenLicense))
+            //    {
+            //        Logger.Info($"Loading RavenDB license found from {localRavenLicense}");
+            //        configuration.Settings["Raven/License"] = NonLockingFileReader.ReadAllTextWithoutLocking(localRavenLicense);
+            //    }
+            //    else
+            //    {
+            //        Logger.Info("Loading Embedded RavenDB license");
+            //        configuration.Settings["Raven/License"] = ReadLicense();
+            //    }
 
-                configuration.FileSystem.DataDirectory = Path.Combine(settings.DbPath, "FileSystems");
-                configuration.FileSystem.IndexStoragePath = Path.Combine(settings.DbPath, "FileSystems", "Indexes");
+            //    configuration.FileSystem.DataDirectory = Path.Combine(settings.DbPath, "FileSystems");
+            //    configuration.FileSystem.IndexStoragePath = Path.Combine(settings.DbPath, "FileSystems", "Indexes");
 
-                app.UseRavenDB(new RavenDBOptions(configuration));
-            });
+            //    app.UseRavenDB(new RavenDBOptions(configuration));
+            //});
         }
 
-        private static void ConfigureWindowsAuth(IAppBuilder app, string virtualDirectory)
-        {
-            if (!app.Properties.ContainsKey("System.Net.HttpListener"))
-            {
-                return;
-            }
+        //private static void ConfigureWindowsAuth(IAppBuilder app, string virtualDirectory)
+        //{
+        //    if (!app.Properties.ContainsKey("System.Net.HttpListener"))
+        //    {
+        //        return;
+        //    }
 
-            var pathToLookFor = $"/{virtualDirectory}";
-            var listener = (HttpListener)app.Properties["System.Net.HttpListener"];
-            listener.AuthenticationSchemes = AuthenticationSchemes.IntegratedWindowsAuthentication | AuthenticationSchemes.Anonymous;
-            listener.AuthenticationSchemeSelectorDelegate += request =>
-            {
-                if (!request.Url.AbsolutePath.StartsWith(pathToLookFor, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return AuthenticationSchemes.Anonymous;
-                }
+        //    var pathToLookFor = $"/{virtualDirectory}";
+        //    var listener = (HttpListener)app.Properties["System.Net.HttpListener"];
+        //    listener.AuthenticationSchemes = AuthenticationSchemes.IntegratedWindowsAuthentication | AuthenticationSchemes.Anonymous;
+        //    listener.AuthenticationSchemeSelectorDelegate += request =>
+        //    {
+        //        if (!request.Url.AbsolutePath.StartsWith(pathToLookFor, StringComparison.InvariantCultureIgnoreCase))
+        //        {
+        //            return AuthenticationSchemes.Anonymous;
+        //        }
 
-                var hasSingleUseToken = string.IsNullOrEmpty(request.Headers["Single-Use-Auth-Token"]) == false || string.IsNullOrEmpty(request.QueryString["singleUseAuthToken"]) == false;
+        //        var hasSingleUseToken = string.IsNullOrEmpty(request.Headers["Single-Use-Auth-Token"]) == false || string.IsNullOrEmpty(request.QueryString["singleUseAuthToken"]) == false;
 
-                return hasSingleUseToken ? AuthenticationSchemes.Anonymous : AuthenticationSchemes.IntegratedWindowsAuthentication;
-            };
-        }
+        //        return hasSingleUseToken ? AuthenticationSchemes.Anonymous : AuthenticationSchemes.IntegratedWindowsAuthentication;
+        //    };
+        //}
 
         private void ConfigureSignalR(IAppBuilder app)
         {

@@ -1,78 +1,88 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System.Collections.Generic;
     using System.Linq;
     using NServiceBus;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
 
-    class ImportFailedMessageHandler : IHandleMessages<ImportFailedMessage>
+    class ImportFailedMessageHandler
     {
-        public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
-        
-        public IEnumerable<IFailedMessageEnricher> Enrichers { get; set; } 
+        private readonly IDocumentStore store;
+        private readonly IBus bus;
+        private readonly IFailedMessageEnricher[] enrichers;
 
+        public ImportFailedMessageHandler(IDocumentStore store, IBus bus, IFailedMessageEnricher[] enrichers)
+        {
+            this.store = store;
+            this.bus = bus;
+            this.enrichers = enrichers;
+        }
+        
         public void Handle(ImportFailedMessage message)
         {
             var documentId = FailedMessage.MakeDocumentId(message.UniqueMessageId);
 
-            var failure = Session.Load<FailedMessage>(documentId) ?? new FailedMessage
+            using (var session = store.OpenSession())
             {
-                Id = documentId,
-                UniqueMessageId = message.UniqueMessageId
-            };
+                session.Advanced.UseOptimisticConcurrency = true;
 
-            failure.Status = FailedMessageStatus.Unresolved;
+                var failure = session.Load<FailedMessage>(documentId) ?? new FailedMessage
+                              {
+                                  Id = documentId,
+                                  UniqueMessageId = message.UniqueMessageId
+                              };
 
-            var timeOfFailure = message.FailureDetails.TimeOfFailure;
+                failure.Status = FailedMessageStatus.Unresolved;
 
+                var timeOfFailure = message.FailureDetails.TimeOfFailure;
 
-            //check for duplicate
-            if (failure.ProcessingAttempts.Any(a => a.AttemptedAt == timeOfFailure))
-            {
-                return;
-            }
-
-            failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
-            {
-                AttemptedAt = timeOfFailure,
-                FailureDetails = message.FailureDetails,
-                MessageMetadata = message.Metadata,
-                MessageId = message.PhysicalMessage.MessageId,
-                Headers = message.PhysicalMessage.Headers,
-                ReplyToAddress = message.PhysicalMessage.ReplyToAddress,
-                Recoverable = message.PhysicalMessage.Recoverable,
-                CorrelationId = message.PhysicalMessage.CorrelationId,
-                MessageIntent = message.PhysicalMessage.MessageIntent,
-            });
-
-            foreach (var enricher in Enrichers)
-            {
-                enricher.Enrich(failure, message);
-            }
-
-            Session.Store(failure);
-
-            string failedMessageId;
-            if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
-            {
-                Bus.Publish<MessageFailedRepeatedly>(m =>
+                //check for duplicate
+                if (failure.ProcessingAttempts.Any(a => a.AttemptedAt == timeOfFailure))
                 {
-                    m.FailureDetails = message.FailureDetails;
-                    m.EndpointId = message.FailingEndpointId;
-                    m.FailedMessageId = failedMessageId;
-                });
-            }
-            else
-            {
-                Bus.Publish<MessageFailed>(m =>
+                    return;
+                }
+
+                failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
                 {
-                    m.FailureDetails = message.FailureDetails;
-                    m.EndpointId = message.FailingEndpointId;
-                    m.FailedMessageId = message.UniqueMessageId;
+                    AttemptedAt = timeOfFailure,
+                    FailureDetails = message.FailureDetails,
+                    MessageMetadata = message.Metadata,
+                    MessageId = message.PhysicalMessage.MessageId,
+                    Headers = message.PhysicalMessage.Headers,
+                    ReplyToAddress = message.PhysicalMessage.ReplyToAddress,
+                    Recoverable = message.PhysicalMessage.Recoverable,
+                    CorrelationId = message.PhysicalMessage.CorrelationId,
+                    MessageIntent = message.PhysicalMessage.MessageIntent,
                 });
+
+                foreach (var enricher in enrichers)
+                {
+                    enricher.Enrich(failure, message);
+                }
+
+                session.Store(failure);
+                session.SaveChanges();
+
+                string failedMessageId;
+                if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
+                {
+                    bus.Publish<MessageFailedRepeatedly>(m =>
+                    {
+                        m.FailureDetails = message.FailureDetails;
+                        m.EndpointId = message.FailingEndpointId;
+                        m.FailedMessageId = failedMessageId;
+                    });
+                }
+                else
+                {
+                    bus.Publish<MessageFailed>(m =>
+                    {
+                        m.FailureDetails = message.FailureDetails;
+                        m.EndpointId = message.FailingEndpointId;
+                        m.FailedMessageId = message.UniqueMessageId;
+                    });
+                }
             }
         }
     }
