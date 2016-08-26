@@ -9,13 +9,14 @@ namespace ServiceControl.Infrastructure
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client.Document;
+    using Raven.Client.FileSystem;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public static class NServiceBusFactory
     {
         public const string HostOnAppDisposing = "host.OnAppDisposing";
 
-        public static IStartableBus Create(Settings settings, IContainer container, ServiceBase host, DocumentStore documentStore, BusConfiguration configuration)
+        public static IStartableBus Create(Settings settings, IContainer container, ServiceBase host, DocumentStore documentStore, FilesStore filesStore, BusConfiguration configuration)
         {
             if (configuration == null)
             {
@@ -25,6 +26,7 @@ namespace ServiceControl.Infrastructure
 
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set("ServiceControl.DocumentStore", documentStore);
+            configuration.GetSettings().Set("ServiceControl.FilesStore", filesStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
             // Disable Auditing for the service control endpoint
@@ -64,9 +66,9 @@ namespace ServiceControl.Infrastructure
             return Bus.Create(configuration);
         }
 
-        public static IBus CreateAndStart(Settings settings, IContainer container, ServiceBase host, DocumentStore documentStore, BusConfiguration configuration)
+        public static IBus CreateAndStart(Settings settings, IContainer container, ServiceBase host, DocumentStore documentStore, FilesStore filesStore, BusConfiguration configuration)
         {
-            var bus = Create(settings, container, host, documentStore, configuration);
+            var bus = Create(settings, container, host, documentStore, filesStore, configuration);
 
             container.Resolve<SubscribeToOwnEvents>().Run();
 

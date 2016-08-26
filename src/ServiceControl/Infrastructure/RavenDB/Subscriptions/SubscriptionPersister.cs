@@ -10,19 +10,13 @@
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using Raven.Client;
 
-    internal class SubscriptionPersister : ISubscriptionStorage, IDisposable
+    internal class SubscriptionPersister : ISubscriptionStorage
     {
         private readonly IDocumentStore store;
-        private readonly MD5CryptoServiceProvider provider = new MD5CryptoServiceProvider();
 
         public SubscriptionPersister(IDocumentStore store)
         {
             this.store = store;
-        }
-
-        public void Dispose()
-        {
-            provider.Dispose();
         }
 
         public void Init()
@@ -93,11 +87,14 @@
         {
             // use MD5 hash to get a 16-byte hash of the string
             var inputBytes = Encoding.Default.GetBytes($"{messageType.TypeName}/{messageType.Version.Major}");
-            var hashBytes = provider.ComputeHash(inputBytes);
-            // generate a guid from the hash:
-            var id = new Guid(hashBytes);
+            using (var provider = new MD5CryptoServiceProvider())
+            {
+                var hashBytes = provider.ComputeHash(inputBytes);
 
-            return $"Subscriptions/{id}";
+                // generate a guid from the hash:
+                var id = new Guid(hashBytes);
+                return $"Subscriptions/{id}";
+            }
         }
 
         private IEnumerable<Subscription> GetSubscriptions(IEnumerable<MessageType> messageTypes, IDocumentSession session)

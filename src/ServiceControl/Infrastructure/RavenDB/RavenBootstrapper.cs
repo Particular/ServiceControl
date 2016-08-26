@@ -10,6 +10,7 @@
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Document;
+    using Raven.Client.FileSystem;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.EndpointControl;
@@ -20,9 +21,12 @@
         public void Customize(BusConfiguration configuration)
         {
             var documentStore = configuration.GetSettings().Get<DocumentStore>("ServiceControl.DocumentStore");
+            var filesStore = configuration.GetSettings().Get<FilesStore>("ServiceControl.FilesStore");
             var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
 
             StartRaven(documentStore, settings);
+            
+            StartFileServer(filesStore, settings);
 
             configuration.RegisterComponents(c => 
                 c.ConfigureComponent(builder =>
@@ -42,6 +46,14 @@
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
 
             configuration.Pipeline.Register<RavenRegisterStep>();
+        }
+
+        private static void StartFileServer(FilesStore filesStore, Settings settings)
+        {
+            filesStore.Url = settings.StorageUrl;
+            filesStore.DefaultFileSystem = "ServiceControl";
+            filesStore.Credentials = CredentialCache.DefaultNetworkCredentials;
+            filesStore.Initialize();
         }
 
         void StartRaven(DocumentStore documentStore, Settings settings)

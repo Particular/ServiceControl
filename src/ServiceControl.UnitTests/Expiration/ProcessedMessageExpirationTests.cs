@@ -9,7 +9,7 @@
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
-    using Raven.Client.Embedded;
+    using Raven.Client;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
 
@@ -99,7 +99,7 @@
             }
         }
 
-        static void RunExpiry(EmbeddableDocumentStore documentStore, DateTime expiryThreshold)
+        static void RunExpiry(IDocumentStore documentStore, DateTime expiryThreshold)
         {
             new ExpiryProcessedMessageIndex().Execute(documentStore);
             documentStore.WaitForIndexing();
@@ -151,6 +151,7 @@
         public void Stored_bodies_are_being_removed_when_message_expires()
         {
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var fsStore = InMemoryStoreBuilder.GetFilesStore())
             {
                 var expiredDate = DateTime.UtcNow.AddDays(-3);
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
@@ -184,8 +185,8 @@
                     5
                 };
 
-                var bodyStorage = new RavenAttachmentsBodyStorage(documentStore);
-                
+                var bodyStorage = new RavenAttachmentsBodyStorage(fsStore);
+
                 using (var stream = new MemoryStream(body))
                 {
                     bodyStorage.Store(messageId, "binary", 5, stream);

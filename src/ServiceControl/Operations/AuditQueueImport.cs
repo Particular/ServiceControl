@@ -41,6 +41,7 @@
         private readonly Settings settings;
         private readonly IDocumentStore store;
         private readonly Timer timer = Metric.Timer("Audit messages", Unit.Requests);
+        private readonly Timer timer2 = Metric.Timer("Messages pending saving", Unit.Requests);
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
         private volatile bool stopping;
 
@@ -205,20 +206,28 @@
                         continue;
                     }
 
-                    using (var bulkInsert = store.BulkInsert())
+                    using (var context = timer2.NewContext())
                     {
-                        bulkInsert.Store(ConvertToSaveMessage(message));
-
-                        for (var i = 0; i < BATCH_SIZE - 1; i++)
+                        var cnt = 0;
+                        using (var bulkInsert = store.BulkInsert())
                         {
-                            if (!messages.TryTake(out message, 5))
-                            {
-                                moreMessages = 0;
-                                break;
-                            }
-
                             bulkInsert.Store(ConvertToSaveMessage(message));
+                            cnt++;
+
+                            for (var i = 0; i < BATCH_SIZE - 1; i++)
+                            {
+                                if (!messages.TryTake(out message, 5))
+                                {
+                                    moreMessages = 0;
+                                    break;
+                                }
+
+                                bulkInsert.Store(ConvertToSaveMessage(message));
+                                cnt++;
+                            }
                         }
+
+                        context.TrackUserValue(cnt.ToString());
                     }
                 } while (StopBatchImporter(moreMessages));
             }

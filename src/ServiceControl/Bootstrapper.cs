@@ -19,6 +19,7 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using Raven.Client;
     using Raven.Client.Document;
+    using Raven.Client.FileSystem;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
     using LogLevel = NLog.LogLevel;
@@ -28,6 +29,7 @@ namespace Particular.ServiceControl
     {
         private BusConfiguration configuration;
         private DocumentStore documentStore = new DocumentStore();
+        private FilesStore filesStore = new FilesStore();
         private ServiceBase host;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
@@ -73,6 +75,7 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            containerBuilder.RegisterInstance(filesStore).As<IDocumentStore>().ExternallyOwned();
 
             container = containerBuilder.Build();
             Startup = new Startup(container, settings);
@@ -102,7 +105,7 @@ namespace Particular.ServiceControl
                 documentStore.HttpMessageHandlerFactory = () => handler;
             }
 
-            bus = NServiceBusFactory.CreateAndStart(settings, container, host, documentStore, configuration);
+            bus = NServiceBusFactory.CreateAndStart(settings, container, host, documentStore, filesStore, configuration);
             
             logger.Info($"Api is now accepting requests on {settings.ApiUrl}");
 

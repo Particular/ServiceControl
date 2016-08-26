@@ -1,41 +1,53 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
+    using System;
     using System.IO;
-    using Raven.Client;
+    using Raven.Client.FileSystem;
     using Raven.Json.Linq;
 
     public class RavenAttachmentsBodyStorage : IBodyStorage
     {
-        private readonly IDocumentStore store;
+        private readonly IFilesStore store;
 
-        public RavenAttachmentsBodyStorage(IDocumentStore store)
+        public RavenAttachmentsBodyStorage(IFilesStore store)
         {
             this.store = store;
         }
 
         public string Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
-            store.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
+            try
+            {
+                store.AsyncFilesCommands.UploadAsync($"/messagebodies/{bodyId}", bodyStream, new RavenJObject
             {
                 {"ContentType", contentType},
                 {"ContentLength", bodySize}
-            });
+            }).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                Console.Out.WriteLine(ex);
+                throw;
+            }
+            
 
             return $"/messages/{bodyId}/body";
         }
 
         public bool TryFetch(string bodyId, out Stream stream)
         {
-            var attachment = store.DatabaseCommands.GetAttachment("messagebodies/" + bodyId);
-
-            if (attachment == null)
+            try
+            {
+                var attachment = store.AsyncFilesCommands.DownloadAsync($"/messagebodies/{bodyId}");
+                stream = attachment.GetAwaiter().GetResult();
+                return true;
+            }
+            catch (FileNotFoundException)
             {
                 stream = null;
                 return false;
             }
-
-            stream = attachment.Data();
-            return true;
+            
         }
     }
 }
