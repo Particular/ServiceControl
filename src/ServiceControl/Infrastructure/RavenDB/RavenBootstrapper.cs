@@ -13,6 +13,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.EndpointControl;
+    using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 
     public class RavenBootstrapper : INeedInitialization
     {
@@ -38,9 +39,7 @@
                     throw new InvalidOperationException("No session available");
                 }, DependencyLifecycle.InstancePerCall));
 
-            configuration.UsePersistence<RavenDBPersistence>()
-                .SetDefaultDocumentStore(documentStore)
-                .DoNotSetupDatabasePermissions();
+            configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
 
             configuration.Pipeline.Register<RavenRegisterStep>();
         }
@@ -52,7 +51,6 @@
             documentStore.EnlistInDistributedTransactions = false;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
             documentStore.Credentials = CredentialCache.DefaultNetworkCredentials;
-            
             documentStore.Initialize();
 
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
