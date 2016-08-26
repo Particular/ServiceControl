@@ -67,36 +67,38 @@
 
         private void StartDispatcher()
         {
-            task = Task.Run(async () =>
+            task = StartDispatcherTask();
+        }
+
+        async Task StartDispatcherTask()
+        {
+            try
             {
-                try
+                do
                 {
-                    do
+                    try
                     {
-                        try
-                        {
-                            await signal.WaitHandle.WaitOneAsync(tokenSource.Token);
-                            signal.Reset();
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            break;
-                        }
-
-                        DispatchEvents(tokenSource.Token);
-                    } while (!tokenSource.IsCancellationRequested);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error("An exception occurred when dispatching external integration events", ex);
-                    circuitBreaker.Failure(ex);
-
-                    if (!tokenSource.IsCancellationRequested)
-                    {
-                        StartDispatcher();
+                        await signal.WaitHandle.WaitOneAsync(tokenSource.Token);
+                        signal.Reset();
                     }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+
+                    DispatchEvents(tokenSource.Token);
+                } while (!tokenSource.IsCancellationRequested);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("An exception occurred when dispatching external integration events", ex);
+                circuitBreaker.Failure(ex);
+
+                if (!tokenSource.IsCancellationRequested)
+                {
+                    StartDispatcher();
                 }
-            });
+            }
         }
 
         private void DispatchEvents(CancellationToken token)
