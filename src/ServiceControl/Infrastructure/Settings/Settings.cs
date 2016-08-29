@@ -44,6 +44,7 @@
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DbPath = GetDbPath();
+            StoragePath = GetStoragePath();
         }
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
@@ -152,6 +153,7 @@
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
+        public string StoragePath { get; set; }
 
         private Address GetAuditLogQueue()
         {
@@ -217,6 +219,25 @@
             var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
 
             return SettingsReader<string>.Read("DbPath", defaultPath);
+        }
+
+        private string GetStoragePath()
+        {
+            var host = Hostname;
+            if (host == "*")
+            {
+                host = "%";
+            }
+            var folder = $"storage-{host}-{Port}";
+
+            if (!string.IsNullOrEmpty(VirtualDirectory))
+            {
+                folder += $"-{SanitiseFolderName(VirtualDirectory)}";
+            }
+
+            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", folder);
+
+            return SettingsReader<string>.Read("StoragePath", defaultPath);
         }
 
         private static bool GetForwardErrorMessages()

@@ -151,7 +151,6 @@
         public void Stored_bodies_are_being_removed_when_message_expires()
         {
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
-            using (var fsStore = InMemoryStoreBuilder.GetFilesStore())
             {
                 var expiredDate = DateTime.UtcNow.AddDays(-3);
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
@@ -185,7 +184,7 @@
                     5
                 };
 
-                var bodyStorage = new RavenAttachmentsBodyStorage(fsStore);
+                var bodyStorage = new RavenAttachmentsBodyStorage();
 
                 using (var stream = new MemoryStream(body))
                 {

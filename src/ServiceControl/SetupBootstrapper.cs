@@ -17,7 +17,6 @@ namespace Particular.ServiceControl
     using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Client.Document;
-    using Raven.Client.FileSystem;
     using Raven.Client.Indexes;
     using Raven.Json.Linq;
     using ServiceBus.Management.Infrastructure.OWIN;
@@ -48,12 +47,10 @@ namespace Particular.ServiceControl
 
                 var containerBuilder = new ContainerBuilder();
                 var documentStore = new DocumentStore();
-                var filesStore = new FilesStore();
                 containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-                containerBuilder.RegisterInstance(filesStore).As<IDocumentStore>().ExternallyOwned();
                 containerBuilder.RegisterInstance(settings);
 
-                NServiceBusFactory.Create(settings, containerBuilder.Build(), null, documentStore, filesStore, configuration).Dispose();
+                NServiceBusFactory.Create(settings, containerBuilder.Build(), null, documentStore, configuration).Dispose();
             }
         }
 

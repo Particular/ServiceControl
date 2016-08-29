@@ -5,22 +5,30 @@
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Operations;
 
     class ImportFailedMessageHandler
     {
         private readonly IDocumentStore store;
         private readonly IBus bus;
-        private readonly IFailedMessageEnricher[] enrichers;
+        private readonly IFailedMessageEnricher[] failureEnrichers;
+        private readonly IEnrichImportedMessages[] importerEnrichers;
 
-        public ImportFailedMessageHandler(IDocumentStore store, IBus bus, IFailedMessageEnricher[] enrichers)
+        public ImportFailedMessageHandler(IDocumentStore store, IBus bus, IFailedMessageEnricher[] failureEnrichers, IEnrichImportedMessages[] importerEnrichers)
         {
             this.store = store;
             this.bus = bus;
-            this.enrichers = enrichers;
+            this.failureEnrichers = failureEnrichers;
+            this.importerEnrichers = importerEnrichers;
         }
         
         public void Handle(ImportFailedMessage message)
         {
+            foreach (var enricher in importerEnrichers)
+            {
+                enricher.Enrich(message);
+            }
+
             var documentId = FailedMessage.MakeDocumentId(message.UniqueMessageId);
 
             using (var session = store.OpenSession())
@@ -56,7 +64,7 @@
                     MessageIntent = message.PhysicalMessage.MessageIntent,
                 });
 
-                foreach (var enricher in enrichers)
+                foreach (var enricher in failureEnrichers)
                 {
                     enricher.Enrich(failure, message);
                 }
