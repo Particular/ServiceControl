@@ -21,7 +21,7 @@
         private Task task;
         private AuditMessageHandler auditMessageHandler;
         private volatile bool stop;
-        private readonly Timer timer = Metric.Timer("Audit messages processed", Unit.Requests);
+        private readonly Meter meter = Metric.Meter("Audit messages processed", Unit.Results);
 
         public ProcessAudits(IBuilder builder, IDocumentStore store, StoreBody storeBody)
         {
@@ -44,45 +44,45 @@
                 var processedFiles = new List<string>();
                 var cnt = 0;
 
-                using (timer.NewContext())
+                using (var bulkInsert = store.BulkInsert())
                 {
-                    using (var bulkInsert = store.BulkInsert())
+                    foreach (var file in Directory.EnumerateFiles(storeBody.AuditQueuePath))
                     {
-                        foreach (var file in Directory.EnumerateFiles(storeBody.AuditQueuePath))
+                        if (stop)
                         {
-                            if (stop)
-                            {
-                                break;
-                            }
+                            break;
+                        }
 
-                            Dictionary<string, string> headers;
-                            byte[] body;
-                            if (!storeBody.TryReadFile(file, out headers, out body))
-                            {
-                                continue;
-                            }
+                        Dictionary<string, string> headers;
+                        byte[] body;
+                        if (!storeBody.TryReadFile(file, out headers, out body))
+                        {
+                            continue;
+                        }
 
-                            var transportMessage = new TransportMessage(headers["NServiceBus.MessageId"], headers)
-                            {
-                                Body = body,
-                            };
+                        var transportMessage = new TransportMessage(headers["NServiceBus.MessageId"], headers)
+                        {
+                            Body = body,
+                        };
 
-                            var importSuccessfullyProcessedMessage = new ImportSuccessfullyProcessedMessage(transportMessage);
-                            auditMessageHandler.Handle(bulkInsert, importSuccessfullyProcessedMessage);
+                        var importSuccessfullyProcessedMessage = new ImportSuccessfullyProcessedMessage(transportMessage);
+                        auditMessageHandler.Handle(bulkInsert, importSuccessfullyProcessedMessage);
 
-                            processedFiles.Add(file);
+                        processedFiles.Add(file);
 
-                            await storeBody.SaveToDB(importSuccessfullyProcessedMessage).ConfigureAwait(false);
+                        await storeBody.SaveToDB(importSuccessfullyProcessedMessage).ConfigureAwait(false);
 
-                            if (cnt++ >= BATCH_SIZE)
-                            {
-                                break;
-                            }
+                        if (cnt++ >= BATCH_SIZE)
+                        {
+                            break;
                         }
                     }
-
-                    Parallel.ForEach(processedFiles, File.Delete);
                 }
+
+                Parallel.ForEach(processedFiles, File.Delete);
+
+                meter.Mark(cnt);
+
                 if (!stop && cnt < BATCH_SIZE)
                 {
                     await Task.Delay(1000);

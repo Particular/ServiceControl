@@ -3,26 +3,36 @@
     using System.Collections.Generic;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Extensions;
+    using Raven.Imports.Newtonsoft.Json;
     using Raven.Json.Linq;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Operations;
 
     class ImportFailedMessageHandler
     {
-        static RavenJObject metadata = RavenJObject.Parse($@"
+        private static RavenJObject metadata;
+        private static JsonSerializer serializer;
+
+        private readonly IFailedMessageEnricher[] failureEnrichers;
+        private readonly IEnrichImportedMessages[] importerEnrichers;
+
+        static ImportFailedMessageHandler()
+        {
+            serializer = JsonExtensions.CreateDefaultJsonSerializer();
+            serializer.TypeNameHandling = TypeNameHandling.Auto;
+
+            metadata = RavenJObject.Parse($@"
                                     {{
                                         ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"", 
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
                                     }}");
-
-        private readonly IFailedMessageEnricher[] failureEnrichers;
-        private readonly IEnrichImportedMessages[] importerEnrichers;
+        }
 
         public ImportFailedMessageHandler(IFailedMessageEnricher[] failureEnrichers, IEnrichImportedMessages[] importerEnrichers)
         {
             this.failureEnrichers = failureEnrichers;
             this.importerEnrichers = importerEnrichers;
-            
         }
 
         public PatchCommandData Handle(ImportFailedMessage message)
@@ -67,7 +77,7 @@
                             Recoverable = message.PhysicalMessage.Recoverable,
                             CorrelationId = message.PhysicalMessage.CorrelationId,
                             MessageIntent = message.PhysicalMessage.MessageIntent
-                        })
+                        }, serializer) // Need to specify serilaizer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
                     },
                     new PatchRequest
                     {
@@ -105,7 +115,7 @@
                             Recoverable = message.PhysicalMessage.Recoverable,
                             CorrelationId = message.PhysicalMessage.CorrelationId,
                             MessageIntent = message.PhysicalMessage.MessageIntent
-                        })
+                        }, serializer) // Need to specify serilaizer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
                     },
                     new PatchRequest
                     {

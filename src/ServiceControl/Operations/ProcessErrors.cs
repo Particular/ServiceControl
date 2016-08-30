@@ -24,7 +24,7 @@
         private Task task;
         private ImportFailedMessageHandler failedMessageHandler;
         private volatile bool stop;
-        private readonly Timer timer = Metric.Timer("Error messages processed", Unit.Requests);
+        private readonly Meter meter = Metric.Meter("Error messages processed", Unit.Results);
 
         public ProcessErrors(IBuilder builder, IDocumentStore store, StoreBody storeBody, IBus bus)
         {
@@ -50,67 +50,68 @@
                 var events = new List<object>();
                 var cnt = 0;
 
-                using (timer.NewContext())
+
+                foreach (var file in Directory.EnumerateFiles(storeBody.ErrorQueuePath))
                 {
-                    foreach (var file in Directory.EnumerateFiles(storeBody.ErrorQueuePath))
+                    if (stop)
                     {
-                        if (stop)
-                        {
-                            break;
-                        }
-
-                        Dictionary<string, string> headers;
-                        byte[] body;
-                        if (!storeBody.TryReadFile(file, out headers, out body))
-                        {
-                            continue;
-                        }
-
-                        var transportMessage = new TransportMessage(headers["NServiceBus.MessageId"], headers)
-                        {
-                            Body = body,
-                        };
-
-                        var message = new ImportFailedMessage(transportMessage);
-
-                        patches.Add(failedMessageHandler.Handle(message));
-
-                        string failedMessageId;
-                        if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
-                        {
-                            events.Add(new MessageFailedRepeatedly
-                            {
-                                FailureDetails = message.FailureDetails,
-                                EndpointId = message.FailingEndpointId,
-                                FailedMessageId = failedMessageId,
-                            });
-                        }
-                        else
-                        {
-                            events.Add(new MessageFailed
-                            {
-                                FailureDetails = message.FailureDetails,
-                                EndpointId = message.FailingEndpointId,
-                                FailedMessageId = message.UniqueMessageId,
-                            });
-                        }
-
-                        processedFiles.Add(file);
-
-                        await storeBody.SaveToDB(message).ConfigureAwait(false);
-
-                        if (cnt++ >= BATCH_SIZE)
-                        {
-                            break;
-                        }
+                        break;
                     }
 
-                    await store.AsyncDatabaseCommands.BatchAsync(patches).ConfigureAwait(false);
+                    Dictionary<string, string> headers;
+                    byte[] body;
+                    if (!storeBody.TryReadFile(file, out headers, out body))
+                    {
+                        continue;
+                    }
 
-                    Parallel.ForEach(events, e => bus.Publish(e));
+                    var transportMessage = new TransportMessage(headers["NServiceBus.MessageId"], headers)
+                    {
+                        Body = body,
+                    };
 
-                    Parallel.ForEach(processedFiles, File.Delete);
+                    var message = new ImportFailedMessage(transportMessage);
+
+                    patches.Add(failedMessageHandler.Handle(message));
+
+                    string failedMessageId;
+                    if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
+                    {
+                        events.Add(new MessageFailedRepeatedly
+                        {
+                            FailureDetails = message.FailureDetails,
+                            EndpointId = message.FailingEndpointId,
+                            FailedMessageId = failedMessageId,
+                        });
+                    }
+                    else
+                    {
+                        events.Add(new MessageFailed
+                        {
+                            FailureDetails = message.FailureDetails,
+                            EndpointId = message.FailingEndpointId,
+                            FailedMessageId = message.UniqueMessageId,
+                        });
+                    }
+
+                    processedFiles.Add(file);
+
+                    await storeBody.SaveToDB(message).ConfigureAwait(false);
+
+                    if (cnt++ >= BATCH_SIZE)
+                    {
+                        break;
+                    }
                 }
+
+                await store.AsyncDatabaseCommands.BatchAsync(patches).ConfigureAwait(false);
+
+                Parallel.ForEach(events, e => bus.Publish(e));
+
+                Parallel.ForEach(processedFiles, File.Delete);
+
+                meter.Mark(cnt);
+
                 if (!stop && cnt < BATCH_SIZE)
                 {
                     await Task.Delay(1000);
