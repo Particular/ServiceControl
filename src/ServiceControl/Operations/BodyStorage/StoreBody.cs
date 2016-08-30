@@ -130,7 +130,7 @@
             var isBinary = contentType.Contains("binary");
             var body = importMessage.PhysicalMessage.Body;
 
-            using (var stream = File.Create(Path.Combine(bodiesPath, bodyId), body.Length))
+            using (var stream = new FileStream(Path.Combine(bodiesPath, bodyId), FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
             {
                 await stream.WriteAsync(body, 0, body.Length).ConfigureAwait(false);
             }
