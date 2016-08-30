@@ -50,7 +50,6 @@
                 var events = new List<object>();
                 var cnt = 0;
 
-
                 foreach (var file in Directory.EnumerateFiles(storeBody.ErrorQueuePath))
                 {
                     if (stop)

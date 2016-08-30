@@ -69,7 +69,7 @@
 
         void SaveToBeProcessedLater(TransportMessage message, string path)
         {
-            using (var writer = new BinaryWriter(new BufferedStream(File.Open(Path.Combine(path, Guid.NewGuid().ToString("N")), FileMode.Create, FileAccess.Write, FileShare.None))))
+            using (var writer = new BinaryWriter(File.Open(Path.Combine(path, Guid.NewGuid().ToString("N")), FileMode.Create, FileAccess.Write, FileShare.None)))
             {
                 writer.Write(message.Headers.Count);
                 foreach (var header in message.Headers)
@@ -89,7 +89,7 @@
             {
                 using (var fileStream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.None))
                 {
-                    using (var reader = new BinaryReader(new BufferedStream(fileStream)))
+                    using (var reader = new BinaryReader(fileStream))
                     {
                         var length = reader.ReadInt32();
                         headers = new Dictionary<string, string>(length);
