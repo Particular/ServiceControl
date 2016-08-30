@@ -27,8 +27,9 @@
         private readonly Settings settings;
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
         private readonly Timer timer = Metric.Timer("Error messages", Unit.Items);
+        private ProcessErrors processErrors;
 
-        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, StoreBody storeBody, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings)
+        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IBus bus, StoreBody storeBody, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings)
         {
             this.builder = builder;
             this.forwarder = forwarder;
@@ -36,6 +37,7 @@
             this.criticalError = criticalError;
             this.loggingSettings = loggingSettings;
             this.settings = settings;
+            processErrors = new ProcessErrors(builder, store, storeBody, bus);
         }
 
         public bool Handle(TransportMessage message)
@@ -63,12 +65,15 @@
         {
             if (!TerminateIfForwardingQueueNotWritable())
             {
-                Logger.InfoFormat("Error import is now started, feeding error messages from: {0}", InputAddress);
+                Logger.Info($"Error import is now started, feeding error messages from: {InputAddress}");
             }
+
+            processErrors.Start();
         }
 
         public void Stop()
         {
+            processErrors.Stop();
         }
 
         public Address InputAddress => settings.ErrorQueue;

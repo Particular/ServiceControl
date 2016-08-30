@@ -29,6 +29,8 @@
 
         public string AuditQueuePath => auditQueuePath;
 
+        public string ErrorQueuePath => errorQueuePath;
+
         public bool SaveInStorage(TransportMessage message, out ImportSuccessfullyProcessedMessage importMessage)
         {
             importMessage = null;
@@ -62,7 +64,7 @@
 
         public void SaveErrorToBeProcessedLater(TransportMessage message)
         {
-            SaveToBeProcessedLater(message, errorQueuePath);
+            SaveToBeProcessedLater(message, ErrorQueuePath);
         }
 
         void SaveToBeProcessedLater(TransportMessage message, string path)
@@ -113,7 +115,7 @@
             return true;
         }
 
-        public async Task SaveToDB(ImportSuccessfullyProcessedMessage importMessage)
+        public async Task SaveToDB(ImportMessage importMessage)
         {
             var bodySize = GetContentLength(importMessage);
             var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
@@ -130,7 +132,7 @@
 
             using (var stream = File.Create(Path.Combine(bodiesPath, bodyId), body.Length))
             {
-                await stream.WriteAsync(body, 0, body.Length);
+                await stream.WriteAsync(body, 0, body.Length).ConfigureAwait(false);
             }
 
             if (avoidsLargeObjectHeap && !isBinary)
@@ -181,15 +183,5 @@
 
             return contentType;
         }
-
-        //string StoreBodyInBodyStorage(TransportMessage message, string bodyId, string contentType, int bodySize)
-        //{
-        //    using (var bodyStream = new MemoryStream(message.Body))
-        //    {
-        //        var bodyUrl = BodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
-        //        return bodyUrl;
-        //    }
-        //}
-
     }
 }

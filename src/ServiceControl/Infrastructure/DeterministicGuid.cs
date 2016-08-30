@@ -6,9 +6,19 @@
 
     public static class DeterministicGuid
     {
-        public static Guid MakeId(params string[] data)
+        public static Guid MakeId(string data)
         {
-            return DeterministicGuidBuilder(String.Concat(data));
+            return DeterministicGuidBuilder(data);
+        }
+
+        public static Guid MakeId(string data1, string data2)
+        {
+            return DeterministicGuidBuilder($"{data1}{data2}");
+        }
+
+        public static Guid MakeId(string data1, string data2, string data3)
+        {
+            return DeterministicGuidBuilder($"{data1}{data2}{data3}");
         }
 
         static Guid DeterministicGuidBuilder(string input)

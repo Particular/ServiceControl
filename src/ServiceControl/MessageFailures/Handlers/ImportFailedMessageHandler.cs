@@ -1,28 +1,31 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System.Linq;
-    using NServiceBus;
-    using Raven.Client;
-    using ServiceControl.Contracts.MessageFailures;
+    using System.Collections.Generic;
+    using Raven.Abstractions.Commands;
+    using Raven.Abstractions.Data;
+    using Raven.Json.Linq;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Operations;
 
     class ImportFailedMessageHandler
     {
-        private readonly IDocumentStore store;
-        private readonly IBus bus;
+        static RavenJObject metadata = RavenJObject.Parse($@"
+                                    {{
+                                        ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"", 
+                                        ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
+                                    }}");
+
         private readonly IFailedMessageEnricher[] failureEnrichers;
         private readonly IEnrichImportedMessages[] importerEnrichers;
 
-        public ImportFailedMessageHandler(IDocumentStore store, IBus bus, IFailedMessageEnricher[] failureEnrichers, IEnrichImportedMessages[] importerEnrichers)
+        public ImportFailedMessageHandler(IFailedMessageEnricher[] failureEnrichers, IEnrichImportedMessages[] importerEnrichers)
         {
-            this.store = store;
-            this.bus = bus;
             this.failureEnrichers = failureEnrichers;
             this.importerEnrichers = importerEnrichers;
+            
         }
-        
-        public void Handle(ImportFailedMessage message)
+
+        public PatchCommandData Handle(ImportFailedMessage message)
         {
             foreach (var enricher in importerEnrichers)
             {
@@ -30,68 +33,89 @@
             }
 
             var documentId = FailedMessage.MakeDocumentId(message.UniqueMessageId);
+            var timeOfFailure = message.FailureDetails.TimeOfFailure;
+            var groups = new List<FailedMessage.FailureGroup>();
 
-            using (var session = store.OpenSession())
+            foreach (var enricher in failureEnrichers)
             {
-                session.Advanced.UseOptimisticConcurrency = true;
-
-                var failure = session.Load<FailedMessage>(documentId) ?? new FailedMessage
-                              {
-                                  Id = documentId,
-                                  UniqueMessageId = message.UniqueMessageId
-                              };
-
-                failure.Status = FailedMessageStatus.Unresolved;
-
-                var timeOfFailure = message.FailureDetails.TimeOfFailure;
-
-                //check for duplicate
-                if (failure.ProcessingAttempts.Any(a => a.AttemptedAt == timeOfFailure))
-                {
-                    return;
-                }
-
-                failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
-                {
-                    AttemptedAt = timeOfFailure,
-                    FailureDetails = message.FailureDetails,
-                    MessageMetadata = message.Metadata,
-                    MessageId = message.PhysicalMessage.MessageId,
-                    Headers = message.PhysicalMessage.Headers,
-                    ReplyToAddress = message.PhysicalMessage.ReplyToAddress,
-                    Recoverable = message.PhysicalMessage.Recoverable,
-                    CorrelationId = message.PhysicalMessage.CorrelationId,
-                    MessageIntent = message.PhysicalMessage.MessageIntent,
-                });
-
-                foreach (var enricher in failureEnrichers)
-                {
-                    enricher.Enrich(failure, message);
-                }
-
-                session.Store(failure);
-                session.SaveChanges();
-
-                string failedMessageId;
-                if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
-                {
-                    bus.Publish<MessageFailedRepeatedly>(m =>
-                    {
-                        m.FailureDetails = message.FailureDetails;
-                        m.EndpointId = message.FailingEndpointId;
-                        m.FailedMessageId = failedMessageId;
-                    });
-                }
-                else
-                {
-                    bus.Publish<MessageFailed>(m =>
-                    {
-                        m.FailureDetails = message.FailureDetails;
-                        m.EndpointId = message.FailingEndpointId;
-                        m.FailedMessageId = message.UniqueMessageId;
-                    });
-                }
+                groups.AddRange(enricher.Enrich(message));
             }
+
+            return new PatchCommandData
+            {
+                Key = documentId,
+                Patches = new[]
+                {
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.Status),
+                        Type = PatchCommandType.Set,
+                        Value = (int) FailedMessageStatus.Unresolved
+                    },
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.ProcessingAttempts),
+                        Type = PatchCommandType.Add,
+                        Value = RavenJToken.FromObject(new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = timeOfFailure,
+                            FailureDetails = message.FailureDetails,
+                            MessageMetadata = message.Metadata,
+                            MessageId = message.PhysicalMessage.MessageId,
+                            Headers = message.PhysicalMessage.Headers,
+                            ReplyToAddress = message.PhysicalMessage.ReplyToAddress,
+                            Recoverable = message.PhysicalMessage.Recoverable,
+                            CorrelationId = message.PhysicalMessage.CorrelationId,
+                            MessageIntent = message.PhysicalMessage.MessageIntent
+                        })
+                    },
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.FailureGroups),
+                        Type = PatchCommandType.Set,
+                        Value = RavenJToken.FromObject(groups)
+                    }
+                },
+                PatchesIfMissing = new[]
+                {
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.UniqueMessageId),
+                        Type = PatchCommandType.Set,
+                        Value = message.UniqueMessageId
+                    },
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.Status),
+                        Type = PatchCommandType.Set,
+                        Value = (int) FailedMessageStatus.Unresolved
+                    },
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.ProcessingAttempts),
+                        Type = PatchCommandType.Add,
+                        Value = RavenJToken.FromObject(new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = timeOfFailure,
+                            FailureDetails = message.FailureDetails,
+                            MessageMetadata = message.Metadata,
+                            MessageId = message.PhysicalMessage.MessageId,
+                            Headers = message.PhysicalMessage.Headers,
+                            ReplyToAddress = message.PhysicalMessage.ReplyToAddress,
+                            Recoverable = message.PhysicalMessage.Recoverable,
+                            CorrelationId = message.PhysicalMessage.CorrelationId,
+                            MessageIntent = message.PhysicalMessage.MessageIntent
+                        })
+                    },
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.FailureGroups),
+                        Type = PatchCommandType.Set,
+                        Value = RavenJToken.FromObject(groups)
+                    }
+                },
+                Metadata = metadata
+            };
         }
     }
 }

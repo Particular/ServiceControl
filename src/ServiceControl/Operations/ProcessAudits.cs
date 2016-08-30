@@ -14,6 +14,8 @@
 
     class ProcessAudits
     {
+        private const int BATCH_SIZE = 100;
+
         private readonly IDocumentStore store;
         private readonly StoreBody storeBody;
         private Task task;
@@ -34,8 +36,6 @@
             stop = false;
             task = Task.Run(Process);
         }
-
-        private const int BATCH_SIZE = 100;
 
         private async Task Process()
         {
@@ -72,7 +72,7 @@
 
                             processedFiles.Add(file);
 
-                            await storeBody.SaveToDB(importSuccessfullyProcessedMessage);
+                            await storeBody.SaveToDB(importSuccessfullyProcessedMessage).ConfigureAwait(false);
 
                             if (cnt++ >= BATCH_SIZE)
                             {
@@ -81,11 +81,7 @@
                         }
                     }
 
-
-                    foreach (var processedFile in processedFiles)
-                    {
-                        File.Delete(processedFile);
-                    }
+                    Parallel.ForEach(processedFiles, File.Delete);
                 }
                 if (!stop && cnt < BATCH_SIZE)
                 {

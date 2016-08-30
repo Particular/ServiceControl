@@ -7,9 +7,11 @@
 
     public class FailedMessage: IHaveStatus
     {
+        public const string CollectionName = "FailedMessages";
+
         public static string MakeDocumentId(string messageUniqueId)
         {
-            return "FailedMessages/" + messageUniqueId;
+            return $"{CollectionName}/{messageUniqueId}";
         }
 
         public FailedMessage()
