@@ -103,11 +103,20 @@
                     }
                 }
 
-                await store.AsyncDatabaseCommands.BatchAsync(patches).ConfigureAwait(false);
+                if (patches.Count > 0)
+                {
+                    await store.AsyncDatabaseCommands.BatchAsync(patches).ConfigureAwait(false);
+                }
 
-                Parallel.ForEach(events, e => bus.Publish(e));
+                if (events.Count > 0)
+                {
+                    Parallel.ForEach(events, e => bus.Publish(e));
+                }
 
-                Parallel.ForEach(processedFiles, File.Delete);
+                if (processedFiles.Count > 0)
+                {
+                    Parallel.ForEach(processedFiles, File.Delete);
+                }
 
                 meter.Mark(cnt);
 
