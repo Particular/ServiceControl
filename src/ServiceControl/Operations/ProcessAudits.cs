@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -7,7 +8,9 @@
     using Metrics;
     using NServiceBus;
     using NServiceBus.ObjectBuilder;
+    using Raven.Abstractions.Data;
     using Raven.Client;
+    using Raven.Client.Document;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageAuditing.Handlers;
     using ServiceControl.Operations.BodyStorage;
@@ -44,7 +47,7 @@
                 var processedFiles = new List<string>();
                 var cnt = 0;
 
-                var bulkInsert = store.BulkInsert();
+                var bulkInsertLazy = new Lazy<BulkInsertOperation>(() => store.BulkInsert());
 
                 foreach (var file in Directory.EnumerateFiles(storeBody.AuditQueuePath))
                 {
@@ -66,7 +69,7 @@
                     };
 
                     var importSuccessfullyProcessedMessage = new ImportSuccessfullyProcessedMessage(transportMessage);
-                    auditMessageHandler.Handle(bulkInsert, importSuccessfullyProcessedMessage);
+                    auditMessageHandler.Handle(bulkInsertLazy.Value, importSuccessfullyProcessedMessage);
 
                     processedFiles.Add(file);
 
@@ -80,7 +83,7 @@
 
                 if (cnt > 0)
                 {
-                    await bulkInsert.DisposeAsync();
+                    await bulkInsertLazy.Value.DisposeAsync();
                 }
 
                 if (processedFiles.Count > 0)
