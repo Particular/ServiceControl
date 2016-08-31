@@ -37,7 +37,7 @@
         public void Start()
         {
             stop = false;
-            task = Task.Run(Process);
+            task = Process();
         }
 
         private async Task Process()
