@@ -83,6 +83,19 @@
             }
         }
 
+        public bool DeleteBody(string bodyId)
+        {
+            var path = Path.Combine(bodiesPath, bodyId);
+
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+                return true;
+            }
+
+            return false;
+        }
+
         public bool TryRetrieveBody(string bodyId, out Stream stream, out string contentType, out long contentLength)
         {
             var path = Path.Combine(bodiesPath, bodyId);

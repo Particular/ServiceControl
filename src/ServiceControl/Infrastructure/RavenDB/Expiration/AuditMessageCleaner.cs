@@ -8,12 +8,13 @@
     using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Json.Linq;
+    using ServiceControl.Operations.BodyStorage;
 
     public static class AuditMessageCleaner
     {
         static ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
 
-        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token)
+        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token, IBodyStorage bodyStorage)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -69,7 +70,7 @@
                     {
                         try
                         {
-                            store.DatabaseCommands.DeleteAttachment(bodyId, null);
+                            bodyStorage.Delete(bodyId);
                         }
                         catch (Exception ex)
                         {
@@ -109,7 +110,7 @@
             {
                 return false;
             }
-            bodyId = "messagebodies/" + messageId.Value<string>();
+            bodyId = messageId.Value<string>();
             return true;
         }
     }

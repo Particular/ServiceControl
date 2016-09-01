@@ -21,7 +21,7 @@
                 return true;
             }
 
-            var attachment = store.DatabaseCommands.GetAttachment("messagebodies/" + bodyId);
+            var attachment = store.DatabaseCommands.GetAttachment($"messagebodies/{bodyId}");
 
             if (attachment == null)
             {
@@ -35,6 +35,16 @@
             contentLength = attachment.Metadata["ContentLength"].Value<long>();
             stream = attachment.Data();
             return true;
+        }
+
+        public void Delete(string bodyId)
+        {
+            if (storeBody.DeleteBody(bodyId))
+            {
+                return;
+            }
+            
+            store.DatabaseCommands.DeleteAttachment($"messagebodies/{bodyId}", null);
         }
     }
 }

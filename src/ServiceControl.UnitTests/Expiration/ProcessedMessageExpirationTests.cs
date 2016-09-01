@@ -6,6 +6,7 @@
     using System.IO;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using MessageAuditing;
     using MessageFailures;
     using NServiceBus;
@@ -15,6 +16,7 @@
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
     using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Operations.BodyStorage.RavenAttachments;
 
     [TestFixture]
     public class ProcessedMessageExpirationTests
@@ -102,11 +104,19 @@
             }
         }
 
-        static void RunExpiry(IDocumentStore documentStore, DateTime expiryThreshold)
+        static void RunExpiry(IDocumentStore documentStore, DateTime expiryThreshold, StoreBody storeBody = null)
         {
             new ExpiryProcessedMessageIndex().Execute(documentStore);
             documentStore.WaitForIndexing();
-            AuditMessageCleaner.Clean(100, documentStore, expiryThreshold, new CancellationToken());
+
+            if (storeBody == null)
+            {
+                storeBody = new StoreBody(new Settings("boo", false, false, TimeSpan.Zero, TimeSpan.Zero)
+                {
+                    StoragePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName())
+                });
+            }
+            AuditMessageCleaner.Clean(100, documentStore, expiryThreshold, new CancellationToken(), new RavenAttachmentsBodyStorage(storeBody, documentStore));
             documentStore.WaitForIndexing();
         }
 
@@ -151,7 +161,7 @@
         }
 
         [Test]
-        public void Stored_bodies_are_being_removed_when_message_expires()
+        public async Task Stored_bodies_are_being_removed_when_message_expires()
         {
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -192,9 +202,9 @@
                     session.SaveChanges();
                 }
                 
-                bodyStorage.SaveToDB(message);
+                await bodyStorage.SaveToDB(message);
                 
-                RunExpiry(documentStore, thresholdDate);
+                RunExpiry(documentStore, thresholdDate, bodyStorage);
 
                 // Verify message expired
                 using (var session = documentStore.OpenSession())
