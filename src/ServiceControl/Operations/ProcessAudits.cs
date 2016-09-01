@@ -8,7 +8,6 @@
     using Metrics;
     using NServiceBus;
     using NServiceBus.ObjectBuilder;
-    using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Client.Document;
     using ServiceControl.Contracts.Operations;

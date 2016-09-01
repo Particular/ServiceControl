@@ -6,74 +6,110 @@
     using CompositeViews.Messages;
     using System.Text;
     using Nancy;
-    using Raven.Abstractions.Data;
+    using Nancy.Responses;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     
     public class GetBodyById : BaseModule
     {
+        private readonly IBodyStorage bodyStorage;
+
+        public GetBodyById(IBodyStorage bodyStorage)
+        {
+            this.bodyStorage = bodyStorage;
+        }
 
         public GetBodyById()
         {
+            Get["/messages/{id*}/body_v2"] = parameters =>
+            {
+                string messageId = parameters.id;
+                messageId = messageId?.Replace("/", @"\");
+                Stream stream;
+                long contentLength;
+                string contentType;
+
+                if (bodyStorage.TryFetch(messageId, out stream, out contentType, out contentLength))
+                {
+                    return new StreamResponse(() => stream, contentType)
+                        .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R"))
+                        .WithHeader("Content-Length", contentLength.ToString())
+                        .WithStatusCode(HttpStatusCode.OK);
+                }
+
+                using (var session = Store.OpenSession())
+                {
+                    RavenQueryStatistics stats;
+                    var message = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                        .Statistics(out stats)
+                        .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
+                        .FirstOrDefault(f => f.MessageId == messageId);
+
+                    if (message == null)
+                    {
+                        return new Response().WithStatusCode(HttpStatusCode.NotFound);
+                    }
+
+                    if (message.BodyNotStored)
+                    {
+                        return new Response().WithStatusCode(HttpStatusCode.NoContent);
+                    }
+
+                    return new Response().WithStatusCode(HttpStatusCode.NotFound);
+                }
+            };
+
             Get["/messages/{id*}/body"] = parameters =>
             {
                 string messageId = parameters.id;
                 messageId = messageId?.Replace("/", @"\");
-                Action<Stream> contents;
+                Stream stream;
+                long contentLength;
                 string contentType;
-                int bodySize;
-                var attachment = Store.DatabaseCommands.GetAttachment("messagebodies/" + messageId);
-                Etag currentEtag;
 
-                if (attachment == null)
+                if (bodyStorage.TryFetch(messageId, out stream, out contentType, out contentLength))
                 {
-                    using (var session = Store.OpenSession())
+                    return new StreamResponse(() => stream, contentType)
+                        .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R"))
+                        .WithHeader("Content-Length", contentLength.ToString())
+                        .WithStatusCode(HttpStatusCode.OK);
+                }
+
+                using (var session = Store.OpenSession())
+                {
+                    RavenQueryStatistics stats;
+                    var message = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                        .Statistics(out stats)
+                        .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
+                        .FirstOrDefault(f => f.MessageId == messageId);
+
+                    if (message == null)
                     {
-                        RavenQueryStatistics stats;
-                        var message = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                            .Statistics(out stats)
-                            .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
-                            .FirstOrDefault(f => f.MessageId == messageId);
-
-                        if (message == null)
-                        {
-                            return HttpStatusCode.NotFound;
-                        }
-
-                        if (message.BodyNotStored)
-                        {
-                            return HttpStatusCode.NoContent;
-                        }
-
-                        if (message.Body == null)
-                        {
-                            return HttpStatusCode.NotFound;
-                        }
-
-                        var data = Encoding.UTF8.GetBytes(message.Body);
-                        contents = stream => stream.Write(data, 0, data.Length);
-                        contentType = message.ContentType;
-                        bodySize = message.BodySize;
-                        currentEtag = stats.IndexEtag;
+                        return new Response().WithStatusCode(HttpStatusCode.NotFound);
                     }
-                }
-                else
-                {
-                    contents = stream => attachment.Data().CopyTo(stream);
-                    contentType = attachment.Metadata["ContentType"].Value<string>();
-                    bodySize = attachment.Metadata["ContentLength"].Value<int>();
-                    currentEtag = attachment.Etag;
-                }
 
-                return new Response { Contents = contents }
-                    .WithContentType(contentType)
-                    .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R")) 
-                    .WithHeader("Content-Length", bodySize.ToString())
-                    .WithHeader("ETag", currentEtag)
-                    .WithStatusCode(HttpStatusCode.OK);
+                    if (message.BodyNotStored)
+                    {
+                        return new Response().WithStatusCode(HttpStatusCode.NoContent);
+                    }
+
+                    if (message.Body == null)
+                    {
+                        return new Response().WithStatusCode(HttpStatusCode.NotFound);
+                    }
+
+                    var data = Encoding.UTF8.GetBytes(message.Body);
+
+                    return new Response
+                        {
+                            Contents = s => s.Write(data, 0, data.Length)
+                        }
+                        .WithContentType(message.ContentType)
+                        .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R"))
+                        .WithHeader("Content-Length", message.BodySize.ToString())
+                        .WithStatusCode(HttpStatusCode.OK);
+                }
             };
         }
-
     }
-
 }

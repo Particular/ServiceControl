@@ -165,7 +165,9 @@ namespace ServiceControl.Recoverability
             };
 
             Stream stream;
-            if (bodyStorage.TryFetch(attempt.MessageId, out stream))
+            string _;
+            long __;
+            if (bodyStorage.TryFetch(attempt.MessageId, out stream, out _, out __))
             {
                 using (stream)
                 {

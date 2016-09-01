@@ -21,7 +21,7 @@
         private int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
         private int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
 
-        public Settings(string serviceName = null)
+        public Settings(string serviceName = null, bool? forwardAuditMessages = null, bool? forwardErrorMessages = null, TimeSpan? auditRetentionPeriod = null, TimeSpan? errorRetentionPeriod = null)
         {
             ServiceName = serviceName;
 
@@ -35,10 +35,10 @@
             ErrorLogQueue = GetErrorLogQueue();
             AuditLogQueue = GetAuditLogQueue();
             TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
-            ForwardAuditMessages = GetForwardAuditMessages();
-            ForwardErrorMessages = GetForwardErrorMessages();
-            AuditRetentionPeriod = GetAuditRetentionPeriod();
-            ErrorRetentionPeriod = GetErrorRetentionPeriod();
+            ForwardAuditMessages = forwardAuditMessages ?? GetForwardAuditMessages();
+            ForwardErrorMessages = forwardErrorMessages ?? GetForwardErrorMessages();
+            AuditRetentionPeriod = auditRetentionPeriod ?? GetAuditRetentionPeriod();
+            ErrorRetentionPeriod = errorRetentionPeriod ?? GetErrorRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
@@ -68,7 +68,7 @@
 
         public string ApiUrl => $"{RootUrl}api";
 
-        public string StorageUrl => SettingsReader<string>.Read("StorageUrl", "http://localhost:8080");
+        public string StorageUrl => SettingsReader<string>.Read("StorageUrl", $"{RootUrl}storage");
 
         public int Port { get; set; }
 

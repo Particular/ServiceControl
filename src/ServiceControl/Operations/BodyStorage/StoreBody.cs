@@ -83,6 +83,24 @@
             }
         }
 
+        public bool TryRetrieveBody(string bodyId, out Stream stream, out string contentType, out long contentLength)
+        {
+            var path = Path.Combine(bodiesPath, bodyId);
+
+            contentType = null;
+            contentLength = 0;
+
+            if (File.Exists(path))
+            {
+                stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
+                contentLength = stream.Length;
+                return true;
+            }
+
+            stream = null;
+            return false;
+        }
+
         public bool TryReadFile(string path, out Dictionary<string, string> headers, out byte[] body)
         {
             try

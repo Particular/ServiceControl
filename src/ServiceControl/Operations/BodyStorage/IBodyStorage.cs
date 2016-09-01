@@ -4,7 +4,6 @@
 
     public interface IBodyStorage
     {
-        string Store(string bodyId, string contentType, int bodySize, Stream bodyStream);
-        bool TryFetch(string bodyId, out Stream stream);
+        bool TryFetch(string bodyId, out Stream stream, out string contentType, out long contentLength);
     }
 }

@@ -8,10 +8,13 @@
     using System.Threading;
     using MessageAuditing;
     using MessageFailures;
+    using NServiceBus;
     using NUnit.Framework;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
-    using ServiceControl.Operations.BodyStorage.RavenAttachments;
+    using ServiceControl.Operations.BodyStorage;
 
     [TestFixture]
     public class ProcessedMessageExpirationTests
@@ -156,17 +159,31 @@
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
                 // Store expired message with associated body
                 var messageId = "21";
+                var bodyStorage = new StoreBody(new Settings("boo", false, false, TimeSpan.Zero, TimeSpan.Zero)
+                {
+                    StoragePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName())
+                });
 
-                var processedMessage = new ProcessedMessage
+                var message = new ImportSuccessfullyProcessedMessage(new TransportMessage(messageId, new Dictionary<string, string>
+                {
+                    {Headers.ContentType, "binary"},
+                    {Headers.ProcessingEndpoint, "Boo" }
+                })
+                {
+                    Body = new byte[]
+                    {
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    }
+                });
+
+                var processedMessage = new ProcessedMessage(message)
                 {
                     Id = "1",
-                    ProcessedAt = expiredDate,
-                    MessageMetadata = new Dictionary<string, object>
-                    {
-                        {
-                            "MessageId", messageId
-                        }
-                    }
+                    ProcessedAt = expiredDate
                 };
 
                 using (var session = documentStore.OpenSession())
@@ -174,22 +191,9 @@
                     session.Store(processedMessage);
                     session.SaveChanges();
                 }
-
-                var body = new byte[]
-                {
-                    1,
-                    2,
-                    3,
-                    4,
-                    5
-                };
-
-                var bodyStorage = new RavenAttachmentsBodyStorage();
-
-                using (var stream = new MemoryStream(body))
-                {
-                    bodyStorage.Store(messageId, "binary", 5, stream);
-                }
+                
+                bodyStorage.SaveToDB(message);
+                
                 RunExpiry(documentStore, thresholdDate);
 
                 // Verify message expired
@@ -199,8 +203,10 @@
                 }
 
                 // Verify body expired
-                Stream dummy;
-                Assert.False(bodyStorage.TryFetch(messageId, out dummy), "Audit document body should be deleted");
+                Stream _;
+                string __;
+                long ___;
+                Assert.False(bodyStorage.TryRetrieveBody(messageId, out _, out __, out ___), "Audit document body should be deleted");
             }
         }
 
