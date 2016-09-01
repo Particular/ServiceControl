@@ -113,9 +113,9 @@
                     Parallel.ForEach(events, e => bus.Publish(e));
                 }
 
-                if (processedFiles.Count > 0)
+                foreach (var file in processedFiles)
                 {
-                    Parallel.ForEach(processedFiles, File.Delete);
+                    File.Delete(file);
                 }
 
                 meter.Mark(cnt);

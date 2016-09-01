@@ -85,9 +85,9 @@
                     await bulkInsertLazy.Value.DisposeAsync();
                 }
 
-                if (processedFiles.Count > 0)
+                foreach (var file in processedFiles)
                 {
-                    Parallel.ForEach(processedFiles, File.Delete);
+                    File.Delete(file);
                 }
 
                 meter.Mark(cnt);
