@@ -1,7 +1,6 @@
 namespace Particular.ServiceControl
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Net;
     using System.Net.Http;
@@ -18,14 +17,17 @@ namespace Particular.ServiceControl
     using Raven.Client;
     using Raven.Client.Document;
     using Raven.Client.Indexes;
+    using Raven.Database.Config;
+    using Raven.Database.Server;
+    using Raven.Database.Server.Security.Windows;
     using Raven.Json.Linq;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class SetupBootstrapper
     {
-        private readonly HttpMessageHandler handler;
         private readonly Settings settings;
+        private readonly HttpMessageHandler handler;
 
         public SetupBootstrapper(Settings settings, HttpMessageHandler handler = null)
         {
@@ -124,16 +126,16 @@ namespace Particular.ServiceControl
                         Id = "ServiceControl",
                         Settings =
                         {
-                            {"Raven/StorageTypeName", "voron"},
-                            {"Raven/DataDir", "~/ServiceControl"},
-                            //{"Raven/Counters/DataDir", Path.Combine(settings.DbPath, "Data", "Counters")},
-                            //{"Raven/WebDir", Path.Combine(settings.DbPath, "Raven", "WebUI")},
-                            //{"Raven/PluginsDirectory", Path.Combine(settings.DbPath, "Plugins")},
-                            //{"Raven/AssembliesDirectory", Path.Combine(settings.DbPath, "Assemblies")},
-                            //{"Raven/CompiledIndexCacheDirectory", Path.Combine(settings.DbPath, "CompiledIndexes")},
-                            //{"Raven/FileSystem/DataDir", Path.Combine(settings.DbPath, "FileSystems")},
-                            //{"Raven/FileSystem/IndexStoragePath", Path.Combine(settings.DbPath, "FileSystems", "Indexes")},
-                            {"Raven/AnonymousAccess", "None"}
+                            {"Raven/StorageTypeName", InMemoryRavenConfiguration.VoronTypeName},
+                            {"Raven/DataDir", Path.Combine(settings.DbPath, "Databases", "ServiceControl")},
+                            {"Raven/Counters/DataDir", Path.Combine(settings.DbPath, "Data", "Counters")},
+                            {"Raven/WebDir", Path.Combine(settings.DbPath, "Raven", "WebUI")},
+                            {"Raven/PluginsDirectory", Path.Combine(settings.DbPath, "Plugins")},
+                            {"Raven/AssembliesDirectory", Path.Combine(settings.DbPath, "Assemblies")},
+                            {"Raven/CompiledIndexCacheDirectory", Path.Combine(settings.DbPath, "CompiledIndexes")},
+                            {"Raven/FileSystem/DataDir", Path.Combine(settings.DbPath, "FileSystems")},
+                            {"Raven/FileSystem/IndexStoragePath", Path.Combine(settings.DbPath, "FileSystems", "Indexes")},
+                            {"Raven/AnonymousAccess", AnonymousUserAccessMode.None.ToString()}
                         }
                     });
 
@@ -152,12 +154,12 @@ namespace Particular.ServiceControl
                         ReadOnly = false,
                         TenantId = "ServiceControl"
                     });
-                    //group.Databases.Add(new ResourceAccess
-                    //{
-                    //    Admin = true,
-                    //    ReadOnly = false,
-                    //    TenantId = "<system>"
-                    //});
+                    group.Databases.Add(new ResourceAccess
+                    {
+                        Admin = true,
+                        ReadOnly = false,
+                        TenantId = "<system>"
+                    });
                     windowsAuthDocument.RequiredGroups.Add(group);
 
                     var user = new WindowsAuthData
@@ -186,43 +188,7 @@ namespace Particular.ServiceControl
             }
         }
 
-        private class WindowsAuthDocument
-        {
-            public WindowsAuthDocument()
-            {
-                RequiredGroups = new List<WindowsAuthData>();
-                RequiredUsers = new List<WindowsAuthData>();
-            }
-
-            public List<WindowsAuthData> RequiredGroups { get; }
-
-            public List<WindowsAuthData> RequiredUsers { get; }
-        }
-
-        private class WindowsAuthData
-        {
-            public WindowsAuthData()
-            {
-                Databases = new List<ResourceAccess>();
-            }
-
-            public string Name { get; set; }
-
-            public bool Enabled { get; set; }
-
-            public List<ResourceAccess> Databases { get; }
-        }
-
-        private class ResourceAccess
-        {
-            public bool Admin { get; set; }
-
-            public string TenantId { get; set; }
-
-            public bool ReadOnly { get; set; }
-        }
-
-        private class UpdatingSchemaInterceptor : TextWriter
+        class UpdatingSchemaInterceptor : TextWriter
         {
             private readonly TextWriter originalOut;
             public bool Updating;
