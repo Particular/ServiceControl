@@ -32,7 +32,7 @@
             this.storeBody = storeBody;
             this.bus = bus;
 
-            failedMessageHandler = new ImportFailedMessageHandler(builder.BuildAll<IFailedMessageEnricher>().ToArray(), builder.BuildAll<IEnrichImportedMessages>().ToArray());
+            failedMessageHandler = new ImportFailedMessageHandler(builder.BuildAll<IFailedMessageEnricher>().ToArray(), builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichErrors).ToArray());
         }
 
         public void Start()

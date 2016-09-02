@@ -7,7 +7,7 @@ namespace ServiceControl.Contracts.Operations
 
     public class EndpointDetailsParser
     {
-        public static EndpointDetails SendingEndpoint(IDictionary<string, string> headers)
+        public static EndpointDetails SendingEndpoint(IReadOnlyDictionary<string, string> headers)
         {
             var endpointDetails = new EndpointDetails();
 
@@ -33,7 +33,7 @@ namespace ServiceControl.Contracts.Operations
             return null;
         }
 
-        public static EndpointDetails ReceivingEndpoint(IDictionary<string, string> headers)
+        public static EndpointDetails ReceivingEndpoint(IReadOnlyDictionary<string, string> headers)
         {
             var endpoint = new EndpointDetails();
             string hostIdHeader;
@@ -78,7 +78,7 @@ namespace ServiceControl.Contracts.Operations
                     endpoint.Host = address.Machine;
                 }
 
-                // If we've been now able to get the endpoint details, return the new info. 
+                // If we've been now able to get the endpoint details, return the new info.
                 if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Host))
                 {
                     return endpoint;
@@ -86,6 +86,6 @@ namespace ServiceControl.Contracts.Operations
             }
 
             return null;
-        }  
+        }
     }
 }

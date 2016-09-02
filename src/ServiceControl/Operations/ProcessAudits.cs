@@ -30,7 +30,7 @@
             this.store = store;
             this.storeBody = storeBody;
 
-            auditMessageHandler = new AuditMessageHandler(store, builder.BuildAll<IEnrichImportedMessages>().ToArray());
+            auditMessageHandler = new AuditMessageHandler(store, builder.BuildAll<IEnrichImportedMessages>().Where(x => x.EnrichAudits).ToArray());
         }
 
         public void Start()

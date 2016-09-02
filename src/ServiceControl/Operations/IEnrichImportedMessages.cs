@@ -1,10 +1,11 @@
 namespace ServiceControl.Operations
 {
-    using Contracts.Operations;
+    using System.Collections.Generic;
 
     interface IEnrichImportedMessages
     {
-        void Enrich(ImportMessage message);
-
+        void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata);
+        bool EnrichErrors { get; }
+        bool EnrichAudits { get; }
     }
 }

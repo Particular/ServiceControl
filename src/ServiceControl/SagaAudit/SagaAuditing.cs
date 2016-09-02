@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
@@ -22,11 +21,10 @@
 
         class SagaRelationshipsEnricher : ImportEnricher
         {
-            public override void Enrich(ImportMessage message)
+            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 string sagasInvokedRaw;
 
-                var headers = message.PhysicalMessage.Headers;
                 if (headers.TryGetValue("NServiceBus.InvokedSagas", out sagasInvokedRaw))
                 {
                     string sagasChangeRaw;
@@ -59,7 +57,7 @@
                         })
                         .ToList();
 
-                    message.Metadata.Add("InvokedSagas", sagas);
+                    metadata.Add("InvokedSagas", sagas);
                 }
                 else
                 {
@@ -81,7 +79,7 @@
                             sagaType = "Unknown";
                         }
 
-                        message.Metadata.Add("InvokedSagas", new List<SagaInfo>
+                        metadata.Add("InvokedSagas", new List<SagaInfo>
                         {
                             new SagaInfo
                             {
@@ -107,7 +105,7 @@
                         sagaType = "Unknown";
                     }
 
-                    message.Metadata.Add("OriginatesFromSaga", new SagaInfo
+                    metadata.Add("OriginatesFromSaga", new SagaInfo
                     {
                         SagaId = Guid.Parse(originatingSagaId),
                         SagaType = sagaType

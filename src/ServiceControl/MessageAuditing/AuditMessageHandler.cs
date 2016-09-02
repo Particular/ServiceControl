@@ -16,7 +16,7 @@ namespace ServiceControl.MessageAuditing.Handlers
             this.store = store;
             this.enrichers = enrichers;
         }
-        
+
         public void Handle(ImportSuccessfullyProcessedMessage message)
         {
             var auditMessage = CreateProcessedMessage(message);
@@ -39,7 +39,7 @@ namespace ServiceControl.MessageAuditing.Handlers
         {
             foreach (var enricher in enrichers)
             {
-                enricher.Enrich(message);
+                enricher.Enrich(message.PhysicalMessage.Headers, message.Metadata);
             }
 
             var auditMessage = new ProcessedMessage(message)
