@@ -346,7 +346,6 @@
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SignalR\SerializationSettingsFactoryForSignalR.cs" />
     <Compile Include="MaintenanceBootstrapper.cs" />
-    <Compile Include="MessageAuditing\AuditMessageHandler.cs" />
     <Compile Include="MessageFailures\Api\UnArchiveMessages.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
@@ -358,6 +357,17 @@
     <Compile Include="MessageFailures\InternalMessages\ReclassifyErrors.cs" />
     <Compile Include="MessageFailures\InternalMessages\UnArchiveMessages.cs" />
     <Compile Include="MessageFailures\InternalMessages\UnArchiveMessagesByRange.cs" />
+    <Compile Include="Operations\Audit\AuditMessageBodyStoragePolicy.cs" />
+    <Compile Include="Operations\Audit\AuditIngestionCache.cs" />
+    <Compile Include="Operations\Audit\ProcessedMessageFactory.cs" />
+    <Compile Include="Operations\BodyStorage\ClaimsCheck.cs" />
+    <Compile Include="Operations\BodyStorage\FileBasedMessageBodyStore.cs" />
+    <Compile Include="Operations\BodyStorage\IMessageBody.cs" />
+    <Compile Include="Operations\BodyStorage\IMessageBodyStoragePolicy.cs" />
+    <Compile Include="Operations\BodyStorage\IMessageBodyStore.cs" />
+    <Compile Include="Operations\BodyStorage\ByteArrayMessageBody.cs" />
+    <Compile Include="Operations\BodyStorage\MessageBodyFactory.cs" />
+    <Compile Include="Operations\BodyStorage\MessageBodyMetadata.cs" />
     <Compile Include="Operations\BodyStorage\StoreBody.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
@@ -476,7 +486,7 @@
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
     <Compile Include="Operations\ImportEnricher.cs" />
     <Compile Include="Operations\LicenseStatusKeeper.cs" />
-    <Compile Include="Operations\ProcessAudits.cs" />
+    <Compile Include="Operations\Audit\ProcessAudits.cs" />
     <Compile Include="Operations\ProcessErrors.cs" />
     <Compile Include="Operations\SatelliteImportFailuresHandler.cs" />
     <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />

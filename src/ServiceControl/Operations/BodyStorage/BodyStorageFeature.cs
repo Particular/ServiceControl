@@ -18,6 +18,8 @@
                 context.Container.ConfigureComponent<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
             }
 
+            context.Container.ConfigureComponent<FileBasedMessageBodyStore>(DependencyLifecycle.SingleInstance);
+
             context.Container.ConfigureComponent<StoreBody>(DependencyLifecycle.SingleInstance);
         }
     }

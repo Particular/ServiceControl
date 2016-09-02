@@ -9,10 +9,11 @@
     using Nancy.Responses;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    
+
     public class GetBodyById : BaseModule
     {
-        public IBodyStorage BodyStorage { get; set; }
+        public IBodyStorage LegacyBodyStorage { get; set; }
+        public IMessageBodyStore MessageBodyStorage { get; set; }
 
         public GetBodyById()
         {
@@ -20,15 +21,14 @@
             {
                 string messageId = parameters.id;
                 messageId = messageId?.Replace("/", @"\");
-                Stream stream;
-                long contentLength;
-                string contentType;
 
-                if (BodyStorage.TryFetch(messageId, out stream, out contentType, out contentLength))
+                IMessageBody messageBody;
+
+                if (MessageBodyStorage.TryGet(messageId, out messageBody))
                 {
-                    return new StreamResponse(() => stream, contentType)
+                    return new StreamResponse(() => messageBody.GetBody(), messageBody.Metadata.ContentType)
                         .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R"))
-                        .WithHeader("Content-Length", contentLength.ToString())
+                        .WithHeader("Content-Length", messageBody.Metadata.Size.ToString())
                         .WithStatusCode(HttpStatusCode.OK);
                 }
 
@@ -62,7 +62,7 @@
                 long contentLength;
                 string contentType;
 
-                if (BodyStorage.TryFetch(messageId, out stream, out contentType, out contentLength))
+                if (LegacyBodyStorage.TryFetch(messageId, out stream, out contentType, out contentLength))
                 {
                     return new StreamResponse(() => stream, contentType)
                         .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R"))

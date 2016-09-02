@@ -14,8 +14,7 @@
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.MessageAuditing.Handlers;
+    using ServiceControl.Operations.Audit;
     using ServiceControl.Operations.BodyStorage;
 
     public class AuditQueueImport : IAdvancedSatellite, IDisposable
@@ -27,13 +26,16 @@
         private readonly LoggingSettings loggingSettings;
 
         private readonly Settings settings;
-        private readonly StoreBody storeBody;
         private readonly Timer timer = Metric.Timer("Audit messages dequeued", Unit.Requests);
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
-        private AuditMessageHandler auditMessageHandler;
         private ProcessAudits processAudits;
 
-        public AuditQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, StoreBody storeBody)
+        private MessageBodyFactory messageBodyFactory;
+        private IMessageBodyStore messageBodyStore;
+        private IMessageBodyStoragePolicy auditMessageBodyStoragePolicy;
+        private AuditIngestionCache auditIngestionCache;
+
+        public AuditQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, IMessageBodyStore messageBodyStore)
         {
             this.builder = builder;
             this.forwarder = forwarder;
@@ -41,11 +43,18 @@
             this.criticalError = criticalError;
             this.loggingSettings = loggingSettings;
             this.settings = settings;
-            this.storeBody = storeBody;
+            this.messageBodyStore = messageBodyStore;
 
-            auditMessageHandler = new AuditMessageHandler(store, builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichAudits).ToArray());
+            auditMessageBodyStoragePolicy = new AuditMessageBodyStoragePolicy(settings);
+            auditIngestionCache = new AuditIngestionCache(settings);
+            messageBodyFactory = new MessageBodyFactory();
 
-            processAudits = new ProcessAudits(builder, store, storeBody);
+            var processedMessageFactory = new ProcessedMessageFactory(
+                builder.BuildAll<IEnrichImportedMessages>().Where(x => x.EnrichAudits).ToArray(),
+                auditMessageBodyStoragePolicy,
+                messageBodyStore);
+
+            processAudits = new ProcessAudits(store, auditIngestionCache, processedMessageFactory);
         }
 
         public bool Handle(TransportMessage message)
@@ -102,15 +111,10 @@
 
         private void InnerHandle(TransportMessage message)
         {
-            ImportSuccessfullyProcessedMessage receivedMessage;
+            var messageBody = messageBodyFactory.Create(message);
+            var claimCheck = messageBodyStore.Store(messageBody, auditMessageBodyStoragePolicy);
 
-            if (storeBody.SaveInStorage(message, out receivedMessage))
-            {
-                storeBody.SaveAuditToBeProcessedLater(message);
-                return;
-            }
-
-            auditMessageHandler.Handle(receivedMessage);
+            auditIngestionCache.Write(message.Headers, claimCheck);
         }
 
         private bool TerminateIfForwardingIsEnabledButQueueNotWritable()
