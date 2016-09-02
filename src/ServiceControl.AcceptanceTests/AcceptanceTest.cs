@@ -31,6 +31,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NUnit.Framework;
     using Particular.ServiceControl;
+    using Raven.Database.Config;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
@@ -81,11 +82,22 @@ namespace ServiceBus.Management.AcceptanceTests
             ServicePointManager.UseNagleAlgorithm = false; // Improvement for small tcp packets traffic, get buffered up to 1/2-second. If your storage communication is for small (less than ~1400 byte) payloads, this setting should help (especially when dealing with things like Azure Queues, which tend to have very small messages).
             ServicePointManager.Expect100Continue = false; // This ensures tcp ports are free up quicker by the OS, prevents starvation of ports
             ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
+
+            //HACK: This is just so we able to resolve assemblies correctly because Raven used Costura for its dependencies and metrics .net share the same name with one of raven dependencies
+            AppDomain.CurrentDomain.AssemblyResolve += (s, e) => Program.ResolveAssembly(e.Name);
+
         }
 
         [SetUp]
         public void Setup()
         {
+            ////HACK: Part of same hack, we need this because we want to ensure that the raven assembly resolve is registered
+            var __ = typeof(RavenConfiguration).FullName;
+            if (__ == null)
+            {
+                throw new Exception();
+            }
+
             port = FindAvailablePort(33333);
             SetSettings = _ => { };
             CustomConfiguration = _ => { };

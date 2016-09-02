@@ -25,19 +25,9 @@
             new CommandRunner(arguments.Commands).Execute(arguments);
         }
 
-        static Assembly ResolveAssembly(string name)
+        public static Assembly ResolveAssembly(string name)
         {
-            var assemblyLocation = Assembly.GetEntryAssembly().Location;
-            var appDirectory = Path.GetDirectoryName(assemblyLocation);
-            var requestingName = new AssemblyName(name).Name;
-
-            // ReSharper disable once AssignNullToNotNullAttribute
-            var combine = Path.Combine(appDirectory, $"{requestingName}.dll");
-            if (!File.Exists(combine))
-            {
-                return null;
-            }
-
+            //HACK: This is just so we able to resolve assemblies correctly because Raven used Costura for its dependencies and metrics .net share the same name with one of raven dependencies
             if (name == "metrics, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca6c6ef570198eba")
             {
                 using (var stream = LoadStream())
@@ -45,6 +35,16 @@
                     var rawAssembly = ReadStream(stream);
                     return Assembly.Load(rawAssembly);
                 }
+            }
+
+            var appDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var requestingName = new AssemblyName(name).Name;
+
+            // ReSharper disable once AssignNullToNotNullAttribute
+            var combine = Path.Combine(appDirectory, $"{requestingName}.dll");
+            if (!File.Exists(combine))
+            {
+                return null;
             }
 
             return Assembly.LoadFrom(combine);
