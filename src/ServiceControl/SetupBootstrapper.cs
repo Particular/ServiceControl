@@ -77,7 +77,7 @@ namespace Particular.ServiceControl
             using (documentStore.Initialize())
             {
                 Console.Out.WriteLine("Index creation started");
-
+                var original = Console.Out;
                 using (var intercepter = new UpdatingSchemaInterceptor(Console.Out))
                 {
                     while (true)
@@ -88,8 +88,9 @@ namespace Particular.ServiceControl
 
                             break;
                         }
-                        catch (ErrorResponseException)
+                        catch (ErrorResponseException ex)
                         {
+                            original.Write(ex);
                             if (!intercepter.Updating)
                             {
                                 Console.Error.WriteLine("Failed to create indexes, waiting to try again.");
