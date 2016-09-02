@@ -77,7 +77,7 @@ namespace Particular.ServiceControl
             using (documentStore.Initialize())
             {
                 Console.Out.WriteLine("Index creation started");
-                var original = Console.Out;
+
                 using (var intercepter = new UpdatingSchemaInterceptor(Console.Out))
                 {
                     while (true)
@@ -88,9 +88,8 @@ namespace Particular.ServiceControl
 
                             break;
                         }
-                        catch (ErrorResponseException ex)
+                        catch (ErrorResponseException)
                         {
-                            original.Write(ex);
                             if (!intercepter.Updating)
                             {
                                 Console.Error.WriteLine("Failed to create indexes, waiting to try again.");
@@ -127,7 +126,7 @@ namespace Particular.ServiceControl
                         Id = "ServiceControl",
                         Settings =
                         {
-                            {"Raven/StorageTypeName", InMemoryRavenConfiguration.VoronTypeName},
+                            {"Raven/StorageTypeName", InMemoryRavenConfiguration.EsentTypeName},
                             {"Raven/DataDir", Path.Combine(settings.DbPath, "Databases", "ServiceControl")},
                             {"Raven/Counters/DataDir", Path.Combine(settings.DbPath, "Data", "Counters")},
                             {"Raven/WebDir", Path.Combine(settings.DbPath, "Raven", "WebUI")},
