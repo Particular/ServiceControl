@@ -82,7 +82,7 @@
 
                 if (cnt > 0)
                 {
-                    await bulkInsertLazy.Value.DisposeAsync();
+                    await bulkInsertLazy.Value.DisposeAsync().ConfigureAwait(false);
                 }
 
                 foreach (var file in processedFiles)

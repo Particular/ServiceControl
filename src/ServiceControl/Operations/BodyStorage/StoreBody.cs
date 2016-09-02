@@ -51,7 +51,7 @@
 
             var contentType = GetContentType(message);
             importMessage.Metadata.Add("ContentType", contentType);
-            importMessage.Metadata.Add("BodyNotStored", Boolean.TrueString);
+            importMessage.Metadata.Add("BodyNotStored", true);
             importMessage.Metadata.Add("BodyUrl", $"/messages/{importMessage.MessageId}/body_v2");
 
             return false;
