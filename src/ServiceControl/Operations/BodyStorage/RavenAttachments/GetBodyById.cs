@@ -12,12 +12,7 @@
     
     public class GetBodyById : BaseModule
     {
-        private readonly IBodyStorage bodyStorage;
-
-        public GetBodyById(IBodyStorage bodyStorage)
-        {
-            this.bodyStorage = bodyStorage;
-        }
+        public IBodyStorage BodyStorage { get; set; }
 
         public GetBodyById()
         {
@@ -29,7 +24,7 @@
                 long contentLength;
                 string contentType;
 
-                if (bodyStorage.TryFetch(messageId, out stream, out contentType, out contentLength))
+                if (BodyStorage.TryFetch(messageId, out stream, out contentType, out contentLength))
                 {
                     return new StreamResponse(() => stream, contentType)
                         .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R"))
@@ -67,7 +62,7 @@
                 long contentLength;
                 string contentType;
 
-                if (bodyStorage.TryFetch(messageId, out stream, out contentType, out contentLength))
+                if (BodyStorage.TryFetch(messageId, out stream, out contentType, out contentLength))
                 {
                     return new StreamResponse(() => stream, contentType)
                         .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R"))
