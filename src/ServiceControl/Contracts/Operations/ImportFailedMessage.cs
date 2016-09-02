@@ -34,7 +34,7 @@
         }
 
       
-        ExceptionDetails GetException(IDictionary<string, string> headers)
+        ExceptionDetails GetException(IReadOnlyDictionary<string, string> headers)
         {
             var exceptionDetails = new ExceptionDetails();
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.ExceptionType", headers,

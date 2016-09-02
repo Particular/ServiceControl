@@ -43,7 +43,7 @@
             this.settings = settings;
             this.storeBody = storeBody;
 
-            auditMessageHandler = new AuditMessageHandler(store, builder.BuildAll<IEnrichImportedMessages>().ToArray());
+            auditMessageHandler = new AuditMessageHandler(store, builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichAudits).ToArray());
 
             processAudits = new ProcessAudits(builder, store, storeBody);
         }

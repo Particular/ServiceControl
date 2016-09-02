@@ -24,7 +24,7 @@
 
             metadata = RavenJObject.Parse($@"
                                     {{
-                                        ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"", 
+                                        ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
                                     }}");
         }
@@ -39,7 +39,7 @@
         {
             foreach (var enricher in importerEnrichers)
             {
-                enricher.Enrich(message);
+                enricher.Enrich(message.PhysicalMessage.Headers, message.Metadata);
             }
 
             var documentId = FailedMessage.MakeDocumentId(message.UniqueMessageId);
