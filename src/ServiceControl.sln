@@ -44,6 +44,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CustomTransportConfiguratio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.SqlServerWithDTC", "ServiceControl.SqlServerWithDTC\ServiceControl.Transports.SqlServerWithDTC.csproj", "{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{470CB87C-3116-4050-A4F5-38B1E9C8146D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpApiWrapper", "HttpSysWrapper\HttpApiWrapper.csproj", "{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -106,6 +110,10 @@ Global
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -120,5 +128,6 @@ Global
 		{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 		{20284C68-6381-4AE9-832C-F094E996D913} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4} = {470CB87C-3116-4050-A4F5-38B1E9C8146D}
 	EndGlobalSection
 EndGlobal

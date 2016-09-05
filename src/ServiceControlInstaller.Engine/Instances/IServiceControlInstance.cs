@@ -13,5 +13,6 @@
         TimeSpan AuditRetentionPeriod { get; }
         TimeSpan ErrorRetentionPeriod { get; }
         Version Version  { get; }
+        string Protocol { get; }
     }
 }

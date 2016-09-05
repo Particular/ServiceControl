@@ -13,13 +13,13 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.ServiceProcess;
     using System.Threading;
     using System.Threading.Tasks;
+    using HttpApiWrapper;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
     using ServiceControlInstaller.Engine.Setup;
-    using ServiceControlInstaller.Engine.UrlAcl;
     using ServiceControlInstaller.Engine.Validation;
     using TimeoutException = System.ServiceProcess.TimeoutException;
 
@@ -70,12 +70,14 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+
         public string Name => Service.ServiceName;
 
         public void Reload()
         {
             ReadConfiguration();
         }
+        public string Protocol => SslCert.GetThumbprint(Port) != null ? "https" : "http";
 
         public string Url
         {
@@ -83,31 +85,19 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{HostName}:{Port}/api/";
+                    return $"{Protocol}://{HostName}:{Port}/api/";
                 }
                 var virt = VirtualDirectory.Replace("/", "");
-                return $"http://{HostName}:{Port}/{virt}/api/";
+                return $"{Protocol}://{HostName}:{Port}/{virt}/api/";
             }
         }
-
-        public string AclUrl
-        {
-            get
-            {
-                var baseUrl = $"http://{HostName}:{Port}/";
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return baseUrl;
-                }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
-            }
-        }
-
+        
         public string StorageUrl
         {
             get
             {
                 string host;
+
                 switch (HostName)
                 {
                     case "*":
@@ -120,10 +110,10 @@ namespace ServiceControlInstaller.Engine.Instances
                 }
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{host}:{Port}/storage/";
+                    return $"{Protocol}://{host}:{Port}/storage/";
                 }
-                var virt = $"{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
-                return $"http://{host}:{Port}/{virt}storage/";
+
+                return $"{Protocol}://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
             }
         }
 
@@ -145,13 +135,24 @@ namespace ServiceControlInstaller.Engine.Instances
                         host = HostName;
                         break;
                 }
-
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{host}:{Port}/api/";
+                    return $"{Protocol}://{host}:{Port}/api/";
                 }
-                var virt = VirtualDirectory.Replace("/", "");
-                return $"http://{host}:{Port}/{virt}/api/";
+                return $"{Protocol}://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+            }
+        }
+
+        public string AclUrl
+        {
+            get
+            {
+                var baseUrl = $"{Protocol}://{HostName}:{Port}/";
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return baseUrl;
+                }
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
             }
         }
 
@@ -471,7 +472,7 @@ namespace ServiceControlInstaller.Engine.Instances
             File.Copy(sourcePath, configFile, true);
 
             // Ensure Transport type is correct and populate the config with common settings even if they are defaults
-            // Will not clobber other settings in the config 
+            // Will not clobber other settings in the config
             var configWriter = new ConfigurationWriter(this);
             configWriter.Validate();
             configWriter.Save();
@@ -571,7 +572,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
             catch
             {
-                //Service isn't accessible 
+                //Service isn't accessible
             }
             return true;
         }

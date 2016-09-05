@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>HttpApiWrapper</RootNamespace>
+    <AssemblyName>HttpApiWrapper</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ByteArrayExtensions.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Api\ErrorCode.cs" />
+    <Compile Include="Api\HttpApi.cs" />
+    <Compile Include="Api\HttpApiConstants.cs" />
+    <Compile Include="Api\HttpApiVersion.cs" />
+    <Compile Include="Api\HttpServiceConfigId.cs" />
+    <Compile Include="Api\HttpServiceConfigIPListenParam.cs" />
+    <Compile Include="Api\HttpServiceConfigIPListenQuery.cs" />
+    <Compile Include="Api\HttpServiceConfigQueryType.cs" />
+    <Compile Include="Api\HttpServiceConfigSslKey.cs" />
+    <Compile Include="Api\HttpServiceConfigSslParam.cs" />
+    <Compile Include="Api\HttpServiceConfigSslQuery.cs" />
+    <Compile Include="Api\HttpServiceConfigSslSet.cs" />
+    <Compile Include="Api\HttpServiceConfigUrlAclKey.cs" />
+    <Compile Include="Api\HttpServiceConfigUrlAclParam.cs" />
+    <Compile Include="Api\HttpServiceConfigUrlAclQuery.cs" />
+    <Compile Include="Api\HttpServiceConfigUrlAclSet.cs" />
+    <Compile Include="SslCert.cs" />
+    <Compile Include="UrlReservation.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

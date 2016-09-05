@@ -10,13 +10,14 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Security.Principal;
     using System.Xml;
     using System.Xml.Serialization;
+    using HttpApiWrapper;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Setup;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
-    using ServiceControlInstaller.Engine.UrlAcl;
+
     using ServiceControlInstaller.Engine.Validation;
 
     public class ServiceControlInstanceMetadata : IServiceControlInstance
@@ -43,10 +44,16 @@ namespace ServiceControlInstaller.Engine.Instances
 
         [XmlIgnore]
         public Version Version { get; set; }
+
+        [XmlIgnore]
+        public string Protocol =>  SslCert.GetThumbprint(Port) == null ? "http" : "https";
+
         [XmlIgnore]
         public string ServiceAccount { get; set; }
+
         [XmlIgnore]
         public string ServiceAccountPwd { get; set; }
+
         [XmlIgnore]
         public ReportCard ReportCard { get; set; }
 
@@ -57,25 +64,23 @@ namespace ServiceControlInstaller.Engine.Instances
             Version = zipInfo.Version;
         }
 
-
         public string Url
         {
             get
             {
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{HostName}:{Port}/api/";
+                    return $"{Protocol}://{HostName}:{Port}/api/";
                 }
-                var virt = VirtualDirectory.Replace("/", "");
-                return $"http://{HostName}:{Port}/{virt}/api/";
+                return $"{Protocol}://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
             }
         }
-
+        
         public string AclUrl
         {
             get
             {
-                var baseUrl = $"http://{HostName}:{Port}/";
+                var baseUrl = $"{Protocol}://{HostName}:{Port}/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
                     return baseUrl;
@@ -86,7 +91,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void CopyFiles(string zipFilePath)
         {
-            //Clear out any files from previos runs of Add Instance, just in case user switches transport
+            //Clear out any files from previous runs of Add Instance, just in case user switches transport
             //Validation checks for the flag file so wont get here if the directory was also changed
             FileUtils.DeleteDirectory(InstallPath, true, true);
 
@@ -105,7 +110,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 FileUtils.CreateDirectoryAndSetAcl(DBPath, modifyAccessRule);
             }
 
-            // Mark these directories with a flag 
+            // Mark these directories with a flag
             // These flags indicate the directory is empty check can be ignored
             // We need this because if an install screws up and doesn't complete it is ok to overwrite on a subsequent attempt
             // First run will still the check

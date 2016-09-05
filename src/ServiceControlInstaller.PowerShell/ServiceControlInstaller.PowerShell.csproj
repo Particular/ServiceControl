@@ -49,6 +49,7 @@
       <SpecificVersion>True</SpecificVersion>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -59,6 +60,11 @@
     <Compile Include="Cmdlets\Instances\PSServiceControl.cs" />
     <Compile Include="Cmdlets\Instances\NewServiceControlInstance.cs" />
     <Compile Include="Cmdlets\Instances\NewServiceControlUnattendedFile.cs" />
+    <Compile Include="Cmdlets\Instances\SwitchInstanceToHttp.cs" />
+    <Compile Include="Cmdlets\Instances\SwithInstanceToHttps.cs" />
+    <Compile Include="Cmdlets\SSL\GetCertificates.cs" />
+    <Compile Include="Cmdlets\SSL\ShowUrlAclCertificate.cs" />
+    <Compile Include="Cmdlets\SSL\UpdateUrlAclCertificate.cs" />
     <Compile Include="Validation\ValidatePathAttribute.cs" />
     <Compile Include="Validation\ValidateTimeSpanAttribute.cs" />
     <Compile Include="Cmdlets\Ports\PsPortAvailability.cs" />
@@ -80,6 +86,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HttpSysWrapper\HttpApiWrapper.csproj">
+      <Project>{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}</Project>
+      <Name>HttpApiWrapper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj">
       <Project>{e2f41605-f664-4ec6-9d64-1f142cc3b7b2}</Project>
       <Name>ServiceControlInstaller.Engine</Name>
@@ -126,5 +136,4 @@
     </GetVersion>
     <FileUpdate Files="@(PSModuleFile)" Regex="{{Version}}" ReplacementText="$(MajorMinorPatch)" />
   </Target>
-  
 </Project>

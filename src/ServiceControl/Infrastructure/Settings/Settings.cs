@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.Linq;
+    using HttpApiWrapper;
     using NLog.Common;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -60,10 +61,12 @@
                 {
                     suffix = $"{VirtualDirectory}/";
                 }
-
-                return $"http://{Hostname}:{Port}/{suffix}";
+                var protocol = UseSsl ? "https" : "http";
+                return    $"{protocol}://{Hostname}:{Port}/{suffix}";
             }
         }
+
+        public bool UseSsl => SslCert.GetThumbprint(Port) != null;
 
         public string ApiUrl => $"{RootUrl}api";
 

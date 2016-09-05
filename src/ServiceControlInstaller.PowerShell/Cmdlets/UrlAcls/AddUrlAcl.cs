@@ -7,14 +7,13 @@ namespace ServiceControlInstaller.PowerShell
     using System.Collections.Generic;
     using System.Management.Automation;
     using System.Security.Principal;
-    using ServiceControlInstaller.Engine.UrlAcl;
+    using HttpApiWrapper;
 
     [Cmdlet(VerbsCommon.Add, "UrlAcl")]
     public class AddUrlAcl : PSCmdlet
     {
         [ValidateNotNullOrEmpty]
         [Parameter(Mandatory = true, Position = 0, HelpMessage = "The URL to add to the URLACL list. This should always in a trailing /")]
-        
         public string Url { get; set; }
 
         [ValidateNotNullOrEmpty]
