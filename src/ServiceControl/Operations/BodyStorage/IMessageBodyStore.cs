@@ -2,7 +2,7 @@
 {
     public interface IMessageBodyStore
     {
-        ClaimsCheck Store(IMessageBody messageBody, IMessageBodyStoragePolicy messageStoragePolicy);
-        bool TryGet(string messageId, out IMessageBody messageBody);
+        ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy);
+        bool TryGet(string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata);
     }
 }

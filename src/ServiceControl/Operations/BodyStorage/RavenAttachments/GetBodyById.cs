@@ -22,13 +22,14 @@
                 string messageId = parameters.id;
                 messageId = messageId?.Replace("/", @"\");
 
-                IMessageBody messageBody;
+                byte[] messageBody;
+                MessageBodyMetadata metadata;
 
-                if (MessageBodyStorage.TryGet(messageId, out messageBody))
+                if (MessageBodyStorage.TryGet(messageId, out messageBody, out metadata))
                 {
-                    return new StreamResponse(() => messageBody.GetBody(), messageBody.Metadata.ContentType)
+                    return new StreamResponse(() => new MemoryStream(messageBody), metadata.ContentType)
                         .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R"))
-                        .WithHeader("Content-Length", messageBody.Metadata.Size.ToString())
+                        .WithHeader("Content-Length", metadata.Size.ToString())
                         .WithStatusCode(HttpStatusCode.OK);
                 }
 

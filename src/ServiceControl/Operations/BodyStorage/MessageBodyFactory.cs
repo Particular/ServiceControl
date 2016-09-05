@@ -7,16 +7,13 @@
     {
         const string DefaultContentType = "text/xml";
 
-        public IMessageBody Create(TransportMessage message)
+        public MessageBodyMetadata Create(TransportMessage message)
         {
             var messageId = message.Id;
             var contentType = GetContentType(message.Headers);
             var bodySize = message.Body?.Length ?? 0;
 
-            var metadata = new MessageBodyMetadata(messageId, contentType, bodySize);
-
-            return new ByteArrayMessageBody(metadata, message.Body);
-
+            return new MessageBodyMetadata(messageId, contentType, bodySize);
         }
 
         private static string GetContentType(Dictionary<string, string> headers, string defaultContentType = DefaultContentType)

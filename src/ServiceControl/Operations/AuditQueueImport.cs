@@ -111,8 +111,8 @@
 
         private void InnerHandle(TransportMessage message)
         {
-            var messageBody = messageBodyFactory.Create(message);
-            var claimCheck = messageBodyStore.Store(messageBody, auditMessageBodyStoragePolicy);
+            var metadata = messageBodyFactory.Create(message);
+            var claimCheck = messageBodyStore.Store(message.Body, metadata, auditMessageBodyStoragePolicy);
 
             auditIngestionCache.Write(message.Headers, claimCheck);
         }

@@ -13,28 +13,31 @@
             rootLocation = Directory.CreateDirectory(Path.Combine(settings.StoragePath, "MessageBodies")).FullName;
         }
 
-        public ClaimsCheck Store(IMessageBody messageBody, IMessageBodyStoragePolicy messageStoragePolicy)
+        public ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
         {
-            if (!messageStoragePolicy.ShouldStore(messageBody.Metadata))
+            if (!messageStoragePolicy.ShouldStore(messageBodyMetadata))
             {
-                return new ClaimsCheck(false, messageBody.Metadata);
+                return new ClaimsCheck(false, messageBodyMetadata);
             }
 
-            using (var writer = new BinaryWriter(File.Open(Path.Combine(rootLocation, messageBody.Metadata.MessageId), FileMode.Create, FileAccess.Write, FileShare.None)))
+            var path = Path.Combine(rootLocation, messageBodyMetadata.MessageId);
+
+            using (var writer = new BinaryWriter(File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None)))
             {
-                writer.Write(messageBody.Metadata.MessageId);
-                writer.Write(messageBody.Metadata.ContentType);
-                writer.Write(messageBody.Metadata.Size);
-                using (var stream = messageBody.GetBody())
+                writer.Write(messageBodyMetadata.MessageId);
+                writer.Write(messageBodyMetadata.ContentType);
+                writer.Write(messageBodyMetadata.Size);
+                writer.Write(messageBody, 0, messageBody.Length);
+                using(var stream = new MemoryStream(messageBody))
                 {
                     stream.CopyTo(writer.BaseStream, 4096);
                 }
             }
 
-            return new ClaimsCheck(true, messageBody.Metadata);
+            return new ClaimsCheck(true, messageBodyMetadata);
         }
 
-        public bool TryGet(string messageId, out IMessageBody messageBody)
+        public bool TryGet(string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
         {
             try
             {
@@ -46,17 +49,19 @@
                     var contentType = reader.ReadString();
                     var size = reader.ReadInt32();
 
-                    var metadata = new MessageBodyMetadata(messageIdFromFile, contentType, size);
+                    messageBodyMetadata = new MessageBodyMetadata(messageIdFromFile, contentType, size);
 
+                    // TODO: Make this buffered (and async?)
                     var body = reader.ReadBytes(size);
 
-                    messageBody = new ByteArrayMessageBody(metadata, body);
+                    messageBody = body;
                     return true;
                 }
             }
             catch
             {
-                messageBody = default(IMessageBody);
+                messageBody = default(byte[]);
+                messageBodyMetadata = default(MessageBodyMetadata);
                 return false;
             }
         }

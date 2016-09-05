@@ -57,7 +57,7 @@
                     if (auditIngestionCache.TryGet(entry, out headers, out bodyStorageClaimsCheck))
                     {
                         var processedMessage = processedMessageFactory.Create(headers);
-                        await processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
+                        processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
 
                         bulkInsertLazy.Value.Store(processedMessage);
 

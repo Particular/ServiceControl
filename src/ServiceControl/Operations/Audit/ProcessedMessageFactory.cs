@@ -2,9 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Text;
-    using System.Threading.Tasks;
     using NServiceBus;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageAuditing;
@@ -61,7 +59,7 @@
             return headers.TryGetValue(Headers.ProcessingEnded, out processedAt) ? DateTimeExtensions.ToUtcDateTime(processedAt) : DateTime.UtcNow;
         }
 
-        public async Task AddBodyDetails(ProcessedMessage processedMessage, ClaimsCheck bodyStorageClaimsCheck)
+        public void AddBodyDetails(ProcessedMessage processedMessage, ClaimsCheck bodyStorageClaimsCheck)
         {
             WriteMetadata(processedMessage.MessageMetadata, bodyStorageClaimsCheck.Metadata);
 
@@ -71,15 +69,12 @@
             }
             else if (auditBodyStoragePolicy.ShouldIndex(bodyStorageClaimsCheck.Metadata))
             {
-                IMessageBody messageBody;
+                byte[] messageBody;
+                MessageBodyMetadata metadata;
 
-                if (messageBodyStore.TryGet(bodyStorageClaimsCheck.Metadata.MessageId, out messageBody))
+                if (messageBodyStore.TryGet(bodyStorageClaimsCheck.Metadata.MessageId, out messageBody, out metadata))
                 {
-                    using (var stream = messageBody.GetBody())
-                    using (var reader = new StreamReader(stream, Encoding.UTF8))
-                    {
-                        processedMessage.MessageMetadata.Add("Body", await reader.ReadToEndAsync().ConfigureAwait(false));
-                    }
+                    processedMessage.MessageMetadata.Add("Body", Encoding.UTF8.GetString(messageBody));
                 }
             }
         }

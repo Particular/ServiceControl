@@ -362,10 +362,8 @@
     <Compile Include="Operations\Audit\ProcessedMessageFactory.cs" />
     <Compile Include="Operations\BodyStorage\ClaimsCheck.cs" />
     <Compile Include="Operations\BodyStorage\FileBasedMessageBodyStore.cs" />
-    <Compile Include="Operations\BodyStorage\IMessageBody.cs" />
     <Compile Include="Operations\BodyStorage\IMessageBodyStoragePolicy.cs" />
     <Compile Include="Operations\BodyStorage\IMessageBodyStore.cs" />
-    <Compile Include="Operations\BodyStorage\ByteArrayMessageBody.cs" />
     <Compile Include="Operations\BodyStorage\MessageBodyFactory.cs" />
     <Compile Include="Operations\BodyStorage\MessageBodyMetadata.cs" />
     <Compile Include="Operations\BodyStorage\StoreBody.cs" />
