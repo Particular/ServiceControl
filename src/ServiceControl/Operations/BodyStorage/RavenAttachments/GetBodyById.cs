@@ -27,7 +27,11 @@
 
                 if (MessageBodyStorage.TryGet(messageId, out messageBody, out metadata))
                 {
-                    return new StreamResponse(() => new MemoryStream(messageBody), metadata.ContentType)
+                    return new Response
+                        {
+                            Contents = stream => stream.Write(messageBody, 0, messageBody.Length)
+                        }
+                        .WithContentType(metadata.ContentType)
                         .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R"))
                         .WithHeader("Content-Length", metadata.Size.ToString())
                         .WithStatusCode(HttpStatusCode.OK);
