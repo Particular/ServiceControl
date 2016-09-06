@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Operations.Audit
 {
     using System;
     using System.Collections.Generic;
@@ -7,7 +7,6 @@
     using Metrics;
     using Raven.Client;
     using Raven.Client.Document;
-    using ServiceControl.Operations.Audit;
     using ServiceControl.Operations.BodyStorage;
 
     class ProcessAudits
@@ -17,7 +16,7 @@
         private readonly IDocumentStore store;
         private Task task;
         private volatile bool stop;
-        private readonly Meter meter = Metric.Meter("Audit messages processed", Unit.Results);
+        private readonly Meter meter = Metric.Meter("Audit messages processed", Unit.Custom("Messages"));
 
         AuditIngestionCache auditIngestionCache;
         ProcessedMessageFactory processedMessageFactory;
@@ -41,7 +40,6 @@
             do
             {
                 var processedFiles = new List<string>(BATCH_SIZE);
-
                 var bulkInsertLazy = new Lazy<BulkInsertOperation>(() => store.BulkInsert());
 
                 foreach (var entry in auditIngestionCache.GetBatch(BATCH_SIZE))
@@ -68,14 +66,16 @@
                 if (processedFiles.Count > 0)
                 {
                     await bulkInsertLazy.Value.DisposeAsync().ConfigureAwait(false);
+
                     foreach (var file in processedFiles)
                     {
                         File.Delete(file);
                     }
-                    meter.Mark(processedFiles.Count);
                 }
 
-                if (processedFiles.Count < BATCH_SIZE)
+                meter.Mark(processedFiles.Count);
+
+                if (!stop && processedFiles.Count < BATCH_SIZE)
                 {
                     await Task.Delay(1000).ConfigureAwait(false);
                 }

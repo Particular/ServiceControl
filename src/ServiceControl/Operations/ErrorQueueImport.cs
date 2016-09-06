@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -13,7 +14,9 @@
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.MessageFailures.Handlers;
     using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Operations.Error;
 
     public class ErrorQueueImport : IAdvancedSatellite, IDisposable
     {
@@ -21,23 +24,29 @@
 
         private readonly IBuilder builder;
         private readonly ISendMessages forwarder;
-        private readonly StoreBody storeBody;
         private readonly CriticalError criticalError;
         private readonly LoggingSettings loggingSettings;
         private readonly Settings settings;
+        private readonly IMessageBodyStore messageBodyStore;
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
-        private readonly Timer timer = Metric.Timer("Error messages", Unit.Items);
+        private readonly Timer timer = Metric.Timer("Error messages dequeue", Unit.Custom("Messages"));
         private ProcessErrors processErrors;
+        private MessageBodyFactory messageBodyFactory;
+        private ErrorIngestionCache errorIngestionCache;
+        private ErrorMessageBodyStoragePolicy errorMessageBodyStoragePolicy;
 
-        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IBus bus, StoreBody storeBody, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings)
+        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IBus bus, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, IMessageBodyStore messageBodyStore)
         {
             this.builder = builder;
             this.forwarder = forwarder;
-            this.storeBody = storeBody;
             this.criticalError = criticalError;
             this.loggingSettings = loggingSettings;
             this.settings = settings;
-            processErrors = new ProcessErrors(builder, store, storeBody, bus);
+            this.messageBodyStore = messageBodyStore;
+            messageBodyFactory = new MessageBodyFactory();
+            errorIngestionCache = new ErrorIngestionCache(settings);
+            errorMessageBodyStoragePolicy = new ErrorMessageBodyStoragePolicy(settings);
+            processErrors = new ProcessErrors(store, errorIngestionCache, new PatchCommandDataFactory(builder.BuildAll<IFailedMessageEnricher>().ToArray(), builder.BuildAll<IEnrichImportedMessages>().Where(x => x.EnrichAudits).ToArray(), errorMessageBodyStoragePolicy, messageBodyStore), bus);
         }
 
         public bool Handle(TransportMessage message)
@@ -58,7 +67,10 @@
 
         void InnerHandle(TransportMessage message)
         {
-            storeBody.SaveErrorToBeProcessedLater(message);
+            var metadata = messageBodyFactory.Create(message);
+            var claimCheck = messageBodyStore.Store(message.Body, metadata, errorMessageBodyStoragePolicy);
+
+            errorIngestionCache.Write(message.Headers, message.Recoverable, claimCheck);
         }
 
         public void Start()

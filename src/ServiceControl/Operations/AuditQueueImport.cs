@@ -20,13 +20,13 @@
     public class AuditQueueImport : IAdvancedSatellite, IDisposable
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(AuditQueueImport));
-        private readonly IBuilder builder;
         private readonly CriticalError criticalError;
         private readonly ISendMessages forwarder;
+        private readonly IDocumentStore store;
         private readonly LoggingSettings loggingSettings;
 
         private readonly Settings settings;
-        private readonly Timer timer = Metric.Timer("Audit messages dequeued", Unit.Requests);
+        private readonly Timer timer = Metric.Timer("Audit messages dequeued", Unit.Custom("Messages"));
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
         private ProcessAudits processAudits;
 
@@ -37,8 +37,8 @@
 
         public AuditQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, IMessageBodyStore messageBodyStore)
         {
-            this.builder = builder;
             this.forwarder = forwarder;
+            this.store = store;
 
             this.criticalError = criticalError;
             this.loggingSettings = loggingSettings;
@@ -94,7 +94,7 @@
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
-            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(builder.Build<IDocumentStore>(),
+            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(store,
                 Path.Combine(loggingSettings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
                 {
                     Message = tm

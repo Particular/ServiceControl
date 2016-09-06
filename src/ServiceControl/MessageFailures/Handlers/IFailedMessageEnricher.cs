@@ -5,6 +5,6 @@
 
     public interface IFailedMessageEnricher
     {
-        IEnumerable<FailedMessage.FailureGroup> Enrich(ImportFailedMessage source);
+        IEnumerable<FailedMessage.FailureGroup> Enrich(FailureDetails details);
     }
 }

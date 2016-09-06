@@ -10,6 +10,7 @@
 
     class ProcessedMessageFactory
     {
+        private const string SEPARATOR = " ";
         private IMessageBodyStoragePolicy auditBodyStoragePolicy;
         private readonly IMessageBodyStore messageBodyStore;
         private IEnrichImportedMessages[] enrichers;
@@ -32,10 +33,12 @@
             var intent = (MessageIntentEnum)0;
             string str;
             if (headers.TryGetValue("NServiceBus.MessageIntent", out str))
+            {
                 Enum.TryParse(str, true, out intent);
-            metadata.Add("MessageIntent", intent);
+            }
 
-            metadata.Add("HeadersForSearching", string.Join(" ", headers.Values));
+            metadata.Add("MessageIntent", intent);
+            metadata.Add("HeadersForSearching", string.Join(SEPARATOR, headers.Values));
 
             foreach (var enricher in enrichers)
             {

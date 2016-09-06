@@ -5,11 +5,12 @@
 
     public class FileBasedMessageBodyStore
     {
+        const short VERSION = 1;
         private string rootLocation;
 
         public FileBasedMessageBodyStore(Settings settings)
         {
-            rootLocation = Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath, "New")).FullName;
+            rootLocation = Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath)).FullName;
         }
 
         public ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
@@ -21,14 +22,11 @@
 
             using (var writer = new BinaryWriter(File.Open(FullPath(messageBodyMetadata.MessageId), FileMode.Create, FileAccess.Write, FileShare.None)))
             {
+                writer.Write(VERSION);
                 writer.Write(messageBodyMetadata.MessageId);
                 writer.Write(messageBodyMetadata.ContentType);
                 writer.Write(messageBodyMetadata.Size);
                 writer.Write(messageBody, 0, messageBody.Length);
-                using(var stream = new MemoryStream(messageBody))
-                {
-                    stream.CopyTo(writer.BaseStream, 4096);
-                }
             }
 
             return new ClaimsCheck(true, messageBodyMetadata);
@@ -41,14 +39,13 @@
                 using (var file = File.Open(FullPath(messageId), FileMode.Open, FileAccess.Read, FileShare.None))
                 using (var reader = new BinaryReader(file))
                 {
-                    // TODO: Should we verify this is the same as was passed in?
+                    reader.ReadInt16(); // ignore version for now
                     var messageIdFromFile = reader.ReadString();
                     var contentType = reader.ReadString();
                     var size = reader.ReadInt64();
 
                     messageBodyMetadata = new MessageBodyMetadata(messageIdFromFile, contentType, size);
 
-                    // TODO: Make this buffered (and async?)
                     var body = reader.ReadBytes((int)size);
 
                     messageBody = body;

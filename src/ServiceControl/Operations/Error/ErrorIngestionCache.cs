@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations.Audit
+﻿namespace ServiceControl.Operations.Error
 {
     using System;
     using System.Collections.Generic;
@@ -7,21 +7,22 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Operations.BodyStorage;
 
-    class AuditIngestionCache
+    class ErrorIngestionCache
     {
         const short VERSION = 1;
         private string rootLocation;
 
-        public AuditIngestionCache(Settings settings)
+        public ErrorIngestionCache(Settings settings)
         {
-            rootLocation = Directory.CreateDirectory(Path.Combine(settings.IngestionCachePath, "audits")).FullName;
+            rootLocation = Directory.CreateDirectory(Path.Combine(settings.IngestionCachePath, "errors")).FullName;
         }
 
-        public void Write(IDictionary<string, string> headers, ClaimsCheck claimCheck)
+        public void Write(IDictionary<string, string> headers, bool recoverable, ClaimsCheck claimCheck)
         {
             using (var writer = new BinaryWriter(File.Open(Path.Combine(rootLocation, Guid.NewGuid().ToString("N")), FileMode.Create, FileAccess.Write, FileShare.None)))
             {
                 writer.Write(VERSION);
+                writer.Write(recoverable);
                 writer.Write(headers.Count);
 
                 foreach (var header in headers)
@@ -39,7 +40,7 @@
 
         public IEnumerable<string> GetBatch(int maxBatchSize) => Directory.EnumerateFiles(rootLocation).Take(maxBatchSize);
 
-        public bool TryGet(string fileName, out Dictionary<string, string> headers, out ClaimsCheck bodyStorageClaimCheck)
+        public bool TryGet(string fileName, out Dictionary<string, string> headers, out bool recoverable, out ClaimsCheck bodyStorageClaimCheck)
         {
             try
             {
@@ -49,6 +50,9 @@
                     reader.ReadInt16(); // Read version, ignore for now
 
                     var length = reader.ReadInt32();
+
+                    recoverable = reader.ReadBoolean();
+
                     headers = new Dictionary<string, string>(length);
 
                     for (var i = 0; i < length; i++)
@@ -68,6 +72,7 @@
             {
                 headers = null;
                 bodyStorageClaimCheck = default(ClaimsCheck);
+                recoverable = false;
 
                 return false;
             }

@@ -2,32 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus;
-    using Contracts.Operations;
 
     public class ProcessedMessage
     {
         public ProcessedMessage()
         {
            MessageMetadata = new Dictionary<string, object>();
-        }
-
-        public ProcessedMessage(ImportSuccessfullyProcessedMessage message)
-        {
-            UniqueMessageId = message.UniqueMessageId;            
-            MessageMetadata = message.Metadata;
-            Headers = message.PhysicalMessage.Headers;
-
-            string processedAt;
-            
-            if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out processedAt))
-            {
-                ProcessedAt = DateTimeExtensions.ToUtcDateTime(processedAt);
-            }
-            else
-            {
-                ProcessedAt = DateTime.UtcNow;//best guess    
-            }
         }
 
         public string Id { get; set; }

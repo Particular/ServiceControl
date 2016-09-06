@@ -10,11 +10,11 @@ namespace ServiceControl.Recoverability
     {
         public IEnumerable<IFailureClassifier> Classifiers { get; set; }
 
-        public IEnumerable<FailedMessage.FailureGroup> Enrich(ImportFailedMessage source)
+        public IEnumerable<FailedMessage.FailureGroup> Enrich(FailureDetails details)
         {
             foreach (var classifier in Classifiers)
             {
-                var classification = classifier.ClassifyFailure(source.FailureDetails);
+                var classification = classifier.ClassifyFailure(details);
                 if (classification == null)
                 {
                     continue;

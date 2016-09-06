@@ -1,23 +1,23 @@
-﻿namespace ServiceControl.Operations.Audit
+﻿namespace ServiceControl.Operations.Error
 {
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Operations.BodyStorage;
 
-    class AuditMessageBodyStoragePolicy : IMessageBodyStoragePolicy
+    class ErrorMessageBodyStoragePolicy : IMessageBodyStoragePolicy
     {
         const int LargeObjectHeapThreshold = 85 * 1024;
         private Settings settings;
 
-        public AuditMessageBodyStoragePolicy(Settings settings)
+        public ErrorMessageBodyStoragePolicy(Settings settings)
         {
             this.settings = settings;
         }
 
-        public bool ShouldStore(MessageBodyMetadata messageBodyMetadata)
-            => messageBodyMetadata.Size > 0 && messageBodyMetadata.Size <= settings.MaxBodySizeToStore;
+        public bool ShouldStore(MessageBodyMetadata messageBodyMetadata) 
+            => messageBodyMetadata.Size > 0;
 
         public bool ShouldIndex(MessageBodyMetadata messageBodyMetadata)
-            => AvoidsLargeObjectHeap(messageBodyMetadata) && !IsBinary(messageBodyMetadata);
+            => (messageBodyMetadata.Size <= settings.MaxBodySizeToStore) && AvoidsLargeObjectHeap(messageBodyMetadata) && !IsBinary(messageBodyMetadata);
 
         private bool IsBinary(MessageBodyMetadata messageBodyMetadata)
             => messageBodyMetadata.ContentType.Contains("binary");

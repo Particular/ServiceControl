@@ -369,11 +369,7 @@
     <Compile Include="Operations\BodyStorage\StoreBody.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
-    <Compile Include="Contracts\Operations\ImportFailedMessage.cs" />
-    <Compile Include="Contracts\Operations\ImportMessage.cs" />
-    <Compile Include="Contracts\Operations\ImportSuccessfullyProcessedMessage.cs" />
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
-    <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
     <Compile Include="CustomChecks\DeleteCustomCheck.cs" />
     <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
     <Compile Include="EndpointControl\DetectNewEndpointsFromImportsEnricher.cs" />
@@ -441,7 +437,7 @@
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
-    <Compile Include="MessageFailures\Handlers\ImportFailedMessageHandler.cs" />
+    <Compile Include="Operations\Error\PatchCommandDataFactory.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />
@@ -477,6 +473,8 @@
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
     <Compile Include="Operations\ErrorQueueImport.cs" />
+    <Compile Include="Operations\Error\ErrorIngestionCache.cs" />
+    <Compile Include="Operations\Error\ErrorMessageBodyStoragePolicy.cs" />
     <Compile Include="Operations\ExceptionExtensions.cs" />
     <Compile Include="Operations\FailedAuditImport.cs" />
     <Compile Include="Operations\FailedErrorImport.cs" />
@@ -484,7 +482,7 @@
     <Compile Include="Operations\ImportEnricher.cs" />
     <Compile Include="Operations\LicenseStatusKeeper.cs" />
     <Compile Include="Operations\Audit\ProcessAudits.cs" />
-    <Compile Include="Operations\ProcessErrors.cs" />
+    <Compile Include="Operations\Error\ProcessErrors.cs" />
     <Compile Include="Operations\SatelliteImportFailuresHandler.cs" />
     <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
     <Compile Include="Infrastructure\TypeExtensions.cs" />
@@ -586,6 +584,7 @@
       <Name>HttpApiWrapper</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

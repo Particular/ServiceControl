@@ -10,7 +10,6 @@
     using NServiceBus;
     using NUnit.Framework;
     using Raven.Client;
-    using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
     using ServiceControl.Operations.BodyStorage;
 
@@ -159,26 +158,16 @@
                 // Store expired message with associated body
                 var messageId = "21";
 
-                var message = new ImportSuccessfullyProcessedMessage(new TransportMessage(messageId, new Dictionary<string, string>
-                {
-                    {Headers.ContentType, "binary"},
-                    {Headers.ProcessingEndpoint, "Boo" }
-                })
-                {
-                    Body = new byte[]
-                    {
-                        1,
-                        2,
-                        3,
-                        4,
-                        5
-                    }
-                });
-
-                var processedMessage = new ProcessedMessage(message)
+                var processedMessage = new ProcessedMessage
                 {
                     Id = "1",
-                    ProcessedAt = expiredDate
+                    ProcessedAt = expiredDate,
+                    Headers = new Dictionary<string, string>
+                    {
+                        {Headers.ContentType, "binary"},
+                        {Headers.ProcessingEndpoint, "Boo"}
+                    }
+
                 };
 
                 using (var session = documentStore.OpenSession())
@@ -199,7 +188,6 @@
 
                 // Verify body expired
                 Assert.AreEqual(messageId, messageBodyStore.DeletedMessages.SingleOrDefault(), "Audit document body should have been deleted");
-
             }
         }
 
