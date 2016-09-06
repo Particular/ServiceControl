@@ -56,7 +56,7 @@
                         var stored = reader.ReadBoolean();
                         var messageId = reader.ReadString();
                         var contentType = reader.ReadString();
-                        var size = reader.ReadInt32();
+                        var size = reader.ReadInt64();
 
                         bodyStorageClaimCheck = new ClaimsCheck(stored, new MessageBodyMetadata(messageId, contentType, size));
                     }

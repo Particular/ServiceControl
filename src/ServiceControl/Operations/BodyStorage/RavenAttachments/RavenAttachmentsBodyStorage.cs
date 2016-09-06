@@ -3,7 +3,7 @@
     using System.IO;
     using Raven.Client;
 
-    public class RavenAttachmentsBodyStorage : IBodyStorage
+    public class RavenAttachmentsBodyStorage
     {
         private readonly StoreBody storeBody;
         private readonly IDocumentStore store;

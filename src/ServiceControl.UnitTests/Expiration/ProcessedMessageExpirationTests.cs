@@ -3,20 +3,16 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.IO;
     using System.Linq;
     using System.Threading;
-    using System.Threading.Tasks;
     using MessageAuditing;
     using MessageFailures;
     using NServiceBus;
     using NUnit.Framework;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
     using ServiceControl.Operations.BodyStorage;
-    using ServiceControl.Operations.BodyStorage.RavenAttachments;
 
     [TestFixture]
     public class ProcessedMessageExpirationTests
@@ -104,19 +100,12 @@
             }
         }
 
-        static void RunExpiry(IDocumentStore documentStore, DateTime expiryThreshold, StoreBody storeBody = null)
+        static void RunExpiry(IDocumentStore documentStore, DateTime expiryThreshold, IMessageBodyStore messageBodyStore = null)
         {
             new ExpiryProcessedMessageIndex().Execute(documentStore);
             documentStore.WaitForIndexing();
 
-            if (storeBody == null)
-            {
-                storeBody = new StoreBody(new Settings("boo", false, false, TimeSpan.Zero, TimeSpan.Zero)
-                {
-                    StoragePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName())
-                });
-            }
-            AuditMessageCleaner.Clean(100, documentStore, expiryThreshold, new CancellationToken(), new RavenAttachmentsBodyStorage(storeBody, documentStore));
+            AuditMessageCleaner.Clean(100, documentStore, expiryThreshold, new CancellationToken(), messageBodyStore ?? new FakeMessageBodyStore());
             documentStore.WaitForIndexing();
         }
 
@@ -161,7 +150,7 @@
         }
 
         [Test]
-        public async Task Stored_bodies_are_being_removed_when_message_expires()
+        public void Stored_bodies_are_being_removed_when_message_expires()
         {
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -169,10 +158,6 @@
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
                 // Store expired message with associated body
                 var messageId = "21";
-                var bodyStorage = new StoreBody(new Settings("boo", false, false, TimeSpan.Zero, TimeSpan.Zero)
-                {
-                    StoragePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName())
-                });
 
                 var message = new ImportSuccessfullyProcessedMessage(new TransportMessage(messageId, new Dictionary<string, string>
                 {
@@ -201,10 +186,10 @@
                     session.Store(processedMessage);
                     session.SaveChanges();
                 }
-                
-                await bodyStorage.SaveToDB(message);
-                
-                RunExpiry(documentStore, thresholdDate, bodyStorage);
+
+                var messageBodyStore = new FakeMessageBodyStore();
+
+                RunExpiry(documentStore, thresholdDate, messageBodyStore);
 
                 // Verify message expired
                 using (var session = documentStore.OpenSession())
@@ -213,10 +198,8 @@
                 }
 
                 // Verify body expired
-                Stream _;
-                string __;
-                long ___;
-                Assert.False(bodyStorage.TryRetrieveBody(messageId, out _, out __, out ___), "Audit document body should be deleted");
+                Assert.AreEqual(messageId, messageBodyStore.DeletedMessages.SingleOrDefault(), "Audit document body should have been deleted");
+
             }
         }
 
@@ -270,6 +253,26 @@
                     Assert.NotNull(session.Load<FailedMessage>(failedMsg.Id));
                 }
             }
+        }
+
+        class FakeMessageBodyStore : IMessageBodyStore
+        {
+            public ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool TryGet(string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Delete(string messageId)
+            {
+                DeletedMessages.Add(messageId);
+            }
+
+            public IList<string> DeletedMessages = new List<string>();
         }
 
     }

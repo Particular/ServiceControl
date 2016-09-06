@@ -13,7 +13,7 @@
     {
         static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(ErrorMessageCleaner));
 
-        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token, IBodyStorage bodyStorage)
+        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token, IMessageBodyStore messageBodyStore)
         {
             var stopwatch = Stopwatch.StartNew();
             var query = new IndexQuery
@@ -64,7 +64,8 @@
 
                     try
                     {
-                        bodyStorage.Delete(doc.Value<string>("MessageId"));
+                        var messageId = doc.Value<string>("MessageId");
+                        messageBodyStore.Delete(messageId);
                     }
                     catch (Exception ex)
                     {

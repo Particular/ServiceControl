@@ -14,7 +14,7 @@
     {
         static ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
 
-        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token, IBodyStorage bodyStorage)
+        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token, IMessageBodyStore messageBodyStore)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -70,7 +70,7 @@
                     {
                         try
                         {
-                            bodyStorage.Delete(bodyId);
+                            messageBodyStore.Delete(bodyId);
                         }
                         catch (Exception ex)
                         {

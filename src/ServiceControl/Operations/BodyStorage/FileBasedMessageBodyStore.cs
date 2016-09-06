@@ -3,7 +3,7 @@
     using System.IO;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class FileBasedMessageBodyStore : IMessageBodyStore
+    public class FileBasedMessageBodyStore
     {
         private string rootLocation;
 
@@ -20,9 +20,7 @@
                 return new ClaimsCheck(false, messageBodyMetadata);
             }
 
-            var path = Path.Combine(rootLocation, messageBodyMetadata.MessageId);
-
-            using (var writer = new BinaryWriter(File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None)))
+            using (var writer = new BinaryWriter(File.Open(FullPath(messageBodyMetadata.MessageId), FileMode.Create, FileAccess.Write, FileShare.None)))
             {
                 writer.Write(messageBodyMetadata.MessageId);
                 writer.Write(messageBodyMetadata.ContentType);
@@ -41,7 +39,7 @@
         {
             try
             {
-                using (var file = File.Open(Path.Combine(rootLocation, messageId), FileMode.Open, FileAccess.Read, FileShare.None))
+                using (var file = File.Open(FullPath(messageId), FileMode.Open, FileAccess.Read, FileShare.None))
                 using (var reader = new BinaryReader(file))
                 {
                     // TODO: Should we verify this is the same as was passed in?
@@ -65,5 +63,20 @@
                 return false;
             }
         }
+
+        public bool Delete(string messageId)
+        {
+            var path = FullPath(messageId);
+
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+                return true;
+            }
+
+            return false;
+        }
+
+        private string FullPath(string messageId) => Path.Combine(rootLocation, messageId);
     }
 }

@@ -25,17 +25,17 @@
             private readonly TimeKeeper timeKeeper;
             private readonly IDocumentStore store;
             private readonly Settings settings;
-            private readonly IBodyStorage bodyStorage;
+            private readonly IMessageBodyStore messageBodyStore;
             private ILog logger = LogManager.GetLogger(typeof(Cleaner));
             private Timer timer;
             private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-            public Cleaner(TimeKeeper timeKeeper, IDocumentStore store, Settings settings, IBodyStorage bodyStorage)
+            public Cleaner(TimeKeeper timeKeeper, IDocumentStore store, Settings settings, IMessageBodyStore messageBodyStore)
             {
                 this.timeKeeper = timeKeeper;
                 this.store = store;
                 this.settings = settings;
-                this.bodyStorage = bodyStorage;
+                this.messageBodyStore = messageBodyStore;
             }
 
             protected override void OnStart()
@@ -81,7 +81,7 @@
                 logger.DebugFormat("Trying to find expired ProcessedMessage and SagaHistory documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
                 try
                 {
-                    AuditMessageCleaner.Clean(deletionBatchSize, store, threshold, cancellationTokenSource.Token, bodyStorage);
+                    AuditMessageCleaner.Clean(deletionBatchSize, store, threshold, cancellationTokenSource.Token, messageBodyStore);
                 }
                 catch (Exception ex)
                 {
@@ -112,7 +112,7 @@
                 logger.DebugFormat("Trying to find expired FailedMessage documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
                 try
                 {
-                    ErrorMessageCleaner.Clean(deletionBatchSize, store, threshold, cancellationTokenSource.Token, bodyStorage);
+                    ErrorMessageCleaner.Clean(deletionBatchSize, store, threshold, cancellationTokenSource.Token, messageBodyStore);
                 }
                 catch (Exception ex)
                 {

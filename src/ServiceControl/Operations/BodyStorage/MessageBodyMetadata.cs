@@ -4,9 +4,9 @@
     {
         public string MessageId { get; }
         public string ContentType { get; }
-        public int Size { get; }
+        public long Size { get; }
 
-        public MessageBodyMetadata(string messageId, string contentType, int size)
+        public MessageBodyMetadata(string messageId, string contentType, long size)
         {
             MessageId = messageId;
             ContentType = contentType;

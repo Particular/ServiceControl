@@ -13,12 +13,11 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            if (!context.Container.HasComponent<IBodyStorage>())
-            {
-                context.Container.ConfigureComponent<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
-            }
-
+            context.Container.ConfigureComponent<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<FileBasedMessageBodyStore>(DependencyLifecycle.SingleInstance);
+
+            context.Container.ConfigureComponent<BackwardsCompatibleMessageBodyStore>(DependencyLifecycle.SingleInstance);
+
 
             context.Container.ConfigureComponent<StoreBody>(DependencyLifecycle.SingleInstance);
         }
