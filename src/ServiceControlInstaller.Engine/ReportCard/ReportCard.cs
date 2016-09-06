@@ -4,11 +4,6 @@
     
     public class ReportCard
     {
-        public ReportCard()
-        {
-           
-        }
-
         public Status Status
         {
             get
