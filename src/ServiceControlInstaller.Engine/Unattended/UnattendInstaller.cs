@@ -205,6 +205,8 @@ namespace ServiceControlInstaller.Engine.Unattended
                 if (removeDB)
                 {
                     instance.RemoveDataBaseFolder();
+                    instance.RemoveInjestionFolder();
+                    instance.RemoveBodyStorageFolder();
                 }
 
                 foreach (var warning in instance.ReportCard.Warnings)

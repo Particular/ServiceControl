@@ -11,6 +11,7 @@
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Modules;
     using ServiceControl.Config.Framework.Rx;
+    using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
 
     class InstanceDetailsViewModel : RxProgressScreen, IHandle<RefreshInstances>
@@ -36,7 +37,14 @@
             StopCommand = Command.Create(() => StopService());
 
             AdvanceOptionsCommand = advanceOptionsCommand;
+
+            BodyStoragePathVisible = serviceControlInstance.Version >= SettingsList.BodyStoragePath.SupportedFrom;
+            InjestionCachePathVisible = serviceControlInstance.Version >= SettingsList.InjestionCachePath.SupportedFrom;
         }
+
+        public bool InjestionCachePathVisible { get; set; }
+
+        public bool BodyStoragePathVisible { get; set; }
 
         public ServiceControlInstance ServiceControlInstance { get; }
 
@@ -53,6 +61,10 @@
         public string InstallPath => ServiceControlInstance.InstallPath;
 
         public string DBPath => ServiceControlInstance.DBPath;
+
+        public string BodyStoragePath => ServiceControlInstance.BodyStoragePath;
+
+        public string InjestionCachePath => ServiceControlInstance.InjestionCachePath;
 
         public string LogPath => ServiceControlInstance.LogPath;
 

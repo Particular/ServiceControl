@@ -18,6 +18,8 @@ namespace ServiceControlInstaller.PowerShell
                 HostName = instance.HostName,
                 Port = instance.Port,
                 InstallPath = instance.InstallPath,
+                InjestionCachePath = instance.InjestionCachePath,
+                BodyStoragePath = instance.BodyStoragePath,
                 LogPath = instance.LogPath,
                 DBPath = instance.DBPath,
                 TransportPackage = instance.TransportPackage,
@@ -40,6 +42,8 @@ namespace ServiceControlInstaller.PowerShell
 
         public string InstallPath { get; set; }
         public string DBPath { get; set; }
+        public string BodyStoragePath { get; set; }
+        public string InjestionCachePath { get; set; }
         public string LogPath { get; set; }
 
         public string TransportPackage { get;  set; }

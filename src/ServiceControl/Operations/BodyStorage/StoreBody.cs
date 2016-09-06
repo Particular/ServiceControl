@@ -11,8 +11,6 @@
 
     public class StoreBody
     {
-        private readonly Settings settings;
-        private string auditQueuePath;
         private string errorQueuePath;
         private string bodiesPath;
         const string DefaultContentType = "text/xml";
@@ -20,47 +18,11 @@
 
         public StoreBody(Settings settings)
         {
-            this.settings = settings;
-
-            auditQueuePath = Directory.CreateDirectory(Path.Combine(settings.StoragePath, "queue", "audit")).FullName;
-            errorQueuePath = Directory.CreateDirectory(Path.Combine(settings.StoragePath, "queue", "error")).FullName;
-            bodiesPath = Directory.CreateDirectory(Path.Combine(settings.StoragePath, "bodies")).FullName;
+            errorQueuePath = Directory.CreateDirectory(Path.Combine(settings.InjestionCachePath, "error")).FullName;
+            bodiesPath = Directory.CreateDirectory(settings.BodyStoragePath).FullName;
         }
-
-        public string AuditQueuePath => auditQueuePath;
 
         public string ErrorQueuePath => errorQueuePath;
-
-        public bool SaveInStorage(TransportMessage message, out ImportSuccessfullyProcessedMessage importMessage)
-        {
-            importMessage = null;
-
-            var bodySize = GetContentLength(message);
-            if (bodySize >= 0 && bodySize <= settings.MaxBodySizeToStore)
-            {
-                return true;
-            }
-
-            importMessage = new ImportSuccessfullyProcessedMessage(message);
-            importMessage.Metadata.Add("ContentLength", bodySize);
-
-            if (bodySize == 0)
-            {
-                return false;
-            }
-
-            var contentType = GetContentType(message);
-            importMessage.Metadata.Add("ContentType", contentType);
-            importMessage.Metadata.Add("BodyNotStored", true);
-            importMessage.Metadata.Add("BodyUrl", $"/messages/{importMessage.MessageId}/body_v2");
-
-            return false;
-        }
-
-        public void SaveAuditToBeProcessedLater(TransportMessage message)
-        {
-            SaveToBeProcessedLater(message, AuditQueuePath);
-        }
 
         public void SaveErrorToBeProcessedLater(TransportMessage message)
         {
@@ -179,11 +141,6 @@
             return GetContentLength(message.PhysicalMessage.Body);
         }
 
-        static int GetContentLength(TransportMessage message)
-        {
-            return GetContentLength(message.Body);
-        }
-
         static int GetContentLength(byte[] body)
         {
             if (body == null)
@@ -196,11 +153,6 @@
         static string GetContentType(ImportMessage message)
         {
             return GetContentType(message.PhysicalMessage.Headers);
-        }
-
-        static string GetContentType(TransportMessage message)
-        {
-            return GetContentType(message.Headers);
         }
 
         static string GetContentType(Dictionary<string, string> headers, string defaultContentType =  DefaultContentType)
