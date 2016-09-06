@@ -46,7 +46,7 @@
                          Background="Transparent"
                          BorderThickness="0"
                          FontSize="14"
-                         Foreground="{StaticResource LightWarnigBrush}"
+                         Foreground="{StaticResource LightWarningBrush}"
                          IsReadOnly="True"
                          IsReadOnlyCaretVisible="False" />
 
