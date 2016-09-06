@@ -94,7 +94,6 @@
                                         {
                                             var reportCard = new ReportCard();
                                             reportCard.Errors.Add("Failed to stop the service");
-                                            reportCard.SetStatus();
                                             windowManager.ShowActionReport(reportCard, "ISSUES AFTER SSL CHANGE", "There were some errors when attempting to restart the instance:");
                                             return;
                                         }
@@ -103,7 +102,6 @@
                                         {
                                             var reportCard = new ReportCard();
                                             reportCard.Warnings.Add("Failed to start the service");
-                                            reportCard.SetStatus();
                                             windowManager.ShowActionReport(reportCard, "ISSUES AFTER SSL CHANGE", "There were some warnings when attempting to restart instance:");
                                         }
                                     }

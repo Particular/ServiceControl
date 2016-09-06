@@ -8,7 +8,7 @@ namespace ServiceControlInstaller.BackupStubService
     public class Settings
     {
         public int Port =>  SettingsReader<int>.Read("Port", 33333);
-        public string HostName => SettingsReader<string>.Read("HostName");
+        public string HostName => SettingsReader<string>.Read("HostName", "localhost");
         public string DBPath => SettingsReader<string>.Read("DBPath", DefaultDBPath());
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 

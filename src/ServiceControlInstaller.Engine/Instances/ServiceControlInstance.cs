@@ -77,6 +77,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             ReadConfiguration();
         }
+
         public string Protocol => SslCert.GetThumbprint(Port) != null ? "https" : "http";
 
         public string Url
@@ -91,7 +92,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 return $"{Protocol}://{HostName}:{Port}/{virt}/api/";
             }
         }
-        
+
         public string StorageUrl
         {
             get
@@ -323,7 +324,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 var configManager = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
                 if (configManager.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
                 {
-                    return (T)Convert.ChangeType(configManager.AppSettings.Settings[key].Value, typeof(T));
+                    return (T) Convert.ChangeType(configManager.AppSettings.Settings[key].Value, typeof(T));
                 }
             }
             try
@@ -492,7 +493,14 @@ namespace ServiceControlInstaller.Engine.Instances
                 return;
             }
 
-            MoveDatabaseFiles(dbPath);
+            try
+            {
+                MoveDatabaseFiles(dbPath);
+            }
+            catch (Exception)
+            {
+                ReportCard.Errors.Add("Failed to move database to new layout");
+            }
         }
 
         private static void MoveDatabaseFiles(string dbPath)
