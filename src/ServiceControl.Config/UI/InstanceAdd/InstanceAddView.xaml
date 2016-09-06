@@ -49,9 +49,12 @@
                             <controls:FormPasswordBox Grid.Row="2"
                                                       Header="PASSWORD"
                                                       Text="{Binding Password}"
-                                                      Visibility="{Binding PasswordEnabled, Converter={StaticResource boolToVis}}"
-                                                      />
-                            <TextBlock Grid.Row="2" Visibility="{Binding ManagedAccount, Converter={StaticResource boolToVis}}" Text="No password is required for an AD Group Managed Service Account" />
+                                                      Visibility="{Binding PasswordEnabled,
+                                                                           Converter={StaticResource boolToVis}}" />
+                            <TextBlock Grid.Row="2"
+                                       Text="No password is required for an AD Group Managed Service Account"
+                                       Visibility="{Binding ManagedAccount,
+                                                            Converter={StaticResource boolToVis}}" />
                         </Grid>
                     </StackPanel>
                 </GroupBox>
@@ -80,6 +83,14 @@
                 <controls:FormPathTextBox Header="DATABASE PATH"
                                           SelectCommand="{Binding SelectDatabasePath}"
                                           Text="{Binding DatabasePath}" />
+
+                <controls:FormPathTextBox Header="MESSAGE BODY STORAGE PATH"
+                                          SelectCommand="{Binding SelectBodyStoragePath}"
+                                          Text="{Binding BodyStoragePath}" />
+
+                <controls:FormPathTextBox Header="INJESTION CACHE PATH"
+                                          SelectCommand="{Binding SelectInjestionCachePath}"
+                                          Text="{Binding InjestionCachePath}" />
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"

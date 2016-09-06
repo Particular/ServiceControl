@@ -113,7 +113,7 @@ namespace Particular.ServiceControl
             if (handler != null)
             {
                 documentStore.HttpMessageHandlerFactory = () => handler;
-            } 
+            }
 
             using (documentStore.Initialize())
             {

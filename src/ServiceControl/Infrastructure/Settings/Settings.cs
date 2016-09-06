@@ -22,7 +22,7 @@
         private int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
         private int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
 
-        public Settings(string serviceName = null)
+        public Settings(string serviceName = null, bool? forwardAuditMessages = null, bool? forwardErrorMessages = null, TimeSpan? auditRetentionPeriod = null, TimeSpan? errorRetentionPeriod = null)
         {
             ServiceName = serviceName;
 
@@ -36,16 +36,20 @@
             ErrorLogQueue = GetErrorLogQueue();
             AuditLogQueue = GetAuditLogQueue();
             TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
-            ForwardAuditMessages = GetForwardAuditMessages();
-            ForwardErrorMessages = GetForwardErrorMessages();
-            AuditRetentionPeriod = GetAuditRetentionPeriod();
-            ErrorRetentionPeriod = GetErrorRetentionPeriod();
+            ForwardAuditMessages = forwardAuditMessages ?? GetForwardAuditMessages();
+            ForwardErrorMessages = forwardErrorMessages ?? GetForwardErrorMessages();
+            AuditRetentionPeriod = auditRetentionPeriod ?? GetAuditRetentionPeriod();
+            ErrorRetentionPeriod = errorRetentionPeriod ?? GetErrorRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
-            MaximumConcurrencyLevel = 10;
+            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DbPath = GetDbPath();
+            BodyStoragePath = GetBodyStoragePath();
+            InjestionCachePath = GetInjestionCachePath();
         }
+
+        public string InjestionCachePath { get; set; }
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
@@ -70,7 +74,7 @@
 
         public string ApiUrl => $"{RootUrl}api";
 
-        public string StorageUrl => $"{RootUrl}storage";
+        public string StorageUrl => SettingsReader<string>.Read("StorageUrl", $"{RootUrl}storage");
 
         public int Port { get; set; }
 
@@ -155,6 +159,7 @@
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
+        public string BodyStoragePath { get; set; }
 
         private Address GetAuditLogQueue()
         {
@@ -220,6 +225,44 @@
             var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
 
             return SettingsReader<string>.Read("DbPath", defaultPath);
+        }
+
+        private string GetBodyStoragePath()
+        {
+            var host = Hostname;
+            if (host == "*")
+            {
+                host = "%";
+            }
+            var folder = $"BodyStorage-{host}-{Port}";
+
+            if (!string.IsNullOrEmpty(VirtualDirectory))
+            {
+                folder += $"-{SanitiseFolderName(VirtualDirectory)}";
+            }
+
+            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", folder);
+
+            return SettingsReader<string>.Read("BodyStorage", defaultPath);
+        }
+
+        private string GetInjestionCachePath()
+        {
+            var host = Hostname;
+            if (host == "*")
+            {
+                host = "%";
+            }
+            var folder = $"InjestionCache-{host}-{Port}";
+
+            if (!string.IsNullOrEmpty(VirtualDirectory))
+            {
+                folder += $"-{SanitiseFolderName(VirtualDirectory)}";
+            }
+
+            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", folder);
+
+            return SettingsReader<string>.Read("InjestionCache", defaultPath);
         }
 
         private static bool GetForwardErrorMessages()

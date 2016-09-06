@@ -10,8 +10,10 @@
     using Owin;
     using ServiceControl.Infrastructure.SignalR;
     using Autofac;
+    using Metrics;
     using Microsoft.Owin.Cors;
     using NServiceBus.Logging;
+    using Owin.Metrics;
     using Particular.ServiceControl.Licensing;
     using Raven.Database.Config;
     using Raven.Database.Server;
@@ -35,6 +37,14 @@
         public void Configuration(IAppBuilder app, bool isRunningAcceptanceTests = false)
         {
             ConfigureRavenDB(app, isRunningAcceptanceTests);
+
+            app.Map("/metrics", b =>
+            {
+                Metric.Config
+                    .WithOwin(middleware => b.Use(middleware), config => config
+                        .WithMetricsEndpoint(endpointConfig => endpointConfig.MetricsEndpoint(String.Empty)))
+                    .WithAllCounters();
+            });
 
             app.Map("/api", b =>
             {

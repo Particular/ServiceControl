@@ -2,6 +2,7 @@
 {
     using System;
     using NServiceBus;
+    using NServiceBus.Persistence;
 
     public class RabbitMqTransportIntegration : ITransportIntegration
     {
@@ -33,6 +34,7 @@
         {
             public void Customize(BusConfiguration configuration)
             {
+                configuration.UsePersistence<InMemoryPersistence, StorageType.Outbox>();
                 configuration.UseTransport<RabbitMQTransport>().DisableCallbackReceiver();
                 configuration.EnableOutbox();
             }

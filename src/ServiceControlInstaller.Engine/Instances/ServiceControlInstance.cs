@@ -38,6 +38,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public WindowsServiceController Service { get; set; }
         public string LogPath { get; set; }
         public string DBPath { get; set; }
+        public string BodyStoragePath { get; set; }
+        public string InjestionCachePath { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
         public string VirtualDirectory { get; set; }
@@ -224,6 +226,8 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(SettingsList.HostName, HostName);
             settings.Set(SettingsList.Port, Port.ToString());
             settings.Set(SettingsList.LogPath, LogPath);
+            settings.Set(SettingsList.InjestionCachePath, InjestionCachePath);
+            settings.Set(SettingsList.BodyStoragePath, BodyStoragePath);
             settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
             settings.Set(SettingsList.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), version);
@@ -283,6 +287,16 @@ namespace ServiceControlInstaller.Engine.Instances
                 dbFolder += $"-{FileUtils.SanitizeFolderName(VirtualDirectory)}";
             }
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
+        }
+
+        string DefaultBodyStoragePath()
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", Name, "BodyStorage");
+        }
+
+        string DefaultInjestionCachePath()
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", Name, "InjestionCache");
         }
 
         string DefaultLogPath()
@@ -444,6 +458,30 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+        public void RemoveBodyStorageFolder()
+        {
+            try
+            {
+                FileUtils.DeleteDirectory(BodyStoragePath, true, false);
+            }
+            catch
+            {
+                ReportCard.Warnings.Add($"Could not delete the message body storage directory '{BodyStoragePath}'. Please remove manually");
+            }
+        }
+
+        public void RemoveInjestionFolder()
+        {
+            try
+            {
+                FileUtils.DeleteDirectory(InjestionCachePath, true, false);
+            }
+            catch
+            {
+                ReportCard.Warnings.Add($"Could not delete the injestion cache directory '{InjestionCachePath}'. Please remove manually");
+            }
+        }
+
         public string BackupAppConfig()
         {
             var backupDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControlInstaller", "ConfigBackups", FileUtils.SanitizeFolderName(Service.ServiceName));
@@ -585,6 +623,8 @@ namespace ServiceControlInstaller.Engine.Instances
             VirtualDirectory = ReadAppSetting(SettingsList.VirtualDirectory, (string)null);
             LogPath = ReadAppSetting(SettingsList.LogPath, DefaultLogPath());
             DBPath = ReadAppSetting(SettingsList.DBPath, DefaultDBPath());
+            InjestionCachePath = ReadAppSetting(SettingsList.InjestionCachePath, DefaultInjestionCachePath());
+            BodyStoragePath = ReadAppSetting(SettingsList.BodyStoragePath, DefaultBodyStoragePath());
             AuditQueue = ReadAppSetting(SettingsList.AuditQueue, "audit");
             AuditLogQueue = ReadAppSetting(SettingsList.AuditLogQueue, $"{AuditQueue}.log");
             ForwardAuditMessages = ReadAppSetting(SettingsList.ForwardAuditMessages, false);

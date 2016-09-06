@@ -40,7 +40,7 @@ namespace ServiceControl.ExternalIntegrations
                     Headers = last.Headers,
                     ContentType = GetNullableMetadataValue<string>(last.MessageMetadata, "ContentType"),
                     Body = GetBody(last),
-                    MessageId = last.MessageId,
+                    MessageId = last.MessageId
                 },
                 FailureDetails = new Contracts.MessageFailed.FailureInfo
                 {
@@ -51,9 +51,9 @@ namespace ServiceControl.ExternalIntegrations
                         ExceptionType = last.FailureDetails.Exception.ExceptionType,
                         Message = last.FailureDetails.Exception.Message,
                         Source = last.FailureDetails.Exception.Source,
-                        StackTrace = last.FailureDetails.Exception.StackTrace,
-                    },
-                },
+                        StackTrace = last.FailureDetails.Exception.StackTrace
+                    }
+                }
             };
         }
 

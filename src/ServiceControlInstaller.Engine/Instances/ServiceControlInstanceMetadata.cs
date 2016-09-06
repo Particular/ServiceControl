@@ -24,6 +24,8 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         public string LogPath { get; set; }
         public string DBPath { get; set; }
+        public string BodyStoragePath { get; set; }
+        public string InjestionCachePath { get; set; }
         public string HostName { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
@@ -110,7 +112,17 @@ namespace ServiceControlInstaller.Engine.Instances
                 FileUtils.CreateDirectoryAndSetAcl(DBPath, modifyAccessRule);
             }
 
-            // Mark these directories with a flag
+            if (!string.IsNullOrWhiteSpace(BodyStoragePath))
+            {
+                FileUtils.CreateDirectoryAndSetAcl(BodyStoragePath, modifyAccessRule);
+            }
+
+            if (!string.IsNullOrWhiteSpace(InjestionCachePath))
+            {
+                FileUtils.CreateDirectoryAndSetAcl(InjestionCachePath, modifyAccessRule);
+            }
+
+            // Mark these directories with a flag 
             // These flags indicate the directory is empty check can be ignored
             // We need this because if an install screws up and doesn't complete it is ok to overwrite on a subsequent attempt
             // First run will still the check

@@ -5,7 +5,6 @@
     using System.Net;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Logging;
     using NServiceBus.Persistence;
     using NServiceBus.Pipeline;
     using Raven.Abstractions.Extensions;
@@ -14,6 +13,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.EndpointControl;
+    using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 
     public class RavenBootstrapper : INeedInitialization
     {
@@ -23,7 +23,7 @@
             var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
 
             StartRaven(documentStore, settings);
-
+            
             configuration.RegisterComponents(c => 
                 c.ConfigureComponent(builder =>
                 {
@@ -39,9 +39,7 @@
                     throw new InvalidOperationException("No session available");
                 }, DependencyLifecycle.InstancePerCall));
 
-            configuration.UsePersistence<RavenDBPersistence>()
-                .SetDefaultDocumentStore(documentStore)
-                .DoNotSetupDatabasePermissions();
+            configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
 
             configuration.Pipeline.Register<RavenRegisterStep>();
         }
@@ -53,7 +51,6 @@
             documentStore.EnlistInDistributedTransactions = false;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
             documentStore.Credentials = CredentialCache.DefaultNetworkCredentials;
-            
             documentStore.Initialize();
 
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
@@ -77,7 +74,5 @@
                 }
             }
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
     }
 }

@@ -68,6 +68,10 @@
     <Reference Include="Lucene.Net">
       <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
     </Reference>
+    <Reference Include="Metrics, Version=0.3.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Metrics.NET.0.3.7\lib\net45\Metrics.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.2.1\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
       <Private>True</Private>
@@ -156,12 +160,12 @@
       <HintPath>..\packages\NServiceBus.Autofac.5.0.0\lib\net45\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NServiceBus.RavenDB, Version=3.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.RavenDB.3.0.10\lib\net45\NServiceBus.RavenDB.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Owin">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin.Metrics, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Owin.Metrics.0.3.7\lib\net45\Owin.Metrics.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Raven.Abstractions, Version=3.0.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
       <HintPath>..\packages\RavenDB.Database.3.0.30153\lib\net45\Raven.Abstractions.dll</HintPath>
@@ -265,6 +269,7 @@
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Infrastructure\Extensions\WaitHandleExtensions.cs" />
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
@@ -327,6 +332,11 @@
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryProcessedMessageIndex.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpirySagaAuditIndex.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\SagaHistoryCleaner.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\MessageTypeConverter.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\CachedRavenDBPersistence.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\Subscription.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\SubscriptionPersister.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\SubscriptionStorage.cs" />
     <Compile Include="Infrastructure\Settings\LoggingSettings.cs" />
     <Compile Include="Infrastructure\ShutdownNotifier.cs" />
     <Compile Include="Infrastructure\OWIN\ApiLogger.cs" />
@@ -347,6 +357,16 @@
     <Compile Include="MessageFailures\InternalMessages\ReclassifyErrors.cs" />
     <Compile Include="MessageFailures\InternalMessages\UnArchiveMessages.cs" />
     <Compile Include="MessageFailures\InternalMessages\UnArchiveMessagesByRange.cs" />
+    <Compile Include="Operations\Audit\AuditMessageBodyStoragePolicy.cs" />
+    <Compile Include="Operations\Audit\AuditIngestionCache.cs" />
+    <Compile Include="Operations\Audit\ProcessedMessageFactory.cs" />
+    <Compile Include="Operations\BodyStorage\ClaimsCheck.cs" />
+    <Compile Include="Operations\BodyStorage\FileBasedMessageBodyStore.cs" />
+    <Compile Include="Operations\BodyStorage\IMessageBodyStoragePolicy.cs" />
+    <Compile Include="Operations\BodyStorage\IMessageBodyStore.cs" />
+    <Compile Include="Operations\BodyStorage\MessageBodyFactory.cs" />
+    <Compile Include="Operations\BodyStorage\MessageBodyMetadata.cs" />
+    <Compile Include="Operations\BodyStorage\StoreBody.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\ImportFailedMessage.cs" />
@@ -414,7 +434,6 @@
     <Compile Include="Infrastructure\SignalR\Envelope.cs" />
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensions.cs" />
-    <Compile Include="MessageAuditing\Handlers\AuditMessageHandler.cs" />
     <Compile Include="Infrastructure\DictionaryExtensions.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewTransformer.cs" />
@@ -456,7 +475,6 @@
     <Compile Include="MessageFailures\Api\RetryMessages.cs" />
     <Compile Include="Operations\BodyStorage\BodyStorageFeature.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
-    <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
     <Compile Include="Operations\ErrorQueueImport.cs" />
     <Compile Include="Operations\ExceptionExtensions.cs" />
@@ -465,6 +483,8 @@
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
     <Compile Include="Operations\ImportEnricher.cs" />
     <Compile Include="Operations\LicenseStatusKeeper.cs" />
+    <Compile Include="Operations\Audit\ProcessAudits.cs" />
+    <Compile Include="Operations\ProcessErrors.cs" />
     <Compile Include="Operations\SatelliteImportFailuresHandler.cs" />
     <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
     <Compile Include="Infrastructure\TypeExtensions.cs" />

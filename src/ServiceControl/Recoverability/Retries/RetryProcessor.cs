@@ -2,7 +2,6 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -27,9 +26,9 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender)
+        public RetryProcessor(IMessageBodyStore messageBodyStore, ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender)
         {
-            this.bodyStorage = bodyStorage;
+            this.messageBodyStore = messageBodyStore;
             this.sender = sender;
             this.bus = bus;
             this.returnToSender = returnToSender;
@@ -164,33 +163,18 @@ namespace ServiceControl.Recoverability
                 MessageIntent = attempt.MessageIntent
             };
 
-            Stream stream;
-            if (bodyStorage.TryFetch(attempt.MessageId, out stream))
+            byte[] messageBody;
+            MessageBodyMetadata metadata;
+
+            if (messageBodyStore.TryGet(attempt.MessageId, out messageBody, out metadata))
             {
-                using (stream)
-                {
-                    transportMessage.Body = ReadFully(stream);
-                }
+                transportMessage.Body = messageBody;
             }
 
             sender.Send(transportMessage, new SendOptions(returnToSender.InputAddress));
         }
 
-        static byte[] ReadFully(Stream input)
-        {
-            var buffer = new byte[16 * 1024];
-            using (var ms = new MemoryStream())
-            {
-                int read;
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ms.Write(buffer, 0, read);
-                }
-                return ms.ToArray();
-            }
-        }
-
-        IBodyStorage bodyStorage;
+        IMessageBodyStore messageBodyStore;
         ISendMessages sender;
         IBus bus;
         ReturnToSenderDequeuer returnToSender;

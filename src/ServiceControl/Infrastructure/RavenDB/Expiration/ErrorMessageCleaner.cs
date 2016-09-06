@@ -7,12 +7,13 @@
     using Raven.Abstractions;
     using Raven.Abstractions.Data;
     using Raven.Client;
+    using ServiceControl.Operations.BodyStorage;
 
     public static class ErrorMessageCleaner
     {
         static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(ErrorMessageCleaner));
 
-        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token)
+        public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token, IMessageBodyStore messageBodyStore)
         {
             var stopwatch = Stopwatch.StartNew();
             var query = new IndexQuery
@@ -60,9 +61,11 @@
 
                     store.DatabaseCommands.Delete(id, null);
                     deletionCount++;
+
                     try
                     {
-                        store.DatabaseCommands.DeleteAttachment("messagebodies/" + doc.Value<string>("MessageId"), null);
+                        var messageId = doc.Value<string>("MessageId");
+                        messageBodyStore.Delete(messageId);
                     }
                     catch (Exception ex)
                     {

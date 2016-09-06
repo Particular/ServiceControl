@@ -27,6 +27,20 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
                 .When(x => x.SubmitAttempted);
+
+            RuleFor(x => x.BodyStoragePath)
+                .NotEmpty()
+                .ValidPath()
+                .MustNotBeIn(x => UsedPaths(x.InstanceName))
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .When(x => x.SubmitAttempted);
+
+            RuleFor(x => x.InjestionCachePath)
+                .NotEmpty()
+                .ValidPath()
+                .MustNotBeIn(x => UsedPaths(x.InstanceName))
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .When(x => x.SubmitAttempted);
         }
     }
 }

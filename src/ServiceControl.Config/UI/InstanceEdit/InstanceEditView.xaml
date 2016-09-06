@@ -78,9 +78,12 @@
                             <controls:FormPasswordBox Grid.Row="2"
                                                       Header="PASSWORD"
                                                       Text="{Binding Password}"
-                                                      Visibility="{Binding PasswordEnabled, Converter={StaticResource boolToVis}}"
-                                                      />
-                            <TextBlock Grid.Row="2" Visibility="{Binding ManagedAccount, Converter={StaticResource boolToVis}}" Text="No password is required for an AD Group Managed Service Account" />
+                                                      Visibility="{Binding PasswordEnabled,
+                                                                           Converter={StaticResource boolToVis}}" />
+                            <TextBlock Grid.Row="2"
+                                       Text="No password is required for an AD Group Managed Service Account"
+                                       Visibility="{Binding ManagedAccount,
+                                                            Converter={StaticResource boolToVis}}" />
 
                         </Grid>
                     </StackPanel>

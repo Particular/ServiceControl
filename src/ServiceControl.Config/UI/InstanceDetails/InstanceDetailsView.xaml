@@ -27,6 +27,8 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -34,15 +36,19 @@
                 Grid.ColumnSpan="2"
                 BorderBrush="{StaticResource Gray90Brush}"
                 BorderThickness="0,1,0,0" />
-      
-                    
-                    
-        <TextBlock VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2"
-                       FontSize="18px"
-                       FontWeight="Bold"
-                       Text="{Binding Name}" />
 
-        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
+
+
+        <TextBlock Grid.Row="1"
+                   Grid.ColumnSpan="2"
+                   VerticalAlignment="Center"
+                   FontSize="18px"
+                   FontWeight="Bold"
+                   Text="{Binding Name}" />
+
+        <StackPanel Grid.Row="2"
+                    Grid.ColumnSpan="2"
+                    Orientation="Horizontal">
             <ContentControl Margin="0,7,0,0"
                             VerticalAlignment="Center"
                             Template="{StaticResource RunningIcon}"
@@ -61,11 +67,17 @@
                        Foreground="{StaticResource Gray70Brush}"
                        Text="{Binding Status}" />
 
-            <TextBlock  Margin="3,5,0,0" 
-                        VerticalAlignment="Center"  
-                        FontSize="13px"
-                        Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}">
-                        <Hyperlink Foreground="DarkOrange" Command="{Binding AdvanceOptionsCommand}" CommandParameter="{Binding DataContext, ElementName=root}">IN MAINTENANCE MODE</Hyperlink>
+            <TextBlock Margin="3,5,0,0"
+                       VerticalAlignment="Center"
+                       FontSize="13px"
+                       Visibility="{Binding InMaintenanceMode,
+                                            Converter={StaticResource boolToVis}}">
+                <Hyperlink Command="{Binding AdvanceOptionsCommand}"
+                           CommandParameter="{Binding DataContext,
+                                                      ElementName=root}"
+                           Foreground="DarkOrange">
+                    IN MAINTENANCE MODE
+                </Hyperlink>
             </TextBlock>
         </StackPanel>
         <StackPanel Grid.Row="2"
@@ -152,21 +164,6 @@
 
         <GroupBox Grid.Row="7"
                   Grid.ColumnSpan="2"
-                  Header="DATA PATH">
-            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding DBPath}">
-                <Hyperlink.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Command="{Binding CopyToClipboard}"
-                                  CommandParameter="{Binding DBPath}"
-                                  Header="Copy to Clipboard" />
-                    </ContextMenu>
-                </Hyperlink.ContextMenu>
-                <TextBlock FontSize="12px" Text="{Binding DBPath}" />
-            </Hyperlink>
-        </GroupBox>
-
-        <GroupBox Grid.Row="8"
-                  Grid.ColumnSpan="2"
                   Header="LOG PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding LogPath}">
                 <Hyperlink.ContextMenu>
@@ -180,8 +177,57 @@
             </Hyperlink>
         </GroupBox>
 
+        <GroupBox Grid.Row="8"
+                  Grid.ColumnSpan="2"
+                  Header="DATA PATH">
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding DBPath}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding DBPath}"
+                                  Header="Copy to Clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
+                <TextBlock FontSize="12px" Text="{Binding DBPath}" />
+            </Hyperlink>
+        </GroupBox>
+
+        <GroupBox Grid.Row="9"
+                  Grid.ColumnSpan="2"
+                  Header="MESSAGE BODY STORAGE PATH"
+                  Visibility="{Binding MessageBodyStoragePathVisible,
+                                       Converter={StaticResource boolToVis}}">
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BodyStoragePath}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding BodyStoragePath}"
+                                  Header="Copy to Clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
+                <TextBlock FontSize="12px" Text="{Binding BodyStoragePath}" />
+            </Hyperlink>
+        </GroupBox>
+
+        <GroupBox Grid.Row="10"
+                  Grid.ColumnSpan="2"
+                  Header="INJESTION CACHE PATH"
+                  Visibility="{Binding InjestionCachePathVisible,
+                                       Converter={StaticResource boolToVis}}">
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding InjestionCachePath}">
+                <Hyperlink.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding CopyToClipboard}"
+                                  CommandParameter="{Binding InjestionCachePath}"
+                                  Header="Copy to Clipboard" />
+                    </ContextMenu>
+                </Hyperlink.ContextMenu>
+                <TextBlock FontSize="12px" Text="{Binding InjestionCachePath}" />
+            </Hyperlink>
+        </GroupBox>
+
         <Border Grid.Row="1"
-                Grid.RowSpan="8"
+                Grid.RowSpan="10"
                 Grid.ColumnSpan="2"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"

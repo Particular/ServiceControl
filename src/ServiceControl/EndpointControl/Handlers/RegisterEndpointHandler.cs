@@ -18,7 +18,6 @@
         {
             var id = message.EndpointInstanceId;
 
-            //Injecting store in this class because we want to know about ConcurrencyExceptions so that EndpointsCache.MarkAsProcessed is not called if the save fails.
             using (var session = Store.OpenSession()) 
             {
                 session.Advanced.UseOptimisticConcurrency = true;
