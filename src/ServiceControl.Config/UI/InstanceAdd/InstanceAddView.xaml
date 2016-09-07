@@ -88,9 +88,9 @@
                                           SelectCommand="{Binding SelectBodyStoragePath}"
                                           Text="{Binding BodyStoragePath}" />
 
-                <controls:FormPathTextBox Header="INJESTION CACHE PATH"
-                                          SelectCommand="{Binding SelectInjestionCachePath}"
-                                          Text="{Binding InjestionCachePath}" />
+                <controls:FormPathTextBox Header="INGESTION CACHE PATH"
+                                          SelectCommand="{Binding SelectIngestionCachePath}"
+                                          Text="{Binding IngestionCachePath}" />
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"

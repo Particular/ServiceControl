@@ -51,7 +51,7 @@
             settings.Set(SettingsList.HostName, details.HostName);
             settings.Set(SettingsList.LogPath, details.LogPath);
             settings.Set(SettingsList.DBPath, details.DBPath);
-            settings.Set(SettingsList.InjestionCachePath, details.InjestionCachePath);
+            settings.Set(SettingsList.IngestionCachePath, details.IngestionCachePath);
             settings.Set(SettingsList.BodyStoragePath, details.BodyStoragePath);
             settings.Set(SettingsList.ForwardAuditMessages, details.ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);

@@ -46,10 +46,10 @@
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DbPath = GetDbPath();
             BodyStoragePath = GetBodyStoragePath();
-            InjestionCachePath = GetInjestionCachePath();
+            IngestionCachePath = GetIngestionCachePath();
         }
 
-        public string InjestionCachePath { get; set; }
+        public string IngestionCachePath { get; set; }
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
@@ -246,14 +246,14 @@
             return SettingsReader<string>.Read("BodyStorage", defaultPath);
         }
 
-        private string GetInjestionCachePath()
+        private string GetIngestionCachePath()
         {
             var host = Hostname;
             if (host == "*")
             {
                 host = "%";
             }
-            var folder = $"InjestionCache-{host}-{Port}";
+            var folder = $"IngestionCache-{host}-{Port}";
 
             if (!string.IsNullOrEmpty(VirtualDirectory))
             {
@@ -262,7 +262,7 @@
 
             var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", folder);
 
-            return SettingsReader<string>.Read("InjestionCache", defaultPath);
+            return SettingsReader<string>.Read("IngestionCache", defaultPath);
         }
 
         private static bool GetForwardErrorMessages()

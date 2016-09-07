@@ -39,10 +39,10 @@
             AdvanceOptionsCommand = advanceOptionsCommand;
 
             BodyStoragePathVisible = serviceControlInstance.Version >= SettingsList.BodyStoragePath.SupportedFrom;
-            InjestionCachePathVisible = serviceControlInstance.Version >= SettingsList.InjestionCachePath.SupportedFrom;
+            IngestionCachePathVisible = serviceControlInstance.Version >= SettingsList.IngestionCachePath.SupportedFrom;
         }
 
-        public bool InjestionCachePathVisible { get; set; }
+        public bool IngestionCachePathVisible { get; set; }
 
         public bool BodyStoragePathVisible { get; set; }
 
@@ -64,7 +64,7 @@
 
         public string BodyStoragePath => ServiceControlInstance.BodyStoragePath;
 
-        public string InjestionCachePath => ServiceControlInstance.InjestionCachePath;
+        public string IngestionCachePath => ServiceControlInstance.IngestionCachePath;
 
         public string LogPath => ServiceControlInstance.LogPath;
 

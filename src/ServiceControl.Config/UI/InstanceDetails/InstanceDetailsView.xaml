@@ -211,18 +211,18 @@
 
         <GroupBox Grid.Row="10"
                   Grid.ColumnSpan="2"
-                  Header="INJESTION CACHE PATH"
-                  Visibility="{Binding InjestionCachePathVisible,
+                  Header="Ingestion CACHE PATH"
+                  Visibility="{Binding IngestionCachePathVisible,
                                        Converter={StaticResource boolToVis}}">
-            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding InjestionCachePath}">
+            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding IngestionCachePath}">
                 <Hyperlink.ContextMenu>
                     <ContextMenu>
                         <MenuItem Command="{Binding CopyToClipboard}"
-                                  CommandParameter="{Binding InjestionCachePath}"
+                                  CommandParameter="{Binding IngestionCachePath}"
                                   Header="Copy to Clipboard" />
                     </ContextMenu>
                 </Hyperlink.ContextMenu>
-                <TextBlock FontSize="12px" Text="{Binding InjestionCachePath}" />
+                <TextBlock FontSize="12px" Text="{Binding IngestionCachePath}" />
             </Hyperlink>
         </GroupBox>
 

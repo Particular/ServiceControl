@@ -64,7 +64,7 @@
                 DBPath = viewModel.DatabasePath,
                 LogPath = viewModel.LogPath,
                 BodyStoragePath = viewModel.BodyStoragePath,
-                InjestionCachePath = viewModel.InjestionCachePath,
+                IngestionCachePath = viewModel.IngestionCachePath,
                 InstallPath = viewModel.DestinationPath,
                 HostName = viewModel.HostName,
                 Port = Convert.ToInt32(viewModel.PortNumber),

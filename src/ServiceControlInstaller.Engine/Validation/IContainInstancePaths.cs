@@ -6,6 +6,6 @@ namespace ServiceControlInstaller.Engine.Validation
         string LogPath { get; set; }
         string DBPath { get; set; }
         string BodyStoragePath { get; set; }
-        string InjestionCachePath { get; set; }
+        string IngestionCachePath { get; set; }
     }
 }

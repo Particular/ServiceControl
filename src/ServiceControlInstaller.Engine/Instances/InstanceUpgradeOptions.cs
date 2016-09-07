@@ -7,6 +7,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool? OverrideEnableErrorForwarding { get; set; }
         public TimeSpan? ErrorRetentionPeriod { get; set; }
         public TimeSpan? AuditRetentionPeriod { get; set; }
+        public string BackupPath { get; set; }
+        public bool BackupRavenDbBeforeUpgrade { get; set; }
 
         public void ApplyChangesToInstance(ServiceControlInstance instance)
         {

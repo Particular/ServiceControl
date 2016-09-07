@@ -170,10 +170,15 @@
     <Compile Include="UI\AdvancedOptions\AdvancedOptionsView.xaml.cs">
       <DependentUpon>AdvancedOptionsView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\MessageBox\FolderPickerDialogView.xaml.cs">
+      <DependentUpon>FolderPickerDialogView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MessageBox\FolderPickerDialogViewModel.cs" />
     <Compile Include="UI\FeedBack\FeedBackViewModelValidator.cs" />
     <Compile Include="UI\MessageBox\ExceptionMessageBox.xaml.cs">
       <DependentUpon>ExceptionMessageBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\MessageBox\FolderPickerDialogViewModelValidator.cs" />
     <Compile Include="UI\MessageBox\SliderDialogView.xaml.cs">
       <DependentUpon>SliderDialogView.xaml</DependentUpon>
     </Compile>
@@ -296,6 +301,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="UI\AdvancedOptions\AdvancedOptionsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\MessageBox\FolderPickerDialogView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -470,6 +479,7 @@
   <ItemGroup>
     <SplashScreen Include="splash.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

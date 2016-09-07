@@ -25,7 +25,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string LogPath { get; set; }
         public string DBPath { get; set; }
         public string BodyStoragePath { get; set; }
-        public string InjestionCachePath { get; set; }
+        public string IngestionCachePath { get; set; }
         public string HostName { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
@@ -117,9 +117,9 @@ namespace ServiceControlInstaller.Engine.Instances
                 FileUtils.CreateDirectoryAndSetAcl(BodyStoragePath, modifyAccessRule);
             }
 
-            if (!string.IsNullOrWhiteSpace(InjestionCachePath))
+            if (!string.IsNullOrWhiteSpace(IngestionCachePath))
             {
-                FileUtils.CreateDirectoryAndSetAcl(InjestionCachePath, modifyAccessRule);
+                FileUtils.CreateDirectoryAndSetAcl(IngestionCachePath, modifyAccessRule);
             }
 
             // Mark these directories with a flag 
