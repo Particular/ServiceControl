@@ -49,13 +49,13 @@
                 {
                     reader.ReadInt16(); // Read version, ignore for now
 
-                    var length = reader.ReadInt32();
-
                     recoverable = reader.ReadBoolean();
 
-                    headers = new Dictionary<string, string>(length);
+                    var headersCount = reader.ReadInt32();
 
-                    for (var i = 0; i < length; i++)
+                    headers = new Dictionary<string, string>(headersCount);
+
+                    for (var i = 0; i < headersCount; i++)
                     {
                         headers[reader.ReadString()] = reader.ReadString();
                     }

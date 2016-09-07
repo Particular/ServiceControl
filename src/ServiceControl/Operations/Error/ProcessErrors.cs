@@ -65,7 +65,6 @@
                         patches.Add(processedMessage);
                         processedFiles.Add(entry);
 
-
                         string failedMessageId;
                         if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
                         {
