@@ -227,8 +227,8 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(SettingsList.HostName, HostName);
             settings.Set(SettingsList.Port, Port.ToString());
             settings.Set(SettingsList.LogPath, LogPath);
-            settings.Set(SettingsList.IngestionCachePath, IngestionCachePath);
-            settings.Set(SettingsList.BodyStoragePath, BodyStoragePath);
+            settings.Set(SettingsList.IngestionCachePath, IngestionCachePath, version);
+            settings.Set(SettingsList.BodyStoragePath, BodyStoragePath, version);
             settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
             settings.Set(SettingsList.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), version);
