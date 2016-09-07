@@ -112,11 +112,11 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 bootstrapper.Stop();
                 httpClient.Dispose();
-                Delete(ravenPath);
+                DeleteFolder(ravenPath);
             }
         }
 
-        private static void Delete(string path)
+        private static void DeleteFolder(string path)
         {
             DirectoryInfo emptyTempDirectory = null;
 
@@ -193,7 +193,7 @@ namespace ServiceBus.Management.AcceptanceTests
             return new ScenarioWithContext<T>(() => (T) scenarioContext);
         }
 
-        private async Task<T> Get<T>(string url) where T : class
+        private async Task<T> GetInternal<T>(string url) where T : class
         {
             if (!url.StartsWith("http://"))
             {
@@ -231,7 +231,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 condition = _ => true;
             }
 
-            response = Get<List<T>>(url).GetAwaiter().GetResult();
+            response = GetInternal<List<T>>(url).GetAwaiter().GetResult();
 
             if (response == null || !response.Any(m => condition(m)))
             {
@@ -270,7 +270,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 condition = _ => true;
             }
 
-            response = Get<T>(url).GetAwaiter().GetResult();
+            response = GetInternal<T>(url).GetAwaiter().GetResult();
 
             if (response == null || !condition(response))
             {
@@ -288,7 +288,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 condition = _ => true;
             }
 
-            var response = Get<List<T>>(url).GetAwaiter().GetResult();
+            var response = GetInternal<List<T>>(url).GetAwaiter().GetResult();
             item = null;
             if (response != null)
             {
@@ -312,7 +312,21 @@ namespace ServiceBus.Management.AcceptanceTests
             return false;
         }
 
-        protected void Post<T>(string url, T payload = null) where T : class
+        protected HttpStatusCode Get(string url)
+        {
+            if (!url.StartsWith("http://"))
+            {
+                url = $"http://localhost:{port}{url}";
+            }
+
+            var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
+
+            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
+
+            return response.StatusCode;
+        }
+
+        protected void Post<T>(string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
         {
             if (!url.StartsWith("http://"))
             {
@@ -324,10 +338,60 @@ namespace ServiceBus.Management.AcceptanceTests
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
 
+            if (requestHasFailed != null)
+            {
+                if (requestHasFailed(response.StatusCode))
+                {
+                    throw new Exception($"Expected status code not received, instead got {response.StatusCode}.");
+                }
+                return;
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                 throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase} - {body}");
+            }
+        }
+
+        protected void Delete(string url) 
+        {
+            if (!url.StartsWith("http://"))
+            {
+                url = $"http://localhost:{port}{url}";
+            }
+
+            var response = httpClient.DeleteAsync(url).GetAwaiter().GetResult();
+
+            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
+            }
+        }
+
+        protected void Put<T>(string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
+        {
+            if (!url.StartsWith("http://"))
+            {
+                url = $"http://localhost:{port}{url}";
+            }
+
+            if (requestHasFailed == null)
+            {
+               requestHasFailed = statusCode => statusCode != HttpStatusCode.OK && statusCode != HttpStatusCode.Accepted; 
+            }
+            
+            var json = JsonConvert.SerializeObject(payload, serializerSettings);
+            var response = httpClient.PutAsync(url, new StringContent(json, null, "application/json")).GetAwaiter().GetResult();
+
+            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
+
+            if (requestHasFailed(response.StatusCode))
+            {
+                throw new Exception($"Expected status code not received, instead got {response.StatusCode}.");
             }
         }
 

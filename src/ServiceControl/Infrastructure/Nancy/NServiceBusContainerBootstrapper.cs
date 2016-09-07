@@ -52,7 +52,7 @@
             {
                 var aggregateEx = ex as AggregateException;
 
-                //this is a workaround for the nlog issue https://github.com/Particular/NServiceBus/issues/1842 
+                //this is a workaround for the nlog issue https://github.com/Particular/NServiceBus/issues/1842
                 if (aggregateEx != null)
                 {
                     var builder = new StringBuilder();
@@ -68,7 +68,7 @@
                 {
                     Logger.Error("Http call failed", ex);
                 }
-               
+
 
                 return c.Response;
             });
