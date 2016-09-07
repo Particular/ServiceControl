@@ -66,7 +66,7 @@
             {
                 if (!string.Equals("localhost", value, StringComparison.InvariantCulture))
                 {
-                    HostNameWarning = Validations.WRN_HOSTNAME_SHOULD_BE_LOCALHOST;
+                    HostNameWarning = "Not using localhost can expose ServiceControl to anonymous access.";
                 }
                 else
                 {

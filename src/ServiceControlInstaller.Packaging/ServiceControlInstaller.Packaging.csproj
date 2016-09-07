@@ -134,7 +134,7 @@
     <MakeDir Directories="$(ZipTargetFolder)" />
     <!-- Remove any existing files -->
     <ItemGroup>
-      <OldZips Include="$(ZipTargetFolder)*.*" />
+      <OldZips Include="$(ZipTargetFolder)Particular.ServiceControl*.zip" />
     </ItemGroup>
     <Delete Files="@(OldZips)" />
     <!-- SQL Server -->
@@ -153,5 +153,7 @@
     <AddToZip IncludeMask="CreateABlankFolderWithNoFiles" ZipFolder="Transports\MSMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!-- ServiceControl  -->
     <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="ServiceControl" SourceFolder="..\ServiceControl\bin\$(Configuration)" ZipFileName="$(ZipToCreate)" />
+    <!-- Legacy SC BackupService  -->
+    <AddToZip IncludeMask="servicecontrol.exe" ZipFolder="LegacyBackup" SourceFolder="..\ServiceControlInstaller.BackupService\bin\$(Configuration)" ZipFileName="$(ZipToCreate)" />
   </Target>
 </Project>

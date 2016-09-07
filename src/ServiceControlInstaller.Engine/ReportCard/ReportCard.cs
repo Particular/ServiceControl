@@ -4,7 +4,22 @@
     
     public class ReportCard
     {
-        public Status Status { get; set; }
+        public Status Status
+        {
+            get
+            {
+                if (HasErrors)
+                    Status = Status.Failed;
+                 else if (HasWarnings)
+                    return Status.CompletedWithWarnings;
+
+                if (status.HasValue)
+                    return status.Value;
+                return Status.Completed;
+            }
+            set { status = value; }
+        }
+
         public IList<string> Warnings = new TruncatedStringList(700);
         public IList<string> Errors = new TruncatedStringList(700);
 
@@ -13,15 +28,7 @@
         public bool HasWarnings => Warnings.Count > 0;
 
         public bool CancelRequested;
+        private Status? status;
 
-        public void SetStatus()
-        {
-            if (HasErrors)
-                Status = Status.Failed;
-            else if (HasWarnings)
-                Status = Status.CompletedWithWarnings;
-            else
-                Status = Status.Completed;
-        }
     }
 }

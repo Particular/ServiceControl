@@ -49,7 +49,7 @@
 
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
 
-    <SolidColorBrush x:Key="LightWarnigBrush" Color="{StaticResource LightWarningColor}" />
+    <SolidColorBrush x:Key="LightWarningBrush" Color="{StaticResource LightWarningColor}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
     <SolidColorBrush x:Key="DarkWarningBrush" Color="{StaticResource DarkWarningColor}" />
 
