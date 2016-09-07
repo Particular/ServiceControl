@@ -9,7 +9,7 @@
 
         public FileBasedMessageBodyStore(Settings settings)
         {
-            rootLocation = Directory.CreateDirectory(settings.BodyStoragePath).FullName;
+            rootLocation = Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath, "New")).FullName;
         }
 
         public ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
