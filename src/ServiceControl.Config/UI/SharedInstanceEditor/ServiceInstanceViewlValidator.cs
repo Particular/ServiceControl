@@ -21,7 +21,9 @@ namespace ServiceControl.Config.Validation
                {
                     p.DBPath,
                     p.LogPath,
-                    p.InstallPath
+                    p.InstallPath,
+                    p.BodyStoragePath,
+                    p.IngestionCachePath,
                })
                .Distinct()
                .ToList();
@@ -85,12 +87,11 @@ namespace ServiceControl.Config.Validation
 
             RuleFor(x => x.ErrorForwarding)
                 .NotNull().WithMessage(Validations.MSG_SELECTERRORFORWARDING);
-
-
-
+            
             RuleFor(x => x.LogPath)
                 .NotEmpty()
                 .ValidPath()
+                .RootedPath()
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
                 .When(x => x.SubmitAttempted);

@@ -78,11 +78,7 @@
 
         public static IRuleBuilderOptions<T, string> RootedPath<T>(this IRuleBuilder<T, string> ruleBuilder)
         {
-            return ruleBuilder.Must((t, path) =>
-                {
-                    //Root Path and not just a drive letter
-                    return Path.IsPathRooted(path) && path.Contains(@"\"); 
-                })
+            return ruleBuilder.Must((t, path) => Path.IsPathRooted(path) && path.Contains(@"\"))
                 .WithMessage("Must be a full path");
         }
 
