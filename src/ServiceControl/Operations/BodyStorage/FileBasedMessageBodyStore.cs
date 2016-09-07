@@ -44,12 +44,12 @@
                     // TODO: Should we verify this is the same as was passed in?
                     var messageIdFromFile = reader.ReadString();
                     var contentType = reader.ReadString();
-                    var size = reader.ReadInt32();
+                    var size = reader.ReadInt64();
 
                     messageBodyMetadata = new MessageBodyMetadata(messageIdFromFile, contentType, size);
 
                     // TODO: Make this buffered (and async?)
-                    var body = reader.ReadBytes(size);
+                    var body = reader.ReadBytes((int)size);
 
                     messageBody = body;
                     return true;
