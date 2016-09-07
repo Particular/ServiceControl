@@ -148,7 +148,7 @@
             }
         }
 
-        [Test]
+        [Test, Ignore]
         public void Stored_bodies_are_being_removed_when_message_expires()
         {
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())

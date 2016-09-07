@@ -69,6 +69,8 @@ namespace ServiceBus.Management.AcceptanceTests
         private HttpClient httpClient;
         private int port;
         private string ravenPath;
+        private string storagePath;
+        private string ingestionPath;
         private ScenarioContext scenarioContext = new ConsoleContext();
 
         protected Action<Settings> SetSettings = _ => { };
@@ -114,6 +116,8 @@ namespace ServiceBus.Management.AcceptanceTests
             };
 
             ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            storagePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            ingestionPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         }
 
         [TearDown]
@@ -124,6 +128,8 @@ namespace ServiceBus.Management.AcceptanceTests
                 bootstrapper.Stop();
                 httpClient.Dispose();
                 Delete(ravenPath);
+                Delete(storagePath);
+                Delete(ingestionPath);
             }
         }
 
@@ -489,6 +495,8 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 Port = port,
                 DbPath = ravenPath,
+                BodyStoragePath = storagePath,
+                IngestionCachePath = ingestionPath,
                 ForwardErrorMessages = false,
                 ForwardAuditMessages = false,
                 TransportType = transportToUse.TypeName,
