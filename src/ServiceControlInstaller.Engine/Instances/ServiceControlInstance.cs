@@ -39,7 +39,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string LogPath { get; set; }
         public string DBPath { get; set; }
         public string BodyStoragePath { get; set; }
-        public string InjestionCachePath { get; set; }
+        public string IngestionCachePath { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
         public string VirtualDirectory { get; set; }
@@ -227,7 +227,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(SettingsList.HostName, HostName);
             settings.Set(SettingsList.Port, Port.ToString());
             settings.Set(SettingsList.LogPath, LogPath);
-            settings.Set(SettingsList.InjestionCachePath, InjestionCachePath);
+            settings.Set(SettingsList.IngestionCachePath, IngestionCachePath);
             settings.Set(SettingsList.BodyStoragePath, BodyStoragePath);
             settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
@@ -295,9 +295,9 @@ namespace ServiceControlInstaller.Engine.Instances
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", Name, "BodyStorage");
         }
 
-        string DefaultInjestionCachePath()
+        string DefaultIngestionCachePath()
         {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", Name, "InjestionCache");
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", Name, "IngestionCache");
         }
 
         string DefaultLogPath()
@@ -471,15 +471,15 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public void RemoveInjestionFolder()
+        public void RemoveIngestionFolder()
         {
             try
             {
-                FileUtils.DeleteDirectory(InjestionCachePath, true, false);
+                FileUtils.DeleteDirectory(IngestionCachePath, true, false);
             }
             catch
             {
-                ReportCard.Warnings.Add($"Could not delete the injestion cache directory '{InjestionCachePath}'. Please remove manually");
+                ReportCard.Warnings.Add($"Could not delete the Ingestion cache directory '{IngestionCachePath}'. Please remove manually");
             }
         }
 
@@ -631,7 +631,7 @@ namespace ServiceControlInstaller.Engine.Instances
             VirtualDirectory = ReadAppSetting(SettingsList.VirtualDirectory, (string)null);
             LogPath = ReadAppSetting(SettingsList.LogPath, DefaultLogPath());
             DBPath = ReadAppSetting(SettingsList.DBPath, DefaultDBPath());
-            InjestionCachePath = ReadAppSetting(SettingsList.InjestionCachePath, DefaultInjestionCachePath());
+            IngestionCachePath = ReadAppSetting(SettingsList.IngestionCachePath, DefaultIngestionCachePath());
             BodyStoragePath = ReadAppSetting(SettingsList.BodyStoragePath, DefaultBodyStoragePath());
             AuditQueue = ReadAppSetting(SettingsList.AuditQueue, "audit");
             AuditLogQueue = ReadAppSetting(SettingsList.AuditLogQueue, $"{AuditQueue}.log");

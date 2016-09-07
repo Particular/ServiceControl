@@ -215,8 +215,8 @@
                 instance.RemoveDataBaseFolder();
                 progress.Report(7, 9, "Deleting body storage...");
                 instance.RemoveBodyStorageFolder();
-                progress.Report(8, 9, "Deleting injestion cache...");
-                instance.RemoveInjestionFolder();
+                progress.Report(8, 9, "Deleting Ingestion cache...");
+                instance.RemoveIngestionFolder();
             }
 
             progress.Report(new ProgressDetails());

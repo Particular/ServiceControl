@@ -13,7 +13,7 @@
 
         public AuditIngestionCache(Settings settings)
         {
-            rootLocation = Directory.CreateDirectory(Path.Combine(settings.InjestionCachePath, "audits")).FullName;
+            rootLocation = Directory.CreateDirectory(Path.Combine(settings.IngestionCachePath, "audits")).FullName;
         }
 
         public void Write(IDictionary<string, string> headers, ClaimsCheck claimCheck)

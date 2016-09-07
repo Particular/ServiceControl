@@ -18,7 +18,7 @@
 
         public StoreBody(Settings settings)
         {
-            errorQueuePath = Directory.CreateDirectory(Path.Combine(settings.InjestionCachePath, "error")).FullName;
+            errorQueuePath = Directory.CreateDirectory(Path.Combine(settings.IngestionCachePath, "error")).FullName;
             bodiesPath = Directory.CreateDirectory(settings.BodyStoragePath).FullName;
         }
 

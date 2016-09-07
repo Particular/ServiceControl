@@ -35,7 +35,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
                 .When(x => x.SubmitAttempted);
 
-            RuleFor(x => x.InjestionCachePath)
+            RuleFor(x => x.IngestionCachePath)
                 .NotEmpty()
                 .ValidPath()
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))

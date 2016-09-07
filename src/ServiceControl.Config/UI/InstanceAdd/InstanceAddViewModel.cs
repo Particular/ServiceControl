@@ -21,7 +21,7 @@
             SelectDatabasePath = new SelectPathCommand(p => DatabasePath = p, isFolderPicker: true, defaultPath: DatabasePath);
             SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
             SelectBodyStoragePath = new SelectPathCommand(p => BodyStoragePath = p, isFolderPicker: true, defaultPath: BodyStoragePath);
-            SelectInjestionCachePath = new SelectPathCommand(p => InjestionCachePath = p, isFolderPicker: true, defaultPath: InjestionCachePath);
+            SelectIngestionCachePath = new SelectPathCommand(p => IngestionCachePath = p, isFolderPicker: true, defaultPath: IngestionCachePath);
 
             var serviceControlInstances = ServiceControlInstance.Instances();
             if (!serviceControlInstances.Any())
@@ -63,8 +63,8 @@
         public string BodyStoragePath { get; set; }
         public ICommand SelectBodyStoragePath { get; private set; }
 
-        public string InjestionCachePath { get; set; }
-        public ICommand SelectInjestionCachePath { get; private set; }
+        public string IngestionCachePath { get; set; }
+        public ICommand SelectIngestionCachePath { get; private set; }
 
         protected override void OnInstanceNameChanged()
         {
@@ -72,7 +72,7 @@
             DatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "DB");
             LogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "Logs");
             BodyStoragePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "BodyStorage");
-            InjestionCachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "InjestionCache");
+            IngestionCachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "IngestionCache");
         }
     }
 }
