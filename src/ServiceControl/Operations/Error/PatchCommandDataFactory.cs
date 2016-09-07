@@ -108,7 +108,7 @@
         {
             var metadata = new Dictionary<string, object>();
 
-            DictionaryExtensions.CheckIfKeyExists(Headers.MessageId, headers, messageId => jObjectMetadata.Add("MessageId", messageId));
+            DictionaryExtensions.CheckIfKeyExists(Headers.MessageId, headers, messageId => metadata.Add("MessageId", messageId));
 
             // NOTE: Pulled out of the TransportMessage class
             var intent = (MessageIntentEnum)0;
