@@ -48,6 +48,8 @@ namespace Particular.ServiceControl
                 configuration.EnableInstallers();
 
                 var containerBuilder = new ContainerBuilder();
+                var loggingSettings = new LoggingSettings(settings.ServiceName);
+                containerBuilder.RegisterInstance(loggingSettings);
                 var documentStore = new DocumentStore();
                 containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
                 containerBuilder.RegisterInstance(settings);
