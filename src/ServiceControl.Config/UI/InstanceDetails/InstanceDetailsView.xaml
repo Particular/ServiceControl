@@ -195,8 +195,7 @@
         <GroupBox Grid.Row="9"
                   Grid.ColumnSpan="2"
                   Header="MESSAGE BODY STORAGE PATH"
-                  Visibility="{Binding MessageBodyStoragePathVisible,
-                                       Converter={StaticResource boolToVis}}">
+                  Visibility="{Binding BodyStoragePathVisible, Converter={StaticResource boolToVisHidden}}">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BodyStoragePath}">
                 <Hyperlink.ContextMenu>
                     <ContextMenu>
@@ -211,9 +210,8 @@
 
         <GroupBox Grid.Row="10"
                   Grid.ColumnSpan="2"
-                  Header="Ingestion CACHE PATH"
-                  Visibility="{Binding IngestionCachePathVisible,
-                                       Converter={StaticResource boolToVis}}">
+                  Header="INGESTION CACHE PATH"
+                  Visibility="{Binding IngestionCachePathVisible, Converter={StaticResource boolToVisHidden}}">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding IngestionCachePath}">
                 <Hyperlink.ContextMenu>
                     <ContextMenu>
