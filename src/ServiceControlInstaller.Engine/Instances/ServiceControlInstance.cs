@@ -214,8 +214,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             if (fileSystemChanged)
             {
-                var account = new NTAccount(accountName);
-                var modifyAccessRule = new FileSystemAccessRule(account, FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+                var modifyAccessRule = new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
                 FileUtils.CreateDirectoryAndSetAcl(LogPath, modifyAccessRule);
             }
 
@@ -719,6 +718,13 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 ReportCard.Errors.Add(ex.Message);
             }
+        }
+
+        public void EnsureDirectoriesExist()
+        {
+            var modifyAccessRule = new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+            FileUtils.CreateDirectoryAndSetAcl(BodyStoragePath, modifyAccessRule);
+            FileUtils.CreateDirectoryAndSetAcl(IngestionCachePath, modifyAccessRule);
         }
     }
 }
