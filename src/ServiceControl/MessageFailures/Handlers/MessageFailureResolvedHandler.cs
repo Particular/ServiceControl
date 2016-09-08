@@ -9,8 +9,14 @@
 
     public class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>, IHandleMessages<MarkPendingRetryAsResolved>, IHandleMessages<MarkPendingRetriesAsResolved>
     {
-        public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
+        private readonly IBus bus;
+        private readonly IDocumentStore store;
+
+        public MessageFailureResolvedHandler(IBus bus, IDocumentStore store)
+        {
+            this.bus = bus;
+            this.store = store;
+        }
 
         public void Handle(MessageFailureResolvedByRetry message)
         {
@@ -20,46 +26,56 @@
         public void Handle(MarkPendingRetryAsResolved message)
         {
             MarkMessageAsResolved(message.FailedMessageId);
-            Bus.Publish<MessageFailureResolvedManually>(m => m.FailedMessageId = message.FailedMessageId);
+            bus.Publish<MessageFailureResolvedManually>(m => m.FailedMessageId = message.FailedMessageId);
         }
 
         public void Handle(MarkPendingRetriesAsResolved message)
         {
-            var prequery = Session.Advanced
-                .DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
-                .AndAlso()
-                .WhereBetweenOrEqual("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);
-
-            if (!string.IsNullOrWhiteSpace(message.QueueAddress))
+            using (var session = store.OpenSession())
             {
-                prequery = prequery.AndAlso()
-                    .WhereEquals(options => options.QueueAddress, message.QueueAddress);
-            }
+                var prequery = session.Advanced
+                    .DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .WhereEquals("Status", (int) FailedMessageStatus.RetryIssued)
+                    .AndAlso()
+                    .WhereBetweenOrEqual("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);
 
-            var query = prequery
-                .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
-                .SelectFields<FailedMessageView>();
-
-            using (var ie = Session.Advanced.Stream(query))
-            {
-                while (ie.MoveNext())
+                if (!string.IsNullOrWhiteSpace(message.QueueAddress))
                 {
-                    Bus.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = ie.Current.Document.Id);
+                    prequery = prequery.AndAlso()
+                        .WhereEquals(options => options.QueueAddress, message.QueueAddress);
+                }
+
+                var query = prequery
+                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    .SelectFields<FailedMessageView>();
+
+                using (var ie = session.Advanced.Stream(query))
+                {
+                    while (ie.MoveNext())
+                    {
+                        bus.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = ie.Current.Document.Id);
+                    }
                 }
             }
         }
 
         private void MarkMessageAsResolved(string failedMessageId)
         {
-            var failedMessage = Session.Load<FailedMessage>(new Guid(failedMessageId));
-
-            if (failedMessage == null)
+            using (var session = store.OpenSession())
             {
-                return;
-            }
+                session.Advanced.UseOptimisticConcurrency = true;
 
-            failedMessage.Status = FailedMessageStatus.Resolved;
+                var failedMessage = session.Load<FailedMessage>(new Guid(failedMessageId));
+
+                if (failedMessage == null)
+                {
+                    return;
+                }
+
+                failedMessage.Status = FailedMessageStatus.Resolved;
+
+                session.SaveChanges();
+            }
         }
     }
 }
