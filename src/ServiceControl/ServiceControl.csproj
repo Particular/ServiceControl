@@ -280,12 +280,18 @@
     </Compile>
     <Compile Include="Infrastructure\Extensions\WaitHandleExtensions.cs" />
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
+    <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
+    <Compile Include="MessageFailures\InternalMessages\MarkPendingRetryAsResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
+    <Compile Include="Contracts\MessageFailures\MessageFailureResolvedManually.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailuresUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\MessageSubmittedForRetry.cs" />
+    <Compile Include="Contracts\MessageRedirects\MessageRedirectChanged.cs" />
+    <Compile Include="Contracts\MessageRedirects\MessageRedirectCreated.cs" />
+    <Compile Include="Contracts\MessageRedirects\MessageRedirectRemoved.cs" />
     <Compile Include="Contracts\Operations\EndpointDetails.cs" />
     <Compile Include="Contracts\EndpointControl\MonitoringDisabledForEndpoint.cs" />
     <Compile Include="Contracts\Operations\DefaultEnrichers.cs" />
@@ -297,6 +303,10 @@
     <Compile Include="EventLog\Definitions\ExternalIntegrationEventFailedToBePublishedDefinition.cs" />
     <Compile Include="EventLog\Definitions\FailedMessageGroupArchivedDefinition.cs" />
     <Compile Include="EventLog\Definitions\FailedMessageUnArchivedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessageFailureResolvedManuallyDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessageRedirectChangedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessageRedirectCreatedDefinition.cs" />
+    <Compile Include="EventLog\Definitions\MessageRedirectRemovedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessagesSubmittedForRetryFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageSubmittedForRetryDefinition.cs" />
@@ -355,7 +365,12 @@
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SignalR\SerializationSettingsFactoryForSignalR.cs" />
     <Compile Include="MaintenanceBootstrapper.cs" />
+    <Compile Include="MessageFailures\Api\QueueAddressModule.cs" />
+    <Compile Include="MessageFailures\Api\QueueAddressIndex.cs" />
+    <Compile Include="MessageFailures\Api\ResolveMessages.cs" />
     <Compile Include="MessageFailures\Api\UnArchiveMessages.cs" />
+    <Compile Include="MessageFailures\InternalMessages\MarkPendingRetriesAsResolved.cs" />
+    <Compile Include="MessageFailures\QueueAddress.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
@@ -376,6 +391,10 @@
     <Compile Include="Operations\BodyStorage\MessageBodyFactory.cs" />
     <Compile Include="Operations\BodyStorage\MessageBodyMetadata.cs" />
     <Compile Include="Operations\BodyStorage\StoreBody.cs" />
+    <Compile Include="MessageRedirects\Api\MessageRedirectsModule.cs" />
+    <Compile Include="MessageRedirects\Api\MessageRedirectsCollectionExtensions.cs" />
+    <Compile Include="MessageRedirects\MessageRedirect.cs" />
+    <Compile Include="MessageRedirects\MessageRedirectsCollection.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
@@ -521,6 +540,7 @@
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroup.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\StackTraceParser.cs" />
+    <Compile Include="Recoverability\Retries\Handlers\PendingRetriesHandler.cs" />
     <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
     <Compile Include="Recoverability\Retries\FailedMessageRetries.cs" />
     <Compile Include="Recoverability\Retries\MessagesSubmittedForRetry.cs" />
@@ -535,7 +555,10 @@
     <Compile Include="Recoverability\Retries\RetryBatchStatus.cs" />
     <Compile Include="Recoverability\Retries\RetryDocumentManager.cs" />
     <Compile Include="Recoverability\Retries\Handlers\RetryHandlerForBackwardsCompatability.cs" />
+    <Compile Include="Recoverability\Retries\RetryMessagesByQueueAddress.cs" />
     <Compile Include="Recoverability\Retries\RetryMessagesById.cs" />
+    <Compile Include="MessageFailures\InternalMessages\RetryPendingMessages.cs" />
+    <Compile Include="MessageFailures\InternalMessages\RetryPendingMessagesById.cs" />
     <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeInitiator.cs" />

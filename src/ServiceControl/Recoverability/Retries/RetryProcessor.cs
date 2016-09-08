@@ -9,6 +9,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Unicast;
     using Raven.Client;
     using ServiceControl.MessageFailures;
+    using ServiceControl.MessageRedirects;
     using ServiceControl.Operations.BodyStorage;
 
     class RetryProcessor
@@ -60,10 +61,12 @@ namespace ServiceControl.Recoverability
 
             if (stagingBatch != null)
             {
+                redirects = MessageRedirectsCollection.GetOrCreate(session);
                 if (Stage(stagingBatch, session))
                 {
                     session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id }, RetryBatchNowForwarding.Id);
                 }
+
                 return true;
             }
 
@@ -148,7 +151,16 @@ namespace ServiceControl.Recoverability
             var headersToRetryWith = attempt.Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key))
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            headersToRetryWith["ServiceControl.TargetEndpointAddress"] = attempt.FailureDetails.AddressOfFailingEndpoint;
+            var addressOfFailingEndpoint = attempt.FailureDetails.AddressOfFailingEndpoint;
+
+            var redirect = redirects[addressOfFailingEndpoint];
+
+            if (redirect != null)
+            {
+                addressOfFailingEndpoint = redirect.ToPhysicalAddress;
+            }
+
+            headersToRetryWith["ServiceControl.TargetEndpointAddress"] = addressOfFailingEndpoint;
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
             if (!string.IsNullOrWhiteSpace(attempt.ReplyToAddress))
@@ -178,6 +190,7 @@ namespace ServiceControl.Recoverability
         ISendMessages sender;
         IBus bus;
         ReturnToSenderDequeuer returnToSender;
+        private MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
     }
 }

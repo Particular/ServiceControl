@@ -15,6 +15,7 @@
         public FailedMessageStatus Status { get; set; }
         public EndpointDetails SendingEndpoint { get; set; }
         public EndpointDetails ReceivingEndpoint { get; set; }
+        public string QueueAddress { get; set; }
         public DateTime TimeOfFailure { get; set; }
         public DateTime LastModified { get; set; }
 

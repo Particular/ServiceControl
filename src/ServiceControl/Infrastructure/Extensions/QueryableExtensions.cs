@@ -63,7 +63,7 @@ namespace ServiceControl.Infrastructure.Extensions
 
             var sortOptions = new[]
             {
-                "id", "message_id", "message_type", 
+                "id", "message_id", "message_type",
                 "time_sent", "status", "modified", "time_of_failure"
             };
 
@@ -215,6 +215,26 @@ namespace ServiceControl.Infrastructure.Extensions
             return source;
         }
 
+        public static IDocumentQuery<T> FilterByQueueAddress<T>(this IDocumentQuery<T> source, Request request)
+        {
+            string queueAddress = null;
+
+            if ((bool) request.Query.queueaddress.HasValue)
+            {
+                queueAddress = (string) request.Query.queueaddress;
+            }
+
+            if (string.IsNullOrWhiteSpace(queueAddress))
+            {
+                return source;
+            }
+
+            source.AndAlso();
+            source.WhereEquals("QueueAddress", queueAddress.ToLowerInvariant());
+
+            return source;
+        }
+
         public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> IncludeSystemMessagesWhere(
             this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, Request request)
         {
@@ -347,7 +367,7 @@ namespace ServiceControl.Infrastructure.Extensions
                 case "critical_time":
                     keySelector = m => m.CriticalTime;
                     break;
-                    
+
                 case "delivery_time":
                     keySelector = m => m.DeliveryTime;
                     break;

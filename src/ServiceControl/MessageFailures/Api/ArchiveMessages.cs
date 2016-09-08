@@ -14,7 +14,7 @@
 
         public ArchiveMessages()
         {
-            Patch["/errors/archive"] = _ =>
+            Post["/errors/archive"] = Patch["/errors/archive"] = _ =>
             {
                 var ids = this.Bind<List<string>>();
 
@@ -33,7 +33,7 @@
                 return HttpStatusCode.Accepted;
             };
 
-            Patch["/errors/{messageid}/archive"] = parameters =>
+            Post["/errors/{messageid}/archive"] = Patch["/errors/{messageid}/archive"] = parameters =>
             {
                 var failedMessageId = parameters.MessageId;
 

@@ -22,7 +22,7 @@ namespace NServiceBus.AcceptanceTesting
         public IScenarioWithEndpointBehavior<TContext> WithEndpoint<T>(Action<EndpointBehaviorBuilder<TContext>> defineBehavior) where T : EndpointConfigurationBuilder
         {
 
-            var builder = new EndpointBehaviorBuilder<TContext>(typeof (T));
+            var builder = new EndpointBehaviorBuilder<TContext>(typeof(T));
 
             defineBehavior(builder);
 
@@ -120,7 +120,7 @@ namespace NServiceBus.AcceptanceTesting
             return this;
         }
 
-        
+
         int limitTestParallelismTo;
         readonly IList<EndpointBehavior> behaviors = new List<EndpointBehavior>();
         Action<RunDescriptorsBuilder> runDescriptorsBuilderAction = builder => builder.For(Conventions.DefaultRunDescriptor());
