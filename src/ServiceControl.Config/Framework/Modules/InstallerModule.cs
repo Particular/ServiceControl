@@ -125,6 +125,7 @@
 
                 progress.Report(step++, maxSteps, "Moving database...");
                 instance.MoveRavenDatabase(instance.DBPath);
+                instance.EnsureDirectoriesExist();
             }
             finally
             {
@@ -133,7 +134,6 @@
             }
 
             upgradeOptions.ApplyChangesToInstance(instance);
-
             progress.Report(step, maxSteps, "Upgrading instance... (this can take some time)");
             instance.SetupInstance();
             

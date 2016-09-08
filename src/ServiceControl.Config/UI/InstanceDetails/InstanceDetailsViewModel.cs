@@ -177,6 +177,11 @@
 
         public ICommand UpgradeToNewVersionCommand { get; private set; }
 
+        public bool DetailsExpanderState { get; set; }
+
+        public string DetailsExpanderText => DetailsExpanderState ? "Less Details" : "More Details";
+
+
         public void Handle(RefreshInstances message)
         {
             UpdateServiceProperties();
