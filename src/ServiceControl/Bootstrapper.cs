@@ -113,9 +113,9 @@ namespace Particular.ServiceControl
         {
             notifier.Dispose();
             bus?.Dispose();
-            WebApp?.Dispose();
             timeKeeper.Dispose();
             documentStore.Dispose();
+            WebApp?.Dispose();
         }
 
         private long DataSize()
