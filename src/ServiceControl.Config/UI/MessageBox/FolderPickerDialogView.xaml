@@ -81,7 +81,9 @@
                         Command="{Binding NoCommand}"
                         Content="{Binding NoButtonText}"
                         FontSize="14"
-                        Padding="10,2,10,2" />
+                        Padding="10,2,10,2"
+                        Visibility="{Binding HideNoButton, Converter={StaticResource boolToVisInverted}}"
+                 />
                 <Button Height="30"
                         MinWidth="100"
                         Margin="10,0,0,0"

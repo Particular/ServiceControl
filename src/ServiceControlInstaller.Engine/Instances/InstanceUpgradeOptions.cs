@@ -9,6 +9,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan? AuditRetentionPeriod { get; set; }
         public string BackupPath { get; set; }
         public bool BackupRavenDbBeforeUpgrade { get; set; }
+        public string IngestionCachePath { get; set; }
+        public string BodyStoragePath { get; set; }
 
         public void ApplyChangesToInstance(ServiceControlInstance instance)
         {

@@ -124,6 +124,8 @@
                 instance.UpgradeFiles(ZipInfo.FilePath);
 
                 progress.Report(step++, maxSteps, "Moving database...");
+                instance.BodyStoragePath = upgradeOptions.BodyStoragePath;
+                instance.IngestionCachePath = upgradeOptions.IngestionCachePath;
                 instance.MoveRavenDatabase(instance.DBPath);
                 instance.EnsureDirectoriesExist();
             }
@@ -222,7 +224,5 @@
             progress.Report(new ProgressDetails());
             return instance.ReportCard;
         }
-
-
     }
 }

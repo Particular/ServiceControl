@@ -116,13 +116,67 @@
                 }
             }
 
+            if (!instance.AppSettingExists(SettingsList.BodyStoragePath.Name))
+            {
+                var bodyStoragePathDialog = new FolderPickerDialogViewModel
+                {
+                    Title = "UPGRADE QUESTION - MESSAGE BODY STORAGE PATH",
+                    Message = "Message bodies are now stored directly on disk rather than the database. You may choose to override the default location as part of the upgrade",
+                    Question = "Click OK to accept the the location for body storage",
+                    PathHeader = "MESSAGE BODY STORAGE PATH",
+                    YesButtonText = "OK",
+                    HideNoButton = true,
+                    ValidateFolderIsEmpty = true,
+                    Path = instance.BodyStoragePath
+                };
+
+                var ingestionCacheDialogResult = windowManager.ShowOverlayDialog(bodyStoragePathDialog);
+                if (ingestionCacheDialogResult == null)
+                {
+                    //Dialog was cancelled
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    return;
+                }
+                if (ingestionCacheDialogResult.Value)
+                {
+                    upgradeOptions.BodyStoragePath = bodyStoragePathDialog.Path;
+                }
+            }
+            
+            if (!instance.AppSettingExists(SettingsList.IngestionCachePath.Name))
+            {
+                var ingestionCacheDialog = new FolderPickerDialogViewModel
+                {
+                    Title = "UPGRADE QUESTION - INGESTION CACHE PATH",
+                    Message = "INSERT INGESTION CACHE DESCRIPTION HERE!. You may choose to override the default location as part of the upgrade",
+                    Question = "Click OK to accept the the location for ingestion cache",
+                    PathHeader = "INGESTION CACHE LOCATION",
+                    YesButtonText = "OK",
+                    HideNoButton = true,
+                    ValidateFolderIsEmpty = true,
+                    Path = instance.IngestionCachePath
+                };
+
+                var ingestionCacheDialogResult = windowManager.ShowOverlayDialog(ingestionCacheDialog);
+                if (ingestionCacheDialogResult == null)
+                {
+                    //Dialog was cancelled
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    return;
+                }
+                if (ingestionCacheDialogResult.Value)
+                {
+                    upgradeOptions.IngestionCachePath = ingestionCacheDialog.Path;
+                }
+            }
+            
             var backupDialog = new FolderPickerDialogViewModel
             {
                 Title= "UPGRADE QUESTION - OPTIONAL DATABASE BACKUP",
                 Message = "Instruct the service to backup up the database to a local path as part of the upgrade. Note: The chosen path must be an empty local directory that is accessible by the current service account.",
                 Question = "Backup the ServiceControl database prior to upgrade?",
                 PathHeader = "BACKUP LOCATION",
-                YesButtonText  = "Yes",
+                YesButtonText  = "Backup",
                 NoButtonText = "Skip",
                 ValidateFolderIsEmpty = true
             };

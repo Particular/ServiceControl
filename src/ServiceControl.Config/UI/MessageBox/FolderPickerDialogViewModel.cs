@@ -26,7 +26,7 @@ namespace ServiceControl.Config.UI.MessageBox
         public string Question { get;  set; }
         public string YesButtonText { get;  set; }
         public string NoButtonText { get; set; }
-
+        public bool HideNoButton { get; set; }
         public bool SubmitAttempted { get; set; }
         public bool ValidateFolderIsEmpty { get; set; }
         void Submit()
