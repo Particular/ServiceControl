@@ -10,11 +10,17 @@
     /// </summary>
     public class GenericAuditHandler : IHandleMessages<IEvent>
     {
-        public EventLogMappings EventLogMappings { get; set; }
-        public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
+        static string[] emptyArray = new string[0];
+        private readonly IBus bus;
+        private readonly IDocumentStore store;
+        private readonly EventLogMappings mappings;
 
-        static string[] EmptyArray = new string[0];
+        public GenericAuditHandler(IBus bus, IDocumentStore store, EventLogMappings mappings)
+        {
+            this.bus = bus;
+            this.store = store;
+            this.mappings = mappings;
+        }
 
         public void Handle(IEvent message)
         {
@@ -23,28 +29,31 @@
             {
                 return;
             }
-            if (!EventLogMappings.HasMapping(message))
+            if (!mappings.HasMapping(message))
             {
                 return;
             }
 
-            var messageId = Bus.GetMessageHeader(message, Headers.MessageId);
-            var logItem = EventLogMappings.ApplyMapping(messageId, message);
+            var messageId = bus.GetMessageHeader(message, Headers.MessageId);
+            var logItem = mappings.ApplyMapping(messageId, message);
 
-            Session.Store(logItem);
-
-            Bus.Publish<EventLogItemAdded>(m =>
+            using (var session = store.OpenSession())
             {
-                m.RaisedAt = logItem.RaisedAt;
-                m.Severity = logItem.Severity;
-                m.Description = logItem.Description;
-                m.Id = logItem.Id;
-                m.Category = logItem.Category;
+                session.Store(logItem);
+                session.SaveChanges();
+            }
+
+            bus.Publish(new EventLogItemAdded
+            {
+                RaisedAt = logItem.RaisedAt,
+                Severity = logItem.Severity,
+                Description = logItem.Description,
+                Id = logItem.Id,
+                Category = logItem.Category,
                 // Yes this is on purpose.
                 // The reason is because this data is not useful for end users, so for now we just empty it.
                 // At the moment too much data is being populated in this field, and this has significant down sides to the amount of data we are sending down to ServicePulse (it actually crashes it).
-                m.RelatedTo = EmptyArray; 
-
+                RelatedTo = emptyArray
             });
         }
     }

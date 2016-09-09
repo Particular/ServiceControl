@@ -1,13 +1,11 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
-    using System;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Persistence;
-    using NServiceBus.Pipeline;
     using Raven.Abstractions.Extensions;
     using Raven.Abstractions.Replication;
     using Raven.Client;
@@ -26,24 +24,7 @@
 
             StartRaven(documentStore, settings);
             
-            configuration.RegisterComponents(c => 
-                c.ConfigureComponent(builder =>
-                {
-                    var context = builder.Build<PipelineExecutor>().CurrentContext;
-
-                    IDocumentSession session;
-
-                    if (context.TryGet(out session))
-                    {
-                        return session;
-                    }
-
-                    throw new InvalidOperationException("No session available");
-                }, DependencyLifecycle.InstancePerCall));
-
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
-
-            configuration.Pipeline.Register<RavenRegisterStep>();
         }
 
         void StartRaven(DocumentStore documentStore, Settings settings)
