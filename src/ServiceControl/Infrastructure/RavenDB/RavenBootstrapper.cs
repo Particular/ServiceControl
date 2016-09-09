@@ -8,6 +8,7 @@
     using NServiceBus.Persistence;
     using NServiceBus.Pipeline;
     using Raven.Abstractions.Extensions;
+    using Raven.Abstractions.Replication;
     using Raven.Client;
     using Raven.Client.Document;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -50,6 +51,7 @@
             documentStore.DefaultDatabase = "ServiceControl";
             documentStore.EnlistInDistributedTransactions = false;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
+            documentStore.Conventions.FailoverBehavior = FailoverBehavior.FailImmediately; // This prevents the client from looking for replica servers
             documentStore.Credentials = CredentialCache.DefaultNetworkCredentials;
             documentStore.Initialize();
 
