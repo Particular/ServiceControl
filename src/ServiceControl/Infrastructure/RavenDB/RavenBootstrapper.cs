@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Net;
+    using System.Net.Http;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Persistence;
@@ -53,6 +54,12 @@
             documentStore.Conventions.SaveEnumsAsIntegers = true;
             documentStore.Conventions.FailoverBehavior = FailoverBehavior.FailImmediately; // This prevents the client from looking for replica servers
             documentStore.Credentials = CredentialCache.DefaultNetworkCredentials;
+            
+            documentStore.HttpMessageHandlerFactory = () => new WebRequestHandler
+            {
+                UnsafeAuthenticatedConnectionSharing = true, // This is needed according to https://groups.google.com/d/msg/ravendb/DUYFvqWR5Hc/l1sKE5A1mVgJ
+                Credentials = CredentialCache.DefaultNetworkCredentials
+            };
             documentStore.Initialize();
 
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
