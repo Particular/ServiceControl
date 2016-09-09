@@ -54,7 +54,6 @@
             documentStore.Conventions.SaveEnumsAsIntegers = true;
             documentStore.Conventions.FailoverBehavior = FailoverBehavior.FailImmediately; // This prevents the client from looking for replica servers
             documentStore.Credentials = CredentialCache.DefaultNetworkCredentials;
-            
             documentStore.HttpMessageHandlerFactory = () => new WebRequestHandler
             {
                 UnsafeAuthenticatedConnectionSharing = true, // This is needed according to https://groups.google.com/d/msg/ravendb/DUYFvqWR5Hc/l1sKE5A1mVgJ
@@ -62,25 +61,7 @@
             };
             documentStore.Initialize();
 
-            bool tryAgain;
-
-            do
-            {
-                tryAgain = false;
-
-                try
-                {
-                    PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
-                }
-                catch (InvalidOperationException ex)
-                {
-                    // Handling loading of database still in progress
-                    if (ex.GetBaseException() is TimeoutException)
-                    {
-                        tryAgain = true;
-                    }
-                }
-            } while (tryAgain);
+            PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
         }
 
         static void PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(IDocumentStore documentStore)
