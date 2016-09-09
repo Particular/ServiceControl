@@ -43,7 +43,7 @@
         public void Start()
         {
             breaker = new RepeatedFailuresOverTimeCircuitBreaker("ProcessAudits", TimeSpan.FromMinutes(2), ex => criticalError.Raise("Repeated failures when processing audits.", ex),
-                Timeout.InfiniteTimeSpan);
+                TimeSpan.FromSeconds(2));
             stop = false;
             task = ProcessWithRetries();
         }
@@ -65,9 +65,8 @@
                 }
                 catch (Exception ex)
                 {
-                    breaker.Failure(ex);
                     logger.Warn("ProcessErrors failed, having a break for 2 seconds before trying again.", ex);
-                    await Task.Delay(TimeSpan.FromSeconds(2)).ConfigureAwait(false);
+                    breaker.Failure(ex);
                 }
             } while (!stop);
         }
