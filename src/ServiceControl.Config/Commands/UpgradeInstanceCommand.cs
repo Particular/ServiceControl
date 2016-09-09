@@ -121,7 +121,7 @@
                 var bodyStoragePathDialog = new FolderPickerDialogViewModel
                 {
                     Title = "UPGRADE QUESTION - MESSAGE BODY STORAGE PATH",
-                    Message = "Message bodies are now stored directly on disk rather than the database. You may choose to override the default location as part of the upgrade",
+                    Message = "Message bodies are now stored directly on disk rather than the database. For messages processed prior to upgrading the data will still reside within the database. You may choose to override the default location as part of the upgrade.</Paragraph><Paragraph>Note: The chosen path must be an empty local directory that is accessible by the current service account.",
                     Question = "Click OK to accept the the location for body storage",
                     PathHeader = "MESSAGE BODY STORAGE PATH",
                     YesButtonText = "OK",
@@ -148,7 +148,7 @@
                 var ingestionCacheDialog = new FolderPickerDialogViewModel
                 {
                     Title = "UPGRADE QUESTION - INGESTION CACHE PATH",
-                    Message = "The ingestion cache is a temporary location for data prior to processing incoming messages. You may choose to override the default location as part of the upgrade. Note: The chosen path must be an empty local directory that is accessible by the current service account.",
+                    Message = "The ingestion cache is a temporary location for data prior to being processed. You may choose to override the default location as part of the upgrade.</Paragraph><Paragraph>Note: The chosen path must be an empty local directory that is accessible by the current service account.",
                     Question = "Click OK to accept the the location for ingestion cache",
                     PathHeader = "INGESTION CACHE LOCATION",
                     YesButtonText = "OK",
@@ -173,7 +173,7 @@
             var backupDialog = new FolderPickerDialogViewModel
             {
                 Title= "UPGRADE QUESTION - OPTIONAL DATABASE BACKUP",
-                Message = "Instruct the service to backup up the database to a local path as part of the upgrade. Note: The chosen path must be an empty local directory that is accessible by the current service account.",
+                Message = "Instruct the service to backup up the database to a local path as part of the upgrade.</Paragraph><Paragraph>Note: The chosen path must be an empty local directory that is accessible by the current service account.",
                 Question = "Backup the ServiceControl database prior to upgrade?",
                 PathHeader = "BACKUP LOCATION",
                 YesButtonText  = "Backup",
