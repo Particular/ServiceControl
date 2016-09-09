@@ -62,7 +62,25 @@
             };
             documentStore.Initialize();
 
-            PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
+            bool tryAgain;
+
+            do
+            {
+                tryAgain = false;
+
+                try
+                {
+                    PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // Handling loading of database still in progress
+                    if (ex.GetBaseException() is TimeoutException)
+                    {
+                        tryAgain = true;
+                    }
+                }
+            } while (tryAgain);
         }
 
         static void PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(IDocumentStore documentStore)
