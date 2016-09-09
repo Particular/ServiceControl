@@ -148,7 +148,7 @@
                 var ingestionCacheDialog = new FolderPickerDialogViewModel
                 {
                     Title = "UPGRADE QUESTION - INGESTION CACHE PATH",
-                    Message = "INSERT INGESTION CACHE DESCRIPTION HERE!. You may choose to override the default location as part of the upgrade",
+                    Message = "The ingestion cache is a temporary location for data prior to processing incoming messages. You may choose to override the default location as part of the upgrade. Note: The chosen path must be an empty local directory that is accessible by the current service account.",
                     Question = "Click OK to accept the the location for ingestion cache",
                     PathHeader = "INGESTION CACHE LOCATION",
                     YesButtonText = "OK",
