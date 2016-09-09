@@ -58,6 +58,7 @@
             tokenSource.Dispose();
             task?.Wait();
             task?.Dispose();
+            circuitBreaker.Dispose();
         }
 
         private void OnNext(DocumentChangeNotification documentChangeNotification)

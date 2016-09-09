@@ -1,10 +1,14 @@
 ﻿namespace ServiceControl.Operations.Error
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
+    using NServiceBus.CircuitBreakers;
+    using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
@@ -15,6 +19,8 @@
     {
         private const int BATCH_SIZE = 128;
 
+        private ILog logger = LogManager.GetLogger<ProcessErrors>();
+
         private readonly IDocumentStore store;
         private readonly ErrorIngestionCache errorIngestionCache;
         private readonly IBus bus;
@@ -22,19 +28,48 @@
         private PatchCommandDataFactory patchCommandDataFactory;
         private volatile bool stop;
         private readonly Meter meter = Metric.Meter("Error messages processed", Unit.Custom("Messages"));
+        private readonly CriticalError criticalError;
+        private RepeatedFailuresOverTimeCircuitBreaker breaker;
 
-        public ProcessErrors(IDocumentStore store, ErrorIngestionCache errorIngestionCache, PatchCommandDataFactory patchCommandDataFactory, IBus bus)
+        public ProcessErrors(IDocumentStore store, ErrorIngestionCache errorIngestionCache, PatchCommandDataFactory patchCommandDataFactory, IBus bus, CriticalError criticalError)
         {
             this.store = store;
             this.errorIngestionCache = errorIngestionCache;
             this.patchCommandDataFactory = patchCommandDataFactory;
             this.bus = bus;
+            this.criticalError = criticalError;
         }
 
         public void Start()
         {
+            breaker = new RepeatedFailuresOverTimeCircuitBreaker("ProcessAudits", TimeSpan.FromMinutes(2), ex => criticalError.Raise("Repeated failures when processing audits.", ex),
+                Timeout.InfiniteTimeSpan);
             stop = false;
-            task = Process();
+            task = ProcessWithRetries();
+        }
+
+        public void Stop()
+        {
+            stop = true;
+            task.Wait();
+            breaker.Dispose();
+        }
+
+        private async Task ProcessWithRetries()
+        {
+            do
+            {
+                try
+                {
+                    await Process().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    breaker.Failure(ex);
+                    logger.Warn("ProcessErrors failed, having a break for 2 seconds before trying again.", ex);
+                    await Task.Delay(TimeSpan.FromSeconds(2)).ConfigureAwait(false);
+                }
+            } while (!stop);
         }
 
         private async Task Process()
@@ -104,17 +139,13 @@
 
                 meter.Mark(processedFiles.Count);
 
+                breaker.Success();
+
                 if (!stop && processedFiles.Count < BATCH_SIZE)
                 {
                     await Task.Delay(1000).ConfigureAwait(false);
                 }
             } while (!stop);
-        }
-
-        public void Stop()
-        {
-            stop = true;
-            task.Wait();
         }
     }
 }
