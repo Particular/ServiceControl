@@ -9,17 +9,16 @@ namespace ServiceBus.Management.Infrastructure.Settings
     {
         public LoggingSettings(string serviceName)
         {
-            LoggingLevel = InitializeLevel("LogLevel");
-            RavenDBLogLevel = InitializeLevel("RavenDBLogLevel");
+            LoggingLevel = InitializeLevel("LogLevel", LogLevel.Warn);
+            RavenDBLogLevel = InitializeLevel("RavenDBLogLevel", LogLevel.Error);
             LogPath = Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", DefaultLogPathForInstance(serviceName)));
         }
 
-        LogLevel InitializeLevel(string key)
+        LogLevel InitializeLevel(string key, LogLevel level)
         {
-            var level = LogLevel.Warn;
             try
             {
-                level = LogLevel.FromString(SettingsReader<string>.Read(key, LogLevel.Warn.Name));
+                level = LogLevel.FromString(SettingsReader<string>.Read(key, level.Name));
             }
             catch
             {
