@@ -14,6 +14,8 @@
     {
         private readonly IDocumentStore store;
 
+        private ILookup<MessageType, Address> subscriptionLookup = Enumerable.Empty<Address>().ToLookup(a => default(MessageType));
+
         public SubscriptionPersister(IDocumentStore store)
         {
             this.store = store;
@@ -22,6 +24,17 @@
         public void Init()
         {
         }
+
+        void UpdateFromDatabase(IDocumentSession session)
+            => subscriptionLookup = session.Query<Subscription>()
+                                            .Take(1024) // NOTE: This is the max that Raven will give us in one go. After this we need to paginate properly
+                                            .AsEnumerable()
+                                            .SelectMany(s => s.Clients.Select(c => new
+                                            {
+                                                Address = c,
+                                                s.MessageType
+                                            }))
+                                            .ToLookup(x => x.MessageType, x => x.Address);
 
         public void Subscribe(Address client, IEnumerable<MessageType> messageTypes)
         {
@@ -43,6 +56,8 @@
                 }
 
                 session.SaveChanges();
+
+                UpdateFromDatabase(session);
             }
         }
 
@@ -60,21 +75,13 @@
                 }
 
                 session.SaveChanges();
+
+                UpdateFromDatabase(session);
             }
         }
 
         public IEnumerable<Address> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes)
-        {
-            using (var session = OpenSession())
-            {
-                using (session.Advanced.DocumentStore.AggressivelyCache())
-                {
-                    return GetSubscriptions(messageTypes, session)
-                        .SelectMany(s => s.Clients)
-                        .Distinct();
-                }
-            }
-        }
+            => messageTypes.SelectMany(t => subscriptionLookup[t]).Distinct();
 
         private IDocumentSession OpenSession()
         {

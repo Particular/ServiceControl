@@ -197,6 +197,7 @@
     <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.Messaging" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Reactive.Core, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
       <Private>True</Private>
@@ -445,7 +446,6 @@
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
     <Compile Include="Infrastructure\SubscribeToOwnEvents.cs" />
-    <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
     <Compile Include="Licensing\ActiveLicense.cs" />
     <Compile Include="Licensing\LicenseDetector.cs" />
     <Compile Include="Licensing\NonLockingFileReader.cs" />

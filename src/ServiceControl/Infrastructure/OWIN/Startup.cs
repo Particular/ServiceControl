@@ -93,9 +93,10 @@
                     PluginsDirectory = Path.Combine(settings.DbPath, "Plugins"),
                     AssembliesDirectory = Path.Combine(settings.DbPath, "Assemblies"),
                     AnonymousUserAccessMode = isRunningAcceptanceTests ? AnonymousUserAccessMode.All : AnonymousUserAccessMode.None,
-                    TurnOffDiscoveryClient = true
+                    TurnOffDiscoveryClient = true,
+                    MaxSecondsForTaskToWaitForDatabaseToLoad = 45 // So once the database grows, it takes longer to startup!
                 };
-
+                
                 var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
                 if (File.Exists(localRavenLicense))
                 {

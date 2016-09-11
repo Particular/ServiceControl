@@ -8,44 +8,57 @@ namespace ServiceControl.HeartbeatMonitoring
 
     class RegisterPotentiallyMissingHeartbeatsHandler : IHandleMessages<RegisterPotentiallyMissingHeartbeats>
     {
-        public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
-        public HeartbeatStatusProvider StatusProvider { get; set; }
+        private readonly IBus bus;
+        private readonly IDocumentStore store;
+        private readonly HeartbeatStatusProvider statusProvider;
+
+        public RegisterPotentiallyMissingHeartbeatsHandler(IBus bus, IDocumentStore store, HeartbeatStatusProvider statusProvider)
+        {
+            this.bus = bus;
+            this.store = store;
+            this.statusProvider = statusProvider;
+        }
 
         public void Handle(RegisterPotentiallyMissingHeartbeats message)
         {
-            var heartbeat = Session.Load<Heartbeat>(message.EndpointInstanceId);
+            Heartbeat heartbeat;
 
-            if (heartbeat == null)
+            using (var session = store.OpenSession())
             {
-                Logger.Debug("Heartbeat not saved in database yet, will retry again.");
-                return;
+                heartbeat = session.Load<Heartbeat>(message.EndpointInstanceId);
+
+                if (heartbeat == null)
+                {
+                    Logger.Debug("Heartbeat not saved in database yet, will retry again.");
+                    return;
+                }
+
+                if (message.LastHeartbeatAt < heartbeat.LastReportAt)
+                {
+                    Logger.Debug("Heartbeat received after detection, ignoring");
+                    return;
+                }
+
+                if (heartbeat.ReportedStatus == Status.Dead)
+                {
+                    Logger.Debug("Endpoint already reported as inactive");
+                    return;
+                }
+
+                heartbeat.ReportedStatus = Status.Dead;
+
+                session.Store(heartbeat);
+                session.SaveChanges();
             }
 
-            if (message.LastHeartbeatAt < heartbeat.LastReportAt)
-            {
-                Logger.Debug("Heartbeat received after detection, ignoring");
-                return;
-            }
+            statusProvider.RegisterEndpointThatFailedToHeartbeat(heartbeat.EndpointDetails);
 
-            if (heartbeat.ReportedStatus == Status.Dead)
-            {
-                Logger.Debug("Endpoint already reported as inactive");
-                return;
-            }
-
-            heartbeat.ReportedStatus = Status.Dead;
-
-            Bus.Publish(new EndpointFailedToHeartbeat
+            bus.Publish(new EndpointFailedToHeartbeat
             {
                 Endpoint = heartbeat.EndpointDetails,
                 LastReceivedAt = heartbeat.LastReportAt,
                 DetectedAt = message.DetectedAt
             });
-
-            StatusProvider.RegisterEndpointThatFailedToHeartbeat(heartbeat.EndpointDetails);
-
-            Session.Store(heartbeat);
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RegisterPotentiallyMissingHeartbeatsHandler));

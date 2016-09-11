@@ -5,6 +5,9 @@
     using System.IO;
     using System.Threading.Tasks;
     using Metrics;
+    using NServiceBus;
+    using NServiceBus.CircuitBreakers;
+    using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Document;
     using ServiceControl.Operations.BodyStorage;
@@ -13,6 +16,8 @@
     {
         private const int BATCH_SIZE = 128;
 
+        private ILog logger = LogManager.GetLogger<ProcessAudits>();
+
         private readonly IDocumentStore store;
         private Task task;
         private volatile bool stop;
@@ -20,19 +25,47 @@
 
         AuditIngestionCache auditIngestionCache;
         ProcessedMessageFactory processedMessageFactory;
+        private readonly CriticalError criticalError;
+        private RepeatedFailuresOverTimeCircuitBreaker breaker;
 
-        public ProcessAudits(IDocumentStore store, AuditIngestionCache auditIngestionCache, ProcessedMessageFactory processedMessageFactory)
+        public ProcessAudits(IDocumentStore store, AuditIngestionCache auditIngestionCache, ProcessedMessageFactory processedMessageFactory, CriticalError criticalError)
         {
             this.store = store;
             this.auditIngestionCache = auditIngestionCache;
 
             this.processedMessageFactory = processedMessageFactory;
+            this.criticalError = criticalError;
         }
 
         public void Start()
         {
+            breaker = new RepeatedFailuresOverTimeCircuitBreaker("ProcessAudits", TimeSpan.FromMinutes(2), ex => criticalError.Raise("Repeated failures when processing audits.", ex),
+                TimeSpan.FromSeconds(2));
             stop = false;
-            task = Process();
+            task = ProcessWithRetries();
+        }
+
+        public void Stop()
+        {
+            stop = true;
+            task.Wait();
+            breaker.Dispose();
+        }
+
+        private async Task ProcessWithRetries()
+        {
+            do
+            {
+                try
+                {
+                    await Process().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn("ProcessAudits failed, having a break for 2 seconds before trying again.", ex);
+                    breaker.Failure(ex);
+                }
+            } while (!stop);
         }
 
         private async Task Process()
@@ -75,17 +108,13 @@
 
                 meter.Mark(processedFiles.Count);
 
+                breaker.Success();
+
                 if (!stop && processedFiles.Count < BATCH_SIZE)
                 {
                     await Task.Delay(1000).ConfigureAwait(false);
                 }
             } while (!stop);
-        }
-
-        public void Stop()
-        {
-            stop = true;
-            task.Wait();
         }
     }
 

@@ -54,7 +54,7 @@
                 auditMessageBodyStoragePolicy,
                 messageBodyStore);
 
-            processAudits = new ProcessAudits(store, auditIngestionCache, processedMessageFactory);
+            processAudits = new ProcessAudits(store, auditIngestionCache, processedMessageFactory, criticalError);
         }
 
         public bool Handle(TransportMessage message)

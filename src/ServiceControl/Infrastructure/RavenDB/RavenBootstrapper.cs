@@ -1,12 +1,11 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
-    using System;
     using System.Linq;
     using System.Net;
+    using System.Net.Http;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Persistence;
-    using NServiceBus.Pipeline;
     using Raven.Abstractions.Extensions;
     using Raven.Abstractions.Replication;
     using Raven.Client;
@@ -25,24 +24,7 @@
 
             StartRaven(documentStore, settings);
             
-            configuration.RegisterComponents(c => 
-                c.ConfigureComponent(builder =>
-                {
-                    var context = builder.Build<PipelineExecutor>().CurrentContext;
-
-                    IDocumentSession session;
-
-                    if (context.TryGet(out session))
-                    {
-                        return session;
-                    }
-
-                    throw new InvalidOperationException("No session available");
-                }, DependencyLifecycle.InstancePerCall));
-
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
-
-            configuration.Pipeline.Register<RavenRegisterStep>();
         }
 
         void StartRaven(DocumentStore documentStore, Settings settings)
@@ -53,6 +35,11 @@
             documentStore.Conventions.SaveEnumsAsIntegers = true;
             documentStore.Conventions.FailoverBehavior = FailoverBehavior.FailImmediately; // This prevents the client from looking for replica servers
             documentStore.Credentials = CredentialCache.DefaultNetworkCredentials;
+            documentStore.HttpMessageHandlerFactory = () => new WebRequestHandler
+            {
+                UnsafeAuthenticatedConnectionSharing = true, // This is needed according to https://groups.google.com/d/msg/ravendb/DUYFvqWR5Hc/l1sKE5A1mVgJ
+                Credentials = CredentialCache.DefaultNetworkCredentials
+            };
             documentStore.Initialize();
 
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);

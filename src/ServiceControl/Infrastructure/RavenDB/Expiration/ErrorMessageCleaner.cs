@@ -26,7 +26,7 @@
                 FieldsToFetch = new[]
                 {
                     "__document_id",
-                    "MessageId"
+                    "ProcessingAttempts[0].MessageId"
                 },
                 SortedFields = new[]
                 {
@@ -64,7 +64,7 @@
 
                     try
                     {
-                        var messageId = doc.Value<string>("MessageId");
+                        var messageId = doc.Value<string>("ProcessingAttempts[0].MessageId");
                         messageBodyStore.Delete(messageId);
                     }
                     catch (Exception ex)
