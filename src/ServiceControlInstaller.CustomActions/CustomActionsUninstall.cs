@@ -1,6 +1,5 @@
 ﻿namespace ServiceControlInstaller.CustomActions
 {
-    using System;
     using Microsoft.Deployment.WindowsInstaller;
     using ServiceControlInstaller.Engine.Instances;
     
