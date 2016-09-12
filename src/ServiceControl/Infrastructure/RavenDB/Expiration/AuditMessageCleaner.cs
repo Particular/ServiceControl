@@ -1,10 +1,13 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using NServiceBus.Logging;
     using Raven.Abstractions;
+    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Json.Linq;
@@ -12,12 +15,12 @@
 
     public static class AuditMessageCleaner
     {
-        static ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
+        const int CHUNK_SIZE = 128;
+
+        private static readonly ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
 
         public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token, IMessageBodyStore messageBodyStore)
         {
-            var stopwatch = Stopwatch.StartNew();
-
             var query = new IndexQuery
             {
                 Start = 0,
@@ -41,67 +44,115 @@
             };
 
             var indexName = new ExpiryProcessedMessageIndex().IndexName;
+            var items = new List<ICommandData>(CHUNK_SIZE);
+            var attachments = new List<string>(CHUNK_SIZE);
+
+            logger.Info("Starting clean-up of expired audit documents.");
+
             QueryHeaderInformation _;
             var deletionCount = 0;
-
-            logger.Info("Batching deletion of audit documents.");
-
+            var stopwatch = Stopwatch.StartNew();
             using (var ie = store.DatabaseCommands.StreamQuery(indexName, query, out _))
             {
                 while (ie.MoveNext())
                 {
                     if (token.IsCancellationRequested)
                     {
-                        break;
+                        return;
                     }
-
+                    
                     var doc = ie.Current;
                     var id = doc.Value<string>("__document_id");
                     if (string.IsNullOrEmpty(id))
                     {
-                        continue;
+                        return;
                     }
 
-                    store.DatabaseCommands.Delete(id, null);
-                    deletionCount++;
+                    items.Add(new DeleteCommandData
+                    {
+                        Key = id
+                    });
 
                     string bodyId;
                     if (TryGetBodyId(doc, out bodyId))
                     {
-                        try
-                        {
-                            messageBodyStore.Delete(bodyId);
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.Warn("Deletion of attachment failed.", ex);
-                        }
+                        attachments.Add(bodyId);
                     }
 
-                    if (deletionCount >= deletionBatchSize)
+                    if (items.Count < CHUNK_SIZE)
                     {
-                        break;
+                        continue;
                     }
+
+                    deletionCount += Delete(store, token, messageBodyStore, items, attachments);
+                    
+                    attachments.Clear();
+                    items.Clear();
                 }
             }
 
-            logger.Info("Batching deletion of audit documents completed.");
+            deletionCount += Delete(store, token, messageBodyStore, items, attachments);
 
             if (deletionCount == 0)
             {
-                logger.Info("No expired audit documents found.");
+                logger.Info("No expired audit documents found");
             }
             else
             {
-                logger.InfoFormat("Deleted {0} expired audit documents. Batch execution took {1}ms.", deletionCount, stopwatch.ElapsedMilliseconds);
+                logger.Info($"Deleted {deletionCount} expired audit documents in {stopwatch.ElapsedMilliseconds}ms.");
             }
         }
 
-        static bool TryGetBodyId(RavenJObject doc, out string bodyId)
+        static int Delete(IDocumentStore store, CancellationToken token, IMessageBodyStore messageBodyStore, List<ICommandData> items, List<string> attachments)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            if (attachments.Count > 0)
+            {
+                foreach (var att in attachments)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    try
+                    {
+                        messageBodyStore.Delete(att);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warn("Deletion of attachment failed.", ex);
+                    }
+                }
+
+                logger.Info($"Deleted {attachments.Count} attachments for expired audit documents in {stopwatch.ElapsedMilliseconds}ms.");
+            }
+
+
+            if (token.IsCancellationRequested)
+            {
+                return 0;
+            }
+
+            var deletionCount = 0;
+
+            if (items.Count > 0)
+            {
+                stopwatch.Restart();
+
+                var results = store.DatabaseCommands.Batch(items);
+                deletionCount = results.Count(x => x.Deleted == true);
+                logger.Info($"Deleted {deletionCount} expired audit documents in {stopwatch.ElapsedMilliseconds}ms.");
+            }
+
+            return deletionCount;
+        }
+
+        private static bool TryGetBodyId(RavenJObject doc, out string bodyId)
         {
             bodyId = null;
             var bodyNotStored = doc.SelectToken("MessageMetadata.BodyNotStored", false);
-            if (bodyNotStored != null && bodyNotStored.Value<bool>())
+            if ((bodyNotStored != null) && bodyNotStored.Value<bool>())
             {
                 return false;
             }

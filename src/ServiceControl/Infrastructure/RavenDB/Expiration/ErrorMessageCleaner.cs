@@ -2,12 +2,15 @@
 {
 
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading;
     using Raven.Abstractions;
+    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceControl.Operations.BodyStorage;
+    using System.Linq;
 
     public static class ErrorMessageCleaner
     {
@@ -15,7 +18,6 @@
 
         public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token, IMessageBodyStore messageBodyStore)
         {
-            var stopwatch = Stopwatch.StartNew();
             var query = new IndexQuery
             {
                 Start = 0,
@@ -37,49 +39,73 @@
                     }
                 }
             };
+
+            var stopwatch = Stopwatch.StartNew();
+            var items = new List<ICommandData>(deletionBatchSize);
+            var attachments = new List<string>(deletionBatchSize);
             var indexName = new ExpiryErrorMessageIndex().IndexName;
-            QueryHeaderInformation _;
-            var deletionCount = 0;
 
-            logger.Info("Batching deletion of error documents.");
+            logger.Info("Starting clean-up of expired error documents.");
 
-            using (var ie = store.DatabaseCommands.StreamQuery(indexName, query, out _))
+            var qResults = store.DatabaseCommands.Query(indexName, query);
+
+            foreach (var doc in qResults.Results)
             {
-                while (ie.MoveNext())
+                var id = doc.Value<string>("__document_id");
+                if (string.IsNullOrEmpty(id))
+                {
+                    return;
+                }
+
+                items.Add(new DeleteCommandData
+                {
+                    Key = id
+                });
+
+                attachments.Add(doc.Value<string>("ProcessingAttempts[0].MessageId"));
+            }
+            logger.Info($"Query for expired error documents took {stopwatch.ElapsedMilliseconds}ms.");
+
+            if (attachments.Count > 0)
+            {
+                stopwatch.Restart();
+
+                foreach (var bodyId in attachments)
                 {
                     if (token.IsCancellationRequested)
                     {
                         break;
                     }
 
-                    var doc = ie.Current;
-                    var id = doc.Value<string>("__document_id");
-                    if (string.IsNullOrEmpty(id))
-                    {
-                        continue;
-                    }
-
-                    store.DatabaseCommands.Delete(id, null);
-                    deletionCount++;
-
                     try
                     {
-                        var messageId = doc.Value<string>("ProcessingAttempts[0].MessageId");
-                        messageBodyStore.Delete(messageId);
+                        messageBodyStore.Delete(bodyId);
                     }
                     catch (Exception ex)
                     {
                         logger.Warn("Deletion of attachment failed.", ex);
                     }
-
-                    if (deletionCount >= deletionBatchSize)
-                    {
-                        break;
-                    }
                 }
+
+                logger.Info($"Deleted {attachments.Count} attachments for expired error documents in {stopwatch.ElapsedMilliseconds}ms.");
             }
 
-            logger.Info("Batching deletion of error documents completed.");
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            stopwatch.Restart();
+
+            var deletionCount = 0;
+
+            Chunker.ExecuteInChunks(items.Count, (s, e, t) =>
+            {
+                var results = store.DatabaseCommands.Batch(items.GetRange(s, e - s + 1));
+                logger.Info($"Batching deletion of {t}/{items.Count} error documents completed.");
+
+                deletionCount += results.Count(x => x.Deleted == true);
+            }, token);
 
             if (deletionCount == 0)
             {
@@ -87,7 +113,7 @@
             }
             else
             {
-                logger.InfoFormat("Deleted {0} expired error documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
+                logger.Info($"Deleted {deletionCount} expired error documents in {stopwatch.ElapsedMilliseconds}ms.");
             }
         }
     }

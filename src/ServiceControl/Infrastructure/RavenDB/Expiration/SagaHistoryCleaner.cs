@@ -2,11 +2,14 @@
 {
 
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading;
     using Raven.Abstractions;
+    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Client;
+    using System.Linq;
 
     public static class SagaHistoryCleaner
     {
@@ -14,8 +17,6 @@
 
         public static void Clean(int deletionBatchSize, IDocumentStore store, DateTime expiryThreshold, CancellationToken token)
         {
-            var stopwatch = Stopwatch.StartNew();
-
             var query = new IndexQuery
             {
                 Start = 0,
@@ -37,39 +38,40 @@
                 }
             };
 
+            var stopwatch = Stopwatch.StartNew();
+            var items = new List<ICommandData>(deletionBatchSize);
             var indexName = new ExpirySagaAuditIndex().IndexName;
-            QueryHeaderInformation _;
+
+            logger.Info("Starting clean-up of expired sagahistory documents.");
+
+            var qResults = store.DatabaseCommands.Query(indexName, query);
+
+            foreach (var doc in qResults.Results)
+            {
+                var id = doc.Value<string>("__document_id");
+                if (string.IsNullOrEmpty(id))
+                {
+                    return;
+                }
+
+                items.Add(new DeleteCommandData
+                {
+                    Key = id
+                });
+            }
+            logger.Info($"Query for expired sagahistory documents took {stopwatch.ElapsedMilliseconds}ms.");
+
+            stopwatch.Restart();
+
             var deletionCount = 0;
 
-            logger.Info("Batching deletion of sagahistory documents.");
-
-            using (var ie = store.DatabaseCommands.StreamQuery(indexName, query, out _))
+            Chunker.ExecuteInChunks(items.Count, (s, e, t) =>
             {
-                while (ie.MoveNext())
-                {
-                    if (token.IsCancellationRequested)
-                    {
-                        break;
-                    }
+                var results = store.DatabaseCommands.Batch(items.GetRange(s, e - s + 1));
+                logger.Info($"Batching deletion of {t}/{items.Count} sagahistory documents completed.");
 
-                    var doc = ie.Current;
-                    var id = doc.Value<string>("__document_id");
-                    if (string.IsNullOrEmpty(id))
-                    {
-                        continue;
-                    }
-
-                    store.DatabaseCommands.Delete(id, null);
-                    deletionCount++;
-
-                    if (deletionCount >= deletionBatchSize)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            logger.Info("Batching deletion of sagahistory documents completed.");
+                deletionCount += results.Count(x => x.Deleted == true);
+            }, token);
 
             if (deletionCount == 0)
             {
@@ -77,7 +79,7 @@
             }
             else
             {
-                logger.InfoFormat("Deleted {0} expired sagahistory documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
+                logger.Info($"Deleted {deletionCount} sagahistory audit documents in {stopwatch.ElapsedMilliseconds}ms.");
             }
         }
     }
