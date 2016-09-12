@@ -103,7 +103,7 @@ namespace Particular.ServiceControl
             }
 
             bus = NServiceBusFactory.CreateAndStart(settings, container, host, documentStore, configuration);
-            
+
             logger.Info($"Api is now accepting requests on {settings.ApiUrl}");
 
             return bus;
@@ -197,31 +197,34 @@ Database Size:							{DataSize()}bytes
             nlogConfig.AddTarget("bitbucket", nullTarget);
 
             // Only want to see raven errors
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", loggingSettings.RavenDBLogLevel, ravenFileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget)); //Noise reduction - Only RavenDB errors on the console
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget)
+            var rules = nlogConfig.LoggingRules;
+            rules.Add(new LoggingRule("Raven.*", loggingSettings.RavenDBLogLevel, ravenFileTarget));
+            //Noise reduction - Only RavenDB errors on the console
+            rules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));
+            //Will swallow debug and above messages
+            rules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget)
             {
                 Final = true
-            }); //Will swallow debug and above messages
+            });
 
 
             // Always want to see license logging regardless of default logging level
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget)
+            rules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
+            rules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget)
             {
                 Final = true
             });
 
             // Defaults
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel < LogLevel.Info ? loggingSettings.LoggingLevel : LogLevel.Info, consoleTarget));
+            rules.Add(new LoggingRule("*", loggingSettings.LoggingLevel, fileTarget));
+            rules.Add(new LoggingRule("*", loggingSettings.LoggingLevel < LogLevel.Info ? loggingSettings.LoggingLevel : LogLevel.Info, consoleTarget));
 
             // Remove Console Logging when running as a service
             if (!Environment.UserInteractive)
             {
-                foreach (var rule in nlogConfig.LoggingRules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
+                foreach (var rule in rules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
                 {
-                    nlogConfig.LoggingRules.Remove(rule);
+                    rules.Remove(rule);
                 }
             }
 
