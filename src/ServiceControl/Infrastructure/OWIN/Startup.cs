@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Net;
+    using System.Text.RegularExpressions;
     using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
     using Nancy;
@@ -17,6 +18,7 @@
     using Particular.ServiceControl.Licensing;
     using Raven.Database.Config;
     using Raven.Database.Server;
+    using Raven.Database.Server.Security;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.OWIN;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
@@ -81,8 +83,6 @@
                     virtualDirectory = $"{settings.VirtualDirectory}/{virtualDirectory}";
                 }
 
-                ConfigureWindowsAuth(app, virtualDirectory);
-
                 var configuration = new RavenConfiguration
                 {
                     VirtualDirectory = virtualDirectory,
@@ -96,7 +96,7 @@
                     TurnOffDiscoveryClient = true,
                     MaxSecondsForTaskToWaitForDatabaseToLoad = 45 // So once the database grows, it takes longer to startup!
                 };
-                
+
                 var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
                 if (File.Exists(localRavenLicense))
                 {
@@ -112,11 +112,13 @@
                 configuration.FileSystem.DataDirectory = Path.Combine(settings.DbPath, "FileSystems");
                 configuration.FileSystem.IndexStoragePath = Path.Combine(settings.DbPath, "FileSystems", "Indexes");
 
+                ConfigureWindowsAuth(app, virtualDirectory, configuration);
+
                 app.UseRavenDB(new RavenDBOptions(configuration));
             });
         }
 
-        private static void ConfigureWindowsAuth(IAppBuilder app, string virtualDirectory)
+        private static void ConfigureWindowsAuth(IAppBuilder app, string virtualDirectory, RavenConfiguration configuration)
         {
             if (!app.Properties.ContainsKey("System.Net.HttpListener"))
             {
@@ -133,10 +135,55 @@
                     return AuthenticationSchemes.Anonymous;
                 }
 
-                var hasSingleUseToken = string.IsNullOrEmpty(request.Headers["Single-Use-Auth-Token"]) == false || string.IsNullOrEmpty(request.QueryString["singleUseAuthToken"]) == false;
-
-                return hasSingleUseToken ? AuthenticationSchemes.Anonymous : AuthenticationSchemes.IntegratedWindowsAuthentication;
+                return AuthenticationSchemeSelectorDelegate(request, configuration, pathToLookFor.Length);
             };
+        }
+
+        static Regex IsAdminRequest = new Regex(@"(^/admin)|(^/databases/[\w\.\-_]+/admin)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        // Copied from Raven repo - https://github.com/ravendb/ravendb/blob/42f18b2d466a21d4d6a5e88b52fe1a1e225d24bf/Raven.Database/Server/Security/Windows/WindowsAuthConfigureHttpListener.cs#L23
+        // Added a few modifications
+        private static AuthenticationSchemes AuthenticationSchemeSelectorDelegate(HttpListenerRequest request, RavenConfiguration configuration, int startIndex)
+        {
+            var authHeader = request.Headers["Authorization"];
+            var hasApiKey = "True".Equals(request.Headers["Has-Api-Key"], StringComparison.CurrentCultureIgnoreCase);
+            var hasSingleUseToken = string.IsNullOrEmpty(request.Headers["Single-Use-Auth-Token"]) == false ||
+                     string.IsNullOrEmpty(request.QueryString["singleUseAuthToken"]) == false;
+            var hasOAuthTokenInCookie = request.Cookies["OAuth-Token"] != null;
+            if (hasApiKey || hasOAuthTokenInCookie || hasSingleUseToken ||
+                    string.IsNullOrEmpty(authHeader) == false && authHeader.StartsWith("Bearer "))
+            {
+                // this is an OAuth request that has a token
+                // we allow this to go through and we will authenticate that on the OAuth Request Authorizer
+                return AuthenticationSchemes.Anonymous;
+            }
+            if (NeverSecret.IsNeverSecretUrl(request.Url.AbsolutePath.Substring(startIndex)))
+                return AuthenticationSchemes.Anonymous;
+
+            //CORS pre-flight.
+            if (configuration.AccessControlAllowOrigin.Count > 0 && request.HttpMethod == "OPTIONS")
+            {
+                return AuthenticationSchemes.Anonymous;
+            }
+
+            if (IsAdminRequest.IsMatch(request.RawUrl.Substring(startIndex)) &&
+                configuration.AnonymousUserAccessMode != AnonymousUserAccessMode.Admin)
+                return AuthenticationSchemes.IntegratedWindowsAuthentication;
+
+            switch (configuration.AnonymousUserAccessMode)
+            {
+                case AnonymousUserAccessMode.Admin:
+                case AnonymousUserAccessMode.All:
+                    return AuthenticationSchemes.Anonymous;
+                case AnonymousUserAccessMode.Get:
+                    return AbstractRequestAuthorizer.IsGetRequest(request) ?
+                        AuthenticationSchemes.Anonymous | AuthenticationSchemes.IntegratedWindowsAuthentication :
+                        AuthenticationSchemes.IntegratedWindowsAuthentication;
+                case AnonymousUserAccessMode.None:
+                    return AuthenticationSchemes.IntegratedWindowsAuthentication;
+                default:
+                    throw new ArgumentException($"Cannot understand access mode: '{configuration.AnonymousUserAccessMode}'");
+            }
         }
 
         private void ConfigureSignalR(IAppBuilder app)
