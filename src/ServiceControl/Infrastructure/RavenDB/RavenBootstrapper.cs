@@ -37,6 +37,7 @@
             documentStore.Credentials = CredentialCache.DefaultNetworkCredentials;
             documentStore.HttpMessageHandlerFactory = () => new WebRequestHandler
             {
+                ServerCertificateValidationCallback = (obj, certificate, chain, errors) => true,  //Allow Self Signing certs.  Since we are both client and server this is safe
                 UnsafeAuthenticatedConnectionSharing = true, // This is needed according to https://groups.google.com/d/msg/ravendb/DUYFvqWR5Hc/l1sKE5A1mVgJ
                 Credentials = CredentialCache.DefaultNetworkCredentials
             };
