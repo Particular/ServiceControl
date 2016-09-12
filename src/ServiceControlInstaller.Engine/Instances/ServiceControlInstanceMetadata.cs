@@ -96,12 +96,12 @@ namespace ServiceControlInstaller.Engine.Instances
             //Clear out any files from previous runs of Add Instance, just in case user switches transport
             //Validation checks for the flag file so wont get here if the directory was also changed
             FileUtils.DeleteDirectory(InstallPath, true, true);
-
-            var account = new NTAccount(UserAccount.ParseAccountName(ServiceAccount).QualifiedName);
-            var readExecuteAccessRule = new FileSystemAccessRule(account, FileSystemRights.ReadAndExecute | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+            var builtinUsers = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
+            var readExecuteAccessRule = new FileSystemAccessRule(builtinUsers, FileSystemRights.ReadAndExecute | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
             FileUtils.CreateDirectoryAndSetAcl(InstallPath, readExecuteAccessRule);
 
-            var modifyAccessRule = new FileSystemAccessRule(account, FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+            var modifyAccessRule = new FileSystemAccessRule(builtinUsers, FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+
             if (!string.IsNullOrWhiteSpace(LogPath))
             {
                 FileUtils.CreateDirectoryAndSetAcl(LogPath, modifyAccessRule);
