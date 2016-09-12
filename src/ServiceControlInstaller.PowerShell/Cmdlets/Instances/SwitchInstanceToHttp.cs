@@ -32,9 +32,9 @@ namespace ServiceControlInstaller.PowerShell
                 {
                     throw new ItemNotFoundException("An instance called {Name} was not found");
                 }
-                if (instance.Protocol == "https")
+                if (instance.Protocol.Equals("http", StringComparison.OrdinalIgnoreCase))
                 {
-                    WriteWarning("{Name} is already configured for HTTP");
+                    WriteWarning($"{Name} is already configured for HTTP");
                     return;
                 }
 
