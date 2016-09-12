@@ -89,27 +89,58 @@ namespace ServiceControlInstaller.Engine.Unattended
         {
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
-
             var restartService = instance.Service.Status == ServiceControllerStatus.Running;
+
             if (!instance.TryStopService())
             {
                 logger.Error("Service failed to stop or service stop timed out");
+                return false;
             }
             try
             {
                 var backupFile = instance.BackupAppConfig();
                 try
                 {
+                    if (options.BackupRavenDbBeforeUpgrade)
+                    {
+                        var backup = new UpgradeBackupManager(instance, ZipInfo.FilePath, options.BackupPath);
+                        backup.EnterBackupMode();
+                        try
+                        {   if (!backup.BackupDatabase())
+                            {
+                                return false;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            instance.ReportCard.Errors.Add($"An exception occurred while attempting the DB backup - {ex.Message}");
+                            return false;
+                        }
+                        finally
+                        {
+                            instance.TryStopService();
+                            backup.ExitBackupMode();
+                        }
+                    }
                     instance.UpgradeFiles(ZipInfo.FilePath);
+                    if (!string.IsNullOrWhiteSpace(options.BodyStoragePath))
+                    {
+                        instance.BodyStoragePath = options.BodyStoragePath;
+                    }
+                    if (!string.IsNullOrWhiteSpace(options.IngestionCachePath))
+                    {
+                        instance.IngestionCachePath = options.IngestionCachePath;
+                    }
+                    instance.MoveRavenDatabase(instance.DBPath);
+                    instance.EnsureDirectoriesExist();
                 }
                 finally
                 {
                     instance.RestoreAppConfig(backupFile);
                 }
-            
                 options.ApplyChangesToInstance(instance);
                 instance.SetupInstance();
-                
+
                 if (instance.ReportCard.HasErrors)
                 {
                     foreach (var error in instance.ReportCard.Errors)
@@ -130,9 +161,6 @@ namespace ServiceControlInstaller.Engine.Unattended
                 logger.Error("Upgrade Failed: {0}", ex.Message);
                 return false;
             }
-
-
-
             return true;
         }
 
@@ -181,9 +209,9 @@ namespace ServiceControlInstaller.Engine.Unattended
         }
 
         // ReSharper disable once UnusedMethodReturnValue.Global
-        public bool Delete(string InstanceName, bool removeDB, bool removeLogs)
+        public bool Delete(string instanceName, bool removeDB, bool removeLogs)
         {
-            var instance = ServiceControlInstance.FindByName(InstanceName);
+            var instance = ServiceControlInstance.FindByName(instanceName);
             instance.ReportCard = new ReportCard();
             if (!instance.TryStopService())
             {

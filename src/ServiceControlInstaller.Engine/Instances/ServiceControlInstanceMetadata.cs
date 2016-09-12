@@ -8,10 +8,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
-    using System.Xml;
-    using System.Xml.Serialization;
     using HttpApiWrapper;
-    using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Setup;
@@ -43,20 +40,10 @@ namespace ServiceControlInstaller.Engine.Instances
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public string ServiceDescription { get; set; }
-
-        [XmlIgnore]
         public Version Version { get; set; }
-
-        [XmlIgnore]
         public string Protocol =>  SslCert.GetThumbprint(Port) == null ? "http" : "https";
-
-        [XmlIgnore]
         public string ServiceAccount { get; set; }
-
-        [XmlIgnore]
         public string ServiceAccountPwd { get; set; }
-
-        [XmlIgnore]
         public ReportCard ReportCard { get; set; }
 
         public ServiceControlInstanceMetadata()
@@ -182,42 +169,6 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-        }
-
-        public void Save(string path)
-        {
-            var serializer = new XmlSerializer(GetType());
-            using (var stream = File.OpenWrite(path))
-            {
-                serializer.Serialize(stream, this);
-            }
-        }
-
-        public static ServiceControlInstanceMetadata Load(string path)
-        {
-            ServiceControlInstanceMetadata instanceData;
-            var serializer = new XmlSerializer(typeof(ServiceControlInstanceMetadata));
-            using (var stream = File.OpenRead(path))
-            {
-                instanceData = (ServiceControlInstanceMetadata)serializer.Deserialize(stream);
-            }
-
-            var doc = new XmlDocument();
-            doc.Load(path);
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/AuditRetentionPeriod") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ErrorRetentionPeriod") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-            return instanceData;
         }
 
         public void Validate(Func<PathInfo, bool> promptToProceed)

@@ -38,8 +38,22 @@
                     Name = "install path",
                     Path = Environment.ExpandEnvironmentVariables(instance.InstallPath ?? String.Empty),
                     CheckIfEmpty = true
+                },
+                new PathInfo
+                {
+                    Name = "ingestioncache path",
+                    Path = Environment.ExpandEnvironmentVariables(instance.IngestionCachePath ?? String.Empty),
+                    CheckIfEmpty = true
+                },
+                new PathInfo
+                {
+                    Name = "bodystorage path",
+                    Path = Environment.ExpandEnvironmentVariables(instance.BodyStoragePath ?? String.Empty),
+                    CheckIfEmpty = true
                 }
+
             };
+
             paths = pathList.Where(p => !string.IsNullOrWhiteSpace(p.Path)).ToList();
         }
 
@@ -148,7 +162,8 @@
                     if (path.Name == possibleChild.Name)
                         continue;
 
-                    if (Path.GetDirectoryName(possibleChild.Path).IndexOf(path.Path, StringComparison.OrdinalIgnoreCase) > -1)
+                    var directoryName = Path.GetDirectoryName(possibleChild.Path);
+                    if (directoryName != null && directoryName.IndexOf(path.Path, StringComparison.OrdinalIgnoreCase) > -1)
                     {
                         throw new EngineValidationException($"Nested paths are not supported. The {possibleChild.Name} is nested under {path.Name}");
                     }
@@ -160,7 +175,7 @@
         {
             if (paths.Select(p => p.Path).Distinct(StringComparer.OrdinalIgnoreCase).Count() != paths.Count)
             {
-                throw new EngineValidationException("The installation path, log path and database path must be unique");
+                throw new EngineValidationException("The installation, log, database, ingestion cache and body storage paths must be unique");
             }
         }
 

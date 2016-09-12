@@ -5,61 +5,42 @@ namespace ServiceControlInstaller.PowerShell
     using System;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.Validation;
 
-    public class PsServiceControl :  IContainPort, IContainInstancePaths, IContainTransportInfo
+    public class PsServiceControl
     {
         public static PsServiceControl FromInstance(ServiceControlInstance instance)
         {
             var result = new PsServiceControl
             {
-                Name = instance.Name,
-                Url = instance.Url,
-                HostName = instance.HostName,
-                Port = instance.Port,
-                InstallPath = instance.InstallPath,
-                IngestionCachePath = instance.IngestionCachePath,
-                BodyStoragePath = instance.BodyStoragePath,
-                LogPath = instance.LogPath,
-                DBPath = instance.DBPath,
-                TransportPackage = instance.TransportPackage,
-                ConnectionString = instance.ConnectionString,
-                AuditQueue = instance.AuditQueue,
-                AuditLogQueue = instance.AuditLogQueue,
-                ErrorQueue = instance.ErrorQueue,
-                ErrorLogQueue = instance.ErrorLogQueue,
-                ForwardAuditMessages = instance.ForwardAuditMessages,
-                ServiceAccount = instance.ServiceAccount,
-                Version = instance.Version,
-                ForwardErrorMessages = instance.Version < SettingsList.ForwardErrorMessages.SupportedFrom || instance.ForwardErrorMessages
+                Instance = instance
             };
             return result;
         }
-        public string Name { get; set; }
-        public string Url { get; set; }
-        public string HostName { get; set; }
-        public int Port { get; set; }
 
-        public string InstallPath { get; set; }
-        public string DBPath { get; set; }
-        public string BodyStoragePath { get; set; }
-        public string IngestionCachePath { get; set; }
-        public string LogPath { get; set; }
+        private ServiceControlInstance Instance { get; set; }
+        public string Name => Instance.Name;
+        public string Url => Instance.Url;
+        public string HostName => Instance.HostName;
+        public int Port => Instance.Port;
+        public string InstallPath => Instance.InstallPath;
+        public string DBPath => Instance.DBPath;
+        public string BodyStoragePath => Instance.Version < SettingsList.BodyStoragePath.SupportedFrom ? null : Instance.BodyStoragePath;
+        public string IngestionCachePath => Instance.Version < SettingsList.IngestionCachePath.SupportedFrom ? null : Instance.IngestionCachePath;
+        public string LogPath => Instance.LogPath;
+        public string TransportPackage => Instance.TransportPackage;
+        public string ConnectionString => Instance.ConnectionString;
+        public string ErrorQueue => Instance.ErrorQueue;
+        public string ErrorLogQueue => Instance.ErrorLogQueue;
+        public string AuditQueue => Instance.AuditQueue;
+        public string AuditLogQueue => Instance.AuditLogQueue;
+        public bool ForwardAuditMessages => Instance.ForwardAuditMessages;
+        public bool ForwardErrorMessages => Instance.Version < SettingsList.ForwardErrorMessages.SupportedFrom || Instance.ForwardErrorMessages;
+        public string ServiceAccount => Instance.ServiceAccount;
+        public Version Version => Instance.Version;
 
-        public string TransportPackage { get;  set; }
-        public string ConnectionString { get; set; }
-
-        public string ErrorQueue { get;  set; }
-        public string ErrorLogQueue { get; set; }
-        
-        public string AuditQueue { get;  set; }
-        public string AuditLogQueue { get;  set; }
-        public bool ForwardAuditMessages { get; set; }
-        public bool ForwardErrorMessages { get; set; }
-
-        public string ServiceAccount { get; set; }
-
-        public Version Version { get; set; }
-        
+        public void Refresh()
+        {
+            Instance.Reload();
+        }
     }
 }

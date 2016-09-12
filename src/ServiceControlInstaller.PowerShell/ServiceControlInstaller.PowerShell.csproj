@@ -60,7 +60,6 @@
   <ItemGroup>
     <Compile Include="Cmdlets\Instances\PSServiceControl.cs" />
     <Compile Include="Cmdlets\Instances\NewServiceControlInstance.cs" />
-    <Compile Include="Cmdlets\Instances\NewServiceControlUnattendedFile.cs" />
     <Compile Include="Cmdlets\Instances\SwitchInstanceToHttp.cs" />
     <Compile Include="Cmdlets\Instances\SwithInstanceToHttps.cs" />
     <Compile Include="Cmdlets\SSL\GetCertificates.cs" />
@@ -78,7 +77,6 @@
     <Compile Include="Cmdlets\License\GetServiceControlLicense.cs" />
     <Compile Include="Cmdlets\Transports\GetServiceControlTransportTypes.cs" />
     <Compile Include="Cmdlets\License\ImportServiceControlLicense.cs" />
-    <Compile Include="Cmdlets\Instances\InstallServiceControlInstanceFromUnattendedFile.cs" />
     <Compile Include="Cmdlets\Instances\InvokeServiceControlInstanceUpgrade.cs" />
     <Compile Include="Cmdlets\Instances\RemoveServiceControlInstance.cs" />
     <Compile Include="Cmdlets\Ports\TestIfPortIsAvailable.cs" />
@@ -97,7 +95,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ServiceControlInstaller.Powershell.dll-help.xml" />
     <Content Include="ServiceControlMgmt.psd1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

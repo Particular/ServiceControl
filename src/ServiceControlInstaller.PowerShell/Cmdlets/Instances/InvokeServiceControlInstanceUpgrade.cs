@@ -27,7 +27,15 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateTimeSpanRange(MinimumHours = 240, MaximumHours = 1080)] //10 to 45 days
         public TimeSpan? ErrorRetentionPeriod { get; set; }
 
+        [Parameter(HelpMessage = "Specify the BodyStorage Path ")]
+        public string BodyStoragePath { get; set; }
 
+        [Parameter(HelpMessage = "Specify the IngestionCache Path")]
+        public string IngestionCachePath { get; set; }
+
+        [Parameter(HelpMessage = "Backup the DB on Upgrade")]
+        public string BackupPath{ get; set; }
+        
         protected override void BeginProcessing()
         {
             Account.TestIfAdmin();
@@ -42,7 +50,15 @@ namespace ServiceControlInstaller.PowerShell
             
             foreach (var name in Name)
             {
-                var options = new InstanceUpgradeOptions { AuditRetentionPeriod = AuditRetentionPeriod, ErrorRetentionPeriod = ErrorRetentionPeriod, OverrideEnableErrorForwarding =  ForwardErrorMessages};
+                var options = new InstanceUpgradeOptions
+                {
+                    AuditRetentionPeriod = AuditRetentionPeriod,
+                    ErrorRetentionPeriod = ErrorRetentionPeriod,
+                    OverrideEnableErrorForwarding = ForwardErrorMessages,
+                    BodyStoragePath =  BodyStoragePath,
+                    IngestionCachePath = IngestionCachePath,
+                    BackupPath = BackupPath
+                };
                 var instance = ServiceControlInstance.FindByName(name);
                 if (instance == null)
                 {
@@ -51,7 +67,6 @@ namespace ServiceControlInstaller.PowerShell
                 }
 
                 options.OverrideEnableErrorForwarding = ForwardErrorMessages;
-                
                 
                 // Migrate Value
                 if (!options.AuditRetentionPeriod.HasValue)
@@ -68,19 +83,45 @@ namespace ServiceControlInstaller.PowerShell
                 
                 if (!options.OverrideEnableErrorForwarding.HasValue & !instance.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
                 {
-                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. ForwardErrorMessages parameter must be set to true or false because the configuration file has no setting for ForwardErrorMessages. This setting is mandatory as of version 1.12"), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. ForwardErrorMessages parameter must be set to true or false because the configuration file has no setting for ForwardErrorMessages."), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
                 }
 
                 if (!options.ErrorRetentionPeriod.HasValue & !instance.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
                 {
-                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. ErrorRetentionPeriod parameter must be set to timespan because the configuration file has no setting for ErrorRetentionPeriod. This setting is mandatory as of version 1.13"), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. ErrorRetentionPeriod parameter must be set to timespan because the configuration file has no setting for ErrorRetentionPeriod. "), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
                 }
                 
                 if (!options.AuditRetentionPeriod.HasValue & !instance.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
                 {
-                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. AuditRetentionPeriod parameter must be set to timespan because the configuration file has no setting for AuditRetentionPeriod. This setting is mandatory as of version 1.13"), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. AuditRetentionPeriod parameter must be set to timespan because the configuration file has no setting for AuditRetentionPeriod. "), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
                 }
-                
+
+                if (!options.OverrideEnableErrorForwarding.HasValue & !instance.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted.{name} parameter must be set to true or false because the configuration file has no setting for ForwardErrorMessages."), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+                }
+
+                if (string.IsNullOrWhiteSpace(options.BodyStoragePath) & !instance.AppSettingExists(SettingsList.BodyStoragePath.Name))
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. BodyStoragePath parameter must be set because the configuration file has no setting for this."), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+                }
+
+                if (string.IsNullOrWhiteSpace(options.IngestionCachePath) & !instance.AppSettingExists(SettingsList.IngestionCachePath.Name))
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. IngestionCachePath parameter must be set because the configuration file has no setting for this."), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+                }
+
+                if (string.IsNullOrWhiteSpace(options.BodyStoragePath) & !instance.AppSettingExists(SettingsList.BodyStoragePath.Name))
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. BodyStoragePath parameter must be set because the configuration file has no setting for this."), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+                }
+
+                if (!string.IsNullOrWhiteSpace(options.BackupPath))
+                {
+                    options.BackupRavenDbBeforeUpgrade = true;
+                }
+
+                logger.Info("Attempting upgrade...");
                 if (!installer.Upgrade(instance, options))
                 {
                     ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} failed"), "UpgradeFailure", ErrorCategory.InvalidResult, null));

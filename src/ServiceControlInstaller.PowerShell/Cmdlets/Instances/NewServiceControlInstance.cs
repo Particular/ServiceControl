@@ -66,10 +66,6 @@ namespace ServiceControlInstaller.PowerShell
         public string DisplayName { get; set; }
 
         [ValidateNotNullOrEmpty]
-        [Parameter(Mandatory = false, HelpMessage = "Specify an alternate VirtualDirectory to use. This option is not recommended")]
-        public string VirtualDirectory { get; set; }
-
-        [ValidateNotNullOrEmpty]
         [Parameter(Mandatory = false, HelpMessage = "Specify the connection string to use to connect to the queuing system.  Can be left blank for MSMQ")]
         public string ConnectionString { get; set; }
 
@@ -89,6 +85,16 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(HelpMessage = "The password for the ServiceAccount.  Do not use for builtin accounts or managed serviceaccount")]
         public string ServiceAccountPassword { get; set; }
 
+        [ValidateNotNullOrEmpty]
+        [ValidatePath]
+        [Parameter(Mandatory = true,HelpMessage = "Specify the directory to use for this ServiceControl IngestionCache")]
+        public string IngestionCachePath { get; set; }
+
+        [ValidateNotNullOrEmpty]
+        [ValidatePath]
+        [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this ServiceControl Message Body Storage")]
+        public string BodyStoragePath { get; set; }
+        
         [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Audit Data")]
         [ValidateNotNull]
         [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8760)] //1 hour to 365 days
@@ -113,6 +119,7 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void ProcessRecord()
         {
+            
             var details = new ServiceControlInstanceMetadata
             {
                 InstallPath = InstallPath,
@@ -125,7 +132,6 @@ namespace ServiceControlInstaller.PowerShell
                 ServiceAccountPwd = ServiceAccountPassword,
                 HostName = HostName,
                 Port = Port,
-                VirtualDirectory = VirtualDirectory,
                 AuditQueue = AuditQueue,
                 ErrorQueue = ErrorQueue,
                 AuditLogQueue = string.IsNullOrWhiteSpace(AuditLogQueue) ? null : AuditLogQueue,
@@ -135,21 +141,24 @@ namespace ServiceControlInstaller.PowerShell
                 AuditRetentionPeriod = AuditRetentionPeriod,
                 ErrorRetentionPeriod = ErrorRetentionPeriod,
                 ConnectionString = ConnectionString,
+                IngestionCachePath = IngestionCachePath,
+                BodyStoragePath = BodyStoragePath,
                 TransportPackage = Transport
             };
-            
+
+           
             var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var logger = new PSLogger(Host);
-
             var installer = new UnattendInstaller(logger, zipfolder);
             try
             {
-                logger.Info("Installing Service Control instance...");
+                logger.Info($"Installing Service Control instance {details.Name}");
                 if (installer.Add(details, PromptToProceed))
                 {
                     var instance = ServiceControlInstance.FindByName(details.Name);
                     if (instance != null)
                     {
+                        logger.Info("Installation succeeded");
                         WriteObject(PsServiceControl.FromInstance(instance));
                     }
                     else
@@ -163,7 +172,7 @@ namespace ServiceControlInstaller.PowerShell
                 ThrowTerminatingError(new ErrorRecord(ex, null, ErrorCategory.NotSpecified, null));
             }
         }
-
+        
         private bool PromptToProceed(PathInfo pathInfo)
         {
             if (!pathInfo.CheckIfEmpty) return false;

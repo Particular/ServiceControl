@@ -67,7 +67,7 @@
             return instanceInstaller.ReportCard;
         }
 
-        internal ReportCard Upgrade(string instanceName, InstanceUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
+        internal ReportCard Upgrade(string instanceName, InstanceUpgradeOptions options, IProgress<ProgressDetails> progress = null)
         {
             progress = progress ?? new Progress<ProgressDetails>();
             var maxSteps = 10;
@@ -94,9 +94,9 @@
             var backupFile = instance.BackupAppConfig();
             try
             {
-                if (upgradeOptions.BackupRavenDbBeforeUpgrade)
+                if (options.BackupRavenDbBeforeUpgrade)
                 {
-                    var backup = new UpgradeBackupManager(instance, ZipInfo.FilePath, upgradeOptions.BackupPath);
+                    var backup = new UpgradeBackupManager(instance, ZipInfo.FilePath, options.BackupPath);
                     progress.Report(step++, maxSteps, "Restarting service in maintenance/backup mode");
                     backup.EnterBackupMode();
                     try
@@ -124,8 +124,14 @@
                 instance.UpgradeFiles(ZipInfo.FilePath);
 
                 progress.Report(step++, maxSteps, "Moving database...");
-                instance.BodyStoragePath = upgradeOptions.BodyStoragePath;
-                instance.IngestionCachePath = upgradeOptions.IngestionCachePath;
+                if (!string.IsNullOrWhiteSpace(options.BodyStoragePath))
+                {
+                    instance.BodyStoragePath = options.BodyStoragePath;
+                }
+                if (!string.IsNullOrWhiteSpace(options.IngestionCachePath))
+                {
+                    instance.IngestionCachePath = options.IngestionCachePath;
+                }
                 instance.MoveRavenDatabase(instance.DBPath);
                 instance.EnsureDirectoriesExist();
             }
@@ -135,7 +141,7 @@
                 instance.RestoreAppConfig(backupFile);
             }
 
-            upgradeOptions.ApplyChangesToInstance(instance);
+            options.ApplyChangesToInstance(instance);
             progress.Report(step, maxSteps, "Upgrading instance... (this can take some time)");
             instance.SetupInstance();
             
