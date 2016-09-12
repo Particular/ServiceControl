@@ -31,7 +31,7 @@
                     FieldsToFetch = new[]
                     {
                         "__document_id",
-                        "MessageId"
+                        "ProcessingAttempts[0].MessageId"
                     },
                     SortedFields = new[]
                     {
@@ -57,8 +57,8 @@
                         {
                             Key = id
                         });
-
-                        attachments.Add(doc.Value<string>("MessageId"));
+                        var bodyid = doc.Value<string>("ProcessingAttempts[0].MessageId");
+                        attachments.Add(bodyid);
                     });
             }
             catch (OperationCanceledException)
