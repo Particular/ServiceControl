@@ -45,7 +45,8 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void ProcessRecord()
         {
-            var installer = new UnattendInstaller(new PSLogger(Host), Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path));
+            var logger = new PSLogger(Host);
+            var installer = new UnattendInstaller(logger, Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path));
             var instance = ServiceControlInstance.FindByName(Name);
             if (instance == null)
             {

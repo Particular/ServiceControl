@@ -51,10 +51,15 @@ namespace ServiceControlInstaller.Engine.Unattended
 
             try
             {
+                logger.Info("Unpacking files...");
                 instanceInstaller.CopyFiles(ZipInfo.FilePath);
+                logger.Info("Writing configuration file...");
                 instanceInstaller.WriteConfigurationFile();
+                logger.Info("Registering UrlAcl...");
                 instanceInstaller.RegisterUrlAcl();
+                logger.Info("Running setup to create queues...");
                 instanceInstaller.SetupInstance();
+                logger.Info("Registering Windows Service...");
                 instanceInstaller.RegisterService();
                 foreach (var warning in instanceInstaller.ReportCard.Warnings)
                 {
@@ -113,6 +118,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                         }
                         catch (Exception ex)
                         {
+                            logger.Error($"Backup failed - {ex.Message}");
                             instance.ReportCard.Errors.Add($"An exception occurred while attempting the DB backup - {ex.Message}");
                             return false;
                         }
@@ -122,6 +128,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                             backup.ExitBackupMode();
                         }
                     }
+                    logger.Info("Unpacking files...");
                     instance.UpgradeFiles(ZipInfo.FilePath);
                     if (!string.IsNullOrWhiteSpace(options.BodyStoragePath))
                     {
@@ -131,6 +138,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                     {
                         instance.IngestionCachePath = options.IngestionCachePath;
                     }
+                    logger.Info("Moving DB files...");
                     instance.MoveRavenDatabase(instance.DBPath);
                     instance.EnsureDirectoriesExist();
                 }
@@ -138,7 +146,10 @@ namespace ServiceControlInstaller.Engine.Unattended
                 {
                     instance.RestoreAppConfig(backupFile);
                 }
+                logger.Info("Applying config changes...");
                 options.ApplyChangesToInstance(instance);
+
+                logger.Info("Running setup to create queues");
                 instance.SetupInstance();
 
                 if (instance.ReportCard.HasErrors)
@@ -222,16 +233,27 @@ namespace ServiceControlInstaller.Engine.Unattended
             try
             {
                 instance.BackupAppConfig();
+                logger.Info("Disable Windows Service...");
+
                 instance.Service.SetStartupMode("Disabled");
+                logger.Info("Delete Windows Service...");
                 instance.Service.Delete();
+                logger.Info("Remove UrlAcL...");
                 instance.RemoveUrlAcl();
+                logger.Info("Remove Binaries...");
                 instance.RemoveBinFolder(); 
                 if (removeLogs)
                 {
+                    logger.Info("Remove Logs Folder...");
                     instance.RemoveLogsFolder();
+                }
+                else
+                {
+                    logger.Info($"Skipped removing Logs Folder ({instance.LogPath}) ...");
                 }
                 if (removeDB)
                 {
+                    logger.Info("Removing Data...");
                     instance.RemoveDataBaseFolder();
                     instance.RemoveIngestionFolder();
                     instance.RemoveBodyStorageFolder();
