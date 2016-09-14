@@ -61,19 +61,6 @@
             }
         }
 
-        public bool Delete(string tag, string messageId)
-        {
-            var path = FullPath(tag, messageId);
-
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-                return true;
-            }
-
-            return false;
-        }
-
         public void PurgeExpired(string tag, DateTime cutOffUtc)
         {
             var tagPath = Path.Combine(rootLocation, tag);

@@ -6,16 +6,15 @@
 
     static class BodyStorageTags
     {
-        public static string ErrorTransient = "error-transient";
-        public static string ErrorPersistent = "error-persistent";
-        public static string Audit = "audit";
+        public const string ErrorTransient = "error-transient";
+        public const string ErrorPersistent = "error-persistent";
+        public const string Audit = "audit";
     }
 
     public interface IMessageBodyStore
     {
         ClaimsCheck Store(string tag, byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy);
         bool TryGet(string tag, string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata);
-        void Delete(string tag, string messageId);
         void PurgeExpired(string tag, DateTime cutOffUtc);
         void ChangeTag(string messageId, string originalTag, string newTag);
     }
@@ -79,13 +78,6 @@
             }
         }
 
-        public void Delete(string tag, string messageId)
-        {
-            if (!newMessageBodyStore.Delete(tag, messageId))
-            {
-                legacyBodyStorage.Delete(messageId);
-            }
-        }
         public void PurgeExpired(string tag, DateTime cutOffUtc)
             => newMessageBodyStore.PurgeExpired(tag, cutOffUtc);
 
