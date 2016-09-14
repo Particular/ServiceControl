@@ -67,7 +67,7 @@
 
         void InnerHandle(TransportMessage message)
         {
-            var metadata = messageBodyFactory.Create(message);
+            var metadata = messageBodyFactory.Create(message.Headers.UniqueMessageId(), message);
             var claimCheck = messageBodyStore.Store(BodyStorageTags.ErrorPersistent, message.Body, metadata, errorMessageBodyStoragePolicy);
 
             errorIngestionCache.Write(message.Headers, message.Recoverable, claimCheck);

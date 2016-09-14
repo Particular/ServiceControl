@@ -34,14 +34,19 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                                 // api not up yet
                             }
                         }
-                        
+
                         bus.SendLocal(new MessageThatWillFail());
                     })
                     .When(ctx =>
                     {
                         object failure;
                         return ctx.IssueRetry && TryGet("/api/errors/" + ctx.UniqueMessageId, out failure);
-                    }, (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")))
+                    }, (bus, ctx) =>
+                    {
+                        ctx.RetryIssued = true;
+                        Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    }))
+
                 .Done(ctx => ctx.Done)
                 .Run(TimeSpan.FromMinutes(3));
 
@@ -55,7 +60,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                 EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
             }
 
-            public class MessageThatWillFailHandler: IHandleMessages<MessageThatWillFail>
+            public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
             {
                 public MyContext Context { get; set; }
                 public IBus Bus { get; set; }
@@ -63,10 +68,10 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 
                 public void Handle(MessageThatWillFail message)
                 {
-                    if (!Context.ExceptionThrown) //simulate that the exception will be resolved with the retry
+                    if (!Context.RetryIssued) //simulate that the exception will be resolved with the retry
                     {
                         Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.EndpointName()).ToString();
-                        Context.ExceptionThrown = Context.IssueRetry = true;
+                        Context.IssueRetry = true;
                         throw new Exception("Simulated exception");
                     }
 
@@ -78,7 +83,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         public class MyContext : ScenarioContext
         {
             public bool Done { get; set; }
-            public bool ExceptionThrown { get; set; }
+            public bool RetryIssued { get; set; }
             public bool IssueRetry { get; set; }
             public string UniqueMessageId { get; set; }
         }

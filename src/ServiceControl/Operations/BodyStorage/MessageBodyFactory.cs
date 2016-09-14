@@ -7,9 +7,9 @@
     {
         const string DefaultContentType = "text/xml";
 
-        public MessageBodyMetadata Create(TransportMessage message)
+        public MessageBodyMetadata Create(string id, TransportMessage message)
         {
-            var messageId = message.Id;
+            var messageId = id;
             var contentType = GetContentType(message.Headers);
             var bodySize = message.Body?.Length ?? 0;
 

@@ -178,7 +178,7 @@ namespace ServiceControl.Recoverability
             byte[] messageBody;
             MessageBodyMetadata metadata;
 
-            if (messageBodyStore.TryGet(BodyStorageTags.ErrorPersistent, attempt.MessageId, out messageBody, out metadata))
+            if (messageBodyStore.TryGet(BodyStorageTags.ErrorPersistent, message.UniqueMessageId, out messageBody, out metadata))
             {
                 transportMessage.Body = messageBody;
             }
