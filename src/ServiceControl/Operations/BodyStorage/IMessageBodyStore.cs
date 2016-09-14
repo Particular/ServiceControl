@@ -16,6 +16,7 @@
         ClaimsCheck Store(string tag, byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy);
         bool TryGet(string tag, string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata);
         void Delete(string tag, string messageId);
+        void PurgeExpired(string tag, DateTime cutOffUtc);
     }
 
     class BackwardsCompatibleMessageBodyStore : IMessageBodyStore
