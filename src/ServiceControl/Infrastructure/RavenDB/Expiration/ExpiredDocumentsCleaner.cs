@@ -88,6 +88,16 @@
                     logger.Error("Cleaning of audit expired documents failed.", ex);
                 }
 
+                try
+                {
+                    messageBodyStore.PurgeExpired(BodyStorageTags.Audit, threshold);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error("Cleaning of audit expired message bodies failed.", ex);
+
+                }
+
                 if (cancellationTokenSource.IsCancellationRequested)
                 {
                     return;
@@ -118,6 +128,17 @@
                 {
                     logger.Error("Cleaning of error expired documents failed.", ex);
                 }
+
+                try
+                {
+                    messageBodyStore.PurgeExpired(BodyStorageTags.ErrorTransient, threshold);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error("Cleaning of error expired message bodies failed.", ex);
+
+                }
+
             }
         }
 

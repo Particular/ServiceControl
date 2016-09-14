@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations.BodyStorage
 {
+    using System;
     using System.IO;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -71,6 +72,19 @@
             }
 
             return false;
+        }
+
+        public void PurgeExpired(string tag, DateTime cutOffUtc)
+        {
+            var tagPath = Path.Combine(rootLocation, tag);
+            foreach (var file in Directory.EnumerateFiles(tagPath))
+            {
+                var lastTouched = File.GetLastWriteTimeUtc(file);
+                if (lastTouched <= cutOffUtc)
+                {
+                    File.Delete(file);
+                }
+            }
         }
 
         private string FullPath(string tag, string messageId)

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations.BodyStorage
 {
+    using System;
     using System.IO;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
 
@@ -83,5 +84,7 @@
                 legacyBodyStorage.Delete(messageId);
             }
         }
+        public void PurgeExpired(string tag, DateTime cutOffUtc)
+            => newMessageBodyStore.PurgeExpired(tag, cutOffUtc);
     }
 }

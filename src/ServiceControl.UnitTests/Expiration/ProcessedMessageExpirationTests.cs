@@ -187,7 +187,7 @@
                 }
 
                 // Verify body expired
-                Assert.AreEqual(messageId, messageBodyStore.DeletedMessages.SingleOrDefault(), "Audit document body should have been deleted");
+                Assert.IsNotEmpty(messageBodyStore.Purges, "Audit documents should have been purged");
             }
         }
 
@@ -257,11 +257,15 @@
 
             public void Delete(string tag, string messageId)
             {
-                DeletedMessages.Add(messageId);
+                throw new NotImplementedException();
             }
 
-            public IList<string> DeletedMessages = new List<string>();
-        }
+            public void PurgeExpired(string tag, DateTime cutOffUtc)
+            {
+                Purges.Add(Tuple.Create(tag, cutOffUtc));
+            }
 
+            public List<Tuple<string, DateTime>> Purges = new List<Tuple<string, DateTime>>();
+        }
     }
 }
