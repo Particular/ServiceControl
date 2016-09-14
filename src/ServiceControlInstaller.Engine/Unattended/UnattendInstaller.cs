@@ -94,7 +94,7 @@ namespace ServiceControlInstaller.Engine.Unattended
         {
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
-            var restartService = instance.Service.Status == ServiceControllerStatus.Running;
+            var restartService = instance.Service.Status == ServiceControllerStatus.Running & !options.SuppressRestart;
 
             if (!instance.TryStopService())
             {

@@ -4,6 +4,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
     public class InstanceUpgradeOptions
     {
+        public bool SuppressRestart { get; set; }
         public bool? OverrideEnableErrorForwarding { get; set; }
         public TimeSpan? ErrorRetentionPeriod { get; set; }
         public TimeSpan? AuditRetentionPeriod { get; set; }

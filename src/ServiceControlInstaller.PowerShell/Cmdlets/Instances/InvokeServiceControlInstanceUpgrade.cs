@@ -11,12 +11,15 @@ namespace ServiceControlInstaller.PowerShell
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
 
-    [Cmdlet(VerbsLifecycle.Invoke, "ServiceControlInstanceUpgrade")]
+    [Cmdlet(VerbsLifecycle.Invoke, "ServiceControlInstanceUpgrade", DefaultParameterSetName = "Manual")]
     public class InvokeServiceControlInstanceUpgrade : PSCmdlet
     {
-        [ValidateNotNullOrEmpty] [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")] public string Name;
+        [ValidateNotNullOrEmpty]
+        [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
+        public string Name { get; set; }
 
-        [Parameter(ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 1, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue.", ParameterSetName = "Manual")] public bool? ForwardErrorMessages;
+        [Parameter(ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 1, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue.", ParameterSetName = "Manual")]
+        public bool? ForwardErrorMessages { get; set; }
 
         [Parameter(HelpMessage = "Specify the timespan to keep Audit Data", ParameterSetName = "Manual")]
         [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8760)] //1 hour to 365 days
@@ -38,6 +41,9 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(HelpMessage = "Use defaults for AuditRetentionPeriod, ErrorRetentionPeriod, BodyStoragePath, IngestionCachePath and ForwardErrorMessages if required.  Existing values in config will not be overwritten", ParameterSetName = "Automatic")]
         public SwitchParameter Auto { get; set; }
 
+        [Parameter(HelpMessage = "If the service was running prior to upgrade the default behavior is to restart it after upgrade. This switch suppresses the service restart")]
+        public SwitchParameter SuppressRestart { get; set; }
+        
         protected override void BeginProcessing()
         {
             Account.TestIfAdmin();
@@ -53,8 +59,10 @@ namespace ServiceControlInstaller.PowerShell
                 ThrowTerminatingError(new ErrorRecord(new Exception($"No action taken. An instance called {Name} was not found"), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
                 return;
             }
-            var options = Auto.ToBool() ? AutoOptions(instance) : ManualOptions(instance);
 
+            var options = Auto.ToBool() ? AutoOptions(instance) : ManualOptions(instance);
+            options.SuppressRestart = SuppressRestart.ToBool();
+            
             if (!string.IsNullOrWhiteSpace(BackupPath))
             {
                 options.BackupRavenDbBeforeUpgrade = true;

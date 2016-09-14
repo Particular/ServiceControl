@@ -3,6 +3,7 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
+    using System.IO;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
 
@@ -37,7 +38,7 @@ namespace ServiceControlInstaller.PowerShell
         public bool ForwardErrorMessages => Instance.Version < SettingsList.ForwardErrorMessages.SupportedFrom || Instance.ForwardErrorMessages;
         public string ServiceAccount => Instance.ServiceAccount;
         public Version Version => Instance.Version;
-
+        public string AppConfigPath => Path.Combine(Instance.InstallPath, "ServiceControl.exe.config");
         public void Refresh()
         {
             Instance.Reload();
