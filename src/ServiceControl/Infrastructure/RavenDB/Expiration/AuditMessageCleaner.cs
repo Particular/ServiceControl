@@ -10,7 +10,7 @@
     {
         private static readonly ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
 
-        public static void Clean(IDocumentStore store, DateTime expiryThreshold)
+        public static void Clean(IDocumentStore store, DateTime expiryThreshold, bool waitForCompletion = false)
         {
             var query = new IndexQuery
             {
@@ -23,11 +23,16 @@
             var indexName = new ExpiryProcessedMessageIndex().IndexName;
 
             logger.Info("Starting clean-up of expired audit documents.");
-            store.DatabaseCommands.DeleteByIndex(indexName, query, new BulkOperationOptions
+            var operation = store.DatabaseCommands.DeleteByIndex(indexName, query, new BulkOperationOptions
             {
                 AllowStale = true,
                 RetrieveDetails = false
             });
+
+            if (waitForCompletion)
+            {
+                operation.WaitForCompletion();
+            }
         }
     }
 }
