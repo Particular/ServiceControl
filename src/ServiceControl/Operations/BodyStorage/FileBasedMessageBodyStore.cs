@@ -87,6 +87,16 @@
             }
         }
 
+        public void ChangeTag(string messageId, string originalTag, string newTag)
+        {
+            var originalPath = FullPath(originalTag, messageId);
+            if (File.Exists(originalPath))
+            {
+                var newPath = FullPath(newTag, messageId);
+                File.Move(originalPath, newPath);
+            }
+        }
+
         private string FullPath(string tag, string messageId)
             => Path.Combine(
                 Directory.CreateDirectory(Path.Combine(rootLocation, tag)).FullName,

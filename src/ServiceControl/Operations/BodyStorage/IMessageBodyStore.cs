@@ -17,6 +17,7 @@
         bool TryGet(string tag, string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata);
         void Delete(string tag, string messageId);
         void PurgeExpired(string tag, DateTime cutOffUtc);
+        void ChangeTag(string messageId, string originalTag, string newTag);
     }
 
     class BackwardsCompatibleMessageBodyStore : IMessageBodyStore
@@ -87,5 +88,8 @@
         }
         public void PurgeExpired(string tag, DateTime cutOffUtc)
             => newMessageBodyStore.PurgeExpired(tag, cutOffUtc);
+
+        public void ChangeTag(string messageId, string originalTag, string newTag)
+            => newMessageBodyStore.ChangeTag(messageId, originalTag, newTag);
     }
 }

@@ -265,6 +265,11 @@
                 Purges.Add(Tuple.Create(tag, cutOffUtc));
             }
 
+            public void ChangeTag(string messageId, string originalTag, string newTag)
+            {
+                throw new NotImplementedException();
+            }
+
             public List<Tuple<string, DateTime>> Purges = new List<Tuple<string, DateTime>>();
         }
     }
