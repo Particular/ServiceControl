@@ -156,7 +156,7 @@
                 var expiredDate = DateTime.UtcNow.AddDays(-3);
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
                 // Store expired message with associated body
-                var messageId = "21";
+                //var messageId = "21";
 
                 var processedMessage = new ProcessedMessage
                 {
