@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System.Collections.Generic;
     using System.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -7,6 +8,7 @@ namespace ServiceControl.Recoverability
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Operations.BodyStorage;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
@@ -14,11 +16,13 @@ namespace ServiceControl.Recoverability
 
         private readonly IBus bus;
         private readonly IDocumentStore store;
+        private readonly IMessageBodyStore messageBodyStore;
 
-        public ArchiveAllInGroupHandler(IBus bus, IDocumentStore store)
+        public ArchiveAllInGroupHandler(IBus bus, IDocumentStore store, IMessageBodyStore messageBodyStore)
         {
             this.bus = bus;
             this.store = store;
+            this.messageBodyStore = messageBodyStore;
         }
 
         public void Handle(ArchiveAllInGroup message)
@@ -27,7 +31,7 @@ namespace ServiceControl.Recoverability
 
             FailedMessage.FailureGroup failureGroup;
             DocumentPatchResult[] patchedDocumentIds;
-                
+
             using (var session = store.OpenSession())
             {
                 var result = session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(
@@ -59,6 +63,9 @@ namespace ServiceControl.Recoverability
                     return;
                 }
 
+                var messageBodyIds = patchedDocumentIds.Select(x => x.Document.Split('/').LastOrDefault()).Where(x => x != null);
+                MarkMessageBodiesAsTransient(messageBodyIds);
+
                 var failedMessage = session.Load<FailedMessage>(patchedDocumentIds[0].Document);
                 failureGroup = failedMessage.FailureGroups.FirstOrDefault();
             }
@@ -76,6 +83,14 @@ namespace ServiceControl.Recoverability
                 GroupName = groupName,
                 MessagesCount = patchedDocumentIds.Length
             });
+        }
+
+        private void MarkMessageBodiesAsTransient(IEnumerable<string> messageBodyIds)
+        {
+            foreach (var messageBodyId in messageBodyIds)
+            {
+                messageBodyStore.ChangeTag(messageBodyId, BodyStorageTags.ErrorPersistent, BodyStorageTags.ErrorTransient);
+            }
         }
 
         class DocumentPatchResult
