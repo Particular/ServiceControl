@@ -81,7 +81,7 @@
                 logger.DebugFormat("Trying to find expired ProcessedMessage and SagaHistory documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
                 try
                 {
-                    AuditMessageCleaner.Clean(deletionBatchSize, store, threshold, cancellationTokenSource.Token, messageBodyStore);
+                    AuditMessageCleaner.Clean(store, threshold);
                 }
                 catch (Exception ex)
                 {
@@ -95,7 +95,7 @@
 
                 try
                 {
-                    SagaHistoryCleaner.Clean(deletionBatchSize, store, threshold, cancellationTokenSource.Token);
+                    SagaHistoryCleaner.Clean(store, threshold);
                 }
                 catch (Exception ex)
                 {
@@ -112,7 +112,7 @@
                 logger.DebugFormat("Trying to find expired FailedMessage documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
                 try
                 {
-                    ErrorMessageCleaner.Clean(deletionBatchSize, store, threshold, cancellationTokenSource.Token, messageBodyStore);
+                    ErrorMessageCleaner.Clean(store, threshold);
                 }
                 catch (Exception ex)
                 {
