@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl", "ServiceControl\ServiceControl.csproj", "{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4} = {FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTests", "ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
 EndProject
@@ -17,6 +20,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Engine", "ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj", "{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}"
 	ProjectSection(ProjectDependencies) = postProject
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4} = {FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}
 		{15F811B7-314C-4E9E-B5E9-35596045BBC4} = {15F811B7-314C-4E9E-B5E9-35596045BBC4}
 	EndProjectSection
 EndProject
