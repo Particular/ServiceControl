@@ -117,7 +117,7 @@
 
                     try
                     {
-                        messageBodyStore.Delete(att);
+                        messageBodyStore.Delete(BodyStorageTags.Audit, att);
                     }
                     catch (Exception ex)
                     {

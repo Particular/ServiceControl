@@ -13,14 +13,14 @@
             rootLocation = Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath)).FullName;
         }
 
-        public ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
+        public ClaimsCheck Store(string tag, byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
         {
             if (!messageStoragePolicy.ShouldStore(messageBodyMetadata))
             {
                 return new ClaimsCheck(false, messageBodyMetadata);
             }
 
-            using (var writer = new BinaryWriter(File.Open(FullPath(messageBodyMetadata.MessageId), FileMode.Create, FileAccess.Write, FileShare.None)))
+            using (var writer = new BinaryWriter(File.Open(FullPath(tag, messageBodyMetadata.MessageId), FileMode.Create, FileAccess.Write, FileShare.None)))
             {
                 writer.Write(VERSION);
                 writer.Write(messageBodyMetadata.MessageId);
@@ -32,11 +32,11 @@
             return new ClaimsCheck(true, messageBodyMetadata);
         }
 
-        public bool TryGet(string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
+        public bool TryGet(string tag, string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
         {
             try
             {
-                using (var file = File.Open(FullPath(messageId), FileMode.Open, FileAccess.Read, FileShare.None))
+                using (var file = File.Open(FullPath(tag, messageId), FileMode.Open, FileAccess.Read, FileShare.None))
                 using (var reader = new BinaryReader(file))
                 {
                     reader.ReadInt16(); // ignore version for now
@@ -60,9 +60,9 @@
             }
         }
 
-        public bool Delete(string messageId)
+        public bool Delete(string tag, string messageId)
         {
-            var path = FullPath(messageId);
+            var path = FullPath(tag, messageId);
 
             if (File.Exists(path))
             {
@@ -73,6 +73,9 @@
             return false;
         }
 
-        private string FullPath(string messageId) => Path.Combine(rootLocation, messageId);
+        private string FullPath(string tag, string messageId)
+            => Path.Combine(
+                Directory.CreateDirectory(Path.Combine(rootLocation, tag)).FullName,
+                messageId);
     }
 }

@@ -3,11 +3,18 @@
     using System.IO;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
 
+    static class BodyStorageTags
+    {
+        public static string ErrorTransient = "error-transient";
+        public static string ErrorPersistent = "error-persistent";
+        public static string Audit = "audit";
+    }
+
     public interface IMessageBodyStore
     {
-        ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy);
-        bool TryGet(string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata);
-        void Delete(string messageId);
+        ClaimsCheck Store(string tag, byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy);
+        bool TryGet(string tag, string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata);
+        void Delete(string tag, string messageId);
     }
 
     class BackwardsCompatibleMessageBodyStore : IMessageBodyStore
@@ -21,14 +28,14 @@
             this.legacyBodyStorage = legacyBodyStorage;
         }
 
-        public ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
+        public ClaimsCheck Store(string tag, byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
         {
-            return newMessageBodyStore.Store(messageBody, messageBodyMetadata, messageStoragePolicy);
+            return newMessageBodyStore.Store(tag, messageBody, messageBodyMetadata, messageStoragePolicy);
         }
 
-        public bool TryGet(string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
+        public bool TryGet(string tag, string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
         {
-            if (newMessageBodyStore.TryGet(messageId, out messageBody, out messageBodyMetadata))
+            if (newMessageBodyStore.TryGet(tag, messageId, out messageBody, out messageBodyMetadata))
             {
                 return true;
             }
@@ -69,9 +76,9 @@
             }
         }
 
-        public void Delete(string messageId)
+        public void Delete(string tag, string messageId)
         {
-            if (!newMessageBodyStore.Delete(messageId))
+            if (!newMessageBodyStore.Delete(tag, messageId))
             {
                 legacyBodyStorage.Delete(messageId);
             }

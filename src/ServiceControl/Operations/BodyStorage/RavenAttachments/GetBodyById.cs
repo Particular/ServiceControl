@@ -38,7 +38,19 @@
             byte[] messageBody;
             MessageBodyMetadata metadata;
 
-            if (MessageBodyStorage.TryGet(messageId, out messageBody, out metadata))
+            var found = MessageBodyStorage.TryGet(BodyStorageTags.Audit, messageId, out messageBody, out metadata);
+
+            if (!found)
+            {
+                found = MessageBodyStorage.TryGet(BodyStorageTags.ErrorPersistent, messageId, out messageBody, out metadata);
+            }
+
+            if (!found)
+            {
+                found = MessageBodyStorage.TryGet(BodyStorageTags.ErrorTransient, messageId, out messageBody, out metadata);
+            }
+
+            if (found)
             {
                 return new Response
                 {

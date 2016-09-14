@@ -79,7 +79,7 @@
 
                     try
                     {
-                        messageBodyStore.Delete(bodyId);
+                        messageBodyStore.Delete(BodyStorageTags.ErrorTransient, bodyId);
                     }
                     catch (Exception ex)
                     {
