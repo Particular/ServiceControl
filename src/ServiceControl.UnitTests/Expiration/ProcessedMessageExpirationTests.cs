@@ -104,7 +104,7 @@
             new ExpiryProcessedMessageIndex().Execute(documentStore);
             documentStore.WaitForIndexing();
 
-            AuditMessageCleaner.Clean(100, documentStore, expiryThreshold, new CancellationToken(), messageBodyStore ?? new FakeMessageBodyStore());
+            AuditMessageCleaner.Clean(documentStore, expiryThreshold, waitForCompletion: true);
             documentStore.WaitForIndexing();
         }
 
@@ -156,7 +156,7 @@
                 var expiredDate = DateTime.UtcNow.AddDays(-3);
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
                 // Store expired message with associated body
-                var messageId = "21";
+                //var messageId = "21";
 
                 var processedMessage = new ProcessedMessage
                 {
@@ -187,7 +187,7 @@
                 }
 
                 // Verify body expired
-                Assert.AreEqual(messageId, messageBodyStore.DeletedMessages.SingleOrDefault(), "Audit document body should have been deleted");
+                Assert.IsNotEmpty(messageBodyStore.Purges, "Audit documents should have been purged");
             }
         }
 
@@ -245,23 +245,32 @@
 
         class FakeMessageBodyStore : IMessageBodyStore
         {
-            public ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
+            public ClaimsCheck Store(string tag, byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
             {
                 throw new NotImplementedException();
             }
 
-            public bool TryGet(string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
+            public bool TryGet(string tag, string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
             {
                 throw new NotImplementedException();
             }
 
-            public void Delete(string messageId)
+            public void Delete(string tag, string messageId)
             {
-                DeletedMessages.Add(messageId);
+                throw new NotImplementedException();
             }
 
-            public IList<string> DeletedMessages = new List<string>();
+            public void PurgeExpired(string tag, DateTime cutOffUtc)
+            {
+                Purges.Add(Tuple.Create(tag, cutOffUtc));
+            }
+
+            public void ChangeTag(string messageId, string originalTag, string newTag)
+            {
+                throw new NotImplementedException();
+            }
+
+            public List<Tuple<string, DateTime>> Purges = new List<Tuple<string, DateTime>>();
         }
-
     }
 }

@@ -6,16 +6,19 @@
     using Raven.Client;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.MessageFailures.InternalMessages;
+    using ServiceControl.Operations.BodyStorage;
 
     public class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>, IHandleMessages<MarkPendingRetryAsResolved>, IHandleMessages<MarkPendingRetriesAsResolved>
     {
         private readonly IBus bus;
         private readonly IDocumentStore store;
+        private readonly IMessageBodyStore messageBodyStore;
 
-        public MessageFailureResolvedHandler(IBus bus, IDocumentStore store)
+        public MessageFailureResolvedHandler(IBus bus, IDocumentStore store, IMessageBodyStore messageBodyStore)
         {
             this.bus = bus;
             this.store = store;
+            this.messageBodyStore = messageBodyStore;
         }
 
         public void Handle(MessageFailureResolvedByRetry message)
@@ -74,7 +77,10 @@
 
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
+
                 session.SaveChanges();
+
+                messageBodyStore.ChangeTag(failedMessage.UniqueMessageId, BodyStorageTags.ErrorPersistent, BodyStorageTags.ErrorTransient);
             }
         }
     }

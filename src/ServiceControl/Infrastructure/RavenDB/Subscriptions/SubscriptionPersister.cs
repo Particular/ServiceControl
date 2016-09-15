@@ -27,6 +27,7 @@
 
         void UpdateFromDatabase(IDocumentSession session)
             => subscriptionLookup = session.Query<Subscription>()
+                                            .Customize(x => x.WaitForNonStaleResultsAsOfNow())
                                             .Take(1024) // NOTE: This is the max that Raven will give us in one go. After this we need to paginate properly
                                             .AsEnumerable()
                                             .SelectMany(s => s.Clients.Select(c => new

@@ -97,7 +97,7 @@
                 byte[] messageBody;
                 MessageBodyMetadata _;
 
-                if (messageBodyStore.TryGet(bodyStorageClaimsCheck.Metadata.MessageId, out messageBody, out _))
+                if (messageBodyStore.TryGet(BodyStorageTags.ErrorPersistent, bodyStorageClaimsCheck.Metadata.MessageId, out messageBody, out _))
                 {
                     metadata.Add("Body", Encoding.UTF8.GetString(messageBody));
                 }

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations.BodyStorage
 {
+    using System;
     using System.IO;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -10,17 +11,20 @@
 
         public FileBasedMessageBodyStore(Settings settings)
         {
-            rootLocation = Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath)).FullName;
+            rootLocation = Directory.CreateDirectory(settings.BodyStoragePath).FullName;
+            Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath, BodyStorageTags.ErrorTransient));
+            Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath, BodyStorageTags.Audit));
+            Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath, BodyStorageTags.ErrorPersistent));
         }
 
-        public ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
+        public ClaimsCheck Store(string tag, byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
         {
             if (!messageStoragePolicy.ShouldStore(messageBodyMetadata))
             {
                 return new ClaimsCheck(false, messageBodyMetadata);
             }
 
-            using (var writer = new BinaryWriter(File.Open(FullPath(messageBodyMetadata.MessageId), FileMode.Create, FileAccess.Write, FileShare.None)))
+            using (var writer = new BinaryWriter(File.Open(FullPath(tag, messageBodyMetadata.MessageId), FileMode.Create, FileAccess.Write, FileShare.None)))
             {
                 writer.Write(VERSION);
                 writer.Write(messageBodyMetadata.MessageId);
@@ -32,11 +36,11 @@
             return new ClaimsCheck(true, messageBodyMetadata);
         }
 
-        public bool TryGet(string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
+        public bool TryGet(string tag, string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
         {
             try
             {
-                using (var file = File.Open(FullPath(messageId), FileMode.Open, FileAccess.Read, FileShare.None))
+                using (var file = File.Open(FullPath(tag, messageId), FileMode.Open, FileAccess.Read, FileShare.None))
                 using (var reader = new BinaryReader(file))
                 {
                     reader.ReadInt16(); // ignore version for now
@@ -60,19 +64,30 @@
             }
         }
 
-        public bool Delete(string messageId)
+        public void PurgeExpired(string tag, DateTime cutOffUtc)
         {
-            var path = FullPath(messageId);
-
-            if (File.Exists(path))
+            var tagPath = Path.Combine(rootLocation, tag);
+            foreach (var file in Directory.EnumerateFiles(tagPath))
             {
-                File.Delete(path);
-                return true;
+                var lastTouched = File.GetLastWriteTimeUtc(file);
+                if (lastTouched <= cutOffUtc)
+                {
+                    File.Delete(file);
+                }
             }
-
-            return false;
         }
 
-        private string FullPath(string messageId) => Path.Combine(rootLocation, messageId);
+        public void ChangeTag(string messageId, string originalTag, string newTag)
+        {
+            var originalPath = FullPath(originalTag, messageId);
+            if (File.Exists(originalPath))
+            {
+                var newPath = FullPath(newTag, messageId);
+                File.Move(originalPath, newPath);
+            }
+        }
+
+        private string FullPath(string tag, string messageId)
+            => Path.Combine(rootLocation, tag, messageId);
     }
 }

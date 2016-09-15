@@ -1,13 +1,22 @@
 ﻿namespace ServiceControl.Operations.BodyStorage
 {
+    using System;
     using System.IO;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
 
+    static class BodyStorageTags
+    {
+        public const string ErrorTransient = "error-transient";
+        public const string ErrorPersistent = "error-persistent";
+        public const string Audit = "audit";
+    }
+
     public interface IMessageBodyStore
     {
-        ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy);
-        bool TryGet(string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata);
-        void Delete(string messageId);
+        ClaimsCheck Store(string tag, byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy);
+        bool TryGet(string tag, string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata);
+        void PurgeExpired(string tag, DateTime cutOffUtc);
+        void ChangeTag(string messageId, string originalTag, string newTag);
     }
 
     class BackwardsCompatibleMessageBodyStore : IMessageBodyStore
@@ -21,14 +30,14 @@
             this.legacyBodyStorage = legacyBodyStorage;
         }
 
-        public ClaimsCheck Store(byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
+        public ClaimsCheck Store(string tag, byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
         {
-            return newMessageBodyStore.Store(messageBody, messageBodyMetadata, messageStoragePolicy);
+            return newMessageBodyStore.Store(tag, messageBody, messageBodyMetadata, messageStoragePolicy);
         }
 
-        public bool TryGet(string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
+        public bool TryGet(string tag, string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata)
         {
-            if (newMessageBodyStore.TryGet(messageId, out messageBody, out messageBodyMetadata))
+            if (newMessageBodyStore.TryGet(tag, messageId, out messageBody, out messageBodyMetadata))
             {
                 return true;
             }
@@ -69,12 +78,10 @@
             }
         }
 
-        public void Delete(string messageId)
-        {
-            if (!newMessageBodyStore.Delete(messageId))
-            {
-                legacyBodyStorage.Delete(messageId);
-            }
-        }
+        public void PurgeExpired(string tag, DateTime cutOffUtc)
+            => newMessageBodyStore.PurgeExpired(tag, cutOffUtc);
+
+        public void ChangeTag(string messageId, string originalTag, string newTag)
+            => newMessageBodyStore.ChangeTag(messageId, originalTag, newTag);
     }
 }
