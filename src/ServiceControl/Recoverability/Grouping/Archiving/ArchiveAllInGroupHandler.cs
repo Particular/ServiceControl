@@ -51,7 +51,8 @@ namespace ServiceControl.Recoverability
                         }
                     }, new BulkOperationOptions
                     {
-                        AllowStale = true
+                        AllowStale = true,
+                        RetrieveDetails = true
                     }).WaitForCompletion();
 
                 patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();

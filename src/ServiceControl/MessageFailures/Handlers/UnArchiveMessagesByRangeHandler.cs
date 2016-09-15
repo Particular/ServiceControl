@@ -45,7 +45,11 @@ if(this.Status === archivedStatus) {
                         {"archivedStatus", (int) FailedMessageStatus.Archived},
                         {"unresolvedStatus", (int) FailedMessageStatus.Unresolved}
                     }
-                }, new BulkOperationOptions { AllowStale = true }).WaitForCompletion();
+                }, new BulkOperationOptions
+                {
+                    AllowStale = true,
+                    RetrieveDetails = true
+                }).WaitForCompletion();
 
             var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
 
