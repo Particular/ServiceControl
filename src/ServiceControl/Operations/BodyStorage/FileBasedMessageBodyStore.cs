@@ -11,7 +11,10 @@
 
         public FileBasedMessageBodyStore(Settings settings)
         {
-            rootLocation = Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath)).FullName;
+            rootLocation = Directory.CreateDirectory(settings.BodyStoragePath).FullName;
+            Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath, BodyStorageTags.ErrorTransient));
+            Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath, BodyStorageTags.Audit));
+            Directory.CreateDirectory(Path.Combine(settings.BodyStoragePath, BodyStorageTags.ErrorPersistent));
         }
 
         public ClaimsCheck Store(string tag, byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy)
@@ -85,8 +88,6 @@
         }
 
         private string FullPath(string tag, string messageId)
-            => Path.Combine(
-                Directory.CreateDirectory(Path.Combine(rootLocation, tag)).FullName,
-                messageId);
+            => Path.Combine(rootLocation, tag, messageId);
     }
 }
