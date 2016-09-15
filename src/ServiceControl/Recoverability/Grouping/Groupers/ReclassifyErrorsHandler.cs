@@ -69,7 +69,7 @@ namespace ServiceControl.Recoverability
                     var query = session.Query<FailedMessage, FailedMessageViewIndex>()
                         .Where(f => f.Status == FailedMessageStatus.Unresolved);
 
-                    var currentBatch = new List<Tuple<string, FailureDetails>>();
+                    var currentBatch = new List<Tuple<string, ClassifiableMessageDetails>>();
 
                     using (var stream = session.Advanced.Stream(query.As<FailedMessage>()))
                     {
@@ -80,7 +80,7 @@ namespace ServiceControl.Recoverability
                                 continue;
                             }
 
-                            currentBatch.Add(Tuple.Create(stream.Current.Document.Id, stream.Current.Document.ProcessingAttempts.Last().FailureDetails));
+                            currentBatch.Add(Tuple.Create(stream.Current.Document.Id, new ClassifiableMessageDetails(stream.Current.Document)));
 
                             if (currentBatch.Count == BatchSize)
                             {
@@ -121,7 +121,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        void ReclassifyBatch(IEnumerable<Tuple<string, FailureDetails>> docs)
+        void ReclassifyBatch(IEnumerable<Tuple<string, ClassifiableMessageDetails>> docs)
         {
             Parallel.ForEach(docs, doc =>
             {
@@ -148,7 +148,7 @@ namespace ServiceControl.Recoverability
             });
         }
 
-        IEnumerable<FailedMessage.FailureGroup> GetClassificationGroups(FailureDetails details)
+        IEnumerable<FailedMessage.FailureGroup> GetClassificationGroups(ClassifiableMessageDetails details)
         {
             foreach (var classifier in classifiers)
             {

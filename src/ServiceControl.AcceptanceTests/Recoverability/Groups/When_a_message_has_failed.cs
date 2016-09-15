@@ -10,6 +10,7 @@
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Recoverability;
 
     class When_a_message_has_failed : AcceptanceTest
     {
@@ -35,6 +36,9 @@
 
             Assert.AreEqual(context.UniqueMessageId, failedMessage.UniqueMessageId);
             Assert.IsNotEmpty(failedMessage.FailureGroups, "The returned message should have failure groups");
+
+            Assert.AreEqual(1, failedMessage.FailureGroups.Count(g => g.Type == ExceptionTypeAndStackTraceFailureClassifier.Id), $"{ExceptionTypeAndStackTraceFailureClassifier.Id} FailureGroup was not created");
+            Assert.AreEqual(1, failedMessage.FailureGroups.Count(g => g.Type == MessageTypeFailureClassifier.Id), $"{MessageTypeFailureClassifier.Id} FailureGroup was not created");
         }
 
         public class Receiver : EndpointConfigurationBuilder

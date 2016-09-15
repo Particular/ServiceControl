@@ -14,7 +14,8 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<ExceptionTypeAndStackTraceMessageGrouper>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<ExceptionTypeAndStackTraceFailureClassifier>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<MessageTypeFailureClassifier>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<ClassifyFailedMessageEnricher>(DependencyLifecycle.SingleInstance);
         }
 

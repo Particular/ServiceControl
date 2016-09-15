@@ -10,7 +10,7 @@
         [Test]
         public void Failure_Without_ExceptionDetails_should_not_group()
         {
-            var grouper = new ExceptionTypeAndStackTraceMessageGrouper();
+            var grouper = new ExceptionTypeAndStackTraceFailureClassifier();
             var failureWithoutExceptionDetails =  new FailureDetails();
             var classification = grouper.ClassifyFailure(failureWithoutExceptionDetails);
 
@@ -20,7 +20,7 @@
         [Test]
         public void Empty_stack_trace_should_group_by_exception_type()
         {
-            var grouper = new ExceptionTypeAndStackTraceMessageGrouper();
+            var grouper = new ExceptionTypeAndStackTraceFailureClassifier();
             var failureWithEmptyStackTrace = CreateFailureDetailsWithStackTrace(string.Empty);
             var classification = grouper.ClassifyFailure(failureWithEmptyStackTrace);
 
@@ -30,20 +30,20 @@
         [Test]
         public void Null_stack_trace_should_group_by_exception_type()
         {
-            var grouper = new ExceptionTypeAndStackTraceMessageGrouper();
+            var grouper = new ExceptionTypeAndStackTraceFailureClassifier();
             var failureWithNullStackTrace = CreateFailureDetailsWithStackTrace(null);
             var classification = grouper.ClassifyFailure(failureWithNullStackTrace);
 
             Assert.AreEqual("exceptionType: 0", classification);
         }
-        
+
         [Test]
         public void Non_standard_stack_trace_format_should_group_by_exception_type()
         {
-            var grouper = new ExceptionTypeAndStackTraceMessageGrouper();
+            var grouper = new ExceptionTypeAndStackTraceFailureClassifier();
             var failureWithNonStandardStackTrace = CreateFailureDetailsWithStackTrace("something other than a normal stack trace");
             var classification = grouper.ClassifyFailure(failureWithNonStandardStackTrace);
-            
+
             Assert.AreEqual("exceptionType: 0", classification);
         }
 
@@ -54,8 +54,8 @@
    at System.Environment.GetStackTrace(Exception e)
    at System.Environment.get_StackTrace()
    at Sample.Main()";
-            
-            var grouper = new ExceptionTypeAndStackTraceMessageGrouper();
+
+            var grouper = new ExceptionTypeAndStackTraceFailureClassifier();
             var standardStackTrace = CreateFailureDetailsWithStackTrace(stackTrace);
 
             var classification = grouper.ClassifyFailure(standardStackTrace);

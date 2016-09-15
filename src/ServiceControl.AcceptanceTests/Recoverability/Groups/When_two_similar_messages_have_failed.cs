@@ -64,7 +64,7 @@
 
             var failureGroup = groups.First();
             Assert.AreEqual(2, failureGroup.Count, "Group should have both messages in it");
-            
+
             var failureTimes = firstFailure.ProcessingAttempts
                         .Union(secondFailure.ProcessingAttempts)
                         .Where(x => x.FailureDetails != null)

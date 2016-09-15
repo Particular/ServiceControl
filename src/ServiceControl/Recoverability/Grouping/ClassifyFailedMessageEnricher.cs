@@ -16,7 +16,12 @@ namespace ServiceControl.Recoverability
 
             foreach (var classifier in Classifiers)
             {
-                var classification = classifier.ClassifyFailure(source.FailureDetails);
+                var classification = classifier.ClassifyFailure(new ClassifiableMessageDetails
+                {
+                    MessageType = source.Metadata["MessageType"],
+                    Details = source.FailureDetails
+                });
+
                 if (classification == null)
                     continue;
 
