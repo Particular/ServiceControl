@@ -5,14 +5,13 @@
     using ServiceControl.Recoverability;
 
     [TestFixture]
-    public class ExceptionTypeAndStackTraceMessageGrouperTest
+    public class ExceptionTypeAndStackTraceFailureClassifierTest
     {
         [Test]
         public void Failure_Without_ExceptionDetails_should_not_group()
         {
-            var grouper = new ExceptionTypeAndStackTraceFailureClassifier();
-            var failureWithoutExceptionDetails =  new FailureDetails();
-            var classification = grouper.ClassifyFailure(failureWithoutExceptionDetails);
+            var classifier = new ExceptionTypeAndStackTraceFailureClassifier();
+            var classification = classifier.ClassifyFailure(new ClassifiableMessageDetails());
 
             Assert.IsNull(classification);
         }
@@ -20,9 +19,9 @@
         [Test]
         public void Empty_stack_trace_should_group_by_exception_type()
         {
-            var grouper = new ExceptionTypeAndStackTraceFailureClassifier();
+            var classifier = new ExceptionTypeAndStackTraceFailureClassifier();
             var failureWithEmptyStackTrace = CreateFailureDetailsWithStackTrace(string.Empty);
-            var classification = grouper.ClassifyFailure(failureWithEmptyStackTrace);
+            var classification = classifier.ClassifyFailure(failureWithEmptyStackTrace);
 
             Assert.AreEqual("exceptionType: 0", classification);
         }
@@ -30,9 +29,9 @@
         [Test]
         public void Null_stack_trace_should_group_by_exception_type()
         {
-            var grouper = new ExceptionTypeAndStackTraceFailureClassifier();
+            var classifier = new ExceptionTypeAndStackTraceFailureClassifier();
             var failureWithNullStackTrace = CreateFailureDetailsWithStackTrace(null);
-            var classification = grouper.ClassifyFailure(failureWithNullStackTrace);
+            var classification = classifier.ClassifyFailure(failureWithNullStackTrace);
 
             Assert.AreEqual("exceptionType: 0", classification);
         }
@@ -40,9 +39,9 @@
         [Test]
         public void Non_standard_stack_trace_format_should_group_by_exception_type()
         {
-            var grouper = new ExceptionTypeAndStackTraceFailureClassifier();
+            var classifier = new ExceptionTypeAndStackTraceFailureClassifier();
             var failureWithNonStandardStackTrace = CreateFailureDetailsWithStackTrace("something other than a normal stack trace");
-            var classification = grouper.ClassifyFailure(failureWithNonStandardStackTrace);
+            var classification = classifier.ClassifyFailure(failureWithNonStandardStackTrace);
 
             Assert.AreEqual("exceptionType: 0", classification);
         }
@@ -55,15 +54,15 @@
    at System.Environment.get_StackTrace()
    at Sample.Main()";
 
-            var grouper = new ExceptionTypeAndStackTraceFailureClassifier();
+            var classifier = new ExceptionTypeAndStackTraceFailureClassifier();
             var standardStackTrace = CreateFailureDetailsWithStackTrace(stackTrace);
 
-            var classification = grouper.ClassifyFailure(standardStackTrace);
+            var classification = classifier.ClassifyFailure(standardStackTrace);
             Assert.AreEqual(@"exceptionType: System.Environment.GetStackTrace(Exception e)", classification);
 
         }
 
-        static FailureDetails CreateFailureDetailsWithStackTrace(string stackTrace)
+        static ClassifiableMessageDetails CreateFailureDetailsWithStackTrace(string stackTrace)
         {
             var failureWithEmptyStackTrace = new FailureDetails
             {
@@ -73,7 +72,10 @@
                     ExceptionType = "exceptionType"
                 }
             };
-            return failureWithEmptyStackTrace;
+            return new ClassifiableMessageDetails
+            {
+                Details = failureWithEmptyStackTrace
+            };
         }
     }
 }

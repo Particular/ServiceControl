@@ -7,7 +7,7 @@ namespace ServiceControl.Recoverability
 
         public string ClassifyFailure(ClassifiableMessageDetails failureDetails)
         {
-            return failureDetails.MessageType.ToString();
+            return failureDetails.MessageType?.ToString();
         }
     }
 }

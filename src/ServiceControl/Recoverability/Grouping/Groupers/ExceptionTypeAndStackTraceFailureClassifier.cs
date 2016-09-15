@@ -10,7 +10,7 @@ namespace ServiceControl.Recoverability
 
         public string ClassifyFailure(ClassifiableMessageDetails failure)
         {
-            var exception = failure.Details.Exception;
+            var exception = failure.Details?.Exception;
 
             if (exception == null)
                 return null;
