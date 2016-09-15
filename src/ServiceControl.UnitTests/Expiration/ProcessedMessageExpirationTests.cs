@@ -260,9 +260,10 @@
                 throw new NotImplementedException();
             }
 
-            public void PurgeExpired(string tag, DateTime cutOffUtc)
+            public int PurgeExpired(string tag, DateTime cutOffUtc)
             {
                 Purges.Add(Tuple.Create(tag, cutOffUtc));
+                return 0;
             }
 
             public void ChangeTag(string messageId, string originalTag, string newTag)

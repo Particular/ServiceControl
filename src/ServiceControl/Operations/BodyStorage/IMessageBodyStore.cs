@@ -15,7 +15,7 @@
     {
         ClaimsCheck Store(string tag, byte[] messageBody, MessageBodyMetadata messageBodyMetadata, IMessageBodyStoragePolicy messageStoragePolicy);
         bool TryGet(string tag, string messageId, out byte[] messageBody, out MessageBodyMetadata messageBodyMetadata);
-        void PurgeExpired(string tag, DateTime cutOffUtc);
+        int PurgeExpired(string tag, DateTime cutOffUtc);
         void ChangeTag(string messageId, string originalTag, string newTag);
     }
 
@@ -78,8 +78,10 @@
             }
         }
 
-        public void PurgeExpired(string tag, DateTime cutOffUtc)
-            => newMessageBodyStore.PurgeExpired(tag, cutOffUtc);
+        public int PurgeExpired(string tag, DateTime cutOffUtc)
+        {
+            return newMessageBodyStore.PurgeExpired(tag, cutOffUtc);
+        }
 
         public void ChangeTag(string messageId, string originalTag, string newTag)
             => newMessageBodyStore.ChangeTag(messageId, originalTag, newTag);

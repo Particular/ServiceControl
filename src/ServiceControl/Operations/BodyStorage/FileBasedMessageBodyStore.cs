@@ -64,17 +64,22 @@
             }
         }
 
-        public void PurgeExpired(string tag, DateTime cutOffUtc)
+        public int PurgeExpired(string tag, DateTime cutOffUtc)
         {
             var tagPath = Path.Combine(rootLocation, tag);
+            var count = 0;
+
             foreach (var file in Directory.EnumerateFiles(tagPath))
             {
                 var lastTouched = File.GetLastWriteTimeUtc(file);
                 if (lastTouched <= cutOffUtc)
                 {
                     File.Delete(file);
+                    count++;
                 }
             }
+
+            return count;
         }
 
         public void ChangeTag(string messageId, string originalTag, string newTag)

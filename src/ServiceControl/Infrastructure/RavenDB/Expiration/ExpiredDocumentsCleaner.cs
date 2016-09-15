@@ -181,12 +181,16 @@
                 var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
                 timer = timeKeeper.New(() =>
                 {
-                    var threshold = DateTime.UtcNow.Add(-settings.AuditRetentionPeriod);
+                    logger.Info("Deleting expired attachments from disk.");
 
+                    var threshold = DateTime.UtcNow.Add(-settings.AuditRetentionPeriod);
+                    var stopWatch = Stopwatch.StartNew();
+                    int total;
 
                     try
                     {
-                        messageBodyStore.PurgeExpired(BodyStorageTags.Audit, threshold);
+                        total = messageBodyStore.PurgeExpired(BodyStorageTags.Audit, threshold);
+                        logger.Info($"Deletes {total} audit attachments from disk in {stopWatch.ElapsedMilliseconds}ms.");
                     }
                     catch (Exception ex)
                     {
@@ -200,7 +204,9 @@
 
                     try
                     {
-                        messageBodyStore.PurgeExpired(BodyStorageTags.ErrorTransient, threshold);
+                        stopWatch.Restart();
+                        total = messageBodyStore.PurgeExpired(BodyStorageTags.ErrorTransient, threshold);
+                        logger.Info($"Deletes {total} transient error attachments from disk in {stopWatch.ElapsedMilliseconds}ms.");
                     }
                     catch (Exception ex)
                     {

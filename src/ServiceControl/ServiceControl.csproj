@@ -616,7 +616,6 @@
       <Name>HttpApiWrapper</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
