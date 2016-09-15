@@ -8,9 +8,9 @@
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Abstractions;
+    using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.MessageFailures;
@@ -39,7 +39,6 @@
             private const string IDPrefix = "messagebodies/";
             private readonly IDocumentStore store;
             private readonly IMessageBodyStore messageBodyStore;
-            private readonly Settings settings;
 
             private readonly TimeKeeper timeKeeper;
             private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
@@ -53,7 +52,6 @@
                 this.timeKeeper = timeKeeper;
                 this.store = store;
                 this.messageBodyStore = messageBodyStore;
-                this.settings = settings;
 
                 auditMessageBodyStoragePolicy = new AuditMessageBodyStoragePolicy(settings);
                 errorMessageBodyStoragePolicy = new ErrorMessageBodyStoragePolicy(settings);
@@ -94,15 +92,39 @@
                                         continue;
                                     }
 
-                                    RavenQueryStatistics stats;
-                                    var failures = session.Query<FailedMessage>().Statistics(out stats).Where(f => f.ProcessingAttempts[0].MessageId == messageId).ToArray();
-                                    foreach (var failure in failures)
+                                    QueryHeaderInformation info;
+                                    var indexQuery = new IndexQuery
                                     {
-                                        // Save attachment to error permanent using failure.UniqueMessageId
-                                        messageBodyStore.Store(BodyStorageTags.ErrorPersistent, messageBody, new MessageBodyMetadata(failure.UniqueMessageId, contentType, bodySize), errorMessageBodyStoragePolicy);
+                                        Cutoff = SystemTime.UtcNow,
+                                        DisableCaching = true,
+                                        Query = $"MessageId:\"{messageId}\"",
+                                        FieldsToFetch = new[]
+                                        {
+                                            "Id", // == UniqueMessageId
+                                            "Status"
+                                        },
+                                        ResultsTransformer = new FailedMessageViewTransformer().TransformerName
+                                    };
+                                    using (var ie = store.DatabaseCommands.StreamQuery(new FailedMessageViewIndex().IndexName, indexQuery, out info))
+                                    {
+                                        while (ie.MoveNext())
+                                        {
+                                            var doc = ie.Current;
+                                            var status = (FailedMessageStatus)doc.Value<int>("Status");
+                                            if (status == FailedMessageStatus.Archived || status == FailedMessageStatus.Resolved)
+                                            {
+                                                // Save attachment to error transient using failure.UniqueMessageId
+                                                messageBodyStore.Store(BodyStorageTags.ErrorTransient, messageBody, new MessageBodyMetadata(doc.Value<string>("Id"), contentType, bodySize), errorMessageBodyStoragePolicy);
+                                            }
+                                            else
+                                            {
+                                                // Save attachment to error permanent using failure.UniqueMessageId
+                                                messageBodyStore.Store(BodyStorageTags.ErrorPersistent, messageBody, new MessageBodyMetadata(doc.Value<string>("Id"), contentType, bodySize), errorMessageBodyStoragePolicy);
+                                            }
+                                        }
                                     }
 
-                                    saveToAudit = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>().Count(options => options.MessageId == messageId) > stats.TotalResults;
+                                    saveToAudit = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>().Count(options => options.MessageId == messageId) > info.TotalResults;
                                 }
 
                                 if (saveToAudit)
