@@ -14,13 +14,15 @@ namespace ServiceControl.Recoverability
         {
             var classifications = new List<FailedMessage.FailureGroup>();
 
+            var details = new ClassifiableMessageDetails
+            {
+                MessageType = source.Metadata["MessageType"],
+                Details = source.FailureDetails
+            };
+
             foreach (var classifier in Classifiers)
             {
-                var classification = classifier.ClassifyFailure(new ClassifiableMessageDetails
-                {
-                    MessageType = source.Metadata["MessageType"],
-                    Details = source.FailureDetails
-                });
+                var classification = classifier.ClassifyFailure(details);
 
                 if (classification == null)
                     continue;
