@@ -12,7 +12,6 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using Raven.Client.Linq;
     using Raven.Json.Linq;
-    using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;

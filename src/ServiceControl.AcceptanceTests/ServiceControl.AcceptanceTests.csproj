@@ -250,6 +250,7 @@
     <Compile Include="Recoverability\Groups\When_a_message_fails_twice_with_different_exceptions.cs" />
     <Compile Include="Recoverability\Groups\When_a_message_has_failed.cs" />
     <Compile Include="Recoverability\Groups\When_message_groups_are_sorted_by_a_web_api_call.cs" />
+    <Compile Include="Recoverability\Groups\When_ServiceControl_has_started.cs" />
     <Compile Include="Recoverability\Groups\When_two_similar_messages_have_failed.cs" />
     <Compile Include="Recoverability\When_a_message_is_retried_and_succeeds_with_a_reply.cs" />
     <Compile Include="SagaAudit\When_multiple_messages_are_emitted_by_a_saga.cs" />
