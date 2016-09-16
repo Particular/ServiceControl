@@ -35,7 +35,7 @@
                         return;
                     }
                     heartbeat.Disabled = false;
-                    session.Store(heartbeat);
+
                     session.SaveChanges();
                 }
                 else

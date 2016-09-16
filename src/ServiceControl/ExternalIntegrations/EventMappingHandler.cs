@@ -22,22 +22,23 @@
                 .Where(p => p.Handles(message))
                 .Select(p => p.CreateDispatchContext(message));
 
-            foreach (var dispatchContext in dispatchContexts)
+            using (var session = store.OpenSession())
             {
-                if (Logger.IsDebugEnabled)
+                foreach (var dispatchContext in dispatchContexts)
                 {
-                    Logger.Debug("Storing dispatch request.");
-                }
-                var dispatchRequest = new ExternalIntegrationDispatchRequest
-                {
-                    DispatchContext = dispatchContext
-                };
+                    if (Logger.IsDebugEnabled)
+                    {
+                        Logger.Debug("Storing dispatch request.");
+                    }
+                    var dispatchRequest = new ExternalIntegrationDispatchRequest
+                    {
+                        DispatchContext = dispatchContext
+                    };
 
-                using (var session = store.OpenSession())
-                {
                     session.Store(dispatchRequest);
-                    session.SaveChanges();
                 }
+
+                session.SaveChanges();
             }
         }
 

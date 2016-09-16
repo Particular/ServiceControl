@@ -47,7 +47,6 @@ namespace ServiceControl.HeartbeatMonitoring
 
                 heartbeat.ReportedStatus = Status.Dead;
 
-                session.Store(heartbeat);
                 session.SaveChanges();
             }
 

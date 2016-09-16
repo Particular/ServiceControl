@@ -77,7 +77,6 @@
 
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
-
                 session.SaveChanges();
 
                 messageBodyStore.ChangeTag(failedMessage.UniqueMessageId, BodyStorageTags.ErrorPersistent, BodyStorageTags.ErrorTransient);

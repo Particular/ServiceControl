@@ -32,7 +32,7 @@ namespace ServiceControl.CompositeViews.Endpoints
 
                 knownEndpoint.Monitored = true;
 
-                session.Store(knownEndpoint);
+                session.SaveChanges();
             }
 
             bus.Publish(new MonitoringEnabledForEndpoint
