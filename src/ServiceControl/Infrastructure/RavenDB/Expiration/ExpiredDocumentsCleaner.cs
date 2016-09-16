@@ -181,7 +181,7 @@
                 var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
                 timer = timeKeeper.New(() =>
                 {
-                    logger.Info("Deleting expired attachments from disk.");
+                    logger.Info("Deleting expired message bodies from disk.");
 
                     var threshold = DateTime.UtcNow.Add(-settings.AuditRetentionPeriod);
                     var stopWatch = Stopwatch.StartNew();
@@ -190,11 +190,11 @@
                     try
                     {
                         total = messageBodyStore.PurgeExpired(BodyStorageTags.Audit, threshold);
-                        logger.Info($"Deletes {total} audit attachments from disk in {stopWatch.ElapsedMilliseconds}ms.");
+                        logger.Info($"Deleted {total} expired audit message bodies from disk in {stopWatch.ElapsedMilliseconds}ms.");
                     }
                     catch (Exception ex)
                     {
-                        logger.Error("Cleaning of audit expired message bodies failed.", ex);
+                        logger.Error("Deletion of audit expired message bodies failed.", ex);
                     }
 
                     if (cancellationTokenSource.IsCancellationRequested)
@@ -206,11 +206,11 @@
                     {
                         stopWatch.Restart();
                         total = messageBodyStore.PurgeExpired(BodyStorageTags.ErrorTransient, threshold);
-                        logger.Info($"Deletes {total} transient error attachments from disk in {stopWatch.ElapsedMilliseconds}ms.");
+                        logger.Info($"Deleted {total} expired error message bodies from disk in {stopWatch.ElapsedMilliseconds}ms.");
                     }
                     catch (Exception ex)
                     {
-                        logger.Error("Cleaning of error expired message bodies failed.", ex);
+                        logger.Error("Deletion of error expired message bodies failed.", ex);
                     }
                 }, due, due);
             }
@@ -242,12 +242,10 @@
             protected override void OnStart()
             {
                 var deleteFrequencyInSeconds = settings.ExpirationProcessTimerInSeconds;
-                var deletionBatchSize = settings.ExpirationProcessBatchSize;
 
-                logger.InfoFormat("Running deletion of expired documents every {0} seconds", deleteFrequencyInSeconds);
-                logger.InfoFormat("Deletion batch size set to {0}", deletionBatchSize);
-                logger.InfoFormat("Retention period for audits and sagahistory is {0}", settings.AuditRetentionPeriod);
-                logger.InfoFormat("Retention period for errors is {0}", settings.ErrorRetentionPeriod);
+                logger.Info($"Running deletion of expired documents every {deleteFrequencyInSeconds} seconds.");
+                logger.Info($"Retention period for audits and sagahistory is {settings.AuditRetentionPeriod}.");
+                logger.Info($"Retention period for errors is {settings.ErrorRetentionPeriod}");
 
                 var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
                 timer = timeKeeper.New(() =>
@@ -258,7 +256,7 @@
                     }
                     catch (Exception ex)
                     {
-                        logger.Error("Cleaning of expired documents failed.", ex);
+                        logger.Error("Deletion of expired documents failed.", ex);
                     }
                 }, due, due);
             }
@@ -286,7 +284,7 @@
                 }
                 catch (Exception ex)
                 {
-                    logger.Error("Cleaning of audit expired documents failed.", ex);
+                    logger.Error("Deletion of audit expired documents failed.", ex);
                 }
 
                 if (cancellationTokenSource.IsCancellationRequested)
@@ -300,7 +298,7 @@
                 }
                 catch (Exception ex)
                 {
-                    logger.Error("Cleaning of sagahistory expired documents failed.", ex);
+                    logger.Error("Deletion of sagahistory expired documents failed.", ex);
                 }
 
                 threshold = SystemTime.UtcNow.Add(-settings.ErrorRetentionPeriod);
@@ -317,7 +315,7 @@
                 }
                 catch (Exception ex)
                 {
-                    logger.Error("Cleaning of error expired documents failed.", ex);
+                    logger.Error("Deletion of error expired documents failed.", ex);
                 }
             }
         }

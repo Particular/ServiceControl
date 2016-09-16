@@ -13,12 +13,9 @@
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
 
         private const int ExpirationProcessTimerInSecondsDefault = 600;
-        private const int ExpirationProcessBatchSizeDefault = 65512;
-        private const int ExpirationProcessBatchSizeMinimum = 10240;
         private const int MaxBodySizeToStoreDefault = 102400; //100 kb
 
         private ILog logger = LogManager.GetLogger(typeof(Settings));
-        private int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
         private int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
         private int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
 
@@ -125,19 +122,6 @@
         public TimeSpan AuditRetentionPeriod { get; }
 
         public TimeSpan ErrorRetentionPeriod { get; }
-
-        public int ExpirationProcessBatchSize
-        {
-            get
-            {
-                if (expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
-                {
-                    logger.Error($"ExpirationProcessBatchSize settings is invalid, {ExpirationProcessBatchSizeMinimum} is the minimum value. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-                return expirationProcessBatchSize;
-            }
-        }
 
         public int MaxBodySizeToStore
         {

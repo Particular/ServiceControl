@@ -44,6 +44,8 @@
                     {
                         Settings.ServiceName,
                         RavenDBPath = Settings.DbPath,
+                        BodyStoragePath = Settings.BodyStoragePath,
+                        IngestionCachePath = Settings.IngestionCachePath,
                         Logging = new
                         {
                             LoggingSettings.LogPath,
@@ -62,7 +64,6 @@
                         MaxBodySizeToStore= Settings.MaxBodySizeToStore,
                         Settings.HttpDefaultConnectionLimit,
                         Settings.ExternalIntegrationsDispatchingBatchSize,
-                        Settings.ExpirationProcessBatchSize,
                         Settings.ExpirationProcessTimerInSeconds
                     },
                     Transport = new
