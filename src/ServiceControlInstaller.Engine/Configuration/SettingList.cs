@@ -9,8 +9,8 @@ namespace ServiceControlInstaller.Engine.Configuration
         public static SettingInfo HostName = new SettingInfo { Name = "ServiceControl/HostName" };
         public static SettingInfo LogPath = new SettingInfo { Name = "ServiceControl/LogPath" };
         public static SettingInfo DBPath = new SettingInfo { Name = "ServiceControl/DBPath" };
-        public static SettingInfo BodyStoragePath = new SettingInfo { Name = "ServiceControl/BodyStoragePath", SupportedFrom = new Version(1, 22, 1) };
-        public static SettingInfo IngestionCachePath = new SettingInfo { Name = "ServiceControl/IngestionCachePath", SupportedFrom = new Version(1, 22, 1) };
+        public static SettingInfo BodyStoragePath = new SettingInfo { Name = "ServiceControl/BodyStoragePath", SupportedFrom = new Version(2, 0, 0) };
+        public static SettingInfo IngestionCachePath = new SettingInfo { Name = "ServiceControl/IngestionCachePath", SupportedFrom = new Version(2, 0, 0) };
         public static SettingInfo ForwardAuditMessages = new SettingInfo { Name = "ServiceControl/ForwardAuditMessages" };
         public static SettingInfo ForwardErrorMessages = new SettingInfo { Name = "ServiceControl/ForwardErrorMessages" , SupportedFrom = new Version(1,11,2)};
         public static SettingInfo TransportType = new SettingInfo { Name = "ServiceControl/TransportType" };
