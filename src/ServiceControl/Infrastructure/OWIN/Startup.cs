@@ -94,7 +94,8 @@
                     AssembliesDirectory = Path.Combine(settings.DbPath, "Assemblies"),
                     AnonymousUserAccessMode = isRunningAcceptanceTests ? AnonymousUserAccessMode.All : AnonymousUserAccessMode.None,
                     TurnOffDiscoveryClient = true,
-                    MaxSecondsForTaskToWaitForDatabaseToLoad = 45 // So once the database grows, it takes longer to startup!
+                    MaxSecondsForTaskToWaitForDatabaseToLoad = 45, // So once the database grows, it takes longer to startup!
+                    HttpCompression = false
                 };
 
                 var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
