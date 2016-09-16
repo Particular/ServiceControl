@@ -19,14 +19,14 @@ namespace ServiceControl.Recoverability
 
             var firstStackTraceFrame = StackTraceParser.Parse(exception.StackTrace).FirstOrDefault();
             if (firstStackTraceFrame != null)
-                return exception.ExceptionType + ": " + firstStackTraceFrame.ToMethodIdentifier();
+                return $"{exception.ExceptionType}: {firstStackTraceFrame.ToMethodIdentifier()}";
 
             return GetNonStandardClassification(exception.ExceptionType);
         }
 
         static string GetNonStandardClassification(string exceptionType)
         {
-            return exceptionType + ": 0";
+            return $"{exceptionType}: 0";
         }
     }
 }

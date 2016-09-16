@@ -42,12 +42,7 @@
             throw new Exception($"No processing endpoint could be determined for message ({messageId})");
         }
 
-        public static string UniqueId(this TransportMessage message)
-        {
-            return DeterministicGuid.MakeId(message.Id, message.ProcessingEndpointName()).ToString();
-        }
-
         public static string UniqueMessageId(this IReadOnlyDictionary<string, string> headers) =>
-            DeterministicGuid.MakeId(headers[Headers.MessageId], headers.ProcessingEndpointName()).ToString();
+            DeterministicGuid.MakeId(headers[Headers.MessageId], headers.ProcessingEndpointName(), false).ToString();
     }
 }
