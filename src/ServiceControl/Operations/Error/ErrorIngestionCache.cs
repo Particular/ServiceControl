@@ -9,7 +9,7 @@
 
     class ErrorIngestionCache
     {
-        const short VERSION = 1;
+        const uint VERSION = 1;
         private string rootLocation;
 
         public ErrorIngestionCache(Settings settings)
@@ -17,7 +17,7 @@
             rootLocation = Directory.CreateDirectory(Path.Combine(settings.IngestionCachePath, "errors")).FullName;
         }
 
-        public void Write(IDictionary<string, string> headers, bool recoverable, ClaimsCheck claimCheck)
+        public void Write(Dictionary<string, string> headers, bool recoverable, ClaimsCheck claimCheck)
         {
             using (var writer = new BinaryWriter(File.Open(Path.Combine(rootLocation, Guid.NewGuid().ToString("N")), FileMode.Create, FileAccess.Write, FileShare.None)))
             {
@@ -47,7 +47,7 @@
                 using (var fileStream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.None))
                 using (var reader = new BinaryReader(fileStream))
                 {
-                    reader.ReadInt16(); // Read version, ignore for now
+                    reader.ReadUInt32(); // Read version, ignore for now
 
                     recoverable = reader.ReadBoolean();
 
