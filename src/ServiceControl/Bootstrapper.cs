@@ -1,8 +1,3 @@
-using System.IO;
-using NLog;
-using NLog.Filters;
-using Raven.Client.Changes;
-
 namespace Particular.ServiceControl
 {
     using System;
@@ -254,21 +249,5 @@ Database Size:							{DataSize()}bytes
             logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
             logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName.Render(logEventInfo), loggingSettings.RavenDBLogLevel.Name);
         }
-    }
-}
-class FilterEndOfStreamException : Filter
-{
-    protected override FilterResult Check(LogEventInfo logEvent)
-    {
-        if (logEvent.LoggerName != typeof(RemoteChangesClientBase<,>).FullName)
-        {
-            return FilterResult.Neutral;
-        }
-        var exception = logEvent.Exception?.InnerException;
-        if (!(exception is EndOfStreamException))
-        {
-            return FilterResult.Neutral;
-        }
-        return FilterResult.IgnoreFinal;
     }
 }

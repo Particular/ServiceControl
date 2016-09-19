@@ -277,6 +277,7 @@
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
+    <Compile Include="FilterEndOfStreamException.cs" />
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
     </Compile>
