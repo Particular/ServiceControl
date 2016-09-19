@@ -11,8 +11,8 @@ namespace Particular.ServiceControl
     using Autofac;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.SignalR;
+    using global::ServiceControl.RavenLogging;
     using Microsoft.Owin.Hosting;
-    using NLog;
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
@@ -21,6 +21,7 @@ namespace Particular.ServiceControl
     using Raven.Client.Document;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
+    using LogEventInfo = NLog.LogEventInfo;
     using LogLevel = NLog.LogLevel;
     using LogManager = NServiceBus.Logging.LogManager;
 
@@ -136,6 +137,7 @@ namespace Particular.ServiceControl
 
         private void ConfigureLogging(LoggingSettings loggingSettings)
         {
+            Raven.Abstractions.Logging.LogManager.CurrentLogManager = new RavenLogManager(loggingSettings.RavenDBLogLevel);
             LogManager.Use<NLogFactory>();
 
             const long megaByte = 1073741824;
@@ -201,23 +203,14 @@ Database Size:							{DataSize()}bytes
             rules.Add(new LoggingRule("Raven.*", loggingSettings.RavenDBLogLevel, ravenFileTarget));
             //Noise reduction - Only RavenDB errors on the console
             rules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));
-            //Will swallow debug and above messages
-            rules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget)
-            {
-                Final = true
-            });
-
-
-            var endOfStreamRule = new LoggingRule("Raven.*", LogLevel.Error, nullTarget)
+            rules.Add(new LoggingRule("Raven.*", LogLevel.Error, nullTarget)
             {
                 Final = true,
                 Filters =
                 {
                     new FilterEndOfStreamException()
                 }
-            };
-            rules.Add(endOfStreamRule);
-
+            });
 
             // Always want to see license logging regardless of default logging level
             rules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));

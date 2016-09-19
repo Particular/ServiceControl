@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
-    using NServiceBus.CircuitBreakers;
     using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Document;
@@ -63,7 +62,7 @@
                 catch (Exception ex)
                 {
                     logger.Warn("ProcessAudits failed, having a break for 2 seconds before trying again.", ex);
-                    breaker.Failure(ex);
+                    await breaker.Failure(ex).ConfigureAwait(false);
                 }
             } while (!stop);
         }
@@ -75,40 +74,51 @@
                 var processedFiles = new List<string>(BATCH_SIZE);
                 var bulkInsertLazy = new Lazy<BulkInsertOperation>(() => store.BulkInsert());
 
-                foreach (var entry in auditIngestionCache.GetBatch(BATCH_SIZE))
+                using (new DiagnosticTimer("Audit - ProcessAudits"))
                 {
-                    if (stop)
+                    using (new DiagnosticTimer("Audit - Creating batch"))
                     {
-                        break;
+                        foreach (var entry in auditIngestionCache.GetBatch(BATCH_SIZE))
+                        {
+                            if (stop)
+                            {
+                                break;
+                            }
+
+                            Dictionary<string, string> headers;
+                            ClaimsCheck bodyStorageClaimsCheck;
+
+                            if (auditIngestionCache.TryGet(entry, out headers, out bodyStorageClaimsCheck))
+                            {
+                                var processedMessage = processedMessageFactory.Create(headers);
+                                processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
+
+                                bulkInsertLazy.Value.Store(processedMessage);
+
+                                processedFiles.Add(entry);
+                            }
+                        }
                     }
 
-                    Dictionary<string, string> headers;
-                    ClaimsCheck bodyStorageClaimsCheck;
-
-                    if (auditIngestionCache.TryGet(entry, out headers, out bodyStorageClaimsCheck))
+                    if (processedFiles.Count > 0)
                     {
-                        var processedMessage = processedMessageFactory.Create(headers);
-                        processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
-
-                        bulkInsertLazy.Value.Store(processedMessage);
-
-                        processedFiles.Add(entry);
+                        using (new DiagnosticTimer("Audit - Bulk insert"))
+                        {
+                            await bulkInsertLazy.Value.DisposeAsync().ConfigureAwait(false);
+                        }
+                        using (new DiagnosticTimer("Audit - Deleting files"))
+                        {
+                            foreach (var file in processedFiles)
+                            {
+                                File.Delete(file);
+                            }
+                        }
                     }
+
+                    meter.Mark(processedFiles.Count);
+
+                    breaker.Success();
                 }
-
-                if (processedFiles.Count > 0)
-                {
-                    await bulkInsertLazy.Value.DisposeAsync().ConfigureAwait(false);
-
-                    foreach (var file in processedFiles)
-                    {
-                        File.Delete(file);
-                    }
-                }
-
-                meter.Mark(processedFiles.Count);
-
-                breaker.Success();
 
                 if (!stop && processedFiles.Count < BATCH_SIZE)
                 {

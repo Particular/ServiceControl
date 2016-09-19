@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
-    using NServiceBus.CircuitBreakers;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
     using Raven.Client;
@@ -65,7 +64,7 @@
                 catch (Exception ex)
                 {
                     logger.Warn("ProcessErrors failed, having a break for 2 seconds before trying again.", ex);
-                    breaker.Failure(ex);
+                    await breaker.Failure(ex).ConfigureAwait(false);
                 }
             } while (!stop);
         }
@@ -77,67 +76,81 @@
                 var processedFiles = new List<string>(BATCH_SIZE);
                 var patches = new List<PatchCommandData>();
                 var events = new List<object>();
-
-                foreach (var entry in errorIngestionCache.GetBatch(BATCH_SIZE))
+                using (new DiagnosticTimer("Error - ProcessErrors"))
                 {
-                    if (stop)
+                    using (new DiagnosticTimer("Error - Creating batch"))
                     {
-                        break;
+                        foreach (var entry in errorIngestionCache.GetBatch(BATCH_SIZE))
+                        {
+                            if (stop)
+                            {
+                                break;
+                            }
+
+                            Dictionary<string, string> headers;
+                            ClaimsCheck bodyStorageClaimsCheck;
+                            bool recoverable;
+
+                            if (errorIngestionCache.TryGet(entry, out headers, out recoverable, out bodyStorageClaimsCheck))
+                            {
+                                FailureDetails failureDetails;
+                                string uniqueId;
+                                var processedMessage = patchCommandDataFactory.Create(headers, recoverable, bodyStorageClaimsCheck, out failureDetails, out uniqueId);
+
+                                patches.Add(processedMessage);
+                                processedFiles.Add(entry);
+
+                                string failedMessageId;
+                                if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
+                                {
+                                    events.Add(new MessageFailedRepeatedly
+                                    {
+                                        FailureDetails = failureDetails,
+                                        EndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue,
+                                        FailedMessageId = failedMessageId
+                                    });
+                                }
+                                else
+                                {
+                                    events.Add(new MessageFailed
+                                    {
+                                        FailureDetails = failureDetails,
+                                        EndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue,
+                                        FailedMessageId = uniqueId
+                                    });
+                                }
+                            }
+                        }
                     }
 
-                    Dictionary<string, string> headers;
-                    ClaimsCheck bodyStorageClaimsCheck;
-                    bool recoverable;
-
-                    if (errorIngestionCache.TryGet(entry, out headers, out recoverable, out bodyStorageClaimsCheck))
+                    if (patches.Count > 0)
                     {
-                        FailureDetails failureDetails;
-                        string uniqueId;
-                        var processedMessage = patchCommandDataFactory.Create(headers, recoverable, bodyStorageClaimsCheck, out failureDetails, out uniqueId);
-
-                        patches.Add(processedMessage);
-                        processedFiles.Add(entry);
-
-                        string failedMessageId;
-                        if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
+                        using (new DiagnosticTimer("Error - Patching"))
                         {
-                            events.Add(new MessageFailedRepeatedly
-                            {
-                                FailureDetails = failureDetails,
-                                EndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue,
-                                FailedMessageId = failedMessageId
-                            });
-                        }
-                        else
-                        {
-                            events.Add(new MessageFailed
-                            {
-                                FailureDetails = failureDetails,
-                                EndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue,
-                                FailedMessageId = uniqueId
-                            });
+                            await store.AsyncDatabaseCommands.BatchAsync(patches).ConfigureAwait(false);
                         }
                     }
+
+                    if (events.Count > 0)
+                    {
+                        using (new DiagnosticTimer("Error - publishing"))
+                        {
+                            Parallel.ForEach(events, e => bus.Publish(e));
+                        }
+                    }
+                    using (new DiagnosticTimer("Error - deleting files"))
+                    {
+                        foreach (var file in processedFiles)
+                        {
+
+                            File.Delete(file);
+                        }
+                    }
+
+                    meter.Mark(processedFiles.Count);
+
+                    breaker.Success();
                 }
-
-                if (patches.Count > 0)
-                {
-                    await store.AsyncDatabaseCommands.BatchAsync(patches).ConfigureAwait(false);
-                }
-
-                if (events.Count > 0)
-                {
-                    Parallel.ForEach(events, e => bus.Publish(e));
-                }
-
-                foreach (var file in processedFiles)
-                {
-                    File.Delete(file);
-                }
-
-                meter.Mark(processedFiles.Count);
-
-                breaker.Success();
 
                 if (!stop && processedFiles.Count < BATCH_SIZE)
                 {
