@@ -71,11 +71,16 @@
 
         private async Task Process()
         {
+            var processedFiles = new List<string>(BATCH_SIZE);
+            var patches = new List<PatchCommandData>(BATCH_SIZE);
+            var events = new List<object>(BATCH_SIZE);
+
             do
             {
-                var processedFiles = new List<string>(BATCH_SIZE);
-                var patches = new List<PatchCommandData>();
-                var events = new List<object>();
+                processedFiles.Clear();
+                patches.Clear();
+                events.Clear();
+
                 using (new DiagnosticTimer("Error - ProcessErrors"))
                 {
                     using (new DiagnosticTimer("Error - Creating batch"))

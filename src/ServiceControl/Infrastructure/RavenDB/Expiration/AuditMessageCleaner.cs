@@ -26,7 +26,8 @@
             var operation = store.DatabaseCommands.DeleteByIndex(indexName, query, new BulkOperationOptions
             {
                 AllowStale = true,
-                RetrieveDetails = false
+                RetrieveDetails = false,
+                MaxOpsPerSec = 1000
             });
 
             if (waitForCompletion)

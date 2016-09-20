@@ -7,6 +7,7 @@
     using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
+    using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Client.Document;
     using ServiceControl.Operations.BodyStorage;
@@ -69,10 +70,15 @@
 
         private async Task Process()
         {
+            var processedFiles = new List<string>(BATCH_SIZE);
+
             do
             {
-                var processedFiles = new List<string>(BATCH_SIZE);
-                var bulkInsertLazy = new Lazy<BulkInsertOperation>(() => store.BulkInsert());
+                processedFiles.Clear();
+                var bulkInsertLazy = new Lazy<BulkInsertOperation>(() => store.BulkInsert(options: new BulkInsertOptions
+                {
+                    WriteTimeoutMilliseconds = 2000
+                }));
 
                 using (new DiagnosticTimer("Audit - ProcessAudits"))
                 {
