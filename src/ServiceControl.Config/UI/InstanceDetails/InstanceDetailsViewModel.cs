@@ -7,7 +7,6 @@
     using System.Windows.Input;
     using Caliburn.Micro;
     using Events;
-    using PropertyChanged;
     using ServiceControl.Config.Commands;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Modules;
