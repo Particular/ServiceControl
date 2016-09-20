@@ -7,6 +7,7 @@
     using System.Windows.Input;
     using Caliburn.Micro;
     using Events;
+    using PropertyChanged;
     using ServiceControl.Config.Commands;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Modules;
@@ -37,14 +38,11 @@
             StopCommand = Command.Create(() => StopService());
 
             AdvanceOptionsCommand = advanceOptionsCommand;
-
-            BodyStoragePathVisible = serviceControlInstance.Version >= SettingsList.BodyStoragePath.SupportedFrom;
-            IngestionCachePathVisible = serviceControlInstance.Version >= SettingsList.IngestionCachePath.SupportedFrom;
         }
+        
+        public bool IngestionCachePathVisible => Version >= SettingsList.IngestionCachePath.SupportedFrom;
 
-        public bool IngestionCachePathVisible { get; set; }
-
-        public bool BodyStoragePathVisible { get; set; }
+        public bool BodyStoragePathVisible => Version >= SettingsList.BodyStoragePath.SupportedFrom;
 
         public ServiceControlInstance ServiceControlInstance { get; }
 
@@ -69,7 +67,7 @@
         public string LogPath => ServiceControlInstance.LogPath;
 
         public Version Version => ServiceControlInstance.Version;
-
+        
         public Version NewVersion { get; }
 
         public bool HasNewVersion => Version < NewVersion;
@@ -185,17 +183,21 @@
         public void Handle(RefreshInstances message)
         {
             UpdateServiceProperties();
-            NotifyOfPropertyChange("Name");
-            NotifyOfPropertyChange("Host");
-            NotifyOfPropertyChange("InstallPath");
-            NotifyOfPropertyChange("DBPath");
-            NotifyOfPropertyChange("LogPath");
-            NotifyOfPropertyChange("Version");
-            NotifyOfPropertyChange("NewVersion");
-            NotifyOfPropertyChange("HasNewVersion");
-            NotifyOfPropertyChange("Transport");
-            NotifyOfPropertyChange("BrowsableUrl");
-            NotifyOfPropertyChange("InMaintenanceMode");
+            NotifyOfPropertyChange(nameof(Name));
+            NotifyOfPropertyChange(nameof(Host));
+            NotifyOfPropertyChange(nameof(InstallPath));
+            NotifyOfPropertyChange(nameof(DBPath));
+            NotifyOfPropertyChange(nameof(LogPath));
+            NotifyOfPropertyChange(nameof(Version));
+            NotifyOfPropertyChange(nameof(NewVersion));
+            NotifyOfPropertyChange(nameof(HasNewVersion));
+            NotifyOfPropertyChange(nameof(Transport));
+            NotifyOfPropertyChange(nameof(BrowsableUrl));
+            NotifyOfPropertyChange(nameof(InMaintenanceMode));
+            NotifyOfPropertyChange(nameof(IngestionCachePath));
+            NotifyOfPropertyChange(nameof(BodyStoragePath));
+            NotifyOfPropertyChange(nameof(IngestionCachePathVisible));
+            NotifyOfPropertyChange(nameof(BodyStoragePathVisible));
         }
 
         public async Task<bool> StartService(IProgressObject progress = null)
