@@ -64,6 +64,7 @@
                 {
                     logger.Warn("ProcessAudits failed, having a break for 2 seconds before trying again.", ex);
                     await breaker.Failure(ex).ConfigureAwait(false);
+                    logger.Warn("Restarting ProcessAudits.", ex);
                 }
             } while (!stop);
         }
@@ -80,51 +81,40 @@
                     WriteTimeoutMilliseconds = 2000
                 }));
 
-                using (new DiagnosticTimer("Audit - ProcessAudits"))
+                foreach (var entry in auditIngestionCache.GetBatch(BATCH_SIZE))
                 {
-                    using (new DiagnosticTimer("Audit - Creating batch"))
+                    if (stop)
                     {
-                        foreach (var entry in auditIngestionCache.GetBatch(BATCH_SIZE))
-                        {
-                            if (stop)
-                            {
-                                break;
-                            }
-
-                            Dictionary<string, string> headers;
-                            ClaimsCheck bodyStorageClaimsCheck;
-
-                            if (auditIngestionCache.TryGet(entry, out headers, out bodyStorageClaimsCheck))
-                            {
-                                var processedMessage = processedMessageFactory.Create(headers);
-                                processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
-
-                                bulkInsertLazy.Value.Store(processedMessage);
-
-                                processedFiles.Add(entry);
-                            }
-                        }
+                        break;
                     }
 
-                    if (processedFiles.Count > 0)
+                    Dictionary<string, string> headers;
+                    ClaimsCheck bodyStorageClaimsCheck;
+
+                    if (auditIngestionCache.TryGet(entry, out headers, out bodyStorageClaimsCheck))
                     {
-                        using (new DiagnosticTimer("Audit - Bulk insert"))
-                        {
-                            await bulkInsertLazy.Value.DisposeAsync().ConfigureAwait(false);
-                        }
-                        using (new DiagnosticTimer("Audit - Deleting files"))
-                        {
-                            foreach (var file in processedFiles)
-                            {
-                                File.Delete(file);
-                            }
-                        }
+                        var processedMessage = processedMessageFactory.Create(headers);
+                        processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
+
+                        bulkInsertLazy.Value.Store(processedMessage);
+
+                        processedFiles.Add(entry);
                     }
-
-                    meter.Mark(processedFiles.Count);
-
-                    breaker.Success();
                 }
+
+                if (processedFiles.Count > 0)
+                {
+                    await bulkInsertLazy.Value.DisposeAsync().ConfigureAwait(false);
+
+                    foreach (var file in processedFiles)
+                    {
+                        File.Delete(file);
+                    }
+                }
+
+                meter.Mark(processedFiles.Count);
+
+                breaker.Success();
 
                 if (!stop && processedFiles.Count < BATCH_SIZE)
                 {
@@ -133,5 +123,4 @@
             } while (!stop);
         }
     }
-
 }

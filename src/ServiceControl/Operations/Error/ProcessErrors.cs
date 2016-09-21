@@ -65,6 +65,7 @@
                 {
                     logger.Warn("ProcessErrors failed, having a break for 2 seconds before trying again.", ex);
                     await breaker.Failure(ex).ConfigureAwait(false);
+                    logger.Warn("Restarting ProcessErrors.", ex);
                 }
             } while (!stop);
         }
@@ -81,81 +82,66 @@
                 patches.Clear();
                 events.Clear();
 
-                using (new DiagnosticTimer("Error - ProcessErrors"))
+                foreach (var entry in errorIngestionCache.GetBatch(BATCH_SIZE))
                 {
-                    using (new DiagnosticTimer("Error - Creating batch"))
+                    if (stop)
                     {
-                        foreach (var entry in errorIngestionCache.GetBatch(BATCH_SIZE))
+                        break;
+                    }
+
+                    Dictionary<string, string> headers;
+                    ClaimsCheck bodyStorageClaimsCheck;
+                    bool recoverable;
+
+                    if (errorIngestionCache.TryGet(entry, out headers, out recoverable, out bodyStorageClaimsCheck))
+                    {
+                        FailureDetails failureDetails;
+                        string uniqueId;
+                        var processedMessage = patchCommandDataFactory.Create(headers, recoverable, bodyStorageClaimsCheck, out failureDetails, out uniqueId);
+
+                        patches.Add(processedMessage);
+                        processedFiles.Add(entry);
+
+                        string failedMessageId;
+                        if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
                         {
-                            if (stop)
+                            events.Add(new MessageFailedRepeatedly
                             {
-                                break;
-                            }
-
-                            Dictionary<string, string> headers;
-                            ClaimsCheck bodyStorageClaimsCheck;
-                            bool recoverable;
-
-                            if (errorIngestionCache.TryGet(entry, out headers, out recoverable, out bodyStorageClaimsCheck))
+                                FailureDetails = failureDetails,
+                                EndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue,
+                                FailedMessageId = failedMessageId
+                            });
+                        }
+                        else
+                        {
+                            events.Add(new MessageFailed
                             {
-                                FailureDetails failureDetails;
-                                string uniqueId;
-                                var processedMessage = patchCommandDataFactory.Create(headers, recoverable, bodyStorageClaimsCheck, out failureDetails, out uniqueId);
-
-                                patches.Add(processedMessage);
-                                processedFiles.Add(entry);
-
-                                string failedMessageId;
-                                if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
-                                {
-                                    events.Add(new MessageFailedRepeatedly
-                                    {
-                                        FailureDetails = failureDetails,
-                                        EndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue,
-                                        FailedMessageId = failedMessageId
-                                    });
-                                }
-                                else
-                                {
-                                    events.Add(new MessageFailed
-                                    {
-                                        FailureDetails = failureDetails,
-                                        EndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue,
-                                        FailedMessageId = uniqueId
-                                    });
-                                }
-                            }
+                                FailureDetails = failureDetails,
+                                EndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue,
+                                FailedMessageId = uniqueId
+                            });
                         }
                     }
-
-                    if (patches.Count > 0)
-                    {
-                        using (new DiagnosticTimer("Error - Patching"))
-                        {
-                            await store.AsyncDatabaseCommands.BatchAsync(patches).ConfigureAwait(false);
-                        }
-                    }
-
-                    if (events.Count > 0)
-                    {
-                        using (new DiagnosticTimer("Error - publishing"))
-                        {
-                            Parallel.ForEach(events, e => bus.Publish(e));
-                        }
-                    }
-                    using (new DiagnosticTimer("Error - deleting files"))
-                    {
-                        foreach (var file in processedFiles)
-                        {
-
-                            File.Delete(file);
-                        }
-                    }
-
-                    meter.Mark(processedFiles.Count);
-
-                    breaker.Success();
                 }
+
+                if (patches.Count > 0)
+                {
+                    await store.AsyncDatabaseCommands.BatchAsync(patches).ConfigureAwait(false);
+                }
+
+                if (events.Count > 0)
+                {
+                    Parallel.ForEach(events, e => bus.Publish(e));
+                }
+
+                foreach (var file in processedFiles)
+                {
+                    File.Delete(file);
+                }
+
+                meter.Mark(processedFiles.Count);
+
+                breaker.Success();
 
                 if (!stop && processedFiles.Count < BATCH_SIZE)
                 {
