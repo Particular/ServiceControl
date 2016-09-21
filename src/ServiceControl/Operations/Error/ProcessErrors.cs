@@ -65,7 +65,7 @@
                 {
                     logger.Warn("ProcessErrors failed, having a break for 2 seconds before trying again.", ex);
                     await breaker.Failure(ex).ConfigureAwait(false);
-                    logger.Warn("Restarting ProcessErrors.", ex);
+                    logger.Warn("Restarting ProcessErrors.");
                 }
             } while (!stop);
         }

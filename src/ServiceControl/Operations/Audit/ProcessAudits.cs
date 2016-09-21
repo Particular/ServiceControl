@@ -64,7 +64,7 @@
                 {
                     logger.Warn("ProcessAudits failed, having a break for 2 seconds before trying again.", ex);
                     await breaker.Failure(ex).ConfigureAwait(false);
-                    logger.Warn("Restarting ProcessAudits.", ex);
+                    logger.Warn("Restarting ProcessAudits.");
                 }
             } while (!stop);
         }
