@@ -79,7 +79,7 @@
                 {
                     try
                     {
-                        await signal.WaitHandle.WaitOneAsync(tokenSource.Token);
+                        await signal.WaitHandle.WaitOneAsync(tokenSource.Token).ConfigureAwait(false);
                         signal.Reset();
                     }
                     catch (OperationCanceledException)
@@ -87,7 +87,7 @@
                         break;
                     }
 
-                    DispatchEvents(tokenSource.Token);
+                    await DispatchEvents(tokenSource.Token).ConfigureAwait(false);
                 } while (!tokenSource.IsCancellationRequested);
             }
             catch (Exception ex)
@@ -102,7 +102,7 @@
             }
         }
 
-        private void DispatchEvents(CancellationToken token)
+        private async Task DispatchEvents(CancellationToken token)
         {
             bool more;
 
@@ -112,10 +112,10 @@
 
                 circuitBreaker.Success();
 
-                if (more)
+                if (more && !token.IsCancellationRequested)
                 {
                     //if there is more events to dispatch we sleep for a bit and then we go again
-                    token.WaitHandle.WaitOne(TimeSpan.FromSeconds(1));
+                    await Task.Delay(1000).ConfigureAwait(false);
                 }
             } while (!token.IsCancellationRequested && more);
         }
