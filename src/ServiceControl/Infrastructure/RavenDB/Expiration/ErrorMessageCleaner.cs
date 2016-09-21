@@ -2,6 +2,8 @@
 {
 
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Raven.Abstractions.Data;
     using Raven.Client;
 
@@ -9,7 +11,7 @@
     {
         static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(ErrorMessageCleaner));
 
-        public static void Clean(IDocumentStore store, DateTime expiryThreshold)
+        public static void Clean(IDocumentStore store, DateTime expiryThreshold, CancellationToken token)
         {
             var query = new IndexQuery
             {
@@ -21,12 +23,31 @@
             var indexName = new ExpiryErrorMessageIndex().IndexName;
 
             logger.Info("Starting clean-up of expired error documents.");
-            store.DatabaseCommands.DeleteByIndex(indexName, query, new BulkOperationOptions
+            var operation = store.DatabaseCommands.DeleteByIndex(indexName, query, new BulkOperationOptions
             {
                 AllowStale = true,
                 RetrieveDetails = false,
                 MaxOpsPerSec = 1000
             });
+
+            using (var reset = new ManualResetEventSlim(false))
+            {
+                try
+                {
+                    token.Register(() => reset.Set());
+                    Task.Run(() =>
+                    {
+                        operation.WaitForCompletion();
+                        reset.Set();
+                    }, token);
+                }
+                catch (Exception)
+                {
+                    reset.Set();
+                }
+
+                reset.Wait();
+            }
         }
     }
 }

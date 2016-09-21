@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
@@ -9,7 +11,7 @@
     {
         private static readonly ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
 
-        public static void Clean(IDocumentStore store, DateTime expiryThreshold, bool waitForCompletion = false)
+        public static void Clean(IDocumentStore store, DateTime expiryThreshold, CancellationToken token)
         {
             var query = new IndexQuery
             {
@@ -28,9 +30,23 @@
                 MaxOpsPerSec = 1000
             });
 
-            if (waitForCompletion)
+            using (var reset = new ManualResetEventSlim(false))
             {
-                operation.WaitForCompletion();
+                try
+                {
+                    token.Register(() => reset.Set());
+                    Task.Run(() =>
+                    {
+                        operation.WaitForCompletion();
+                        reset.Set();
+                    }, token);
+                }
+                catch (Exception)
+                {
+                    reset.Set();
+                }
+            
+                reset.Wait();
             }
         }
     }
