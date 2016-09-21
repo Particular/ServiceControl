@@ -2,7 +2,6 @@
 {
     using System;
     using NServiceBus.Logging;
-    using Raven.Abstractions;
     using Raven.Abstractions.Data;
     using Raven.Client;
 
@@ -14,11 +13,10 @@
         {
             var query = new IndexQuery
             {
-                Cutoff = SystemTime.UtcNow,
+                Cutoff = DateTime.UtcNow,
                 DisableCaching = true,
                 Query = $"ProcessedAt:[* TO {expiryThreshold.Ticks}]"
             };
-
 
             var indexName = new ExpiryProcessedMessageIndex().IndexName;
 

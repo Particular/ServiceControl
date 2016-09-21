@@ -2,7 +2,6 @@
 {
 
     using System;
-    using Raven.Abstractions;
     using Raven.Abstractions.Data;
     using Raven.Client;
 
@@ -15,7 +14,7 @@
             var query = new IndexQuery
             {
                 DisableCaching = true,
-                Cutoff = SystemTime.UtcNow,
+                Cutoff = DateTime.UtcNow,
                 Query = $"LastModified:[* TO {expiryThreshold.Ticks}]",
             };
 
