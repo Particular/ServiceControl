@@ -36,15 +36,5 @@
             stream = attachment.Data();
             return true;
         }
-
-        public void Delete(string bodyId)
-        {
-            if (storeBody.DeleteBody(bodyId))
-            {
-                return;
-            }
-            
-            store.DatabaseCommands.DeleteAttachment($"messagebodies/{bodyId}", null);
-        }
     }
 }
