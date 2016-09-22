@@ -6,6 +6,7 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
+    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
@@ -16,21 +17,25 @@ namespace ServiceControl.Recoverability
 
     public class RetryDocumentManager
     {
-        public IDocumentStore Store { get; set; }
-
-        static string RetrySessionId = Guid.NewGuid().ToString();
-
+        private static string RetrySessionId = Guid.NewGuid().ToString();
+        private static RavenJObject defaultMetadata = RavenJObject.Parse($@"
+                                    {{
+                                        ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"", 
+                                        ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
+                                    }}");
+        private IDocumentStore store;
         private bool abort;
 
-        public RetryDocumentManager(ShutdownNotifier notifier)
+        public RetryDocumentManager(ShutdownNotifier notifier, IDocumentStore store)
         {
+            this.store = store;
             notifier.Register(() => { abort = true; });
         }
 
         public string CreateBatchDocument(string context = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
-            using (var session = Store.OpenSession())
+            using (var session = store.OpenSession())
             {
                 session.Store(new RetryBatch
                 {
@@ -44,32 +49,31 @@ namespace ServiceControl.Recoverability
             return batchDocumentId;
         }
 
-        public string CreateFailedMessageRetryDocument(string batchDocumentId, string messageUniqueId)
+        public string CreateFailedMessageRetryDocument(string batchDocumentId, string messageUniqueId, out ICommandData patch)
         {
             var failureRetryId = FailedMessageRetry.MakeDocumentId(messageUniqueId);
-            Store.DatabaseCommands.Patch(failureRetryId,
-                new PatchRequest[0], // if existing do nothing
-                new[]
+
+            patch = new PatchCommandData
+            {
+                PatchesIfMissing = new[]
                 {
                     new PatchRequest
                     {
                         Name = "FailedMessageId",
                         Type = PatchCommandType.Set,
                         Value = FailedMessage.MakeDocumentId(messageUniqueId)
-                    }, 
+                    },
                     new PatchRequest
                     {
-                        Name = "RetryBatchId", 
-                        Type = PatchCommandType.Set, 
+                        Name = "RetryBatchId",
+                        Type = PatchCommandType.Set,
                         Value = batchDocumentId
                     }
                 },
-                RavenJObject.Parse($@"
-                                    {{
-                                        ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"", 
-                                        ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
-                                    }}")
-                );
+                Key = failureRetryId,
+                Metadata = defaultMetadata
+            };
+            
             return failureRetryId;
         }
 
@@ -77,7 +81,7 @@ namespace ServiceControl.Recoverability
         {
             try
             {
-                Store.DatabaseCommands.Patch(batchDocumentId,
+                store.DatabaseCommands.Patch(batchDocumentId,
                     new[]
                     {
                         new PatchRequest
@@ -103,12 +107,12 @@ namespace ServiceControl.Recoverability
 
         public void RemoveFailedMessageRetryDocument(string uniqueMessageId)
         {
-            Store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
+            store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
         internal void AdoptOrphanedBatches(out bool hasMoreWorkToDo)
         {
-            using (var session = Store.OpenSession())
+            using (var session = store.OpenSession())
             {
                 RavenQueryStatistics stats;
 

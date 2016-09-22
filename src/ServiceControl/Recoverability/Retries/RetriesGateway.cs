@@ -5,8 +5,8 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using System.Linq;
     using System.Linq.Expressions;
-    using System.Threading.Tasks;
     using NServiceBus.Logging;
+    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Client.Indexes;
@@ -17,10 +17,15 @@ namespace ServiceControl.Recoverability
     {
         const int BatchSize = 1000;
 
-        public IDocumentStore Store { get; set; }
-        public RetryDocumentManager RetryDocumentManager { get; set; }
+        private IDocumentStore store;
+        private RetryDocumentManager retryDocumentManager;
+        private ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
 
-        ConcurrentQueue<IBulkRetryRequest> _bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
+        public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager)
+        {
+            this.store = store;
+            retryDocumentManager = documentManager;
+        }
 
         interface IBulkRetryRequest
         {
@@ -68,7 +73,7 @@ namespace ServiceControl.Recoverability
             var batches = new List<string[]>();
             var currentBatch = new List<string>(BatchSize);
 
-            using (var session = Store.OpenSession())
+            using (var session = store.OpenSession())
             using (var stream = request.GetDocuments(session))
             {
                 while (stream.MoveNext())
@@ -98,7 +103,7 @@ namespace ServiceControl.Recoverability
 
             var request = new IndexBasedBulkRetryRequest<TType, TIndex>(context, filter);
 
-            _bulkRequests.Enqueue(request);
+            bulkRequests.Enqueue(request);
         }
 
         public void StageRetryByUniqueMessageIds(string[] messageIds, string context = null)
@@ -109,23 +114,29 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var batchDocumentId = RetryDocumentManager.CreateBatchDocument(context);
+            var batchDocumentId = retryDocumentManager.CreateBatchDocument(context);
 
             log.InfoFormat("Created Batch '{0}' with {1} messages for context '{2}'", batchDocumentId, messageIds.Length, context);
 
-            var retryIds = new ConcurrentDictionary<string, object>();
-            Parallel.ForEach(
-                messageIds,
-                id => retryIds.TryAdd(RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, id), null));
+            var retryIds = new string[messageIds.Length];
+            var commands = new ICommandData[messageIds.Length];
+            for (var i = 0; i < messageIds.Length; i++)
+            {
+                ICommandData patch;
+                retryIds[i] = retryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i], out patch);
+                commands[i] = patch;
+            }
 
-            RetryDocumentManager.MoveBatchToStaging(batchDocumentId, retryIds.Keys.ToArray());
+            store.DatabaseCommands.Batch(commands);
+
+            retryDocumentManager.MoveBatchToStaging(batchDocumentId, retryIds);
             log.InfoFormat("Moved Batch '{0}' to Staging", batchDocumentId);
         }
 
         internal bool ProcessNextBulkRetry()
         {
             IBulkRetryRequest request;
-            if (!_bulkRequests.TryDequeue(out request))
+            if (!bulkRequests.TryDequeue(out request))
             {
                 return false;
             }
