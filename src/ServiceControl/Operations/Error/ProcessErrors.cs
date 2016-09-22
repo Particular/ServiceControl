@@ -40,7 +40,11 @@
 
         public void Start()
         {
-            breaker = new RepeatedFailuresOverTimeCircuitBreaker("ProcessErrors", TimeSpan.FromMinutes(2), ex => criticalError.Raise("Repeated failures when processing errors.", ex),
+            breaker = new RepeatedFailuresOverTimeCircuitBreaker("ProcessErrors", TimeSpan.FromMinutes(2), ex =>
+                {
+                    stop = true;
+                    criticalError.Raise("Repeated failures when processing errors.", ex);
+                },
                 TimeSpan.FromSeconds(2));
             stop = false;
             task = ProcessWithRetries();
