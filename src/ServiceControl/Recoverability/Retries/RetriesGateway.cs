@@ -122,9 +122,8 @@ namespace ServiceControl.Recoverability
             var commands = new ICommandData[messageIds.Length];
             for (var i = 0; i < messageIds.Length; i++)
             {
-                ICommandData patch;
-                retryIds[i] = retryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i], out patch);
-                commands[i] = patch;
+                commands[i] = retryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
+                retryIds[i] = commands[i].Key;
             }
 
             store.DatabaseCommands.Batch(commands);

@@ -51,11 +51,11 @@ namespace ServiceControl.Recoverability
             return batchDocumentId;
         }
 
-        public string CreateFailedMessageRetryDocument(string batchDocumentId, string messageUniqueId, out ICommandData patch)
+        public ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageUniqueId)
         {
             var failureRetryId = FailedMessageRetry.MakeDocumentId(messageUniqueId);
 
-            patch = new PatchCommandData
+            return new PatchCommandData
             {
                 Patches = patchRequestsEmpty,
                 PatchesIfMissing = new[]
@@ -76,8 +76,6 @@ namespace ServiceControl.Recoverability
                 Key = failureRetryId,
                 Metadata = defaultMetadata
             };
-            
-            return failureRetryId;
         }
 
         public void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
