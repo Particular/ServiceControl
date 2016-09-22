@@ -201,8 +201,6 @@ Database Size:							{DataSize()}bytes
             // Only want to see raven errors
             var rules = nlogConfig.LoggingRules;
             rules.Add(new LoggingRule("Raven.*", loggingSettings.RavenDBLogLevel, ravenFileTarget));
-            //Noise reduction - Only RavenDB errors on the console
-            rules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));
             rules.Add(new LoggingRule("Raven.*", LogLevel.Error, nullTarget)
             {
                 Final = true,
@@ -211,6 +209,8 @@ Database Size:							{DataSize()}bytes
                     new FilterEndOfStreamException()
                 }
             });
+            //Noise reduction - Only RavenDB errors on the console
+            rules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));
 
             // Always want to see license logging regardless of default logging level
             rules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
