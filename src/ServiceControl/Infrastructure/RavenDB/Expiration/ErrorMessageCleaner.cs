@@ -48,6 +48,7 @@
 
                 reset.Wait();
             }
+            logger.Info("Clean-up of expired error documents complete.");
         }
     }
 }
