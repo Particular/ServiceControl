@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
@@ -79,14 +78,19 @@
         {
             do
             {
-                var tasks = auditIngestionCache.GetBatch(BATCH_SIZE * NUM_CONCURRENT_BATCHES).ToArray()
-                    .Chunk(BATCH_SIZE)
-                    .Select(x => Task.Run(() => HandleBatch(x.ToArray())))
-                    .ToArray();
+                var tasks = new List<Task>(NUM_CONCURRENT_BATCHES);
 
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                foreach (var files in Ext.Chunk(auditIngestionCache.GetBatch(BATCH_SIZE * NUM_CONCURRENT_BATCHES), BATCH_SIZE))
+                {
+                    tasks.Add(Task.Run(() => HandleBatch(files)));
+                }
+                
+                if (tasks.Count > 0)
+                {
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
+                }
 
-                if (!stop && tasks.Length == 0)
+                if (!stop && tasks.Count == 0)
                 {
                     await Task.Delay(1000).ConfigureAwait(false);
                 }
@@ -99,39 +103,48 @@
         {
             try
             {
-                var processedFiles = new List<string>(BATCH_SIZE);
                 var bulkInsert = store.BulkInsert(options: new BulkInsertOptions
                 {
                     WriteTimeoutMilliseconds = 2000
                 });
+                var commit = false;
 
-                foreach (var entry in files)
+                for (var index = 0; index < files.Length; index++)
                 {
                     Dictionary<string, string> headers;
                     ClaimsCheck bodyStorageClaimsCheck;
 
-                    if (auditIngestionCache.TryGet(entry, out headers, out bodyStorageClaimsCheck))
+                    if (auditIngestionCache.TryGet(files[index], out headers, out bodyStorageClaimsCheck))
                     {
                         var processedMessage = processedMessageFactory.Create(headers);
                         processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
-
+                        
                         bulkInsert.Store(processedMessage);
 
-                        processedFiles.Add(entry);
+                        commit = true;
+                    }
+                    else
+                    {
+                        files[index] = null;
                     }
                 }
-
-                if (processedFiles.Count > 0)
+                
+                var processedFiles = 0;
+                if (commit)
                 {
                     await bulkInsert.DisposeAsync().ConfigureAwait(false);
 
-                    foreach (var file in processedFiles)
+                    foreach (var file in files)
                     {
-                        File.Delete(file);
+                        if (file != null)
+                        {
+                            File.Delete(file);
+                            processedFiles++;
+                        }
                     }
                 }
 
-                meter.Mark(processedFiles.Count);
+                meter.Mark(processedFiles);
             }
             catch (Exception ex)
             {
@@ -142,14 +155,14 @@
 
     public static class Ext
     {
-        public static IEnumerable<T[]> Chunk<T>(this IEnumerable<T> source, int n)
+        public static IEnumerable<T[]> Chunk<T>(IEnumerable<T> source, int batchSize)
         {
-            var list = new List<T>(n);
+            var list = new List<T>(batchSize);
             var i = 0;
             foreach (var item in source)
             {
                 list.Add(item);
-                if (++i == n)
+                if (++i == batchSize)
                 {
                     yield return list.ToArray();
                     i = 0;
