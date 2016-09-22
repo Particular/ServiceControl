@@ -3,18 +3,20 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using Raven.Client.Document;
     using ServiceControl.Operations.BodyStorage;
 
     class ProcessAudits
     {
         private const int BATCH_SIZE = 128;
+        private const int NUM_CONCURRENT_BATCHES = 5;
+
 
         private ILog logger = LogManager.GetLogger<ProcessAudits>();
 
@@ -75,23 +77,36 @@
 
         private async Task Process()
         {
-            var processedFiles = new List<string>(BATCH_SIZE);
-
             do
             {
-                processedFiles.Clear();
-                var bulkInsertLazy = new Lazy<BulkInsertOperation>(() => store.BulkInsert(options: new BulkInsertOptions
+                var tasks = auditIngestionCache.GetBatch(BATCH_SIZE * NUM_CONCURRENT_BATCHES).ToArray()
+                    .Chunk(BATCH_SIZE)
+                    .Select(x => Task.Run(() => HandleBatch(x.ToArray())))
+                    .ToArray();
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                if (!stop && tasks.Length == 0)
+                {
+                    await Task.Delay(1000).ConfigureAwait(false);
+                }
+
+                breaker.Success();
+            } while (!stop);
+        }
+
+        private async Task HandleBatch(string[] files)
+        {
+            try
+            {
+                var processedFiles = new List<string>(BATCH_SIZE);
+                var bulkInsert = store.BulkInsert(options: new BulkInsertOptions
                 {
                     WriteTimeoutMilliseconds = 2000
-                }));
+                });
 
-                foreach (var entry in auditIngestionCache.GetBatch(BATCH_SIZE))
+                foreach (var entry in files)
                 {
-                    if (stop)
-                    {
-                        break;
-                    }
-
                     Dictionary<string, string> headers;
                     ClaimsCheck bodyStorageClaimsCheck;
 
@@ -100,7 +115,7 @@
                         var processedMessage = processedMessageFactory.Create(headers);
                         processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
 
-                        bulkInsertLazy.Value.Store(processedMessage);
+                        bulkInsert.Store(processedMessage);
 
                         processedFiles.Add(entry);
                     }
@@ -108,7 +123,7 @@
 
                 if (processedFiles.Count > 0)
                 {
-                    await bulkInsertLazy.Value.DisposeAsync().ConfigureAwait(false);
+                    await bulkInsert.DisposeAsync().ConfigureAwait(false);
 
                     foreach (var file in processedFiles)
                     {
@@ -117,14 +132,35 @@
                 }
 
                 meter.Mark(processedFiles.Count);
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Something went wrong ingesting a batch", ex);
+            }
+        }
+    }
 
-                breaker.Success();
-
-                if (!stop && processedFiles.Count < BATCH_SIZE)
+    public static class Ext
+    {
+        public static IEnumerable<T[]> Chunk<T>(this IEnumerable<T> source, int n)
+        {
+            var list = new List<T>(n);
+            var i = 0;
+            foreach (var item in source)
+            {
+                list.Add(item);
+                if (++i == n)
                 {
-                    await Task.Delay(1000).ConfigureAwait(false);
+                    yield return list.ToArray();
+                    i = 0;
+                    list.Clear();
                 }
-            } while (!stop);
+            }
+
+            if (i != 0)
+            {
+                yield return list.ToArray();
+            }
         }
     }
 }
