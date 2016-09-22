@@ -23,6 +23,8 @@ namespace ServiceControl.Recoverability
                                         ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"", 
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
                                     }}");
+        private static PatchRequest[] patchRequestsEmpty = new PatchRequest[0];
+
         private IDocumentStore store;
         private bool abort;
 
@@ -55,6 +57,7 @@ namespace ServiceControl.Recoverability
 
             patch = new PatchCommandData
             {
+                Patches = patchRequestsEmpty,
                 PatchesIfMissing = new[]
                 {
                     new PatchRequest
