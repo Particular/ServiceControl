@@ -69,12 +69,13 @@
             var tagPath = Path.Combine(rootLocation, tag);
             var count = 0;
 
-            foreach (var file in Directory.EnumerateFiles(tagPath))
+            var tagDir = new DirectoryInfo(tagPath);
+
+            foreach (var file in tagDir.EnumerateFiles())
             {
-                var lastTouched = File.GetLastWriteTimeUtc(file);
-                if (lastTouched <= cutOffUtc)
+                if (file.LastWriteTimeUtc <= cutOffUtc)
                 {
-                    File.Delete(file);
+                    file.Delete();
                     count++;
                 }
             }
