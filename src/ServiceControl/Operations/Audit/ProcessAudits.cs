@@ -6,18 +6,15 @@
     using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
+    using Raven.Client.Document;
     using ServiceControl.Operations.BodyStorage;
 
     class ProcessAudits
     {
         private const int BATCH_SIZE = 128;
         private const int NUM_CONCURRENT_BATCHES = 5;
-
-
-        private ILog logger = LogManager.GetLogger<ProcessAudits>();
 
         private readonly IDocumentStore store;
         private Task task;
@@ -85,37 +82,46 @@
         {
             try
             {
-                var bulkInsert = store.BulkInsert(options: new BulkInsertOptions
-                {
-                    WriteTimeoutMilliseconds = 2000
-                });
                 var commit = false;
-
-                for (var index = 0; index < files.Length; index++)
+                BulkInsertOperation bulkInsert = null;
+                try
                 {
-                    Dictionary<string, string> headers;
-                    ClaimsCheck bodyStorageClaimsCheck;
-
-                    if (auditIngestionCache.TryGet(files[index], out headers, out bodyStorageClaimsCheck))
+                    bulkInsert = store.BulkInsert(options: new BulkInsertOptions
                     {
-                        var processedMessage = processedMessageFactory.Create(headers);
-                        processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
-                        
-                        bulkInsert.Store(processedMessage);
+                        WriteTimeoutMilliseconds = 2000
+                    });
 
-                        commit = true;
-                    }
-                    else
+                    for (var index = 0; index < files.Length; index++)
                     {
-                        files[index] = null;
+                        Dictionary<string, string> headers;
+                        ClaimsCheck bodyStorageClaimsCheck;
+
+                        if (auditIngestionCache.TryGet(files[index], out headers, out bodyStorageClaimsCheck))
+                        {
+                            var processedMessage = processedMessageFactory.Create(headers);
+                            processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
+
+                            bulkInsert.Store(processedMessage);
+
+                            commit = true;
+                        }
+                        else
+                        {
+                            files[index] = null;
+                        }
                     }
                 }
-                
+                finally
+                {
+                    if (bulkInsert != null)
+                    {
+                        await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                    }
+                }
+
                 var processedFiles = 0;
                 if (commit)
                 {
-                    await bulkInsert.DisposeAsync().ConfigureAwait(false);
-
                     foreach (var file in files)
                     {
                         if (file != null)
