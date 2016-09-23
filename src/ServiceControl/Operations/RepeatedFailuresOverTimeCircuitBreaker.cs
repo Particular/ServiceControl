@@ -85,7 +85,7 @@ namespace ServiceControl.Operations
             }
 
             timer.Change(Timeout.Infinite, Timeout.Infinite);
-            Logger.Info($"The circuit breaker for {name} is now disarmed");
+            Logger.Info($"The circuit breaker for {name} is now disarmed.");
 
             return true;
         }

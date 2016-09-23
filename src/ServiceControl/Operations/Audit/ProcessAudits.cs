@@ -47,7 +47,7 @@
                 },
                 TimeSpan.FromSeconds(2));
             stop = false;
-            task = ProcessWithRetries();
+            task = Process();
         }
 
         public void Stop()
@@ -55,23 +55,6 @@
             stop = true;
             task.Wait();
             breaker.Dispose();
-        }
-
-        private async Task ProcessWithRetries()
-        {
-            do
-            {
-                try
-                {
-                    await Process().ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    logger.Warn("ProcessAudits failed, having a break for 2 seconds before trying again.", ex);
-                    await breaker.Failure(ex).ConfigureAwait(false);
-                    logger.Warn("Restarting ProcessAudits.");
-                }
-            } while (!stop);
         }
 
         private async Task Process()
@@ -94,8 +77,7 @@
                 {
                     await Task.Delay(1000).ConfigureAwait(false);
                 }
-
-                breaker.Success();
+                
             } while (!stop);
         }
 
@@ -145,10 +127,12 @@
                 }
 
                 meter.Mark(processedFiles);
+
+                breaker.Success();
             }
             catch (Exception ex)
             {
-                logger.Error("Something went wrong ingesting a batch", ex);
+                await breaker.Failure(ex).ConfigureAwait(false);
             }
         }
     }
