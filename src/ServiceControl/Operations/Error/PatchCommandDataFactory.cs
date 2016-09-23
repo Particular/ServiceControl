@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Text;
     using NServiceBus;
-    using NServiceBus.Faults;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
@@ -50,33 +49,6 @@
             this.messageBodyStore = messageBodyStore;
         }
 
-        FailureDetails ParseFailureDetails(Dictionary<string, string> headers)
-        {
-            var result = new FailureDetails();
-
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => result.TimeOfFailure = DateTimeExtensions.ToUtcDateTime(s));
-
-            result.Exception = GetException(headers);
-
-            result.AddressOfFailingEndpoint = headers[FaultsHeaderKeys.FailedQ];
-
-            return result;
-        }
-
-        ExceptionDetails GetException(IReadOnlyDictionary<string, string> headers)
-        {
-            var exceptionDetails = new ExceptionDetails();
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.ExceptionType", headers,
-                s => exceptionDetails.ExceptionType = s);
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.Message", headers,
-                s => exceptionDetails.Message = s);
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.Source", headers,
-                s => exceptionDetails.Source = s);
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.StackTrace", headers,
-                s => exceptionDetails.StackTrace = s);
-            return exceptionDetails;
-        }
-
         private static void WriteMetadata(IDictionary<string, object> messageMeta, MessageBodyMetadata bodyMeta)
         {
             messageMeta.Add("ContentLength", bodyMeta.Size);
@@ -104,7 +76,7 @@
             }
         }
 
-        public PatchCommandData Create(Dictionary<string, string> headers, bool recoverable, ClaimsCheck bodyStorageClaimsCheck, out FailureDetails failureDetails, out string uniqueId)
+        public PatchCommandData Create(string uniqueId, Dictionary<string, string> headers, bool recoverable, ClaimsCheck bodyStorageClaimsCheck, FailureDetails failureDetails)
         {
             var metadata = new Dictionary<string, object>();
 
@@ -125,9 +97,7 @@
                 enricher.Enrich(headers, metadata);
             }
 
-            uniqueId = headers.UniqueMessageId();
             var documentId = $"FailedMessages/{uniqueId}";
-            failureDetails = ParseFailureDetails(headers);
             var timeOfFailure = failureDetails.TimeOfFailure;
             var groups = new List<FailedMessage.FailureGroup>();
 

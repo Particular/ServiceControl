@@ -6,12 +6,18 @@
     using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
+    using NServiceBus.Faults;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
     using Raven.Client;
+    using Raven.Json.Linq;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.EventLog;
+    using ServiceControl.EventLog.Definitions;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Recoverability;
 
     class ProcessErrors
     {
@@ -77,14 +83,16 @@
         private async Task Process()
         {
             var processedFiles = new List<string>(BATCH_SIZE);
-            var patches = new List<PatchCommandData>(BATCH_SIZE);
-            var events = new List<object>(BATCH_SIZE);
+            var batchOperations = new List<ICommandData>(BATCH_SIZE);
+            var recoverabilityBatchCommandFactory = new RecoverabilityBatchCommandFactory(BATCH_SIZE);
+            var eventLogBatchCommandFactory = new EventLogBatchCommandFactory();
 
             do
             {
                 processedFiles.Clear();
-                patches.Clear();
-                events.Clear();
+                batchOperations.Clear();
+
+                recoverabilityBatchCommandFactory.StartNewBatch();
 
                 foreach (var entry in errorIngestionCache.GetBatch(BATCH_SIZE))
                 {
@@ -99,43 +107,30 @@
 
                     if (errorIngestionCache.TryGet(entry, out headers, out recoverable, out bodyStorageClaimsCheck))
                     {
-                        FailureDetails failureDetails;
-                        string uniqueId;
-                        var processedMessage = patchCommandDataFactory.Create(headers, recoverable, bodyStorageClaimsCheck, out failureDetails, out uniqueId);
+                        var uniqueMessageId = headers.UniqueMessageId();
+                        var failureDetails = ParseFailureDetails(headers);
 
-                        patches.Add(processedMessage);
+                        var processedMessage = patchCommandDataFactory.Create(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails);
+                        batchOperations.Add(processedMessage);
+
+                        var recoverabilityCommand = recoverabilityBatchCommandFactory.Create(uniqueMessageId, headers);
+                        if (recoverabilityCommand != null)
+                        {
+                            batchOperations.Add(recoverabilityCommand);
+                        }
+
+                        var eventLogCommand = eventLogBatchCommandFactory.Create(uniqueMessageId, failureDetails);
+                        batchOperations.Add(eventLogCommand);
+
                         processedFiles.Add(entry);
-
-                        string failedMessageId;
-                        if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
-                        {
-                            events.Add(new MessageFailedRepeatedly
-                            {
-                                FailureDetails = failureDetails,
-                                EndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue,
-                                FailedMessageId = failedMessageId
-                            });
-                        }
-                        else
-                        {
-                            events.Add(new MessageFailed
-                            {
-                                FailureDetails = failureDetails,
-                                EndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue,
-                                FailedMessageId = uniqueId
-                            });
-                        }
                     }
                 }
 
-                if (patches.Count > 0)
+                if (batchOperations.Count > 0)
                 {
-                    await store.AsyncDatabaseCommands.BatchAsync(patches).ConfigureAwait(false);
-                }
+                    await store.AsyncDatabaseCommands.BatchAsync(batchOperations).ConfigureAwait(false);
 
-                if (events.Count > 0)
-                {
-                    Parallel.ForEach(events, e => bus.Publish(e));
+                    recoverabilityBatchCommandFactory.CompleteBatch(bus);
                 }
 
                 foreach (var file in processedFiles)
@@ -152,6 +147,105 @@
                     await Task.Delay(1000).ConfigureAwait(false);
                 }
             } while (!stop);
+        }
+
+        FailureDetails ParseFailureDetails(Dictionary<string, string> headers)
+        {
+            var result = new FailureDetails();
+
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => result.TimeOfFailure = DateTimeExtensions.ToUtcDateTime(s));
+
+            result.Exception = GetException(headers);
+
+            result.AddressOfFailingEndpoint = headers[FaultsHeaderKeys.FailedQ];
+
+            return result;
+        }
+
+        ExceptionDetails GetException(IReadOnlyDictionary<string, string> headers)
+        {
+            var exceptionDetails = new ExceptionDetails();
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.ExceptionType", headers,
+                s => exceptionDetails.ExceptionType = s);
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.Message", headers,
+                s => exceptionDetails.Message = s);
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.Source", headers,
+                s => exceptionDetails.Source = s);
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.StackTrace", headers,
+                s => exceptionDetails.StackTrace = s);
+            return exceptionDetails;
+        }
+
+    }
+
+    class RecoverabilityBatchCommandFactory
+    {
+        private List<string> firstTimeFailureIds;
+        private List<string> repeatedFailureIds;
+
+        public RecoverabilityBatchCommandFactory(int batchSize)
+        {
+            firstTimeFailureIds = new List<string>(batchSize);
+            repeatedFailureIds = new List<string>(batchSize);
+        }
+
+        public void StartNewBatch()
+        {
+            firstTimeFailureIds.Clear();
+            repeatedFailureIds.Clear();
+        }
+
+        public ICommandData Create(string uniqueMessageId, Dictionary<string, string> headers)
+        {
+            string failedMessageId;
+            if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
+            {
+                repeatedFailureIds.Add(failedMessageId);
+
+                return new DeleteCommandData
+                {
+                    Key = FailedMessageRetry.MakeDocumentId(failedMessageId)
+                };
+            }
+
+            firstTimeFailureIds.Add(uniqueMessageId);
+            return null;
+        }
+
+        public void CompleteBatch(IBus bus)
+        {
+            bus.Publish(new FailedMessagesImported
+            {
+                NewFailureIds = firstTimeFailureIds.ToArray(),
+                RepeatedFailureIds = repeatedFailureIds.ToArray()
+            });
+        }
+    }
+
+    class EventLogBatchCommandFactory
+    {
+        public ICommandData Create(string failedMessageId, FailureDetails failureDetails)
+        {
+            var messageFailed = new MessageFailed
+            {
+                EndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue,
+                FailedMessageId = failedMessageId,
+                FailureDetails = failureDetails
+            };
+
+            var eventLogItem = new MessageFailedDefinition().Apply(Guid.NewGuid().ToString(), messageFailed);
+
+            return new PutCommandData
+            {
+                Key = eventLogItem.Id,
+                Document = RavenJObject.FromObject(eventLogItem),
+                Metadata = RavenJObject.Parse($@"
+                                    {{
+                                        ""Raven-Entity-Name"": ""EventLogItems"",
+                                        ""Raven-Clr-Type"": ""{typeof(EventLogItem).AssemblyQualifiedName}""
+                                    }}")
+            };
+
         }
     }
 }
