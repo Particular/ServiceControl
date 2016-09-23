@@ -47,7 +47,7 @@
                 };
             }
             documentStore.Initialize();
-            documentStore.JsonRequestFactory.RequestTimeout = TimeSpan.FromSeconds(10);
+            documentStore.JsonRequestFactory.RequestTimeout = TimeSpan.FromSeconds(20);
 
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
         }
