@@ -21,7 +21,8 @@
         {
             var context = new MyContext();
 
-            List<FailureGroupView> groups = null;
+            List<FailureGroupView> exceptionTypeAndStackTraceGroups = null;
+            List<FailureGroupView> messageTypeGroups = null;
             FailedMessage firstFailure = null;
             FailedMessage secondFailure = null;
 
@@ -37,16 +38,18 @@
                     if (!c.FirstDone || !c.SecondDone)
                         return false;
 
-                    if (!TryGetMany("/api/recoverability/groups/", out groups))
+                    if (!TryGetMany("/api/recoverability/groups/", out exceptionTypeAndStackTraceGroups))
                     {
                         return false;
                     }
 
-                    if (groups.Any(x => x.Count != 2))
+                    if (exceptionTypeAndStackTraceGroups.Any(x => x.Count != 2))
                     {
                         Thread.Sleep(1000);
                         return false;
                     }
+
+                    TryGetMany("/api/recoverability/groups/Message%20Type", out messageTypeGroups);
 
                     if (!TryGet("/api/errors/" + c.FirstMessageId, out firstFailure))
                         return false;
@@ -58,12 +61,18 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(groups, "Group should be created");
+            Assert.IsNotNull(exceptionTypeAndStackTraceGroups, "Exception Type And Stack Trace Group should be created");
+            Assert.IsNotNull(messageTypeGroups, "Message Type Group should be created");
             Assert.IsNotNull(firstFailure, "The first failure message should be created");
             Assert.IsNotNull(secondFailure, "The second failure message should be created");
 
-            var failureGroup = groups.First();
-            Assert.AreEqual(2, failureGroup.Count, "Group should have both messages in it");
+            Assert.AreEqual(1, exceptionTypeAndStackTraceGroups.Count, "There should only be one Exception Type And Stack Trace Group");
+            Assert.AreEqual(1, messageTypeGroups.Count, "There should only be one Message Type Group");
+
+            var failureGroup = exceptionTypeAndStackTraceGroups.First();
+            Assert.AreEqual(2, failureGroup.Count, "Exception Type And Stack Trace Group should have both messages in it");
+
+            Assert.AreEqual(2, messageTypeGroups.First().Count, "Message Type Group should have both messages in it");
 
             var failureTimes = firstFailure.ProcessingAttempts
                         .Union(secondFailure.ProcessingAttempts)
