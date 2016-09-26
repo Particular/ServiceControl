@@ -9,8 +9,9 @@
     using NServiceBus.Faults;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
+    using Raven.Abstractions.Data;
     using Raven.Client;
-    using Raven.Json.Linq;
+    using Raven.Client.Document;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
@@ -83,59 +84,80 @@
         private async Task Process()
         {
             var processedFiles = new List<string>(BATCH_SIZE);
-            var batchOperations = new List<ICommandData>(BATCH_SIZE);
+            var patchOperations = new List<ICommandData>(BATCH_SIZE);
             var recoverabilityBatchCommandFactory = new RecoverabilityBatchCommandFactory(BATCH_SIZE);
             var eventLogBatchCommandFactory = new EventLogBatchCommandFactory();
 
             do
             {
                 processedFiles.Clear();
-                batchOperations.Clear();
+                patchOperations.Clear();
 
                 recoverabilityBatchCommandFactory.StartNewBatch();
 
-                foreach (var entry in errorIngestionCache.GetBatch(BATCH_SIZE))
+                BulkInsertOperation bulkInsert = null;
+                try
                 {
-                    if (stop)
+                    bulkInsert = store.BulkInsert(options: new BulkInsertOptions
                     {
-                        break;
-                    }
+                        WriteTimeoutMilliseconds = 2000
+                    });
 
-                    Dictionary<string, string> headers;
-                    ClaimsCheck bodyStorageClaimsCheck;
-                    bool recoverable;
-
-                    if (errorIngestionCache.TryGet(entry, out headers, out recoverable, out bodyStorageClaimsCheck))
+                    foreach (var entry in errorIngestionCache.GetBatch(BATCH_SIZE))
                     {
-                        var uniqueMessageId = headers.UniqueMessageId();
-                        var failureDetails = ParseFailureDetails(headers);
-
-                        var processedMessage = patchCommandDataFactory.Create(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails);
-                        batchOperations.Add(processedMessage);
-
-                        var recoverabilityCommand = recoverabilityBatchCommandFactory.Create(uniqueMessageId, headers);
-                        if (recoverabilityCommand != null)
+                        if (stop)
                         {
-                            batchOperations.Add(recoverabilityCommand);
+                            break;
                         }
 
-                        var eventLogCommand = eventLogBatchCommandFactory.Create(uniqueMessageId, failureDetails);
-                        batchOperations.Add(eventLogCommand);
+                        Dictionary<string, string> headers;
+                        ClaimsCheck bodyStorageClaimsCheck;
+                        bool recoverable;
 
-                        processedFiles.Add(entry);
+                        if (errorIngestionCache.TryGet(entry, out headers, out recoverable, out bodyStorageClaimsCheck))
+                        {
+                            var uniqueMessageId = headers.UniqueMessageId();
+                            var failureDetails = ParseFailureDetails(headers);
+
+                            var recoverabilityCommand = recoverabilityBatchCommandFactory.Create(uniqueMessageId, headers);
+                            if (recoverabilityCommand != null) //Repeated failure
+                            {
+                                patchOperations.Add(recoverabilityCommand);
+
+                                patchOperations.Add(patchCommandDataFactory.Patch(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
+                            }
+                            else // New failure
+                            {
+                                bulkInsert.Store(patchCommandDataFactory.New(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
+                            }
+
+                            bulkInsert.Store(eventLogBatchCommandFactory.Create(uniqueMessageId, failureDetails));
+
+                            processedFiles.Add(entry);
+                        }
+                    }
+
+                    if (patchOperations.Count > 0)
+                    {
+                        await store.AsyncDatabaseCommands.BatchAsync(patchOperations).ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    if (bulkInsert != null)
+                    {
+                        await bulkInsert.DisposeAsync().ConfigureAwait(false);
                     }
                 }
 
-                if (batchOperations.Count > 0)
+                if (processedFiles.Count > 0)
                 {
-                    await store.AsyncDatabaseCommands.BatchAsync(batchOperations).ConfigureAwait(false);
-
                     recoverabilityBatchCommandFactory.CompleteBatch(bus);
-                }
 
-                foreach (var file in processedFiles)
-                {
-                    File.Delete(file);
+                    foreach (var file in processedFiles)
+                    {
+                        File.Delete(file);
+                    }
                 }
 
                 meter.Mark(processedFiles.Count);
@@ -224,7 +246,7 @@
 
     class EventLogBatchCommandFactory
     {
-        public ICommandData Create(string failedMessageId, FailureDetails failureDetails)
+        public EventLogItem Create(string failedMessageId, FailureDetails failureDetails)
         {
             var messageFailed = new MessageFailed
             {
@@ -233,19 +255,7 @@
                 FailureDetails = failureDetails
             };
 
-            var eventLogItem = new MessageFailedDefinition().Apply(Guid.NewGuid().ToString(), messageFailed);
-
-            return new PutCommandData
-            {
-                Key = eventLogItem.Id,
-                Document = RavenJObject.FromObject(eventLogItem),
-                Metadata = RavenJObject.Parse($@"
-                                    {{
-                                        ""Raven-Entity-Name"": ""EventLogItems"",
-                                        ""Raven-Clr-Type"": ""{typeof(EventLogItem).AssemblyQualifiedName}""
-                                    }}")
-            };
-
+            return new MessageFailedDefinition().Apply(Guid.NewGuid().ToString(), messageFailed);
         }
     }
 }

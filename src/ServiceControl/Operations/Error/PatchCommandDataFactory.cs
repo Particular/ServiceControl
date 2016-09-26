@@ -76,7 +76,68 @@
             }
         }
 
-        public PatchCommandData Create(string uniqueId, Dictionary<string, string> headers, bool recoverable, ClaimsCheck bodyStorageClaimsCheck, FailureDetails failureDetails)
+        public FailedMessage New(string uniqueId, Dictionary<string, string> headers, bool recoverable, ClaimsCheck bodyStorageClaimsCheck, FailureDetails failureDetails)
+        {
+            var groups = new List<FailedMessage.FailureGroup>();
+
+            foreach (var enricher in failureEnrichers)
+            {
+                groups.AddRange(enricher.Enrich(failureDetails));
+            }
+
+            var metadata = new Dictionary<string, object>();
+
+            DictionaryExtensions.CheckIfKeyExists(Headers.MessageId, headers, messageId => metadata.Add("MessageId", messageId));
+
+            // NOTE: Pulled out of the TransportMessage class
+            var intent = (MessageIntentEnum)0;
+            string str;
+            if (headers.TryGetValue("NServiceBus.MessageIntent", out str))
+            {
+                Enum.TryParse(str, true, out intent);
+            }
+            metadata.Add("MessageIntent", intent);
+            metadata.Add("HeadersForSearching", string.Join(SEPARATOR, headers.Values));
+
+            foreach (var enricher in importerEnrichers)
+            {
+                enricher.Enrich(headers, metadata);
+            }
+
+            var timeOfFailure = failureDetails.TimeOfFailure;
+            string correlationId;
+            headers.TryGetValue(Headers.CorrelationId, out correlationId);
+
+            string replyToAddress;
+            headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress);
+
+            AddBodyDetails(metadata, bodyStorageClaimsCheck);
+
+            return new FailedMessage
+            {
+                Id = $"FailedMessages/{uniqueId}",
+                Status = FailedMessageStatus.Unresolved,
+                UniqueMessageId = uniqueId,
+                FailureGroups = groups,
+                ProcessingAttempts =
+                {
+                    new FailedMessage.ProcessingAttempt
+                    {
+                        AttemptedAt = timeOfFailure,
+                        FailureDetails = failureDetails,
+                        MessageMetadata = metadata,
+                        MessageId = headers[Headers.MessageId],
+                        Headers = headers,
+                        ReplyToAddress = replyToAddress,
+                        Recoverable = recoverable,
+                        CorrelationId = correlationId,
+                        MessageIntent = intent
+                    }
+                }
+            };
+        }
+
+        public PatchCommandData Patch(string uniqueId, Dictionary<string, string> headers, bool recoverable, ClaimsCheck bodyStorageClaimsCheck, FailureDetails failureDetails)
         {
             var metadata = new Dictionary<string, object>();
 
