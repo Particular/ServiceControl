@@ -11,13 +11,11 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
-    using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
 
-    class When_a_messages_have_failed : AcceptanceTest
+    public class When_messages_have_failed : AcceptanceTest
     {
         [Test]
         public void Should_be_grouped()
@@ -30,6 +28,9 @@
 
             FailedMessage failedMessageA = null;
             FailedMessage failedMessageB = null;
+
+            List<FailedMessage> exceptionTypeAndStackTraceFailedMessages;
+            List<FailedMessage> messageTypeFailedMessages;
 
             Define(context)
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
@@ -62,8 +63,6 @@
                     {
                         return false;
                     }
-
-
 
                     return true;
                 })
