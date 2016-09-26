@@ -284,6 +284,8 @@
     </Compile>
     <Compile Include="Infrastructure\Extensions\WaitHandleExtensions.cs" />
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\EventLogItemsCleaner.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryEventLogItemsIndex.cs" />
     <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
     <Compile Include="MessageFailures\InternalMessages\MarkPendingRetryAsResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />

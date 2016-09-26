@@ -317,6 +317,23 @@
                 {
                     logger.Error("Deletion of error expired documents failed.", ex);
                 }
+
+                threshold = SystemTime.UtcNow.Add(-settings.EventsRetentionPeriod);
+
+                if (cancellationTokenSource.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                logger.Debug($"Trying to find expired EventLogItem documents to delete (with threshold {threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture)})");
+                try
+                {
+                    EventLogItemsCleaner.Clean(store, threshold, cancellationTokenSource.Token);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error("Deletion of EventLogItem expired documents failed.", ex);
+                }
             }
         }
     }

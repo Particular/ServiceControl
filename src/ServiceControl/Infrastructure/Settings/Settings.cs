@@ -37,6 +37,7 @@
             ForwardErrorMessages = forwardErrorMessages ?? GetForwardErrorMessages();
             AuditRetentionPeriod = auditRetentionPeriod ?? GetAuditRetentionPeriod();
             ErrorRetentionPeriod = errorRetentionPeriod ?? GetErrorRetentionPeriod();
+            EventsRetentionPeriod = GetEventRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
@@ -122,6 +123,8 @@
         public TimeSpan AuditRetentionPeriod { get; }
 
         public TimeSpan ErrorRetentionPeriod { get; }
+
+        public TimeSpan EventsRetentionPeriod { get; }
 
         public int MaxBodySizeToStore
         {
@@ -272,6 +275,21 @@
         private static string SanitiseFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
+        }
+
+        private TimeSpan GetEventRetentionPeriod()
+        {
+            var valueRead = SettingsReader<string>.Read("EventRetentionPeriod");
+            if (valueRead != null)
+            {
+                TimeSpan result;
+                if (TimeSpan.TryParse(valueRead, out result))
+                {
+                    return result;
+                }
+            }
+
+            return TimeSpan.FromDays(14);
         }
 
         private TimeSpan GetErrorRetentionPeriod()
