@@ -27,7 +27,7 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string context = null)
+        public string CreateBatchDocument(string context = null, string groupId = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = Store.OpenSession())
@@ -36,6 +36,7 @@ namespace ServiceControl.Recoverability
                 {
                     Id = batchDocumentId, 
                     Context = context,
+                    GroupId = groupId,
                     RetrySessionId = RetrySessionId, 
                     Status = RetryBatchStatus.MarkingDocuments
                 });
@@ -106,30 +107,27 @@ namespace ServiceControl.Recoverability
             Store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
-        internal void AdoptOrphanedBatches(out bool hasMoreWorkToDo)
+        internal void AdoptOrphanedBatches(IDocumentSession session, out bool hasMoreWorkToDo)
         {
-            using (var session = Store.OpenSession())
+            RavenQueryStatistics stats;
+
+            var orphanedBatchIds = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
+                .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
+                .Statistics(out stats)
+                .Select(b => b.Id)
+                .ToArray();
+
+            log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatchIds.Length);
+
+            AdoptBatches(session, orphanedBatchIds);
+
+            if (abort)
             {
-                RavenQueryStatistics stats;
-
-                var orphanedBatchIds = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-                    .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
-                    .Statistics(out stats)
-                    .Select(b => b.Id)
-                    .ToArray();
-
-                log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatchIds.Length);
-
-                AdoptBatches(session, orphanedBatchIds);
-
-                if (abort)
-                {
-                    hasMoreWorkToDo = false;
-                    return;
-                }
-
-                hasMoreWorkToDo = stats.IsStale || orphanedBatchIds.Any();
+                hasMoreWorkToDo = false;
+                return;
             }
+
+            hasMoreWorkToDo = stats.IsStale || orphanedBatchIds.Any();
         }
 
         void AdoptBatches(IDocumentSession session, string[] batchIds)
@@ -156,6 +154,21 @@ namespace ServiceControl.Recoverability
             {
                 log.InfoFormat("Adopting retry batch {0} from previous session with {1} messages", batchId, messageIds.Count);
                 MoveBatchToStaging(batchId, messageIds.ToArray());
+            }
+        }
+
+        internal void RebuildRetryGroupState(IDocumentSession session)
+        {
+            var stagingBatches = session.Query<RetryBatch>()
+                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+                .Where(b => b.Status == RetryBatchStatus.Staging);
+
+            foreach (var batch in stagingBatches)
+            {
+                if (!string.IsNullOrWhiteSpace(batch.GroupId))
+                {
+                    RetryGroupSummary.SetStatus(batch.GroupId, RetryGroupStatus.Staging);
+                }
             }
         }
 

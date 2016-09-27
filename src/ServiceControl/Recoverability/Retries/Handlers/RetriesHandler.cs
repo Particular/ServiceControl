@@ -19,11 +19,11 @@ namespace ServiceControl.Recoverability
         {
             if (message.Endpoint != null)
             {
-                Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(m => m.ReceivingEndpointName == message.Endpoint, "all messages for endpoint " + message.Endpoint);
+                Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(null, m => m.ReceivingEndpointName == message.Endpoint, "all messages for endpoint " + message.Endpoint);
             }
             else
             {
-                Retries.StartRetryForIndex<FailedMessage, FailedMessageViewIndex>(context: "all messages");
+                Retries.StartRetryForIndex<FailedMessage, FailedMessageViewIndex>(null, context: "all messages");
             }
         }
 
@@ -46,7 +46,7 @@ namespace ServiceControl.Recoverability
         {
             var failedQueueAddress = message.QueueAddress;
 
-            Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(m => m.QueueAddress == failedQueueAddress && m.Status == message.Status, $"all messages for failed queue address '{message.QueueAddress}'");
+            Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(null, m => m.QueueAddress == failedQueueAddress && m.Status == message.Status, $"all messages for failed queue address '{message.QueueAddress}'");
         }
     }
 }

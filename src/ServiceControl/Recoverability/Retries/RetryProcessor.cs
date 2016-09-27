@@ -38,6 +38,43 @@ namespace ServiceControl.Recoverability
 
         public bool ProcessBatches(IDocumentSession session)
         {
+            if (ForwardCurrentBatch(session))
+            {
+                return true;
+            }
+
+            return StageBatchesToForwardingBatch(session);   
+        }
+
+        private bool StageBatchesToForwardingBatch(IDocumentSession session)
+        {
+            isRecoveringFromPrematureShutdown = false;
+
+            var stagingBatch = session.Query<RetryBatch>()
+                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+                .FirstOrDefault(b => b.Status == RetryBatchStatus.Staging);
+
+            if (stagingBatch != null)
+            {
+                if (!string.IsNullOrWhiteSpace(stagingBatch.GroupId))
+                {
+                    RetryGroupSummary.SetStatus(stagingBatch.GroupId, RetryGroupStatus.Staging);
+                }
+
+                redirects = MessageRedirectsCollection.GetOrCreate(session);
+                if (Stage(stagingBatch, session))
+                {
+                    session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id }, RetryBatchNowForwarding.Id);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ForwardCurrentBatch(IDocumentSession session)
+        {
             var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
                 .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
 
@@ -54,28 +91,16 @@ namespace ServiceControl.Recoverability
                 return true;
             }
 
-            isRecoveringFromPrematureShutdown = false;
-
-            var stagingBatch = session.Query<RetryBatch>()
-                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
-                .FirstOrDefault(b => b.Status == RetryBatchStatus.Staging);
-
-            if (stagingBatch != null)
-            {
-                redirects = MessageRedirectsCollection.GetOrCreate(session);
-                if (Stage(stagingBatch, session))
-                {
-                    session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id }, RetryBatchNowForwarding.Id);
-                }
-
-                return true;
-            }
-
             return false;
         }
 
         void Forward(RetryBatch forwardingBatch, IDocumentSession session)
         {
+            if (!string.IsNullOrWhiteSpace(forwardingBatch.GroupId))
+            {
+                RetryGroupSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarding);
+            }
+
             var messageCount = forwardingBatch.FailureRetries.Count;
 
             if (isRecoveringFromPrematureShutdown)
