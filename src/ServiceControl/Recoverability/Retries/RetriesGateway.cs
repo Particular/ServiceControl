@@ -20,7 +20,6 @@ namespace ServiceControl.Recoverability
         private IDocumentStore store;
         private RetryDocumentManager retryDocumentManager;
         private ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
-
         public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager)
         {
             this.store = store;
@@ -29,6 +28,7 @@ namespace ServiceControl.Recoverability
 
         interface IBulkRetryRequest
         {
+            string GroupId { get; }
             IEnumerator<StreamResult<FailedMessage>> GetDocuments(IDocumentSession session);
             string GetBatchName(int pageNum, int totalPages);
         }
@@ -40,11 +40,14 @@ namespace ServiceControl.Recoverability
             string context;
             Expression<Func<TType, bool>> filter;
 
-            public IndexBasedBulkRetryRequest(string context, Expression<Func<TType, bool>> filter)
+            public IndexBasedBulkRetryRequest(string groupId, string context, Expression<Func<TType, bool>> filter)
             {
+                GroupId = groupId;
                 this.context = context;
                 this.filter = filter;
             }
+
+            public string GroupId { get; set; }
 
             public IEnumerator<StreamResult<FailedMessage>> GetDocuments(IDocumentSession session)
             {
@@ -95,18 +98,18 @@ namespace ServiceControl.Recoverability
             return batches;
         }
 
-        public void StartRetryForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter = null, string context = null)
+        public void StartRetryForIndex<TType, TIndex>(string groupId, Expression<Func<TType, bool>> filter = null, string context = null)
             where TIndex : AbstractIndexCreationTask, new()
             where TType : IHaveStatus
         {
             log.InfoFormat("Enqueuing index based bulk retry '{0}'", context);
 
-            var request = new IndexBasedBulkRetryRequest<TType, TIndex>(context, filter);
+            var request = new IndexBasedBulkRetryRequest<TType, TIndex>(groupId, context, filter);
 
             bulkRequests.Enqueue(request);
         }
 
-        public void StageRetryByUniqueMessageIds(string[] messageIds, string context = null)
+        public void StageRetryByUniqueMessageIds(string[] messageIds, string context = null, string groupId = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
@@ -114,7 +117,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var batchDocumentId = retryDocumentManager.CreateBatchDocument(context);
+            var batchDocumentId = retryDocumentManager.CreateBatchDocument(context, groupId);
 
             log.InfoFormat("Created Batch '{0}' with {1} messages for context '{2}'", batchDocumentId, messageIds.Length, context);
 
@@ -148,10 +151,14 @@ namespace ServiceControl.Recoverability
         {
             var batches = GetRequestedBatches(request);
 
+            RetryGroupSummary.SetStatus(request.GroupId, RetryGroupStatus.MarkingDocuments);
+
             for (var i = 0; i < batches.Count; i++)
             {
-                StageRetryByUniqueMessageIds(batches[i], request.GetBatchName(i + 1, batches.Count));
+                StageRetryByUniqueMessageIds(batches[i], request.GetBatchName(i + 1, batches.Count), request.GroupId);
             }
+
+            RetryGroupSummary.SetStatus(request.GroupId, RetryGroupStatus.DocumentsMarked);
         }
 
         static ILog log = LogManager.GetLogger(typeof(RetriesGateway));

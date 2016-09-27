@@ -526,6 +526,7 @@
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroup.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\StackTraceParser.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\RetryGroupSummary.cs" />
     <Compile Include="Recoverability\Retries\Handlers\PendingRetriesHandler.cs" />
     <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
     <Compile Include="Recoverability\Retries\FailedMessageRetries.cs" />

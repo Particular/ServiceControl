@@ -25,7 +25,7 @@ namespace ServiceControl.Recoverability
                 context = group.Title;
             }
 
-            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(x => x.FailureGroupId == message.GroupId, context);
+            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, x => x.FailureGroupId == message.GroupId, context);
         }
 
         public RetriesGateway Retries { get; set; }

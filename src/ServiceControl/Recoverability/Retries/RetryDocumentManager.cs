@@ -34,7 +34,7 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string context = null)
+        public string CreateBatchDocument(string context = null, string groupId = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = store.OpenSession())
@@ -43,6 +43,7 @@ namespace ServiceControl.Recoverability
                 {
                     Id = batchDocumentId, 
                     Context = context,
+                    GroupId = groupId,
                     RetrySessionId = RetrySessionId, 
                     Status = RetryBatchStatus.MarkingDocuments
                 });
@@ -111,7 +112,7 @@ namespace ServiceControl.Recoverability
             store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
-        internal void AdoptOrphanedBatches(out bool hasMoreWorkToDo)
+        internal void AdoptOrphanedBatches(IDocumentSession session, out bool hasMoreWorkToDo)
         {
             using (var session = store.OpenSession())
             {
@@ -161,6 +162,21 @@ namespace ServiceControl.Recoverability
             {
                 log.InfoFormat("Adopting retry batch {0} from previous session with {1} messages", batchId, messageIds.Count);
                 MoveBatchToStaging(batchId, messageIds.ToArray());
+            }
+        }
+
+        internal void RebuildRetryGroupState(IDocumentSession session)
+        {
+            var stagingBatches = session.Query<RetryBatch>()
+                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+                .Where(b => b.Status == RetryBatchStatus.Staging);
+
+            foreach (var batch in stagingBatches)
+            {
+                if (!string.IsNullOrWhiteSpace(batch.GroupId))
+                {
+                    RetryGroupSummary.SetStatus(batch.GroupId, RetryGroupStatus.Staging);
+                }
             }
         }
 
