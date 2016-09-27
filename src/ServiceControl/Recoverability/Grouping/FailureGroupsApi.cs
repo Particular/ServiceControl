@@ -68,7 +68,17 @@ namespace ServiceControl.Recoverability
                     .Where(v => v.Type == classifier)
                     .OrderByDescending(x => x.Last)
                     .Take(200)
-                    .ToArray();
+                    .ToArray()
+                    .Select(failureGroup => new
+                    {
+                        Id = failureGroup.Id,
+                        Title = failureGroup.Title,
+                        Type = failureGroup.Type,
+                        Count = failureGroup.Count,
+                        First = failureGroup.First,
+                        Last = failureGroup.Last,
+                        Status = RetryGroupSummary.GetStatusForGroup(failureGroup.Id)
+                    });
 
                 return Negotiate.WithModel(results)
                     .WithTotalCount(stats)

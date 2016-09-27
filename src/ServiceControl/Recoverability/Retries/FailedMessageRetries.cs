@@ -71,16 +71,22 @@
         {
             private Timer timer;
 
-            public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, TimeKeeper timeKeeper)
+            public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, TimeKeeper timeKeeper, IDocumentStore store)
             {
                 this.retryDocumentManager = retryDocumentManager;
                 this.timeKeeper = timeKeeper;
+                this.store = store;
             }
 
             private bool AdoptOrphanedBatches()
             {
                 bool hasMoreWorkToDo;
-                retryDocumentManager.AdoptOrphanedBatches(out hasMoreWorkToDo);
+                using (var session = store.OpenSession())
+                {
+                    // I'm not entirely convinced this is in the right place.
+                    retryDocumentManager.RebuildRetryGroupState(session);
+                    retryDocumentManager.AdoptOrphanedBatches(session, out hasMoreWorkToDo);
+                }
 
                 if (!hasMoreWorkToDo)
                 {
@@ -101,6 +107,7 @@
                 timeKeeper.Release(timer);
             }
 
+            IDocumentStore store;
             RetryDocumentManager retryDocumentManager;
             private readonly TimeKeeper timeKeeper;
         }
