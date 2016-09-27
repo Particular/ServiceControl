@@ -42,7 +42,7 @@
                 {
                     ServerCertificateValidationCallback = (obj, certificate, chain, errors) => true, //Allow Self Signing certs.  Since we are both client and server this is safe
                     UnsafeAuthenticatedConnectionSharing = true, // This is needed according to https://groups.google.com/d/msg/ravendb/DUYFvqWR5Hc/l1sKE5A1mVgJ
-                    PreAuthenticate = true,
+                    //PreAuthenticate = true, <- If I have this ON BulkInserts do not display in Studio
                     Credentials = CredentialCache.DefaultNetworkCredentials
                 };
             }
