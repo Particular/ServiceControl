@@ -38,10 +38,14 @@ namespace ServiceControl.Recoverability
 
         public bool ProcessBatches(IDocumentSession session)
         {
-            return ForwardCurrentBatch(session) || MoveStagedBatchesToForwardingBatch(session);
+            if (ForwardCurrentBatch(session))
+            {
+                return true;
+            }
+            return StageBatchesToForwardingBatch(session);   
         }
 
-        private bool MoveStagedBatchesToForwardingBatch(IDocumentSession session)
+        private bool StageBatchesToForwardingBatch(IDocumentSession session)
         {
             isRecoveringFromPrematureShutdown = false;
 
@@ -51,6 +55,11 @@ namespace ServiceControl.Recoverability
 
             if (stagingBatch != null)
             {
+                if (!string.IsNullOrWhiteSpace(stagingBatch.GroupId))
+                {
+                    RetryGroupSummary.SetStatus(stagingBatch.GroupId, RetryGroupStatus.Staging);
+                }
+
                 redirects = MessageRedirectsCollection.GetOrCreate(session);
                 if (Stage(stagingBatch, session))
                 {
@@ -86,6 +95,11 @@ namespace ServiceControl.Recoverability
 
         void Forward(RetryBatch forwardingBatch, IDocumentSession session)
         {
+            if (!string.IsNullOrWhiteSpace(forwardingBatch.GroupId))
+            {
+                RetryGroupSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarding);
+            }
+
             var messageCount = forwardingBatch.FailureRetries.Count;
 
             if (isRecoveringFromPrematureShutdown)

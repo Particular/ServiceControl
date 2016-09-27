@@ -102,9 +102,10 @@
             private bool AdoptOrphanedBatches()
             {
                 bool hasMoreWorkToDo;
-
                 using (var session = store.OpenSession())
                 {
+                    // I'm not entirely convinced this is in the right place.
+                    retryDocumentManager.RebuildRetryGroupState(session);
                     retryDocumentManager.AdoptOrphanedBatches(session, out hasMoreWorkToDo);
                 }
 

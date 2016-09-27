@@ -69,7 +69,7 @@ namespace ServiceControl.Recoverability
                     .OrderByDescending(x => x.Last)
                     .Take(200)
                     .ToArray()
-                    .Select(failureGroup =>
+                    .Select(failureGroup => new
                     {
                         var summary = RetryOperationSummary.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
 

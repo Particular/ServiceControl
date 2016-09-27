@@ -6,6 +6,7 @@ namespace ServiceControl.Recoverability
     {
         public string Id { get; set; }
         public string Context { get; set; }
+        public string GroupId { get; set; }
         public string RetrySessionId { get; set; }
         public string StagingId { get; set; }
         public string RequestId { get; set; }

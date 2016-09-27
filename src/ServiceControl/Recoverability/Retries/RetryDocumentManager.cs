@@ -34,7 +34,7 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string requestId, RetryType retryType, int initialBatchSize, string context = null)
+        public string CreateBatchDocument(string context = null, string groupId = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = store.OpenSession())
@@ -43,7 +43,7 @@ namespace ServiceControl.Recoverability
                 {
                     Id = batchDocumentId,
                     Context = context,
-                    RequestId = requestId,
+                    GroupId = groupId,
                     RetryType = retryType,
                     InitialBatchSize = initialBatchSize,
                     RetrySessionId = RetrySessionId, 
@@ -116,28 +116,25 @@ namespace ServiceControl.Recoverability
 
         internal void AdoptOrphanedBatches(IDocumentSession session, out bool hasMoreWorkToDo)
         {
-            using (var session = store.OpenSession())
+            RavenQueryStatistics stats;
+
+            var orphanedBatchIds = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
+                .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
+                .Statistics(out stats)
+                .Select(b => b.Id)
+                .ToArray();
+
+            log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatchIds.Length);
+
+            AdoptBatches(session, orphanedBatchIds);
+
+            if (abort)
             {
-                RavenQueryStatistics stats;
-
-                var orphanedBatchIds = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-                    .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
-                    .Statistics(out stats)
-                    .Select(b => b.Id)
-                    .ToArray();
-
-                log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatchIds.Length);
-
-                AdoptBatches(session, orphanedBatchIds);
-
-                if (abort)
-                {
-                    hasMoreWorkToDo = false;
-                    return;
-                }
-
-                hasMoreWorkToDo = stats.IsStale || orphanedBatchIds.Any();
+                hasMoreWorkToDo = false;
+                return;
             }
+
+            hasMoreWorkToDo = stats.IsStale || orphanedBatchIds.Any();
         }
 
         void AdoptBatches(IDocumentSession session, string[] batchIds)
@@ -167,18 +164,18 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        internal void RebuildRetryOperationState(IDocumentSession session)
+        internal void RebuildRetryGroupState(IDocumentSession session)
         {
-            var stagingBatchGroups = session.Query<RetryBatch>()
+            var stagingBatches = session.Query<RetryBatch>()
                 .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
-                .Where(b => b.Status == RetryBatchStatus.Staging)
-                .ToArray()
-                .GroupBy(batch => new { RetryType = batch.RetryType, RequestId = batch.RequestId });
+                .Where(b => b.Status == RetryBatchStatus.Staging);
 
-            foreach (var group in stagingBatchGroups)
+            foreach (var batch in stagingBatches)
             {
-                foreach (var batch in group)
+                if (!string.IsNullOrWhiteSpace(batch.GroupId))
                 {
+                    RetryGroupSummary.SetStatus(batch.GroupId, RetryGroupStatus.Staging);
+                }
                     if (!string.IsNullOrWhiteSpace(batch.RequestId))
                     {
                         RetryOperationSummary.SetInProgress(batch.RequestId, batch.RetryType, group.Sum(g => g.InitialBatchSize));
