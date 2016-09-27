@@ -100,7 +100,8 @@
                 {
                     bulkInsert = store.BulkInsert(options: new BulkInsertOptions
                     {
-                        WriteTimeoutMilliseconds = 2000
+                        WriteTimeoutMilliseconds = 2000,
+                        OverwriteExisting = true
                     });
 
                     foreach (var entry in errorIngestionCache.GetBatch(BATCH_SIZE))
