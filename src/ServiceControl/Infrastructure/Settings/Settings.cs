@@ -37,7 +37,14 @@
             ForwardErrorMessages = forwardErrorMessages ?? GetForwardErrorMessages();
             AuditRetentionPeriod = auditRetentionPeriod ?? GetAuditRetentionPeriod();
             ErrorRetentionPeriod = errorRetentionPeriod ?? GetErrorRetentionPeriod();
-            EventsRetentionPeriod = GetEventRetentionPeriod();
+            if (AuditRetentionPeriod > ErrorRetentionPeriod)
+            {
+                EventsRetentionPeriod = GetEventRetentionPeriod(AuditRetentionPeriod);
+            }
+            else
+            {
+                EventsRetentionPeriod = GetEventRetentionPeriod(ErrorRetentionPeriod);
+            }
             Port = SettingsReader<int>.Read("Port", 33333);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
@@ -277,7 +284,7 @@
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
         }
 
-        private TimeSpan GetEventRetentionPeriod()
+        private TimeSpan GetEventRetentionPeriod(TimeSpan maxDefault)
         {
             var valueRead = SettingsReader<string>.Read("EventRetentionPeriod");
             if (valueRead != null)
@@ -289,7 +296,7 @@
                 }
             }
 
-            return TimeSpan.FromDays(14);
+            return maxDefault.Add(TimeSpan.FromDays(30));
         }
 
         private TimeSpan GetErrorRetentionPeriod()
