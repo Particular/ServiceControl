@@ -34,15 +34,18 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string context = null)
+        public string CreateBatchDocument(string requestId, RetryType retryType, int initialBatchSize, string context = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = store.OpenSession())
             {
                 session.Store(new RetryBatch
                 {
-                    Id = batchDocumentId, 
+                    Id = batchDocumentId,
                     Context = context,
+                    RequestId = requestId,
+                    RetryType = retryType,
+                    InitialBatchSize = initialBatchSize,
                     RetrySessionId = RetrySessionId, 
                     Status = RetryBatchStatus.MarkingDocuments
                 });
@@ -111,31 +114,28 @@ namespace ServiceControl.Recoverability
             store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
-        internal void AdoptOrphanedBatches(DateTime cutoff, out bool hasMoreWorkToDo)
+        internal void AdoptOrphanedBatches(IDocumentSession session, DateTime cutoff, out bool hasMoreWorkToDo)
         {
-            using (var session = store.OpenSession())
+            RavenQueryStatistics stats;
+
+            var orphanedBatchIds = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
+			    .Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
+                .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
+                .Statistics(out stats)
+                .Select(b => b.Id)
+                .ToArray();
+
+            log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatchIds.Length);
+
+            AdoptBatches(session, orphanedBatchIds);
+
+            if (abort)
             {
-                RavenQueryStatistics stats;
-
-                var orphanedBatchIds = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-                    .Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
-                    .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
-                    .Statistics(out stats)
-                    .Select(b => b.Id)
-                    .ToArray();
-
-                log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatchIds.Length);
-
-                AdoptBatches(session, orphanedBatchIds);
-
-                if (abort)
-                {
-                    hasMoreWorkToDo = false;
-                    return;
-                }
-
-                hasMoreWorkToDo = stats.IsStale || orphanedBatchIds.Any();
+                hasMoreWorkToDo = false;
+                return;
             }
+
+            hasMoreWorkToDo = stats.IsStale || orphanedBatchIds.Any();
         }
 
         void AdoptBatches(IDocumentSession session, string[] batchIds)
@@ -163,6 +163,42 @@ namespace ServiceControl.Recoverability
                 log.InfoFormat("Adopting retry batch {0} from previous session with {1} messages", batchId, messageIds.Count);
                 MoveBatchToStaging(batchId, messageIds.ToArray());
             }
+        }
+
+        internal void RebuildRetryGroupState(IDocumentSession session)
+        {
+            //var stagingBatches = session.Query<RetryBatch>()
+            //    .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+            //    .Where(b => b.Status == RetryBatchStatus.Staging);
+
+            //foreach (var batch in stagingBatches)
+            //{
+            //    if (!string.IsNullOrWhiteSpace(batch.GroupId))
+            //    {
+            //        var numberOfBatches = batch.TotalRetryBatchesInGroup ?? 1;
+            //        // Todo: can we include this query as part of the query above to prevent Select N+1?
+            //        var numberOfIncompleteBatchesForGroup = stagingBatches.Where(b => b.GroupId == batch.GroupId).Count();
+
+            //        RetryOperationSummary.SetStatus(batch.GroupId, RetryGroupStatus.Staging, numberOfBatches - numberOfIncompleteBatchesForGroup, numberOfBatches);
+            //    }
+            //}
+
+            //var batchReadyForForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
+            //    .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
+
+            //if (batchReadyForForwarding != null)
+            //{
+            //    var forwardingBatch = session.Load<RetryBatch>(batchReadyForForwarding.RetryBatchId);
+
+            //    if (forwardingBatch != null)
+            //    {
+            //        var numberOfBatches = forwardingBatch.TotalRetryBatchesInGroup ?? 1;
+            //        // Todo: can we include this query as part of the query above to prevent Select N+1?
+            //        var numberOfIncompleteBatchesForGroup = stagingBatches.Where(b => b.GroupId == forwardingBatch.GroupId).Count();
+
+            //        RetryOperationSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarding, numberOfBatches - numberOfIncompleteBatchesForGroup, numberOfBatches);
+            //    }
+            //}
         }
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));

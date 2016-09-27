@@ -71,7 +71,27 @@ namespace ServiceControl.Recoverability
                     .Where(v => v.Type == classifier)
                     .OrderByDescending(x => x.Last)
                     .Take(200)
-                    .ToArray();
+                    .ToArray()
+                    .Select(failureGroup =>
+                    {
+                        var summary = RetryOperationSummary.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
+
+                        return new
+                        {
+                        var summary = RetryOperationSummary.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
+
+                        return new
+                        {
+                            Id = failureGroup.Id,
+                            Title = failureGroup.Title,
+                            Type = failureGroup.Type,
+                            Count = failureGroup.Count,
+                            First = failureGroup.First,
+                            Last = failureGroup.Last,
+                            RetryStatus = summary != null ? "In Progress" : null,
+                            NumberOfRetryMessagesRemaining = summary?.MessagesRemaining
+                        };
+                    });
 
                 return Negotiate.WithModel(results)
                     .WithTotalCount(stats)

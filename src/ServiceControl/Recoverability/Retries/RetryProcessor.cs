@@ -11,6 +11,7 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageRedirects;
+    using ServiceControl.Operations.BodyStorage;
 
     class RetryProcessor
     {
@@ -36,22 +37,11 @@ namespace ServiceControl.Recoverability
 
         public bool ProcessBatches(IDocumentSession session)
         {
-            var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-                .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
+            return ForwardCurrentBatch(session) || MoveStagedBatchesToForwardingBatch(session);
+        }
 
-            if (nowForwarding != null)
-            {
-                var forwardingBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
-
-                if (forwardingBatch != null)
-                {
-                    Forward(forwardingBatch, session);
-                }
-
-                session.Delete(nowForwarding);
-                return true;
-            }
-
+        private bool MoveStagedBatchesToForwardingBatch(IDocumentSession session)
+        {
             isRecoveringFromPrematureShutdown = false;
 
             var stagingBatch = session.Query<RetryBatch>()
@@ -66,6 +56,27 @@ namespace ServiceControl.Recoverability
                     session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id }, RetryBatchNowForwarding.Id);
                 }
 
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ForwardCurrentBatch(IDocumentSession session)
+        {
+            var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
+                .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
+
+            if (nowForwarding != null)
+            {
+                var forwardingBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
+
+                if (forwardingBatch != null)
+                {
+                    Forward(forwardingBatch, session);
+                }
+
+                session.Delete(nowForwarding);
                 return true;
             }
 
@@ -87,7 +98,12 @@ namespace ServiceControl.Recoverability
 
             session.Delete(forwardingBatch);
 
-            Log.Info($"Retry batch {forwardingBatch.Id} done");
+            if (!string.IsNullOrWhiteSpace(forwardingBatch.RequestId))
+            {
+                RetryOperationSummary.MarkMessagesAsForwarded(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
+            }
+
+            Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
         }
 
         static Predicate<TransportMessage> IsPartOfStagedBatch(string stagingId)

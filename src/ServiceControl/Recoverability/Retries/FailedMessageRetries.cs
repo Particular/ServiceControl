@@ -14,6 +14,7 @@
         public FailedMessageRetries()
         {
             EnableByDefault();
+            RegisterStartupTask<RebuildRetryGroupStatuses>();
             RegisterStartupTask<BulkRetryBatchCreation>();
             RegisterStartupTask<AdoptOrphanBatchesFromPreviousSession>();
             RegisterStartupTask<ProcessRetryBatches>();
@@ -67,22 +68,67 @@
             }
         }
 
+        class RebuildRetryGroupStatuses : FeatureStartupTask
+        {
+            public RebuildRetryGroupStatuses(RetryDocumentManager retryDocumentManager, IDocumentStore store)
+            {
+                this.store = store;
+                this.retryDocumentManager = retryDocumentManager;
+            }
+
+            protected override void OnStart()
+            {
+                using (var session = store.OpenSession())
+                {
+                    retryDocumentManager.RebuildRetryOperationState(session);
+                }
+            }
+
+            RetryDocumentManager retryDocumentManager;
+            IDocumentStore store;
+        }
+
+        class RebuildRetryGroupStatuses : FeatureStartupTask
+        {
+            public RebuildRetryGroupStatuses(RetryDocumentManager retryDocumentManager, IDocumentStore store)
+            {
+                this.store = store;
+                this.retryDocumentManager = retryDocumentManager;
+            }
+
+            protected override void OnStart()
+            {
+                using (var session = store.OpenSession())
+                {
+                    retryDocumentManager.RebuildRetryGroupState(session);
+                }
+            }
+
+            RetryDocumentManager retryDocumentManager;
+            IDocumentStore store;
+        }
+
         class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
         {
             private Timer timer;
             private DateTime startTime;
 
-            public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, TimeKeeper timeKeeper)
+            public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, TimeKeeper timeKeeper, IDocumentStore store)
             {
                 this.retryDocumentManager = retryDocumentManager;
                 this.timeKeeper = timeKeeper;
-                startTime = DateTime.UtcNow;
+                this.store = store;
+				startTime = DateTime.UtcNow;
             }
 
             private bool AdoptOrphanedBatches()
             {
                 bool hasMoreWorkToDo;
-                retryDocumentManager.AdoptOrphanedBatches(startTime, out hasMoreWorkToDo);
+
+                using (var session = store.OpenSession())
+                {
+                    retryDocumentManager.AdoptOrphanedBatches(session, startTime, out hasMoreWorkToDo);
+                }
 
                 if (!hasMoreWorkToDo)
                 {
@@ -103,6 +149,7 @@
                 timeKeeper.Release(timer);
             }
 
+            IDocumentStore store;
             RetryDocumentManager retryDocumentManager;
             private readonly TimeKeeper timeKeeper;
         }
