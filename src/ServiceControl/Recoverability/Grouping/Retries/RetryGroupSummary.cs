@@ -44,6 +44,7 @@ namespace ServiceControl.Recoverability
         DocumentsMarked,
         Staging,
         Staged,
-        Forwarding
+        Forwarding,
+        Forwarded
     }
 }

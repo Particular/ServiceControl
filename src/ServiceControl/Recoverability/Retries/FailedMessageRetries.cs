@@ -18,7 +18,6 @@
             RegisterStartupTask<BulkRetryBatchCreation>();
             RegisterStartupTask<AdoptOrphanBatchesFromPreviousSession>();
             RegisterStartupTask<ProcessRetryBatches>();
-            RegisterStartupTask<RebuildRetryGroupStatuses>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
