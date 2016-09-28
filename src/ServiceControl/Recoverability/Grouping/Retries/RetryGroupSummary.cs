@@ -1,5 +1,4 @@
-﻿
-namespace ServiceControl.Recoverability
+﻿namespace ServiceControl.Recoverability
 {
     using System;
     using System.Collections.Generic;
@@ -20,7 +19,6 @@ namespace ServiceControl.Recoverability
                 CurrentRetryGroups[groupId].Status = status;
                 CurrentRetryGroups[groupId].BatchesCompleted = batchesCompleted;
                 CurrentRetryGroups[groupId].TotalBatches = totalBatches;
-
             }
         }
 
