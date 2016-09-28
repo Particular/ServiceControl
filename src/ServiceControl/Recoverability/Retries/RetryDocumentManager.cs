@@ -27,7 +27,7 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string context = null, string groupId = null)
+        public string CreateBatchDocument(string context = null, string groupId = null, int? totalRetryBatchesInGroup = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = Store.OpenSession())
@@ -37,6 +37,7 @@ namespace ServiceControl.Recoverability
                     Id = batchDocumentId, 
                     Context = context,
                     GroupId = groupId,
+                    TotalRetryBatchesInGroup = totalRetryBatchesInGroup,
                     RetrySessionId = RetrySessionId, 
                     Status = RetryBatchStatus.MarkingDocuments
                 });
@@ -167,7 +168,11 @@ namespace ServiceControl.Recoverability
             {
                 if (!string.IsNullOrWhiteSpace(batch.GroupId))
                 {
-                    RetryGroupSummary.SetStatus(batch.GroupId, RetryGroupStatus.Staging);
+                    var numberOfBatches = batch.TotalRetryBatchesInGroup ?? 1;
+                    // Todo: can we include this query as part of the query above to prevent Select N+1?
+                    var numberOfIncompleteBatchesForGroup = stagingBatches.Where(b => b.GroupId == batch.GroupId).Count();
+
+                    RetryGroupSummary.SetStatus(batch.GroupId, RetryGroupStatus.Staging, numberOfBatches - numberOfIncompleteBatchesForGroup, numberOfBatches);
                 }
             }
 
@@ -180,7 +185,11 @@ namespace ServiceControl.Recoverability
 
                 if (forwardingBatch != null)
                 {
-                    RetryGroupSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarding);
+                    var numberOfBatches = forwardingBatch.TotalRetryBatchesInGroup ?? 1;
+                    // Todo: can we include this query as part of the query above to prevent Select N+1?
+                    var numberOfIncompleteBatchesForGroup = stagingBatches.Where(b => b.GroupId == forwardingBatch.GroupId).Count();
+
+                    RetryGroupSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarding, numberOfBatches - numberOfIncompleteBatchesForGroup, numberOfBatches);
                 }
             }
         }

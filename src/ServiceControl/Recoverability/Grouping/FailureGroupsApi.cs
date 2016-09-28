@@ -54,15 +54,22 @@ namespace ServiceControl.Recoverability
                     .OrderByDescending(x => x.Last)
                     .Take(200)
                     .ToArray()
-                    .Select(failureGroup => new
+                    .Select(failureGroup =>
                     {
-                        Id = failureGroup.Id,
-                        Title = failureGroup.Title,
-                        Type = failureGroup.Type,
-                        Count = failureGroup.Count,
-                        First = failureGroup.First,
-                        Last = failureGroup.Last,
-                        Status = RetryGroupSummary.GetStatusForGroup(failureGroup.Id)
+                        var summary = RetryGroupSummary.GetStatusForGroup(failureGroup.Id);
+
+                        return new
+                        {
+                            Id = failureGroup.Id,
+                            Title = failureGroup.Title,
+                            Type = failureGroup.Type,
+                            Count = failureGroup.Count,
+                            First = failureGroup.First,
+                            Last = failureGroup.Last,
+                            Status = summary.Status,
+                            BatchesCompleted = summary.BatchesCompleted ?? 0,
+                            TotalBatches = summary.TotalBatches ?? 0
+                        };
                     });
 
                 return Negotiate.WithModel(results)
