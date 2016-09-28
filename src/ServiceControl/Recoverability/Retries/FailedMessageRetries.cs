@@ -17,6 +17,7 @@
             RegisterStartupTask<BulkRetryBatchCreation>();
             RegisterStartupTask<AdoptOrphanBatchesFromPreviousSession>();
             RegisterStartupTask<ProcessRetryBatches>();
+            RegisterStartupTask<RebuildRetryGroupStatuses>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
@@ -67,6 +68,26 @@
             }
         }
 
+        class RebuildRetryGroupStatuses : FeatureStartupTask
+        {
+            public RebuildRetryGroupStatuses(RetryDocumentManager retryDocumentManager, IDocumentStore store)
+            {
+                this.store = store;
+                this.retryDocumentManager = retryDocumentManager;
+            }
+
+            protected override void OnStart()
+            {
+                using (var session = store.OpenSession())
+                {
+                    retryDocumentManager.RebuildRetryGroupState(session);
+                }
+            }
+
+            RetryDocumentManager retryDocumentManager;
+            IDocumentStore store;
+        }
+
         class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
         {
             private Timer timer;
@@ -81,10 +102,9 @@
             private bool AdoptOrphanedBatches()
             {
                 bool hasMoreWorkToDo;
+
                 using (var session = store.OpenSession())
                 {
-                    // I'm not entirely convinced this is in the right place.
-                    retryDocumentManager.RebuildRetryGroupState(session);
                     retryDocumentManager.AdoptOrphanedBatches(session, out hasMoreWorkToDo);
                 }
 
