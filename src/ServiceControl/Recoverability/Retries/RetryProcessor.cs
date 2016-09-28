@@ -44,7 +44,7 @@ namespace ServiceControl.Recoverability
             //    return true;
             //}
 
-            //return StageBatchesToForwardingBatch(session);   
+            //return StageBatchesToForwardingBatch(session);
         }
 
         private bool StageBatchesToForwardingBatch(IDocumentSession session)
@@ -114,6 +114,11 @@ namespace ServiceControl.Recoverability
             }
 
             session.Delete(forwardingBatch);
+
+            if (!string.IsNullOrWhiteSpace(forwardingBatch.GroupId))
+            {
+                RetryGroupSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarded);
+            }
 
             Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
         }

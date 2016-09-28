@@ -170,6 +170,19 @@ namespace ServiceControl.Recoverability
                     RetryGroupSummary.SetStatus(batch.GroupId, RetryGroupStatus.Staging);
                 }
             }
+
+            var batchReadyForForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
+                .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
+
+            if (batchReadyForForwarding != null)
+            {
+                var forwardingBatch = session.Load<RetryBatch>(batchReadyForForwarding.RetryBatchId);
+
+                if (forwardingBatch != null)
+                {
+                    RetryGroupSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarding);
+                }
+            }
         }
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
