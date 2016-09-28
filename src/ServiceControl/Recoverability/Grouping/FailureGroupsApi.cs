@@ -69,8 +69,12 @@ namespace ServiceControl.Recoverability
                     .OrderByDescending(x => x.Last)
                     .Take(200)
                     .ToArray()
-                    .Select(failureGroup => new
+                    .Select(failureGroup =>
                     {
+                        var summary = RetryGroupSummary.GetStatusForGroup(failureGroup.Id);
+
+                        return new
+                        {
                         var summary = RetryOperationSummary.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
 
                         return new
@@ -81,8 +85,9 @@ namespace ServiceControl.Recoverability
                             Count = failureGroup.Count,
                             First = failureGroup.First,
                             Last = failureGroup.Last,
-                            RetryStatus = summary != null ? "In Progress" : null,
-                            NumberOfRetryMessagesRemaining = summary?.MessagesRemaining
+                            Status = summary.Status,
+                            BatchesCompleted = summary.BatchesCompleted ?? 0,
+                            TotalBatches = summary.TotalBatches ?? 0
                         };
                     });
 

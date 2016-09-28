@@ -113,7 +113,7 @@ namespace ServiceControl.Recoverability
             bulkRequests.Enqueue(request);
         }
 
-        public void StageRetryByUniqueMessageIds(string[] messageIds, string context = null, string groupId = null)
+        public void StageRetryByUniqueMessageIds(string[] messageIds, string context = null, string groupId = null, int? totalRetryBatchesInGroup = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
@@ -121,7 +121,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var batchDocumentId = RetryDocumentManager.CreateBatchDocument(context, groupId);
+            var batchDocumentId = RetryDocumentManager.CreateBatchDocument(context, groupId, totalRetryBatchesInGroup);
 
             log.InfoFormat("Created Batch '{0}' with {1} messages for context '{2}'", batchDocumentId, messageIds.Length, context);
 
@@ -155,11 +155,11 @@ namespace ServiceControl.Recoverability
         {
             var batches = GetRequestedBatches(request);
 
-            RetryGroupSummary.SetStatus(request.GroupId, RetryGroupStatus.MarkingDocuments);
+            RetryGroupSummary.SetStatus(request.GroupId, RetryGroupStatus.MarkingDocuments, 0, batches.Count);
 
             for (var i = 0; i < batches.Count; i++)
             {
-                StageRetryByUniqueMessageIds(batches[i], request.GetBatchName(i + 1, batches.Count), request.GroupId);
+                StageRetryByUniqueMessageIds(batches[i], request.GetBatchName(i + 1, batches.Count), request.GroupId, batches.Count);
             }
 
             RetryGroupSummary.SetStatus(request.GroupId, RetryGroupStatus.DocumentsMarked);

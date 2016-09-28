@@ -38,15 +38,10 @@ namespace ServiceControl.Recoverability
 
         public bool ProcessBatches(IDocumentSession session)
         {
-            return false;
-            //if (ForwardCurrentBatch(session))
-            //{
-            //    return true;
-            //}
-            //return StageBatchesToForwardingBatch(session);
+            return ForwardCurrentBatch(session) || MoveStagedBatchesToForwardingBatch(session);
         }
 
-        private bool StageBatchesToForwardingBatch(IDocumentSession session)
+        private bool MoveStagedBatchesToForwardingBatch(IDocumentSession session)
         {
             isRecoveringFromPrematureShutdown = false;
 
@@ -58,7 +53,11 @@ namespace ServiceControl.Recoverability
             {
                 if (!string.IsNullOrWhiteSpace(stagingBatch.GroupId))
                 {
-                    RetryGroupSummary.SetStatus(stagingBatch.GroupId, RetryGroupStatus.Staging);
+                    var otherBatchesInGroup = session.Query<RetryBatch>().Where(batch => batch.GroupId == stagingBatch.GroupId);
+                    var totalBatchesInGroup = stagingBatch.TotalRetryBatchesInGroup ?? 1;
+                    var completedBatchesIngroup = totalBatchesInGroup - otherBatchesInGroup.Count(); // Groups are deleted once complete
+
+                    RetryGroupSummary.SetStatus(stagingBatch.GroupId, RetryGroupStatus.Staged, completedBatchesIngroup, totalBatchesInGroup);
                 }
 
                 redirects = MessageRedirectsCollection.GetOrCreate(session);
