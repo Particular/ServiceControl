@@ -38,12 +38,13 @@ namespace ServiceControl.Recoverability
 
         public bool ProcessBatches(IDocumentSession session)
         {
-            if (ForwardCurrentBatch(session))
-            {
-                return true;
-            }
+            return false;
+            //if (ForwardCurrentBatch(session))
+            //{
+            //    return true;
+            //}
 
-            return StageBatchesToForwardingBatch(session);   
+            //return StageBatchesToForwardingBatch(session);   
         }
 
         private bool StageBatchesToForwardingBatch(IDocumentSession session)
