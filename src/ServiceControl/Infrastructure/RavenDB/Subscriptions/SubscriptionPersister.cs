@@ -6,90 +6,135 @@
     using System.Security.Cryptography;
     using System.Text;
     using NServiceBus;
+    using NServiceBus.Logging;
+    using NServiceBus.Settings;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using Raven.Client;
 
-    internal class SubscriptionPersister : ISubscriptionStorage
+    internal class SubscriptionPersister : ISubscriptionStorage, IPrimableSubscriptionStorage
     {
-        private readonly IDocumentStore store;
+        private IDocumentStore store;
+        private Address localAddress;
+        private Subscriptions subscriptions;
+        private ILookup<MessageType, Address> subscriptionsLookup;
+        private object subscriptionsLock = new object();
 
-        private ILookup<MessageType, Address> subscriptionLookup = Enumerable.Empty<Address>().ToLookup(a => default(MessageType));
-
-        public SubscriptionPersister(IDocumentStore store)
+        public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings)
         {
             this.store = store;
+            localAddress = settings.LocalAddress();
+
+            SetSubscriptions(new Subscriptions());
         }
 
         public void Init()
         {
         }
 
-        void UpdateFromDatabase(IDocumentSession session)
-            => subscriptionLookup = session.Query<Subscription>()
-                                            .Customize(x => x.WaitForNonStaleResultsAsOfNow())
-                                            .Take(1024) // NOTE: This is the max that Raven will give us in one go. After this we need to paginate properly
-                                            .AsEnumerable()
-                                            .SelectMany(s => s.Clients.Select(c => new
-                                            {
-                                                Address = c,
-                                                s.MessageType
-                                            }))
-                                            .ToLookup(x => x.MessageType, x => x.Address);
-
         public void Subscribe(Address client, IEnumerable<MessageType> messageTypes)
         {
-            var messageTypeLookup = messageTypes.ToDictionary(FormatId);
-
-            using (var session = OpenSession())
+            if (client == localAddress)
             {
-                session.Advanced.UseOptimisticConcurrency = true;
+                return;
+            }
 
-                var existingSubscriptions = GetSubscriptions(messageTypeLookup.Values, session).ToLookup(m => m.Id);
+            lock (subscriptionsLock)
+            {
+                var needsSave = false;
 
-                var newAndExistingSubscriptions = messageTypeLookup
-                    .Select(id => existingSubscriptions[id.Key].SingleOrDefault() ?? StoreNewSubscription(session, id.Key, id.Value))
-                    .Where(subscription => subscription.Clients.All(c => c != client)).ToArray();
-
-                foreach (var subscription in newAndExistingSubscriptions)
+                foreach (var messageType in messageTypes)
                 {
-                    subscription.Clients.Add(client);
+                    if (AddOrUpdateSubscription(messageType, client))
+                    {
+                        needsSave = true;
+                    }
                 }
 
-                session.SaveChanges();
-
-                UpdateFromDatabase(session);
+                if (needsSave)
+                {
+                    SaveSubscriptions();
+                }
             }
+        }
+
+        private bool AddOrUpdateSubscription(MessageType messageType, Address client)
+        {
+            var key = FormatId(messageType);
+
+            Subscription subscription;
+            if (subscriptions.All.TryGetValue(key, out subscription))
+            {
+                if (subscription.Clients.Contains(client))
+                {
+                    return false;
+                }
+                subscription.Clients.Add(client);
+                return true;
+            }
+
+            // New Subscription
+            subscription = new Subscription
+            {
+                Id = key,
+                Clients = new List<Address>
+                {
+                    client
+                },
+                MessageType = messageType
+            };
+            subscriptions.All.Add(key, subscription);
+            return true;
         }
 
         public void Unsubscribe(Address client, IEnumerable<MessageType> messageTypes)
         {
-            using (var session = OpenSession())
+            lock (subscriptionsLock)
             {
-                session.Advanced.UseOptimisticConcurrency = true;
+                var needsSave = false;
 
-                var subscriptions = GetSubscriptions(messageTypes, session);
-
-                foreach (var subscription in subscriptions)
+                foreach (var messageType in messageTypes)
                 {
-                    subscription.Clients.Remove(client);
+                    Subscription subscription;
+                    if (subscriptions.All.TryGetValue(FormatId(messageType), out subscription))
+                    {
+                        if (subscription.Clients.Remove(client))
+                        {
+                            needsSave = true;
+                        }
+                    }
                 }
 
-                session.SaveChanges();
-
-                UpdateFromDatabase(session);
+                if (needsSave)
+                {
+                    SaveSubscriptions();
+                }
             }
         }
 
-        public IEnumerable<Address> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes)
-            => messageTypes.SelectMany(t => subscriptionLookup[t]).Distinct();
-
-        private IDocumentSession OpenSession()
+        private void SaveSubscriptions()
         {
-            var session = store.OpenSession();
-            session.Advanced.AllowNonAuthoritativeInformation = false;
-            return session;
+            using (var session = store.OpenSession())
+            {
+                session.Store(subscriptions, Subscriptions.SingleDocumentId);
+                UpdateLookup();
+                session.SaveChanges();
+            }
         }
+
+        private void UpdateLookup()
+        {
+            subscriptionsLookup = (from subscription in subscriptions.All.Values
+                                   from client in subscription.Clients
+                                   select new
+                                   {
+                                       subscription.MessageType,
+                                       Address = client
+                                   }).ToLookup(x => x.MessageType, x => x.Address);
+        }
+
+        public IEnumerable<Address> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes)
+            => messageTypes.SelectMany(x => subscriptionsLookup[x]).Union(new[] { localAddress }).Distinct();
 
         private string FormatId(MessageType messageType)
         {
@@ -105,25 +150,58 @@
             }
         }
 
-        private IEnumerable<Subscription> GetSubscriptions(IEnumerable<MessageType> messageTypes, IDocumentSession session)
+        private void SetSubscriptions(Subscriptions newSubscriptions)
         {
-            var ids = messageTypes
-                .Select(FormatId);
-
-            return session.Load<Subscription>(ids).Where(s => s != null);
-        }
-
-        private static Subscription StoreNewSubscription(IDocumentSession session, string id, MessageType messageType)
-        {
-            var subscription = new Subscription
+            lock (subscriptionsLock)
             {
-                Clients = new List<Address>(),
-                Id = id,
-                MessageType = messageType
-            };
-            session.Store(subscription);
-
-            return subscription;
+                subscriptions = newSubscriptions;
+                UpdateLookup();
+            }
         }
+
+        public void Prime()
+        {
+            using (var session = store.OpenSession())
+            {
+                var primeSubscriptions = LoadSubscriptions(session) ?? MigrateSubscriptions(session, localAddress);
+
+                SetSubscriptions(primeSubscriptions);
+            }
+        }
+
+        private static Subscriptions LoadSubscriptions(IDocumentSession session)
+            => session.Load<Subscriptions>(Subscriptions.SingleDocumentId);
+
+        private static Subscriptions MigrateSubscriptions(IDocumentSession session, Address localAddress)
+        {
+            logger.Info("Migrating subscriptions to new format");
+
+            var subscriptions = new Subscriptions();
+
+            using (var stream = session.Advanced.Stream<Subscription>("Subscriptions"))
+            {
+                while (stream.MoveNext())
+                {
+                    var existingSubscription = stream.Current.Document;
+                    existingSubscription.Clients.Remove(localAddress);
+                    subscriptions.All.Add(existingSubscription.Id.Replace("Subscriptions/", ""), existingSubscription);
+                    session.Delete(stream.Current.Key);
+                }
+            }
+
+            session.Store(subscriptions, Subscriptions.SingleDocumentId);
+
+            session.SaveChanges();
+            return subscriptions;
+        }
+
+        private static ILog logger = LogManager.GetLogger<SubscriptionPersister>();
+    }
+
+    class Subscriptions
+    {
+        public const string SingleDocumentId = "Subscriptions/All";
+
+        public IDictionary<string, Subscription> All { get; set; } = new Dictionary<string, Subscription>();
     }
 }

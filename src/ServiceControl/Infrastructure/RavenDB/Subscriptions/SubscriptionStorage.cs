@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Subscriptions
 {
+    using NServiceBus;
     using NServiceBus.Features;
-    using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using Raven.Abstractions.Data;
     using Raven.Client.Document;
 
@@ -34,11 +34,11 @@
                 {
                     clrtype = ReflectionUtil.GetFullNameWithoutVersionInformation(typeof(Subscription));
                 }
-                
+
                 return clrtype;
             };
 
-            context.Container.RegisterSingleton<ISubscriptionStorage>(new SubscriptionPersister(store));
+            context.Container.ConfigureComponent<SubscriptionPersister>(DependencyLifecycle.SingleInstance);
         }
     }
 }
