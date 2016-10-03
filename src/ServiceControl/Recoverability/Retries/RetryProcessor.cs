@@ -51,13 +51,17 @@ namespace ServiceControl.Recoverability
 
             if (stagingBatch != null)
             {
-                if (!string.IsNullOrWhiteSpace(stagingBatch.GroupId))
+                if (!string.IsNullOrWhiteSpace(stagingBatch.RetryOperationId))
                 {
-                    var otherBatchesInGroup = session.Query<RetryBatch>().Where(batch => batch.GroupId == stagingBatch.GroupId);
-                    var totalBatchesInGroup = stagingBatch.TotalRetryBatchesInGroup ?? 1;
-                    var completedBatchesIngroup = totalBatchesInGroup - otherBatchesInGroup.Count(); // Groups are deleted once complete
+                    var retryOperation = session.Load<RetryOperation>(stagingBatch.RetryOperationId);
 
-                    RetryGroupSummary.SetStatus(stagingBatch.GroupId, RetryGroupStatus.Staged, completedBatchesIngroup, totalBatchesInGroup);
+                    var totalBatchesInOperation = retryOperation.BatchesInOperation;
+                    var completedBatchesInOperation = totalBatchesInOperation - retryOperation.BatchesRemaining;
+
+                    if (RetryGroupSummary.GetStatusForGroup(retryOperation.GroupId).Status != RetryGroupStatus.Forwarding)
+                    {
+                        RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Staging, completedBatchesInOperation, totalBatchesInOperation);
+                    }
                 }
 
                 redirects = MessageRedirectsCollection.GetOrCreate(session);
@@ -79,11 +83,34 @@ namespace ServiceControl.Recoverability
 
             if (nowForwarding != null)
             {
+                RetryOperation operationForwardingIsPartOf = null;
+
+                // TODO: 1 query this
+                var retryBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
+                if (!string.IsNullOrWhiteSpace(retryBatch.RetryOperationId))
+                {
+                    operationForwardingIsPartOf = session.Load<RetryOperation>(retryBatch.RetryOperationId);
+
+                    var totalBatchesInOperation = operationForwardingIsPartOf.BatchesInOperation;
+                    var completedBatchesInOperation = totalBatchesInOperation - operationForwardingIsPartOf.BatchesRemaining;
+
+                    RetryGroupSummary.SetStatus(operationForwardingIsPartOf.GroupId, RetryGroupStatus.Forwarding, completedBatchesInOperation, totalBatchesInOperation);
+                }
+
                 var forwardingBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
 
                 if (forwardingBatch != null)
                 {
                     Forward(forwardingBatch, session);
+
+                    operationForwardingIsPartOf.BatchesRemaining--;
+                }
+
+                if (operationForwardingIsPartOf.BatchesRemaining == 0)
+                {
+                    RetryGroupSummary.SetStatus(operationForwardingIsPartOf.GroupId, RetryGroupStatus.Forwarded, operationForwardingIsPartOf.BatchesInOperation, operationForwardingIsPartOf.BatchesInOperation);
+
+                    session.Delete(operationForwardingIsPartOf);
                 }
 
                 session.Delete(nowForwarding);
@@ -95,11 +122,6 @@ namespace ServiceControl.Recoverability
 
         void Forward(RetryBatch forwardingBatch, IDocumentSession session)
         {
-            if (!string.IsNullOrWhiteSpace(forwardingBatch.GroupId))
-            {
-                RetryGroupSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarding);
-            }
-
             var messageCount = forwardingBatch.FailureRetries.Count;
 
             if (isRecoveringFromPrematureShutdown)
@@ -112,11 +134,6 @@ namespace ServiceControl.Recoverability
             }
 
             session.Delete(forwardingBatch);
-
-            if (!string.IsNullOrWhiteSpace(forwardingBatch.GroupId))
-            {
-                RetryGroupSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarded);
-            }
 
             Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
         }

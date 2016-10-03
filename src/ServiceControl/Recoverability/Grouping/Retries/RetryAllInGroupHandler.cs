@@ -15,6 +15,14 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
+            var retryOperation = Session.Query<RetryOperation>().FirstOrDefault(x => x.GroupId == message.GroupId);
+            if (retryOperation != null)
+            {
+                // Retrying a group that is already in progress.
+                log.WarnFormat("Attempt to retry a group ({0}) that is already scheduled for retry", message.GroupId);
+                return;
+            }
+
             var group = Session.Query<FailureGroupView, FailureGroupsViewIndex>()
                                .FirstOrDefault(x => x.Id == message.GroupId);
 
