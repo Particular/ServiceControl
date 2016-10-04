@@ -103,7 +103,10 @@ namespace ServiceControl.Recoverability
                 {
                     Forward(forwardingBatch, session);
 
-                    operationForwardingIsPartOf.BatchesRemaining--;
+                    if (operationForwardingIsPartOf != null)
+                    {
+                        operationForwardingIsPartOf.BatchesRemaining--;
+                    }
                 }
 
                 if (operationForwardingIsPartOf.BatchesRemaining == 0)
