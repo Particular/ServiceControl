@@ -18,12 +18,17 @@
         private Address localAddress;
         private Subscriptions subscriptions;
         private ILookup<MessageType, Address> subscriptionsLookup;
+        private MessageType[] locallyHandledEventTypes;
+
         private object subscriptionsLock = new object();
 
         public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings)
         {
             this.store = store;
             localAddress = settings.LocalAddress();
+
+            locallyHandledEventTypes = settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray();
+
 
             SetSubscriptions(new Subscriptions());
         }
@@ -130,11 +135,17 @@
                                    {
                                        subscription.MessageType,
                                        Address = client
-                                   }).ToLookup(x => x.MessageType, x => x.Address);
+                                   }).Union(from eventType in locallyHandledEventTypes
+                                            select new
+                                            {
+                                                MessageType = eventType,
+                                                Address = localAddress
+                                            }
+                                    ).ToLookup(x => x.MessageType, x => x.Address);
         }
 
         public IEnumerable<Address> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes)
-            => messageTypes.SelectMany(x => subscriptionsLookup[x]).Union(new[] { localAddress }).Distinct();
+            => messageTypes.SelectMany(x => subscriptionsLookup[x]).Distinct();
 
         private string FormatId(MessageType messageType)
         {
