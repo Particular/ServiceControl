@@ -22,7 +22,7 @@
 
     class ProcessErrors
     {
-        private const int BATCH_SIZE = 128;
+        private const int BATCH_SIZE = 64;
 
         private ILog logger = LogManager.GetLogger<ProcessErrors>();
 
@@ -90,20 +90,16 @@
 
             do
             {
-                processedFiles.Clear();
-                patchOperations.Clear();
-
                 recoverabilityBatchCommandFactory.StartNewBatch();
 
-                BulkInsertOperation bulkInsert = null;
+                var lazyBulkInsert = new Lazy<BulkInsertOperation>(() => store.BulkInsert(options: new BulkInsertOptions
+                {
+                    OverwriteExisting = true,
+                    BatchSize = 64
+                }));
+
                 try
                 {
-                    bulkInsert = store.BulkInsert(options: new BulkInsertOptions
-                    {
-                        WriteTimeoutMilliseconds = 2000,
-                        OverwriteExisting = true
-                    });
-
                     foreach (var entry in errorIngestionCache.GetBatch(BATCH_SIZE))
                     {
                         if (stop)
@@ -120,21 +116,23 @@
                             var uniqueMessageId = headers.UniqueMessageId();
                             var failureDetails = ParseFailureDetails(headers);
 
-                            var recoverabilityCommand = recoverabilityBatchCommandFactory.Create(uniqueMessageId, headers);
-                            if (recoverabilityCommand != null) //Repeated failure
-                            {
-                                patchOperations.Add(recoverabilityCommand);
+                            //var recoverabilityCommand = recoverabilityBatchCommandFactory.Create(uniqueMessageId, headers);
+                            //if (recoverabilityCommand != null) //Repeated failure
+                            //{
+                            //    patchOperations.Add(recoverabilityCommand);
 
-                                patchOperations.Add(patchCommandDataFactory.Patch(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
-                            }
-                            else // New failure
-                            {
-                                bulkInsert.Store(patchCommandDataFactory.New(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
-                            }
+                            //    patchOperations.Add(patchCommandDataFactory.Patch(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
+                            //}
+                            //else // New failure
+                            //{
+                                lazyBulkInsert.Value.Store(patchCommandDataFactory.New(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
+                            //}
 
-                            bulkInsert.Store(eventLogBatchCommandFactory.Create(uniqueMessageId, failureDetails));
+                            lazyBulkInsert.Value.Store(eventLogBatchCommandFactory.Create(uniqueMessageId, failureDetails));
 
                             processedFiles.Add(entry);
+
+                            meter.Mark();
                         }
                     }
 
@@ -145,13 +143,17 @@
                 }
                 finally
                 {
-                    if (bulkInsert != null)
+                    if (lazyBulkInsert.IsValueCreated)
                     {
-                        await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                        await lazyBulkInsert.Value.DisposeAsync().ConfigureAwait(false);
                     }
                 }
 
-                if (processedFiles.Count > 0)
+                var processedFilesCount = processedFiles.Count;
+                processedFiles.Clear();
+                patchOperations.Clear();
+
+                if (processedFilesCount > 0)
                 {
                     recoverabilityBatchCommandFactory.CompleteBatch(bus);
 
@@ -161,11 +163,9 @@
                     }
                 }
 
-                meter.Mark(processedFiles.Count);
-
                 breaker.Success();
 
-                if (!stop && processedFiles.Count < BATCH_SIZE)
+                if (!stop && processedFilesCount == 0)
                 {
                     await Task.Delay(1000).ConfigureAwait(false);
                 }
