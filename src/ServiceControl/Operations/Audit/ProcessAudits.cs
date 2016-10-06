@@ -13,8 +13,7 @@
 
     class ProcessAudits
     {
-        private const int BATCH_SIZE = 128;
-        private const int NUM_CONCURRENT_BATCHES = 5;
+        private const int BATCH_SIZE = 256;
 
         private readonly IDocumentStore store;
         private Task task;
@@ -56,114 +55,65 @@
 
         private async Task Process()
         {
+            var processedFiles = new List<string>(BATCH_SIZE);
             do
             {
-                var tasks = new List<Task>(NUM_CONCURRENT_BATCHES);
-
-                foreach (var files in Ext.Chunk(auditIngestionCache.GetBatch(BATCH_SIZE * NUM_CONCURRENT_BATCHES), BATCH_SIZE))
-                {
-                    tasks.Add(Task.Run(() => HandleBatch(files)));
-                }
-                
-                if (tasks.Count > 0)
-                {
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
-                }
-
-                if (!stop && tasks.Count == 0)
-                {
-                    await Task.Delay(1000).ConfigureAwait(false);
-                }
-                
-            } while (!stop);
-        }
-
-        private async Task HandleBatch(string[] files)
-        {
-            try
-            {
-                var commit = false;
-                BulkInsertOperation bulkInsert = null;
                 try
                 {
-                    bulkInsert = store.BulkInsert(options: new BulkInsertOptions
+                    var lazyBulkInsert = new Lazy<BulkInsertOperation>(() => store.BulkInsert(options: new BulkInsertOptions
                     {
-                        WriteTimeoutMilliseconds = 2000
-                    });
+                        BatchSize = 64
+                    }));
 
-                    for (var index = 0; index < files.Length; index++)
+                    try
                     {
-                        Dictionary<string, string> headers;
-                        ClaimsCheck bodyStorageClaimsCheck;
-
-                        if (auditIngestionCache.TryGet(files[index], out headers, out bodyStorageClaimsCheck))
+                        foreach (var file in auditIngestionCache.GetBatch(BATCH_SIZE))
                         {
-                            var processedMessage = processedMessageFactory.Create(headers);
-                            processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
+                            Dictionary<string, string> headers;
+                            ClaimsCheck bodyStorageClaimsCheck;
 
-                            bulkInsert.Store(processedMessage);
+                            if (auditIngestionCache.TryGet(file, out headers, out bodyStorageClaimsCheck))
+                            {
+                                var processedMessage = processedMessageFactory.Create(headers);
 
-                            commit = true;
-                        }
-                        else
-                        {
-                            files[index] = null;
-                        }
-                    }
-                }
-                finally
-                {
-                    if (bulkInsert != null)
-                    {
-                        await bulkInsert.DisposeAsync().ConfigureAwait(false);
-                    }
-                }
+                                processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
 
-                var processedFiles = 0;
-                if (commit)
-                {
-                    foreach (var file in files)
-                    {
-                        if (file != null)
-                        {
-                            File.Delete(file);
-                            processedFiles++;
+                                lazyBulkInsert.Value.Store(processedMessage);
+                                processedFiles.Add(file);
+                                meter.Mark();
+                            }
                         }
                     }
+                    finally
+                    {
+                        if (lazyBulkInsert.IsValueCreated)
+                        {
+                            await lazyBulkInsert.Value.DisposeAsync().ConfigureAwait(false);
+                        }
+                    }
+
+                    foreach (var file in processedFiles)
+                    {
+                        File.Delete(file);
+                    }
+
+                    var processedFilesCount = processedFiles.Count;
+
+                    processedFiles.Clear();
+
+                    breaker.Success();
+
+                    if (!stop && processedFilesCount == 0)
+                    {
+                        await Task.Delay(1000).ConfigureAwait(false);
+                    }
                 }
-
-                meter.Mark(processedFiles);
-
-                breaker.Success();
-            }
-            catch (Exception ex)
-            {
-                await breaker.Failure(ex).ConfigureAwait(false);
-            }
-        }
-    }
-
-    public static class Ext
-    {
-        public static IEnumerable<T[]> Chunk<T>(IEnumerable<T> source, int batchSize)
-        {
-            var list = new List<T>(batchSize);
-            var i = 0;
-            foreach (var item in source)
-            {
-                list.Add(item);
-                if (++i == batchSize)
+                catch (Exception ex)
                 {
-                    yield return list.ToArray();
-                    i = 0;
-                    list.Clear();
+                    await breaker.Failure(ex).ConfigureAwait(false);
                 }
-            }
 
-            if (i != 0)
-            {
-                yield return list.ToArray();
-            }
+            } while (!stop);
         }
     }
 }
