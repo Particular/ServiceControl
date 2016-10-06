@@ -27,7 +27,7 @@
             {
                 AllowStale = true,
                 RetrieveDetails = false,
-                MaxOpsPerSec = 1000
+                MaxOpsPerSec = 700
             });
 
             using (var reset = new ManualResetEventSlim(false))
