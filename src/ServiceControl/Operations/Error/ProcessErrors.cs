@@ -9,9 +9,7 @@
     using NServiceBus.Faults;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
     using Raven.Client;
-    using Raven.Client.Document;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
@@ -22,7 +20,7 @@
 
     class ProcessErrors
     {
-        private const int BATCH_SIZE = 64;
+        private const int BATCH_SIZE = 128;
 
         private ILog logger = LogManager.GetLogger<ProcessErrors>();
 
@@ -92,13 +90,7 @@
             {
                 recoverabilityBatchCommandFactory.StartNewBatch();
 
-                var lazyBulkInsert = new Lazy<BulkInsertOperation>(() => store.BulkInsert(options: new BulkInsertOptions
-                {
-                    OverwriteExisting = true,
-                    BatchSize = 64
-                }));
-
-                try
+                using (var session = store.OpenAsyncSession())
                 {
                     foreach (var entry in errorIngestionCache.GetBatch(BATCH_SIZE))
                     {
@@ -116,19 +108,19 @@
                             var uniqueMessageId = headers.UniqueMessageId();
                             var failureDetails = ParseFailureDetails(headers);
 
-                            //var recoverabilityCommand = recoverabilityBatchCommandFactory.Create(uniqueMessageId, headers);
-                            //if (recoverabilityCommand != null) //Repeated failure
-                            //{
-                            //    patchOperations.Add(recoverabilityCommand);
+                            var recoverabilityCommand = recoverabilityBatchCommandFactory.Create(uniqueMessageId, headers);
+                            if (recoverabilityCommand != null) //Repeated failure
+                            {
+                                patchOperations.Add(recoverabilityCommand);
 
-                            //    patchOperations.Add(patchCommandDataFactory.Patch(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
-                            //}
-                            //else // New failure
-                            //{
-                                lazyBulkInsert.Value.Store(patchCommandDataFactory.New(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
-                            //}
+                                patchOperations.Add(patchCommandDataFactory.Patch(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
+                            }
+                            else // New failure
+                            {
+                                await session.StoreAsync(patchCommandDataFactory.New(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
+                            }
 
-                            lazyBulkInsert.Value.Store(eventLogBatchCommandFactory.Create(uniqueMessageId, failureDetails));
+                            await session.StoreAsync(eventLogBatchCommandFactory.Create(uniqueMessageId, failureDetails));
 
                             processedFiles.Add(entry);
 
@@ -136,16 +128,11 @@
                         }
                     }
 
+                    await session.SaveChangesAsync();
+
                     if (patchOperations.Count > 0)
                     {
                         await store.AsyncDatabaseCommands.BatchAsync(patchOperations).ConfigureAwait(false);
-                    }
-                }
-                finally
-                {
-                    if (lazyBulkInsert.IsValueCreated)
-                    {
-                        await lazyBulkInsert.Value.DisposeAsync().ConfigureAwait(false);
                     }
                 }
 

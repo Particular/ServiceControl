@@ -6,14 +6,12 @@
     using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
-    using Raven.Abstractions.Data;
     using Raven.Client;
-    using Raven.Client.Document;
     using ServiceControl.Operations.BodyStorage;
 
     class ProcessAudits
     {
-        private const int BATCH_SIZE = 256;
+        private const int BATCH_SIZE = 128;
 
         private readonly IDocumentStore store;
         private Task task;
@@ -60,12 +58,7 @@
             {
                 try
                 {
-                    var lazyBulkInsert = new Lazy<BulkInsertOperation>(() => store.BulkInsert(options: new BulkInsertOptions
-                    {
-                        BatchSize = 64
-                    }));
-
-                    try
+                    using (var session = store.OpenAsyncSession())
                     {
                         foreach (var file in auditIngestionCache.GetBatch(BATCH_SIZE))
                         {
@@ -78,20 +71,14 @@
 
                                 processedMessageFactory.AddBodyDetails(processedMessage, bodyStorageClaimsCheck);
 
-                                lazyBulkInsert.Value.Store(processedMessage);
+                                await session.StoreAsync(processedMessage);
                                 processedFiles.Add(file);
                                 meter.Mark();
                             }
                         }
-                    }
-                    finally
-                    {
-                        if (lazyBulkInsert.IsValueCreated)
-                        {
-                            await lazyBulkInsert.Value.DisposeAsync().ConfigureAwait(false);
-                        }
-                    }
 
+                        await session.SaveChangesAsync();
+                    }
                     foreach (var file in processedFiles)
                     {
                         File.Delete(file);
