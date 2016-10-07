@@ -27,14 +27,16 @@
                 if (downButton != null)
                 {
                     downButton.Click += (sender, args) => {
-                        slider.Value = slider.Value - slider.SmallChange;
+                        var newValue = slider.Value - slider.SmallChange;
+                        slider.Value = (newValue < slider.Minimum) ? slider.Minimum : newValue;
                     };
                 }
 
                 if (upButton !=  null )
                 {
                     upButton.Click += (sender, args) => {
-                        slider.Value = slider.Value + slider.SmallChange;
+                        var newValue = slider.Value + slider.SmallChange;
+                        slider.Value = (newValue > slider.Maximum) ? slider.Maximum : newValue;
                     };
                 }
             }
