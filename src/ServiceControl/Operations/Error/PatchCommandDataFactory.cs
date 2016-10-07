@@ -64,16 +64,16 @@
             {
                 metadata.Add("BodyNotStored", true);
             }
-            //else if (bodyStoragePolicy.ShouldIndex(bodyStorageClaimsCheck.Metadata))
-            //{
-            //    byte[] messageBody;
-            //    MessageBodyMetadata _;
+            else if (bodyStoragePolicy.ShouldIndex(bodyStorageClaimsCheck.Metadata))
+            {
+                byte[] messageBody;
+                MessageBodyMetadata _;
 
-            //    if (messageBodyStore.TryGet(BodyStorageTags.ErrorPersistent, bodyStorageClaimsCheck.Metadata.MessageId, out messageBody, out _))
-            //    {
-            //        metadata.Add("Body", Encoding.UTF8.GetString(messageBody));
-            //    }
-            //}
+                if (messageBodyStore.TryGet(BodyStorageTags.ErrorPersistent, bodyStorageClaimsCheck.Metadata.MessageId, out messageBody, out _))
+                {
+                    metadata.Add("Body", Encoding.UTF8.GetString(messageBody));
+                }
+            }
         }
 
         public FailedMessage New(string uniqueId, Dictionary<string, string> headers, bool recoverable, ClaimsCheck bodyStorageClaimsCheck, FailureDetails failureDetails)

@@ -16,6 +16,7 @@ namespace Particular.ServiceControl
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
+    using NLog.Targets.Wrappers;
     using NServiceBus;
     using Raven.Client;
     using Raven.Client.Document;
@@ -158,8 +159,8 @@ Forwarding Error Messages:		{settings.ForwardErrorMessages}
 Forwarding Audit Messages:		{settings.ForwardAuditMessages}
 Database Size:							{DataSize()}bytes
 -------------------------------------------------------------";
-
-            var fileTarget = new FileTarget
+            
+            var fileTarget = new AsyncTargetWrapper(new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
                 FileName = Path.Combine(loggingSettings.LogPath, "logfile.${shortdate}.txt"),
@@ -169,10 +170,9 @@ Database Size:							{DataSize()}bytes
                 MaxArchiveFiles = 14,
                 ArchiveAboveSize = 30*megaByte,
                 Header = new SimpleLayout(header)
-            };
+            });
 
-
-            var ravenFileTarget = new FileTarget
+            var ravenFileTarget = new AsyncTargetWrapper(new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
                 FileName = Path.Combine(loggingSettings.LogPath, "ravenlog.${shortdate}.txt"),
@@ -182,7 +182,7 @@ Database Size:							{DataSize()}bytes
                 MaxArchiveFiles = 14,
                 ArchiveAboveSize = 30*megaByte,
                 Header = new SimpleLayout(header)
-            };
+            });
 
             var consoleTarget = new ColoredConsoleTarget
             {
@@ -239,8 +239,8 @@ Database Size:							{DataSize()}bytes
             {
                 TimeStamp = DateTime.Now
             };
-            logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
-            logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName.Render(logEventInfo), loggingSettings.RavenDBLogLevel.Name);
+            logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", ((FileTarget)fileTarget.WrappedTarget).FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
+            logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ((FileTarget)ravenFileTarget.WrappedTarget).FileName.Render(logEventInfo), loggingSettings.RavenDBLogLevel.Name);
         }
     }
 }

@@ -9,12 +9,7 @@
 
         public void Run(Configure config)
         {
-            if (Persister == null)
-            {
-                return;
-            }
-
-            Persister.Prime();
+            Persister?.Prime();
         }
     }
 }

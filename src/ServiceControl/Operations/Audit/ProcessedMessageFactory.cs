@@ -70,16 +70,16 @@
             {
                 processedMessage.MessageMetadata.Add("BodyNotStored", true);
             }
-            //else if (auditBodyStoragePolicy.ShouldIndex(bodyStorageClaimsCheck.Metadata))
-            //{
-            //    byte[] messageBody;
-            //    MessageBodyMetadata metadata;
-            //
-            //    if (messageBodyStore.TryGet(BodyStorageTags.Audit, bodyStorageClaimsCheck.Metadata.MessageId, out messageBody, out metadata))
-            //    {
-            //        processedMessage.MessageMetadata.Add("Body", Encoding.UTF8.GetString(messageBody));
-            //    }
-            //}
+            else if (auditBodyStoragePolicy.ShouldIndex(bodyStorageClaimsCheck.Metadata))
+            {
+                byte[] messageBody;
+                MessageBodyMetadata metadata;
+
+                if (messageBodyStore.TryGet(BodyStorageTags.Audit, bodyStorageClaimsCheck.Metadata.MessageId, out messageBody, out metadata))
+                {
+                    processedMessage.MessageMetadata.Add("Body", Encoding.UTF8.GetString(messageBody));
+                }
+            }
         }
 
         private static void WriteMetadata(IDictionary<string, object> messageMeta, MessageBodyMetadata bodyMeta)

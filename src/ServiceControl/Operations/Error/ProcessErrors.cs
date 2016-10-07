@@ -9,7 +9,9 @@
     using NServiceBus.Faults;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
+    using Raven.Abstractions.Data;
     using Raven.Client;
+    using Raven.Client.Document;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
@@ -20,7 +22,7 @@
 
     class ProcessErrors
     {
-        private const int BATCH_SIZE = 128;
+        private const int BATCH_SIZE = 1024;
 
         private ILog logger = LogManager.GetLogger<ProcessErrors>();
 
@@ -90,7 +92,14 @@
             {
                 recoverabilityBatchCommandFactory.StartNewBatch();
 
-                using (var session = store.OpenAsyncSession())
+                var lazyBulkInsert = new Lazy<BulkInsertOperation>(() => store.BulkInsert(options: new BulkInsertOptions
+                {
+                    OverwriteExisting = true,
+                    BatchSize = 128,
+                    ChunkedBulkInsertOptions = null
+                }));
+
+                try
                 {
                     foreach (var entry in errorIngestionCache.GetBatch(BATCH_SIZE))
                     {
@@ -117,10 +126,10 @@
                             }
                             else // New failure
                             {
-                                await session.StoreAsync(patchCommandDataFactory.New(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
+                                lazyBulkInsert.Value.Store(patchCommandDataFactory.New(uniqueMessageId, headers, recoverable, bodyStorageClaimsCheck, failureDetails));
                             }
 
-                            await session.StoreAsync(eventLogBatchCommandFactory.Create(uniqueMessageId, failureDetails));
+                            lazyBulkInsert.Value.Store(eventLogBatchCommandFactory.Create(uniqueMessageId, failureDetails));
 
                             processedFiles.Add(entry);
 
@@ -128,17 +137,20 @@
                         }
                     }
 
-                    await session.SaveChangesAsync();
-
                     if (patchOperations.Count > 0)
                     {
                         await store.AsyncDatabaseCommands.BatchAsync(patchOperations).ConfigureAwait(false);
                     }
                 }
+                finally
+                {
+                    if (lazyBulkInsert.IsValueCreated)
+                    {
+                        await lazyBulkInsert.Value.DisposeAsync().ConfigureAwait(false);
+                    }
+                }
 
                 var processedFilesCount = processedFiles.Count;
-                processedFiles.Clear();
-                patchOperations.Clear();
 
                 if (processedFilesCount > 0)
                 {
@@ -149,6 +161,9 @@
                         File.Delete(file);
                     }
                 }
+
+                processedFiles.Clear();
+                patchOperations.Clear();
 
                 breaker.Success();
 

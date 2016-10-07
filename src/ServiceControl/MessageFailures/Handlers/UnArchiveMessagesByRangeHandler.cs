@@ -48,7 +48,8 @@ if(this.Status === archivedStatus) {
                 }, new BulkOperationOptions
                 {
                     AllowStale = true,
-                    RetrieveDetails = true
+                    RetrieveDetails = true,
+                    MaxOpsPerSec = 700
                 }).WaitForCompletion();
 
             var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
