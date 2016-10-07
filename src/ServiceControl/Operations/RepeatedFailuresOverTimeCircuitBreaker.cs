@@ -85,7 +85,7 @@ namespace ServiceControl.Operations
             }
 
             timer.Change(Timeout.Infinite, Timeout.Infinite);
-            Logger.Info($"The circuit breaker for {name} is now disarmed.");
+            Logger.Warn($"The circuit breaker for {name} is now disarmed.");
 
             return true;
         }
@@ -104,7 +104,7 @@ namespace ServiceControl.Operations
             if (newValue == 1)
             {
                 timer.Change(timeToWaitBeforeTriggering, NoPeriodicTriggering);
-                Logger.Info($"The circuit breaker for {name} is now in the armed state");
+                Logger.Warn($"The circuit breaker for {name} is now in the armed state");
             }
 
             return Task.Delay(delayAfterFailure);

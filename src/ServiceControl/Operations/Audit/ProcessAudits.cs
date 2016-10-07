@@ -36,12 +36,12 @@
 
         public void Start()
         {
-            breaker = new RepeatedFailuresOverTimeCircuitBreaker("ProcessAudits", TimeSpan.FromMinutes(2), ex =>
+            breaker = new RepeatedFailuresOverTimeCircuitBreaker("ProcessAudits", TimeSpan.FromMinutes(5), ex =>
                 {
                     stop = true;
                     criticalError.Raise("Repeated failures when processing audits.", ex);
                 },
-                TimeSpan.FromSeconds(2));
+                TimeSpan.FromSeconds(40));
             stop = false;
             task = Process();
         }
