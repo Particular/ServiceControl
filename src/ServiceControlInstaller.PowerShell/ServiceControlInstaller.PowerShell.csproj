@@ -11,7 +11,8 @@
     <AssemblyName>ServiceControlInstaller.PowerShell</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>b8d686ae</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -49,6 +50,7 @@
       <SpecificVersion>True</SpecificVersion>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -58,7 +60,11 @@
   <ItemGroup>
     <Compile Include="Cmdlets\Instances\PSServiceControl.cs" />
     <Compile Include="Cmdlets\Instances\NewServiceControlInstance.cs" />
-    <Compile Include="Cmdlets\Instances\NewServiceControlUnattendedFile.cs" />
+    <Compile Include="Cmdlets\Instances\SwitchInstanceToHttp.cs" />
+    <Compile Include="Cmdlets\Instances\SwithInstanceToHttps.cs" />
+    <Compile Include="Cmdlets\SSL\GetCertificates.cs" />
+    <Compile Include="Cmdlets\SSL\ShowUrlAclCertificate.cs" />
+    <Compile Include="Cmdlets\SSL\UpdateUrlAclCertificate.cs" />
     <Compile Include="Validation\ValidatePathAttribute.cs" />
     <Compile Include="Validation\ValidateTimeSpanAttribute.cs" />
     <Compile Include="Cmdlets\Ports\PsPortAvailability.cs" />
@@ -71,7 +77,6 @@
     <Compile Include="Cmdlets\License\GetServiceControlLicense.cs" />
     <Compile Include="Cmdlets\Transports\GetServiceControlTransportTypes.cs" />
     <Compile Include="Cmdlets\License\ImportServiceControlLicense.cs" />
-    <Compile Include="Cmdlets\Instances\InstallServiceControlInstanceFromUnattendedFile.cs" />
     <Compile Include="Cmdlets\Instances\InvokeServiceControlInstanceUpgrade.cs" />
     <Compile Include="Cmdlets\Instances\RemoveServiceControlInstance.cs" />
     <Compile Include="Cmdlets\Ports\TestIfPortIsAvailable.cs" />
@@ -80,13 +85,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HttpSysWrapper\HttpApiWrapper.csproj">
+      <Project>{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}</Project>
+      <Name>HttpApiWrapper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj">
       <Project>{e2f41605-f664-4ec6-9d64-1f142cc3b7b2}</Project>
       <Name>ServiceControlInstaller.Engine</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ServiceControlInstaller.Powershell.dll-help.xml" />
     <Content Include="ServiceControlMgmt.psd1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -105,16 +113,11 @@
     <Content Include="ServiceControlMgmt.format.ps1xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets'))" />
-  </Target>
   <UsingTask TaskName="GitVersionTask.GetVersion" AssemblyFile="..\packages\GitVersionTask.2.0.1\GitVersionTask.dll" />
   <UsingTask TaskName="MSBuild.Community.Tasks.FileUpdate" AssemblyFile="$(SolutionDir)..\buildsupport\MSBuild.Community.Tasks.dll" />
   <Target Name="AfterBuild">
@@ -126,5 +129,11 @@
     </GetVersion>
     <FileUpdate Files="@(PSModuleFile)" Regex="{{Version}}" ReplacementText="$(MajorMinorPatch)" />
   </Target>
-  
+  <Import Project="..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets'))" />
+  </Target>
 </Project>

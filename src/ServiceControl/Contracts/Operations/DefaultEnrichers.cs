@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Contracts.Operations
 {
+    using System.Collections.Generic;
     using System.Linq;
     using NServiceBus;
     using NServiceBus.Features;
@@ -20,26 +21,26 @@
 
         class MessageTypeEnricher : ImportEnricher
         {
-            public override void Enrich(ImportMessage message)
+            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var isSystemMessage = false;
                 string messageType = null;
 
-                if (message.PhysicalMessage.Headers.ContainsKey(Headers.ControlMessageHeader))
+                if (headers.ContainsKey(Headers.ControlMessageHeader))
                 {
                     isSystemMessage = true;
                 }
 
                 string enclosedMessageTypes;
-                if (message.PhysicalMessage.Headers.TryGetValue(Headers.EnclosedMessageTypes, out enclosedMessageTypes))
+                if (headers.TryGetValue(Headers.EnclosedMessageTypes, out enclosedMessageTypes))
                 {
                     messageType = GetMessageType(enclosedMessageTypes);
                     isSystemMessage = DetectSystemMessage(messageType);
-                    message.Metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
+                    metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
                 }
 
-                message.Metadata.Add("IsSystemMessage", isSystemMessage);
-                message.Metadata.Add("MessageType", messageType);
+                metadata.Add("IsSystemMessage", isSystemMessage);
+                metadata.Add("MessageType", messageType);
             }
 
             bool DetectSystemMessage(string messageTypeString)
@@ -60,21 +61,22 @@
 
         class EnrichWithTrackingIds : ImportEnricher
         {
-            public override void Enrich(ImportMessage message)
+            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 string conversationId;
 
-                if (message.PhysicalMessage.Headers.TryGetValue(Headers.ConversationId, out conversationId))
+                if (headers.TryGetValue(Headers.ConversationId, out conversationId))
                 {
-                    message.Metadata.Add("ConversationId", conversationId);
+                    metadata.Add("ConversationId", conversationId);
                 }
 
                 string relatedToId;
 
-                if (message.PhysicalMessage.Headers.TryGetValue(Headers.RelatedTo, out relatedToId))
+                if (headers.TryGetValue(Headers.RelatedTo, out relatedToId))
                 {
-                    message.Metadata.Add("RelatedToId", relatedToId);
+                    metadata.Add("RelatedToId", relatedToId);
                 }
+
             }
         }
     }

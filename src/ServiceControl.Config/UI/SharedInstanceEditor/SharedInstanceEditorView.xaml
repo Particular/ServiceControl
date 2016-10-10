@@ -10,6 +10,20 @@
              d:DesignHeight="300"
              d:DesignWidth="300"
              mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style TargetType="ToolTip">
+            <Setter Property="HasDropShadow" Value="True" />
+            <Setter Property="ContentTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <StackPanel>
+                            <TextBlock Text="{Binding}"  MaxWidth="400" TextWrapping='Wrap' Foreground="Black" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -57,49 +71,6 @@
                 </Grid>
             </Border>
         </Border>
-
-        <ContentControl x:Name="errorDisplay"
-                        Grid.Row="1"
-                        MaxHeight="45"
-                        Margin="60,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        Visibility="{Binding Path=(cm:IDataErrorInfo.Error),
-                                             Converter={StaticResource nullOrEmptyToVis}}">
-            <ContentControl.Content>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Control Foreground="{StaticResource ErrorBrush}" Template="{StaticResource WarningIcon}" />
-                    <TextBlock Grid.Column="1"
-                               Margin="5,0,0,0"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"
-                               FontSize="14"
-                               Foreground="{StaticResource ErrorBrush}"
-                               Text="There are errors." />
-                </Grid>
-            </ContentControl.Content>
-            <ContentControl.ToolTip>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock Margin="0,0,0,5"
-                               FontSize="14"
-                               FontWeight="Bold">
-                        Validation Errors
-                    </TextBlock>
-                    <TextBlock Grid.Row="1"
-                               Foreground="{StaticResource ErrorBrush}"
-                               Text="{Binding Path=(cm:IDataErrorInfo.Error)}" />
-                </Grid>
-            </ContentControl.ToolTip>
-        </ContentControl>
 
         <Grid Grid.Row="1"
               Margin="60,40"

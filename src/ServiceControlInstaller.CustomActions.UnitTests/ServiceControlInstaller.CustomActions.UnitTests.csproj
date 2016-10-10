@@ -61,11 +61,6 @@
     <Compile Include="RemoveOldVersionTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj">
       <Project>{e2f41605-f664-4ec6-9d64-1f142cc3b7b2}</Project>
       <Name>ServiceControlInstaller.Engine</Name>
@@ -74,6 +69,9 @@
       <Project>{2343779d-26d4-4f9d-a42f-32e146632ef0}</Project>
       <Name>ServiceControlInstaller.CustomActions</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

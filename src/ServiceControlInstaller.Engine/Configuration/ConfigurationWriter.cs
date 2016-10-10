@@ -51,6 +51,8 @@
             settings.Set(SettingsList.HostName, details.HostName);
             settings.Set(SettingsList.LogPath, details.LogPath);
             settings.Set(SettingsList.DBPath, details.DBPath);
+            settings.Set(SettingsList.IngestionCachePath, details.IngestionCachePath, version);
+            settings.Set(SettingsList.BodyStoragePath, details.BodyStoragePath,version);
             settings.Set(SettingsList.ForwardAuditMessages, details.ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
             settings.Set(SettingsList.TransportType, Transports.FindByName(details.TransportPackage).TypeName, version);
@@ -60,7 +62,7 @@
             settings.Set(SettingsList.AuditLogQueue, details.AuditLogQueue);
             settings.Set(SettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(SettingsList.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
-
+            
             // Add Settings for performance tuning 
             // See https://github.com/Particular/ServiceControl/issues/655
             if (!settings.AllKeys.Contains("Raven/Esent/MaxVerPages"))

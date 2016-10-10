@@ -7,7 +7,7 @@
     using System.Threading;
     using MessageFailures;
     using NUnit.Framework;
-    using Raven.Client.Embedded;
+    using Raven.Client;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
     using ServiceControl.SagaAudit;
 
@@ -94,11 +94,11 @@
             }
         }
 
-        static void RunExpiry(EmbeddableDocumentStore documentStore, DateTime expiryThreshold)
+        static void RunExpiry(IDocumentStore documentStore, DateTime expiryThreshold)
         {
             new ExpirySagaAuditIndex().Execute(documentStore);
             documentStore.WaitForIndexing();
-            SagaHistoryCleaner.Clean(100, documentStore.DocumentDatabase, expiryThreshold);
+            SagaHistoryCleaner.Clean(documentStore, expiryThreshold, CancellationToken.None);
             documentStore.WaitForIndexing();
         }
 

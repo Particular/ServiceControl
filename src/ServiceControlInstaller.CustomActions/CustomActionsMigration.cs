@@ -47,6 +47,7 @@
             return ActionResult.Success;
         }
 
+        // ReSharper disable once InconsistentNaming
         public static void RemoveProductFromMSIList(ILogging logger)
         {
             var upgradeKeyPath = $@"SOFTWARE\Classes\Installer\UpgradeCodes\{UpgradeCode.Flip():N}";

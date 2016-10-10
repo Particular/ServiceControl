@@ -4,9 +4,14 @@ namespace ServiceControlInstaller.Engine.Instances
 
     public class InstanceUpgradeOptions
     {
+        public bool SuppressRestart { get; set; }
         public bool? OverrideEnableErrorForwarding { get; set; }
         public TimeSpan? ErrorRetentionPeriod { get; set; }
         public TimeSpan? AuditRetentionPeriod { get; set; }
+        public string BackupPath { get; set; }
+        public bool BackupRavenDbBeforeUpgrade { get; set; }
+        public string IngestionCachePath { get; set; }
+        public string BodyStoragePath { get; set; }
 
         public void ApplyChangesToInstance(ServiceControlInstance instance)
         {

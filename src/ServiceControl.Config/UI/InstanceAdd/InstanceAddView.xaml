@@ -84,6 +84,14 @@
                                           SelectCommand="{Binding SelectDatabasePath}"
                                           Text="{Binding DatabasePath}" />
 
+                <controls:FormPathTextBox Header="MESSAGE BODY STORAGE PATH"
+                                          SelectCommand="{Binding SelectBodyStoragePath}"
+                                          Text="{Binding BodyStoragePath}" />
+
+                <controls:FormPathTextBox Header="INGESTION CACHE PATH"
+                                          SelectCommand="{Binding SelectIngestionCachePath}"
+                                          Text="{Binding IngestionCachePath}" />
+
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
                         BorderThickness="0,0,0,1">

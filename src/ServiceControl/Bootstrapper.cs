@@ -1,39 +1,43 @@
 namespace Particular.ServiceControl
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Net.Http;
+    using System.Security.Principal;
     using System.ServiceProcess;
     using Autofac;
     using global::ServiceControl.Infrastructure;
-    using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
+    using global::ServiceControl.RavenLogging;
     using Microsoft.Owin.Hosting;
-    using NLog;
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
+    using NLog.Targets.Wrappers;
     using NServiceBus;
     using Raven.Client;
-    using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure.Extensions;
+    using Raven.Client.Document;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
+    using LogEventInfo = NLog.LogEventInfo;
     using LogLevel = NLog.LogLevel;
     using LogManager = NServiceBus.Logging.LogManager;
 
     public class Bootstrapper
     {
         private BusConfiguration configuration;
-        private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
-        private ExposeBus exposeBus;
+        private DocumentStore documentStore = new DocumentStore();
         private ServiceBase host;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
         private TimeKeeper timeKeeper;
+        private IContainer container;
 
         public IDisposable WebApp;
+        private IBus bus;
 
         // Windows Service
         public Bootstrapper(ServiceBase host)
@@ -43,26 +47,10 @@ namespace Particular.ServiceControl
             Initialize();
         }
 
-        // MaintCommand
-        public Bootstrapper(Settings settings)
-        {
-            this.settings = settings;
-            Initialize();
-        }
-
-        // SetupCommand
+        // Testing
         public Bootstrapper(Settings settings, BusConfiguration configuration)
         {
             this.configuration = configuration;
-            this.settings = settings;
-            Initialize();
-        }
-
-        // Testing
-        public Bootstrapper(Settings settings, BusConfiguration configuration, ExposeBus exposeBus)
-        {
-            this.configuration = configuration;
-            this.exposeBus = exposeBus;
             this.settings = settings;
             Initialize();
         }
@@ -88,48 +76,48 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
 
-            if (configuration == null)
-            {
-                configuration = new BusConfiguration();
-                configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
-            }
-
-            Startup = new Startup(containerBuilder.Build(), host, settings, documentStore, configuration, exposeBus);
+            container = containerBuilder.Build();
+            Startup = new Startup(container, settings);
         }
 
-        public void Start()
+        public IBus Start(bool isRunningAcceptanceTests = false, HttpMessageHandler handler = null)
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            if (settings.MaintenanceMode)
+            if (!isRunningAcceptanceTests)
             {
-                new RavenBootstrapper().StartRaven(documentStore, settings);
+                var startOptions = new StartOptions(settings.RootUrl);
 
-                logger.InfoFormat("RavenDB is now accepting requests on {0}", settings.StorageUrl);
-
-                if (Environment.UserInteractive)
-                {
-                    logger.Warn("RavenDB Maintenance Mode - Press Enter to exit");
-                    while (Console.ReadLine() == null)
-                    {
-                    }
-                }
-
-                return;
+                WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
             }
 
-            var startOptions = new StartOptions(settings.RootUrl);
-            WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, Startup.Configuration);
+            if (isRunningAcceptanceTests || (Environment.UserInteractive && Debugger.IsAttached))
+            {
+                var setup = new SetupBootstrapper(settings, handler);
+                setup.CreateDatabase(WindowsIdentity.GetCurrent().Name);
+                setup.InitialiseDatabase();
+            }
 
-            logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
+            if (handler != null)
+            {
+                documentStore.Conventions.HandleUnauthorizedResponseAsync = (message, credentials) => null;
+                documentStore.HttpMessageHandlerFactory = () => handler;
+            }
+
+            bus = NServiceBusFactory.CreateAndStart(settings, container, host, documentStore, configuration);
+
+            logger.Info($"Api is now accepting requests on {settings.ApiUrl}");
+
+            return bus;
         }
 
         public void Stop()
         {
             notifier.Dispose();
-            WebApp?.Dispose();
+            bus?.Dispose();
             timeKeeper.Dispose();
             documentStore.Dispose();
+            WebApp?.Dispose();
         }
 
         private long DataSize()
@@ -150,6 +138,7 @@ namespace Particular.ServiceControl
 
         private void ConfigureLogging(LoggingSettings loggingSettings)
         {
+            Raven.Abstractions.Logging.LogManager.CurrentLogManager = new RavenLogManager(loggingSettings.RavenDBLogLevel);
             LogManager.Use<NLogFactory>();
 
             const long megaByte = 1073741824;
@@ -170,8 +159,8 @@ Forwarding Error Messages:		{settings.ForwardErrorMessages}
 Forwarding Audit Messages:		{settings.ForwardAuditMessages}
 Database Size:							{DataSize()}bytes
 -------------------------------------------------------------";
-
-            var fileTarget = new FileTarget
+            
+            var fileTarget = new AsyncTargetWrapper(new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
                 FileName = Path.Combine(loggingSettings.LogPath, "logfile.${shortdate}.txt"),
@@ -181,10 +170,9 @@ Database Size:							{DataSize()}bytes
                 MaxArchiveFiles = 14,
                 ArchiveAboveSize = 30*megaByte,
                 Header = new SimpleLayout(header)
-            };
+            });
 
-
-            var ravenFileTarget = new FileTarget
+            var ravenFileTarget = new AsyncTargetWrapper(new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
                 FileName = Path.Combine(loggingSettings.LogPath, "ravenlog.${shortdate}.txt"),
@@ -194,7 +182,7 @@ Database Size:							{DataSize()}bytes
                 MaxArchiveFiles = 14,
                 ArchiveAboveSize = 30*megaByte,
                 Header = new SimpleLayout(header)
-            };
+            });
 
             var consoleTarget = new ColoredConsoleTarget
             {
@@ -211,31 +199,36 @@ Database Size:							{DataSize()}bytes
             nlogConfig.AddTarget("bitbucket", nullTarget);
 
             // Only want to see raven errors
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", loggingSettings.RavenDBLogLevel, ravenFileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget)); //Noise reduction - Only RavenDB errors on the console
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget)
+            var rules = nlogConfig.LoggingRules;
+            rules.Add(new LoggingRule("Raven.*", loggingSettings.RavenDBLogLevel, ravenFileTarget));
+            rules.Add(new LoggingRule("Raven.*", LogLevel.Error, nullTarget)
             {
-                Final = true
-            }); //Will swallow debug and above messages
-
+                Final = true,
+                Filters =
+                {
+                    new FilterEndOfStreamException()
+                }
+            });
+            //Noise reduction - Only RavenDB errors on the console
+            rules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget));
 
             // Always want to see license logging regardless of default logging level
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget)
+            rules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
+            rules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget)
             {
                 Final = true
             });
 
             // Defaults
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel < LogLevel.Info ? loggingSettings.LoggingLevel : LogLevel.Info, consoleTarget));
+            rules.Add(new LoggingRule("*", loggingSettings.LoggingLevel, fileTarget));
+            rules.Add(new LoggingRule("*", loggingSettings.LoggingLevel < LogLevel.Info ? loggingSettings.LoggingLevel : LogLevel.Info, consoleTarget));
 
             // Remove Console Logging when running as a service
             if (!Environment.UserInteractive)
             {
-                foreach (var rule in nlogConfig.LoggingRules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
+                foreach (var rule in rules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
                 {
-                    nlogConfig.LoggingRules.Remove(rule);
+                    rules.Remove(rule);
                 }
             }
 
@@ -246,8 +239,8 @@ Database Size:							{DataSize()}bytes
             {
                 TimeStamp = DateTime.Now
             };
-            logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
-            logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName.Render(logEventInfo), loggingSettings.RavenDBLogLevel.Name);
+            logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", ((FileTarget)fileTarget.WrappedTarget).FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
+            logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ((FileTarget)ravenFileTarget.WrappedTarget).FileName.Render(logEventInfo), loggingSettings.RavenDBLogLevel.Name);
         }
     }
 }

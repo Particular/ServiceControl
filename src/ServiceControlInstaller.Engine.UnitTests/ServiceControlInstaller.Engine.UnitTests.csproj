@@ -53,14 +53,20 @@
       <HintPath>..\packages\Moq.4.2.1507.0118\lib\net40\Moq.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="nunit.framework">
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Messaging" />
+    <Reference Include="System.Security" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -71,12 +77,14 @@
   <ItemGroup>
     <Compile Include="Account\AccountCredsTests.cs" />
     <Compile Include="Account\UserAccountParsingTest.cs" />
+    <Compile Include="Backups\BackupTests.cs" />
     <Compile Include="Licenses\LicenseTests.cs" />
     <Compile Include="Ports\PortTest.cs" />
     <Compile Include="RunEngineTasksExplicitly.cs" />
     <Compile Include="Services\ServiceControllerExTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Logger\TestLogger.cs" />
+    <Compile Include="UrlAcl\URLReservationSSLTests.cs" />
     <Compile Include="UrlAcl\UrlReservationTest.cs" />
     <Compile Include="Validation\PathsValidationTests.cs" />
     <Compile Include="Validation\QueueValidationTests.cs" />
@@ -89,11 +97,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HttpSysWrapper\HttpApiWrapper.csproj">
+      <Project>{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}</Project>
+      <Name>HttpApiWrapper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj">
       <Project>{e2f41605-f664-4ec6-9d64-1f142cc3b7b2}</Project>
       <Name>ServiceControlInstaller.Engine</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

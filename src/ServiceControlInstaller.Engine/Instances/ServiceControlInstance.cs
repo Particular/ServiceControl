@@ -13,13 +13,13 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.ServiceProcess;
     using System.Threading;
     using System.Threading.Tasks;
+    using HttpApiWrapper;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Queues;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
-    using ServiceControlInstaller.Engine.UrlAcl;
+    using ServiceControlInstaller.Engine.Setup;
     using ServiceControlInstaller.Engine.Validation;
     using TimeoutException = System.ServiceProcess.TimeoutException;
 
@@ -38,6 +38,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public WindowsServiceController Service { get; set; }
         public string LogPath { get; set; }
         public string DBPath { get; set; }
+        public string BodyStoragePath { get; set; }
+        public string IngestionCachePath { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
         public string VirtualDirectory { get; set; }
@@ -56,13 +58,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan AuditRetentionPeriod { get; set; }
         public bool InMaintenanceMode { get; set; }
 
-        public string Name => Service.ServiceName;
-
-        public void Reload()
-        {
-            ReadConfiguration();
-        }
-
         public Version Version
         {
             get
@@ -77,15 +72,26 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+
+        public string Name => Service.ServiceName;
+
+        public void Reload()
+        {
+            ReadConfiguration();
+        }
+
+        public string Protocol => SslCert.GetThumbprint(Port) != null ? "https" : "http";
+
         public string Url
         {
             get
             {
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{HostName}:{Port}/api/";
+                    return $"{Protocol}://{HostName}:{Port}/api/";
                 }
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                var virt = VirtualDirectory.Replace("/", "");
+                return $"{Protocol}://{HostName}:{Port}/{virt}/api/";
             }
         }
 
@@ -94,6 +100,7 @@ namespace ServiceControlInstaller.Engine.Instances
             get
             {
                 string host;
+
                 switch (HostName)
                 {
                     case "*":
@@ -106,9 +113,10 @@ namespace ServiceControlInstaller.Engine.Instances
                 }
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{host}:{Port}/storage/";
+                    return $"{Protocol}://{host}:{Port}/storage/";
                 }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
+
+                return $"{Protocol}://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
             }
         }
 
@@ -120,22 +128,21 @@ namespace ServiceControlInstaller.Engine.Instances
 
                 switch (HostName)
                 {
-                    case "*" :
+                    case "*":
                         host = "localhost";
                         break;
-                    case "+" :
-                          host = Environment.MachineName.ToLower();
+                    case "+":
+                        host = Environment.MachineName.ToLower();
                         break;
-                    default :
+                    default:
                         host = HostName;
                         break;
                 }
-
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{host}:{Port}/api/";
+                    return $"{Protocol}://{host}:{Port}/api/";
                 }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                return $"{Protocol}://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
             }
         }
 
@@ -143,7 +150,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = $"http://{HostName}:{Port}/";
+                var baseUrl = $"{Protocol}://{HostName}:{Port}/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
                     return baseUrl;
@@ -183,7 +190,7 @@ namespace ServiceControlInstaller.Engine.Instances
         string DetermineTransportPackage()
         {
             var transportAppSetting = ReadAppSetting(SettingsList.TransportType, "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
-            var transport = Transports.All.FirstOrDefault(p => transportAppSetting.StartsWith(p.MatchOn , StringComparison.OrdinalIgnoreCase));
+            var transport = Transports.All.FirstOrDefault(p => transportAppSetting.StartsWith(p.MatchOn, StringComparison.OrdinalIgnoreCase));
             if (transport != null)
             {
                 return transport.Name;
@@ -195,7 +202,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = FindByName(Name);
-            
+
             var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
 
             var queueNamesChanged = !(string.Equals(oldSettings.AuditQueue, AuditQueue, StringComparison.OrdinalIgnoreCase)
@@ -207,8 +214,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             if (fileSystemChanged)
             {
-                var account = new NTAccount(accountName);
-                var modifyAccessRule = new FileSystemAccessRule(account, FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+                var modifyAccessRule = new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
                 FileUtils.CreateDirectoryAndSetAcl(LogPath, modifyAccessRule);
             }
 
@@ -220,6 +226,8 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(SettingsList.HostName, HostName);
             settings.Set(SettingsList.Port, Port.ToString());
             settings.Set(SettingsList.LogPath, LogPath);
+            settings.Set(SettingsList.IngestionCachePath, IngestionCachePath, version);
+            settings.Set(SettingsList.BodyStoragePath, BodyStoragePath, version);
             settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
             settings.Set(SettingsList.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), version);
@@ -237,21 +245,21 @@ namespace ServiceControlInstaller.Engine.Instances
             var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
             var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
             var connectionStringChanged = !string.Equals(ConnectionString, oldSettings.ConnectionString, StringComparison.Ordinal);
-            
+
             //have to save config prior to creating queues (if needed)
 
-            if (queueNamesChanged || accountChanged || connectionStringChanged )
+            if (queueNamesChanged || accountChanged || connectionStringChanged)
             {
-                QueueCreation.RunQueueCreation(this, accountName);
+                ServiceControlSetup.RunInSetupMode(this, accountName);
                 try
                 {
-                    QueueCreation.RunQueueCreation(this);
+                    ServiceControlSetup.RunInSetupMode(this);
                 }
-                catch (ServiceControlQueueCreationFailedException ex)
+                catch (ServiceControlSetupFailedException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }
-                catch (ServiceControlQueueCreationTimeoutException ex)
+                catch (ServiceControlSetupTimeoutException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }
@@ -279,6 +287,16 @@ namespace ServiceControlInstaller.Engine.Instances
                 dbFolder += $"-{FileUtils.SanitizeFolderName(VirtualDirectory)}";
             }
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
+        }
+
+        string DefaultBodyStoragePath()
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", Name, "BodyStorage");
+        }
+
+        string DefaultIngestionCachePath()
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", Name, "IngestionCache");
         }
 
         string DefaultLogPath()
@@ -440,6 +458,30 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+        public void RemoveBodyStorageFolder()
+        {
+            try
+            {
+                FileUtils.DeleteDirectory(BodyStoragePath, true, false);
+            }
+            catch
+            {
+                ReportCard.Warnings.Add($"Could not delete the message body storage directory '{BodyStoragePath}'. Please remove manually");
+            }
+        }
+
+        public void RemoveIngestionFolder()
+        {
+            try
+            {
+                FileUtils.DeleteDirectory(IngestionCachePath, true, false);
+            }
+            catch
+            {
+                ReportCard.Warnings.Add($"Could not delete the Ingestion cache directory '{IngestionCachePath}'. Please remove manually");
+            }
+        }
+
         public string BackupAppConfig()
         {
             var backupDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControlInstaller", "ConfigBackups", FileUtils.SanitizeFolderName(Service.ServiceName));
@@ -468,7 +510,7 @@ namespace ServiceControlInstaller.Engine.Instances
             File.Copy(sourcePath, configFile, true);
 
             // Ensure Transport type is correct and populate the config with common settings even if they are defaults
-            // Will not clobber other settings in the config 
+            // Will not clobber other settings in the config
             var configWriter = new ConfigurationWriter(this);
             configWriter.Validate();
             configWriter.Save();
@@ -479,6 +521,48 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", "servicecontrol.exe.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
+        }
+
+        public void MoveRavenDatabase(string dbPath)
+        {
+            if (!File.Exists(Path.Combine(dbPath, "Data")))
+            {
+                return;
+            }
+
+            try
+            {
+                MoveDatabaseFiles(dbPath);
+            }
+            catch (Exception)
+            {
+                ReportCard.Errors.Add("Failed to move database to new layout");
+            }
+        }
+
+        private static void MoveDatabaseFiles(string dbPath)
+        {
+            var tempDestDirName = Path.Combine(dbPath + "-temp", "Databases");
+            Directory.CreateDirectory(tempDestDirName);
+            Directory.Move(dbPath, Path.Combine(tempDestDirName, "ServiceControl"));
+
+            // The following code is needed because we are renaming a directory that we have just moved and sometimes the OS is still holding certain file handlers opened.
+            var tries = 0;
+            do
+            {
+                try
+                {
+                    Directory.Move(dbPath + "-temp", dbPath);
+                    return;
+                }
+                catch (IOException)
+                {
+                    tries++;
+                    Thread.Sleep(1000);
+                }
+            } while (tries < 3);
+
+            throw new Exception("Could not move database to new location");
         }
 
         public static ReadOnlyCollection<ServiceControlInstance> Instances()
@@ -509,13 +593,13 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             try
             {
-                QueueCreation.RunQueueCreation(this);
+                ServiceControlSetup.RunInSetupMode(this);
             }
-            catch (ServiceControlQueueCreationFailedException ex)
+            catch (ServiceControlSetupFailedException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-            catch (ServiceControlQueueCreationTimeoutException ex)
+            catch (ServiceControlSetupTimeoutException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
@@ -533,7 +617,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
             catch
             {
-                //Service isn't accessible 
+                //Service isn't accessible
             }
             return true;
         }
@@ -543,9 +627,11 @@ namespace ServiceControlInstaller.Engine.Instances
             Service.Refresh();
             HostName = ReadAppSetting(SettingsList.HostName, "localhost");
             Port = ReadAppSetting(SettingsList.Port, 33333);
-            VirtualDirectory = ReadAppSetting(SettingsList.VirtualDirectory, (string) null);
+            VirtualDirectory = ReadAppSetting(SettingsList.VirtualDirectory, (string)null);
             LogPath = ReadAppSetting(SettingsList.LogPath, DefaultLogPath());
             DBPath = ReadAppSetting(SettingsList.DBPath, DefaultDBPath());
+            IngestionCachePath = ReadAppSetting(SettingsList.IngestionCachePath, DefaultIngestionCachePath());
+            BodyStoragePath = ReadAppSetting(SettingsList.BodyStoragePath, DefaultBodyStoragePath());
             AuditQueue = ReadAppSetting(SettingsList.AuditQueue, "audit");
             AuditLogQueue = ReadAppSetting(SettingsList.AuditLogQueue, $"{AuditQueue}.log");
             ForwardAuditMessages = ReadAppSetting(SettingsList.ForwardAuditMessages, false);
@@ -559,13 +645,13 @@ namespace ServiceControlInstaller.Engine.Instances
             ServiceAccount = Service.Account;
 
             TimeSpan errorRetentionPeriod;
-            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.ErrorRetentionPeriod, (string) null), out errorRetentionPeriod))
+            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.ErrorRetentionPeriod, (string)null), out errorRetentionPeriod))
             {
                 ErrorRetentionPeriod = errorRetentionPeriod;
 
             }
             TimeSpan auditRetentionPeriod;
-            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.AuditRetentionPeriod, (string) null), out auditRetentionPeriod))
+            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.AuditRetentionPeriod, (string)null), out auditRetentionPeriod))
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
@@ -632,6 +718,13 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 ReportCard.Errors.Add(ex.Message);
             }
+        }
+
+        public void EnsureDirectoriesExist()
+        {
+            var modifyAccessRule = new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+            FileUtils.CreateDirectoryAndSetAcl(BodyStoragePath, modifyAccessRule);
+            FileUtils.CreateDirectoryAndSetAcl(IngestionCachePath, modifyAccessRule);
         }
     }
 }

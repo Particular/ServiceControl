@@ -1,30 +1,61 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
+    using System.Collections.Generic;
     using System.Linq;
     using Contracts.MessageFailures;
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Operations.BodyStorage;
 
     public class UnArchiveMessagesHandler : IHandleMessages<UnArchiveMessages>
     {
-        public IDocumentSession Session { get; set; }
+        private readonly IBus bus;
+        private readonly IDocumentStore store;
+        private readonly IMessageBodyStore messageBodyStore;
 
-        public IBus Bus { get; set; }
+        public UnArchiveMessagesHandler(IBus bus, IDocumentStore store, IMessageBodyStore messageBodyStore)
+        {
+            this.bus = bus;
+            this.store = store;
+            this.messageBodyStore = messageBodyStore;
+        }
 
         public void Handle(UnArchiveMessages messages)
         {
-            var failedMessages = Session.Load<FailedMessage>(messages.FailedMessageIds.Select(FailedMessage.MakeDocumentId));
+            FailedMessage[] failedMessages;
 
-            foreach (var failedMessage in failedMessages)
+            using (var session = store.OpenSession())
             {
-                if (failedMessage.Status == FailedMessageStatus.Archived)
+                session.Advanced.UseOptimisticConcurrency = true;
+
+                failedMessages = session.Load<FailedMessage>(messages.FailedMessageIds.Select(FailedMessage.MakeDocumentId));
+
+                foreach (var failedMessage in failedMessages)
                 {
-                    failedMessage.Status = FailedMessageStatus.Unresolved;
+                    if (failedMessage.Status == FailedMessageStatus.Archived)
+                    {
+                        failedMessage.Status = FailedMessageStatus.Unresolved;
+                    }
                 }
+
+                session.SaveChanges();
             }
 
-            Bus.Publish<FailedMessagesUnArchived>(m => m.MessagesCount = failedMessages.Length);
+            MarkMessageBodiesAsPersistent(messages.FailedMessageIds);
+
+            bus.Publish(new FailedMessagesUnArchived
+            {
+                MessagesCount = failedMessages.Length
+            });
+        }
+
+        private void MarkMessageBodiesAsPersistent(IEnumerable<string> messageBodyIds)
+        {
+            foreach (var messageBodyId in messageBodyIds)
+            {
+                messageBodyStore.ChangeTag(messageBodyId, BodyStorageTags.ErrorTransient, BodyStorageTags.ErrorPersistent);
+            }
         }
     }
 }

@@ -8,7 +8,7 @@
 	NestedModules = @('ServiceControlInstaller.PowerShell.DLL',  'ServiceControlMgmt.psm1')
     PowerShellVersion = '3.0'
 	CompanyName = 'Particular Software'
-	Copyright = 'Particular Software, Copyright © 2015'
+	Copyright = 'Particular Software, Copyright © 2016'
 	FunctionsToExport='*'
 	CmdletsToExport = '*'
 	VariablesToExport = '*'

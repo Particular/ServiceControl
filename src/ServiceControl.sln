@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl", "ServiceControl\ServiceControl.csproj", "{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4} = {FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTests", "ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
 EndProject
@@ -17,6 +20,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Engine", "ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj", "{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}"
 	ProjectSection(ProjectDependencies) = postProject
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4} = {FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}
 		{15F811B7-314C-4E9E-B5E9-35596045BBC4} = {15F811B7-314C-4E9E-B5E9-35596045BBC4}
 	EndProjectSection
 EndProject
@@ -26,6 +30,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Cus
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Packaging", "ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj", "{15F811B7-314C-4E9E-B5E9-35596045BBC4}"
 	ProjectSection(ProjectDependencies) = postProject
+		{9020AD58-68B2-465B-9867-F75B3ED5A82E} = {9020AD58-68B2-465B-9867-F75B3ED5A82E}
 		{4C6B71B2-74EF-4B9E-88FF-C56532727C6D} = {4C6B71B2-74EF-4B9E-88FF-C56532727C6D}
 	EndProjectSection
 EndProject
@@ -43,6 +48,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CustomTransportConfigurations", "CustomTransportConfigurations", "{A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.SqlServerWithDTC", "ServiceControl.SqlServerWithDTC\ServiceControl.Transports.SqlServerWithDTC.csproj", "{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{470CB87C-3116-4050-A4F5-38B1E9C8146D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpApiWrapper", "HttpSysWrapper\HttpApiWrapper.csproj", "{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.BackupService", "ServiceControlInstaller.BackupService\ServiceControlInstaller.BackupService.csproj", "{9020AD58-68B2-465B-9867-F75B3ED5A82E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,7 +104,6 @@ Global
 		{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -106,6 +116,14 @@ Global
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9020AD58-68B2-465B-9867-F75B3ED5A82E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9020AD58-68B2-465B-9867-F75B3ED5A82E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9020AD58-68B2-465B-9867-F75B3ED5A82E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9020AD58-68B2-465B-9867-F75B3ED5A82E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -120,5 +138,7 @@ Global
 		{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 		{20284C68-6381-4AE9-832C-F094E996D913} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
+		{FDE4E765-04CA-49D5-9EE4-8DC20CDFCFA4} = {470CB87C-3116-4050-A4F5-38B1E9C8146D}
+		{9020AD58-68B2-465B-9867-F75B3ED5A82E} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 	EndGlobalSection
 EndGlobal

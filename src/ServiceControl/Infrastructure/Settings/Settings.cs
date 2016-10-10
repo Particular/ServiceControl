@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.Linq;
+    using HttpApiWrapper;
     using NLog.Common;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -12,16 +13,13 @@
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
 
         private const int ExpirationProcessTimerInSecondsDefault = 600;
-        private const int ExpirationProcessBatchSizeDefault = 65512;
-        private const int ExpirationProcessBatchSizeMinimum = 10240;
         private const int MaxBodySizeToStoreDefault = 102400; //100 kb
 
         private ILog logger = LogManager.GetLogger(typeof(Settings));
-        private int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
         private int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
         private int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
 
-        public Settings(string serviceName = null)
+        public Settings(string serviceName = null, bool? forwardAuditMessages = null, bool? forwardErrorMessages = null, TimeSpan? auditRetentionPeriod = null, TimeSpan? errorRetentionPeriod = null)
         {
             ServiceName = serviceName;
 
@@ -34,27 +32,33 @@
             ErrorQueue = GetErrorQueue();
             ErrorLogQueue = GetErrorLogQueue();
             AuditLogQueue = GetAuditLogQueue();
-            DbPath = GetDbPath();
             TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
-            ForwardAuditMessages = GetForwardAuditMessages();
-            ForwardErrorMessages = GetForwardErrorMessages();
-            AuditRetentionPeriod = GetAuditRetentionPeriod();
-            ErrorRetentionPeriod = GetErrorRetentionPeriod();
-            MaintenanceMode = SettingsReader<bool>.Read("MaintenanceMode");
+            ForwardAuditMessages = forwardAuditMessages ?? GetForwardAuditMessages();
+            ForwardErrorMessages = forwardErrorMessages ?? GetForwardErrorMessages();
+            AuditRetentionPeriod = auditRetentionPeriod ?? GetAuditRetentionPeriod();
+            ErrorRetentionPeriod = errorRetentionPeriod ?? GetErrorRetentionPeriod();
+            if (AuditRetentionPeriod > ErrorRetentionPeriod)
+            {
+                EventsRetentionPeriod = GetEventRetentionPeriod(AuditRetentionPeriod);
+            }
+            else
+            {
+                EventsRetentionPeriod = GetEventRetentionPeriod(ErrorRetentionPeriod);
+            }
             Port = SettingsReader<int>.Read("Port", 33333);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
-            MaximumConcurrencyLevel = 10;
+            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
-            DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
+            DbPath = GetDbPath();
+            BodyStoragePath = GetBodyStoragePath();
+            IngestionCachePath = GetIngestionCachePath();
         }
+
+        public string IngestionCachePath { get; set; }
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
         public int MaximumMessageThroughputPerSecond => SettingsReader<int>.Read("MaximumMessageThroughputPerSecond", 350);
-
-        public bool MaintenanceMode { get; set; }
-
-        public bool DisableRavenDBPerformanceCounters { get; set; }
 
         public string RootUrl
         {
@@ -66,20 +70,19 @@
                 {
                     suffix = $"{VirtualDirectory}/";
                 }
-
-                return $"http://{Hostname}:{Port}/{suffix}";
+                var protocol = UseSsl ? "https" : "http";
+                return    $"{protocol}://{Hostname}:{Port}/{suffix}";
             }
         }
 
+        public bool UseSsl => SslCert.GetThumbprint(Port) != null;
+
         public string ApiUrl => $"{RootUrl}api";
 
-        public string StorageUrl => $"{RootUrl}storage";
+        public string StorageUrl => SettingsReader<string>.Read("StorageUrl", $"{RootUrl}storage");
 
         public int Port { get; set; }
 
-        public bool SetupOnly { get; set; }
-
-        public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
@@ -128,18 +131,7 @@
 
         public TimeSpan ErrorRetentionPeriod { get; }
 
-        public int ExpirationProcessBatchSize
-        {
-            get
-            {
-                if (expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
-                {
-                    logger.Error($"ExpirationProcessBatchSize settings is invalid, {ExpirationProcessBatchSizeMinimum} is the minimum value. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-                return expirationProcessBatchSize;
-            }
-        }
+        public TimeSpan EventsRetentionPeriod { get; }
 
         public int MaxBodySizeToStore
         {
@@ -161,6 +153,7 @@
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
+        public string BodyStoragePath { get; set; }
 
         private Address GetAuditLogQueue()
         {
@@ -228,6 +221,44 @@
             return SettingsReader<string>.Read("DbPath", defaultPath);
         }
 
+        private string GetBodyStoragePath()
+        {
+            var host = Hostname;
+            if (host == "*")
+            {
+                host = "%";
+            }
+            var folder = $"BodyStorage-{host}-{Port}";
+
+            if (!string.IsNullOrEmpty(VirtualDirectory))
+            {
+                folder += $"-{SanitiseFolderName(VirtualDirectory)}";
+            }
+
+            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", folder);
+
+            return SettingsReader<string>.Read("BodyStorage", defaultPath);
+        }
+
+        private string GetIngestionCachePath()
+        {
+            var host = Hostname;
+            if (host == "*")
+            {
+                host = "%";
+            }
+            var folder = $"IngestionCache-{host}-{Port}";
+
+            if (!string.IsNullOrEmpty(VirtualDirectory))
+            {
+                folder += $"-{SanitiseFolderName(VirtualDirectory)}";
+            }
+
+            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", folder);
+
+            return SettingsReader<string>.Read("IngestionCache", defaultPath);
+        }
+
         private static bool GetForwardErrorMessages()
         {
             var forwardErrorMessages = NullableSettingsReader<bool>.Read("ForwardErrorMessages");
@@ -251,6 +282,21 @@
         private static string SanitiseFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
+        }
+
+        private TimeSpan GetEventRetentionPeriod(TimeSpan maxDefault)
+        {
+            var valueRead = SettingsReader<string>.Read("EventRetentionPeriod");
+            if (valueRead != null)
+            {
+                TimeSpan result;
+                if (TimeSpan.TryParse(valueRead, out result))
+                {
+                    return result;
+                }
+            }
+
+            return maxDefault.Add(TimeSpan.FromDays(30));
         }
 
         private TimeSpan GetErrorRetentionPeriod()

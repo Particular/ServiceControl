@@ -2,85 +2,53 @@
 {
 
     using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using Raven.Abstractions;
-    using Raven.Abstractions.Commands;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Raven.Abstractions.Data;
-    using Raven.Database;
+    using Raven.Client;
 
     public static class SagaHistoryCleaner
     {
         static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(SagaHistoryCleaner));
 
-        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
+        public static void Clean(IDocumentStore store, DateTime expiryThreshold, CancellationToken token)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var items = new List<ICommandData>(deletionBatchSize);
-            try
+            var query = new IndexQuery
             {
-                var query = new IndexQuery
-                {
-                    Start = 0,
-                    DisableCaching = true,
-                    Cutoff = SystemTime.UtcNow,
-                    PageSize = deletionBatchSize,
-                    Query = $"LastModified:[* TO {expiryThreshold.Ticks}]",
-                    FieldsToFetch = new[]
-                    {
-                        "__document_id",
-                    },
-                    SortedFields = new[]
-                    {
-                        new SortedField("LastModified")
-                        {
-                            Field = "LastModified",
-                            Descending = false
-                        }
-                    }
-                };
-                var indexName = new ExpirySagaAuditIndex().IndexName;
-                database.Query(indexName, query, database.WorkContext.CancellationToken,
-                    null,
-                    doc =>
-                    {
-                        var id = doc.Value<string>("__document_id");
-                        if (string.IsNullOrEmpty(id))
-                        {
-                            return;
-                        }
+                DisableCaching = true,
+                Cutoff = DateTime.UtcNow,
+                Query = $"LastModified:[* TO {expiryThreshold.Ticks}]",
+            };
 
-                        items.Add(new DeleteCommandData
-                        {
-                            Key = id
-                        });
-                    });
-            }
-            catch (OperationCanceledException)
+            var indexName = new ExpirySagaAuditIndex().IndexName;
+
+            logger.Info("Starting clean-up of expired sagahistory documents.");
+            var operation = store.DatabaseCommands.DeleteByIndex(indexName, query, new BulkOperationOptions
             {
-                //Ignore
-            }
-
-            var deletionCount = 0;
-
-            Chunker.ExecuteInChunks(items.Count, (s, e) =>
-            {
-                logger.InfoFormat("Batching deletion of {0}-{1} sagahistory documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1));
-                logger.InfoFormat("Batching deletion of {0}-{1} sagahistory documents completed.", s, e);
-
-                deletionCount += results.Count(x => x.Deleted == true);
+                AllowStale = true,
+                RetrieveDetails = false,
+                MaxOpsPerSec = 700
             });
 
-            if (deletionCount == 0)
+            using (var reset = new ManualResetEventSlim(false))
             {
-                logger.Info("No expired sagahistory documents found");
+                try
+                {
+                    token.Register(() => reset.Set());
+                    Task.Run(() =>
+                    {
+                        operation.WaitForCompletion();
+                        reset.Set();
+                    }, token);
+                }
+                catch (Exception)
+                {
+                    reset.Set();
+                }
+
+                reset.Wait();
             }
-            else
-            {
-                logger.InfoFormat("Deleted {0} expired sagahistory documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
-            }
+            logger.Info("Clean-up of expired sagahistory documents complete.");
         }
     }
 }

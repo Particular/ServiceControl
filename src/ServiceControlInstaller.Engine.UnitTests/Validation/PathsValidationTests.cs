@@ -41,8 +41,7 @@
             {
                 Instances = instances
             };
-            var ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreUnique());
-            Assert.That(ex.Message, Is.EqualTo("The installation path, log path and database path must be unique"));
+            Assert.Throws<EngineValidationException>(() => p.CheckPathsAreUnique());
         }
 
         [Test]

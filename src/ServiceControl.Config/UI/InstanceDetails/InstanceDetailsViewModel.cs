@@ -11,6 +11,7 @@
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Modules;
     using ServiceControl.Config.Framework.Rx;
+    using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
 
     class InstanceDetailsViewModel : RxProgressScreen, IHandle<RefreshInstances>
@@ -37,6 +38,10 @@
 
             AdvanceOptionsCommand = advanceOptionsCommand;
         }
+        
+        public bool IngestionCachePathVisible => Version >= SettingsList.IngestionCachePath.SupportedFrom;
+
+        public bool BodyStoragePathVisible => Version >= SettingsList.BodyStoragePath.SupportedFrom;
 
         public ServiceControlInstance ServiceControlInstance { get; }
 
@@ -54,10 +59,14 @@
 
         public string DBPath => ServiceControlInstance.DBPath;
 
+        public string BodyStoragePath => ServiceControlInstance.BodyStoragePath;
+
+        public string IngestionCachePath => ServiceControlInstance.IngestionCachePath;
+
         public string LogPath => ServiceControlInstance.LogPath;
 
         public Version Version => ServiceControlInstance.Version;
-
+        
         public Version NewVersion { get; }
 
         public bool HasNewVersion => Version < NewVersion;
@@ -165,20 +174,29 @@
 
         public ICommand UpgradeToNewVersionCommand { get; private set; }
 
+        public bool DetailsExpanderState { get; set; }
+
+        public string DetailsExpanderText => DetailsExpanderState ? "Less Details" : "More Details";
+
+
         public void Handle(RefreshInstances message)
         {
             UpdateServiceProperties();
-            NotifyOfPropertyChange("Name");
-            NotifyOfPropertyChange("Host");
-            NotifyOfPropertyChange("InstallPath");
-            NotifyOfPropertyChange("DBPath");
-            NotifyOfPropertyChange("LogPath");
-            NotifyOfPropertyChange("Version");
-            NotifyOfPropertyChange("NewVersion");
-            NotifyOfPropertyChange("HasNewVersion");
-            NotifyOfPropertyChange("Transport");
-            NotifyOfPropertyChange("BrowsableUrl");
-            NotifyOfPropertyChange("InMaintenanceMode");
+            NotifyOfPropertyChange(nameof(Name));
+            NotifyOfPropertyChange(nameof(Host));
+            NotifyOfPropertyChange(nameof(InstallPath));
+            NotifyOfPropertyChange(nameof(DBPath));
+            NotifyOfPropertyChange(nameof(LogPath));
+            NotifyOfPropertyChange(nameof(Version));
+            NotifyOfPropertyChange(nameof(NewVersion));
+            NotifyOfPropertyChange(nameof(HasNewVersion));
+            NotifyOfPropertyChange(nameof(Transport));
+            NotifyOfPropertyChange(nameof(BrowsableUrl));
+            NotifyOfPropertyChange(nameof(InMaintenanceMode));
+            NotifyOfPropertyChange(nameof(IngestionCachePath));
+            NotifyOfPropertyChange(nameof(BodyStoragePath));
+            NotifyOfPropertyChange(nameof(IngestionCachePathVisible));
+            NotifyOfPropertyChange(nameof(BodyStoragePathVisible));
         }
 
         public async Task<bool> StartService(IProgressObject progress = null)

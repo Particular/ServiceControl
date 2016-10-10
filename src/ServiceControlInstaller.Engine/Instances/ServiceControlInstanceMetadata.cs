@@ -8,21 +8,21 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
-    using System.Xml;
-    using System.Xml.Serialization;
-    using ServiceControlInstaller.Engine.Accounts;
+    using HttpApiWrapper;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Queues;
+    using ServiceControlInstaller.Engine.Setup;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
-    using ServiceControlInstaller.Engine.UrlAcl;
+
     using ServiceControlInstaller.Engine.Validation;
 
     public class ServiceControlInstanceMetadata : IServiceControlInstance
     {
         public string LogPath { get; set; }
         public string DBPath { get; set; }
+        public string BodyStoragePath { get; set; }
+        public string IngestionCachePath { get; set; }
         public string HostName { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
@@ -40,14 +40,10 @@ namespace ServiceControlInstaller.Engine.Instances
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public string ServiceDescription { get; set; }
-
-        [XmlIgnore]
         public Version Version { get; set; }
-        [XmlIgnore]
+        public string Protocol =>  SslCert.GetThumbprint(Port) == null ? "http" : "https";
         public string ServiceAccount { get; set; }
-        [XmlIgnore]
         public string ServiceAccountPwd { get; set; }
-        [XmlIgnore]
         public ReportCard ReportCard { get; set; }
 
         public ServiceControlInstanceMetadata()
@@ -57,47 +53,23 @@ namespace ServiceControlInstaller.Engine.Instances
             Version = zipInfo.Version;
         }
 
-
         public string Url
         {
             get
             {
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
-                    return $"http://{HostName}:{Port}/api/";
+                    return $"{Protocol}://{HostName}:{Port}/api/";
                 }
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                return $"{Protocol}://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
             }
         }
-
-        public string StorageUrl
-        {
-            get
-            {
-                string host;
-                switch (HostName)
-                {
-                    case "*":
-                    case "+":
-                        host = "localhost";
-                        break;
-                    default:
-                        host = HostName;
-                        break;
-                }
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return $"http://{host}:{Port}/storage/";
-                }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
-            }
-        }
-
+        
         public string AclUrl
         {
             get
             {
-                var baseUrl = $"http://{HostName}:{Port}/";
+                var baseUrl = $"{Protocol}://{HostName}:{Port}/";
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
                     return baseUrl;
@@ -108,15 +80,15 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void CopyFiles(string zipFilePath)
         {
-            //Clear out any files from previos runs of Add Instance, just in case user switches transport
+            //Clear out any files from previous runs of Add Instance, just in case user switches transport
             //Validation checks for the flag file so wont get here if the directory was also changed
             FileUtils.DeleteDirectory(InstallPath, true, true);
-
-            var account = new NTAccount(UserAccount.ParseAccountName(ServiceAccount).QualifiedName);
-            var readExecuteAccessRule = new FileSystemAccessRule(account, FileSystemRights.ReadAndExecute | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+            var builtinUsers = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
+            var readExecuteAccessRule = new FileSystemAccessRule(builtinUsers, FileSystemRights.ReadAndExecute | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
             FileUtils.CreateDirectoryAndSetAcl(InstallPath, readExecuteAccessRule);
 
-            var modifyAccessRule = new FileSystemAccessRule(account, FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+            var modifyAccessRule = new FileSystemAccessRule(builtinUsers, FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+
             if (!string.IsNullOrWhiteSpace(LogPath))
             {
                 FileUtils.CreateDirectoryAndSetAcl(LogPath, modifyAccessRule);
@@ -125,6 +97,16 @@ namespace ServiceControlInstaller.Engine.Instances
             if (!string.IsNullOrWhiteSpace(DBPath))
             {
                 FileUtils.CreateDirectoryAndSetAcl(DBPath, modifyAccessRule);
+            }
+
+            if (!string.IsNullOrWhiteSpace(BodyStoragePath))
+            {
+                FileUtils.CreateDirectoryAndSetAcl(BodyStoragePath, modifyAccessRule);
+            }
+
+            if (!string.IsNullOrWhiteSpace(IngestionCachePath))
+            {
+                FileUtils.CreateDirectoryAndSetAcl(IngestionCachePath, modifyAccessRule);
             }
 
             // Mark these directories with a flag 
@@ -177,52 +159,16 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             try
             {
-                QueueCreation.RunQueueCreation(this);
+                ServiceControlSetup.RunInSetupMode(this);
             }
-            catch (ServiceControlQueueCreationFailedException ex)
+            catch (ServiceControlSetupFailedException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-            catch (ServiceControlQueueCreationTimeoutException ex)
+            catch (ServiceControlSetupTimeoutException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-        }
-
-        public void Save(string path)
-        {
-            var serializer = new XmlSerializer(GetType());
-            using (var stream = File.OpenWrite(path))
-            {
-                serializer.Serialize(stream, this);
-            }
-        }
-
-        public static ServiceControlInstanceMetadata Load(string path)
-        {
-            ServiceControlInstanceMetadata instanceData;
-            var serializer = new XmlSerializer(typeof(ServiceControlInstanceMetadata));
-            using (var stream = File.OpenRead(path))
-            {
-                instanceData = (ServiceControlInstanceMetadata) serializer.Deserialize(stream);
-            }
-            
-            var doc = new XmlDocument();
-            doc.Load(path);
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/AuditRetentionPeriod") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ErrorRetentionPeriod") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-            return instanceData;
         }
 
         public void Validate(Func<PathInfo, bool> promptToProceed)
@@ -233,7 +179,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     MSMQConfigValidator.Validate();
                 }
-                catch(EngineValidationException ex)
+                catch (EngineValidationException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }

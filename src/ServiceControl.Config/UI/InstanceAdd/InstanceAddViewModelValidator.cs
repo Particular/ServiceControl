@@ -17,6 +17,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
             RuleFor(x => x.DestinationPath)
                 .NotEmpty()
                 .ValidPath()
+                .RootedPath()
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
                 .When(x => x.SubmitAttempted);
@@ -24,9 +25,28 @@ namespace ServiceControl.Config.UI.InstanceAdd
             RuleFor(x => x.DatabasePath)
                 .NotEmpty()
                 .ValidPath()
+                .RootedPath()
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
                 .When(x => x.SubmitAttempted);
+
+            RuleFor(x => x.BodyStoragePath)
+                .NotEmpty()
+                .ValidPath()
+                .RootedPath()
+                .MustNotBeIn(x => UsedPaths(x.InstanceName))
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .When(x => x.SubmitAttempted);
+
+            RuleFor(x => x.IngestionCachePath)
+                .NotEmpty()
+                .ValidPath()
+                .RootedPath()
+                .MustNotBeIn(x => UsedPaths(x.InstanceName))
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .When(x => x.SubmitAttempted);
+
+
         }
     }
 }

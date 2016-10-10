@@ -63,6 +63,8 @@
                 ServiceDescription = viewModel.Description,
                 DBPath = viewModel.DatabasePath,
                 LogPath = viewModel.LogPath,
+                BodyStoragePath = viewModel.BodyStoragePath,
+                IngestionCachePath = viewModel.IngestionCachePath,
                 InstallPath = viewModel.DestinationPath,
                 HostName = viewModel.HostName,
                 Port = Convert.ToInt32(viewModel.PortNumber),

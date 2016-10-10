@@ -49,7 +49,7 @@
             instanceInstaller.WriteConfigurationFile();
             progress.Report(5, 9, "Registering URL ACLs...");
             instanceInstaller.RegisterUrlAcl();
-            progress.Report(6, 9, "Creating queues...");
+            progress.Report(6, 9, "Setup instance... (this can take some time)");
             instanceInstaller.SetupInstance();
 
             if (!instanceInstaller.ReportCard.HasErrors)
@@ -64,46 +64,87 @@
                     instanceInstaller.ReportCard.Warnings.Add($"New instance did not startup - please check configuration for {instance.Name}");
                 }
             }
-            instanceInstaller.ReportCard.SetStatus();
             return instanceInstaller.ReportCard;
         }
 
-        internal ReportCard Upgrade(string instanceName, InstanceUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
+        internal ReportCard Upgrade(string instanceName, InstanceUpgradeOptions options, IProgress<ProgressDetails> progress = null)
         {
             progress = progress ?? new Progress<ProgressDetails>();
+            var maxSteps = 10;
+            var step = 0;
 
             var instance = ServiceControlInstance.FindByName(instanceName);
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
 
-            progress.Report(0, 5, "Stopping instance...");
+            progress.Report(step++, maxSteps, "Stopping instance...");
             if (!instance.TryStopService())
             {
                 return new ReportCard
                 {
-                    Errors = { "Service failed to stop" },
+                    Errors =
+                    {
+                        "Service failed to stop"
+                    },
                     Status = Status.Failed
                 };
             }
 
-            progress.Report(1, 5, "Backing up app.config...");
+            progress.Report(step++, maxSteps, "Backing up app.config...");
             var backupFile = instance.BackupAppConfig();
             try
             {
-                progress.Report(2, 5, "Upgrading Files...");
+                if (options.BackupRavenDbBeforeUpgrade)
+                {
+                    var backup = new UpgradeBackupManager(instance, ZipInfo.FilePath, options.BackupPath);
+                    progress.Report(step++, maxSteps, "Restarting service in maintenance/backup mode");
+                    backup.EnterBackupMode();
+                    try
+                    {
+                        progress.Report(step++, maxSteps, "Commencing Backup");
+                        if (!backup.BackupDatabase())
+                        {
+                            return instance.ReportCard;
+                        }
+                        progress.Report(step++, maxSteps, "Stopping service...");
+                    }
+                    catch (Exception ex)
+                    {
+                        instance.ReportCard.Errors.Add($"An exception occurred while attempting the DB backup - {ex.Message}");
+                        return instance.ReportCard;
+                    }
+                    finally
+                    {
+                        instance.TryStopService();
+                        backup.ExitBackupMode();
+                    }
+                }
+                
+                progress.Report(step=6, maxSteps, "Upgrading Files...");
                 instance.UpgradeFiles(ZipInfo.FilePath);
+
+                progress.Report(step++, maxSteps, "Moving database...");
+                if (!string.IsNullOrWhiteSpace(options.BodyStoragePath))
+                {
+                    instance.BodyStoragePath = options.BodyStoragePath;
+                }
+                if (!string.IsNullOrWhiteSpace(options.IngestionCachePath))
+                {
+                    instance.IngestionCachePath = options.IngestionCachePath;
+                }
+                instance.MoveRavenDatabase(instance.DBPath);
+                instance.EnsureDirectoriesExist();
             }
             finally
             {
-                progress.Report(3, 5, "Restoring app.config...");
+                progress.Report(step++, maxSteps, "Restoring app.config...");
                 instance.RestoreAppConfig(backupFile);
             }
 
-            upgradeOptions.ApplyChangesToInstance(instance);
-
-            progress.Report(4, 5, "Running Queue Creation...");
+            options.ApplyChangesToInstance(instance);
+            progress.Report(step, maxSteps, "Upgrading instance... (this can take some time)");
             instance.SetupInstance();
-            instance.ReportCard.SetStatus();
+            
             return instance.ReportCard;
         }
 
@@ -125,7 +166,7 @@
                     instance.ReportCard.Status = Status.Failed;
                     return instance.ReportCard;
                 }
-            
+
                 instance.ApplyConfigChange();
                 if (!instance.ReportCard.HasErrors)
                 {
@@ -134,7 +175,6 @@
                         instance.ReportCard.Warnings.Add($"Service did not start after changes - please check configuration for {instance.Name}");
                     }
                 }
-                instance.ReportCard.SetStatus();
                 return instance.ReportCard;
             }
             finally
@@ -146,7 +186,7 @@
         internal ReportCard Delete(string instanceName, bool removeDB, bool removeLogs, IProgress<ProgressDetails> progress = null)
         {
             progress = progress ?? new Progress<ProgressDetails>();
-            progress.Report(0, 7, "Stopping instance...");
+            progress.Report(0, 9, "Stopping instance...");
             var instance = ServiceControlInstance.FindByName(instanceName);
             instance.ReportCard = new ReportCard();
 
@@ -160,35 +200,35 @@
             }
             instance.BackupAppConfig();
 
-            progress.Report(1, 7, "Disabling startup...");
+            progress.Report(1, 9, "Disabling startup...");
             instance.Service.SetStartupMode("Disabled");
 
-            progress.Report(2, 7, "Deleting service...");
+            progress.Report(2, 9, "Deleting service...");
             instance.Service.Delete();
 
-            progress.Report(3, 7, "Removing URL ACL...");
+            progress.Report(3, 9, "Removing URL ACL...");
             instance.RemoveUrlAcl();
 
-            progress.Report(4, 7, "Deleting install...");
+            progress.Report(4, 9, "Deleting install...");
             instance.RemoveBinFolder();
 
             if (removeLogs)
             {
-                progress.Report(5, 7, "Deleting logs...");
+                progress.Report(5, 9, "Deleting logs...");
                 instance.RemoveLogsFolder();
             }
             if (removeDB)
             {
-                progress.Report(6, 7, "Deleting database...");
+                progress.Report(6, 9, "Deleting database...");
                 instance.RemoveDataBaseFolder();
+                progress.Report(7, 9, "Deleting body storage...");
+                instance.RemoveBodyStorageFolder();
+                progress.Report(8, 9, "Deleting Ingestion cache...");
+                instance.RemoveIngestionFolder();
             }
 
             progress.Report(new ProgressDetails());
-
-            instance.ReportCard.SetStatus();
             return instance.ReportCard;
         }
-
-        
     }
 }

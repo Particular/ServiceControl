@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
+    using System.Collections.Generic;
     using ServiceControl.Contracts.Operations;
 
     public interface IFailedMessageEnricher
     {
-        void Enrich(FailedMessage message, ImportFailedMessage source);
+        IEnumerable<FailedMessage.FailureGroup> Enrich(FailureDetails details);
     }
 }

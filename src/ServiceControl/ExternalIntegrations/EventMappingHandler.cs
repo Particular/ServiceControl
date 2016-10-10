@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.ExternalIntegrations
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using NServiceBus;
@@ -8,26 +9,60 @@
 
     public class EventMappingHandler : IHandleMessages<IEvent>
     {
-        public IDocumentSession Session { get; set; }
-        public IEnumerable<IEventPublisher> EventPublishers { get; set; } 
+        private readonly IDocumentStore store;
+        private readonly IEnumerable<IEventPublisher> eventPublishers;
+        private readonly IBus bus;
 
+        public EventMappingHandler(IDocumentStore store, IEnumerable<IEventPublisher> eventPublishers, IBus bus)
+        {
+            this.store = store;
+            this.eventPublishers = eventPublishers;
+            this.bus = bus;
+        }
         public void Handle(IEvent message)
         {
-            var dispatchContexts = EventPublishers
+            var dispatchContexts = eventPublishers
                 .Where(p => p.Handles(message))
                 .Select(p => p.CreateDispatchContext(message));
 
-            foreach (var dispatchContext in dispatchContexts)
+            using (var session = store.OpenSession())
+            {
+                Dispatch(dispatchContexts, session);
+            }
+        }
+
+        private void Dispatch(IEnumerable<object> dispatchContexts, IDocumentSession session)
+        {
+            var eventsToBePublished = eventPublishers.SelectMany(p => p.PublishEventsForOwnContexts(dispatchContexts, session));
+            foreach (var eventToBePublished in eventsToBePublished)
             {
                 if (Logger.IsDebugEnabled)
                 {
-                    Logger.DebugFormat("Storing dispatch request.");
+                    Logger.Debug("Publishing external event on the bus.");
                 }
-                var dispatchRequest = new ExternalIntegrationDispatchRequest
+
+                try
                 {
-                    DispatchContext = dispatchContext
-                };
-                Session.Store(dispatchRequest);    
+                    bus.Publish(eventToBePublished);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Failed dispatching external integration event.", e);
+
+                    var m = new ExternalIntegrationEventFailedToBePublished
+                    {
+                        EventType = eventToBePublished.GetType()
+                    };
+                    try
+                    {
+                        m.Reason = e.GetBaseException().Message;
+                    }
+                    catch (Exception)
+                    {
+                        m.Reason = "Failed to retrieve reason!";
+                    }
+                    bus.Publish(m);
+                }
             }
         }
 

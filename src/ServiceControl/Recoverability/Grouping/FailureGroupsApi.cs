@@ -83,7 +83,7 @@ namespace ServiceControl.Recoverability
                 RavenQueryStatistics stats;
 
                 var results = session.Advanced
-                    .LuceneQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                    .DocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
                     .Statistics(out stats)
                     .WhereEquals(view => view.FailureGroupId, groupId)
                     .FilterByStatusWhere(Request)
@@ -105,7 +105,7 @@ namespace ServiceControl.Recoverability
             using (var session = Store.OpenSession())
             {
                 var queryResult = session.Advanced
-                    .LuceneQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                    .DocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
                     .WhereEquals(view => view.FailureGroupId, groupId)
                     .FilterByStatusWhere(Request)
                     .FilterByLastModifiedRange(Request)

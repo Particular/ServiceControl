@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
+    using System.Collections.Generic;
     using System.Globalization;
+    using System.Linq;
     using NServiceBus;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
@@ -8,16 +10,19 @@
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.MessageFailures.InternalMessages;
+    using ServiceControl.Operations.BodyStorage;
 
     public class UnArchiveMessagesByRangeHandler : IHandleMessages<UnArchiveMessagesByRange>
     {
         private readonly IDocumentStore store;
         private readonly IBus bus;
+        private readonly IMessageBodyStore messageBodyStore;
 
-        public UnArchiveMessagesByRangeHandler(IDocumentStore store, IBus bus)
+        public UnArchiveMessagesByRangeHandler(IDocumentStore store, IBus bus, IMessageBodyStore messageBodyStore)
         {
             this.store = store;
             this.bus = bus;
+            this.messageBodyStore = messageBodyStore;
         }
 
         public void Handle(UnArchiveMessagesByRange message)
@@ -40,14 +45,30 @@ if(this.Status === archivedStatus) {
                         {"archivedStatus", (int) FailedMessageStatus.Archived},
                         {"unresolvedStatus", (int) FailedMessageStatus.Unresolved}
                     }
-                }, true).WaitForCompletion();
+                }, new BulkOperationOptions
+                {
+                    AllowStale = true,
+                    RetrieveDetails = true,
+                    MaxOpsPerSec = 700
+                }).WaitForCompletion();
 
             var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
+
+            var messageBodyIds = patchedDocumentIds.Select(x => x.Document.Split('/').LastOrDefault()).Where(x => x != null);
+            MarkMessageBodiesAsPersistent(messageBodyIds);
 
             bus.Publish<FailedMessagesUnArchived>(m =>
             {
                 m.MessagesCount = patchedDocumentIds.Length;
             });
+        }
+
+        private void MarkMessageBodiesAsPersistent(IEnumerable<string> messageBodyIds)
+        {
+            foreach (var messageBodyId in messageBodyIds)
+            {
+                messageBodyStore.ChangeTag(messageBodyId, BodyStorageTags.ErrorTransient, BodyStorageTags.ErrorPersistent);
+            }
         }
 
         class DocumentPatchResult

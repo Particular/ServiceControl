@@ -9,6 +9,7 @@
                 <ResourceDictionary Source="pack://application:,,,/Styles/Palette.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Styles/Icons.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Styles/Button.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Styles/Expander.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Styles/GroupBox.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Styles/Hyperlink.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Styles/TextBox.xaml" />

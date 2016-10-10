@@ -10,8 +10,14 @@
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
-        public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
+        private readonly IBus bus;
+        private readonly IDocumentStore store;
+
+        public ReportCustomCheckResultHandler(IBus bus, IDocumentStore store)
+        {
+            this.bus = bus;
+            this.store = store;
+        }
 
         public void Handle(ReportCustomCheckResult message)
         {
@@ -32,59 +38,65 @@
 
             var publish = false;
             var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString(), message.CustomCheckId);
-            var customCheck = Session.Load<CustomCheck>(id);
+            CustomCheck customCheck;
 
-            if (customCheck == null ||
-                (customCheck.Status == Status.Fail && !message.HasFailed) ||
-                (customCheck.Status == Status.Pass && message.HasFailed))
+            using (var session = store.OpenSession())
             {
-                if (customCheck == null)
+                customCheck = session.Load<CustomCheck>(id);
+
+                if (customCheck == null ||
+                    (customCheck.Status == Status.Fail && !message.HasFailed) ||
+                    (customCheck.Status == Status.Pass && message.HasFailed))
                 {
-                    customCheck = new CustomCheck
+                    if (customCheck == null)
                     {
-                        Id = id,
-                    };
-                    Session.Store(customCheck);
-                }
-                publish = true;
-            }
+                        customCheck = new CustomCheck
+                        {
+                            Id = id
+                        };
+                    }
 
-            customCheck.CustomCheckId = message.CustomCheckId;
-            customCheck.Category = message.Category;
-            customCheck.Status = message.HasFailed ? Status.Fail : Status.Pass;
-            customCheck.ReportedAt = message.ReportedAt;
-            customCheck.FailureReason = message.FailureReason;
-            customCheck.OriginatingEndpoint = new EndpointDetails
-            {
-                Host = message.Host,
-                HostId = message.HostId,
-                Name = message.EndpointName
-            };
-            Session.Store(customCheck);
+                    publish = true;
+                }
+
+                customCheck.CustomCheckId = message.CustomCheckId;
+                customCheck.Category = message.Category;
+                customCheck.Status = message.HasFailed ? Status.Fail : Status.Pass;
+                customCheck.ReportedAt = message.ReportedAt;
+                customCheck.FailureReason = message.FailureReason;
+                customCheck.OriginatingEndpoint = new EndpointDetails
+                {
+                    Host = message.Host,
+                    HostId = message.HostId,
+                    Name = message.EndpointName
+                };
+                session.Store(customCheck);
+                session.SaveChanges();
+            }
 
             if (publish)
             {
                 if (message.HasFailed)
                 {
-                    Bus.Publish<CustomCheckFailed>(m =>
+                    bus.Publish(new CustomCheckFailed
                     {
-                        m.Id = id;
-                        m.CustomCheckId = message.CustomCheckId;
-                        m.Category = message.Category;
-                        m.FailedAt = message.ReportedAt;
-                        m.FailureReason = message.FailureReason;
-                        m.OriginatingEndpoint = customCheck.OriginatingEndpoint;
+                        Id = id,
+                        CustomCheckId = message.CustomCheckId,
+                        Category = message.Category,
+                        FailedAt = message.ReportedAt,
+                        FailureReason = message.FailureReason,
+                        OriginatingEndpoint = customCheck.OriginatingEndpoint
                     });
                 }
                 else
                 {
-                    Bus.Publish<CustomCheckSucceeded>(m =>
+                    bus.Publish(new CustomCheckSucceeded
                     {
-                        m.Id = id;
-                        m.CustomCheckId = message.CustomCheckId;
-                        m.Category = message.Category;
-                        m.SucceededAt = message.ReportedAt;
-                        m.OriginatingEndpoint = customCheck.OriginatingEndpoint;
+                        Id = id,
+                        CustomCheckId = message.CustomCheckId,
+                        Category = message.Category,
+                        SucceededAt = message.ReportedAt,
+                        OriginatingEndpoint = customCheck.OriginatingEndpoint
                     });
                 }
             }

@@ -115,7 +115,81 @@
                     return;
                 }
             }
+
+            if (!instance.AppSettingExists(SettingsList.BodyStoragePath.Name))
+            {
+                var bodyStoragePathDialog = new FolderPickerDialogViewModel
+                {
+                    Title = "UPGRADE QUESTION - MESSAGE BODY STORAGE PATH",
+                    Message = "Message bodies are now stored directly on disk rather than the database. For messages processed prior to upgrading the data will still reside within the database. You may choose to override the default location as part of the upgrade.</Paragraph><Paragraph>Note: The chosen path must be an empty local directory that is accessible by the current service account.",
+                    Question = "Click OK to accept the the location for body storage",
+                    PathHeader = "MESSAGE BODY STORAGE PATH",
+                    YesButtonText = "OK",
+                    HideNoButton = true,
+                    ValidateFolderIsEmpty = true,
+                    Path = instance.BodyStoragePath
+                };
+
+                var ingestionCacheDialogResult = windowManager.ShowOverlayDialog(bodyStoragePathDialog);
+                if (ingestionCacheDialogResult == null)
+                {
+                    //Dialog was cancelled
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    return;
+                }
+                if (ingestionCacheDialogResult.Value)
+                {
+                    upgradeOptions.BodyStoragePath = bodyStoragePathDialog.Path;
+                }
+            }
             
+            if (!instance.AppSettingExists(SettingsList.IngestionCachePath.Name))
+            {
+                var ingestionCacheDialog = new FolderPickerDialogViewModel
+                {
+                    Title = "UPGRADE QUESTION - INGESTION CACHE PATH",
+                    Message = "The ingestion cache is a temporary location for data prior to being processed. You may choose to override the default location as part of the upgrade.</Paragraph><Paragraph>Note: The chosen path must be an empty local directory that is accessible by the current service account.",
+                    Question = "Click OK to accept the the location for ingestion cache",
+                    PathHeader = "INGESTION CACHE LOCATION",
+                    YesButtonText = "OK",
+                    HideNoButton = true,
+                    ValidateFolderIsEmpty = true,
+                    Path = instance.IngestionCachePath
+                };
+
+                var ingestionCacheDialogResult = windowManager.ShowOverlayDialog(ingestionCacheDialog);
+                if (ingestionCacheDialogResult == null)
+                {
+                    //Dialog was cancelled
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    return;
+                }
+                if (ingestionCacheDialogResult.Value)
+                {
+                    upgradeOptions.IngestionCachePath = ingestionCacheDialog.Path;
+                }
+            }
+            
+            var backupDialog = new FolderPickerDialogViewModel
+            {
+                Title= "UPGRADE QUESTION - OPTIONAL DATABASE BACKUP",
+                Message = "Instruct the service to backup up the database to a local path as part of the upgrade.</Paragraph><Paragraph>Note: The chosen path must be an empty local directory that is accessible by the current service account.",
+                Question = "Backup the ServiceControl database prior to upgrade?",
+                PathHeader = "BACKUP LOCATION",
+                YesButtonText  = "Backup",
+                NoButtonText = "Skip",
+                ValidateFolderIsEmpty = true
+            };
+            var backupDialogResult = windowManager.ShowOverlayDialog(backupDialog);
+            if (backupDialogResult == null)
+            {
+                //Dialog was cancelled
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                return;
+            }
+            upgradeOptions.BackupPath = backupDialog.Path;
+            upgradeOptions.BackupRavenDbBeforeUpgrade = backupDialogResult.Value; 
+           
             var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
                           windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", "Do you want to proceed?", "Yes I want to proceed", "No");
             
@@ -131,11 +205,8 @@
                     if (!stopped)
                     {
                         eventAggregator.PublishOnUIThread(new RefreshInstances());
-                        
                         reportCard.Errors.Add("Failed to stop the service");
-                        reportCard.SetStatus();
                         windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
-
                         return;
                     }
 

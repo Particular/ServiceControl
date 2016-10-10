@@ -70,17 +70,19 @@
         class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
         {
             private Timer timer;
+            private DateTime startTime;
 
             public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, TimeKeeper timeKeeper)
             {
                 this.retryDocumentManager = retryDocumentManager;
                 this.timeKeeper = timeKeeper;
+                startTime = DateTime.UtcNow;
             }
 
             private bool AdoptOrphanedBatches()
             {
                 bool hasMoreWorkToDo;
-                retryDocumentManager.AdoptOrphanedBatches(out hasMoreWorkToDo);
+                retryDocumentManager.AdoptOrphanedBatches(startTime, out hasMoreWorkToDo);
 
                 if (!hasMoreWorkToDo)
                 {

@@ -70,7 +70,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CustomActionsMigration.cs" />
-    <Compile Include="CustomActionsInstall.cs" />
     <Compile Include="CustomActionsUninstall.cs" />
     <Compile Include="Extensions\GuidExtensions.cs" />
     <Compile Include="MSILogger.cs" />

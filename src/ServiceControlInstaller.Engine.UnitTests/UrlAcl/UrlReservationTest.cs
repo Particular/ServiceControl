@@ -3,14 +3,15 @@
     using System;
     using System.Linq;
     using System.Security.Principal;
+    using HttpApiWrapper;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.UrlAcl;
+
 
     [TestFixture]
     public class UrlReservationTests
     {
         const string url = "http://bogushostname:12345/";
-    
+
         [Test]
         public void GetAllResults()
         {
@@ -34,7 +35,7 @@
             if (UrlReservation.GetAll().Any(p => p.Url.Equals(reservation.Url, StringComparison.OrdinalIgnoreCase)))
             {
                  UrlReservation.Delete(reservation);
-                 Assert.IsFalse(UrlReservation.GetAll().Any(p => p.Url.Equals(reservation.Url, StringComparison.OrdinalIgnoreCase)), "UrlAcl exists after deletion");                  
+                 Assert.IsFalse(UrlReservation.GetAll().Any(p => p.Url.Equals(reservation.Url, StringComparison.OrdinalIgnoreCase)), "UrlAcl exists after deletion");
             }
             Assert.Throws<Exception>(() => UrlReservation.Create(reservation), "UrlAcl incorrectly created with empty delegation");
         }
@@ -76,9 +77,9 @@
         public void AddUsersToUrlAcl()
         {
             var reservation = new UrlReservation(url, new SecurityIdentifier(WellKnownSidType.WorldSid, null));
-            reservation.Create(); 
+            reservation.Create();
 
-            // Read Back the URL 
+            // Read Back the URL
             reservation = UrlReservation.GetAll().First(p => p.Url == reservation.Url);
             Assert.IsTrue(reservation.Users.Count == 1, "User count is not 1");
             Assert.IsTrue(reservation.Users.First().Equals("Everyone", StringComparison.OrdinalIgnoreCase), "User is not 'Everyone'");
@@ -86,37 +87,37 @@
             var newAccountSid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
             reservation.AddSecurityIdentifier(newAccountSid);
             reservation.Create();
-            
+
             var account = (NTAccount) newAccountSid.Translate(typeof(NTAccount));
             reservation = UrlReservation.GetAll().First(p => p.Url == reservation.Url);
             Assert.IsTrue(reservation.Users.Count == 2, "User count is not 2");
             Assert.IsTrue(reservation.Users.Contains(account.Value, StringComparer.OrdinalIgnoreCase), "Added User not found");
-            
+
         }
 
         [Test]
         public void CheckPatternMatching()
         {
             var testUrl = new UrlReservation("http://localhost/");
-            Assert.IsFalse(testUrl.HTTPS);
+            Assert.IsFalse(testUrl.Https);
             Assert.IsTrue(testUrl.HostName == "localhost");
             Assert.IsTrue(testUrl.Port == 80);
             Assert.IsTrue(testUrl.VirtualDirectory == String.Empty);
 
             testUrl = new UrlReservation("https://localhost:8000/");
-            Assert.IsTrue(testUrl.HTTPS);
+            Assert.IsTrue(testUrl.Https);
             Assert.IsTrue(testUrl.HostName == "localhost");
             Assert.IsTrue(testUrl.Port == 8000);
             Assert.IsTrue(testUrl.VirtualDirectory == String.Empty);
 
             testUrl = new UrlReservation("https://localhost:8000/foo/api/");
-            Assert.IsTrue(testUrl.HTTPS);
+            Assert.IsTrue(testUrl.Https);
             Assert.IsTrue(testUrl.HostName == "localhost");
             Assert.IsTrue(testUrl.Port == 8000);
             Assert.IsTrue(testUrl.VirtualDirectory == "foo/api");
 
             testUrl = new UrlReservation("https://localhost/foo/api/");
-            Assert.IsTrue(testUrl.HTTPS);
+            Assert.IsTrue(testUrl.Https);
             Assert.IsTrue(testUrl.HostName == "localhost");
             Assert.IsTrue(testUrl.Port == 443);
             Assert.IsTrue(testUrl.VirtualDirectory == "foo/api");

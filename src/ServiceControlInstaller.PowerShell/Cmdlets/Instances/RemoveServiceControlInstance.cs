@@ -3,6 +3,7 @@
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace ServiceControlInstaller.PowerShell
 {
+    using System;
     using System.IO;
     using System.Management.Automation;
     using ServiceControlInstaller.Engine.Instances;
@@ -41,7 +42,12 @@ namespace ServiceControlInstaller.PowerShell
                     WriteWarning($"No action taken. An instance called {name} was not found");
                     break;
                 }
-                WriteObject(installer.Delete(instance.Name, RemoveDB.ToBool(), RemoveLogs.ToBool()));
+                logger.Info($"Removing Service Control instance - {instance.Name}");
+                if (!installer.Delete(instance.Name, RemoveDB.ToBool(), RemoveLogs.ToBool()))
+                {
+                    WriteError(new ErrorRecord(new Exception($"Removal of {name} failed"), "RemovalFailure", ErrorCategory.NotSpecified, null));
+                }
+                
             }
         }
     }

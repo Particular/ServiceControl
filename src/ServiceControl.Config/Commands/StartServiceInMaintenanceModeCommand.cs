@@ -5,10 +5,10 @@
     using ServiceControl.Config.Events;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Commands;
-    using ServiceControl.Config.UI.AdvanceOptions;
+    using ServiceControl.Config.UI.AdvancedOptions;
     using ServiceControlInstaller.Engine.ReportCard;
 
-    class StartServiceInMaintenanceModeCommand : AwaitableAbstractCommand<AdvanceOptionsViewModel>
+    class StartServiceInMaintenanceModeCommand : AwaitableAbstractCommand<AdvancedOptionsViewModel>
     {
         private readonly IWindowManagerEx windowManager;
         private readonly IEventAggregator eventAggregator;
@@ -19,7 +19,7 @@
             this.eventAggregator = eventAggregator;
         }
 
-        public override async Task ExecuteAsync(AdvanceOptionsViewModel model)
+        public override async Task ExecuteAsync(AdvancedOptionsViewModel model)
         {
             model.ServiceControlInstance.Service.Refresh();
 
@@ -37,7 +37,6 @@
                         eventAggregator.PublishOnUIThread(new RefreshInstances());
                         var reportCard = new ReportCard();
                         reportCard.Errors.Add("Failed to stop the service");
-                        reportCard.SetStatus();
                         windowManager.ShowActionReport(reportCard, "ISSUES STARTING INSTANCE IN MAINTENANCE MODE", "There were some errors when attempting to start instance in Maintenance Mode:");
                         return;
                     }
@@ -48,7 +47,6 @@
                     {
                         var reportCard = new ReportCard();
                         reportCard.Warnings.Add("Failed to start the service");
-                        reportCard.SetStatus();
                         windowManager.ShowActionReport(reportCard, "ISSUES STARTING INSTANCE IN MAINTENANCE MODE", "There were some warnings when attempting to start instance in Maintenance Mode:");
                     }
                 }

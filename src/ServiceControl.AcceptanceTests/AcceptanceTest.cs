@@ -31,11 +31,11 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NUnit.Framework;
     using Particular.ServiceControl;
+    using Raven.Database.Config;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
-    using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.SignalR;
-    using AppBuilderExtensions = ServiceBus.Management.Infrastructure.Extensions.AppBuilderExtensions;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
     using LogManager = NServiceBus.Logging.LogManager;
@@ -63,12 +63,14 @@ namespace ServiceBus.Management.AcceptanceTests
 
         private Bootstrapper bootstrapper;
         protected Action<BusConfiguration> CustomConfiguration = _ => { };
-        private ExposeBus exposeBus;
+        private IBus bus;
         protected OwinHttpMessageHandler Handler;
 
         private HttpClient httpClient;
         private int port;
         private string ravenPath;
+        private string storagePath;
+        private string ingestionPath;
         private ScenarioContext scenarioContext = new ConsoleContext();
 
         protected Action<Settings> SetSettings = _ => { };
@@ -82,11 +84,22 @@ namespace ServiceBus.Management.AcceptanceTests
             ServicePointManager.UseNagleAlgorithm = false; // Improvement for small tcp packets traffic, get buffered up to 1/2-second. If your storage communication is for small (less than ~1400 byte) payloads, this setting should help (especially when dealing with things like Azure Queues, which tend to have very small messages).
             ServicePointManager.Expect100Continue = false; // This ensures tcp ports are free up quicker by the OS, prevents starvation of ports
             ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
+
+            //HACK: This is just so we able to resolve assemblies correctly because Raven used Costura for its dependencies and metrics .net share the same name with one of raven dependencies
+            AppDomain.CurrentDomain.AssemblyResolve += (s, e) => Program.ResolveAssembly(e.Name);
+
         }
 
         [SetUp]
         public void Setup()
         {
+            ////HACK: Part of same hack, we need this because we want to ensure that the raven assembly resolve is registered
+            var __ = typeof(RavenConfiguration).FullName;
+            if (__ == null)
+            {
+                throw new Exception();
+            }
+
             port = FindAvailablePort(33333);
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
@@ -103,6 +116,8 @@ namespace ServiceBus.Management.AcceptanceTests
             };
 
             ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            storagePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            ingestionPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         }
 
         [TearDown]
@@ -113,6 +128,8 @@ namespace ServiceBus.Management.AcceptanceTests
                 bootstrapper.Stop();
                 httpClient.Dispose();
                 DeleteFolder(ravenPath);
+                DeleteFolder(storagePath);
+                DeleteFolder(ingestionPath);
             }
         }
 
@@ -168,7 +185,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 {
                 }
 
-                action(exposeBus.GetBus());
+                action(bus);
             });
         }
 
@@ -542,6 +559,8 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 Port = port,
                 DbPath = ravenPath,
+                BodyStoragePath = storagePath,
+                IngestionCachePath = ingestionPath,
                 ForwardErrorMessages = false,
                 ForwardAuditMessages = false,
                 TransportType = transportToUse.TypeName,
@@ -582,19 +601,17 @@ namespace ServiceBus.Management.AcceptanceTests
 
             CustomConfiguration(configuration);
 
-            exposeBus = new ExposeBus();
-
             using (new DiagnosticTimer("Initializing Bootstrapper"))
             {
-                bootstrapper = new Bootstrapper(settings, configuration, exposeBus);
+                bootstrapper = new Bootstrapper(settings, configuration);
             }
             using (new DiagnosticTimer("Initializing AppBuilder"))
             {
                 var app = new AppBuilder();
                 var cts = new CancellationTokenSource();
-                app.Properties[AppBuilderExtensions.HostOnAppDisposing] = cts.Token;
+                app.Properties[NServiceBusFactory.HostOnAppDisposing] = cts.Token;
                 bootstrapper.WebApp = new Disposable(() => cts.Cancel(false));
-                bootstrapper.Startup.Configuration(app);
+                bootstrapper.Startup.Configuration(app, true);
                 var appFunc = app.Build();
 
                 Handler = new OwinHttpMessageHandler(appFunc)
@@ -603,6 +620,11 @@ namespace ServiceBus.Management.AcceptanceTests
                     AllowAutoRedirect = false
                 };
                 httpClient = new HttpClient(Handler);
+            }
+            
+            using (new DiagnosticTimer("Creating and starting Bus"))
+            {
+                bus = bootstrapper.Start(true, Handler);
             }
         }
 
