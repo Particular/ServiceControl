@@ -19,22 +19,27 @@
 
         public void Write(Dictionary<string, string> headers, bool recoverable, ClaimsCheck claimCheck)
         {
-            using (var writer = new BinaryWriter(File.Open(Path.Combine(rootLocation, Guid.NewGuid().ToString("N")), FileMode.Create, FileAccess.Write, FileShare.None)))
+            using (var stream = File.Open(Path.Combine(rootLocation, Guid.NewGuid().ToString("N")), FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                writer.Write(VERSION);
-                writer.Write(recoverable);
-                writer.Write(headers.Count);
-
-                foreach (var header in headers)
+                using (var writer = new BinaryWriter(stream))
                 {
-                    writer.Write(header.Key);
-                    writer.Write(header.Value ?? string.Empty);
+                    writer.Write(VERSION);
+                    writer.Write(recoverable);
+                    writer.Write(headers.Count);
+
+                    foreach (var header in headers)
+                    {
+                        writer.Write(header.Key);
+                        writer.Write(header.Value ?? string.Empty);
+                    }
+
+                    writer.Write(claimCheck.Stored);
+                    writer.Write(claimCheck.Metadata.MessageId);
+                    writer.Write(claimCheck.Metadata.ContentType);
+                    writer.Write(claimCheck.Metadata.Size);
                 }
 
-                writer.Write(claimCheck.Stored);
-                writer.Write(claimCheck.Metadata.MessageId);
-                writer.Write(claimCheck.Metadata.ContentType);
-                writer.Write(claimCheck.Metadata.Size);
+                stream.Flush(true);
             }
         }
 

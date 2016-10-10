@@ -24,13 +24,18 @@
                 return new ClaimsCheck(false, messageBodyMetadata);
             }
 
-            using (var writer = new BinaryWriter(File.Open(FullPath(tag, messageBodyMetadata.MessageId), FileMode.Create, FileAccess.Write, FileShare.None)))
+            using (var stream = File.Open(FullPath(tag, messageBodyMetadata.MessageId), FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                writer.Write(VERSION);
-                writer.Write(messageBodyMetadata.MessageId);
-                writer.Write(messageBodyMetadata.ContentType);
-                writer.Write(messageBodyMetadata.Size);
-                writer.Write(messageBody, 0, messageBody.Length);
+                using (var writer = new BinaryWriter(stream))
+                {
+                    writer.Write(VERSION);
+                    writer.Write(messageBodyMetadata.MessageId);
+                    writer.Write(messageBodyMetadata.ContentType);
+                    writer.Write(messageBodyMetadata.Size);
+                    writer.Write(messageBody, 0, messageBody.Length);
+                }
+
+                stream.Flush(true);
             }
 
             return new ClaimsCheck(true, messageBodyMetadata);
