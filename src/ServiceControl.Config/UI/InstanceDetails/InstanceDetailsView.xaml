@@ -131,9 +131,8 @@
                   Grid.ColumnSpan="2" 
                   Grid.Column="0"
                   IsExpanded="{Binding DetailsExpanderState, Mode=TwoWay}"
-                  Foreground="{StaticResource Gray60Brush}"
-                  Header="{Binding DetailsExpanderText}">
-                
+                  Header="{Binding DetailsExpanderText}"
+                  >
             <StackPanel>
                 <GroupBox Header="URL">
                     <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
