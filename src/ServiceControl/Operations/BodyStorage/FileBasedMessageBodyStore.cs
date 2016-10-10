@@ -33,9 +33,9 @@
                     writer.Write(messageBodyMetadata.ContentType);
                     writer.Write(messageBodyMetadata.Size);
                     writer.Write(messageBody, 0, messageBody.Length);
-                }
 
-                stream.Flush(true);
+                    stream.Flush(true);
+                }
             }
 
             return new ClaimsCheck(true, messageBodyMetadata);

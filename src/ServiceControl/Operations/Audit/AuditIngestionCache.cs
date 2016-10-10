@@ -36,9 +36,9 @@
                     writer.Write(claimCheck.Metadata.MessageId);
                     writer.Write(claimCheck.Metadata.ContentType);
                     writer.Write(claimCheck.Metadata.Size);
-                }
 
-                stream.Flush(true);
+                    stream.Flush(true);
+                }
             }
         }
 
