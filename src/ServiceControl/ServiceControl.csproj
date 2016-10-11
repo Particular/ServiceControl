@@ -266,6 +266,7 @@
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
+    <Compile Include="Licensing\LicenseCheckFeature.cs" />
     <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
     <Compile Include="MessageFailures\InternalMessages\MarkPendingRetryAsResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
@@ -423,7 +424,6 @@
     <Compile Include="Infrastructure\SubscribeToOwnEvents.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenUnitOfWorkBehavior.cs" />
     <Compile Include="Licensing\ActiveLicense.cs" />
-    <Compile Include="Licensing\LicenseDetector.cs" />
     <Compile Include="Licensing\NonLockingFileReader.cs" />
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageFacetsIndex.cs" />
