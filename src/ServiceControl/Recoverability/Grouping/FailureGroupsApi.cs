@@ -84,8 +84,9 @@ namespace ServiceControl.Recoverability
 
                 var results = session
                     .Query<FailureGroupView, FailureGroupsViewIndex>()
+                    .Where(v => v.Type == classifier)
                     .Statistics(out stats)
-                    .Count(v => v.Type == classifier);
+                    .Count();
 
                 return Negotiate
                     .WithTotalCount(results)

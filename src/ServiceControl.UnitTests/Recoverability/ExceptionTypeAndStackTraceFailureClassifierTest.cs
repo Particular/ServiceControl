@@ -72,10 +72,7 @@
                     ExceptionType = "exceptionType"
                 }
             };
-            return new ClassifiableMessageDetails
-            {
-                Details = failureWithEmptyStackTrace
-            };
+            return new ClassifiableMessageDetails(null, failureWithEmptyStackTrace);
         }
     }
 }

@@ -4,20 +4,24 @@ namespace ServiceControl.Recoverability
     using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageFailures;
 
-    public class ClassifiableMessageDetails
+    public struct ClassifiableMessageDetails
     {
-        public FailureDetails Details { get; set; }
-        public object MessageType { get; set; }
-
-        public ClassifiableMessageDetails()
-        { }
+        public FailureDetails Details { get; private set; }
+        public string MessageType { get; private set; }
 
         public ClassifiableMessageDetails(FailedMessage message)
         {
             var last = message.ProcessingAttempts.Last();
 
             Details = last.FailureDetails;
-            MessageType = last.MessageMetadata["MessageType"];
+            MessageType = (string)last.MessageMetadata["MessageType"];
+        }
+
+        public ClassifiableMessageDetails(string messageType, FailureDetails failureDetails)
+        {
+            Details = failureDetails;
+
+            MessageType = messageType;
         }
     }
 }
