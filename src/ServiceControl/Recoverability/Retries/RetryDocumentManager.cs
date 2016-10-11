@@ -163,29 +163,17 @@ namespace ServiceControl.Recoverability
 
             foreach (var operation in retryOperations)
             {
-                if (!string.IsNullOrWhiteSpace(operation.GroupId))
-                {
-                    RetryGroupSummary.SetStatus(operation.GroupId, RetryGroupStatus.Staging, operation.BatchesInOperation - operation.BatchesRemaining, operation.BatchesInOperation);
-                }
+                RetryOperationManager.Stage(operation);
             }
 
-            var batchReadyForForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
+            var batchReadyForForwarding = session.Include<RetryBatchNowForwarding, RetryOperation>(r => r.RetryOperationId)
                 .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
 
             if (batchReadyForForwarding != null)
             {
-                var forwardingBatch = session.Load<RetryBatch>(batchReadyForForwarding.RetryBatchId);
+                var retryOperation = session.Load<RetryOperation>(batchReadyForForwarding.RetryOperationId);
 
-                if (!string.IsNullOrWhiteSpace(forwardingBatch?.RetryOperationId))
-                {
-                    // Todo: 1 query this
-                    var retryOperation = session.Load<RetryOperation>(forwardingBatch.RetryOperationId);
-
-                    var totalBatchesInOperation = retryOperation.BatchesInOperation;
-                    var completedBatchesInOperation = totalBatchesInOperation - retryOperation.BatchesRemaining;
-
-                    RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Forwarding, completedBatchesInOperation, totalBatchesInOperation);
-                }
+                RetryOperationManager.ReadyToForward(retryOperation);
             }
         }
 

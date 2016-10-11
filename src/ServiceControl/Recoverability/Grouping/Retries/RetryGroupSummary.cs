@@ -4,12 +4,27 @@
 
     public class RetryOperationManager
     {
-        public static void SetToForwarding(RetryOperation retryOperation)
+        public static void Stage(RetryOperation retryOperation)
         {
-            if (retryOperation != null)
+            if (retryOperation == null)
             {
-                RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Forwarding, retryOperation.GetCompletedBatchesInOperation(), retryOperation.BatchesInOperation);
+                return;
             }
+            
+            if (RetryGroupSummary.GetStatusForGroup(retryOperation.GroupId).Status != RetryGroupStatus.Forwarding)
+            {
+                RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Staging, retryOperation.GetCompletedBatchesInOperation(), retryOperation.BatchesInOperation);
+            }
+        }
+
+        public static void ReadyToForward(RetryOperation retryOperation)
+        {
+            if (retryOperation == null)
+            {
+                return;
+            }
+
+            RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Forwarding, retryOperation.GetCompletedBatchesInOperation(), retryOperation.BatchesInOperation);
         }
 
         public static void Forward(RetryOperation retryOperation, out bool entireRetryOperationForwarded)

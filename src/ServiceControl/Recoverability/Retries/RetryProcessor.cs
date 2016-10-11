@@ -52,11 +52,8 @@ namespace ServiceControl.Recoverability
 
             if (stagingBatch != null)
             {
-                if (!string.IsNullOrWhiteSpace(stagingBatch.RetryOperationId))
-                {
-                    var retryOperation = session.Load<RetryOperation>(stagingBatch.RetryOperationId);
-                    UpdateRetryOperationStatus(retryOperation);
-                }
+                var retryOperation = session.Load<RetryOperation>(stagingBatch.RetryOperationId);
+                RetryOperationManager.Stage(retryOperation);
 
                 redirects = MessageRedirectsCollection.GetOrCreate(session);
                 if (Stage(stagingBatch, session))
@@ -69,18 +66,7 @@ namespace ServiceControl.Recoverability
 
             return false;
         }
-
-        private static void UpdateRetryOperationStatus(RetryOperation retryOperation)
-        {
-            var totalBatchesInOperation = retryOperation.BatchesInOperation;
-            var completedBatchesInOperation = totalBatchesInOperation - retryOperation.BatchesRemaining;
-
-            if (RetryGroupSummary.GetStatusForGroup(retryOperation.GroupId).Status != RetryGroupStatus.Forwarding)
-            {
-                RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Staging, completedBatchesInOperation, totalBatchesInOperation);
-            }
-        }
-
+        
         private bool ForwardCurrentBatch(IDocumentSession session)
         {
             var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
@@ -97,7 +83,7 @@ namespace ServiceControl.Recoverability
             {
                 var retryOperation = session.Load<RetryOperation>(forwardingBatch.RetryOperationId);
 
-                RetryOperationManager.SetToForwarding(retryOperation);
+                RetryOperationManager.ReadyToForward(retryOperation);
                     
                 Forward(forwardingBatch, session);
                     
