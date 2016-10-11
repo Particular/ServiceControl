@@ -267,6 +267,7 @@
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
     <Compile Include="Licensing\LicenseCheckFeature.cs" />
+    <Compile Include="Licensing\LicenseModule.cs" />
     <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
     <Compile Include="MessageFailures\InternalMessages\MarkPendingRetryAsResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />

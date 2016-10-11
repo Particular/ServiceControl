@@ -30,6 +30,7 @@
                     Name = SettingsReader<string>.Read("Name", "ServiceControl"),
                     Description = SettingsReader<string>.Read("Description", "The management backend for the Particular Service Platform"),
                     LicenseStatus = License.IsValid ? "valid" : "invalid",
+                    LicenseDetails = BaseUrl + "/license",
                     Configuration = BaseUrl + "/configuration"
                 };
 
@@ -97,6 +98,7 @@
             public string Configuration { get; set; }
             public string MessageSearchUrl { get; set; }
             public string LicenseStatus { get; set; }
+            public string LicenseDetails { get; set; }
             public string Name { get; set; }
             public string SagasUrl { get; set; }
         }
