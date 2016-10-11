@@ -27,7 +27,7 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string context = null, string retryOperationId = null, int? totalRetryBatchesInGroup = null)
+        public string CreateBatchDocument(string context = null, string retryOperationId = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = Store.OpenSession())

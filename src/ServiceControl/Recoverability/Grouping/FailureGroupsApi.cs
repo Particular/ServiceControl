@@ -56,7 +56,7 @@ namespace ServiceControl.Recoverability
                     .ToArray()
                     .Select(failureGroup =>
                     {
-                        var summary = RetryGroupSummary.GetStatusForGroup(failureGroup.Id);
+                        var summary = RetryOperationSummary.GetStatusForRetryOperation(RetryOperation.MakeDocumentId(failureGroup.Id, RetriesGateway.RetryType.FailureGroup));
 
                         return new
                         {
@@ -66,7 +66,7 @@ namespace ServiceControl.Recoverability
                             Count = failureGroup.Count,
                             First = failureGroup.First,
                             Last = failureGroup.Last,
-                            Status = summary?.Status ?? RetryGroupStatus.Open,
+                            Status = summary?.Status ?? RetryOperationStatus.Open,
                             BatchesCompleted = summary?.BatchesCompleted ?? 0,
                             TotalBatches = summary?.TotalBatches ?? 0
                         };

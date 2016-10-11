@@ -15,7 +15,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var retryOperation = Session.Load<RetryOperation>(RetryOperation.MakeDocumentIdForFailureGroup(message.GroupId));
+            var retryOperation = Session.Load<RetryOperation>(RetryOperation.MakeDocumentId(message.GroupId, RetriesGateway.RetryType.FailureGroup));
             if (retryOperation != null)
             {
                 // Retrying a group that is already in progress.
@@ -33,7 +33,7 @@ namespace ServiceControl.Recoverability
                 context = group.Title;
             }
 
-            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, x => x.FailureGroupId == message.GroupId, context);
+            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetriesGateway.RetryType.FailureGroup, x => x.FailureGroupId == message.GroupId, context);
         }
 
         public RetriesGateway Retries { get; set; }

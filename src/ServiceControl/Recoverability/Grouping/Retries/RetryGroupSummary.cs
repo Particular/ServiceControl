@@ -11,9 +11,9 @@
                 return;
             }
             
-            if (RetryGroupSummary.GetStatusForGroup(retryOperation.GroupId).Status != RetryGroupStatus.Forwarding)
+            if (RetryOperationSummary.GetStatusForRetryOperation(retryOperation.GroupId).Status != RetryOperationStatus.Forwarding)
             {
-                RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Staging, retryOperation.GetCompletedBatchesInOperation(), retryOperation.BatchesInOperation);
+                RetryOperationSummary.SetStatus(retryOperation.GroupId, RetryOperationStatus.Staging, retryOperation.GetCompletedBatchesInOperation(), retryOperation.BatchesInOperation);
             }
         }
 
@@ -24,7 +24,7 @@
                 return;
             }
 
-            RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Forwarding, retryOperation.GetCompletedBatchesInOperation(), retryOperation.BatchesInOperation);
+            RetryOperationSummary.SetStatus(retryOperation.GroupId, RetryOperationStatus.Forwarding, retryOperation.GetCompletedBatchesInOperation(), retryOperation.BatchesInOperation);
         }
 
         public static void Forward(RetryOperation retryOperation, out bool entireRetryOperationForwarded)
@@ -40,52 +40,52 @@
 
             if (entireRetryOperationForwarded)
             {
-                RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Forwarded, retryOperation.BatchesInOperation, retryOperation.BatchesInOperation);
+                RetryOperationSummary.SetStatus(retryOperation.GroupId, RetryOperationStatus.Forwarded, retryOperation.BatchesInOperation, retryOperation.BatchesInOperation);
             }
         }
     }
 
-    public class RetryGroupSummary
+    public class RetryOperationSummary
     {
-        public static Dictionary<string, RetryGroupSummary> CurrentRetryGroups = new Dictionary<string, RetryGroupSummary>();
+        public static Dictionary<string, RetryOperationSummary> CurrentRetryOperations = new Dictionary<string, RetryOperationSummary>();
         
-        internal static void SetStatus(string groupId, RetryGroupStatus status, int batchesCompleted, int totalBatches)
+        internal static void SetStatus(string operationId, RetryOperationStatus status, int batchesCompleted, int totalBatches)
         {
-            RetryGroupSummary summary;
-            if (!CurrentRetryGroups.TryGetValue(groupId, out summary))
+            RetryOperationSummary summary;
+            if (!CurrentRetryOperations.TryGetValue(operationId, out summary))
             {
-                CurrentRetryGroups[groupId] = new RetryGroupSummary { Status = status, BatchesCompleted = batchesCompleted, TotalBatches = totalBatches };
+                CurrentRetryOperations[operationId] = new RetryOperationSummary { Status = status, BatchesCompleted = batchesCompleted, TotalBatches = totalBatches };
             }
             else
             {
-                CurrentRetryGroups[groupId].Status = status;
-                CurrentRetryGroups[groupId].BatchesCompleted = batchesCompleted;
-                CurrentRetryGroups[groupId].TotalBatches = totalBatches;
+                CurrentRetryOperations[operationId].Status = status;
+                CurrentRetryOperations[operationId].BatchesCompleted = batchesCompleted;
+                CurrentRetryOperations[operationId].TotalBatches = totalBatches;
             }
         }
 
-        public static void SetStatus(string groupId, RetryGroupStatus status)
+        public static void SetStatus(string operationId, RetryOperationStatus status)
         {
-            RetryGroupSummary summary;
-            if (!CurrentRetryGroups.TryGetValue(groupId, out summary))
+            RetryOperationSummary summary;
+            if (!CurrentRetryOperations.TryGetValue(operationId, out summary))
             {
-                CurrentRetryGroups[groupId] = new RetryGroupSummary { Status = status };
+                CurrentRetryOperations[operationId] = new RetryOperationSummary { Status = status };
             }
             else
             {
-                CurrentRetryGroups[groupId].Status = status;
+                CurrentRetryOperations[operationId].Status = status;
             }
         }
 
-        public static RetryGroupSummary GetStatusForGroup(string groupId)
+        public static RetryOperationSummary GetStatusForRetryOperation(string operationId)
         {
-            RetryGroupSummary summary = null;
-            CurrentRetryGroups.TryGetValue(groupId, out summary);
+            RetryOperationSummary summary;
+            CurrentRetryOperations.TryGetValue(operationId, out summary);
 
             return summary;
         }
 
-        public RetryGroupStatus Status { get; set; }
+        public RetryOperationStatus Status { get; set; }
         public int? BatchesCompleted { get; private set; }
         public int? TotalBatches { get; private set; }
     }
@@ -93,7 +93,7 @@
     // A different status enum, as the RetryBatchStatus doesn't quite give the
     // granularity that I think is needed. Could potentially merge together
     // at a later stage once the code is fleshed out better
-    public enum RetryGroupStatus
+    public enum RetryOperationStatus
     {
         Open,
         MarkingDocuments,

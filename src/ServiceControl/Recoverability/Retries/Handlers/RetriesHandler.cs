@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using NServiceBus;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.MessageFailures;
@@ -19,22 +20,22 @@ namespace ServiceControl.Recoverability
         {
             if (message.Endpoint != null)
             {
-                Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(null, m => m.ReceivingEndpointName == message.Endpoint, "all messages for endpoint " + message.Endpoint);
+                Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(Guid.NewGuid().ToString(), RetriesGateway.RetryType.AllForEndpoint, m => m.ReceivingEndpointName == message.Endpoint, "all messages for endpoint " + message.Endpoint);
             }
             else
             {
-                Retries.StartRetryForIndex<FailedMessage, FailedMessageViewIndex>(null, context: "all messages");
+                Retries.StartRetryForIndex<FailedMessage, FailedMessageViewIndex>(Guid.NewGuid().ToString(), RetriesGateway.RetryType.All, context: "all messages");
             }
         }
 
         public void Handle(RetryMessagesById message)
         {
-            Retries.StageRetryByUniqueMessageIds(message.MessageUniqueIds);
+            Retries.StageRetryByUniqueMessageIds(message.MessageUniqueIds, RetryOperation.MakeDocumentId(Guid.NewGuid().ToString(), RetriesGateway.RetryType.MultipleMessages));
         }
 
         public void Handle(RetryMessage message)
         {
-            Retries.StageRetryByUniqueMessageIds(new [] { message.FailedMessageId });
+            Retries.StageRetryByUniqueMessageIds(new [] { message.FailedMessageId }, RetryOperation.MakeDocumentId(message.FailedMessageId, RetriesGateway.RetryType.SingleMessage));
         }
 
         public void Handle(MessageFailedRepeatedly message)
@@ -46,7 +47,7 @@ namespace ServiceControl.Recoverability
         {
             var failedQueueAddress = message.QueueAddress;
 
-            Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(null, m => m.QueueAddress == failedQueueAddress && m.Status == message.Status, $"all messages for failed queue address '{message.QueueAddress}'");
+            Retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(Guid.NewGuid().ToString(), RetriesGateway.RetryType.ByQueueAddress, m => m.QueueAddress == failedQueueAddress && m.Status == message.Status, $"all messages for failed queue address '{message.QueueAddress}'");
         }
     }
 }

@@ -6,10 +6,12 @@
         public string GroupId { get; set; }
         public int BatchesRemaining { get; set; }
         public int BatchesInOperation { get; set; }
-        
-        public static string MakeDocumentIdForFailureGroup(string groupId)
+        public string RetryType { get; set; }
+
+
+        public static string MakeDocumentId(string identifier, RetriesGateway.RetryType retryType)
         {
-            return "RetryOperations/fmg-" + groupId;
+            return $"RetryOperations/{retryType}/{identifier}"; 
         }
 
         public int GetCompletedBatchesInOperation()
