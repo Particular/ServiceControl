@@ -28,13 +28,20 @@
         public UpgradeInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, Installer installer)
         {
             this.windowManager = windowManager;
-
             this.eventAggregator = eventAggregator;
             this.installer = installer;
         }
 
         public override async Task ExecuteAsync(InstanceDetailsViewModel model)
         {
+            var licenseCheckResult = installer.CheckLicenseIsValid();
+            if (!licenseCheckResult.Valid)
+            {
+                windowManager.ShowMessage(licenseCheckResult.Message, "The upgrade was blocked due to an issue with the current license. Please update the license to restore this feature. Contact sales@particular.net", hideCancel: true);
+
+                return;
+            }
+            
             var instance = ServiceControlInstance.FindByName(model.Name);
             instance.Service.Refresh();
 

@@ -2,8 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Text.RegularExpressions;
     using Ionic.Zip;
 
@@ -55,5 +58,37 @@
             if (!ZipFile.CheckZip(FilePath))
                 throw new Exception($"Corrupt Zip File - {FilePath}");
         }
+
+        public bool TryReadServiceControlReleaseDate(out DateTime releaseDate)
+        {
+            releaseDate = DateTime.MinValue;
+            try
+            {
+                using (var zip = ZipFile.Read(FilePath))
+                using (var stream = new MemoryStream())
+                {
+                    var entry = zip.Entries.FirstOrDefault(p => p.FileName == "ServiceControl/ServiceControl.exe");
+                    if (entry == null)
+                    {
+                        return false;
+                    }
+                    entry.Extract(stream);
+                    stream.Position = 0;
+                    var data = new byte[stream.Length];
+                    stream.Read(data, 0, data.Length);
+
+                    var assembly = Assembly.ReflectionOnlyLoad(data);
+                    var releaseDateAttribute = assembly.GetCustomAttributesData().FirstOrDefault(p => p.Constructor?.ReflectedType?.Name == "ReleaseDateAttribute");
+                    var x = (string) releaseDateAttribute?.ConstructorArguments[0].Value;
+                    releaseDate = DateTime.ParseExact(x, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
     }
 }

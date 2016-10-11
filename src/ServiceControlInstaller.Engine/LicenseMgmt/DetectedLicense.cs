@@ -10,10 +10,10 @@
             Details = new LicenseDetails();
         }
 
-        public DetectedLicense(string licensePath, LicenseDetails detais) : this()
+        public DetectedLicense(string licensePath, LicenseDetails details) : this()
         {
             Location = licensePath;
-            Details = detais;
+            Details = details;
         }
     }
 }
