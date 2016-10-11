@@ -4,5 +4,6 @@ namespace ServiceControl.Recoverability
     {
         public const string Id = "RetryBatches/NowForwarding";
         public string RetryBatchId { get; set; }
+        public string RetryOperationId { get; set; }
     }
 }

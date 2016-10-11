@@ -20,7 +20,7 @@ namespace ServiceControl.Recoverability
                 return HttpStatusCode.BadRequest;
             }
 
-            RetryGroupSummary.SetStatus(groupId, RetryGroupStatus.Preparing);
+            RetryOperationSummary.SetStatus(groupId, RetryOperationStatus.Preparing);
 
             Bus.SendLocal<RetryAllInGroup>(m => m.GroupId = groupId);
 
