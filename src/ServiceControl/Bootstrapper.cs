@@ -34,6 +34,7 @@ namespace Particular.ServiceControl
         private TimeKeeper timeKeeper;
 
         public IDisposable WebApp;
+        private IContainer container;
 
         // Windows Service
         public Bootstrapper(ServiceBase host)
@@ -94,7 +95,8 @@ namespace Particular.ServiceControl
                 configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
             }
 
-            Startup = new Startup(containerBuilder.Build(), host, settings, documentStore, configuration, exposeBus);
+            container = containerBuilder.Build();
+            Startup = new Startup(container, host, settings, documentStore, configuration, exposeBus);
         }
 
         public void Start()
@@ -130,6 +132,7 @@ namespace Particular.ServiceControl
             WebApp?.Dispose();
             timeKeeper.Dispose();
             documentStore.Dispose();
+            container.Dispose();
         }
 
         private long DataSize()
