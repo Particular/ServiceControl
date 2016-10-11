@@ -9,6 +9,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
+    using Raven.Client.Exceptions;
     using Raven.Client.Indexes;
     using Raven.Client.Linq;
     using ServiceControl.MessageFailures;
@@ -156,16 +157,21 @@ namespace ServiceControl.Recoverability
 
         private string CreateRetryOperation(string groupId, int batchesInGroup)
         {
-            var operationId = RetryOperation.MakeDocumentId(Guid.NewGuid().ToString());
+            var operationId = RetryOperation.MakeDocumentIdForFailureGroup(groupId);
             using (var session = Store.OpenSession())
             {
-                session.Store(new RetryOperation
+                try
                 {
-                    Id = operationId,
-                    BatchesInOperation = batchesInGroup,
-                    BatchesRemaining = batchesInGroup,
-                    GroupId = groupId
-                });
+                    session.Store(new RetryOperation
+                    {
+                        Id = operationId,
+                        BatchesInOperation = batchesInGroup,
+                        BatchesRemaining = batchesInGroup,
+                        GroupId = groupId
+                    });
+                }
+                catch (NonUniqueObjectException) { } //retry operation already exists for id, skip creation
+
                 session.SaveChanges();
             }
 

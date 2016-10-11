@@ -15,7 +15,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var retryOperation = Session.Query<RetryOperation>().FirstOrDefault(x => x.GroupId == message.GroupId);
+            var retryOperation = Session.Load<RetryOperation>(RetryOperation.MakeDocumentIdForFailureGroup(message.GroupId));
             if (retryOperation != null)
             {
                 // Retrying a group that is already in progress.

@@ -47,6 +47,7 @@ namespace ServiceControl.Recoverability
 
             var stagingBatch = session.Query<RetryBatch>()
                 .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+                .Customize(q => q.Include<RetryBatch, RetryOperation>(b => b.RetryOperationId))
                 .FirstOrDefault(b => b.Status == RetryBatchStatus.Staging);
 
             if (stagingBatch != null)
@@ -54,75 +55,66 @@ namespace ServiceControl.Recoverability
                 if (!string.IsNullOrWhiteSpace(stagingBatch.RetryOperationId))
                 {
                     var retryOperation = session.Load<RetryOperation>(stagingBatch.RetryOperationId);
-
-                    var totalBatchesInOperation = retryOperation.BatchesInOperation;
-                    var completedBatchesInOperation = totalBatchesInOperation - retryOperation.BatchesRemaining;
-
-                    if (RetryGroupSummary.GetStatusForGroup(retryOperation.GroupId).Status != RetryGroupStatus.Forwarding)
-                    {
-                        RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Staging, completedBatchesInOperation, totalBatchesInOperation);
-                    }
+                    UpdateRetryOperationStatus(retryOperation);
                 }
 
                 redirects = MessageRedirectsCollection.GetOrCreate(session);
                 if (Stage(stagingBatch, session))
                 {
-                    session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id }, RetryBatchNowForwarding.Id);
+                    session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id, RetryOperationId = stagingBatch.RetryOperationId}, RetryBatchNowForwarding.Id);
                 }
 
                 return true;
             }
 
             return false;
+        }
+
+        private static void UpdateRetryOperationStatus(RetryOperation retryOperation)
+        {
+            var totalBatchesInOperation = retryOperation.BatchesInOperation;
+            var completedBatchesInOperation = totalBatchesInOperation - retryOperation.BatchesRemaining;
+
+            if (RetryGroupSummary.GetStatusForGroup(retryOperation.GroupId).Status != RetryGroupStatus.Forwarding)
+            {
+                RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Staging, completedBatchesInOperation, totalBatchesInOperation);
+            }
         }
 
         private bool ForwardCurrentBatch(IDocumentSession session)
         {
             var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
+                .Include<RetryOperation>(o => o.RetryOperationId)
                 .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
 
-            if (nowForwarding != null)
+            if (nowForwarding == null)
             {
-                RetryOperation operationForwardingIsPartOf = null;
+                return false;
+            }
+            var forwardingBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
+                
+            if (forwardingBatch != null)
+            {
+                var retryOperation = session.Load<RetryOperation>(forwardingBatch.RetryOperationId);
 
-                // TODO: 1 query this
-                var retryBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
-                if (!string.IsNullOrWhiteSpace(retryBatch.RetryOperationId))
+                RetryOperationManager.SetToForwarding(retryOperation);
+                    
+                Forward(forwardingBatch, session);
+                    
+                bool entireRetryOperationForwarded;
+
+                RetryOperationManager.Forward(retryOperation, out entireRetryOperationForwarded);
+
+                if (entireRetryOperationForwarded)
                 {
-                    operationForwardingIsPartOf = session.Load<RetryOperation>(retryBatch.RetryOperationId);
-
-                    var totalBatchesInOperation = operationForwardingIsPartOf.BatchesInOperation;
-                    var completedBatchesInOperation = totalBatchesInOperation - operationForwardingIsPartOf.BatchesRemaining;
-
-                    RetryGroupSummary.SetStatus(operationForwardingIsPartOf.GroupId, RetryGroupStatus.Forwarding, completedBatchesInOperation, totalBatchesInOperation);
+                    session.Delete(retryOperation);
                 }
-
-                var forwardingBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
-
-                if (forwardingBatch != null)
-                {
-                    Forward(forwardingBatch, session);
-
-                    if (operationForwardingIsPartOf != null)
-                    {
-                        operationForwardingIsPartOf.BatchesRemaining--;
-                    }
-                }
-
-                if (operationForwardingIsPartOf.BatchesRemaining == 0)
-                {
-                    RetryGroupSummary.SetStatus(operationForwardingIsPartOf.GroupId, RetryGroupStatus.Forwarded, operationForwardingIsPartOf.BatchesInOperation, operationForwardingIsPartOf.BatchesInOperation);
-
-                    session.Delete(operationForwardingIsPartOf);
-                }
-
-                session.Delete(nowForwarding);
-                return true;
             }
 
-            return false;
+            session.Delete(nowForwarding);
+            return true;
         }
-
+        
         void Forward(RetryBatch forwardingBatch, IDocumentSession session)
         {
             var messageCount = forwardingBatch.FailureRetries.Count;

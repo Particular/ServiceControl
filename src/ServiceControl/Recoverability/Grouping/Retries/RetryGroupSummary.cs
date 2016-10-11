@@ -1,12 +1,39 @@
 ﻿namespace ServiceControl.Recoverability
 {
-    using System;
     using System.Collections.Generic;
+
+    public class RetryOperationManager
+    {
+        public static void SetToForwarding(RetryOperation retryOperation)
+        {
+            if (retryOperation != null)
+            {
+                RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Forwarding, retryOperation.GetCompletedBatchesInOperation(), retryOperation.BatchesInOperation);
+            }
+        }
+
+        public static void Forward(RetryOperation retryOperation, out bool entireRetryOperationForwarded)
+        {
+            entireRetryOperationForwarded = false;
+
+            if (retryOperation == null)
+            {
+                return;
+            }
+
+            retryOperation.ForwardBatch(out entireRetryOperationForwarded);
+
+            if (entireRetryOperationForwarded)
+            {
+                RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Forwarded, retryOperation.BatchesInOperation, retryOperation.BatchesInOperation);
+            }
+        }
+    }
 
     public class RetryGroupSummary
     {
         public static Dictionary<string, RetryGroupSummary> CurrentRetryGroups = new Dictionary<string, RetryGroupSummary>();
-
+        
         internal static void SetStatus(string groupId, RetryGroupStatus status, int batchesCompleted, int totalBatches)
         {
             RetryGroupSummary summary;
