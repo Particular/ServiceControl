@@ -51,15 +51,6 @@ namespace ServiceControl.Recoverability
 
             if (stagingBatch != null)
             {
-                if (!string.IsNullOrWhiteSpace(stagingBatch.GroupId))
-                {
-                    var otherBatchesInGroup = session.Query<RetryBatch>().Where(batch => batch.GroupId == stagingBatch.GroupId);
-                    var totalBatchesInGroup = stagingBatch.TotalRetryBatchesInGroup ?? 1;
-                    var completedBatchesIngroup = totalBatchesInGroup - otherBatchesInGroup.Count(); // Groups are deleted once complete
-
-                    RetryGroupSummary.SetStatus(stagingBatch.GroupId, RetryGroupStatus.Staged, completedBatchesIngroup, totalBatchesInGroup);
-                }
-
                 redirects = MessageRedirectsCollection.GetOrCreate(session);
                 if (Stage(stagingBatch, session))
                 {
@@ -95,11 +86,6 @@ namespace ServiceControl.Recoverability
 
         void Forward(RetryBatch forwardingBatch, IDocumentSession session)
         {
-            if (!string.IsNullOrWhiteSpace(forwardingBatch.GroupId))
-            {
-                RetryGroupSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarding);
-            }
-
             var messageCount = forwardingBatch.FailureRetries.Count;
 
             if (isRecoveringFromPrematureShutdown)
@@ -113,9 +99,9 @@ namespace ServiceControl.Recoverability
 
             session.Delete(forwardingBatch);
 
-            if (!string.IsNullOrWhiteSpace(forwardingBatch.GroupId))
+            if (!string.IsNullOrWhiteSpace(forwardingBatch.RequestId))
             {
-                RetryGroupSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarded);
+                RetryOperationSummary.MarkMessagesAsForwarded(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
             }
 
             Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
