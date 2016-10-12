@@ -499,10 +499,12 @@
     <Compile Include="Recoverability\Grouping\Archiving\ArchiveAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Grouping\ClassifyFailedMessageEnricher.cs" />
     <Compile Include="Recoverability\Grouping\Archiving\FailureGroupsArchiveApi.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\ClassifiableMessageDetails.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\MessageTypeFailureClassifier.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsHandler.cs" />
     <Compile Include="Recoverability\Grouping\Raven\ReclassifyErrorSettings.cs" />
     <Compile Include="Recoverability\Grouping\Retries\FailureGroupsRetryApi.cs" />
-    <Compile Include="Recoverability\Grouping\Groupers\ExceptionTypeAndStackTraceMessageGrouper.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\ExceptionTypeAndStackTraceFailureClassifier.cs" />
     <Compile Include="Recoverability\Grouping\FailedMessageClassification.cs" />
     <Compile Include="Recoverability\Grouping\Archiving\FailedMessageGroupArchived.cs" />
     <Compile Include="Recoverability\Grouping\Raven\FailedMessages_ByGroup.cs" />

@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System.Collections.Generic;
     using System.Linq;
     using Nancy;
     using NServiceBus;
@@ -15,16 +16,21 @@ namespace ServiceControl.Recoverability
     {
         public IBus Bus { get; set; }
 
+        public IEnumerable<IFailureClassifier> Classifiers { get; set; }
+
         public FailureGroupsApi()
         {
-            Post["/recoverability/groups/reclassify"] = 
+            Get["/recoverability/classifiers"] =
+                _ => GetSupportedClassifiers();
+
+            Post["/recoverability/groups/reclassify"] =
                 _ => ReclassifyErrors();
 
-            Get["/recoverability/groups"] =
-                _ => GetAllGroups();
+            Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}"] =
+                parameters => GetAllGroups(parameters.Classifier);
 
-            Head["/recoverability/groups"] =
-                 _ => GetAllGroupsCount();
+            Head["/recoverability/groups/{classifier?Exception Type and Stack Trace}"] =
+                parameters => GetAllGroupsCount(parameters.Classifier);
 
             Get["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrors(parameters.GroupId);
@@ -43,7 +49,15 @@ namespace ServiceControl.Recoverability
             return HttpStatusCode.Accepted;
         }
 
-        dynamic GetAllGroups()
+        dynamic GetSupportedClassifiers()
+        {
+            var classifiers = Classifiers.Select(c => c.Name).ToArray();
+
+            return Negotiate.WithModel(classifiers)
+                .WithTotalCount(classifiers.Length);
+        }
+
+        dynamic GetAllGroups(string classifier)
         {
             using (var session = Store.OpenSession())
             {
@@ -51,6 +65,7 @@ namespace ServiceControl.Recoverability
 
                 var results = session.Query<FailureGroupView, FailureGroupsViewIndex>()
                     .Statistics(out stats)
+                    .Where(v => v.Type == classifier)
                     .OrderByDescending(x => x.Last)
                     .Take(200)
                     .ToArray();
@@ -61,15 +76,18 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        dynamic GetAllGroupsCount()
+        dynamic GetAllGroupsCount(string classifier)
         {
             using (var session = Store.OpenSession())
             {
                 RavenQueryStatistics stats;
-                var results = session.Query<FailureGroupView, FailureGroupsViewIndex>()
+
+                var results = session
+                    .Query<FailureGroupView, FailureGroupsViewIndex>()
+                    .Where(v => v.Type == classifier)
                     .Statistics(out stats)
                     .Count();
-                   
+
                 return Negotiate
                     .WithTotalCount(results)
                     .WithEtagAndLastModified(stats);

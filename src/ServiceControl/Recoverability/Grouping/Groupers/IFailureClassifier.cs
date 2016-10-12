@@ -1,10 +1,8 @@
 namespace ServiceControl.Recoverability
 {
-    using ServiceControl.Contracts.Operations;
-
-    interface IFailureClassifier
+    public interface IFailureClassifier
     {
         string Name { get; }
-        string ClassifyFailure(FailureDetails failureDetails);
+        string ClassifyFailure(ClassifiableMessageDetails failureDetails);
     }
 }

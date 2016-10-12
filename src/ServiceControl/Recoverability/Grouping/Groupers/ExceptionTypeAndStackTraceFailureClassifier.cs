@@ -1,16 +1,17 @@
 namespace ServiceControl.Recoverability
 {
     using System.Linq;
-    using ServiceControl.Contracts.Operations;
 
-    public class ExceptionTypeAndStackTraceMessageGrouper : IFailureClassifier
+    public class ExceptionTypeAndStackTraceFailureClassifier : IFailureClassifier
     {
-        public string Name => "Exception Type and Stack Trace";
+        public const string Id = "Exception Type and Stack Trace";
 
-        public string ClassifyFailure(FailureDetails failureDetails)
+        public string Name => Id;
+
+        public string ClassifyFailure(ClassifiableMessageDetails failure)
         {
-            var exception = failureDetails.Exception;
-            
+            var exception = failure.Details?.Exception;
+
             if (exception == null)
                 return null;
 
