@@ -113,7 +113,7 @@ namespace ServiceControl.Recoverability
             bulkRequests.Enqueue(request);
         }
 
-        public void StageRetryByUniqueMessageIds(string[] messageIds, string context = null, string retryOperationId = null, int? totalRetryBatchesInGroup = null)
+        public void StageRetryByUniqueMessageIds(string[] messageIds, string context = null, string groupId = null, int? totalRetryBatchesInGroup = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
@@ -121,7 +121,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var batchDocumentId = RetryDocumentManager.CreateBatchDocument(context, retryOperationId, totalRetryBatchesInGroup);
+            var batchDocumentId = RetryDocumentManager.CreateBatchDocument(context, groupId, totalRetryBatchesInGroup);
 
             log.InfoFormat("Created Batch '{0}' with {1} messages for context '{2}'", batchDocumentId, messageIds.Length, context);
 
@@ -157,32 +157,12 @@ namespace ServiceControl.Recoverability
 
             RetryGroupSummary.SetStatus(request.GroupId, RetryGroupStatus.MarkingDocuments, 0, batches.Count);
 
-            var retryOperationId = CreateRetryOperation(request.GroupId, batches.Count);
-
             for (var i = 0; i < batches.Count; i++)
             {
-                StageRetryByUniqueMessageIds(batches[i], request.GetBatchName(i + 1, batches.Count), retryOperationId, batches.Count);
+                StageRetryByUniqueMessageIds(batches[i], request.GetBatchName(i + 1, batches.Count), request.GroupId, batches.Count);
             }
 
             RetryGroupSummary.SetStatus(request.GroupId, RetryGroupStatus.DocumentsMarked);
-        }
-
-        private string CreateRetryOperation(string groupId, int batchesInGroup)
-        {
-            var operationId = RetryOperation.MakeDocumentId(Guid.NewGuid().ToString());
-            using (var session = Store.OpenSession())
-            {
-                session.Store(new RetryOperation
-                {
-                    Id = operationId,
-                    BatchesInOperation = batchesInGroup,
-                    BatchesRemaining = batchesInGroup,
-                    GroupId = groupId
-                });
-                session.SaveChanges();
-            }
-
-            return operationId;
         }
 
         static ILog log = LogManager.GetLogger(typeof(RetriesGateway));
