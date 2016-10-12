@@ -27,7 +27,7 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string context = null, string retryOperationId = null, int? totalRetryBatchesInGroup = null)
+        public string CreateBatchDocument(string context = null, string groupId = null, int? totalRetryBatchesInGroup = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = Store.OpenSession())
@@ -36,9 +36,10 @@ namespace ServiceControl.Recoverability
                 {
                     Id = batchDocumentId, 
                     Context = context,
+                    GroupId = groupId,
+                    TotalRetryBatchesInGroup = totalRetryBatchesInGroup,
                     RetrySessionId = RetrySessionId, 
-                    Status = RetryBatchStatus.MarkingDocuments,
-                    RetryOperationId = retryOperationId
+                    Status = RetryBatchStatus.MarkingDocuments
                 });
                 session.SaveChanges();
             }
@@ -159,13 +160,19 @@ namespace ServiceControl.Recoverability
 
         internal void RebuildRetryGroupState(IDocumentSession session)
         {
-            var retryOperations = session.Query<RetryOperation>();
+            var stagingBatches = session.Query<RetryBatch>()
+                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+                .Where(b => b.Status == RetryBatchStatus.Staging);
 
-            foreach (var operation in retryOperations)
+            foreach (var batch in stagingBatches)
             {
-                if (!string.IsNullOrWhiteSpace(operation.GroupId))
+                if (!string.IsNullOrWhiteSpace(batch.GroupId))
                 {
-                    RetryGroupSummary.SetStatus(operation.GroupId, RetryGroupStatus.Staging, operation.BatchesInOperation - operation.BatchesRemaining, operation.BatchesInOperation);
+                    var numberOfBatches = batch.TotalRetryBatchesInGroup ?? 1;
+                    // Todo: can we include this query as part of the query above to prevent Select N+1?
+                    var numberOfIncompleteBatchesForGroup = stagingBatches.Where(b => b.GroupId == batch.GroupId).Count();
+
+                    RetryGroupSummary.SetStatus(batch.GroupId, RetryGroupStatus.Staging, numberOfBatches - numberOfIncompleteBatchesForGroup, numberOfBatches);
                 }
             }
 
@@ -176,15 +183,13 @@ namespace ServiceControl.Recoverability
             {
                 var forwardingBatch = session.Load<RetryBatch>(batchReadyForForwarding.RetryBatchId);
 
-                if (!string.IsNullOrWhiteSpace(forwardingBatch?.RetryOperationId))
+                if (forwardingBatch != null)
                 {
-                    // Todo: 1 query this
-                    var retryOperation = session.Load<RetryOperation>(forwardingBatch.RetryOperationId);
+                    var numberOfBatches = forwardingBatch.TotalRetryBatchesInGroup ?? 1;
+                    // Todo: can we include this query as part of the query above to prevent Select N+1?
+                    var numberOfIncompleteBatchesForGroup = stagingBatches.Where(b => b.GroupId == forwardingBatch.GroupId).Count();
 
-                    var totalBatchesInOperation = retryOperation.BatchesInOperation;
-                    var completedBatchesInOperation = totalBatchesInOperation - retryOperation.BatchesRemaining;
-
-                    RetryGroupSummary.SetStatus(retryOperation.GroupId, RetryGroupStatus.Forwarding, completedBatchesInOperation, totalBatchesInOperation);
+                    RetryGroupSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarding, numberOfBatches - numberOfIncompleteBatchesForGroup, numberOfBatches);
                 }
             }
         }

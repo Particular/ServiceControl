@@ -545,7 +545,6 @@
     <Compile Include="Recoverability\Retries\RetryMessagesById.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryPendingMessages.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryPendingMessagesById.cs" />
-    <Compile Include="Recoverability\Retries\RetryOperation.cs" />
     <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeInitiator.cs" />
