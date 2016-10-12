@@ -59,7 +59,6 @@
         Staging,
         Staged,
         Forwarding,
-        Forwarded,
-        Preparing
+        Forwarded
     }
 }
