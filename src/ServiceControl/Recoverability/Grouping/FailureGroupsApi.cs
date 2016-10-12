@@ -71,7 +71,7 @@ namespace ServiceControl.Recoverability
                     .ToArray()
                     .Select(failureGroup =>
                     {
-                        var summary = RetryGroupSummary.GetStatusForGroup(failureGroup.Id);
+                        var summary = RetryOperationSummary.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
 
                         return new
                         {
@@ -81,8 +81,8 @@ namespace ServiceControl.Recoverability
                             Count = failureGroup.Count,
                             First = failureGroup.First,
                             Last = failureGroup.Last,
-                            RetryStatus = "In Progress", // In Progress, null
-                            NumberOfRetryMessagesRemaining = 500 // Null for unknown, or value
+                            RetryStatus = summary != null ? "In Progress" : null,
+                            NumberOfRetryMessagesRemaining = summary?.MessagesRemaining
                         };
                     });
 
