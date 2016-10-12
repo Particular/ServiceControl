@@ -85,9 +85,8 @@ namespace ServiceControl.Recoverability
                             Count = failureGroup.Count,
                             First = failureGroup.First,
                             Last = failureGroup.Last,
-                            Status = summary.Status,
-                            BatchesCompleted = summary.BatchesCompleted ?? 0,
-                            TotalBatches = summary.TotalBatches ?? 0
+                            RetryStatus = "In Progress", // In Progress, null
+                            NumberOfRetryMessagesRemaining = 500 // Null for unknown, or value
                         };
                     });
 
