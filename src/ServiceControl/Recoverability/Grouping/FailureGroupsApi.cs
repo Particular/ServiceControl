@@ -66,9 +66,9 @@ namespace ServiceControl.Recoverability
                             Count = failureGroup.Count,
                             First = failureGroup.First,
                             Last = failureGroup.Last,
-                            Status = summary?.Status ?? RetryGroupStatus.Open,
-                            BatchesCompleted = summary?.BatchesCompleted ?? 0,
-                            TotalBatches = summary?.TotalBatches ?? 0
+                            Status = summary.Status,
+                            BatchesCompleted = summary.BatchesCompleted ?? 0,
+                            TotalBatches = summary.TotalBatches ?? 0
                         };
                     });
 
