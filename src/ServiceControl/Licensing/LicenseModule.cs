@@ -15,10 +15,11 @@
                 var licenseInfo = new LicenseInfo
                 {
                     TrialLicense = ActiveLicense.Details.IsTrialLicense,
-                    Edition = ActiveLicense.Details.Edition ?? "" ,
-                    RegisteredTo = ActiveLicense.Details.RegisteredTo ?? "",
-                    UpgradeProtectionExpiration = ActiveLicense.Details.UpgradeProtectionExpiration?.ToString("O") ?? "",
-                    ExpirationDate = ActiveLicense.Details.ExpirationDate?.ToString("O") ?? ""
+                    Edition = ActiveLicense.Details.Edition ?? string.Empty,
+                    RegisteredTo = ActiveLicense.Details.RegisteredTo ?? string.Empty,
+                    UpgradeProtectionExpiration = ActiveLicense.Details.UpgradeProtectionExpiration?.ToString("O") ?? string.Empty,
+                    ExpirationDate = ActiveLicense.Details.ExpirationDate?.ToString("O") ?? string.Empty,
+                    Status = ActiveLicense.IsValid ? "valid" : "invalid"
                 };
                 return Negotiate.WithModel(licenseInfo);
             };
@@ -31,6 +32,7 @@
             public string RegisteredTo { get; set; }
             public string UpgradeProtectionExpiration { get; set; }
             public string ExpirationDate { get; set; }
+            public string Status { get; set; }
         }
     }
 }
