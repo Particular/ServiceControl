@@ -35,6 +35,7 @@ namespace Particular.ServiceControl
         private IContainer container;
 
         public IDisposable WebApp;
+        private IContainer container;
 
         // Windows Service
         public Bootstrapper(ServiceBase host)
