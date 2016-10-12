@@ -164,40 +164,23 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        internal void RebuildRetryGroupState(IDocumentSession session)
+        internal void RebuildRetryOperationState(IDocumentSession session)
         {
-            //var stagingBatches = session.Query<RetryBatch>()
-            //    .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
-            //    .Where(b => b.Status == RetryBatchStatus.Staging);
+            var stagingBatchGroups = session.Query<RetryBatch>()
+                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+                .Where(b => b.Status == RetryBatchStatus.Staging)
+                .GroupBy(batch => new { RetryType = batch.RetryType, RequestId = batch.RequestId });
 
-            //foreach (var batch in stagingBatches)
-            //{
-            //    if (!string.IsNullOrWhiteSpace(batch.GroupId))
-            //    {
-            //        var numberOfBatches = batch.TotalRetryBatchesInGroup ?? 1;
-            //        // Todo: can we include this query as part of the query above to prevent Select N+1?
-            //        var numberOfIncompleteBatchesForGroup = stagingBatches.Where(b => b.GroupId == batch.GroupId).Count();
-
-            //        RetryOperationSummary.SetStatus(batch.GroupId, RetryGroupStatus.Staging, numberOfBatches - numberOfIncompleteBatchesForGroup, numberOfBatches);
-            //    }
-            //}
-
-            //var batchReadyForForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-            //    .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
-
-            //if (batchReadyForForwarding != null)
-            //{
-            //    var forwardingBatch = session.Load<RetryBatch>(batchReadyForForwarding.RetryBatchId);
-
-            //    if (forwardingBatch != null)
-            //    {
-            //        var numberOfBatches = forwardingBatch.TotalRetryBatchesInGroup ?? 1;
-            //        // Todo: can we include this query as part of the query above to prevent Select N+1?
-            //        var numberOfIncompleteBatchesForGroup = stagingBatches.Where(b => b.GroupId == forwardingBatch.GroupId).Count();
-
-            //        RetryOperationSummary.SetStatus(forwardingBatch.GroupId, RetryGroupStatus.Forwarding, numberOfBatches - numberOfIncompleteBatchesForGroup, numberOfBatches);
-            //    }
-            //}
+            foreach (var group in stagingBatchGroups)
+            {
+                foreach (var batch in group)
+                {
+                    if (!string.IsNullOrWhiteSpace(batch.RequestId))
+                    {
+                        RetryOperationSummary.SetInProgress(batch.RequestId, batch.RetryType, group.Sum(g => g.InitialBatchSize));
+                    }
+                }
+            }
         }
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
