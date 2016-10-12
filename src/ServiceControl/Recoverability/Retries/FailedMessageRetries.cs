@@ -80,7 +80,7 @@
             {
                 using (var session = store.OpenSession())
                 {
-                    retryDocumentManager.RebuildRetryGroupState(session);
+                    retryDocumentManager.RebuildRetryOperationState(session);
                 }
             }
 
