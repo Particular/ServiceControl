@@ -48,7 +48,7 @@
             activeLicense.Refresh();
             try
             {
-                timer.Change((int)TimeSpan.FromMinutes(1).TotalMilliseconds, -1);
+                timer.Change((int)TimeSpan.FromMinutes(10).TotalMilliseconds, -1);
             }
             catch (ObjectDisposedException)
             {
