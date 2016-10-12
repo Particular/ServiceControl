@@ -164,6 +164,7 @@ namespace ServiceControl.Recoverability
             var stagingBatchGroups = session.Query<RetryBatch>()
                 .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
                 .Where(b => b.Status == RetryBatchStatus.Staging)
+                .ToArray()
                 .GroupBy(batch => new { RetryType = batch.RetryType, RequestId = batch.RequestId });
 
             foreach (var group in stagingBatchGroups)
