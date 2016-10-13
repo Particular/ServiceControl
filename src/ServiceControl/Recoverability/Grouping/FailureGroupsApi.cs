@@ -16,6 +16,8 @@ namespace ServiceControl.Recoverability
     {
         public IBus Bus { get; set; }
 
+        public RetryOperationManager RetryOperationManager { get; set; }
+
         public IEnumerable<IFailureClassifier> Classifiers { get; set; }
 
         public FailureGroupsApi()
@@ -74,7 +76,7 @@ namespace ServiceControl.Recoverability
                     .ToArray()
                     .Select(failureGroup =>
                     {
-                        var summary = RetryOperationSummary.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
+                        var summary = RetryOperationManager.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
 
                         return new
                         {
