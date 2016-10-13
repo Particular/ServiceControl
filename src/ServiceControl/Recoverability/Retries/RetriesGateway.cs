@@ -19,6 +19,7 @@ namespace ServiceControl.Recoverability
 
         private IDocumentStore store;
         private RetryDocumentManager retryDocumentManager;
+        public RetryOperationManager RetryOperationManager { get; set; }
         private ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
         public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager)
         {
@@ -155,8 +156,8 @@ namespace ServiceControl.Recoverability
         void ProcessRequest(IBulkRetryRequest request)
         {
             var batches = GetRequestedBatches(request);
-
-            RetryOperationSummary.SetInProgress(request.RequestId, request.RetryType, batches.Sum(b => b.Length));
+            
+            RetryOperationManager.SetInProgress(request.RequestId, request.RetryType, batches.Sum(b => b.Length));
             
             for (var i = 0; i < batches.Count; i++)
             {
