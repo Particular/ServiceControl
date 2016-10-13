@@ -171,10 +171,13 @@ namespace ServiceControl.Recoverability
 
             var transportMessage = new TransportMessage(message.Id, headersToRetryWith)
             {
-                CorrelationId = attempt.CorrelationId,
                 Recoverable = attempt.Recoverable,
                 MessageIntent = attempt.MessageIntent
             };
+            if (attempt.CorrelationId != null)
+            {
+                transportMessage.CorrelationId = attempt.CorrelationId;
+            }
 
             Stream stream;
             if (bodyStorage.TryFetch(attempt.MessageId, out stream))
