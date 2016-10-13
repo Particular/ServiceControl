@@ -17,6 +17,7 @@ namespace ServiceControl.Recoverability
     public class RetryDocumentManager
     {
         public IDocumentStore Store { get; set; }
+        public RetryOperationManager RetryOperationManager { get; set; }
 
         static string RetrySessionId = Guid.NewGuid().ToString();
 
@@ -167,13 +168,14 @@ namespace ServiceControl.Recoverability
                 .ToArray()
                 .GroupBy(batch => new { RetryType = batch.RetryType, RequestId = batch.RequestId });
 
+
             foreach (var group in stagingBatchGroups)
             {
                 foreach (var batch in group)
                 {
                     if (!string.IsNullOrWhiteSpace(batch.RequestId))
                     {
-                        RetryOperationSummary.SetInProgress(batch.RequestId, batch.RetryType, group.Sum(g => g.InitialBatchSize));
+                        RetryOperationManager.SetInProgress(batch.RequestId, batch.RetryType, group.Sum(g => g.InitialBatchSize));
                     }
                 }
             }

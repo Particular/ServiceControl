@@ -1,62 +1,90 @@
 ﻿namespace ServiceControl.Recoverability
 {
+    using NServiceBus;
     using System;
     using System.Collections.Generic;
 
-    public class RetryOperationSummary
+    public class RetryOperationManager
     {
-        static Dictionary<string, RetryOperationSummary> CurrentRetryGroups = new Dictionary<string, RetryOperationSummary>();
-
-        public static void SetInProgress(string requestId, RetryType retryType, int numberOfMessages)
+        public RetryOperationManager(IBus bus)
         {
-            // SignalR
-
-            SetStatus(requestId, retryType, numberOfMessages);
+            this.bus = bus;
         }
 
-        public static void MarkMessagesAsForwarded(string requestId, RetryType retryType, int numberOfMessagesForwarded)
+        static Dictionary<string, RetryOperationSummary> CurrentRetryGroups = new Dictionary<string, RetryOperationSummary>();
+
+        public void SetInProgress(string requestId, RetryType retryType, int numberOfMessages)
+        {
+            SetStatus(requestId, retryType, numberOfMessages);
+
+            bus.Publish<RetryOperationStarted>(e =>
+            {
+                e.RequestId = requestId;
+                e.RetryType = retryType;
+                e.NumberOfMessages = numberOfMessages;
+            });
+        }
+
+        public void MarkMessagesAsForwarded(string requestId, RetryType retryType, int numberOfMessagesForwarded)
         {
             var currentStatus = GetStatusForRetryOperation(requestId, retryType);
 
             currentStatus.MessagesRemaining -= numberOfMessagesForwarded;
 
-            // SignalR
+            bus.Publish<RetryMessagesForwarded>(e =>
+            {
+                e.RequestId = requestId;
+                e.RetryType = retryType;
+                e.NumberOfMessagesForwarded = numberOfMessagesForwarded;
+            });
 
             if (currentStatus.MessagesRemaining == 0)
             {
-                CurrentRetryGroups.Remove(MakeOperationId(requestId, retryType));
+                CurrentRetryGroups.Remove(RetryOperationSummary.MakeOperationId(requestId, retryType));
+
+                bus.Publish<RetryOperationCompleted>(e =>
+                {
+                    e.RequestId = requestId;
+                    e.RetryType = retryType;
+                });
             }
         }
 
         static void SetStatus(string requestId, RetryType retryType, int numberOfMessages)
         {
             RetryOperationSummary summary;
-            if (!CurrentRetryGroups.TryGetValue(MakeOperationId(requestId, retryType), out summary))
+            if (!CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
             {
-                CurrentRetryGroups[MakeOperationId(requestId, retryType)] = new RetryOperationSummary { MessagesRemaining = numberOfMessages };
+                CurrentRetryGroups[RetryOperationSummary.MakeOperationId(requestId, retryType)] = new RetryOperationSummary { MessagesRemaining = numberOfMessages };
             }
         }
 
         static void SetStatus(string requestId, RetryType retryType)
         {
             RetryOperationSummary summary;
-            if (!CurrentRetryGroups.TryGetValue(MakeOperationId(requestId, retryType), out summary))
+            if (!CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
             {
-                CurrentRetryGroups[MakeOperationId(requestId, retryType)] = new RetryOperationSummary();
+                CurrentRetryGroups[RetryOperationSummary.MakeOperationId(requestId, retryType)] = new RetryOperationSummary();
             }
         }
 
-        public static RetryOperationSummary GetStatusForRetryOperation(string requestId, RetryType retryType)
+        public RetryOperationSummary GetStatusForRetryOperation(string requestId, RetryType retryType)
         {
             RetryOperationSummary summary = null;
-            CurrentRetryGroups.TryGetValue(MakeOperationId(requestId, retryType), out summary);
+            CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary);
 
             return summary;
         }
 
+        IBus bus;
+    }
+
+    public class RetryOperationSummary
+    {
         public int? MessagesRemaining { get; internal set; }
 
-        static string MakeOperationId(string requestId, RetryType retryType)
+
+        public static string MakeOperationId(string requestId, RetryType retryType)
         {
             return $"{retryType}/{requestId}";
         }

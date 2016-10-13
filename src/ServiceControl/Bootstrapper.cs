@@ -88,6 +88,7 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            containerBuilder.RegisterType<global::ServiceControl.Recoverability.RetryOperationManager>().SingleInstance();
 
             if (configuration == null)
             {

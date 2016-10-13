@@ -28,12 +28,13 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender)
+        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender, RetryOperationManager retryOperationManager)
         {
             this.bodyStorage = bodyStorage;
             this.sender = sender;
             this.bus = bus;
             this.returnToSender = returnToSender;
+            this.retryOperationManager = retryOperationManager;
         }
 
         public bool ProcessBatches(IDocumentSession session)
@@ -101,7 +102,7 @@ namespace ServiceControl.Recoverability
 
             if (!string.IsNullOrWhiteSpace(forwardingBatch.RequestId))
             {
-                RetryOperationSummary.MarkMessagesAsForwarded(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
+                retryOperationManager.MarkMessagesAsForwarded(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
             }
 
             Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
@@ -224,6 +225,7 @@ namespace ServiceControl.Recoverability
         ISendMessages sender;
         IBus bus;
         ReturnToSenderDequeuer returnToSender;
+        RetryOperationManager retryOperationManager;
         private MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
     }
