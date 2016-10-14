@@ -7,6 +7,7 @@ namespace ServiceControlInstaller.Engine.Unattended
     using System.ServiceProcess;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
+    using ServiceControlInstaller.Engine.LicenseMgmt;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Validation;
 
@@ -34,12 +35,18 @@ namespace ServiceControlInstaller.Engine.Unattended
         {
             ZipInfo.ValidateZip();
 
+            var checkLicenseResult = CheckLicenseIsValid();
+            if (!checkLicenseResult.Valid)
+            {
+                logger.Error($"Install aborted - {checkLicenseResult.Message}");
+                return false;
+            }
+            
             var instanceInstaller = details;
             instanceInstaller.ReportCard = new ReportCard();
 
             //Validation
             instanceInstaller.Validate(promptToProceed);
-
             if (instanceInstaller.ReportCard.HasErrors)
             {
                 foreach (var error in instanceInstaller.ReportCard.Errors)
@@ -87,9 +94,17 @@ namespace ServiceControlInstaller.Engine.Unattended
 
         public bool Upgrade(ServiceControlInstance instance, InstanceUpgradeOptions options)
         {
-            instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
 
+            var checkLicenseResult = CheckLicenseIsValid();
+            if (!checkLicenseResult.Valid)
+            {
+                logger.Error($"Upgrade aborted - {checkLicenseResult.Message}");
+                return false;
+            }
+
+            instance.ReportCard = new ReportCard();
+            
             var restartService = instance.Service.Status == ServiceControllerStatus.Running;
             if (!instance.TryStopService())
             {
@@ -181,9 +196,9 @@ namespace ServiceControlInstaller.Engine.Unattended
         }
 
         // ReSharper disable once UnusedMethodReturnValue.Global
-        public bool Delete(string InstanceName, bool removeDB, bool removeLogs)
+        public bool Delete(string instanceName, bool removeDB, bool removeLogs)
         {
-            var instance = ServiceControlInstance.FindByName(InstanceName);
+            var instance = ServiceControlInstance.FindByName(instanceName);
             instance.ReportCard = new ReportCard();
             if (!instance.TryStopService())
             {
@@ -228,6 +243,45 @@ namespace ServiceControlInstaller.Engine.Unattended
             }
             return true;
         }
+
+        internal CheckLicenseResult CheckLicenseIsValid()
+        {
+            DateTime releaseDate;
+            var license = LicenseManager.FindLicense();
+            if (license.Details.HasLicenseExpired())
+            {
+                return new CheckLicenseResult(false, "License has expired");
+            }
+
+            if (!license.Details.ValidForServiceControl)
+            {
+                return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
+            }
+
+            if (ZipInfo.TryReadServiceControlReleaseDate(out releaseDate))
+            {
+                if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
+                {
+                    return new CheckLicenseResult(false, "License is out of Maintenance");
+                }
+            }
+            else
+            {
+                throw new Exception("Failed to retrieve release date for new version");
+            }
+            return new CheckLicenseResult(true);
+        }
+
+        internal class CheckLicenseResult
+        {
+            public CheckLicenseResult(bool valid, string message = null)
+            {
+                Valid = valid;
+                Message = message;
+            }
+
+            public bool Valid { get; private set; }
+            public string Message { get; private set; }
+        }
     }
 }
-
