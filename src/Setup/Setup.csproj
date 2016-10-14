@@ -55,11 +55,11 @@
     <None Include="Res\Operations.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Prerequisites\.NET Framework 4.5\dotNetFx45_Full_setup.exe" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Res\banner.jpg" />
     <None Include="Res\dialog.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Prerequisites\.NET Framework 4.5.2\NDP452-KB2901954-Web.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild" Condition=" '$(Configuration)' == 'Release' ">
