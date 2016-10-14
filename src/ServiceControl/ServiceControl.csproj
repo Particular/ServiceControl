@@ -149,7 +149,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NServiceBus.Core, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.5.2.14\lib\net45\NServiceBus.Core.dll</HintPath>
+      <HintPath>..\packages\NServiceBus.5.2.19\lib\net45\NServiceBus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NServiceBus.NLog, Version=1.1.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
@@ -443,7 +443,6 @@
     <Compile Include="Infrastructure\SignalR\Envelope.cs" />
     <Compile Include="Infrastructure\SignalR\UnderscoreMappingResolver.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensions.cs" />
-    <Compile Include="MessageAuditing\Handlers\AuditMessageHandler.cs" />
     <Compile Include="Infrastructure\DictionaryExtensions.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageView.cs" />
     <Compile Include="MessageFailures\Api\FailedMessageViewTransformer.cs" />
@@ -451,7 +450,6 @@
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
     <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
-    <Compile Include="MessageFailures\Handlers\ImportFailedMessageHandler.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />
