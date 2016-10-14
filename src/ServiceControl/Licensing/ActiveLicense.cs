@@ -18,6 +18,7 @@
 
         public void Refresh()
         {
+            Logger.Debug("Refreshing ActiveLicense");
             var result = Particular.Licensing.ActiveLicense.Find("ServiceControl",
                new LicenseSourceHKLMRegKey(),
                new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "License", "License.xml")),
@@ -33,7 +34,6 @@
             }
             Details = result.License;
             IsValid = !result.HasExpired;
-           
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(ActiveLicense));

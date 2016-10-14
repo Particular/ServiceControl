@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading;
+    using global::ServiceControl.Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     
@@ -21,38 +22,25 @@
 
     class LicenseCheckFeatureStartup : FeatureStartupTask
     {
-        ActiveLicense activeLicense;
-        Timer timer;
+        private ActiveLicense activeLicense;
+        private readonly TimeKeeper timeKeeper;
+        private Timer timer;
 
-        public LicenseCheckFeatureStartup(ActiveLicense activeLicense)
+        public LicenseCheckFeatureStartup(ActiveLicense activeLicense, TimeKeeper timeKeeper)
         {
+            this.timeKeeper = timeKeeper;
             this.activeLicense = activeLicense;
         }
 
         protected override void OnStart()
         {
-            timer = new Timer(Refresh, null, (int)TimeSpan.FromMinutes(1).TotalMilliseconds, -1);
+            var due = TimeSpan.FromHours(8);
+            timer = timeKeeper.New(activeLicense.Refresh, due, due);
         }
 
         protected override void OnStop()
         {
-            using (var manualResetEvent = new ManualResetEvent(false))
-            {
-                timer.Dispose(manualResetEvent);
-                manualResetEvent.WaitOne();
-            }
-        }
-
-        void Refresh(object _)
-        {
-            activeLicense.Refresh();
-            try
-            {
-                timer.Change((int)TimeSpan.FromMinutes(10).TotalMilliseconds, -1);
-            }
-            catch (ObjectDisposedException)
-            {
-            }
+            timeKeeper.Release(timer);
         }
     }
 }
