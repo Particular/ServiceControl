@@ -167,21 +167,15 @@ namespace ServiceControl.Recoverability
 
         internal void RebuildRetryOperationState(IDocumentSession session)
         {
-            var stagingBatchGroups = session.Query<RetryBatch>()
-                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
-                .Where(b => b.Status == RetryBatchStatus.Staging)
-                .ToArray()
-                .GroupBy(batch => new { RetryType = batch.RetryType, RequestId = batch.RequestId });
-
-
+            var stagingBatchGroups = session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
+                .Where(b => b.Status == RetryBatchStatus.Staging);
+               
             foreach (var group in stagingBatchGroups)
             {
-                foreach (var batch in group)
+                if (!string.IsNullOrWhiteSpace(group.RequestId))
                 {
-                    if (!string.IsNullOrWhiteSpace(batch.RequestId))
-                    {
-                        RetryOperationManager.SetInProgress(batch.RequestId, batch.RetryType, group.Sum(g => g.InitialBatchSize));
-                    }
+                    log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
+                    RetryOperationManager.SetInProgress(group.RequestId, group.RetryType, group.InitialBatchSize);
                 }
             }
         }
