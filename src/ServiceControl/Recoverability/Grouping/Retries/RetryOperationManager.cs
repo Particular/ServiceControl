@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using NServiceBus;
-    using System;
     using System.Collections.Generic;
 
     public class RetryOperationManager
@@ -50,21 +49,24 @@
             }
         }
 
+        public void WarnOfPossibleIncompleteDocumentMarking(RetryType retryType, string requestId)
+        {
+            RetryOperationSummary summary;
+            if (!CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
+            {
+                summary = new RetryOperationSummary();
+                CurrentRetryGroups[RetryOperationSummary.MakeOperationId(requestId, retryType)] = summary;
+            }
+
+            summary.IsPossiblyIncomplete = true;
+        }
+
         static void SetStatus(string requestId, RetryType retryType, int numberOfMessages)
         {
             RetryOperationSummary summary;
             if (!CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
             {
                 CurrentRetryGroups[RetryOperationSummary.MakeOperationId(requestId, retryType)] = new RetryOperationSummary { MessagesRemaining = numberOfMessages };
-            }
-        }
-
-        static void SetStatus(string requestId, RetryType retryType)
-        {
-            RetryOperationSummary summary;
-            if (!CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
-            {
-                CurrentRetryGroups[RetryOperationSummary.MakeOperationId(requestId, retryType)] = new RetryOperationSummary();
             }
         }
 
@@ -83,6 +85,7 @@
     {
         public int? MessagesRemaining { get; internal set; }
 
+        public bool IsPossiblyIncomplete { get; set; } // Need a better name for this
 
         public static string MakeOperationId(string requestId, RetryType retryType)
         {
