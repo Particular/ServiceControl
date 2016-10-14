@@ -537,6 +537,8 @@
     <Compile Include="Recoverability\Retries\MessagesSubmittedForRetryFailed.cs" />
     <Compile Include="Recoverability\Retries\Raven\FailedMessageRetries_ByBatch.cs" />
     <Compile Include="Recoverability\Retries\FailedMessageRetry.cs" />
+    <Compile Include="Recoverability\Retries\Raven\RetryBatches_ByStatus_ReduceInitialBatchSize.cs" />
+    <Compile Include="Recoverability\Retries\Raven\RetryBatchGroup.cs" />
     <Compile Include="Recoverability\Retries\RetriesGateway.cs" />
     <Compile Include="Recoverability\Retries\Handlers\RetriesHandler.cs" />
     <Compile Include="Recoverability\Retries\RetryBatch.cs" />
