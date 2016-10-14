@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Config.Events
 {
-    class RefreshInstances
+    class LicenseUpdated
     {
     }
 }

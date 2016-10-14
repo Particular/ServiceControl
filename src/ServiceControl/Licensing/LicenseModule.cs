@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Licensing
 {
+    using System;
     using Nancy;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -12,6 +13,11 @@
         {
             Get["/license"] = parameters =>
             {
+                if (string.Equals(Request.Query["refresh"], "true", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    ActiveLicense.Refresh();
+                }
+            
                 var licenseInfo = new LicenseInfo
                 {
                     TrialLicense = ActiveLicense.Details.IsTrialLicense,
