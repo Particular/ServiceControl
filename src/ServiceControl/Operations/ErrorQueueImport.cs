@@ -8,26 +8,44 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
-    using NServiceBus.Pipeline;
-    using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Satellites;
     using NServiceBus.Transports;
     using NServiceBus.Unicast;
-    using NServiceBus.Unicast.Messages;
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.RavenDB;
+    using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Handlers;
 
     public class ErrorQueueImport : IAdvancedSatellite, IDisposable
     {
-        public ISendMessages Forwarder { get; set; }
-        public IBuilder Builder { get; set; }
-        public PipelineExecutor PipelineExecutor { get; set; }
-        public LogicalMessageFactory LogicalMessageFactory { get; set; }
-        public CriticalError CriticalError { get; set; }
-        public LoggingSettings LoggingSettings { get; set; }
-        public Settings Settings { get; set; }
+        static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
+
+        private readonly IBuilder builder;
+        private readonly ISendMessages forwarder;
+        private readonly IDocumentStore store;
+        private readonly IBus bus;
+        private readonly CriticalError criticalError;
+        private readonly LoggingSettings loggingSettings;
+        private readonly Settings settings;
+        private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
+        private IEnrichImportedMessages[] enrichers;
+        private IFailedMessageEnricher[] failedEnrichers;
+
+        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IBus bus, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings)
+        {
+            this.builder = builder;
+            this.forwarder = forwarder;
+            this.store = store;
+            this.bus = bus;
+            this.criticalError = criticalError;
+            this.loggingSettings = loggingSettings;
+            this.settings = settings;
+
+            enrichers = builder.BuildAll<IEnrichImportedMessages>().ToArray();
+            failedEnrichers = builder.BuildAll<IFailedMessageEnricher>().ToArray();
+        }
 
         public bool Handle(TransportMessage message)
         {
@@ -40,40 +58,86 @@
         {
             var errorMessageReceived = new ImportFailedMessage(message);
 
-            using (var childBuilder = Builder.CreateChildBuilder())
+            foreach (var enricher in enrichers)
             {
-                PipelineExecutor.CurrentContext.Set(childBuilder);
-
-                foreach (var enricher in childBuilder.BuildAll<IEnrichImportedMessages>())
-                {
-                    enricher.Enrich(errorMessageReceived);
-                }
-
-                var logicalMessage = LogicalMessageFactory.Create(errorMessageReceived);
-
-                var context = new IncomingContext(PipelineExecutor.CurrentContext, message)
-                {
-                    LogicalMessages = new List<LogicalMessage>
-                    {
-                        logicalMessage
-                    },
-                    IncomingLogicalMessage = logicalMessage
-                };
-
-                context.Set("NServiceBus.CallbackInvocationBehavior.CallbackWasInvoked", false);
-               
-                var behaviors = behavioursToAddFirst.Concat(PipelineExecutor.Incoming.SkipWhile(r => r.StepId != WellKnownStep.LoadHandlers).Select(r => r.BehaviorType));
-
-                PipelineExecutor.InvokePipeline(behaviors, context);
+                enricher.Enrich(errorMessageReceived);
             }
-            if (Settings.ForwardErrorMessages)
+
+            Handle(errorMessageReceived);
+
+            if (settings.ForwardErrorMessages)
             {
                 TransportMessageCleaner.CleanForForwarding(message);
-                Forwarder.Send(message, new SendOptions(Settings.ErrorLogQueue));
+                forwarder.Send(message, new SendOptions(settings.ErrorLogQueue));
             }
         }
 
-        Type[] behavioursToAddFirst = new[] { typeof(RavenUnitOfWorkBehavior) };
+        void Handle(ImportFailedMessage message)
+        {
+            var documentId = FailedMessage.MakeDocumentId(message.UniqueMessageId);
+
+            using (var session = store.OpenSession())
+            {
+                session.Advanced.UseOptimisticConcurrency = true;
+
+                var failure = session.Load<FailedMessage>(documentId) ?? new FailedMessage
+                {
+                    Id = documentId,
+                    UniqueMessageId = message.UniqueMessageId
+                };
+
+                failure.Status = FailedMessageStatus.Unresolved;
+
+                var timeOfFailure = message.FailureDetails.TimeOfFailure;
+
+                //check for duplicate
+                if (failure.ProcessingAttempts.Any(a => a.AttemptedAt == timeOfFailure))
+                {
+                    return;
+                }
+
+                failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
+                {
+                    AttemptedAt = timeOfFailure,
+                    FailureDetails = message.FailureDetails,
+                    MessageMetadata = message.Metadata,
+                    MessageId = message.PhysicalMessage.MessageId,
+                    Headers = message.PhysicalMessage.Headers,
+                    ReplyToAddress = message.PhysicalMessage.ReplyToAddress,
+                    Recoverable = message.PhysicalMessage.Recoverable,
+                    CorrelationId = message.PhysicalMessage.CorrelationId,
+                    MessageIntent = message.PhysicalMessage.MessageIntent,
+                });
+
+                foreach (var enricher in failedEnrichers)
+                {
+                    enricher.Enrich(failure, message);
+                }
+
+                session.Store(failure);
+                session.SaveChanges();
+
+                string failedMessageId;
+                if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
+                {
+                    bus.Publish<MessageFailedRepeatedly>(m =>
+                    {
+                        m.FailureDetails = message.FailureDetails;
+                        m.EndpointId = message.FailingEndpointId;
+                        m.FailedMessageId = failedMessageId;
+                    });
+                }
+                else
+                {
+                    bus.Publish<MessageFailed>(m =>
+                    {
+                        m.FailureDetails = message.FailureDetails;
+                        m.EndpointId = message.FailingEndpointId;
+                        m.FailedMessageId = message.UniqueMessageId;
+                    });
+                }
+            }
+        }
 
         public void Start()
         {
@@ -87,24 +151,24 @@
         {
         }
 
-        public Address InputAddress => Settings.ErrorQueue;
+        public Address InputAddress => settings.ErrorQueue;
 
         public bool Disabled => InputAddress == Address.Undefined;
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
-            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(Builder.Build<IDocumentStore>(),
-                Path.Combine(LoggingSettings.LogPath, @"FailedImports\Error"), tm => new FailedErrorImport
+            satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(builder.Build<IDocumentStore>(),
+                Path.Combine(loggingSettings.LogPath, @"FailedImports\Error"), tm => new FailedErrorImport
                 {
                     Message = tm,
-                }, CriticalError);
+                }, criticalError);
 
             return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
         }
 
         bool TerminateIfForwardingQueueNotWritable()
         {
-            if (!Settings.ForwardErrorMessages)
+            if (!settings.ForwardErrorMessages)
             {
                 return false;
             }
@@ -113,12 +177,12 @@
             {
                 //Send a message to test the forwarding queue
                 var testMessage = new TransportMessage(Guid.Empty.ToString("N"), new Dictionary<string, string>());
-                Forwarder.Send(testMessage, new SendOptions(Settings.ErrorLogQueue));
+                forwarder.Send(testMessage, new SendOptions(settings.ErrorLogQueue));
                 return false;
             }
             catch (Exception messageForwardingException)
             {
-                CriticalError.Raise("Error Import cannot start", messageForwardingException);
+                criticalError.Raise("Error Import cannot start", messageForwardingException);
                 return true;
             }
         }
@@ -127,9 +191,5 @@
         {
             satelliteImportFailuresHandler?.Dispose();
         }
-
-        SatelliteImportFailuresHandler satelliteImportFailuresHandler;
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
     }
 }

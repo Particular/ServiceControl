@@ -12,6 +12,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Recoverability;
 
     public class When_a_message_fails_twice_with_different_exceptions : AcceptanceTest
     {
@@ -45,8 +46,8 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                     else
                     {
                         return TryGet(
-                            $"/api/errors/{ctx.UniqueMessageId}", 
-                            out retriedMessage, 
+                            $"/api/errors/{ctx.UniqueMessageId}",
+                            out retriedMessage,
                             err => err.ProcessingAttempts.Count == 2
                             );
                     }
@@ -61,15 +62,18 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
             Assert.IsNotNull(originalMessage.FailureGroups, "The original message has no failure groups");
             Assert.IsNotNull(retriedMessage.FailureGroups, "The retried message has no failure groups");
 
-            var originalFailureGroupIds = originalMessage.FailureGroups.Select(x => x.Id).ToArray();
-            var retriedFailureGroupIds = retriedMessage.FailureGroups.Select(x => x.Id).ToArray();
+            var originalExceptionAndStackTraceFailureGroupIds = originalMessage.FailureGroups.Where(x => x.Type == ExceptionTypeAndStackTraceFailureClassifier.Id).Select(x => x.Id).ToArray();
+            var retriedExceptionAndStackTraceFailureGroupIds = retriedMessage.FailureGroups.Where(x => x.Type == ExceptionTypeAndStackTraceFailureClassifier.Id).Select(x => x.Id).ToArray();
 
-            Assert.True(originalFailureGroupIds.Any(), "The original message was not classified");
-            Assert.True(retriedFailureGroupIds.Any(), "The retried message was not classified");
+            Assert.True(originalExceptionAndStackTraceFailureGroupIds.Any(), "The original message was not classified");
+            Assert.True(retriedExceptionAndStackTraceFailureGroupIds.Any(), "The retried message was not classified");
 
-            foreach (var failureId in originalFailureGroupIds)
+            Assert.AreEqual(originalMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id, retriedMessage.FailureGroups.Single(x => x.Type == MessageTypeFailureClassifier.Id).Id, $"{MessageTypeFailureClassifier.Id} FailureGroup Ids changed");
+
+            foreach (var failureId in originalExceptionAndStackTraceFailureGroupIds)
             {
-                Assert.False(retriedFailureGroupIds.Contains(failureId), "Failure Group {0} is still set on retried message", failureId);
+                Console.WriteLine($"failureId: {failureId}");
+                Assert.False(retriedExceptionAndStackTraceFailureGroupIds.Contains(failureId), "Failure Group {0} is still set on retried message", failureId);
             }
         }
 
@@ -110,7 +114,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         [Serializable]
         public class Meow : ICommand
         {
-            
+
         }
 
         public class MeowContext : ScenarioContext

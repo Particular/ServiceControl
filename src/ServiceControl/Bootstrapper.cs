@@ -32,6 +32,7 @@ namespace Particular.ServiceControl
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
         private TimeKeeper timeKeeper;
+        private IContainer container;
 
         public IDisposable WebApp;
 
@@ -94,7 +95,8 @@ namespace Particular.ServiceControl
                 configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
             }
 
-            Startup = new Startup(containerBuilder.Build(), host, settings, documentStore, configuration, exposeBus);
+            container = containerBuilder.Build();
+            Startup = new Startup(container, host, settings, documentStore, configuration, exposeBus);
         }
 
         public void Start()
@@ -130,6 +132,7 @@ namespace Particular.ServiceControl
             WebApp?.Dispose();
             timeKeeper.Dispose();
             documentStore.Dispose();
+            container.Dispose();
         }
 
         private long DataSize()

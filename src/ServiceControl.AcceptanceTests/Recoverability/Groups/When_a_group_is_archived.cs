@@ -133,7 +133,7 @@
                     if (!TryGet("/api/errors/" + c.FirstMessageId, out firstFailure, e => e.Status == FailedMessageStatus.Archived))
                         return false;
 
-                    if (!TryGet("/api/errors/" + c.SecondMessageId, out secondFailure, e => e.Status != FailedMessageStatus.Unresolved))
+                    if (!TryGet("/api/errors/" + c.SecondMessageId, out secondFailure, e => e.Status == FailedMessageStatus.Resolved))
                         return false;
 
                     return true;
