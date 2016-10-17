@@ -61,33 +61,54 @@
         public bool TryReadServiceControlReleaseDate(out DateTime releaseDate)
         {
             releaseDate = DateTime.MinValue;
+            var tempDomain = AppDomain.CreateDomain("TemporaryAppDomain");
+            var tempFile = Path.Combine(Path.GetTempPath(), @"ServiceControl\ServiceControl.exe");
             try
             {
                 using (var zip = ZipFile.Read(FilePath))
-                using (var stream = new MemoryStream())
                 {
                     var entry = zip.Entries.FirstOrDefault(p => p.FileName == "ServiceControl/ServiceControl.exe");
                     if (entry == null)
                     {
                         return false;
                     }
-                    entry.Extract(stream);
-                    stream.Position = 0;
-                    var data = new byte[stream.Length];
-                    stream.Read(data, 0, data.Length);
-
-                    var assembly = Assembly.ReflectionOnlyLoad(data);
-                    var releaseDateAttribute = assembly.GetCustomAttributesData().FirstOrDefault(p => p.Constructor?.ReflectedType?.Name == "ReleaseDateAttribute");
-                    var x = (string) releaseDateAttribute?.ConstructorArguments[0].Value;
-                    releaseDate = DateTime.ParseExact(x, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    entry.Extract(Path.GetTempPath(), ExtractExistingFileAction.OverwriteSilently);
+                    var loaderType = typeof(AssemblyReleaseDateReader);
+                    var loader = (AssemblyReleaseDateReader) tempDomain.CreateInstanceFrom(Assembly.GetExecutingAssembly().Location, loaderType.FullName).Unwrap();
+                    releaseDate = loader.GetReleaseDate(tempFile);
                     return true;
                 }
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }
+            finally
+            {
+                AppDomain.Unload(tempDomain);
+                if (File.Exists(tempFile))
+                {
+                    File.Delete(tempFile);
+                }
+            }
         }
-
+        
+        class AssemblyReleaseDateReader : MarshalByRefObject
+        {
+            internal DateTime GetReleaseDate(string assemblyPath)
+            {
+                try
+                {
+                    var assembly = Assembly.ReflectionOnlyLoadFrom(assemblyPath);
+                    var releaseDateAttribute = assembly.GetCustomAttributesData().FirstOrDefault(p => p.Constructor?.ReflectedType?.Name == "ReleaseDateAttribute");
+                    var x = (string) releaseDateAttribute?.ConstructorArguments[0].Value;
+                    return DateTime.ParseExact(x, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                }
+                catch (Exception)
+                {
+                    return DateTime.MinValue;
+                }
+            }
+        }
     }
 }
