@@ -32,7 +32,7 @@
 
             <RichTextBox Grid.Row="2"
                          Margin="0,1.877,-10,28"
-                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message}"
+                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message, Mode=OneWay}"
                          Background="Transparent"
                          BorderThickness="0"
                          FontSize="14"
@@ -42,11 +42,11 @@
 
             <RichTextBox Grid.Row="3"
                          Margin="0,24,-10,27.4"
-                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Question}"
+                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Question, Mode=OneWay}"
                          Background="Transparent"
                          BorderThickness="0"
                          FontSize="14"
-                         Foreground="{StaticResource LightWarnigBrush}"
+                         Foreground="{StaticResource LightWarningBrush}"
                          IsReadOnly="True"
                          IsReadOnlyCaretVisible="False" />
 

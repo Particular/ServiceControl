@@ -37,8 +37,7 @@
             var licenseCheckResult = installer.CheckLicenseIsValid();
             if (!licenseCheckResult.Valid)
             {
-                windowManager.ShowMessage(licenseCheckResult.Message, "The upgrade was blocked due to an issue with the current license. Please update the license to restore this feature. Contact sales@particular.net", hideCancel: true);
-
+                windowManager.ShowMessage(licenseCheckResult.Message, "Upgrade could not continue due to an issue with the current license. Contact sales@particular.net", hideCancel: true);
                 return;
             }
             
