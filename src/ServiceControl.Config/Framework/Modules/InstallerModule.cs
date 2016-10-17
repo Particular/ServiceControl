@@ -6,6 +6,7 @@
     using Autofac;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
+    using ServiceControlInstaller.Engine.LicenseMgmt;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Validation;
     using Module = Autofac.Module;
@@ -189,6 +190,44 @@
             return instance.ReportCard;
         }
 
-        
+        internal CheckLicenseResult CheckLicenseIsValid()
+        {
+            DateTime releaseDate;
+            var license = LicenseManager.FindLicense();
+            if (license.Details.HasLicenseExpired())
+            {
+                return new CheckLicenseResult(false, "License has expired");
+            }
+
+            if (!license.Details.ValidForServiceControl)
+            {
+                return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
+            }
+
+            if (ZipInfo.TryReadServiceControlReleaseDate(out releaseDate))
+            {
+                if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
+                {
+                    return new CheckLicenseResult(false, "License does not cover this release of ServiceControl. Upgrade protection expired");
+                }
+            }
+            else
+            {
+                throw new Exception("Failed to retrieve release date for new version");
+            }
+            return new CheckLicenseResult(true);
+        }
+
+        internal class CheckLicenseResult
+        {
+            public CheckLicenseResult(bool valid, string message = null)
+            {
+                Valid = valid;
+                Message = message;
+            }
+
+            public bool Valid { get; private set; }
+            public string Message { get; private set; }
+        }
     }
 }

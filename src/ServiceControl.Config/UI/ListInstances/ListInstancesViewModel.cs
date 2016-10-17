@@ -3,13 +3,15 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using Caliburn.Micro;
     using ServiceControl.Config.Events;
     using ServiceControl.Config.Framework.Rx;
     using ServiceControl.Config.UI.InstanceDetails;
     using ServiceControlInstaller.Engine.Instances;
+    using System.Threading.Tasks;
 
-    class ListInstancesViewModel : RxScreen, IHandle<RefreshInstances>
+    class ListInstancesViewModel : RxScreen, IHandle<RefreshInstances>, IHandle<LicenseUpdated>
     {
         private readonly Func<ServiceControlInstance, InstanceDetailsViewModel> instanceDetailsFunc;
 
@@ -51,8 +53,29 @@
             {
                 instance.ServiceControlInstance.Reload();
             }
-
             // Existing instances are updated in the InstanceDetailsViewModel
+        }
+
+        public void Handle(LicenseUpdated licenseUpdatedEvent)
+        {
+            // on license change inform each instance to refresh the license (1.23.0 and below don't support this)
+            foreach (var instance in Instances)
+            {
+                if (instance.Version <= new Version("1.23.0")) continue;
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var request = WebRequest.Create($"{instance.BrowsableUrl}license?refresh=true");
+                        request.Timeout = 2000;
+                        request.GetResponse();
+                    }
+                    catch
+                    {
+                        // Ignored
+                    }
+                });
+            }
         }
     }
 }

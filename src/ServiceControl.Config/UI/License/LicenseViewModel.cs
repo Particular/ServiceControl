@@ -4,19 +4,22 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Windows.Input;
+    using Caliburn.Micro;
     using Microsoft.WindowsAPICodePack.Dialogs;
     using ServiceControl.Config.Commands;
+    using ServiceControl.Config.Events;
     using ServiceControl.Config.Framework.Rx;
     using ServiceControlInstaller.Engine.LicenseMgmt;
 
     class LicenseViewModel : RxScreen
     {
-        public LicenseViewModel()
+        private IEventAggregator EventAggregator;
+
+        public LicenseViewModel(IEventAggregator eventAggregator)
         {
-          
-            BrowseForFile = new SelectPathCommand(OpenLicenseFile, "Select License File", filters: new[] { new CommonFileDialogFilter("License File", "xml") });
-            OpenUrl = new OpenURLCommand();
+            EventAggregator = eventAggregator;
         }
+
 
         protected override void OnActivate()
         {
@@ -31,9 +34,9 @@
 
         public Dictionary<string, string> LicenseInfo { get; set; }
 
-        public ICommand OpenUrl { get; private set; }
+        public ICommand OpenUrl => new OpenURLCommand();
 
-        public ICommand BrowseForFile { get; private set; }
+        public ICommand BrowseForFile =>  new SelectPathCommand(OpenLicenseFile, "Select License File", filters: new[] { new CommonFileDialogFilter("License File", "xml") });
 
         DetectedLicense license;
 
@@ -73,6 +76,7 @@
                 ApplyLicenseError = null;
                 RefreshLicenseInfo();
                 ApplyLicenseSuccess = "License imported successfully";
+                EventAggregator.PublishOnUIThread(new LicenseUpdated());
             }
             else
             {

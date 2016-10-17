@@ -160,6 +160,7 @@
     <Compile Include="Commands\SelectPathCommand.cs" />
     <Compile Include="Commands\StartServiceInMaintenanceModeCommand.cs" />
     <Compile Include="Commands\UpgradeInstanceCommand.cs" />
+    <Compile Include="Events\LicenseUpdated.cs" />
     <Compile Include="Events\RefreshInstances.cs" />
     <Compile Include="Extensions\GuidExtensions.cs" />
     <Compile Include="Extensions\ReflectionHelper.cs" />

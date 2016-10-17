@@ -28,7 +28,7 @@
 
             <RichTextBox Grid.Row="1"
                          Margin="0,24,0,28"
-                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message}"
+                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message, Mode=OneWay}"
                          Background="Transparent"
                          BorderThickness="0"
                          FontSize="14"
@@ -56,7 +56,9 @@
                         Content="Cancel"
                         FontSize="14"
                         IsCancel="True"
-                        Padding="0" />
+                        Padding="0"
+                        Visibility="{Binding HideCancel, Converter={StaticResource boolToVisInverted}}"
+                        />
             </StackPanel>
         </Grid>
     </Grid>

@@ -2,8 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Text.RegularExpressions;
     using Ionic.Zip;
 
@@ -54,6 +56,59 @@
 
             if (!ZipFile.CheckZip(FilePath))
                 throw new Exception($"Corrupt Zip File - {FilePath}");
+        }
+
+        public bool TryReadServiceControlReleaseDate(out DateTime releaseDate)
+        {
+            releaseDate = DateTime.MinValue;
+            var tempDomain = AppDomain.CreateDomain("TemporaryAppDomain");
+            var tempFile = Path.Combine(Path.GetTempPath(), @"ServiceControl\ServiceControl.exe");
+            try
+            {
+                using (var zip = ZipFile.Read(FilePath))
+                {
+                    var entry = zip.Entries.FirstOrDefault(p => p.FileName == "ServiceControl/ServiceControl.exe");
+                    if (entry == null)
+                    {
+                        return false;
+                    }
+                    entry.Extract(Path.GetTempPath(), ExtractExistingFileAction.OverwriteSilently);
+                    var loaderType = typeof(AssemblyReleaseDateReader);
+                    var loader = (AssemblyReleaseDateReader) tempDomain.CreateInstanceFrom(Assembly.GetExecutingAssembly().Location, loaderType.FullName).Unwrap();
+                    releaseDate = loader.GetReleaseDate(tempFile);
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                AppDomain.Unload(tempDomain);
+                if (File.Exists(tempFile))
+                {
+                    File.Delete(tempFile);
+                }
+            }
+        }
+        
+        class AssemblyReleaseDateReader : MarshalByRefObject
+        {
+            internal DateTime GetReleaseDate(string assemblyPath)
+            {
+                try
+                {
+                    var assembly = Assembly.ReflectionOnlyLoadFrom(assemblyPath);
+                    var releaseDateAttribute = assembly.GetCustomAttributesData().FirstOrDefault(p => p.Constructor?.ReflectedType?.Name == "ReleaseDateAttribute");
+                    var x = (string) releaseDateAttribute?.ConstructorArguments[0].Value;
+                    return DateTime.ParseExact(x, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                }
+                catch (Exception)
+                {
+                    return DateTime.MinValue;
+                }
+            }
         }
     }
 }

@@ -33,7 +33,7 @@
 
             <RichTextBox Grid.Row="2"
                          Margin="0,1.877,-10,28"
-                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message}"
+                         behaviours:RichTextBoxHelper.DocumentXaml="{Binding Message, Mode=OneWay}"
                          Background="Transparent"
                          BorderThickness="0"
                          FontSize="14"
