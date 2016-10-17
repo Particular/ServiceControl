@@ -262,7 +262,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {
-                    return new CheckLicenseResult(false, "This version was released afer the upgrade protection expiration date specified in the license");
+                    return new CheckLicenseResult(false, "License does not cover this release of ServiceControl.Upgrade protection expired");
                 }
             }
             else
