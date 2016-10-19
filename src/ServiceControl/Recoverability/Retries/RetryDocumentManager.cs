@@ -114,15 +114,22 @@ namespace ServiceControl.Recoverability
         {
             RavenQueryStatistics stats;
 
-            var orphanedBatchIds = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
+            var orphanedBatches = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
                 .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
                 .Statistics(out stats)
-                .Select(b => b.Id)
                 .ToArray();
 
-            log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatchIds.Length);
+            log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatches.Length);
 
-            AdoptBatches(session, orphanedBatchIds);
+            AdoptBatches(session, orphanedBatches.Select(b => b.Id));
+
+            foreach (var batch in orphanedBatches)
+            {
+                if (batch.RetryType != RetryType.MultipleMessages)
+                {
+                    RetryOperationManager.WarnOfPossibleIncompleteDocumentMarking(batch.RetryType, batch.RequestId);
+                }
+            }
 
             if (abort)
             {
@@ -130,10 +137,10 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            hasMoreWorkToDo = stats.IsStale || orphanedBatchIds.Any();
+            hasMoreWorkToDo = stats.IsStale || orphanedBatches.Any();
         }
 
-        void AdoptBatches(IDocumentSession session, string[] batchIds)
+        void AdoptBatches(IDocumentSession session, IEnumerable<string> batchIds)
         {
             Parallel.ForEach(batchIds, batchId => AdoptBatch(session, batchId));
         }
