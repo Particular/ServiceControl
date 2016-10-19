@@ -19,16 +19,10 @@ You should have a new "Staging" build waiting to be released.
 First step is to proof read the release notes that were auto generated (it is best to use an outsider for this job).  
 ![Octopus assign to me](Octopus%20assign%20to%20me.PNG)
 
-This release notes are generated based on the issues/PRs titles associated to a milestone that matches the version you are about to release. 
-By default the release notes are very "simple", if you want you can edit them and add extra content to it to make them more appealing, see example [here](https://github.com/Particular/ServiceControl/releases/tag/1.10.0) and [here](https://github.com/Particular/ServicePulse/releases/tag/1.2.0).
+This release notes are generated based on the issues/PRs titles associated to a milestone that matches the version you are about to release, see [how release notes are generated](https://github.com/Particular/ServiceControl/blob/master/docs/Release%20Notes.md).  
 
 **NOTE**: Ensure all issues/PRs are closed, otherwise they are not included in the release notes.
 
-
-**NOTE 2**: The link at the end needs to be updated to:
-```
-You can download this release from our [website](http://particular.net/downloads).
-```
 
 Once you happy approve them:  
 ![looks good](looks%20good.PNG)
