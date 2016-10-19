@@ -1,0 +1,8 @@
+﻿As part of this release we had [1 issue](https://github.com/FakeRepo/issues/issues?milestone=0&state=closed) closed.
+
+
+## Bug Fixes
+- [**1**](http://example.com/1) - Issue 1  
+
+## Where to get it
+You can download this release from [website](http://particular.net/downloads).

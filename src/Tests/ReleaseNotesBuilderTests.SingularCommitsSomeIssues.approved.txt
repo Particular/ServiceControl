@@ -1,0 +1,11 @@
+﻿As part of this release we had [1 commit](https://github.com/TestUser/FakeRepo/commits/1.2.3) which resulted in [3 issues](https://github.com/FakeRepo/issues/issues?milestone=0&state=closed) being closed.
+
+
+## Improvements
+- [**3**](http://example.com/3) - Issue 3  
+
+## Bug Fixes
+- [**1**](http://example.com/1) - Issue 1  
+
+## Where to get it
+You can download this release from [website](http://particular.net/downloads).
