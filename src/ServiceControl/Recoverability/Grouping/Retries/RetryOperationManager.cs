@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using NServiceBus;
-    using System;
     using System.Collections.Generic;
 
     public class RetryOperationManager
@@ -68,15 +67,6 @@
             if (!CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
             {
                 CurrentRetryGroups[RetryOperationSummary.MakeOperationId(requestId, retryType)] = new RetryOperationSummary { MessagesRemaining = numberOfMessages };
-            }
-        }
-
-        static void SetStatus(string requestId, RetryType retryType)
-        {
-            RetryOperationSummary summary;
-            if (!CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
-            {
-                CurrentRetryGroups[RetryOperationSummary.MakeOperationId(requestId, retryType)] = new RetryOperationSummary();
             }
         }
 
