@@ -50,6 +50,18 @@
             }
         }
 
+        public void WarnOfPossibleIncompleteDocumentMarking(RetryType retryType, string requestId)
+        {
+            RetryOperationSummary summary;
+            if (!CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
+            {
+                summary = new RetryOperationSummary();
+                CurrentRetryGroups[RetryOperationSummary.MakeOperationId(requestId, retryType)] = summary;
+            }
+
+            summary.IsPossiblyIncomplete = true;
+        }
+
         static void SetStatus(string requestId, RetryType retryType, int numberOfMessages)
         {
             RetryOperationSummary summary;
@@ -83,6 +95,7 @@
     {
         public int? MessagesRemaining { get; internal set; }
 
+        public bool IsPossiblyIncomplete { get; set; } // Need a better name for this
 
         public static string MakeOperationId(string requestId, RetryType retryType)
         {
