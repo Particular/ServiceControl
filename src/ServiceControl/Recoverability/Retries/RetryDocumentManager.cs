@@ -184,7 +184,7 @@ namespace ServiceControl.Recoverability
                 if (!string.IsNullOrWhiteSpace(group.RequestId))
                 {
                     log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
-                    RetryOperationManager.SetInProgress(group.RequestId, group.RetryType, group.InitialBatchSize);
+                    RetryOperationManager.SetStateAsPreparingMessages(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize);
                 }
             }
         }
