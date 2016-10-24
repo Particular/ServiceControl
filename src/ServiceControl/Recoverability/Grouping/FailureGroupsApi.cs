@@ -87,9 +87,9 @@ namespace ServiceControl.Recoverability
                             Count = failureGroup.Count,
                             First = failureGroup.First,
                             Last = failureGroup.Last,
-                            RetryStatus = summary != null ? "In Progress" : null,
-                            NumberOfRetryMessagesRemaining = (summary?.TotalNumberOfMessages - summary?.NumberOfMessagesCompleted) ?? 0,
-                            WasComplete = summary?.WasComplete
+                            RetryStatus = FormatRetryStatus(summary),
+                            Failed = summary?.Failed,
+                            RetryProgress = FormatRetryProgress(summary)
                         };
                     });
 
@@ -97,6 +97,25 @@ namespace ServiceControl.Recoverability
                     .WithTotalCount(stats)
                     .WithEtagAndLastModified(stats);
             }
+        }
+
+        private string FormatRetryStatus(RetryOperationSummary summary)
+        {
+            if (summary == null)
+            {
+                return "None";
+            }
+            return summary.RetryState.ToString();
+        }
+
+        private static int FormatRetryProgress(RetryOperationSummary summary)
+        {
+            if (summary == null)
+            {
+                return 0;
+            }
+
+            return (int) (summary.GetProgressPercentage() * 100);
         }
 
         dynamic GetAllGroupsCount(string classifier)
