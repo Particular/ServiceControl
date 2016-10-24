@@ -2,10 +2,11 @@
 {
     using NServiceBus;
 
-    public class RetryOperationStarted : IEvent
+    public class RetryOperationForwarding : IEvent
     {
         public string RequestId { get; set; }
         public RetryType RetryType { get; set; }
-        public int NumberOfMessages { get; set; }
+        public int TotalNumberOfMessages { get; set; }
+        public int NumberOfMessagesForwarded { get; set; }
     }
 }

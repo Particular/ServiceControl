@@ -15,6 +15,8 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
+            RetryOperationManager.SetStateAsWaiting(message.GroupId, RetryType.FailureGroup);
+
             var group = Session.Query<FailureGroupView, FailureGroupsViewIndex>()
                                .FirstOrDefault(x => x.Id == message.GroupId);
 
@@ -30,6 +32,7 @@ namespace ServiceControl.Recoverability
 
         public RetriesGateway Retries { get; set; }
         public IDocumentSession Session { get; set; }
+        public RetryOperationManager RetryOperationManager { get; set; }
 
         static ILog log = LogManager.GetLogger(typeof(RetryAllInGroupHandler));
     }
