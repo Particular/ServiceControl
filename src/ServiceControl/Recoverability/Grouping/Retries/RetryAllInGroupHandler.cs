@@ -15,7 +15,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            RetryOperationManager.SetStateAsWaiting(message.GroupId, RetryType.FailureGroup);
+            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup);
 
             var group = Session.Query<FailureGroupView, FailureGroupsViewIndex>()
                                .FirstOrDefault(x => x.Id == message.GroupId);

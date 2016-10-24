@@ -127,7 +127,7 @@ namespace ServiceControl.Recoverability
             {
                 if (batch.RetryType != RetryType.MultipleMessages)
                 {
-                    RetryOperationManager.WarnOfPossibleIncompleteDocumentMarking(batch.RetryType, batch.RequestId);
+                    RetryOperationManager.Fail(batch.RetryType, batch.RequestId);
                 }
             }
 
@@ -177,7 +177,7 @@ namespace ServiceControl.Recoverability
                 if (!string.IsNullOrWhiteSpace(group.RequestId))
                 {
                     log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
-                    RetryOperationManager.SetStateAsPreparingMessages(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize);
+                    RetryOperationManager.PrepareAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize);
                 }
             }
         }
