@@ -2,7 +2,7 @@
 {
     using NServiceBus;
 
-    public class RetryMessagesForwarded : IEvent
+    public class RetryOperationForwarded : IEvent
     {
         public string RequestId { get; set; }
         public RetryType RetryType { get; set; }

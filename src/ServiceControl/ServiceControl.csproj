@@ -524,7 +524,10 @@
     <Compile Include="Recoverability\Grouping\Groupers\IFailureClassifier.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationCompleted.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryMessagesForwarded.cs" />
-    <Compile Include="Recoverability\Grouping\Retries\RetryOperationStarted.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\RetryOperationForwarding.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\RetryOperationForwarded.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\RetryOperationPreparing.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\RetryOperationWaiting.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroup.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\StackTraceParser.cs" />
