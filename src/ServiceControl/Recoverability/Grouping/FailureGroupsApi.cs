@@ -84,8 +84,8 @@ namespace ServiceControl.Recoverability
                             First = failureGroup.First,
                             Last = failureGroup.Last,
                             RetryStatus = summary != null ? "In Progress" : null,
-                            NumberOfRetryMessagesRemaining = summary?.MessagesRemaining,
-                            IsPossiblyAnIncompleteRetry = summary.IsPossiblyIncomplete
+                            NumberOfRetryMessagesRemaining = (summary?.TotalNumberOfMessages - summary?.NumberOfMessagesCompleted) ?? 0,
+                            WasComplete = summary?.WasComplete
                         };
                     });
 
