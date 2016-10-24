@@ -1,142 +1,89 @@
 ﻿namespace ServiceControl.Recoverability
 {
-    using NServiceBus;
     using System.Collections.Generic;
 
     public class RetryOperationManager
     {
-        public RetryOperationManager(IBus bus)
+        private readonly IRetryOperationProgressionNotifier notifier;
+        
+        public RetryOperationManager(IRetryOperationProgressionNotifier notifier)
         {
-            this.bus = bus;
+            this.notifier = notifier;
         }
 
-        static Dictionary<string, RetryOperationSummary> CurrentRetryGroups = new Dictionary<string, RetryOperationSummary>();
+        static Dictionary<string, RetryOperationSummary> Operations = new Dictionary<string, RetryOperationSummary>();
 
-        public void SetStateAsWaiting(string requestId, RetryType retryType)
+        public void Wait(string requestId, RetryType retryType)
         {
-            SetStatus(requestId, retryType, RetryState.Waiting, 0, 0);
+            var summary = GetOrCreate(retryType, requestId);
 
-            bus.Publish<RetryOperationWaiting>(e =>
-            {
-                e.RequestId = requestId;
-                e.RetryType = retryType;
-            });
+            summary.Wait();
         }
 
-        public void SetStateAsPreparingMessages(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages)
+        public void PrepareAdoptedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages)
         {
-            SetStatus(requestId, retryType, RetryState.Preparing, numberOfMessagesPrepared, totalNumberOfMessages);
+            Prepairing(requestId, retryType, totalNumberOfMessages);
 
-            bus.Publish<RetryOperationPreparing>(e =>
-            {
-                e.RequestId = requestId;
-                e.RetryType = retryType;
-                e.TotalNumberOfMessages = totalNumberOfMessages;
-                e.NumberOfMessagesPreparing = numberOfMessagesPrepared;
-            });
+            PreparedBatch(requestId, retryType, numberOfMessagesPrepared);
         }
 
-        public void SetStateAsForwardingMessages(string requestId, RetryType retryType)
+        public void Prepairing(string requestId, RetryType retryType, int totalNumberOfMessages)
         {
-            var currentStatus = GetStatusForRetryOperation(requestId, retryType);
+            var summary = GetOrCreate(retryType, requestId);
 
-            SetStatus(requestId, retryType, RetryState.Forwarding, currentStatus.NumberOfMessagesCompleted ?? 0, currentStatus.TotalNumberOfMessages ?? 0);
-
-            bus.Publish<RetryOperationForwarding>(e =>
-            {
-                e.RequestId = requestId;
-                e.RetryType = retryType;
-                e.NumberOfMessagesForwarded = currentStatus.NumberOfMessagesCompleted ?? 0;
-                e.TotalNumberOfMessages = currentStatus.TotalNumberOfMessages ?? 0;
-            });
+            summary.Prepare(totalNumberOfMessages);
         }
 
-        public void SetStateAsForwardedMessages(string requestId, RetryType retryType, int numberOfMessagesForwarded)
+        public void PreparedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared)
         {
-            var currentStatus = GetStatusForRetryOperation(requestId, retryType);
+            var summary = GetOrCreate(retryType, requestId);
 
-            SetStatus(requestId, retryType, RetryState.Forwarding, currentStatus.NumberOfMessagesCompleted ?? 0 + numberOfMessagesForwarded, currentStatus.TotalNumberOfMessages ?? 0);
-
-            bus.Publish<RetryMessagesForwarded>(e =>
-            {
-                e.RequestId = requestId;
-                e.RetryType = retryType;
-                e.NumberOfMessagesForwarded = numberOfMessagesForwarded;
-                e.TotalNumberOfMessages = currentStatus.TotalNumberOfMessages ?? 0;
-            });
-
-            if (currentStatus.NumberOfMessagesCompleted == currentStatus.TotalNumberOfMessages)
-            {
-                SetStateAsCompleted(requestId, retryType);
-            }
+            summary.PrepareBatch(numberOfMessagesPrepared);
         }
 
-        void SetStateAsCompleted(string requestId, RetryType retryType)
+        public void Forwarding(string requestId, RetryType retryType)
         {
-            SetStatus(requestId, retryType, RetryState.Completed, 0, 0);
+            var summary = Get(requestId, retryType);
 
-            bus.Publish<RetryOperationCompleted>(e =>
-            {
-                e.RequestId = requestId;
-                e.RetryType = retryType;
-            });
+            summary.Forwarding();
         }
 
-        public void WarnOfPossibleIncompleteDocumentMarking(RetryType retryType, string requestId)
+        public void ForwardedBatch(string requestId, RetryType retryType, int numberOfMessagesForwarded)
+        {
+            var summary = Get(requestId, retryType);
+
+            summary.BatchForwarded(numberOfMessagesForwarded);
+        }
+
+        public void Fail(RetryType retryType, string requestId)
+        {
+            var summary = GetOrCreate(retryType, requestId);
+
+            summary.Fail();
+        }
+
+        private RetryOperationSummary GetOrCreate(RetryType retryType, string requestId)
         {
             RetryOperationSummary summary;
-            if (!CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
+            if (!Operations.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
             {
-                summary = new RetryOperationSummary();
-                CurrentRetryGroups[RetryOperationSummary.MakeOperationId(requestId, retryType)] = summary;
+                summary = new RetryOperationSummary(requestId, retryType) { Notifier = notifier };
+                Operations[RetryOperationSummary.MakeOperationId(requestId, retryType)] = summary;
             }
-
-            summary.WasComplete = false;
-        }
-
-        static void SetStatus(string requestId, RetryType retryType, RetryState state, int numberOfMessagesCompleted, int totalNumberOfMessages)
-        {
-            RetryOperationSummary summary;
-            if (!CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
-            {
-                CurrentRetryGroups[RetryOperationSummary.MakeOperationId(requestId, retryType)] = new RetryOperationSummary();
-            }
-
-            summary.RetryState = state;
-            summary.NumberOfMessagesCompleted = numberOfMessagesCompleted;
-            summary.TotalNumberOfMessages = totalNumberOfMessages;
-        }
-
-        public RetryOperationSummary GetStatusForRetryOperation(string requestId, RetryType retryType)
-        {
-            RetryOperationSummary summary = null;
-            CurrentRetryGroups.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary);
-
             return summary;
         }
 
-        IBus bus;
-    }
-
-    public class RetryOperationSummary
-    {
-        public int? TotalNumberOfMessages { get; internal set; }
-        public int? NumberOfMessagesCompleted { get; internal set; }
-
-        public bool WasComplete { get; set; }
-        public RetryState RetryState { get; set; }
-
-        public static string MakeOperationId(string requestId, RetryType retryType)
+        private static RetryOperationSummary Get(string requestId, RetryType retryType)
         {
-            return $"{retryType}/{requestId}";
+            return Operations[RetryOperationSummary.MakeOperationId(requestId, retryType)];
         }
-    }
+        
+        public RetryOperationSummary GetStatusForRetryOperation(string requestId, RetryType retryType)
+        {
+            RetryOperationSummary summary;
+            Operations.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary);
 
-    public enum RetryState
-    {
-        Waiting,
-        Preparing,
-        Forwarding,
-        Completed
+            return summary;
+        }
     }
 }

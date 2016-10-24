@@ -87,7 +87,7 @@ namespace ServiceControl.Recoverability
 
         void Forward(RetryBatch forwardingBatch, IDocumentSession session)
         {
-            retryOperationManager.SetStateAsForwardingMessages(forwardingBatch.RequestId, forwardingBatch.RetryType);
+            retryOperationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
 
             var messageCount = forwardingBatch.FailureRetries.Count;
             if (isRecoveringFromPrematureShutdown)
@@ -103,7 +103,7 @@ namespace ServiceControl.Recoverability
 
             if (!string.IsNullOrWhiteSpace(forwardingBatch.RequestId))
             {
-                retryOperationManager.SetStateAsForwardedMessages(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
+                retryOperationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
             }
 
             Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);

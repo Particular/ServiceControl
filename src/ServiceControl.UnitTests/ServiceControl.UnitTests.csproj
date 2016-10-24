@@ -140,6 +140,8 @@
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
     <Compile Include="Recoverability\ExceptionTypeAndStackTraceFailureClassifierTest.cs" />
+    <Compile Include="Recoverability\RetryOperationSummaryTests.cs" />
+    <Compile Include="Recoverability\RetryOperationProgressionCalculatorTests.cs" />
     <Compile Include="Recoverability\MessageTypeFailureClassifierTest.cs" />
     <Compile Include="SagaAudit\SagaDetailsIndexTests.cs" />
     <Compile Include="SagaAudit\SagaListIndexTests.cs" />

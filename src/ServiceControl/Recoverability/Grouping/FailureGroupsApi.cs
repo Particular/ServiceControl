@@ -90,9 +90,9 @@ namespace ServiceControl.Recoverability
                             Count = failureGroup.Count,
                             First = failureGroup.First,
                             Last = failureGroup.Last,
-                            RetryStatus = summary != null ? "In Progress" : null,
-                            NumberOfRetryMessagesRemaining = (summary?.TotalNumberOfMessages - summary?.NumberOfMessagesCompleted) ?? 0,
-                            WasComplete = summary?.WasComplete
+                            RetryStatus = summary?.RetryState.ToString() ?? "None",
+                            Failed = summary?.Failed,
+                            RetryProgress = summary?.GetProgression() ?? 0.0
                         };
                     });
 

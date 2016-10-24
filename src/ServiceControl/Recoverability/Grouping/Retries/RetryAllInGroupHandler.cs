@@ -15,14 +15,15 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-			RetryOperationManager.SetStateAsWaiting(message.GroupId, RetryType.FailureGroup);
-            FailureGroupView group;
+            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup);
+			FailureGroupView group;
 
             using (var session = Store.OpenSession())
             {
                 group = session.Query<FailureGroupView, FailureGroupsViewIndex>()
                     .FirstOrDefault(x => x.Id == message.GroupId);
             }
+
             string context = null;
 
             if (@group?.Title != null)

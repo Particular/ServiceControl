@@ -160,14 +160,14 @@ namespace ServiceControl.Recoverability
             var numberOfMessagesAdded = 0;
             var totalMessages = batches.Sum(b => b.Length);
 
-            RetryOperationManager.SetStateAsPreparingMessages(request.RequestId, request.RetryType, 0, totalMessages);
+            RetryOperationManager.Prepairing(request.RequestId, request.RetryType, totalMessages);
 
             for (var i = 0; i < batches.Count; i++)
             {
                 StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.GetBatchName(i + 1, batches.Count));
                 numberOfMessagesAdded += batches[i].Length;
 
-                RetryOperationManager.SetStateAsPreparingMessages(request.RequestId, request.RetryType, numberOfMessagesAdded, totalMessages);
+                RetryOperationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);
             }
         }
 

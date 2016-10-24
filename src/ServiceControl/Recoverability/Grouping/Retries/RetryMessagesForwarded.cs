@@ -8,5 +8,6 @@
         public RetryType RetryType { get; set; }
         public int TotalNumberOfMessages { get; set; }
         public int NumberOfMessagesForwarded { get; set; }
+        public double Progression { get; set; }
     }
 }
