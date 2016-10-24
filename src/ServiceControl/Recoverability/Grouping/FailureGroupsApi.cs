@@ -85,10 +85,10 @@ namespace ServiceControl.Recoverability
                             Last = failureGroup.Last,
                             RetryStatus = summary != null ? "In Progress" : null,
                             NumberOfRetryMessagesRemaining = summary?.MessagesRemaining,
-                            IsPossiblyAnIncompleteRetry = summary.IsPossiblyIncomplete
+                            IsPossiblyAnIncompleteRetry = summary?.IsPossiblyIncomplete
                         };
                     });
-
+                
                 return Negotiate.WithModel(results)
                     .WithTotalCount(stats)
                     .WithEtagAndLastModified(stats);
