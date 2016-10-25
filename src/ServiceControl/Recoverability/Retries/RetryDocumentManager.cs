@@ -17,7 +17,7 @@ namespace ServiceControl.Recoverability
 
     public class RetryDocumentManager
     {
-        private static string RetrySessionId = Guid.NewGuid().ToString();
+        protected static string RetrySessionId = Guid.NewGuid().ToString();
         public RetryOperationManager RetryOperationManager { get; set; }
         private static RavenJObject defaultMetadata = RavenJObject.Parse($@"
                                     {{
@@ -82,7 +82,7 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        public void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
+        public virtual void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
         {
             try
             {

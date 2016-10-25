@@ -87,16 +87,20 @@ namespace ServiceControl.Recoverability
 
         void Forward(RetryBatch forwardingBatch, IDocumentSession session)
         {
-            retryOperationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
-
             var messageCount = forwardingBatch.FailureRetries.Count;
             if (isRecoveringFromPrematureShutdown)
             {
+                retryOperationManager.ForwardingAfterRestart(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId));
             }
             else if (messageCount > 0)
             {
+                retryOperationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), messageCount);
+            }
+            else
+            {
+                retryOperationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
             }
 
             session.Delete(forwardingBatch);

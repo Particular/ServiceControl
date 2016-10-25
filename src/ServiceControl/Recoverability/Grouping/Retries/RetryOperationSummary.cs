@@ -41,6 +41,8 @@
         {
             RetryState = RetryState.Preparing;
             TotalNumberOfMessages = totalNumberOfMessages;
+            NumberOfMessagesForwarded = 0;
+            NumberOfMessagesPrepared = 0;
 
             Notifier?.Prepare(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression());
         }
@@ -57,6 +59,13 @@
             RetryState = RetryState.Forwarding;
 
             Notifier?.Forwarding(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages, GetProgression());
+        }
+
+        public void ForwardingAfterRestart(int totalNumberOfMessages)
+        {
+            TotalNumberOfMessages = totalNumberOfMessages;
+
+            Forwarding();
         }
 
         public void BatchForwarded(int numberOfMessagesForwarded)
