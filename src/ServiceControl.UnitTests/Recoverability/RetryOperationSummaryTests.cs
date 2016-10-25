@@ -25,6 +25,7 @@
             summary.Wait();
 
             Assert.True(notifier.WaitNotified);
+            Assert.AreEqual(0.05, notifier.Progression);
         }
 
         [Test]
@@ -55,6 +56,7 @@
             Assert.True(notifier.PrepareNotified);
             Assert.AreEqual(0, notifier.NumberOfMessagesPrepared);
             Assert.AreEqual(1000, notifier.TotalNumberOfMessages);
+            Assert.AreEqual(0.05, notifier.Progression);
         }
 
         [Test]
@@ -79,6 +81,7 @@
             Assert.True(notifier.PrepareBatchNotified);
             Assert.AreEqual(1000, notifier.NumberOfMessagesPrepared);
             Assert.AreEqual(1000, notifier.TotalNumberOfMessages);
+            Assert.AreEqual(0.525, notifier.Progression);
         }
 
         [Test]
@@ -106,6 +109,7 @@
             Assert.True(notifier.ForwardingNotified);
             Assert.AreEqual(0, notifier.NumberOfMessagesForwarded);
             Assert.AreEqual(1000, notifier.TotalNumberOfMessages);
+            Assert.AreEqual(0.525, notifier.Progression);
         }
 
         [Test]
@@ -135,6 +139,7 @@
             Assert.True(notifier.BatchForwardedNotified);
             Assert.AreEqual(500, notifier.NumberOfMessagesForwarded);
             Assert.AreEqual(1000, notifier.TotalNumberOfMessages);
+            Assert.AreEqual(0.7625, notifier.Progression);
         }
 
         [Test]
@@ -163,6 +168,7 @@
 
             Assert.True(notifier.CompletedNotified);
             Assert.AreEqual(false, notifier.Failed);
+            Assert.AreEqual(1.0, notifier.Progression);
         }
     }
 
@@ -178,45 +184,52 @@
         public int NumberOfMessagesPrepared  { get; private set; }
         public int NumberOfMessagesForwarded { get; private set; }
         public int TotalNumberOfMessages { get; private set; }
+        public double Progression { get; set; }
         public bool Failed{ get; private set; }
 
-        public void Wait(string requestId, RetryType retryType)
+        public void Wait(string requestId, RetryType retryType, double progression)
         {
             WaitNotified = true;
+            Progression = progression;
         }
 
-        public void Prepare(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages)
+        public void Prepare(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, double progression)
         {
             PrepareNotified = true;
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
             TotalNumberOfMessages = totalNumberOfMessages;
+            Progression = progression;
         }
 
-        public void PrepareBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages)
+        public void PrepareBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, double progression)
         {
             PrepareBatchNotified = true;
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
             TotalNumberOfMessages = totalNumberOfMessages;
+            Progression = progression;
         }
 
-        public void Forwarding(string requestId, RetryType retryType, int numberOfMessagesForwarded, int totalNumberOfMessages)
+        public void Forwarding(string requestId, RetryType retryType, int numberOfMessagesForwarded, int totalNumberOfMessages, double progression)
         {
             ForwardingNotified = true;
             NumberOfMessagesForwarded = numberOfMessagesForwarded;
             TotalNumberOfMessages = totalNumberOfMessages;
+            Progression = progression;
         }
 
-        public void BatchForwarded(string requestId, RetryType retryType, int numberOfMessagesForwarded, int totalNumberOfMessages)
+        public void BatchForwarded(string requestId, RetryType retryType, int numberOfMessagesForwarded, int totalNumberOfMessages, double progression)
         {
             BatchForwardedNotified = true;
             NumberOfMessagesForwarded = numberOfMessagesForwarded;
             TotalNumberOfMessages = totalNumberOfMessages;
+            Progression = progression;
         }
 
-        public void Completed(string requestId, RetryType retryType, bool failed)
+        public void Completed(string requestId, RetryType retryType, bool failed, double progression)
         {
             CompletedNotified = true;
             Failed = failed;
+            Progression = progression;
         }
     }
 }

@@ -29,7 +29,7 @@
             NumberOfMessagesForwarded = 0;
             TotalNumberOfMessages = 0;
 
-            Notifier?.Wait(requestId, retryType);
+            Notifier?.Wait(requestId, retryType, GetProgression());
         }
 
         public void Fail()
@@ -42,35 +42,40 @@
             RetryState = RetryState.Preparing;
             TotalNumberOfMessages = totalNumberOfMessages;
 
-            Notifier?.Prepare(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages);
+            Notifier?.Prepare(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression());
         }
 
         public void PrepareBatch(int numberOfMessagesPrepared)
         {
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
 
-            Notifier?.PrepareBatch(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages);
+            Notifier?.PrepareBatch(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression());
         }
 
         public void Forwarding()
         {
             RetryState = RetryState.Forwarding;
 
-            Notifier?.Forwarding(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages);
+            Notifier?.Forwarding(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages, GetProgression());
         }
 
         public void BatchForwarded(int numberOfMessagesForwarded)
         {
             NumberOfMessagesForwarded = NumberOfMessagesForwarded + numberOfMessagesForwarded;
 
-            Notifier?.BatchForwarded(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages);
+            Notifier?.BatchForwarded(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages, GetProgression());
             
             if (NumberOfMessagesForwarded == TotalNumberOfMessages)
             {
                 RetryState = RetryState.Completed;
 
-                Notifier?.Completed(requestId, retryType, Failed);
+                Notifier?.Completed(requestId, retryType, Failed, GetProgression());
             }
+        }
+
+        public double GetProgression()
+        {
+            return RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded);
         }
     }
 }

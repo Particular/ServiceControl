@@ -115,7 +115,7 @@ namespace ServiceControl.Recoverability
                 return 0;
             }
 
-            return (int) (RetryOperationProgressionCalculator.CalculateProgression(summary.TotalNumberOfMessages, summary.NumberOfMessagesPrepared, summary.NumberOfMessagesForwarded) * 100);
+            return (int) (summary.GetProgression() * 100);
         }
 
         dynamic GetAllGroupsCount(string classifier)
