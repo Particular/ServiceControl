@@ -23,7 +23,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
-                ProcessMessage(documentStore, retryManager, "Test-group");
+                CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true);
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
 
                 Assert.AreEqual(RetryState.Preparing, status.RetryState);
@@ -37,12 +37,12 @@ namespace ServiceControl.UnitTests.Recoverability
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
-                ProcessMessage(documentStore, retryManager, "Test-group");
+                CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", false);
 
                 new RetryBatches_ByStatusAndSession().Execute(documentStore);
                 new FailedMessageRetries_ByBatch().Execute(documentStore);
 
-                var documentManager = new CustomRetryDocumentManager();
+                var documentManager = new CustomRetryDocumentManager(false);
                 documentManager.Store = documentStore;
                 documentManager.RetryOperationManager = retryManager;
 
@@ -54,7 +54,7 @@ namespace ServiceControl.UnitTests.Recoverability
             }
         }
 
-        void ProcessMessage(IDocumentStore documentStore, RetryOperationManager retryManager, string groupId)
+        void CreateAFailedMessageAndMarkAsPartOfRetryBatch(IDocumentStore documentStore, RetryOperationManager retryManager, string groupId, bool progressToStaged)
         {
             var message = new FailedMessage
             {
@@ -91,7 +91,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
             documentStore.WaitForIndexing();
 
-            var documentManager = new CustomRetryDocumentManager();
+            var documentManager = new CustomRetryDocumentManager(progressToStaged);
             var gateway = new RetriesGateway();
 
             documentManager.Store = documentStore;
@@ -111,14 +111,21 @@ namespace ServiceControl.UnitTests.Recoverability
 
     public class CustomRetryDocumentManager : RetryDocumentManager
     {
-        public CustomRetryDocumentManager()
+        private bool progressToStaged;
+
+        public CustomRetryDocumentManager(bool progressToStaged)
             : base(new ShutdownNotifier())
         {
             RetrySessionId = Guid.NewGuid().ToString();
+            this.progressToStaged = progressToStaged;
         }
 
         public override void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
         {
+            if (progressToStaged)
+            {
+                base.MoveBatchToStaging(batchDocumentId, failedMessageRetryIds);
+            }
         }
     }
 }
