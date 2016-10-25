@@ -110,7 +110,7 @@
             IDocumentStore store;
         }
 
-        class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
+        internal class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
         {
             private Timer timer;
 
@@ -121,7 +121,7 @@
                 this.store = store;
             }
 
-            private bool AdoptOrphanedBatches()
+            internal bool AdoptOrphanedBatches()
             {
                 bool hasMoreWorkToDo;
 

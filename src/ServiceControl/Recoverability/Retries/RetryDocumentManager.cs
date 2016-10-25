@@ -82,7 +82,7 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        public void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
+        public virtual void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
         {
             try
             {
