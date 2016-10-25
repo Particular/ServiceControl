@@ -1,15 +1,14 @@
 ﻿namespace ServiceControl.Recoverability
 {
-    using NServiceBus;
     using System.Collections.Generic;
 
     public class RetryOperationManager
     {
-        private readonly IBus bus;
+        private readonly IRetryOperationProgressionNotifier notifier;
         
-        public RetryOperationManager(IBus bus)
+        public RetryOperationManager(IRetryOperationProgressionNotifier notifier)
         {
-            this.bus = bus;
+            this.notifier = notifier;
         }
 
         static Dictionary<string, RetryOperationSummary> Operations = new Dictionary<string, RetryOperationSummary>();
@@ -19,13 +18,12 @@
             var summary = GetOrCreate(retryType, requestId);
 
             summary.Wait();
-
-           
         }
 
         public void PrepareAdoptedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages)
         {
             Prepairing(requestId, retryType, totalNumberOfMessages);
+
             PreparedBatch(requestId, retryType, numberOfMessagesPrepared);
         }
 
@@ -69,7 +67,7 @@
             RetryOperationSummary summary;
             if (!Operations.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
             {
-                summary = new RetryOperationSummary(requestId, retryType, bus);
+                summary = new RetryOperationSummary(requestId, retryType) { Notifier = notifier };
                 Operations[RetryOperationSummary.MakeOperationId(requestId, retryType)] = summary;
             }
             return summary;
