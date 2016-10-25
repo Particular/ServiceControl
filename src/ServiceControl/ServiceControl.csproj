@@ -528,7 +528,6 @@
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationCompleted.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryMessagesForwarded.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationForwarding.cs" />
-    <Compile Include="Recoverability\Grouping\Retries\RetryOperationForwarded.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationPreparing.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationProgressionCalculator.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationSummary.cs" />
