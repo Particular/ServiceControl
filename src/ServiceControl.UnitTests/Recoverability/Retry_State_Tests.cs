@@ -47,6 +47,8 @@ namespace ServiceControl.UnitTests.Recoverability
                 new RetryBatches_ByStatusAndSession().Execute(documentStore);
                 new FailedMessageRetries_ByBatch().Execute(documentStore);
 
+                documentStore.WaitForIndexing();
+
                 var documentManager = new CustomRetryDocumentManager(false);
                 documentManager.Store = documentStore;
                 documentManager.RetryOperationManager = retryManager;
