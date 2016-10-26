@@ -66,7 +66,8 @@
 
                 public void Start()
                 {
-                    context.UniqueId = DeterministicGuid.MakeId("1", "Error.SourceEndpoint").ToString();
+                    var messageId = Guid.NewGuid().ToString();
+                    context.UniqueId = DeterministicGuid.MakeId(messageId, "Error.SourceEndpoint").ToString();
 
                     Parallel.For(0, 10, i =>
                     {
@@ -81,7 +82,7 @@
                             ["NServiceBus.FailedQ"] = "Error.SourceEndpoint",
                             ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z"
                         };
-                        var message = new TransportMessage("1", headers);
+                        var message = new TransportMessage(messageId, headers);
                         sendMessages.Send(message, new SendOptions("error"));
                     });
                 }
