@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
@@ -12,26 +11,46 @@
     using NServiceBus.Transports;
     using NServiceBus.Unicast;
     using NServiceBus.Unicast.Transport;
+    using Raven.Abstractions.Data;
+    using Raven.Abstractions.Extensions;
     using Raven.Client;
+    using Raven.Imports.Newtonsoft.Json;
+    using Raven.Json.Linq;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Handlers;
+    using JsonSerializer = Raven.Imports.Newtonsoft.Json.JsonSerializer;
 
     public class ErrorQueueImport : IAdvancedSatellite, IDisposable
     {
-        static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
+        private static readonly RavenJObject JObjectMetadata;
+        private static readonly JsonSerializer Serializer;
 
         private readonly IBuilder builder;
-        private readonly ISendMessages forwarder;
-        private readonly IDocumentStore store;
         private readonly IBus bus;
         private readonly CriticalError criticalError;
+        private readonly ISendMessages forwarder;
         private readonly LoggingSettings loggingSettings;
         private readonly Settings settings;
+        private readonly IDocumentStore store;
+        private readonly IEnrichImportedMessages[] enrichers;
+        private readonly IFailedMessageEnricher[] failedEnrichers;
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
-        private IEnrichImportedMessages[] enrichers;
-        private IFailedMessageEnricher[] failedEnrichers;
+
+        static ErrorQueueImport()
+        {
+            Serializer = JsonExtensions.CreateDefaultJsonSerializer();
+            Serializer.TypeNameHandling = TypeNameHandling.Auto;
+
+            JObjectMetadata = RavenJObject.Parse($@"
+                                    {{
+                                        ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"",
+                                        ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
+                                    }}");
+        }
 
         public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IBus bus, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings)
         {
@@ -52,91 +71,6 @@
             InnerHandle(message);
 
             return true;
-        }
-
-        void InnerHandle(TransportMessage message)
-        {
-            var errorMessageReceived = new ImportFailedMessage(message);
-
-            foreach (var enricher in enrichers)
-            {
-                enricher.Enrich(errorMessageReceived);
-            }
-
-            Handle(errorMessageReceived);
-
-            if (settings.ForwardErrorMessages)
-            {
-                TransportMessageCleaner.CleanForForwarding(message);
-                forwarder.Send(message, new SendOptions(settings.ErrorLogQueue));
-            }
-        }
-
-        void Handle(ImportFailedMessage message)
-        {
-            var documentId = FailedMessage.MakeDocumentId(message.UniqueMessageId);
-
-            using (var session = store.OpenSession())
-            {
-                session.Advanced.UseOptimisticConcurrency = true;
-
-                var failure = session.Load<FailedMessage>(documentId) ?? new FailedMessage
-                {
-                    Id = documentId,
-                    UniqueMessageId = message.UniqueMessageId
-                };
-
-                failure.Status = FailedMessageStatus.Unresolved;
-
-                var timeOfFailure = message.FailureDetails.TimeOfFailure;
-
-                //check for duplicate
-                if (failure.ProcessingAttempts.Any(a => a.AttemptedAt == timeOfFailure))
-                {
-                    return;
-                }
-
-                failure.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
-                {
-                    AttemptedAt = timeOfFailure,
-                    FailureDetails = message.FailureDetails,
-                    MessageMetadata = message.Metadata,
-                    MessageId = message.PhysicalMessage.MessageId,
-                    Headers = message.PhysicalMessage.Headers,
-                    ReplyToAddress = message.PhysicalMessage.ReplyToAddress,
-                    Recoverable = message.PhysicalMessage.Recoverable,
-                    CorrelationId = message.PhysicalMessage.CorrelationId,
-                    MessageIntent = message.PhysicalMessage.MessageIntent,
-                });
-
-                foreach (var enricher in failedEnrichers)
-                {
-                    enricher.Enrich(failure, message);
-                }
-
-                session.Store(failure);
-                session.SaveChanges();
-
-                string failedMessageId;
-                if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
-                {
-                    bus.Publish<MessageFailedRepeatedly>(m =>
-                    {
-                        m.FailureDetails = message.FailureDetails;
-                        m.EndpointId = message.FailingEndpointId;
-                        m.FailedMessageId = failedMessageId;
-                    });
-                }
-                else
-                {
-                    bus.Publish<MessageFailed>(m =>
-                    {
-                        m.FailureDetails = message.FailureDetails;
-                        m.EndpointId = message.FailingEndpointId;
-                        m.FailedMessageId = message.UniqueMessageId;
-                    });
-                }
-            }
         }
 
         public void Start()
@@ -160,13 +94,147 @@
             satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(builder.Build<IDocumentStore>(),
                 Path.Combine(loggingSettings.LogPath, @"FailedImports\Error"), tm => new FailedErrorImport
                 {
-                    Message = tm,
+                    Message = tm
                 }, criticalError);
 
             return receiver => { receiver.FailureManager = satelliteImportFailuresHandler; };
         }
 
-        bool TerminateIfForwardingQueueNotWritable()
+        public void Dispose()
+        {
+            satelliteImportFailuresHandler?.Dispose();
+        }
+
+        private void InnerHandle(TransportMessage message)
+        {
+            var errorMessageReceived = new ImportFailedMessage(message);
+
+            foreach (var enricher in enrichers)
+            {
+                enricher.Enrich(errorMessageReceived);
+            }
+
+            Handle(errorMessageReceived);
+
+            if (settings.ForwardErrorMessages)
+            {
+                TransportMessageCleaner.CleanForForwarding(message);
+                forwarder.Send(message, new SendOptions(settings.ErrorLogQueue));
+            }
+        }
+
+        private void Handle(ImportFailedMessage message)
+        {
+            var uniqueId = message.UniqueMessageId;
+            var documentId = $"{FailedMessage.CollectionName}/{uniqueId}";
+            var timeOfFailure = message.FailureDetails.TimeOfFailure;
+            var headers = message.PhysicalMessage.Headers;
+            var metadata = message.Metadata;
+            var intent = message.PhysicalMessage.MessageIntent;
+            var groups = new List<FailedMessage.FailureGroup>();
+            var recoverable = message.PhysicalMessage.Recoverable;
+            var correlationId = message.PhysicalMessage.CorrelationId;
+            var replyToAddress = message.PhysicalMessage.ReplyToAddress;
+            var failureDetails = message.FailureDetails;
+
+            foreach (var enricher in failedEnrichers)
+            {
+                groups.AddRange(enricher.Enrich((string) metadata["MessageType"], failureDetails));
+            }
+
+            store.DatabaseCommands.Patch(documentId, new[]
+                {
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.Status),
+                        Type = PatchCommandType.Set,
+                        Value = (int) FailedMessageStatus.Unresolved
+                    },
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.ProcessingAttempts),
+                        Type = PatchCommandType.Add,
+                        Value = RavenJToken.FromObject(new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = timeOfFailure,
+                            FailureDetails = failureDetails,
+                            MessageMetadata = metadata,
+                            MessageId = headers[Headers.MessageId],
+                            Headers = headers,
+                            ReplyToAddress = replyToAddress,
+                            Recoverable = recoverable,
+                            CorrelationId = correlationId,
+                            MessageIntent = intent
+                        }, Serializer) // Need to specify serializer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
+                    },
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.FailureGroups),
+                        Type = PatchCommandType.Set,
+                        Value = RavenJToken.FromObject(groups)
+                    }
+                },
+                new[]
+                {
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.UniqueMessageId),
+                        Type = PatchCommandType.Set,
+                        Value = uniqueId
+                    },
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.Status),
+                        Type = PatchCommandType.Set,
+                        Value = (int) FailedMessageStatus.Unresolved
+                    },
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.ProcessingAttempts),
+                        Type = PatchCommandType.Add,
+                        Value = RavenJToken.FromObject(new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = timeOfFailure,
+                            FailureDetails = failureDetails,
+                            MessageMetadata = metadata,
+                            MessageId = headers[Headers.MessageId],
+                            Headers = headers,
+                            ReplyToAddress = replyToAddress,
+                            Recoverable = recoverable,
+                            CorrelationId = correlationId,
+                            MessageIntent = intent
+                        }, Serializer) // Need to specify serilaizer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
+                    },
+                    new PatchRequest
+                    {
+                        Name = nameof(FailedMessage.FailureGroups),
+                        Type = PatchCommandType.Set,
+                        Value = RavenJToken.FromObject(groups)
+                    }
+                }, JObjectMetadata);
+
+            string failedMessageId;
+            if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
+            {
+                bus.Publish<MessageFailedRepeatedly>(m =>
+                {
+                    m.FailureDetails = message.FailureDetails;
+                    m.EndpointId = message.FailingEndpointId;
+                    m.FailedMessageId = failedMessageId;
+                });
+            }
+            else
+            {
+                bus.Publish<MessageFailed>(m =>
+                {
+                    m.FailureDetails = message.FailureDetails;
+                    m.EndpointId = message.FailingEndpointId;
+                    m.FailedMessageId = message.UniqueMessageId;
+                });
+            }
+        }
+
+        private bool TerminateIfForwardingQueueNotWritable()
         {
             if (!settings.ForwardErrorMessages)
             {
@@ -185,11 +253,6 @@
                 criticalError.Raise("Error Import cannot start", messageForwardingException);
                 return true;
             }
-        }
-
-        public void Dispose()
-        {
-            satelliteImportFailuresHandler?.Dispose();
         }
     }
 }

@@ -10,28 +10,26 @@ namespace ServiceControl.Recoverability
     {
         public IEnumerable<IFailureClassifier> Classifiers { get; set; }
 
-        public void Enrich(FailedMessage message, ImportFailedMessage source)
+        public IEnumerable<FailedMessage.FailureGroup> Enrich(string messageType, FailureDetails failureDetails)
         {
-            var classifications = new List<FailedMessage.FailureGroup>();
-
-            var details = new ClassifiableMessageDetails((string)source.Metadata["MessageType"], source.FailureDetails);
+            var details = new ClassifiableMessageDetails(messageType, failureDetails);
 
             foreach (var classifier in Classifiers)
             {
                 var classification = classifier.ClassifyFailure(details);
 
                 if (classification == null)
+                {
                     continue;
+                }
 
-                classifications.Add(new FailedMessage.FailureGroup
+                yield return new FailedMessage.FailureGroup
                 {
                     Id = DeterministicGuid.MakeId(classifier.Name, classification).ToString(),
                     Title = classification,
                     Type = classifier.Name
-                });
+                };
             }
-
-            message.FailureGroups = classifications;
         }
     }
 }

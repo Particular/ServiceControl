@@ -225,6 +225,7 @@
     <Compile Include="MessageFailures\ErrorImportPerformanceTests.cs" />
     <Compile Include="MessageFailures\Is_System_Message_Tests.cs" />
     <Compile Include="MessageFailures\When_all_messages_are_retried.cs" />
+    <Compile Include="MessageFailures\When_a_multiple_error_message_with_same_uniqueid_are_imported_concurrently.cs" />
     <Compile Include="MessageFailures\When_an_error_message_has_ttbr_set.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed_from_send_only_endpoint.cs" />
