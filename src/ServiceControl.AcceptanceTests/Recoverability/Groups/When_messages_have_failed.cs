@@ -29,9 +29,6 @@
             FailedMessage failedMessageA = null;
             FailedMessage failedMessageB = null;
 
-            List<FailedMessage> exceptionTypeAndStackTraceFailedMessages;
-            List<FailedMessage> messageTypeFailedMessages;
-
             Define(context)
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {
