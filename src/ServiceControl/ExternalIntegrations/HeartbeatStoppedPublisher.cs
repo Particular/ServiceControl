@@ -1,45 +1,20 @@
 namespace ServiceControl.ExternalIntegrations
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Raven.Client;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
 
-    public class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat, HeartbeatStoppedPublisher.DispatchContext>
+    public class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat, HeartbeatStopped>
     {
-        protected override DispatchContext CreateDispatchRequest(EndpointFailedToHeartbeat @event)
+        protected override HeartbeatStopped Convert(EndpointFailedToHeartbeat message)
         {
-            return new DispatchContext
+            return new HeartbeatStopped
             {
-                EndpointHost = @event.Endpoint.Host,
-                EndpointHostId = @event.Endpoint.HostId,
-                EndpointName = @event.Endpoint.Name,
-                DetectedAt = @event.DetectedAt,
-                LastReceivedAt = @event.LastReceivedAt
+                DetectedAt = message.DetectedAt,
+                LastReceivedAt = message.LastReceivedAt,
+                Host = message.Endpoint.Host,
+                HostId = message.Endpoint.HostId,
+                EndpointName = message.Endpoint.Name
             };
-        }
-
-        protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
-        {
-            return contexts.Select(r => new HeartbeatStopped
-            {
-                DetectedAt = r.DetectedAt,
-                LastReceivedAt = r.LastReceivedAt,
-                Host = r.EndpointHost,
-                HostId = r.EndpointHostId,
-                EndpointName = r.EndpointName
-            });
-        }
-
-        public class DispatchContext
-        {
-            public string EndpointName { get; set; }
-            public Guid EndpointHostId { get; set; }
-            public string EndpointHost { get; set; }
-            public DateTime LastReceivedAt { get; set; }
-            public DateTime DetectedAt { get; set; }
         }
     }
 }

@@ -42,7 +42,7 @@ namespace ServiceBus.Management.Infrastructure
 
             var transportType = DetermineTransportType(settings);
 
-            configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
+            configuration.Conventions().DefiningMessagesAs(t => ImplementsMessageInterface(t) || IsExternalContract(t));
             configuration.EndpointName(settings.ServiceName);
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
             var transport = configuration.UseTransport(transportType);
@@ -83,6 +83,11 @@ namespace ServiceBus.Management.Infrastructure
             var errorMsg = $"Configuration of transport Failed. Could not resolve type '{settings.TransportType}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
             logger.Error(errorMsg);
             throw new Exception(errorMsg);
+        }
+
+        static bool ImplementsMessageInterface(Type t)
+        {
+            return (typeof(IMessage).IsAssignableFrom(t) && t != typeof(IMessage));
         }
 
         static bool IsExternalContract(Type t)
