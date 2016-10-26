@@ -98,6 +98,10 @@ namespace ServiceControl.Recoverability
                 retryOperationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), messageCount);
             }
+            else
+            {
+                retryOperationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
+            }
 
             session.Delete(forwardingBatch);
 
