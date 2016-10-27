@@ -164,10 +164,6 @@
       <HintPath>..\packages\NServiceBus.Autofac.5.0.0\lib\net45\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NServiceBus.RavenDB, Version=2.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.RavenDB.2.2.8\lib\net45\NServiceBus.RavenDB.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
       <Private>True</Private>
@@ -286,6 +282,13 @@
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\EventLogItemsCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryEventLogItemsIndex.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\CachedRavenDBPersistence.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\IPrimableSubscriptionStorage.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\MessageTypeConverter.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\PrimeSubscriptions.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\Subscription.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\SubscriptionPersister.cs" />
+    <Compile Include="Infrastructure\RavenDB\Subscriptions\SubscriptionStorage.cs" />
     <Compile Include="Licensing\LicenseCheckFeature.cs" />
     <Compile Include="Licensing\LicenseModule.cs" />
     <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
