@@ -41,7 +41,6 @@
                 throw new Exception("Received an EndpointHeartbeat message without proper initialization of the HostId in the schema");
             }
 
-
             var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString());
             var key = store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(Heartbeat), false);
 

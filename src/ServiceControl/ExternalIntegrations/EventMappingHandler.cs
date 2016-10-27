@@ -8,26 +8,37 @@
 
     public class EventMappingHandler : IHandleMessages<IEvent>
     {
-        public IDocumentSession Session { get; set; }
-        public IEnumerable<IEventPublisher> EventPublishers { get; set; } 
+        private readonly IDocumentStore store;
+        private readonly IEnumerable<IEventPublisher> eventPublishers;
 
+        public EventMappingHandler(IDocumentStore store, IEnumerable<IEventPublisher> eventPublishers)
+        {
+            this.store = store;
+            this.eventPublishers = eventPublishers;
+        }
         public void Handle(IEvent message)
         {
-            var dispatchContexts = EventPublishers
+            var dispatchContexts = eventPublishers
                 .Where(p => p.Handles(message))
                 .Select(p => p.CreateDispatchContext(message));
 
-            foreach (var dispatchContext in dispatchContexts)
+            using (var session = store.OpenSession())
             {
-                if (Logger.IsDebugEnabled)
+                foreach (var dispatchContext in dispatchContexts)
                 {
-                    Logger.DebugFormat("Storing dispatch request.");
+                    if (Logger.IsDebugEnabled)
+                    {
+                        Logger.Debug("Storing dispatch request.");
+                    }
+                    var dispatchRequest = new ExternalIntegrationDispatchRequest
+                    {
+                        DispatchContext = dispatchContext
+                    };
+
+                    session.Store(dispatchRequest);
                 }
-                var dispatchRequest = new ExternalIntegrationDispatchRequest
-                {
-                    DispatchContext = dispatchContext
-                };
-                Session.Store(dispatchRequest);    
+
+                session.SaveChanges();
             }
         }
 

@@ -8,7 +8,6 @@
     using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Persistence;
-    using NServiceBus.Pipeline;
     using Particular.ServiceControl.Licensing;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
@@ -38,25 +37,8 @@
 
             StartRaven(documentStore, settings);
 
-            configuration.RegisterComponents(c => 
-                c.ConfigureComponent(builder =>
-                {
-                    var context = builder.Build<PipelineExecutor>().CurrentContext;
-
-                    IDocumentSession session;
-
-                    if (context.TryGet(out session))
-                    {
-                        return session;
-                    }
-
-                    throw new InvalidOperationException("No session available");
-                }, DependencyLifecycle.InstancePerCall));
-
             configuration.UsePersistence<RavenDBPersistence>()
                 .SetDefaultDocumentStore(documentStore);
-
-            configuration.Pipeline.Register<RavenRegisterStep>();
         }
 
         public static Settings Settings { get; set; }

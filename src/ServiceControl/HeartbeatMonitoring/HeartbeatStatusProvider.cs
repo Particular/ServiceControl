@@ -23,7 +23,6 @@
             {
                 var existingEndpoint = GetEndpoint(endpointDetails);
 
-
                 existingEndpoint.Active = true;
                 existingEndpoint.TimeOfLastHeartbeat = timeOfHeartbeat;
 
@@ -36,7 +35,6 @@
             lock (locker)
             {
                 var existingEndpoint = GetEndpoint(endpointDetails);
-
 
                 existingEndpoint.Active = false;
 
