@@ -24,7 +24,7 @@ namespace ServiceControl.Recoverability
             }
             string context = null;
 
-            if (group != null && group.Title != null)
+            if (@group?.Title != null)
             {
                 context = group.Title;
             }
