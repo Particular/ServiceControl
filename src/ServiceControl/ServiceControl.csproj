@@ -513,6 +513,7 @@
     <Compile Include="Recoverability\Grouping\Groupers\MessageTypeFailureClassifier.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsHandler.cs" />
     <Compile Include="Recoverability\Grouping\Raven\ReclassifyErrorSettings.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\AcknowledgeRetryOperationCompleted.cs" />
     <Compile Include="Recoverability\Grouping\Retries\FailureGroupsRetryApi.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ExceptionTypeAndStackTraceFailureClassifier.cs" />
     <Compile Include="Recoverability\Grouping\FailedMessageClassification.cs" />
@@ -527,6 +528,7 @@
     <Compile Include="Recoverability\Grouping\Retries\PublishingRetryOperationProgressionNotifier.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationCompleted.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryMessagesForwarded.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\RetryOperationCompletedHandler.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationForwarding.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationPreparing.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationProgressionCalculator.cs" />
@@ -538,6 +540,7 @@
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationManager.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryState.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryType.cs" />
+    <Compile Include="Recoverability\Retries\CompletedRetryOperation.cs" />
     <Compile Include="Recoverability\Retries\Handlers\PendingRetriesHandler.cs" />
     <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
     <Compile Include="Recoverability\Retries\FailedMessageRetries.cs" />

@@ -185,6 +185,13 @@ namespace ServiceControl.Recoverability
                     RetryOperationManager.PrepareAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize);
                 }
             }
+
+            var completedOperations = session.Query<CompletedRetryOperation>();
+
+            foreach (var operation in completedOperations)
+            {
+                RetryOperationManager.CompleteAfterRestart(operation.RequestId, operation.RetryType);
+            }
         }
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));

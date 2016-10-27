@@ -82,6 +82,11 @@
             }
         }
 
+        public void CompleteAfterRestart()
+        {
+            RetryState = RetryState.Completed;
+        }
+
         public double GetProgression()
         {
             return RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded);
