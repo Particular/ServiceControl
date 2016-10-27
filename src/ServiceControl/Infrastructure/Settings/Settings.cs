@@ -40,6 +40,7 @@
             ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
+            EventsRetentionPeriod = GetEventRetentionPeriod();
             MaintenanceMode = SettingsReader<bool>.Read("MaintenanceMode");
             Port = SettingsReader<int>.Read("Port", 33333);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
@@ -127,6 +128,8 @@
         public TimeSpan AuditRetentionPeriod { get; }
 
         public TimeSpan ErrorRetentionPeriod { get; }
+
+        public TimeSpan EventsRetentionPeriod { get; }
 
         public int ExpirationProcessBatchSize
         {
@@ -251,6 +254,21 @@
         private static string SanitiseFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
+        }
+
+        private TimeSpan GetEventRetentionPeriod()
+        {
+            var valueRead = SettingsReader<string>.Read("EventRetentionPeriod");
+            if (valueRead != null)
+            {
+                TimeSpan result;
+                if (TimeSpan.TryParse(valueRead, out result))
+                {
+                    return result;
+                }
+            }
+
+            return TimeSpan.FromDays(14);
         }
 
         private TimeSpan GetErrorRetentionPeriod()
