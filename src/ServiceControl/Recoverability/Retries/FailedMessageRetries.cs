@@ -90,26 +90,6 @@
             IDocumentStore store;
         }
 
-        class RebuildRetryGroupStatuses : FeatureStartupTask
-        {
-            public RebuildRetryGroupStatuses(RetryDocumentManager retryDocumentManager, IDocumentStore store)
-            {
-                this.store = store;
-                this.retryDocumentManager = retryDocumentManager;
-            }
-
-            protected override void OnStart()
-            {
-                using (var session = store.OpenSession())
-                {
-                    retryDocumentManager.RebuildRetryOperationState(session);
-                }
-            }
-
-            RetryDocumentManager retryDocumentManager;
-            IDocumentStore store;
-        }
-
         internal class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
         {
             private Timer timer;

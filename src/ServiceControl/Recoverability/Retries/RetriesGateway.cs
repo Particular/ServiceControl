@@ -123,7 +123,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var batchDocumentId = RetryDocumentManager.CreateBatchDocument(requestId, retryType, messageIds.Length, context);
+            var batchDocumentId = retryDocumentManager.CreateBatchDocument(requestId, retryType, messageIds.Length, context);
 
             log.InfoFormat("Created Batch '{0}' with {1} messages for context '{2}'", batchDocumentId, messageIds.Length, context);
 

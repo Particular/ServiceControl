@@ -77,10 +77,6 @@ namespace ServiceControl.Recoverability
 
                         return new
                         {
-                        var summary = RetryOperationSummary.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
-
-                        return new
-                        {
                             Id = failureGroup.Id,
                             Title = failureGroup.Title,
                             Type = failureGroup.Type,

@@ -49,8 +49,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 documentStore.WaitForIndexing();
 
-                var documentManager = new CustomRetryDocumentManager(false);
-                documentManager.Store = documentStore;
+                var documentManager = new CustomRetryDocumentManager(false, documentStore);
                 documentManager.RetryOperationManager = retryManager;
 
                 var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, null, documentStore);
@@ -180,15 +179,12 @@ namespace ServiceControl.UnitTests.Recoverability
 
             documentStore.WaitForIndexing();
 
-            var documentManager = new CustomRetryDocumentManager(progressToStaged);
-            var gateway = new RetriesGateway();
+            var documentManager = new CustomRetryDocumentManager(progressToStaged, documentStore);
+            var gateway = new RetriesGateway(documentStore, documentManager);
 
-            documentManager.Store = documentStore;
             documentManager.RetryOperationManager = retryManager;
 
-            gateway.Store = documentStore;
             gateway.RetryOperationManager = retryManager;
-            gateway.RetryDocumentManager = documentManager;
 
             gateway.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>("Test-group", RetryType.FailureGroup, x => x.FailureGroupId == "Test-group", "Test-Context");
 
@@ -202,8 +198,8 @@ namespace ServiceControl.UnitTests.Recoverability
     {
         private bool progressToStaged;
 
-        public CustomRetryDocumentManager(bool progressToStaged)
-            : base(new ShutdownNotifier())
+        public CustomRetryDocumentManager(bool progressToStaged, IDocumentStore documentStore)
+            : base(new ShutdownNotifier(), documentStore)
         {
             RetrySessionId = Guid.NewGuid().ToString();
             this.progressToStaged = progressToStaged;
