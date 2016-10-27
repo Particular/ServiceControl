@@ -275,6 +275,8 @@
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\EventLogItemsCleaner.cs" />
+    <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryEventLogItemsIndex.cs" />
     <Compile Include="Licensing\LicenseCheckFeature.cs" />
     <Compile Include="Licensing\LicenseModule.cs" />
     <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
