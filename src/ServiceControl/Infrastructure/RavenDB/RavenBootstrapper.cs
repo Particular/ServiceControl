@@ -16,6 +16,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.EndpointControl;
+    using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 
     public class RavenBootstrapper : INeedInitialization
     {
@@ -37,8 +38,7 @@
 
             StartRaven(documentStore, settings);
 
-            configuration.UsePersistence<RavenDBPersistence>()
-                .SetDefaultDocumentStore(documentStore);
+            configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
         }
 
         public static Settings Settings { get; set; }
