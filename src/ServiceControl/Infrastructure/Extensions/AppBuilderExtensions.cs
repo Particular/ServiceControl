@@ -43,6 +43,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             configuration.DisableFeature<AutoSubscribe>();
             configuration.DisableFeature<SecondLevelRetries>();
             configuration.DisableFeature<TimeoutManager>();
+            configuration.DisableFeature<Outbox>();
 
             configuration.UseSerialization<JsonSerializer>();
 
