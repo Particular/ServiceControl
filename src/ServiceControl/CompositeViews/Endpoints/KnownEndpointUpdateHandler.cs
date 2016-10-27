@@ -8,24 +8,34 @@ namespace ServiceControl.CompositeViews.Endpoints
 
     public class KnownEndpointUpdateHandler : IHandleMessages<EnableEndpointMonitoring>, IHandleMessages<DisableEndpointMonitoring>
     {
-        public IDocumentSession Session { get; set; }
+        private readonly IBus bus;
+        private readonly IDocumentStore store;
 
-        public IBus Bus { get; set; }
+        public KnownEndpointUpdateHandler(IBus bus, IDocumentStore store)
+        {
+            this.bus = bus;
+            this.store = store;
+        }
 
         public void Handle(EnableEndpointMonitoring message)
         {
-            var knownEndpoint = Session.Load<KnownEndpoint>(message.EndpointId);
+            KnownEndpoint knownEndpoint;
 
-            if (knownEndpoint == null)
+            using (var session = store.OpenSession())
             {
-                throw new Exception("No endpoint with found with id: " + message.EndpointId);
+                knownEndpoint = session.Load<KnownEndpoint>(message.EndpointId);
+
+                if (knownEndpoint == null)
+                {
+                    throw new Exception($"No endpoint with found with id: {message.EndpointId}");
+                }
+
+                knownEndpoint.Monitored = true;
+
+                session.Store(knownEndpoint);
             }
 
-            knownEndpoint.Monitored = true;
-
-            Session.Store(knownEndpoint);
-
-            Bus.Publish(new MonitoringEnabledForEndpoint
+            bus.Publish(new MonitoringEnabledForEndpoint
             {
                 EndpointInstanceId = message.EndpointId,
                 Endpoint = knownEndpoint.EndpointDetails
@@ -34,18 +44,23 @@ namespace ServiceControl.CompositeViews.Endpoints
 
         public void Handle(DisableEndpointMonitoring message)
         {
-            var knownEndpoint = Session.Load<KnownEndpoint>(message.EndpointId);
+            KnownEndpoint knownEndpoint;
 
-            if (knownEndpoint == null)
+            using (var session = store.OpenSession())
             {
-                throw new Exception("No endpoint with found with id: " + message.EndpointId);
+                knownEndpoint = session.Load<KnownEndpoint>(message.EndpointId);
+
+                if (knownEndpoint == null)
+                {
+                    throw new Exception($"No endpoint with found with id: {message.EndpointId}");
+                }
+
+                knownEndpoint.Monitored = false;
+
+                session.Store(knownEndpoint);
             }
 
-            knownEndpoint.Monitored = false;
-
-            Session.Store(knownEndpoint);
-
-            Bus.Publish(new MonitoringDisabledForEndpoint
+            bus.Publish(new MonitoringDisabledForEndpoint
             {
                 EndpointInstanceId = message.EndpointId,
                 Endpoint = knownEndpoint.EndpointDetails

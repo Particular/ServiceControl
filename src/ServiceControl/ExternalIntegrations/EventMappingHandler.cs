@@ -8,12 +8,17 @@
 
     public class EventMappingHandler : IHandleMessages<IEvent>
     {
-        public IDocumentSession Session { get; set; }
-        public IEnumerable<IEventPublisher> EventPublishers { get; set; } 
+        private readonly IDocumentStore store;
+        private readonly IEnumerable<IEventPublisher> eventPublishers;
 
+        public EventMappingHandler(IDocumentStore store, IEnumerable<IEventPublisher> eventPublishers)
+        {
+            this.store = store;
+            this.eventPublishers = eventPublishers;
+        }
         public void Handle(IEvent message)
         {
-            var dispatchContexts = EventPublishers
+            var dispatchContexts = eventPublishers
                 .Where(p => p.Handles(message))
                 .Select(p => p.CreateDispatchContext(message));
 
@@ -21,13 +26,18 @@
             {
                 if (Logger.IsDebugEnabled)
                 {
-                    Logger.DebugFormat("Storing dispatch request.");
+                    Logger.Debug("Storing dispatch request.");
                 }
                 var dispatchRequest = new ExternalIntegrationDispatchRequest
                 {
                     DispatchContext = dispatchContext
                 };
-                Session.Store(dispatchRequest);    
+
+                using (var session = store.OpenSession())
+                {
+                    session.Store(dispatchRequest);
+                    session.SaveChanges();
+                }
             }
         }
 
