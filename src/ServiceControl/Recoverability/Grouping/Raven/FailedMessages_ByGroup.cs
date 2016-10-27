@@ -28,8 +28,7 @@ namespace ServiceControl.Recoverability
 
             StoreAllFields(FieldStorage.Yes);
 
-            // NB: Is it safe to remove this?
-            //DisableInMemoryIndexing = true;
+            DisableInMemoryIndexing = true;
         }
     }
 }
