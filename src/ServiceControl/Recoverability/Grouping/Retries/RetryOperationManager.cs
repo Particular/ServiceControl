@@ -69,6 +69,18 @@
             summary.Fail();
         }
 
+        public void CompleteAfterRestart(string requestId, RetryType retryType)
+        {
+            var summary = GetOrCreate(retryType, requestId);
+
+            summary.CompleteAfterRestart();
+        }
+
+        public void AcknowledgeCompletion(string requestId, RetryType retryType)
+        {
+            Operations.Remove(RetryOperationSummary.MakeOperationId(requestId, retryType));
+        }
+
         private RetryOperationSummary GetOrCreate(RetryType retryType, string requestId)
         {
             RetryOperationSummary summary;

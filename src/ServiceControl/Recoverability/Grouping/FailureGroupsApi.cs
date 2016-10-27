@@ -153,5 +153,16 @@ namespace ServiceControl.Recoverability
                          .WithEtagAndLastModified(queryResult.IndexEtag, queryResult.IndexTimestamp);
             }
         }
+
+        dynamic AcknowledgeCompletedRetryOperation(string requestId, RetryType retryType)
+        {
+            Bus.SendLocal<AcknowledgeRetryOperationCompleted>(m =>
+            {
+                m.RequestId = requestId;
+                m.RetryType = retryType;
+            });
+
+            return HttpStatusCode.Accepted;
+        }
     }
 }
