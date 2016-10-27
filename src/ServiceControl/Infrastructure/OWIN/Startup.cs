@@ -9,8 +9,10 @@
     using Owin;
     using ServiceControl.Infrastructure.SignalR;
     using Autofac;
+    using Metrics;
     using Microsoft.Owin.Cors;
     using NServiceBus;
+    using Owin.Metrics;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -46,6 +48,14 @@
             {
                 return;
             }
+
+            app.Map("/metrics", b =>
+            {
+                Metric.Config
+                    .WithOwin(middleware => b.Use(middleware), config => config
+                        .WithMetricsEndpoint(endpointConfig => endpointConfig.MetricsEndpoint(String.Empty)))
+                    .WithAllCounters();
+            });
 
             app.Map("/api", b =>
             {
