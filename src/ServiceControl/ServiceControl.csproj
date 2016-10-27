@@ -274,6 +274,7 @@
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
+    <Compile Include="Infrastructure\Extensions\WaitHandleExtensions.cs" />
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\EventLogItemsCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryEventLogItemsIndex.cs" />
