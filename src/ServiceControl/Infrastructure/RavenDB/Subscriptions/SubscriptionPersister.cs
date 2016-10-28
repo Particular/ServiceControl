@@ -196,7 +196,7 @@
                     var existingSubscription = stream.Current.Document;
                     existingSubscription.Clients.Remove(localAddress);
                     subscriptions.All.Add(existingSubscription.Id.Replace("Subscriptions/", String.Empty), existingSubscription);
-                    session.Delete(stream.Current.Key);
+                    session.Advanced.DocumentStore.DatabaseCommands.Delete(stream.Current.Key, null);
                 }
             }
 
