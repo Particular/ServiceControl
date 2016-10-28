@@ -28,14 +28,14 @@
         {
             
         }
+    }
 
-        class CustomConfig : INeedInitialization
+    class CustomConfigForEndpoints : INeedInitialization
+    {
+        public void Customize(BusConfiguration configuration)
         {
-            public void Customize(BusConfiguration configuration)
-            {
-                configuration.UseTransport<RabbitMQTransport>().DisableCallbackReceiver();
-                configuration.EnableOutbox();
-            }
+            configuration.UseTransport<RabbitMQTransport>().DisableCallbackReceiver();
+            configuration.EnableOutbox();
         }
     }
 }
