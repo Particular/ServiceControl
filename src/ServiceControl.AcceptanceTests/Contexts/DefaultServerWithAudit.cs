@@ -147,7 +147,7 @@
 
             types = types.Union(GetNestedTypeRecursive(transportToUse.GetType(), null));
 
-            var extraConfigForEndpoint = Type.GetType($"{transportToUse.GetType().Namespace}.CustomConfigForEndpoints", false);
+            var extraConfigForEndpoint = Type.GetType($"{transportToUse.GetType().Namespace}.{transportToUse.Name}.CustomConfigForEndpoints", false);
             if (extraConfigForEndpoint != null)
             {
                 types = types.Union(new [] {extraConfigForEndpoint});

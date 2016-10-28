@@ -21,14 +21,19 @@
 
         public void TearDown()
         {
-            
+
         }
 
         public void Setup()
         {
-            
+
         }
     }
+}
+
+namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration.RabbitMq
+{
+    using NServiceBus;
 
     class CustomConfigForEndpoints : INeedInitialization
     {
