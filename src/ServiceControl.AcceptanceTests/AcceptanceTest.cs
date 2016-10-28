@@ -32,10 +32,8 @@ namespace ServiceBus.Management.AcceptanceTests
     using NUnit.Framework;
     using Particular.ServiceControl;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
-    using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.SignalR;
-    using AppBuilderExtensions = ServiceBus.Management.Infrastructure.Extensions.AppBuilderExtensions;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
     using LogManager = NServiceBus.Logging.LogManager;
@@ -63,13 +61,13 @@ namespace ServiceBus.Management.AcceptanceTests
 
         private Bootstrapper bootstrapper;
         protected Action<BusConfiguration> CustomConfiguration = _ => { };
-        private ExposeBus exposeBus;
         protected OwinHttpMessageHandler Handler;
 
         private HttpClient httpClient;
         private int port;
         private string ravenPath;
         private ScenarioContext scenarioContext = new ConsoleContext();
+        private IBus bus;
 
         protected Action<Settings> SetSettings = _ => { };
 
@@ -168,7 +166,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 {
                 }
 
-                action(exposeBus.GetBus());
+                action(bus);
             });
         }
 
@@ -582,18 +580,13 @@ namespace ServiceBus.Management.AcceptanceTests
 
             CustomConfiguration(configuration);
 
-            exposeBus = new ExposeBus();
-
             using (new DiagnosticTimer("Initializing Bootstrapper"))
             {
-                bootstrapper = new Bootstrapper(settings, configuration, exposeBus);
+                bootstrapper = new Bootstrapper(settings, configuration);
             }
             using (new DiagnosticTimer("Initializing AppBuilder"))
             {
                 var app = new AppBuilder();
-                var cts = new CancellationTokenSource();
-                app.Properties[AppBuilderExtensions.HostOnAppDisposing] = cts.Token;
-                bootstrapper.WebApp = new Disposable(() => cts.Cancel(false));
                 bootstrapper.Startup.Configuration(app);
                 var appFunc = app.Build();
 
@@ -604,20 +597,10 @@ namespace ServiceBus.Management.AcceptanceTests
                 };
                 httpClient = new HttpClient(Handler);
             }
-        }
 
-        private class Disposable : MarshalByRefObject, IDisposable
-        {
-            private readonly Action dispose;
-
-            public Disposable(Action dispose)
+            using (new DiagnosticTimer("Creating and starting Bus"))
             {
-                this.dispose = dispose;
-            }
-
-            public void Dispose()
-            {
-                dispose();
+                bus = bootstrapper.Start(true);
             }
         }
 

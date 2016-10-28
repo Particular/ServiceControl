@@ -41,7 +41,6 @@
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
-            MaintenanceMode = SettingsReader<bool>.Read("MaintenanceMode");
             Port = SettingsReader<int>.Read("Port", 33333);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = 10;
@@ -52,8 +51,6 @@
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
         public int MaximumMessageThroughputPerSecond => SettingsReader<int>.Read("MaximumMessageThroughputPerSecond", 350);
-
-        public bool MaintenanceMode { get; set; }
 
         public bool DisableRavenDBPerformanceCounters { get; set; }
 
@@ -77,8 +74,6 @@
         public string StorageUrl => $"{RootUrl}storage";
 
         public int Port { get; set; }
-
-        public bool SetupOnly { get; set; }
 
         public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
