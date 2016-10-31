@@ -7,14 +7,21 @@
 
     public class GlobalEventHandler : IHandleMessages<IEvent>
     {
-        public MessageMetadataRegistry MessageMetadataRegistry { get; set; }
+        static string[] emptyArray = new string[0];
+
+        private readonly MessageMetadataRegistry registry;
+
+        public GlobalEventHandler(MessageMetadataRegistry registry)
+        {
+            this.registry = registry;
+        }
 
         public void Handle(IEvent @event)
         {
-            var metadata = MessageMetadataRegistry.GetMessageMetadata(@event.GetType());
+            var metadata = registry.GetMessageMetadata(@event.GetType());
             var context = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
 
-            context.Connection.Broadcast(new Envelope { Types = metadata.MessageHierarchy.Select(t=>t.Name).ToList(), Message = @event })
+            context.Connection.Broadcast(new Envelope { Types = metadata.MessageHierarchy.Select(t=>t.Name).ToList(), Message = @event }, emptyArray)
                  .Wait();
         }
     }
