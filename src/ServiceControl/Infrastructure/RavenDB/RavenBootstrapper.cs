@@ -36,14 +36,14 @@
 
             Settings = settings;
 
-            StartRaven(documentStore, settings);
+            StartRaven(documentStore, settings, false);
 
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
         }
 
         public static Settings Settings { get; set; }
 
-        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode = false)
+        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode)
         {
             Directory.CreateDirectory(settings.DbPath);
 
