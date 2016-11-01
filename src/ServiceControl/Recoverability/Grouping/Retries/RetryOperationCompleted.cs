@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Recoverability
 {
+    using System;
     using NServiceBus;
 
     public class RetryOperationCompleted : IEvent
@@ -8,5 +9,6 @@
         public RetryType RetryType { get; set; }
         public bool Failed { get; set; }
         public double Progression { get; set; }
+        public DateTime CompletionDate { get; internal set; }
     }
 }
