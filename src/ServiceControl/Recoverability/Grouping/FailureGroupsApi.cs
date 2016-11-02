@@ -68,7 +68,7 @@ namespace ServiceControl.Recoverability
             {
                 var retryHistory = session.Load<RetryOperationsHistory>(RetryOperationsHistory.MakeId()) ?? RetryOperationsHistory.CreateNew();
 
-                return retryHistory;
+                return Negotiate.WithModel(retryHistory);
             }
         }
 
