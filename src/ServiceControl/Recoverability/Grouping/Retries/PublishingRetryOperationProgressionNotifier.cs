@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using NServiceBus;
+    using System;
 
     public class PublishingRetryOperationProgressionNotifier : IRetryOperationProgressionNotifier
     {
@@ -78,6 +79,7 @@
                 e.RetryType = retryType;
                 e.Failed = failed;
                 e.Progression = progression;
+                e.CompletionDate = DateTime.Now;
             });
         }
     }

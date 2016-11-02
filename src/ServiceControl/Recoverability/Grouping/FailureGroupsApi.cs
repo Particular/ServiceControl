@@ -39,6 +39,9 @@ namespace ServiceControl.Recoverability
 
             Head["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrorsCount(parameters.GroupId);
+
+            Get["/recoverability/history/"] =
+            _ => GetRetryHistory();
         }
 
         dynamic ReclassifyErrors()
@@ -60,6 +63,16 @@ namespace ServiceControl.Recoverability
 
             return Negotiate.WithModel(classifiers)
                 .WithTotalCount(classifiers.Length);
+        }
+
+        dynamic GetRetryHistory()
+        {
+            using (var session = Store.OpenSession())
+            {
+                var retryHistory = session.Load<RetryOperationsHistory>(RetryOperationsHistory.MakeId()) ?? RetryOperationsHistory.CreateNew();
+
+                return Negotiate.WithModel(retryHistory);
+            }
         }
 
         dynamic GetAllGroups(string classifier)
