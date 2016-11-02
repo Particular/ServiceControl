@@ -10,8 +10,6 @@ using ServiceControl.UnitTests.Operations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NServiceBus;
 using NServiceBus.Unicast;
 using NServiceBus.ObjectBuilder.Common;
@@ -49,8 +47,10 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 documentStore.WaitForIndexing();
 
-                var documentManager = new CustomRetryDocumentManager(false, documentStore);
-                documentManager.RetryOperationManager = retryManager;
+                var documentManager = new CustomRetryDocumentManager(false, documentStore)
+                {
+                    RetryOperationManager = retryManager
+                };
 
                 var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, null, documentStore);
                 orphanage.AdoptOrphanedBatches();
@@ -214,7 +214,7 @@ namespace ServiceControl.UnitTests.Recoverability
         }
     }
 
-    public class TestContainer : NServiceBus.ObjectBuilder.Common.IContainer
+    public class TestContainer : IContainer
     {
         public object Build(Type typeToBuild)
         {
