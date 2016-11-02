@@ -39,6 +39,9 @@ namespace ServiceControl.Recoverability
 
             Head["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrorsCount(parameters.GroupId);
+
+            Get["/recoverability/history/"] =
+            _ => GetRetryHistory();
         }
 
         dynamic ReclassifyErrors()
