@@ -59,6 +59,16 @@ namespace ServiceControl.Recoverability
                 .WithTotalCount(classifiers.Length);
         }
 
+        dynamic GetRetryHistory()
+        {
+            using (var session = Store.OpenSession())
+            {
+                var retryHistory = session.Load<RetryOperationsHistory>(RetryOperationsHistory.MakeId()) ?? RetryOperationsHistory.CreateNew();
+
+                return retryHistory;
+            }
+        }
+
         dynamic GetAllGroups(string classifier)
         {
             using (var session = Store.OpenSession())
