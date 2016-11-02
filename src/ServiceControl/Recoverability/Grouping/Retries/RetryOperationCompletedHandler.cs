@@ -7,7 +7,7 @@
 
     public class RetryOperationCompletedHandler : IHandleMessages<RetryOperationCompleted>
     {
-        private readonly Settings settings;
+        public Settings Settings { get; set; }
         public IDocumentStore Store { get; set; }
         public RetryOperationManager RetryOperationManager { get; set; }
 
@@ -26,7 +26,7 @@
 
                 retryHistory.PreviousOperations = retryHistory.PreviousOperations.Union(new[] { completedOperation })
                     .OrderByDescending(retry => retry.CompletionDate)
-                    .Take(settings.RetryHistoryDepth)
+                    .Take(Settings.RetryHistoryDepth)
                     .ToArray();
 
                 session.Store(retryHistory);
