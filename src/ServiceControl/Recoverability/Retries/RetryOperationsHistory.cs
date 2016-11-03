@@ -3,7 +3,7 @@
     public class RetryOperationsHistory
     {
         public string Id { get; set; }
-        public CompletedRetryOperation[] PreviousOperations { get; set; }
+        public CompletedRetryOperation[] PreviousFullyCompletedOperations { get; set; }
 
         public static string MakeId()
         {
@@ -14,7 +14,7 @@
         {
             return new RetryOperationsHistory
             {
-                PreviousOperations = new CompletedRetryOperation[0],
+                PreviousFullyCompletedOperations = new CompletedRetryOperation[0],
                 Id = MakeId()
             };
         }

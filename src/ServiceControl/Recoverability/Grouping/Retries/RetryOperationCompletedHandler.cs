@@ -13,6 +13,11 @@
 
         public void Handle(RetryOperationCompleted message)
         {
+            if (message.Failed)
+            {
+                return;
+            }
+
             var completedOperation = new CompletedRetryOperation
             {
                 RequestId = message.RequestId,
@@ -24,7 +29,7 @@
             {
                 var retryHistory = session.Load<RetryOperationsHistory>(RetryOperationsHistory.MakeId()) ?? RetryOperationsHistory.CreateNew();
 
-                retryHistory.PreviousOperations = retryHistory.PreviousOperations.Union(new[] { completedOperation })
+                retryHistory.PreviousFullyCompletedOperations = retryHistory.PreviousFullyCompletedOperations.Union(new[] { completedOperation })
                     .OrderByDescending(retry => retry.CompletionDate)
                     .Take(Settings.RetryHistoryDepth)
                     .ToArray();
