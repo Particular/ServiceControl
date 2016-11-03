@@ -114,7 +114,7 @@ namespace ServiceControl.Recoverability
 
         private DateTime? GetCompletionTime(RetryOperationSummary summary, RetryOperationsHistory history, string requestId, RetryType retryType)
         {
-            if (summary.CompletionTime != null) //a completed summary is always the most fresh, if it exists
+            if (summary?.CompletionTime != null) //a completed summary is always the most fresh, if it exists
             {
                 return summary.CompletionTime.Value;
             }
