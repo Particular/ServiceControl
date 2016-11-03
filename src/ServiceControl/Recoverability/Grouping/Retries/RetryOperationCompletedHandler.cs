@@ -22,7 +22,7 @@
             {
                 RequestId = message.RequestId,
                 RetryType = message.RetryType,
-                CompletionDate = message.CompletionTime
+                CompletionTime = message.CompletionTime
             };
 
             using (var session = Store.OpenSession())
@@ -30,7 +30,7 @@
                 var retryHistory = session.Load<RetryOperationsHistory>(RetryOperationsHistory.MakeId()) ?? RetryOperationsHistory.CreateNew();
 
                 retryHistory.PreviousFullyCompletedOperations = retryHistory.PreviousFullyCompletedOperations.Union(new[] { completedOperation })
-                    .OrderByDescending(retry => retry.CompletionDate)
+                    .OrderByDescending(retry => retry.CompletionTime)
                     .Take(Settings.RetryHistoryDepth)
                     .ToArray();
 

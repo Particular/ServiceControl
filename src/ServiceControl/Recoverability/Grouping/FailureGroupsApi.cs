@@ -114,17 +114,17 @@ namespace ServiceControl.Recoverability
 
         private DateTime? GetCompletionTime(RetryOperationSummary summary, RetryOperationsHistory history, string requestId, RetryType retryType)
         {
-            if (summary.CompletionTime != null) //summary is always the most fresh, if it exists
+            if (summary.CompletionTime != null) //a completed summary is always the most fresh, if it exists
             {
                 return summary.CompletionTime.Value;
             }
 
             var previous = history.PreviousFullyCompletedOperations 
                 .Where(v => v.RequestId == requestId && v.RetryType == retryType)
-                .OrderByDescending(v => v.CompletionDate)
+                .OrderByDescending(v => v.CompletionTime)
                 .FirstOrDefault();
 
-            return previous?.CompletionDate;
+            return previous?.CompletionTime;
         }
 
         dynamic GetAllGroupsCount(string classifier)
