@@ -7,6 +7,6 @@ namespace ServiceControl.Recoverability
     {
         public string RequestId { get; set; }
         public RetryType RetryType { get; set; }
-        public DateTime CompletionDate { get; set; }
+        public DateTime CompletionTime { get; set; }
     }
 }

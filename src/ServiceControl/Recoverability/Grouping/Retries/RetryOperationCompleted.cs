@@ -9,6 +9,6 @@
         public RetryType RetryType { get; set; }
         public bool Failed { get; set; }
         public double Progression { get; set; }
-        public DateTime CompletionDate { get; internal set; }
+        public DateTime CompletionTime { get; set; }
     }
 }

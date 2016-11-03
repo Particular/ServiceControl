@@ -13,19 +13,24 @@
 
         public void Handle(RetryOperationCompleted message)
         {
+            if (message.Failed)
+            {
+                return;
+            }
+
             var completedOperation = new CompletedRetryOperation
             {
                 RequestId = message.RequestId,
                 RetryType = message.RetryType,
-                CompletionDate = message.CompletionDate
+                CompletionTime = message.CompletionTime
             };
 
             using (var session = Store.OpenSession())
             {
                 var retryHistory = session.Load<RetryOperationsHistory>(RetryOperationsHistory.MakeId()) ?? RetryOperationsHistory.CreateNew();
 
-                retryHistory.PreviousOperations = retryHistory.PreviousOperations.Union(new[] { completedOperation })
-                    .OrderByDescending(retry => retry.CompletionDate)
+                retryHistory.PreviousFullyCompletedOperations = retryHistory.PreviousFullyCompletedOperations.Union(new[] { completedOperation })
+                    .OrderByDescending(retry => retry.CompletionTime)
                     .Take(Settings.RetryHistoryDepth)
                     .ToArray();
 

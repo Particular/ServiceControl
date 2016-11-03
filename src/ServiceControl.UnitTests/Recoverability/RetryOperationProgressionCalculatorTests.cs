@@ -9,42 +9,42 @@
         [Test]
         public void Completed_should_be_100_percentage()
         {
-            var calculated = RetryOperationProgressionCalculator.CalculateProgression(2000, 2000, 2000);
+            var calculated = RetryOperationProgressionCalculator.CalculateProgression(2000, 2000, 2000, RetryState.Completed);
             Assert.AreEqual(1.0, calculated);
         }
 
         [Test]
-        public void Waiting_should_be_5_percentage()
+        public void Waiting_should_be_0_percentage()
         {
-            var calculated = RetryOperationProgressionCalculator.CalculateProgression(0, 0, 0);
-            Assert.AreEqual(0.05, calculated);
+            var calculated = RetryOperationProgressionCalculator.CalculateProgression(0, 0, 0, RetryState.Waiting);
+            Assert.AreEqual(0.0, calculated);
         }
 
         [Test]
-        public void Preparing_should_be_28point75_percentage()
+        public void Preparing_half_done_should_be_50_percentage()
         {
-            var calculated = RetryOperationProgressionCalculator.CalculateProgression(2000, 1000, 0);
-            Assert.AreEqual(0.2875, calculated);
+            var calculated = RetryOperationProgressionCalculator.CalculateProgression(2000, 1000, 0, RetryState.Preparing);
+            Assert.AreEqual(0.5, calculated);
         }
 
         [Test]
-        public void Preparing_should_be_52point5_percentage()
+        public void Preparing_done_should_be_100_percentage()
         {
-            var calculated = RetryOperationProgressionCalculator.CalculateProgression(2000, 2000, 0);
-            Assert.AreEqual(0.525, calculated);
+            var calculated = RetryOperationProgressionCalculator.CalculateProgression(2000, 2000, 0, RetryState.Preparing);
+            Assert.AreEqual(1.0, calculated);
         }
 
         [Test]
-        public void Forwarding_should_be_76point25_percentage()
+        public void Forwarding_half_done_should_be_50_percentage()
         {
-            var calculated = RetryOperationProgressionCalculator.CalculateProgression(2000, 2000, 1000);
-            Assert.AreEqual(0.7625, calculated);
+            var calculated = RetryOperationProgressionCalculator.CalculateProgression(2000, 2000, 1000, RetryState.Forwarding);
+            Assert.AreEqual(0.50, calculated);
         }
 
         [Test]
-        public void Forwarding_should_be_100_percentage()
+        public void Forwarding_done_should_be_100_percentage()
         {
-            var calculated = RetryOperationProgressionCalculator.CalculateProgression(2000, 2000, 2000);
+            var calculated = RetryOperationProgressionCalculator.CalculateProgression(2000, 2000, 2000, RetryState.Forwarding);
             Assert.AreEqual(1.0, calculated);
         }
     }

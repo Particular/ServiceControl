@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Recoverability
 {
+    using System;
+
     public class RetryOperationSummary
     {
         public RetryOperationSummary(string requestId, RetryType retryType)
@@ -12,10 +14,12 @@
         public int TotalNumberOfMessages { get; private set; }
         public int NumberOfMessagesPrepared { get; private set; }
         public int NumberOfMessagesForwarded { get; private set; }
+        public DateTime? CompletionTime { get; private set; }
         public bool Failed { get; private set; }
         public RetryState RetryState { get; private set; }
         private readonly string requestId;
         private readonly RetryType retryType;
+        
 
         public static string MakeOperationId(string requestId, RetryType retryType)
         {
@@ -28,6 +32,7 @@
             NumberOfMessagesPrepared = 0;
             NumberOfMessagesForwarded = 0;
             TotalNumberOfMessages = 0;
+            CompletionTime = null;
 
             Notifier?.Wait(requestId, retryType, GetProgression());
         }
@@ -77,14 +82,15 @@
             if (NumberOfMessagesForwarded == TotalNumberOfMessages)
             {
                 RetryState = RetryState.Completed;
+                CompletionTime = DateTime.Now;
 
-                Notifier?.Completed(requestId, retryType, Failed, GetProgression());
+                Notifier?.Completed(requestId, retryType, Failed, GetProgression(), CompletionTime.Value);
             }
         }
 
         public double GetProgression()
         {
-            return RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded);
+            return RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded, RetryState);
         }
     }
 }
