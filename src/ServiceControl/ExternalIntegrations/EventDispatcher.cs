@@ -124,8 +124,9 @@
         {
             using (var session = store.OpenSession())
             {
-                var awaitingDispatching = session.Query<ExternalIntegrationDispatchRequest>().Take(settings.ExternalIntegrationsDispatchingBatchSize);
-                if (!awaitingDispatching.Any())
+                var awaitingDispatching = session.Query<ExternalIntegrationDispatchRequest>().Take(settings.ExternalIntegrationsDispatchingBatchSize).ToArray();
+
+                if (awaitingDispatching.Length == 0)
                 {
                     return false;
                 }
