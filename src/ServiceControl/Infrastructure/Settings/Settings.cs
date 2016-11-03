@@ -259,6 +259,21 @@
                 TimeSpan result;
                 if (TimeSpan.TryParse(valueRead, out result))
                 {
+                    string message;
+                    if (result < TimeSpan.FromHours(1))
+                    {
+                        message = "EventRetentionPeriod settings is invalid, value should be minimum 1 hour.";
+                        logger.Fatal(message);
+                        throw new Exception(message);
+                    }
+
+                    if (result > TimeSpan.FromDays(200))
+                    {
+                        message = "EventRetentionPeriod settings is invalid, value should be maximum 200 days.";
+                        logger.Fatal(message);
+                        throw new Exception(message);
+                    }
+
                     return result;
                 }
             }
