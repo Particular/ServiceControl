@@ -19,8 +19,8 @@ namespace ServiceControl.Recoverability
 
         private IDocumentStore store;
         private RetryDocumentManager retryDocumentManager;
+        public RetryOperationManager RetryOperationManager { get; set; }
         private ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
-
         public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager)
         {
             this.store = store;
@@ -29,6 +29,8 @@ namespace ServiceControl.Recoverability
 
         interface IBulkRetryRequest
         {
+            string RequestId { get; }
+            RetryType RetryType { get; }
             IEnumerator<StreamResult<FailedMessage>> GetDocuments(IDocumentSession session);
             string GetBatchName(int pageNum, int totalPages);
         }
@@ -40,11 +42,17 @@ namespace ServiceControl.Recoverability
             string context;
             Expression<Func<TType, bool>> filter;
 
-            public IndexBasedBulkRetryRequest(string context, Expression<Func<TType, bool>> filter)
+            public IndexBasedBulkRetryRequest(string requestId, RetryType retryType, string context, Expression<Func<TType, bool>> filter)
             {
+                RequestId = requestId;
+                RetryType = retryType;
                 this.context = context;
                 this.filter = filter;
             }
+
+            public string RequestId { get; set; }
+            public RetryType RetryType { get; set; }
+
 
             public IEnumerator<StreamResult<FailedMessage>> GetDocuments(IDocumentSession session)
             {
@@ -70,7 +78,7 @@ namespace ServiceControl.Recoverability
 
         IList<string[]> GetRequestedBatches(IBulkRetryRequest request)
         {
-            var batches = new List<string[]>();
+            var response = new List<string[]>();
             var currentBatch = new List<string>(BatchSize);
 
             using (var session = store.OpenSession())
@@ -81,32 +89,33 @@ namespace ServiceControl.Recoverability
                     currentBatch.Add(stream.Current.Document.UniqueMessageId);
                     if (currentBatch.Count == BatchSize)
                     {
-                        batches.Add(currentBatch.ToArray());
+                        response.Add(currentBatch.ToArray());
+
                         currentBatch.Clear();
                     }
                 }
 
                 if (currentBatch.Any())
                 {
-                    batches.Add(currentBatch.ToArray());
+                    response.Add(currentBatch.ToArray());
                 }
             }
 
-            return batches;
+            return response;
         }
 
-        public void StartRetryForIndex<TType, TIndex>(Expression<Func<TType, bool>> filter = null, string context = null)
+        public void StartRetryForIndex<TType, TIndex>(string requestId, RetryType retryType, Expression<Func<TType, bool>> filter = null, string context = null)
             where TIndex : AbstractIndexCreationTask, new()
             where TType : IHaveStatus
         {
             log.InfoFormat("Enqueuing index based bulk retry '{0}'", context);
 
-            var request = new IndexBasedBulkRetryRequest<TType, TIndex>(context, filter);
+            var request = new IndexBasedBulkRetryRequest<TType, TIndex>(requestId, retryType, context, filter);
 
             bulkRequests.Enqueue(request);
         }
 
-        public void StageRetryByUniqueMessageIds(string[] messageIds, string context = null)
+        public void StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, string context = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
@@ -114,7 +123,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var batchDocumentId = retryDocumentManager.CreateBatchDocument(context);
+            var batchDocumentId = retryDocumentManager.CreateBatchDocument(requestId, retryType, messageIds.Length, context);
 
             log.InfoFormat("Created Batch '{0}' with {1} messages for context '{2}'", batchDocumentId, messageIds.Length, context);
 
@@ -148,9 +157,17 @@ namespace ServiceControl.Recoverability
         {
             var batches = GetRequestedBatches(request);
 
+            var numberOfMessagesAdded = 0;
+            var totalMessages = batches.Sum(b => b.Length);
+
+            RetryOperationManager.Prepairing(request.RequestId, request.RetryType, totalMessages);
+
             for (var i = 0; i < batches.Count; i++)
             {
-                StageRetryByUniqueMessageIds(batches[i], request.GetBatchName(i + 1, batches.Count));
+                StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.GetBatchName(i + 1, batches.Count));
+                numberOfMessagesAdded += batches[i].Length;
+
+                RetryOperationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);
             }
         }
 

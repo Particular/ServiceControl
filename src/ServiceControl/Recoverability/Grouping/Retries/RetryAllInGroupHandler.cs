@@ -15,6 +15,8 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
+ 			RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup);
+
             FailureGroupView group;
 
             using (var session = Store.OpenSession())
@@ -29,11 +31,12 @@ namespace ServiceControl.Recoverability
                 context = group.Title;
             }
 
-            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(x => x.FailureGroupId == message.GroupId, context);
+            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, x => x.FailureGroupId == message.GroupId, context);
         }
 
         public RetriesGateway Retries { get; set; }
         public IDocumentStore Store { get; set; }
+		public RetryOperationManager RetryOperationManager { get; set; }
 
         static ILog log = LogManager.GetLogger(typeof(RetryAllInGroupHandler));
     }

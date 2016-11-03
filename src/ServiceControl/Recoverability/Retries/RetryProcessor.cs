@@ -28,32 +28,22 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender)
+        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender, RetryOperationManager retryOperationManager)
         {
             this.bodyStorage = bodyStorage;
             this.sender = sender;
             this.bus = bus;
             this.returnToSender = returnToSender;
+            this.retryOperationManager = retryOperationManager;
         }
 
         public bool ProcessBatches(IDocumentSession session)
         {
-            var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-                .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
+            return ForwardCurrentBatch(session) || MoveStagedBatchesToForwardingBatch(session);
+        }
 
-            if (nowForwarding != null)
-            {
-                var forwardingBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
-
-                if (forwardingBatch != null)
-                {
-                    Forward(forwardingBatch, session);
-                }
-
-                session.Delete(nowForwarding);
-                return true;
-            }
-
+        private bool MoveStagedBatchesToForwardingBatch(IDocumentSession session)
+        {
             isRecoveringFromPrematureShutdown = false;
 
             var stagingBatch = session.Query<RetryBatch>()
@@ -74,20 +64,51 @@ namespace ServiceControl.Recoverability
             return false;
         }
 
+        private bool ForwardCurrentBatch(IDocumentSession session)
+        {
+            var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
+                .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
+
+            if (nowForwarding != null)
+            {
+                var forwardingBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
+
+                if (forwardingBatch != null)
+                {
+                    Forward(forwardingBatch, session);
+                }
+
+                session.Delete(nowForwarding);
+                return true;
+            }
+
+            return false;
+        }
+
         void Forward(RetryBatch forwardingBatch, IDocumentSession session)
         {
             var messageCount = forwardingBatch.FailureRetries.Count;
-
             if (isRecoveringFromPrematureShutdown)
             {
+                retryOperationManager.ForwardingAfterRestart(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId));
             }
             else if (messageCount > 0)
             {
+                retryOperationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), messageCount);
+            }
+            else
+            {
+                retryOperationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
             }
 
             session.Delete(forwardingBatch);
+
+            if (!string.IsNullOrWhiteSpace(forwardingBatch.RequestId))
+            {
+                retryOperationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
+            }
 
             Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
         }
@@ -209,6 +230,7 @@ namespace ServiceControl.Recoverability
         ISendMessages sender;
         IBus bus;
         ReturnToSenderDequeuer returnToSender;
+        RetryOperationManager retryOperationManager;
         private MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
     }

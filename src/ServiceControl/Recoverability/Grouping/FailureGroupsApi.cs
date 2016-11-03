@@ -16,6 +16,8 @@ namespace ServiceControl.Recoverability
     {
         public IBus Bus { get; set; }
 
+        public RetryOperationManager RetryOperationManager { get; set; }
+
         public IEnumerable<IFailureClassifier> Classifiers { get; set; }
 
         public FailureGroupsApi()
@@ -37,6 +39,9 @@ namespace ServiceControl.Recoverability
 
             Head["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrorsCount(parameters.GroupId);
+
+            Get["/recoverability/history/"] =
+            _ => GetRetryHistory();
         }
 
         dynamic ReclassifyErrors()
@@ -57,6 +62,16 @@ namespace ServiceControl.Recoverability
                 .WithTotalCount(classifiers.Length);
         }
 
+        dynamic GetRetryHistory()
+        {
+            using (var session = Store.OpenSession())
+            {
+                var retryHistory = session.Load<RetryOperationsHistory>(RetryOperationsHistory.MakeId()) ?? RetryOperationsHistory.CreateNew();
+
+                return Negotiate.WithModel(retryHistory);
+            }
+        }
+
         dynamic GetAllGroups(string classifier)
         {
             using (var session = Store.OpenSession())
@@ -68,7 +83,24 @@ namespace ServiceControl.Recoverability
                     .Where(v => v.Type == classifier)
                     .OrderByDescending(x => x.Last)
                     .Take(200)
-                    .ToArray();
+                    .ToArray()
+                    .Select(failureGroup =>
+                    {
+                        var summary = RetryOperationManager.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
+
+                        return new
+                        {
+                            Id = failureGroup.Id,
+                            Title = failureGroup.Title,
+                            Type = failureGroup.Type,
+                            Count = failureGroup.Count,
+                            First = failureGroup.First,
+                            Last = failureGroup.Last,
+                            RetryStatus = summary?.RetryState.ToString() ?? "None",
+                            Failed = summary?.Failed,
+                            RetryProgress = summary?.GetProgression() ?? 0.0
+                        };
+                    });
 
                 return Negotiate.WithModel(results)
                     .WithTotalCount(stats)
