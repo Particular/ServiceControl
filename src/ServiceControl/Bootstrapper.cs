@@ -7,7 +7,6 @@ namespace Particular.ServiceControl
     using System.ServiceProcess;
     using Autofac;
     using global::ServiceControl.Infrastructure;
-    using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
     using Microsoft.Owin.Hosting;
     using NLog;
@@ -17,7 +16,7 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using Raven.Client;
     using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure.Extensions;
+    using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
     using LogLevel = NLog.LogLevel;
@@ -27,13 +26,12 @@ namespace Particular.ServiceControl
     {
         private BusConfiguration configuration;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
-        private ExposeBus exposeBus;
         private ServiceBase host;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
         private TimeKeeper timeKeeper;
         private IContainer container;
-
+        private IBus bus;
         public IDisposable WebApp;
 
         // Windows Service
@@ -44,26 +42,10 @@ namespace Particular.ServiceControl
             Initialize();
         }
 
-        // MaintCommand
-        public Bootstrapper(Settings settings)
-        {
-            this.settings = settings;
-            Initialize();
-        }
-
-        // SetupCommand
+        // Acceptance Tests
         public Bootstrapper(Settings settings, BusConfiguration configuration)
         {
             this.configuration = configuration;
-            this.settings = settings;
-            Initialize();
-        }
-
-        // Testing
-        public Bootstrapper(Settings settings, BusConfiguration configuration, ExposeBus exposeBus)
-        {
-            this.configuration = configuration;
-            this.exposeBus = exposeBus;
             this.settings = settings;
             Initialize();
         }
@@ -96,42 +78,34 @@ namespace Particular.ServiceControl
             }
 
             container = containerBuilder.Build();
-            Startup = new Startup(container, host, settings, documentStore, configuration, exposeBus);
+            Startup = new Startup(container);
         }
 
-        public void Start()
+        public IBus Start(bool isRunningAcceptanceTests = false)
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            if (settings.MaintenanceMode)
+            if (!isRunningAcceptanceTests)
             {
-                new RavenBootstrapper().StartRaven(documentStore, settings);
+                var startOptions = new StartOptions(settings.RootUrl);
 
-                logger.InfoFormat("RavenDB is now accepting requests on {0}", settings.StorageUrl);
-
-                if (Environment.UserInteractive)
-                {
-                    logger.Warn("RavenDB Maintenance Mode - Press Enter to exit");
-                    while (Console.ReadLine() == null)
-                    {
-                    }
-                }
-
-                return;
+                WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
             }
 
-            var startOptions = new StartOptions(settings.RootUrl);
-            WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, Startup.Configuration);
+            bus = NServiceBusFactory.CreateAndStart(settings, container, host, documentStore, configuration);
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
+
+            return bus;
         }
 
         public void Stop()
         {
             notifier.Dispose();
-            WebApp?.Dispose();
+            bus?.Dispose();
             timeKeeper.Dispose();
             documentStore.Dispose();
+            WebApp?.Dispose();
             container.Dispose();
         }
 

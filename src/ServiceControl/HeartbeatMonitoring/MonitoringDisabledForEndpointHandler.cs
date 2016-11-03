@@ -8,34 +8,43 @@
 
     class MonitoringDisabledForEndpointHandler : IHandleMessages<MonitoringDisabledForEndpoint>
     {
-        public HeartbeatStatusProvider StatusProvider { get; set; }
+        private readonly IBus bus;
+        private readonly IDocumentStore store;
+        private readonly HeartbeatStatusProvider statusProvider;
 
-        public IDocumentSession Session { get; set; }
-
-        public IBus Bus { get; set; }
+        public MonitoringDisabledForEndpointHandler(IBus bus, IDocumentStore store, HeartbeatStatusProvider statusProvider)
+        {
+            this.bus = bus;
+            this.store = store;
+            this.statusProvider = statusProvider;
+        }
 
         public void Handle(MonitoringDisabledForEndpoint message)
         {
             // The user could be disabling an endpoint that had the heartbeats plugin, or not.
             // Check to see if the endpoint had associated heartbeat.
-            var heartbeat = Session.Load<Heartbeat>(message.EndpointInstanceId);
-            if (heartbeat != null)
+            using (var session = store.OpenSession())
             {
-                if (heartbeat.Disabled)
+                var heartbeat = session.Load<Heartbeat>(message.EndpointInstanceId);
+                if (heartbeat != null)
                 {
-                    Logger.InfoFormat("Heartbeat monitoring for endpoint {0} is already disabled", message.EndpointInstanceId);
-                    return;
+                    if (heartbeat.Disabled)
+                    {
+                        Logger.Info($"Heartbeat monitoring for endpoint {message.EndpointInstanceId} is already disabled");
+                        return;
+                    }
+                    heartbeat.Disabled = true;
+
+                    session.SaveChanges();
                 }
-                heartbeat.Disabled = true;
-                Session.Store(heartbeat);
-            }
-            else
-            {
-                Logger.InfoFormat("Heartbeat for endpoint {0} not found. Possible cause is that the endpoint may not have the plug in installed.", message.EndpointInstanceId);
+                else
+                {
+                    Logger.Info($"Heartbeat for endpoint {message.EndpointInstanceId} not found. Possible cause is that the endpoint may not have the plug in installed.");
+                }
             }
 
-            StatusProvider.DisableMonitoring(message.Endpoint);
-            Bus.Publish(new HeartbeatMonitoringDisabled
+            statusProvider.DisableMonitoring(message.Endpoint);
+            bus.Publish(new HeartbeatMonitoringDisabled
             {
                 EndpointInstanceId = message.EndpointInstanceId
             });

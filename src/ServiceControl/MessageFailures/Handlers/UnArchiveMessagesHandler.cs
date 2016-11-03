@@ -8,23 +8,40 @@
 
     public class UnArchiveMessagesHandler : IHandleMessages<UnArchiveMessages>
     {
-        public IDocumentSession Session { get; set; }
+        private readonly IBus bus;
+        private readonly IDocumentStore store;
 
-        public IBus Bus { get; set; }
+        public UnArchiveMessagesHandler(IBus bus, IDocumentStore store)
+        {
+            this.bus = bus;
+            this.store = store;
+        }
 
         public void Handle(UnArchiveMessages messages)
         {
-            var failedMessages = Session.Load<FailedMessage>(messages.FailedMessageIds.Select(FailedMessage.MakeDocumentId));
+            FailedMessage[] failedMessages;
 
-            foreach (var failedMessage in failedMessages)
+            using (var session = store.OpenSession())
             {
-                if (failedMessage.Status == FailedMessageStatus.Archived)
+                session.Advanced.UseOptimisticConcurrency = true;
+
+                failedMessages = session.Load<FailedMessage>(messages.FailedMessageIds.Select(FailedMessage.MakeDocumentId));
+
+                foreach (var failedMessage in failedMessages)
                 {
-                    failedMessage.Status = FailedMessageStatus.Unresolved;
+                    if (failedMessage.Status == FailedMessageStatus.Archived)
+                    {
+                        failedMessage.Status = FailedMessageStatus.Unresolved;
+                    }
                 }
+
+                session.SaveChanges();
             }
 
-            Bus.Publish<FailedMessagesUnArchived>(m => m.MessagesCount = failedMessages.Length);
+            bus.Publish(new FailedMessagesUnArchived
+            {
+                MessagesCount = failedMessages.Length
+            });
         }
     }
 }

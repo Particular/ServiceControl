@@ -10,44 +10,56 @@ namespace ServiceControl.Recoverability
     public class PendingRetriesHandler : IHandleMessages<RetryPendingMessagesById>,
         IHandleMessages<RetryPendingMessages>
     {
-        public IBus Bus { get; set; }
-        public RetryDocumentManager RetryDocumentManager { get; set; }
-        public IDocumentSession DocumentSession { get; set; }
+        static string[] fields = { "Id" };
+
+        private readonly IBus bus;
+        private readonly IDocumentStore store;
+        private readonly RetryDocumentManager manager;
+
+        public PendingRetriesHandler(IBus bus, IDocumentStore store, RetryDocumentManager manager)
+        {
+            this.bus = bus;
+            this.store = store;
+            this.manager = manager;
+        }
 
         public void Handle(RetryPendingMessagesById message)
         {
             foreach (var messageUniqueId in message.MessageUniqueIds)
             {
-                RetryDocumentManager.RemoveFailedMessageRetryDocument(messageUniqueId);
+                manager.RemoveFailedMessageRetryDocument(messageUniqueId);
             }
 
-            Bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds);
+            bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds);
         }
 
         public void Handle(RetryPendingMessages message)
         {
-            var query = DocumentSession.Advanced
-                .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                .WhereEquals("Status", (int) FailedMessageStatus.RetryIssued)
-                .AndAlso()
-                .WhereBetweenOrEqual(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)
-                .AndAlso()
-                .WhereEquals(o => o.QueueAddress, message.QueueAddress)
-                .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
-                .SelectFields<FailedMessageView>("Id");
-
             var messageIds = new List<string>();
 
-            using (var ie = DocumentSession.Advanced.Stream(query))
+            using (var session = store.OpenSession())
             {
-                while (ie.MoveNext())
+                var query = session.Advanced
+                    .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .WhereEquals("Status", (int) FailedMessageStatus.RetryIssued)
+                    .AndAlso()
+                    .WhereBetweenOrEqual(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)
+                    .AndAlso()
+                    .WhereEquals(o => o.QueueAddress, message.QueueAddress)
+                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    .SelectFields<FailedMessageView>(fields);
+
+                using (var ie = session.Advanced.Stream(query))
                 {
-                    RetryDocumentManager.RemoveFailedMessageRetryDocument(ie.Current.Document.Id);
-                    messageIds.Add(ie.Current.Document.Id);
+                    while (ie.MoveNext())
+                    {
+                        manager.RemoveFailedMessageRetryDocument(ie.Current.Document.Id);
+                        messageIds.Add(ie.Current.Document.Id);
+                    }
                 }
             }
 
-            Bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = messageIds.ToArray());
+            bus.SendLocal(new RetryMessagesById {MessageUniqueIds = messageIds.ToArray()});
         }
     }
 }

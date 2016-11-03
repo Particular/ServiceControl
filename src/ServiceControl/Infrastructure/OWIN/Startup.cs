@@ -2,56 +2,42 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.ServiceProcess;
     using global::Nancy.Owin;
     using Microsoft.AspNet.SignalR;
     using Nancy;
     using Owin;
     using ServiceControl.Infrastructure.SignalR;
     using Autofac;
+    using Metrics;
     using Microsoft.Owin.Cors;
-    using NServiceBus;
-    using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure.Extensions;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Owin.Metrics;
     using ServiceControl.Infrastructure.OWIN;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     public class Startup
     {
         private readonly IContainer container;
-        private readonly ServiceBase host;
-        private readonly Settings settings;
-        private readonly EmbeddableDocumentStore documentStore;
-        private readonly BusConfiguration configuration;
-        private readonly ExposeBus exposeBus;
 
-        public Startup(IContainer container, ServiceBase host, Settings settings, EmbeddableDocumentStore documentStore, BusConfiguration configuration, ExposeBus exposeBus)
+        public Startup(IContainer container)
         {
             this.container = container;
-            this.host = host;
-            this.settings = settings;
-            this.documentStore = documentStore;
-            this.configuration = configuration;
-            this.exposeBus = exposeBus;
         }
 
         public void Configuration(IAppBuilder app)
         {
-            var signalrIsReady = new SignalrIsReady();
-
-            app.UseNServiceBus(settings, container, host, documentStore, configuration, exposeBus, signalrIsReady);
-
-            if (settings.SetupOnly)
+            app.Map("/metrics", b =>
             {
-                return;
-            }
+                Metric.Config
+                    .WithOwin(middleware => b.Use(middleware), config => config
+                        .WithMetricsEndpoint(endpointConfig => endpointConfig.MetricsEndpoint(String.Empty)))
+                    .WithAllCounters();
+            });
 
             app.Map("/api", b =>
             {
                 b.Use<LogApiCalls>();
 
-                ConfigureSignalR(b, signalrIsReady);
+                ConfigureSignalR(b);
 
                 b.UseNancy(new NancyOptions
                 {
@@ -60,7 +46,7 @@
             });
         }
 
-        private void ConfigureSignalR(IAppBuilder app, SignalrIsReady signalrIsReady)
+        private void ConfigureSignalR(IAppBuilder app)
         {
             var resolver = new AutofacDependencyResolver(container);
 
@@ -79,8 +65,6 @@
 
             var jsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
-
-            signalrIsReady.Ready = true;
         }
     }
 

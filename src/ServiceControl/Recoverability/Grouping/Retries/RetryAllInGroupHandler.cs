@@ -11,18 +11,22 @@ namespace ServiceControl.Recoverability
         {
             if (Retries == null)
             {
-                log.WarnFormat("Attempt to retry a group ({0}) when retries are disabled", message.GroupId);
+                log.Warn($"Attempt to retry a group ({message.GroupId}) when retries are disabled");
                 return;
             }
 
-            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup);
+ 			RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup);
 
-            var group = Session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                               .FirstOrDefault(x => x.Id == message.GroupId);
+            FailureGroupView group;
 
+            using (var session = Store.OpenSession())
+            {
+                group = session.Query<FailureGroupView, FailureGroupsViewIndex>()
+                    .FirstOrDefault(x => x.Id == message.GroupId);
+            }
             string context = null;
 
-            if (group != null && group.Title != null)
+            if (@group?.Title != null)
             {
                 context = group.Title;
             }
@@ -31,8 +35,8 @@ namespace ServiceControl.Recoverability
         }
 
         public RetriesGateway Retries { get; set; }
-        public IDocumentSession Session { get; set; }
-        public RetryOperationManager RetryOperationManager { get; set; }
+        public IDocumentStore Store { get; set; }
+		public RetryOperationManager RetryOperationManager { get; set; }
 
         static ILog log = LogManager.GetLogger(typeof(RetryAllInGroupHandler));
     }

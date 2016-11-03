@@ -8,24 +8,34 @@
 
     public class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>
     {
-        public IDocumentSession Session { get; set; }
+        private readonly IBus bus;
+        private readonly IDocumentStore store;
 
-        public IBus Bus { get; set; }
+        public ArchiveMessageHandler(IBus bus, IDocumentStore store)
+        {
+            this.bus = bus;
+            this.store = store;
+        }
 
         public void Handle(ArchiveMessage message)
         {
-            var failedMessage = Session.Load<FailedMessage>(new Guid(message.FailedMessageId));
-
-            if (failedMessage == null)
+            using (var session = store.OpenSession())
             {
-                return; //No point throwing
-            }
+                var failedMessage = session.Load<FailedMessage>(new Guid(message.FailedMessageId));
 
-            if (failedMessage.Status != FailedMessageStatus.Archived)
-            {
-                failedMessage.Status = FailedMessageStatus.Archived;
+                if (failedMessage == null)
+                {
+                    return; //No point throwing
+                }
 
-                Bus.Publish<FailedMessageArchived>(m=>m.FailedMessageId = message.FailedMessageId);
+                if (failedMessage.Status != FailedMessageStatus.Archived)
+                {
+                    failedMessage.Status = FailedMessageStatus.Archived;
+
+                    bus.Publish<FailedMessageArchived>(m => m.FailedMessageId = message.FailedMessageId);
+                }
+
+                session.SaveChanges();
             }
         }
     }

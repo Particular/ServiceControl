@@ -8,7 +8,12 @@
 
     class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
     {
-        public IDocumentSession Session { get; set; }
+        private readonly IDocumentStore store;
+
+        public SagaUpdatedHandler(IDocumentStore store)
+        {
+            this.store = store;
+        }
 
         public void Handle(SagaUpdatedMessage message)
         {
@@ -41,7 +46,11 @@
 
             AddResultingMessages(message.ResultingMessages, sagaHistory);
 
-            Session.Store(sagaHistory);
+            using (var session = store.OpenSession())
+            {
+                session.Store(sagaHistory);
+                session.SaveChanges();
+            }
         }
 
         static InitiatingMessage CreateInitiatingMessage(SagaChangeInitiator initiator)

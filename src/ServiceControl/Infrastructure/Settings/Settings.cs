@@ -41,7 +41,6 @@
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
-            MaintenanceMode = SettingsReader<bool>.Read("MaintenanceMode");
             Port = SettingsReader<int>.Read("Port", 33333);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = 10;
@@ -53,8 +52,6 @@
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
         public int MaximumMessageThroughputPerSecond => SettingsReader<int>.Read("MaximumMessageThroughputPerSecond", 350);
-
-        public bool MaintenanceMode { get; set; }
 
         public bool DisableRavenDBPerformanceCounters { get; set; }
 
@@ -78,8 +75,6 @@
         public string StorageUrl => $"{RootUrl}storage";
 
         public int Port { get; set; }
-
-        public bool SetupOnly { get; set; }
 
         public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
@@ -267,6 +262,21 @@
                 TimeSpan result;
                 if (TimeSpan.TryParse(valueRead, out result))
                 {
+                    string message;
+                    if (result < TimeSpan.FromHours(1))
+                    {
+                        message = "EventRetentionPeriod settings is invalid, value should be minimum 1 hour.";
+                        logger.Fatal(message);
+                        throw new Exception(message);
+                    }
+
+                    if (result > TimeSpan.FromDays(200))
+                    {
+                        message = "EventRetentionPeriod settings is invalid, value should be maximum 200 days.";
+                        logger.Fatal(message);
+                        throw new Exception(message);
+                    }
+
                     return result;
                 }
             }
