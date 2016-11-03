@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.ExternalIntegrations
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using NServiceBus;
@@ -32,6 +33,7 @@
                     }
                     var dispatchRequest = new ExternalIntegrationDispatchRequest
                     {
+                        Id = $"ExternalIntegrationDispatchRequests/{Guid.NewGuid()}",
                         DispatchContext = dispatchContext
                     };
 
