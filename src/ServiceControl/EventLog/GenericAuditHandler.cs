@@ -3,6 +3,7 @@
     using Contracts.EventLog;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Infrastructure.SignalR;
 
     /// <summary>
     /// Only for events that have been defined (under EventLog\Definitions), a logentry item will 
@@ -12,23 +13,20 @@
     {
         static string[] emptyArray = new string[0];
         private readonly IBus bus;
+        private readonly GlobalEventHandler broadcaster;
         private readonly IDocumentStore store;
         private readonly EventLogMappings mappings;
 
-        public GenericAuditHandler(IBus bus, IDocumentStore store, EventLogMappings mappings)
+        public GenericAuditHandler(IBus bus, GlobalEventHandler broadcaster, IDocumentStore store, EventLogMappings mappings)
         {
             this.bus = bus;
+            this.broadcaster = broadcaster;
             this.store = store;
             this.mappings = mappings;
         }
 
         public void Handle(IEvent message)
         {
-            //to prevent a infinite loop
-            if (message is EventLogItemAdded)
-            {
-                return;
-            }
             if (!mappings.HasMapping(message))
             {
                 return;
@@ -43,7 +41,7 @@
                 session.SaveChanges();
             }
 
-            bus.Publish(new EventLogItemAdded
+            broadcaster.Handle(new EventLogItemAdded
             {
                 RaisedAt = logItem.RaisedAt,
                 Severity = logItem.Severity,

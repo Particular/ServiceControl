@@ -36,19 +36,19 @@
 
             Settings = settings;
 
-            StartRaven(documentStore, settings);
+            StartRaven(documentStore, settings, false);
 
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
         }
 
         public static Settings Settings { get; set; }
 
-        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings)
+        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode)
         {
             Directory.CreateDirectory(settings.DbPath);
 
             documentStore.DataDirectory = settings.DbPath;
-            documentStore.UseEmbeddedHttpServer = settings.MaintenanceMode || settings.ExposeRavenDB;
+            documentStore.UseEmbeddedHttpServer = maintenanceMode || settings.ExposeRavenDB;
             documentStore.EnlistInDistributedTransactions = false;
 
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
@@ -63,7 +63,7 @@
                 documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
             }
             
-            if (!settings.MaintenanceMode)
+            if (!maintenanceMode)
             {
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
             }
@@ -74,7 +74,7 @@
             documentStore.Configuration.HostName = (settings.Hostname == "*" || settings.Hostname == "+")
                 ? "localhost"
                 : settings.Hostname;
-            documentStore.Configuration.VirtualDirectory = settings.VirtualDirectory + "/storage";
+            documentStore.Configuration.VirtualDirectory = $"{settings.VirtualDirectory}/storage";
             documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
 

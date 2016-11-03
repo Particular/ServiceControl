@@ -7,30 +7,22 @@
 
     public class GlobalEventHandler : IHandleMessages<IEvent>
     {
-        public SignalrIsReady SignalrIsReady { get; set; }
+        static string[] emptyArray = new string[0];
 
-        public MessageMetadataRegistry MessageMetadataRegistry { get; set; }
+        private readonly MessageMetadataRegistry registry;
 
-        public IBus Bus { get; set; }
+        public GlobalEventHandler(MessageMetadataRegistry registry)
+        {
+            this.registry = registry;
+        }
 
         public void Handle(IEvent @event)
         {
-            if (!SignalrIsReady.Ready)
-            {
-                Bus.HandleCurrentMessageLater();
-                return;
-            }
-
-            var metadata = MessageMetadataRegistry.GetMessageMetadata(@event.GetType());
+            var metadata = registry.GetMessageMetadata(@event.GetType());
             var context = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
 
-            context.Connection.Broadcast(new Envelope { Types = metadata.MessageHierarchy.Select(t=>t.Name).ToList(), Message = @event })
+            context.Connection.Broadcast(new Envelope { Types = metadata.MessageHierarchy.Select(t=>t.Name).ToList(), Message = @event }, emptyArray)
                  .Wait();
         }
-    }
-
-    public class SignalrIsReady
-    {
-        public bool Ready { get; set; }
     }
 }
