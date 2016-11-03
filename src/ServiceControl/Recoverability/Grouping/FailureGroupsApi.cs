@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Nancy;
@@ -78,6 +79,8 @@ namespace ServiceControl.Recoverability
             {
                 RavenQueryStatistics stats;
 
+                var history = session.Load<RetryOperationsHistory>(RetryOperationsHistory.MakeId()) ?? RetryOperationsHistory.CreateNew();
+
                 var results = session.Query<FailureGroupView, FailureGroupsViewIndex>()
                     .Statistics(out stats)
                     .Where(v => v.Type == classifier)
@@ -96,6 +99,7 @@ namespace ServiceControl.Recoverability
                             Count = failureGroup.Count,
                             First = failureGroup.First,
                             Last = failureGroup.Last,
+                            CompletionTime = GetCompletionTime(summary, history, failureGroup.Id, RetryType.FailureGroup),
                             RetryStatus = summary?.RetryState.ToString() ?? "None",
                             Failed = summary?.Failed,
                             RetryProgress = summary?.GetProgression() ?? 0.0
@@ -106,6 +110,21 @@ namespace ServiceControl.Recoverability
                     .WithTotalCount(stats)
                     .WithEtagAndLastModified(stats);
             }
+        }
+
+        private DateTime? GetCompletionTime(RetryOperationSummary summary, RetryOperationsHistory history, string requestId, RetryType retryType)
+        {
+            if (summary.CompletionTime != null) //summary is always the most fresh, if it exists
+            {
+                return summary.CompletionTime.Value;
+            }
+
+            var previous = history.PreviousFullyCompletedOperations 
+                .Where(v => v.RequestId == requestId && v.RetryType == retryType)
+                .OrderByDescending(v => v.CompletionDate)
+                .FirstOrDefault();
+
+            return previous?.CompletionDate;
         }
 
         dynamic GetAllGroupsCount(string classifier)

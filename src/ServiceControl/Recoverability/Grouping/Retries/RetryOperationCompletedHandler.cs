@@ -22,7 +22,7 @@
             {
                 RequestId = message.RequestId,
                 RetryType = message.RetryType,
-                CompletionDate = message.CompletionDate
+                CompletionDate = message.CompletionTime
             };
 
             using (var session = Store.OpenSession())

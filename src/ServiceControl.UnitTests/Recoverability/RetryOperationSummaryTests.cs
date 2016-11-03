@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.UnitTests.Operations
 {
+    using System;
     using NUnit.Framework;
     using ServiceControl.Recoverability;
 
@@ -236,7 +237,7 @@
             Progression = progression;
         }
 
-        public void Completed(string requestId, RetryType retryType, bool failed, double progression)
+        public void Completed(string requestId, RetryType retryType, bool failed, double progression, DateTime completionTime)
         {
             CompletedNotified = true;
             Failed = failed;
