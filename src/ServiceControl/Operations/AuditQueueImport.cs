@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
@@ -27,6 +28,7 @@
         private readonly Settings settings;
         private readonly IDocumentStore store;
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
+        private readonly Timer timer = Metric.Timer("Audit messages processed", Unit.Custom("Messages"));
 
         public AuditQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings)
         {
@@ -43,7 +45,10 @@
 
         public bool Handle(TransportMessage message)
         {
-            InnerHandle(message);
+            using (timer.NewContext())
+            {
+                InnerHandle(message);
+            }
 
             return true;
         }

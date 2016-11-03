@@ -1,6 +1,5 @@
 namespace ServiceControl.Recoverability
 {
-    using System.Globalization;
     using System.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -13,54 +12,68 @@ namespace ServiceControl.Recoverability
     {
         private static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
 
+        private readonly IBus bus;
+        private readonly IDocumentStore store;
+
+        public ArchiveAllInGroupHandler(IBus bus, IDocumentStore store)
+        {
+            this.bus = bus;
+            this.store = store;
+        }
+
         public void Handle(ArchiveAllInGroup message)
         {
-            logger.InfoFormat("Archiving of {0} started", message.GroupId);
-            var result = Session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(
-                            new FailedMessages_ByGroup().IndexName, 
-                            new IndexQuery
-                            {
-                                Query = string.Format(CultureInfo.InvariantCulture, "FailureGroupId:{0} AND Status:{1}", message.GroupId, (int)FailedMessageStatus.Unresolved), 
-                                Cutoff = message.CutOff
-                            },
-                            new[]
-                            {
-                                new PatchRequest
-                                {
-                                    Type = PatchCommandType.Set,
-                                    Name = "Status",
-                                    Value = (int) FailedMessageStatus.Archived
-                                }
-                            }, true).WaitForCompletion();
+            logger.Info($"Archiving of {message.GroupId} started");
 
-            var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
-            logger.InfoFormat("Archiving of {0} ended", message.GroupId);
-            logger.InfoFormat("Archived {0} for {1}", patchedDocumentIds.Length, message.GroupId);
-
-            if (patchedDocumentIds.Length == 0)
+            FailedMessage.FailureGroup failureGroup;
+            DocumentPatchResult[] patchedDocumentIds;
+                
+            using (var session = store.OpenSession())
             {
-                return;
+                var result = session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(
+                    new FailedMessages_ByGroup().IndexName,
+                    new IndexQuery
+                    {
+                        Query = $"FailureGroupId:{message.GroupId} AND Status:{(int) FailedMessageStatus.Unresolved}",
+                        Cutoff = message.CutOff
+                    },
+                    new[]
+                    {
+                        new PatchRequest
+                        {
+                            Type = PatchCommandType.Set,
+                            Name = "Status",
+                            Value = (int) FailedMessageStatus.Archived
+                        }
+                    }, true).WaitForCompletion();
+
+                patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
+                logger.Info($"Archiving of {message.GroupId} ended");
+                logger.Info($"Archived {patchedDocumentIds.Length} for {message.GroupId}");
+
+                if (patchedDocumentIds.Length == 0)
+                {
+                    return;
+                }
+
+                var failedMessage = session.Load<FailedMessage>(patchedDocumentIds[0].Document);
+                failureGroup = failedMessage.FailureGroups.FirstOrDefault();
             }
 
-            var failedMessage = Session.Load<FailedMessage>(patchedDocumentIds[0].Document);
-            var failureGroup = failedMessage.FailureGroups.FirstOrDefault();
             var groupName = "Undefined";
 
-            if (failureGroup != null && failureGroup.Title != null)
+            if (failureGroup?.Title != null)
             {
                 groupName = failureGroup.Title;
             }
 
-            Bus.Publish<FailedMessageGroupArchived>(m =>
-                {
-                    m.GroupId = message.GroupId;
-                    m.GroupName = groupName;
-                    m.MessagesCount = patchedDocumentIds.Length;
-                });
+            bus.Publish(new FailedMessageGroupArchived
+            {
+                GroupId = message.GroupId,
+                GroupName = groupName,
+                MessagesCount = patchedDocumentIds.Length
+            });
         }
-
-        public IDocumentSession Session { get; set; }
-        public IBus Bus { get; set; }
 
         class DocumentPatchResult
         {

@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.ObjectBuilder;
@@ -29,6 +30,7 @@
         private static readonly RavenJObject JObjectMetadata;
         private static readonly JsonSerializer Serializer;
 
+        private readonly Timer timer = Metric.Timer("Error messages processed", Unit.Custom("Messages"));
         private readonly IBuilder builder;
         private readonly IBus bus;
         private readonly CriticalError criticalError;
@@ -68,7 +70,10 @@
 
         public bool Handle(TransportMessage message)
         {
-            InnerHandle(message);
+            using (timer.NewContext())
+            {
+                InnerHandle(message);
+            }
 
             return true;
         }
