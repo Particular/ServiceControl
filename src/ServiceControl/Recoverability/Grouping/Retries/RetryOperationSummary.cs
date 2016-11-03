@@ -90,7 +90,7 @@
 
         public double GetProgression()
         {
-            return RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded);
+            return RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded, RetryState);
         }
     }
 }

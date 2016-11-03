@@ -2,22 +2,21 @@
 {
     public static class RetryOperationProgressionCalculator
     {
-        public static double CalculateProgression(int totalNumberOfMessages, int numberOfMessagesPrepared, int numberOfMessagesForwarded)
+        public static double CalculateProgression(int totalNumberOfMessages, int numberOfMessagesPrepared, int numberOfMessagesForwarded, RetryState state)
         {
-            const double waitingWeight = 0.05;
-            const double prepairedWeight = 0.475;
-            const double forwardedWeight = 0.475;
-
-            if (totalNumberOfMessages == 0)
-            {
-                return waitingWeight;
-            }
-
             double total = totalNumberOfMessages;
-            double preparedPercentage = numberOfMessagesPrepared / total;
-            double forwardedPercentage = numberOfMessagesForwarded / total;
 
-            return waitingWeight + preparedPercentage * prepairedWeight + forwardedPercentage * forwardedWeight;
+            switch (state)
+            {
+                case RetryState.Preparing:
+                    return numberOfMessagesPrepared / total;
+                case RetryState.Forwarding:
+                    return numberOfMessagesForwarded / total;
+                case RetryState.Completed:
+                    return 1.0;
+                default:
+                    return 0.0;
+            }
         }
     }
 }
