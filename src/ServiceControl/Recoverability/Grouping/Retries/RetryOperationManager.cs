@@ -13,18 +13,18 @@
 
         static Dictionary<string, RetryOperationSummary> Operations = new Dictionary<string, RetryOperationSummary>();
 
-        public void Wait(string requestId, RetryType retryType)
+        public void Wait(string requestId, RetryType retryType, string originator = null)
         {
             var summary = GetOrCreate(retryType, requestId);
 
-            summary.Wait();
+            summary.Wait(originator);
         }
 
-        public void PrepareAdoptedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages)
+        public void PrepareAdoptedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, string originator)
         {
             Prepairing(requestId, retryType, totalNumberOfMessages);
 
-            PreparedBatch(requestId, retryType, numberOfMessagesPrepared);
+            PreparedBatch(requestId, retryType, numberOfMessagesPrepared, originator);
         }
 
         public void Prepairing(string requestId, RetryType retryType, int totalNumberOfMessages)
@@ -34,11 +34,11 @@
             summary.Prepare(totalNumberOfMessages);
         }
 
-        public void PreparedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared)
+        public void PreparedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, string originator)
         {
             var summary = GetOrCreate(retryType, requestId);
 
-            summary.PrepareBatch(numberOfMessagesPrepared);
+            summary.PrepareBatch(numberOfMessagesPrepared, originator);
         }
 
         public void Forwarding(string requestId, RetryType retryType)
@@ -48,11 +48,11 @@
             summary.Forwarding();
         }
 
-        public void ForwardingAfterRestart(string requestId, RetryType retryType, int totalNumberOfMessages)
+        public void ForwardingAfterRestart(string requestId, RetryType retryType, int totalNumberOfMessages, string originator)
         {
             var summary = GetOrCreate(retryType, requestId);
 
-            summary.ForwardingAfterRestart(totalNumberOfMessages);
+            summary.ForwardingAfterRestart(totalNumberOfMessages, originator);
         }
 
         public void ForwardedBatch(string requestId, RetryType retryType, int numberOfMessagesForwarded)

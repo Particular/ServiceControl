@@ -90,7 +90,7 @@ namespace ServiceControl.Recoverability
             var messageCount = forwardingBatch.FailureRetries.Count;
             if (isRecoveringFromPrematureShutdown)
             {
-                retryOperationManager.ForwardingAfterRestart(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
+                retryOperationManager.ForwardingAfterRestart(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize, forwardingBatch.Originator);
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId));
             }
             else if (messageCount > 0)

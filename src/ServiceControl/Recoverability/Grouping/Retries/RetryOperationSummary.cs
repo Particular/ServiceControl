@@ -16,23 +16,24 @@
         public int NumberOfMessagesForwarded { get; private set; }
         public DateTime? CompletionTime { get; private set; }
         public bool Failed { get; private set; }
+        public string Originator { get; private set; }
         public RetryState RetryState { get; private set; }
         private readonly string requestId;
         private readonly RetryType retryType;
         
-
         public static string MakeOperationId(string requestId, RetryType retryType)
         {
             return $"{retryType}/{requestId}";
         }
 
-        public void Wait()
+        public void Wait(string originator = null)
         {
             RetryState = RetryState.Waiting;
             NumberOfMessagesPrepared = 0;
             NumberOfMessagesForwarded = 0;
             TotalNumberOfMessages = 0;
             CompletionTime = null;
+            Originator = originator;
 
             Notifier?.Wait(requestId, retryType, GetProgression());
         }
@@ -52,9 +53,10 @@
             Notifier?.Prepare(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression());
         }
 
-        public void PrepareBatch(int numberOfMessagesPrepared)
+        public void PrepareBatch(int numberOfMessagesPrepared, string originator)
         {
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
+            Originator = originator;
 
             Notifier?.PrepareBatch(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression());
         }
@@ -66,9 +68,10 @@
             Notifier?.Forwarding(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages, GetProgression());
         }
 
-        public void ForwardingAfterRestart(int totalNumberOfMessages)
+        public void ForwardingAfterRestart(int totalNumberOfMessages, string originator)
         {
             TotalNumberOfMessages = totalNumberOfMessages;
+            Originator = originator;
 
             Forwarding();
         }
@@ -84,7 +87,7 @@
                 RetryState = RetryState.Completed;
                 CompletionTime = DateTime.Now;
 
-                Notifier?.Completed(requestId, retryType, Failed, GetProgression(), CompletionTime.Value);
+                Notifier?.Completed(requestId, retryType, Failed, GetProgression(), CompletionTime.Value, Originator);
             }
         }
 

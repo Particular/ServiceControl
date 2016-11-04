@@ -12,5 +12,7 @@ namespace ServiceControl.Recoverability
         public RetryBatchStatus Status { get; set; }
 
         public int InitialBatchSize { get; set; }
+
+        public string Originator{ get; set; }
     }
 }

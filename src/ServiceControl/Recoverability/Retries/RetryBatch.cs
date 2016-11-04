@@ -8,6 +8,7 @@ namespace ServiceControl.Recoverability
         public string Context { get; set; }
         public string RetrySessionId { get; set; }
         public string StagingId { get; set; }
+        public string Originator { get; set; }
         public string RequestId { get; set; }
         public int InitialBatchSize { get; set; }
         public RetryType RetryType { get; set; }
