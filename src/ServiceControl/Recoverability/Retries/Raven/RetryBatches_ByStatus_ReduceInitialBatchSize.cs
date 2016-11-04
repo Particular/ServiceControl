@@ -13,7 +13,8 @@ namespace ServiceControl.Recoverability
                     doc.RequestId,
                     doc.RetryType,
                     doc.Status, 
-                    doc.InitialBatchSize                              
+                    doc.InitialBatchSize,
+                    doc.Originator                              
                 };
 
             Reduce = results => from result in results
@@ -25,10 +26,10 @@ namespace ServiceControl.Recoverability
                 }  into g
                 select new 
                 {
-                                    
                     g.Key.RequestId,
                     g.Key.RetryType,
                     g.Key.Status,
+                    Originator = g.First().Originator,
                     InitialBatchSize = g.Sum(x => x.InitialBatchSize)
                 };
             

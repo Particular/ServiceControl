@@ -15,23 +15,23 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
- 			RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup);
-
-            FailureGroupView group;
+ 			FailureGroupView group;
 
             using (var session = Store.OpenSession())
             {
                 group = session.Query<FailureGroupView, FailureGroupsViewIndex>()
                     .FirstOrDefault(x => x.Id == message.GroupId);
             }
-            string context = null;
+            string originator = null;
 
             if (@group?.Title != null)
             {
-                context = group.Title;
+                originator = group.Title;
             }
 
-            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, x => x.FailureGroupId == message.GroupId, context);
+            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup, originator);
+
+            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, x => x.FailureGroupId == message.GroupId, originator);
         }
 
         public RetriesGateway Retries { get; set; }

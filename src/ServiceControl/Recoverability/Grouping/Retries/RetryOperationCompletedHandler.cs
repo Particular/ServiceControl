@@ -22,7 +22,8 @@
             {
                 RequestId = message.RequestId,
                 RetryType = message.RetryType,
-                CompletionTime = message.CompletionTime
+                CompletionTime = message.CompletionTime,
+                Originator = message.Originator,
             };
 
             using (var session = Store.OpenSession())
