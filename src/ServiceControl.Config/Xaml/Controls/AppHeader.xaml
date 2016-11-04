@@ -23,6 +23,6 @@
                         Content="{StaticResource ServiceControlIcon}"
                         IsTabStop="False" />
         <TextBlock Text="ServiceControl" />
-        <TextBlock Foreground="{StaticResource Gray60Brush}" Text="Management Utility" />
+        <TextBlock Foreground="{StaticResource Gray60Brush}" Text="Management" />
     </StackPanel>
 </UserControl>
