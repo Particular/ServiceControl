@@ -15,6 +15,7 @@
             Assert.AreEqual(RetryState.Waiting, summary.RetryState);
             Assert.AreEqual(0, summary.NumberOfMessagesForwarded);
             Assert.AreEqual(0, summary.NumberOfMessagesPrepared);
+            Assert.AreEqual(0, summary.NumberOfMessagesSkipped);
             Assert.AreEqual(0, summary.TotalNumberOfMessages);
             Assert.AreEqual("FailureGroup1", summary.Originator);
         }
@@ -186,6 +187,49 @@
             Assert.AreEqual(false, notifier.Failed);
             Assert.AreEqual(1.0, notifier.Progression);
             Assert.AreEqual("FailureGroup1", notifier.Originator);
+        }
+
+
+        [Test]
+        public void Skip_should_set_update_skipped_messages()
+        {
+            var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
+            summary.Wait();
+            summary.Prepare(2000);
+            summary.PrepareBatch(1000, "FailureGroup1");
+            summary.Skip(1000);
+
+            Assert.AreEqual(RetryState.Preparing, summary.RetryState);
+            Assert.AreEqual(1000, summary.NumberOfMessagesSkipped);
+        }
+
+        [Test]
+        public void Skip_should_complete_when_all_skipped()
+        {
+            var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
+        summary.Wait();
+            summary.Prepare(1000);
+            summary.PrepareBatch(1000, "FailureGroup1");
+            summary.Skip(1000);
+
+            Assert.AreEqual(RetryState.Completed, summary.RetryState);
+            Assert.AreEqual(1000, summary.NumberOfMessagesSkipped);
+        }
+
+        [Test]
+        public void Skip_and_forward_combination_should_complete_when_done()
+        {
+            var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
+            summary.Wait();
+            summary.Prepare(2000);
+            summary.PrepareBatch(1000, "FailureGroup1");
+            summary.Skip(1000);
+            summary.Forwarding();
+            summary.BatchForwarded(1000);
+
+            Assert.AreEqual(RetryState.Completed, summary.RetryState);
+            Assert.AreEqual(1000, summary.NumberOfMessagesForwarded);
+            Assert.AreEqual(1000, summary.NumberOfMessagesSkipped);
         }
     }
 

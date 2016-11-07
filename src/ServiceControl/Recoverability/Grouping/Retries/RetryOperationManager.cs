@@ -69,6 +69,12 @@
             summary.Fail();
         }
 
+        public void Skip(string requestId, RetryType retryType, int numberOfMessagesSkipped)
+        {
+            var summary = GetOrCreate(retryType, requestId);
+            summary.Skip(numberOfMessagesSkipped);
+        }
+
         private RetryOperationSummary GetOrCreate(RetryType retryType, string requestId)
         {
             RetryOperationSummary summary;
