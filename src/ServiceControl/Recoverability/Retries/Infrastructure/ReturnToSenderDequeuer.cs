@@ -142,6 +142,11 @@ namespace ServiceControl.Recoverability
         {
             try
             {
+                if (expectedMessageCount.HasValue && expectedMessageCount.Value == 0)
+                {
+                    return;
+                }
+
                 shouldProcess = filter;
                 resetEvent.Reset();
                 targetMessageCount = expectedMessageCount;

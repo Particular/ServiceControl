@@ -1,9 +1,12 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
+    using NServiceBus.Logging;
 
     public class RetryOperationSummary
     {
+        private static readonly ILog Log = LogManager.GetLogger(typeof(RetryOperationSummary));
+
         public RetryOperationSummary(string requestId, RetryType retryType)
         {
             this.requestId = requestId;
@@ -14,6 +17,7 @@
         public int TotalNumberOfMessages { get; private set; }
         public int NumberOfMessagesPrepared { get; private set; }
         public int NumberOfMessagesForwarded { get; private set; }
+        public int NumberOfMessagesSkipped { get; set; }
         public DateTime? CompletionTime { get; private set; }
         public bool Failed { get; private set; }
         public string Originator { get; private set; }
@@ -32,6 +36,7 @@
             NumberOfMessagesPrepared = 0;
             NumberOfMessagesForwarded = 0;
             TotalNumberOfMessages = 0;
+            NumberOfMessagesSkipped = 0;
             CompletionTime = null;
             Originator = originator;
 
@@ -78,22 +83,34 @@
 
         public void BatchForwarded(int numberOfMessagesForwarded)
         {
-            NumberOfMessagesForwarded = NumberOfMessagesForwarded + numberOfMessagesForwarded;
+            NumberOfMessagesForwarded += numberOfMessagesForwarded;
 
             Notifier?.BatchForwarded(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages, GetProgression());
             
-            if (NumberOfMessagesForwarded == TotalNumberOfMessages)
+            CheckForCompletion();
+        }
+
+        public void Skip(int numberOfMessagesSkipped)
+        {
+            NumberOfMessagesSkipped += numberOfMessagesSkipped;
+            CheckForCompletion();
+        }
+
+        private void CheckForCompletion()
+        {
+            if (NumberOfMessagesForwarded + NumberOfMessagesSkipped == TotalNumberOfMessages)
             {
                 RetryState = RetryState.Completed;
                 CompletionTime = DateTime.Now;
 
                 Notifier?.Completed(requestId, retryType, Failed, GetProgression(), CompletionTime.Value, Originator);
+                Log.Info($"Retry operation {requestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");
             }
         }
 
         public double GetProgression()
         {
-            return RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded, RetryState);
+            return RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, RetryState);
         }
     }
 }

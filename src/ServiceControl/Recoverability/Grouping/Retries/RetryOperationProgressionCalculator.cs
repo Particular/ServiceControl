@@ -2,7 +2,7 @@
 {
     public static class RetryOperationProgressionCalculator
     {
-        public static double CalculateProgression(int totalNumberOfMessages, int numberOfMessagesPrepared, int numberOfMessagesForwarded, RetryState state)
+        public static double CalculateProgression(int totalNumberOfMessages, int numberOfMessagesPrepared, int numberOfMessagesForwarded, int numberOfMessagesSkipped, RetryState state)
         {
             double total = totalNumberOfMessages;
 
@@ -11,7 +11,7 @@
                 case RetryState.Preparing:
                     return numberOfMessagesPrepared / total;
                 case RetryState.Forwarding:
-                    return numberOfMessagesForwarded / total;
+                    return (numberOfMessagesForwarded + numberOfMessagesSkipped) / total;
                 case RetryState.Completed:
                     return 1.0;
                 default:

@@ -53,9 +53,16 @@ namespace ServiceControl.Recoverability
             if (stagingBatch != null)
             {
                 redirects = MessageRedirectsCollection.GetOrCreate(session);
-                if (Stage(stagingBatch, session))
+                var stagedMessages = Stage(stagingBatch, session);
+                var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
+                retryOperationManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages);
+
+                if ( stagedMessages > 0)
                 {
-                    session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id }, RetryBatchNowForwarding.Id);
+                    session.Store(new RetryBatchNowForwarding
+                    {
+                        RetryBatchId = stagingBatch.Id
+                    }, RetryBatchNowForwarding.Id);
                 }
 
                 return true;
@@ -88,28 +95,22 @@ namespace ServiceControl.Recoverability
         void Forward(RetryBatch forwardingBatch, IDocumentSession session)
         {
             var messageCount = forwardingBatch.FailureRetries.Count;
+            
             if (isRecoveringFromPrematureShutdown)
             {
                 retryOperationManager.ForwardingAfterRestart(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize, forwardingBatch.Originator);
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId));
+                retryOperationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
             }
-            else if (messageCount > 0)
+            else 
             {
                 retryOperationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), messageCount);
-            }
-            else
-            {
-                retryOperationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
+                retryOperationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount);
             }
 
             session.Delete(forwardingBatch);
-
-            if (!string.IsNullOrWhiteSpace(forwardingBatch.RequestId))
-            {
-                retryOperationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
-            }
-
+            
             Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
         }
 
@@ -122,7 +123,7 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        bool Stage(RetryBatch stagingBatch, IDocumentSession session)
+        int Stage(RetryBatch stagingBatch, IDocumentSession session)
         {
             var stagingId = Guid.NewGuid().ToString();
             var failedMessageRetryDocs = session.Load<FailedMessageRetry>(stagingBatch.FailureRetries);
@@ -144,7 +145,7 @@ namespace ServiceControl.Recoverability
             {
                 Log.Info($"Retry batch {stagingBatch.Id} cancelled as all matching unresolved messages are already marked for retry as part of another batch");
                 session.Delete(stagingBatch);
-                return false;
+                return 0;
             }
 
             var messages = session.Load<FailedMessage>(messageIds)
@@ -165,8 +166,8 @@ namespace ServiceControl.Recoverability
             stagingBatch.StagingId = stagingId;
             stagingBatch.FailureRetries = matchingFailures.Where(x => msgLookup[x.FailedMessageId].Any()).Select(x => x.Id).ToArray();
 
-            Log.Info($"Retry batch {stagingBatch.Id} staged {messages.Length} messages");
-            return true;
+            Log.InfoFormat("Retry batch {0} staged {1} messages", stagingBatch.Id, messages.Length);
+            return messages.Length;
         }
 
         void StageMessage(FailedMessage message, string stagingId)
