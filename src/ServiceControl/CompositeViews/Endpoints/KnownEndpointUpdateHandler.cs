@@ -57,7 +57,7 @@ namespace ServiceControl.CompositeViews.Endpoints
 
                 knownEndpoint.Monitored = false;
 
-                session.Store(knownEndpoint);
+                session.SaveChanges();
             }
 
             bus.Publish(new MonitoringDisabledForEndpoint
