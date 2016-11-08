@@ -138,7 +138,7 @@ namespace ServiceControl.Recoverability
         {
         }
 
-        public void Run(Predicate<TransportMessage> filter, int? expectedMessageCount = null)
+        public virtual void Run(Predicate<TransportMessage> filter, int? expectedMessageCount = null)
         {
             try
             {
