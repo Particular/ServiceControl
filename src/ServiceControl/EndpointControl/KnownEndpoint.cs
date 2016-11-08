@@ -5,11 +5,6 @@
 
     public class KnownEndpoint
     {
-        public KnownEndpoint()
-        {
-            Monitored = true;
-        }
-
         public Guid Id { get; set; }
         public string HostDisplayName { get; set; }
         public bool Monitored { get; set; }
