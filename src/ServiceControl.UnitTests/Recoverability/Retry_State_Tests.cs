@@ -13,6 +13,7 @@ using System.Linq;
 using NServiceBus;
 using NServiceBus.Unicast;
 using NServiceBus.ObjectBuilder.Common;
+using NServiceBus.Unicast.Transport;
 
 namespace ServiceControl.UnitTests.Recoverability
 {
@@ -82,12 +83,12 @@ namespace ServiceControl.UnitTests.Recoverability
                 settingsHolder.Set("EndpointName", "TestEndpoint");
 
                 var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
-
-                var processor = new RetryProcessor(bodyStorage, sender, testBus, new ReturnToSenderDequeuer(sender, documentStore, testBus, configure), retryManager);
+                var returnToSender = new TestReturnToSenderDequeuer(sender, documentStore, testBus, configure);
+                var processor = new RetryProcessor(bodyStorage, sender, testBus, returnToSender, retryManager);
 
                 using (var session = documentStore.OpenSession())
                 {
-                    processor.ProcessBatches(session); // mark rea
+                    processor.ProcessBatches(session); // mark ready
                     session.SaveChanges();
 
                     processor.ProcessBatches(session);
@@ -122,11 +123,13 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
 
-                var processor = new RetryProcessor(bodyStorage, sender, testBus, new ReturnToSenderDequeuer(sender, documentStore, testBus, configure), retryManager);
+                var processor = new RetryProcessor(bodyStorage, sender, testBus, new TestReturnToSenderDequeuer(sender, documentStore, testBus, configure), retryManager);
+
+                documentStore.WaitForIndexing();
 
                 using (var session = documentStore.OpenSession())
                 {
-                    processor.ProcessBatches(session); // mark rea
+                    processor.ProcessBatches(session); // mark ready
                     session.SaveChanges();
 
                     processor.ProcessBatches(session);
@@ -140,11 +143,15 @@ namespace ServiceControl.UnitTests.Recoverability
 
         void CreateAFailedMessageAndMarkAsPartOfRetryBatch(IDocumentStore documentStore, RetryOperationManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)
         {
-            var messages = Enumerable.Range(0, numberOfMessages).Select(i => new FailedMessage
+            var messages = Enumerable.Range(0, numberOfMessages).Select(i =>
             {
-                Id = FailedMessage.MakeDocumentId($"Test-message-id-{i}"),
-                UniqueMessageId = Guid.NewGuid().ToString(),
-                FailureGroups = new List<FailedMessage.FailureGroup>
+                var id = Guid.NewGuid().ToString();
+
+                return new FailedMessage
+                {
+                    Id = FailedMessage.MakeDocumentId(id),
+                    UniqueMessageId = id,
+                    FailureGroups = new List<FailedMessage.FailureGroup>
                     {
                         new FailedMessage.FailureGroup
                         {
@@ -153,16 +160,18 @@ namespace ServiceControl.UnitTests.Recoverability
                             Type = groupId
                         }
                     },
-                Status = FailedMessageStatus.Unresolved,
-                ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                    Status = FailedMessageStatus.Unresolved,
+                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
                     {
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.UtcNow,
                             MessageMetadata = new Dictionary<string, object>(),
-                            FailureDetails = new FailureDetails()
+                            FailureDetails = new FailureDetails(),
+                            Headers = new Dictionary<string, string>()
                         }
                     }
+                };
             });
 
             using (var session = documentStore.OpenSession())
@@ -211,6 +220,18 @@ namespace ServiceControl.UnitTests.Recoverability
             {
                 base.MoveBatchToStaging(batchDocumentId, failedMessageRetryIds);
             }
+        }
+    }
+
+    public class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
+    {
+        public TestReturnToSenderDequeuer(ISendMessages sender, IDocumentStore store, IBus bus, Configure configure) : base(sender, store, bus, configure)
+        {
+        }
+
+        public override void Run(Predicate<TransportMessage> filter, int? expectedMessageCount = default(int?))
+        {
+            // NOOP
         }
     }
 
