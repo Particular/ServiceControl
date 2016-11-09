@@ -62,6 +62,52 @@ namespace ServiceControl.UnitTests.Recoverability
         }
 
         [Test]
+        public void When_a_group_is_prepared_with_three_batches_and_SC_is_restarted_while_the_first_group_is_being_forwarded_then_the_count_still_matches()
+        {
+            var retryManager = new RetryOperationManager(new TestNotifier());
+
+            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            {
+                CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 2001);
+
+                var bodyStorage = new RavenAttachmentsBodyStorage
+                {
+                    DocumentStore = documentStore
+                };
+
+                var testBus = new TestBus();
+
+                var sender = new TestSender();
+
+                var settingsHolder = new NServiceBus.Settings.SettingsHolder();
+                settingsHolder.Set("EndpointName", "TestEndpoint");
+
+                var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
+
+                var processor = new RetryProcessor(bodyStorage, sender, testBus, new TestReturnToSenderDequeuer(sender, documentStore, testBus, configure), retryManager);
+
+                documentStore.WaitForIndexing();
+
+                using (var session = documentStore.OpenSession())
+                {
+                    processor.ProcessBatches(session); // mark ready
+                    session.SaveChanges();
+
+
+                    // Simulate SC restart
+                    retryManager = new RetryOperationManager(new TestNotifier());
+                    processor = new RetryProcessor(bodyStorage, sender, testBus, new TestReturnToSenderDequeuer(sender, documentStore, testBus, configure), retryManager);
+
+                    processor.ProcessBatches(session);
+                    session.SaveChanges();
+                }
+
+                var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
+                Assert.AreEqual(2001, status.TotalNumberOfMessages);
+            }
+        }
+
+        [Test]
         public void When_a_group_is_forwarded_the_status_is_Completed()
         {
             var retryManager = new RetryOperationManager(new TestNotifier());
@@ -225,7 +271,8 @@ namespace ServiceControl.UnitTests.Recoverability
 
     public class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
     {
-        public TestReturnToSenderDequeuer(ISendMessages sender, IDocumentStore store, IBus bus, Configure configure) : base(sender, store, bus, configure)
+        public TestReturnToSenderDequeuer(ISendMessages sender, IDocumentStore store, IBus bus, Configure configure)
+            : base(sender, store, bus, configure)
         {
         }
 
