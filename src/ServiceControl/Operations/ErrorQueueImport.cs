@@ -22,6 +22,7 @@
     using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Handlers;
+    using ServiceControl.Operations.BodyStorage;
     using JsonSerializer = Raven.Imports.Newtonsoft.Json.JsonSerializer;
 
     public class ErrorQueueImport : IAdvancedSatellite, IDisposable
@@ -40,6 +41,7 @@
         private readonly IDocumentStore store;
         private readonly IEnrichImportedMessages[] enrichers;
         private readonly IFailedMessageEnricher[] failedEnrichers;
+        private readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
 
         static ErrorQueueImport()
@@ -54,7 +56,7 @@
                                     }}");
         }
 
-        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IBus bus, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings)
+        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IBus bus, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
         {
             this.builder = builder;
             this.forwarder = forwarder;
@@ -63,8 +65,9 @@
             this.criticalError = criticalError;
             this.loggingSettings = loggingSettings;
             this.settings = settings;
+            this.bodyStorageEnricher = bodyStorageEnricher;
 
-            enrichers = builder.BuildAll<IEnrichImportedMessages>().ToArray();
+            enrichers = builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichErrors).ToArray();
             failedEnrichers = builder.BuildAll<IFailedMessageEnricher>().ToArray();
         }
 
@@ -116,8 +119,13 @@
 
             foreach (var enricher in enrichers)
             {
-                enricher.Enrich(errorMessageReceived);
+                enricher.Enrich(message.Headers, errorMessageReceived.Metadata);
             }
+
+            bodyStorageEnricher.StoreErrorMessageBody(
+                message.Body,
+                message.Headers,
+                errorMessageReceived.Metadata);
 
             Handle(errorMessageReceived);
 

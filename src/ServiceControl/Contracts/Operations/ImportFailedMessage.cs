@@ -20,7 +20,7 @@
         public FailureDetails FailureDetails { get; set; }
 
 
-        FailureDetails ParseFailureDetails(Dictionary<string, string> headers)
+        FailureDetails ParseFailureDetails(IReadOnlyDictionary<string, string> headers)
         {
             var result = new FailureDetails();
 
@@ -33,8 +33,8 @@
             return result;
         }
 
-      
-        ExceptionDetails GetException(IDictionary<string, string> headers)
+
+        ExceptionDetails GetException(IReadOnlyDictionary<string, string> headers)
         {
             var exceptionDetails = new ExceptionDetails();
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.ExceptionType", headers,

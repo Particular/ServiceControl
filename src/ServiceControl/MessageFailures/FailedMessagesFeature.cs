@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.MessageFailures
 {
     using System;
+    using System.Collections.Generic;
     using NServiceBus;
     using NServiceBus.Features;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
-    using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
 
@@ -25,6 +25,8 @@
 
         class DetectSuccessfullRetriesEnricher : ImportEnricher
         {
+            public override bool EnrichErrors => false;
+
             IBus bus;
 
             public DetectSuccessfullRetriesEnricher(IBus bus)
@@ -32,22 +34,17 @@
                 this.bus = bus;
             }
 
-            public override void Enrich(ImportMessage message)
+            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                if (!(message is ImportSuccessfullyProcessedMessage))
-                {
-                    return;
-                }
-
                 string oldRetryId;
                 string newRetryMessageId;
 
-                var isOldRetry = message.PhysicalMessage.Headers.TryGetValue("ServiceControl.RetryId", out oldRetryId);
-                var isNewRetry = message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out newRetryMessageId);
+                var isOldRetry = headers.TryGetValue("ServiceControl.RetryId", out oldRetryId);
+                var isNewRetry = headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out newRetryMessageId);
 
                 var hasBeenRetried = isOldRetry || isNewRetry;
 
-                message.Metadata.Add("IsRetried", hasBeenRetried);
+                metadata.Add("IsRetried", hasBeenRetried);
 
                 if (!hasBeenRetried)
                 {
@@ -56,7 +53,7 @@
 
                 if (isOldRetry)
                 {
-                    bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = message.UniqueMessageId);
+                    bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = headers.UniqueId());
                 }
 
                 if (isNewRetry)

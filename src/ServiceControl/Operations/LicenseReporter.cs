@@ -27,10 +27,10 @@ namespace ServiceControl.Operations
                 this.licenseStatusKeeper = licenseStatusKeeper;
             }
 
-            public override void Enrich(ImportMessage message)
+            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                var status = GetLicenseStatus(message.PhysicalMessage.Headers);
-                var endpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
+                var status = GetLicenseStatus(headers);
+                var endpoint = EndpointDetailsParser.ReceivingEndpoint(headers);
 
                 // The ReceivingEndpoint will be null for messages from v3.3.x endpoints that were successfully
                 // processed because we dont have the information from the relevant headers.
@@ -40,7 +40,7 @@ namespace ServiceControl.Operations
                 }
             }
 
-            public string GetLicenseStatus(Dictionary<string, string> headers)
+            public string GetLicenseStatus(IReadOnlyDictionary<string, string> headers)
             {
                 string expired;
                 if (!headers.TryGetValue("$.diagnostics.license.expired", out expired))
