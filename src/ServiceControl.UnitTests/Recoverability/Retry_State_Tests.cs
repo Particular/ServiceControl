@@ -13,7 +13,6 @@ using System.Linq;
 using NServiceBus;
 using NServiceBus.Unicast;
 using NServiceBus.ObjectBuilder.Common;
-using NServiceBus.Unicast.Transport;
 
 namespace ServiceControl.UnitTests.Recoverability
 {

@@ -12,7 +12,8 @@ namespace ServiceControl.Recoverability
                 {
                     doc.RequestId,
                     doc.RetryType,
-                    doc.Status, 
+                    HasStagingBatches = doc.Status == RetryBatchStatus.Staging,
+                    HasForwardingBatches = doc.Status == RetryBatchStatus.Forwarding,
                     doc.InitialBatchSize,
                     doc.Originator                              
                 };
@@ -21,15 +22,15 @@ namespace ServiceControl.Recoverability
                 group result by new
                 {
                     result.RequestId,
-                    result.RetryType,
-                    result.Status
+                    result.RetryType
                 }  into g
                 select new 
                 {
                     g.Key.RequestId,
                     g.Key.RetryType,
-                    g.Key.Status,
-                    Originator = g.First().Originator,
+                    g.First().Originator,
+                    HasStagingBatches = g.Any(x => x.HasStagingBatches),
+                    HasForwardingBatches = g.Any(x => x.HasForwardingBatches),
                     InitialBatchSize = g.Sum(x => x.InitialBatchSize)
                 };
             

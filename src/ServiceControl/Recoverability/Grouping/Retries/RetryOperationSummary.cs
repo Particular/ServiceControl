@@ -73,14 +73,6 @@
             Notifier?.Forwarding(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages, GetProgression());
         }
 
-        public void ForwardingAfterRestart(int totalNumberOfMessages, string originator)
-        {
-            TotalNumberOfMessages = totalNumberOfMessages;
-            Originator = originator;
-
-            Forwarding();
-        }
-
         public void BatchForwarded(int numberOfMessagesForwarded)
         {
             NumberOfMessagesForwarded += numberOfMessagesForwarded;

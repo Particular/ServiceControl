@@ -47,14 +47,7 @@
 
             summary.Forwarding();
         }
-
-        public void ForwardingAfterRestart(string requestId, RetryType retryType, int totalNumberOfMessages, string originator)
-        {
-            var summary = GetOrCreate(retryType, requestId);
-
-            summary.ForwardingAfterRestart(totalNumberOfMessages, originator);
-        }
-
+        
         public void ForwardedBatch(string requestId, RetryType retryType, int numberOfMessagesForwarded)
         {
             var summary = Get(requestId, retryType);
