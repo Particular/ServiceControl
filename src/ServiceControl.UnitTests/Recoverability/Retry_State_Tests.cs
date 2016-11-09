@@ -70,6 +70,8 @@ namespace ServiceControl.UnitTests.Recoverability
             {
                 CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 2001);
 
+                new RetryBatches_ByStatus_ReduceInitialBatchSize().Execute(documentStore);
+
                 var bodyStorage = new RavenAttachmentsBodyStorage
                 {
                     DocumentStore = documentStore
@@ -96,6 +98,13 @@ namespace ServiceControl.UnitTests.Recoverability
 
                     // Simulate SC restart
                     retryManager = new RetryOperationManager(new TestNotifier());
+
+                    var documentManager = new CustomRetryDocumentManager(false, documentStore)
+                    {
+                        RetryOperationManager = retryManager
+                    };
+                    documentManager.RebuildRetryOperationState(session);
+
                     processor = new RetryProcessor(bodyStorage, sender, testBus, new TestReturnToSenderDequeuer(sender, documentStore, testBus, configure), retryManager);
 
                     processor.ProcessBatches(session);
