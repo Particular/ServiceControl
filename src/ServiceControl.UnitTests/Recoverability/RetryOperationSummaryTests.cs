@@ -101,19 +101,7 @@
             Assert.AreEqual(0, summary.NumberOfMessagesForwarded);
             Assert.AreEqual(1000, summary.TotalNumberOfMessages);
         }
-
-        [Test]
-        public void ForwardingAfterRestart_should_set_totalNumberOfMessages_and_originator()
-        {
-            var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
-            summary.ForwardingAfterRestart(1000, "FailureGroup1");
-
-            Assert.AreEqual(RetryState.Forwarding, summary.RetryState);
-            Assert.AreEqual(0, summary.NumberOfMessagesForwarded);
-            Assert.AreEqual(1000, summary.TotalNumberOfMessages);
-            Assert.AreEqual("FailureGroup1", summary.Originator);
-        }
-
+        
         [Test]
         public void Forwarding_batch_should_notify_forwarding()
         {

@@ -9,7 +9,9 @@ namespace ServiceControl.Recoverability
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] //default to RetryType.Unknown for backwards compatability
         public RetryType RetryType { get; set; }
 
-        public RetryBatchStatus Status { get; set; }
+        public bool HasStagingBatches{ get; set; }
+
+        public bool HasForwardingBatches { get; set; }
 
         public int InitialBatchSize { get; set; }
 
