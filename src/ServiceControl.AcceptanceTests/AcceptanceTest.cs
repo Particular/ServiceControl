@@ -183,7 +183,14 @@ namespace ServiceBus.Management.AcceptanceTests
 
         protected IScenarioWithEndpointBehavior<T> Define<T>(Func<T> contextFactory) where T : ScenarioContext, new()
         {
-            scenarioContext = contextFactory();
+            var ctx = contextFactory();
+
+            if (ctx == scenarioContext)
+            {
+                //We have already SC running
+                return new ScenarioWithContext<T>(() => (T)scenarioContext);
+            }
+            scenarioContext = ctx;
             scenarioContext.SessionId = Guid.NewGuid().ToString();
 
             InitializeServiceControl(scenarioContext);
