@@ -20,11 +20,14 @@ namespace ServiceControl.Recoverability
                 return HttpStatusCode.BadRequest;
             }
 
+            RetryOperationManager.Wait(groupId, RetryType.FailureGroup);
+
             Bus.SendLocal<RetryAllInGroup>(m => m.GroupId = groupId);
 
             return HttpStatusCode.Accepted;
         }
 
         public IBus Bus { get; set; }
+        public RetryOperationManager RetryOperationManager { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Nancy;
@@ -15,6 +16,8 @@ namespace ServiceControl.Recoverability
     public class FailureGroupsApi : BaseModule
     {
         public IBus Bus { get; set; }
+
+        public RetryOperationManager RetryOperationManager { get; set; }
 
         public IEnumerable<IFailureClassifier> Classifiers { get; set; }
 
@@ -37,6 +40,9 @@ namespace ServiceControl.Recoverability
 
             Head["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrorsCount(parameters.GroupId);
+
+            Get["/recoverability/history/"] =
+            _ => GetRetryHistory();
         }
 
         dynamic ReclassifyErrors()
@@ -57,23 +63,68 @@ namespace ServiceControl.Recoverability
                 .WithTotalCount(classifiers.Length);
         }
 
+        dynamic GetRetryHistory()
+        {
+            using (var session = Store.OpenSession())
+            {
+                var retryHistory = session.Load<RetryOperationsHistory>(RetryOperationsHistory.MakeId()) ?? RetryOperationsHistory.CreateNew();
+
+                return Negotiate.WithModel(retryHistory);
+            }
+        }
+
         dynamic GetAllGroups(string classifier)
         {
             using (var session = Store.OpenSession())
             {
                 RavenQueryStatistics stats;
 
+                var history = session.Load<RetryOperationsHistory>(RetryOperationsHistory.MakeId()) ?? RetryOperationsHistory.CreateNew();
+
                 var results = session.Query<FailureGroupView, FailureGroupsViewIndex>()
                     .Statistics(out stats)
                     .Where(v => v.Type == classifier)
                     .OrderByDescending(x => x.Last)
                     .Take(200)
-                    .ToArray();
+                    .ToArray()
+                    .Select(failureGroup =>
+                    {
+                        var summary = RetryOperationManager.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
+
+                        return new
+                        {
+                            Id = failureGroup.Id,
+                            Title = failureGroup.Title,
+                            Type = failureGroup.Type,
+                            Count = failureGroup.Count,
+                            First = failureGroup.First,
+                            Last = failureGroup.Last,
+                            CompletionTime = GetCompletionTime(summary, history, failureGroup.Id, RetryType.FailureGroup),
+                            RetryStatus = summary?.RetryState.ToString() ?? "None",
+                            Failed = summary?.Failed,
+                            RetryProgress = summary?.GetProgression() ?? 0.0
+                        };
+                    });
 
                 return Negotiate.WithModel(results)
                     .WithTotalCount(stats)
                     .WithEtagAndLastModified(stats);
             }
+        }
+
+        private DateTime? GetCompletionTime(RetryOperationSummary summary, RetryOperationsHistory history, string requestId, RetryType retryType)
+        {
+            if (summary?.CompletionTime != null) //a completed summary is always the most fresh, if it exists
+            {
+                return summary.CompletionTime.Value;
+            }
+
+            var previous = history.PreviousFullyCompletedOperations 
+                .Where(v => v.RequestId == requestId && v.RetryType == retryType)
+                .OrderByDescending(v => v.CompletionTime)
+                .FirstOrDefault();
+
+            return previous?.CompletionTime;
         }
 
         dynamic GetAllGroupsCount(string classifier)

@@ -17,7 +17,8 @@ namespace ServiceControl.Recoverability
 
     public class RetryDocumentManager
     {
-        private static string RetrySessionId = Guid.NewGuid().ToString();
+        protected static string RetrySessionId = Guid.NewGuid().ToString();
+        public RetryOperationManager RetryOperationManager { get; set; }
         private static RavenJObject defaultMetadata = RavenJObject.Parse($@"
                                     {{
                                         ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"", 
@@ -34,15 +35,19 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string context = null)
+        public string CreateBatchDocument(string requestId, RetryType retryType, int initialBatchSize, string originator, string batchName = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = store.OpenSession())
             {
                 session.Store(new RetryBatch
                 {
-                    Id = batchDocumentId, 
-                    Context = context,
+                    Id = batchDocumentId,
+                    Context = batchName,
+                    RequestId = requestId,
+                    RetryType = retryType,
+                    Originator = originator,
+                    InitialBatchSize = initialBatchSize,
                     RetrySessionId = RetrySessionId, 
                     Status = RetryBatchStatus.MarkingDocuments
                 });
@@ -78,7 +83,7 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        public void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
+        public virtual void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
         {
             try
             {
@@ -111,33 +116,37 @@ namespace ServiceControl.Recoverability
             store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
-        internal void AdoptOrphanedBatches(out bool hasMoreWorkToDo)
+        internal void AdoptOrphanedBatches(IDocumentSession session, out bool hasMoreWorkToDo)
         {
-            using (var session = store.OpenSession())
+            RavenQueryStatistics stats;
+
+            var orphanedBatches = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
+                .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
+                .Statistics(out stats)
+                .ToArray();
+
+            log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatches.Length);
+
+            AdoptBatches(session, orphanedBatches.Select(b => b.Id));
+
+            foreach (var batch in orphanedBatches)
             {
-                RavenQueryStatistics stats;
-
-                var orphanedBatchIds = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-                    .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
-                    .Statistics(out stats)
-                    .Select(b => b.Id)
-                    .ToArray();
-
-                log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatchIds.Length);
-
-                AdoptBatches(session, orphanedBatchIds);
-
-                if (abort)
+                if (batch.RetryType != RetryType.MultipleMessages)
                 {
-                    hasMoreWorkToDo = false;
-                    return;
+                    RetryOperationManager.Fail(batch.RetryType, batch.RequestId);
                 }
-
-                hasMoreWorkToDo = stats.IsStale || orphanedBatchIds.Any();
             }
+
+            if (abort)
+            {
+                hasMoreWorkToDo = false;
+                return;
+            }
+
+            hasMoreWorkToDo = stats.IsStale || orphanedBatches.Any();
         }
 
-        void AdoptBatches(IDocumentSession session, string[] batchIds)
+        void AdoptBatches(IDocumentSession session, IEnumerable<string> batchIds)
         {
             Parallel.ForEach(batchIds, batchId => AdoptBatch(session, batchId));
         }
@@ -161,6 +170,21 @@ namespace ServiceControl.Recoverability
             {
                 log.InfoFormat("Adopting retry batch {0} from previous session with {1} messages", batchId, messageIds.Count);
                 MoveBatchToStaging(batchId, messageIds.ToArray());
+            }
+        }
+
+        internal void RebuildRetryOperationState(IDocumentSession session)
+        {
+            var stagingBatchGroups = session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
+                .Where(b => b.HasStagingBatches||b.HasForwardingBatches);
+               
+            foreach (var group in stagingBatchGroups)
+            {
+                if (!string.IsNullOrWhiteSpace(group.RequestId))
+                {
+                    log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
+                    RetryOperationManager.PrepareAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator);
+                }
             }
         }
 
