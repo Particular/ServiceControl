@@ -24,14 +24,17 @@
                 {
                     EndpointInstanceId = id,
                     Endpoint = message.Endpoint,
-                    DetectedAt = message.DetectedAt
+                    DetectedAt = message.DetectedAt,
+                    EnableMonitoring = true
                 });
             }
-
-            Bus.SendLocal(new EnableEndpointMonitoring
+            else
             {
-                EndpointId = id
-            });
+                Bus.SendLocal(new EnableEndpointMonitoring
+                {
+                    EndpointId = id
+                });
+            }
         }
 
         public void Handle(EndpointHeartbeatRestored message)
