@@ -283,6 +283,8 @@
     </Compile>
     <Compile Include="Infrastructure\Extensions\WaitHandleExtensions.cs" />
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
+    <Compile Include="Infrastructure\OWIN\Middleware\WebSocketMiddleware.cs" />
+    <Compile Include="Infrastructure\OWIN\Middleware\ObjectPool.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\EventLogItemsCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryEventLogItemsIndex.cs" />
     <Compile Include="Infrastructure\RavenDB\Subscriptions\CachedRavenDBPersistence.cs" />
