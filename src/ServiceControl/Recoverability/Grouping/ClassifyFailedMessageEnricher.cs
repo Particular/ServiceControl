@@ -4,7 +4,6 @@ namespace ServiceControl.Recoverability
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
-    using ServiceControl.MessageFailures.Handlers;
 
     class ClassifyFailedMessageEnricher : IFailedMessageEnricher
     {
