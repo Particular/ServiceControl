@@ -14,7 +14,6 @@
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageAuditing;
     using ServiceControl.Operations.BodyStorage;
 
@@ -107,19 +106,24 @@
 
         private ProcessedMessage ConvertToSaveMessage(TransportMessage message)
         {
-            var receivedMessage = new ImportSuccessfullyProcessedMessage(message);
+            var metadata = new Dictionary<string, object>
+            {
+                ["MessageId"] = message.Id,
+                ["MessageIntent"] = message.MessageIntent,
+                ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
+            };
 
             foreach (var enricher in enrichers)
             {
-                enricher.Enrich(message.Headers, receivedMessage.Metadata);
+                enricher.Enrich(message.Headers, metadata);
             }
 
             bodyStorageEnricher.StoreAuditMessageBody(
                 message.Body,
                 message.Headers,
-                receivedMessage.Metadata);
+                metadata);
 
-            var auditMessage = new ProcessedMessage(receivedMessage)
+            var auditMessage = new ProcessedMessage(message.Headers, metadata)
             {
                 // We do this so Raven does not spend time assigning a hilo key
                 Id = $"ProcessedMessages/{Guid.NewGuid()}"

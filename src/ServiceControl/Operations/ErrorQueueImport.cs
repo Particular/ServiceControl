@@ -21,8 +21,9 @@
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageFailures;
-    using ServiceControl.MessageFailures.Handlers;
     using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Recoverability;
+    using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
     using JsonSerializer = Raven.Imports.Newtonsoft.Json.JsonSerializer;
 
     public class ErrorQueueImport : IAdvancedSatellite, IDisposable
@@ -40,8 +41,8 @@
         private readonly Settings settings;
         private readonly IDocumentStore store;
         private readonly IEnrichImportedMessages[] enrichers;
-        private readonly IFailedMessageEnricher[] failedEnrichers;
         private readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        private readonly FailedMessageFactory failedMessageFactory;
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
 
         static ErrorQueueImport()
@@ -68,7 +69,9 @@
             this.bodyStorageEnricher = bodyStorageEnricher;
 
             enrichers = builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichErrors).ToArray();
-            failedEnrichers = builder.BuildAll<IFailedMessageEnricher>().ToArray();
+            var failedEnrichers = builder.BuildAll<IFailedMessageEnricher>().ToArray();
+
+            failedMessageFactory = new FailedMessageFactory(failedEnrichers);
         }
 
         public bool Handle(TransportMessage message)
@@ -115,19 +118,39 @@
 
         private void InnerHandle(TransportMessage message)
         {
-            var errorMessageReceived = new ImportFailedMessage(message);
+            var metadata = new Dictionary<string, object>
+            {
+                ["MessageId"] = message.Id,
+                ["MessageIntent"] = message.MessageIntent,
+                ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
+            };
 
             foreach (var enricher in enrichers)
             {
-                enricher.Enrich(message.Headers, errorMessageReceived.Metadata);
+                enricher.Enrich(message.Headers, metadata);
             }
 
             bodyStorageEnricher.StoreErrorMessageBody(
                 message.Body,
                 message.Headers,
-                errorMessageReceived.Metadata);
+                metadata);
 
-            Handle(errorMessageReceived);
+            var failureDetails = failedMessageFactory.ParseFailureDetails(message.Headers);
+
+            var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
+                message.Headers,
+                metadata,
+                failureDetails,
+                message.MessageIntent,
+                message.Recoverable,
+                message.CorrelationId,
+                message.ReplyToAddress?.Queue);
+
+            var groups = failedMessageFactory.GetGroups((string) metadata["MessageType"], failureDetails);
+
+            Store(message.Headers.UniqueId(), processingAttempt, groups);
+
+            AnnounceFailedMessage(message.Headers, failureDetails);
 
             if (settings.ForwardErrorMessages)
             {
@@ -136,26 +159,12 @@
             }
         }
 
-        private void Handle(ImportFailedMessage message)
+        private void Store(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
         {
-            var uniqueId = message.UniqueMessageId;
-            var documentId = $"{FailedMessage.CollectionName}/{uniqueId}";
-            var timeOfFailure = message.FailureDetails.TimeOfFailure;
-            var headers = message.PhysicalMessage.Headers;
-            var metadata = message.Metadata;
-            var intent = message.PhysicalMessage.MessageIntent;
-            var groups = new List<FailedMessage.FailureGroup>();
-            var recoverable = message.PhysicalMessage.Recoverable;
-            var correlationId = message.PhysicalMessage.CorrelationId;
-            var replyToAddress = message.PhysicalMessage.ReplyToAddress;
-            var failureDetails = message.FailureDetails;
+            var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
 
-            foreach (var enricher in failedEnrichers)
-            {
-                groups.AddRange(enricher.Enrich((string) metadata["MessageType"], failureDetails));
-            }
-
-            store.DatabaseCommands.Patch(documentId, new[]
+            store.DatabaseCommands.Patch(documentId,
+                new[]
                 {
                     new PatchRequest
                     {
@@ -167,18 +176,7 @@
                     {
                         Name = nameof(FailedMessage.ProcessingAttempts),
                         Type = PatchCommandType.Add,
-                        Value = RavenJToken.FromObject(new FailedMessage.ProcessingAttempt
-                        {
-                            AttemptedAt = timeOfFailure,
-                            FailureDetails = failureDetails,
-                            MessageMetadata = metadata,
-                            MessageId = headers[Headers.MessageId],
-                            Headers = headers,
-                            ReplyToAddress = replyToAddress,
-                            Recoverable = recoverable,
-                            CorrelationId = correlationId,
-                            MessageIntent = intent
-                        }, Serializer) // Need to specify serializer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
+                        Value = RavenJToken.FromObject(processingAttempt, Serializer) // Need to specify serializer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
                     },
                     new PatchRequest
                     {
@@ -193,7 +191,7 @@
                     {
                         Name = nameof(FailedMessage.UniqueMessageId),
                         Type = PatchCommandType.Set,
-                        Value = uniqueId
+                        Value = uniqueMessageId
                     },
                     new PatchRequest
                     {
@@ -205,18 +203,7 @@
                     {
                         Name = nameof(FailedMessage.ProcessingAttempts),
                         Type = PatchCommandType.Add,
-                        Value = RavenJToken.FromObject(new FailedMessage.ProcessingAttempt
-                        {
-                            AttemptedAt = timeOfFailure,
-                            FailureDetails = failureDetails,
-                            MessageMetadata = metadata,
-                            MessageId = headers[Headers.MessageId],
-                            Headers = headers,
-                            ReplyToAddress = replyToAddress,
-                            Recoverable = recoverable,
-                            CorrelationId = correlationId,
-                            MessageIntent = intent
-                        }, Serializer) // Need to specify serilaizer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
+                        Value = RavenJToken.FromObject(processingAttempt, Serializer) // Need to specify serilaizer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
                     },
                     new PatchRequest
                     {
@@ -224,15 +211,21 @@
                         Type = PatchCommandType.Set,
                         Value = RavenJToken.FromObject(groups)
                     }
-                }, JObjectMetadata);
+                }, JObjectMetadata
+            );
+        }
+
+        private void AnnounceFailedMessage(IReadOnlyDictionary<string, string> headers, FailureDetails failureDetails)
+        {
+            var failingEndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue;
 
             string failedMessageId;
-            if (message.PhysicalMessage.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
+            if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
             {
                 bus.Publish<MessageFailedRepeatedly>(m =>
                 {
-                    m.FailureDetails = message.FailureDetails;
-                    m.EndpointId = message.FailingEndpointId;
+                    m.FailureDetails = failureDetails;
+                    m.EndpointId = failingEndpointId;
                     m.FailedMessageId = failedMessageId;
                 });
             }
@@ -240,9 +233,9 @@
             {
                 bus.Publish<MessageFailed>(m =>
                 {
-                    m.FailureDetails = message.FailureDetails;
-                    m.EndpointId = message.FailingEndpointId;
-                    m.FailedMessageId = message.UniqueMessageId;
+                    m.FailureDetails = failureDetails;
+                    m.EndpointId = failingEndpointId;
+                    m.FailedMessageId = headers.UniqueId();
                 });
             }
         }
