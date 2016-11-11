@@ -14,6 +14,7 @@
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
 
     public class When_a_retry_fails_to_be_sent : AcceptanceTest
@@ -23,7 +24,7 @@
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            CustomConfiguration = config => { config.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(new SendMessagesWrapper(b.Build<ISendMessages>()), b.Build<IDocumentStore>(), b.Build<IBus>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)); };
+            CustomConfiguration = config => { config.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(b.Build<IBodyStorage>(), new SendMessagesWrapper(b.Build<ISendMessages>()), b.Build<IDocumentStore>(), b.Build<IBus>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)); };
 
             Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.Given((bus, ctx) =>

@@ -2,8 +2,8 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transports;
@@ -11,7 +11,6 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageRedirects;
-    using ServiceControl.Operations.BodyStorage;
 
     class RetryProcessor
     {
@@ -28,9 +27,8 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender)
+        public RetryProcessor(ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender)
         {
-            this.bodyStorage = bodyStorage;
             this.sender = sender;
             this.bus = bus;
             this.returnToSender = returnToSender;
@@ -89,7 +87,7 @@ namespace ServiceControl.Recoverability
 
             session.Delete(forwardingBatch);
 
-            Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
+            Log.Info($"Retry batch {forwardingBatch.Id} done");
         }
 
         static Predicate<TransportMessage> IsPartOfStagedBatch(string stagingId)
@@ -104,16 +102,24 @@ namespace ServiceControl.Recoverability
         bool Stage(RetryBatch stagingBatch, IDocumentSession session)
         {
             var stagingId = Guid.NewGuid().ToString();
-
-            var matchingFailures = session.Load<FailedMessageRetry>(stagingBatch.FailureRetries)
+            var failedMessageRetryDocs = session.Load<FailedMessageRetry>(stagingBatch.FailureRetries);
+            var matchingFailures = failedMessageRetryDocs
                 .Where(r => r != null && r.RetryBatchId == stagingBatch.Id)
                 .ToArray();
+
+            foreach (var failedMessageRetry in failedMessageRetryDocs)
+            {
+                if (failedMessageRetry != null)
+                {
+                    session.Advanced.Evict(failedMessageRetry);
+                }
+            }
 
             var messageIds = matchingFailures.Select(x => x.FailedMessageId).ToArray();
 
             if (!messageIds.Any())
             {
-                Log.InfoFormat("Retry batch {0} cancelled as all matching unresolved messages are already marked for retry as part of another batch", stagingBatch.Id);
+                Log.Info($"Retry batch {stagingBatch.Id} cancelled as all matching unresolved messages are already marked for retry as part of another batch");
                 session.Delete(stagingBatch);
                 return false;
             }
@@ -122,11 +128,8 @@ namespace ServiceControl.Recoverability
                 .Where(m => m != null)
                 .ToArray();
 
-            foreach (var message in messages)
-            {
-                StageMessage(message, stagingId);
-            }
-
+            Parallel.ForEach(messages, message => StageMessage(message, stagingId));
+            
             bus.Publish<MessagesSubmittedForRetry>(m =>
             {
                 m.FailedMessageIds = messages.Select(x => x.UniqueMessageId).ToArray();
@@ -139,7 +142,7 @@ namespace ServiceControl.Recoverability
             stagingBatch.StagingId = stagingId;
             stagingBatch.FailureRetries = matchingFailures.Where(x => msgLookup[x.FailedMessageId].Any()).Select(x => x.Id).ToArray();
 
-            Log.InfoFormat("Retry batch {0} staged {1} messages", stagingBatch.Id, messages.Length);
+            Log.Info($"Retry batch {stagingBatch.Id} staged {messages.Length} messages");
             return true;
         }
 
@@ -168,6 +171,7 @@ namespace ServiceControl.Recoverability
             {
                 headersToRetryWith[Headers.ReplyToAddress] = attempt.ReplyToAddress;
             }
+            headersToRetryWith["ServiceControl.Retry.Attempt.MessageId"] = attempt.MessageId;
 
             var transportMessage = new TransportMessage(message.Id, headersToRetryWith)
             {
@@ -179,33 +183,9 @@ namespace ServiceControl.Recoverability
                 transportMessage.CorrelationId = attempt.CorrelationId;
             }
 
-            Stream stream;
-            if (bodyStorage.TryFetch(attempt.MessageId, out stream))
-            {
-                using (stream)
-                {
-                    transportMessage.Body = ReadFully(stream);
-                }
-            }
-
             sender.Send(transportMessage, new SendOptions(returnToSender.InputAddress));
         }
 
-        static byte[] ReadFully(Stream input)
-        {
-            var buffer = new byte[16 * 1024];
-            using (var ms = new MemoryStream())
-            {
-                int read;
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ms.Write(buffer, 0, read);
-                }
-                return ms.ToArray();
-            }
-        }
-
-        IBodyStorage bodyStorage;
         ISendMessages sender;
         IBus bus;
         ReturnToSenderDequeuer returnToSender;
