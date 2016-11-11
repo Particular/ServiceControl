@@ -21,11 +21,13 @@
         public DateTime? CompletionTime { get; private set; }
         public bool Failed { get; private set; }
         public string Originator { get; private set; }
-        public DateTime Started { get; private set; }
+		public DateTime Started { get; private set; }
+        public int? Slot { get; private set; }
         public RetryState RetryState { get; private set; }
         private readonly string requestId;
         private readonly RetryType retryType;
         
+
         public static string MakeOperationId(string requestId, RetryType retryType)
         {
             return $"{retryType}/{requestId}";
@@ -41,8 +43,15 @@
             CompletionTime = null;
             Originator = originator;
             Started = started;
+			
+            Notifier?.Wait(requestId, retryType, GetProgression(), Slot);
+        }
 
-            Notifier?.Wait(requestId, retryType, GetProgression());
+        public void WaitInNewSlot(int slot)
+        {
+            Slot = slot;
+
+            Notifier?.Wait(requestId, retryType, GetProgression(), Slot);
         }
 
         public void Fail()

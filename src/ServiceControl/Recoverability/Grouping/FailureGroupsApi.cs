@@ -108,7 +108,8 @@ namespace ServiceControl.Recoverability
                             CompletionTime = lastCompleted?.CompletionTime,
                             RetryStatus = summary?.RetryState.ToString() ?? "None",
                             Failed = summary?.Failed,
-                            RetryProgress = summary?.GetProgression() ?? 0.0
+                            RetryProgress = summary?.GetProgression() ?? 0.0,
+                            Slot = summary?.Slot
                         };
                     });
 

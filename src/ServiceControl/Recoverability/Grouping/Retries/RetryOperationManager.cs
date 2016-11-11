@@ -93,5 +93,14 @@
 
             return summary;
         }
+
+        public void UpdateWaitPosition(List<QueuedRetryItem> positions)
+        {
+            foreach (var position in positions)
+            {
+                var operation = GetStatusForRetryOperation(position.RequestId, position.RetryType);
+                operation?.WaitInNewSlot(position.Position);
+            }
+        }
     }
 }
