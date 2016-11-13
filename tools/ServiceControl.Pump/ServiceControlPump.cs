@@ -9,14 +9,13 @@
     using NServiceBus.Features;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Transport;
-    using Roslyn.Utilities;
 
     public class ServiceControlPump : Feature
     {
         protected override void Setup(FeatureConfigurationContext context)
         {
-            var pushRuntimeSettings = new PushRuntimeSettings(150);
-            context.Container.RegisterSingleton(new Transmit(pushRuntimeSettings.MaxConcurrency));
+            var pushRuntimeSettings = new PushRuntimeSettings(30);
+            context.Container.RegisterSingleton(new Transmit());
 
             var qualifiedAddress = context.Settings.LogicalAddress().CreateQualifiedAddress("ServiceControl");
             var transportAddress = context.Settings.GetTransportAddress(qualifiedAddress);
@@ -35,12 +34,12 @@
 
         class Transmit : IDisposable
         {
-            readonly ObjectPool<byte[]> bufferPool;
+            readonly PinnableBufferCache bufferPool;
             readonly ClientWebSocketCache socketPool = new ClientWebSocketCache();
 
-            public Transmit(int maxConcurrency)
+            public Transmit()
             {
-                bufferPool = new ObjectPool<byte[]>(() => new byte[4 * 1024 * 1024], maxConcurrency);
+                bufferPool = new PinnableBufferCache("Send pool", 4 * 1024 * 1024);
             }
 
             public async Task Send(MessageContext message)
@@ -51,7 +50,7 @@
 
                 try
                 {
-                    buffer = bufferPool.Allocate();
+                    buffer = bufferPool.AllocateBuffer();
                     socket = await socketPool.GetClient(message.ReceiveCancellationTokenSource.Token);
 
                     using (var stream = new MemoryStream(buffer))
@@ -80,7 +79,7 @@
                 {
                     if (buffer != null)
                     {
-                        bufferPool.Free(buffer);
+                        bufferPool.FreeBuffer(buffer);
                     }
 
                     if (socket != null)

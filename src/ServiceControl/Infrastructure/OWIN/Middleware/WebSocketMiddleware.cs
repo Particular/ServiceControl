@@ -12,7 +12,6 @@
     using Microsoft.Owin;
     using NServiceBus;
     using Raven.Client;
-    using Roslyn.Utilities;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageAuditing;
     using ServiceControl.Operations;
@@ -21,10 +20,10 @@
     {
         private readonly IDocumentStore store;
         private Lazy<IEnrichImportedMessages[]> enrichers;
-        ObjectPool<byte[]> bufferPool = new ObjectPool<byte[]>(() => new byte[4 * 1024 * 1024], 30);
+        PinnableBufferCache receivePool = new PinnableBufferCache("Receive pool", 4 * 1024 * 1024);
+        PinnableBufferCache upgradePool = new PinnableBufferCache("Upgrade pool", 1024);
         private readonly Metrics.Timer timer = Metric.Context("Processing").Timer("Audit Messages", Unit.Custom("Messages"));
         private readonly string webSocketContextKey = typeof(WebSocketContext).FullName;
-
 
         public WebSocketMiddleware(OwinMiddleware next, IContainer container) : base(next)
         {
@@ -36,15 +35,18 @@
         {
             var accept = context.Get<Action<IDictionary<string, object>, Func<IDictionary<string, object>, Task>>>("websocket.Accept");
 
-            if (IsWebSocketRequest(context.Request) && accept != null)
+            if (accept != null)
             {
-                accept(null, HandleRequest);
+                var buffer = upgradePool.AllocateBuffer();
+                accept(new Dictionary<string, object>
+                {
+                    {"websocket.ReceiveBufferSize", 256},
+                    {"websocket.Buffer", new ArraySegment<byte>(buffer)}
+                }, e => HandleRequest(e).ContinueWith(_ => upgradePool.FreeBuffer(buffer)));
             }
             else
             {
-                await Console.Out.WriteLineAsync("Bummer!");
                 context.Response.StatusCode = 400;
-                context.Response.ReasonPhrase = "Not sure what is going on!";
                 await Task.FromResult(0);
             }
         }
@@ -94,8 +96,8 @@
 
                     try
                     {
-                        buffer = bufferPool.Allocate();
-                        receiveBuffer = bufferPool.Allocate();
+                        buffer = receivePool.AllocateBuffer();
+                        receiveBuffer = receivePool.AllocateBuffer();
 
                         WebSocketReceiveResult receiveResult;
                         var totalMessageSize = 0;
@@ -129,8 +131,8 @@
                     }
                     finally
                     {
-                        bufferPool.Free(buffer);
-                        bufferPool.Free(receiveBuffer);
+                        receivePool.FreeBuffer(buffer);
+                        receivePool.FreeBuffer(receiveBuffer);
                     }
 
                     var transportMessage = new TransportMessage(headers[Headers.MessageId], headers)
@@ -145,19 +147,19 @@
             }
         }
 
-        private static bool IsWebSocketRequest(IOwinRequest request)
-        {
-            var isUpgrade = IsHeaderEqual(request, "Connection", "Upgrade,Keep-Alive") || IsHeaderEqual(request, "Connection", "Upgrade");
-            var isWebSocket = IsHeaderEqual(request, "Upgrade", "WebSocket");
-            return isUpgrade & isWebSocket;
-        }
+        //private static bool IsWebSocketRequest(IOwinRequest request)
+        //{
+        //    var isUpgrade = IsHeaderEqual(request, "Connection", "Upgrade,Keep-Alive") || IsHeaderEqual(request, "Connection", "Upgrade");
+        //    var isWebSocket = IsHeaderEqual(request, "Upgrade", "WebSocket");
+        //    return isUpgrade & isWebSocket;
+        //}
 
-        private static bool IsHeaderEqual(IOwinRequest request, string header, string value)
-        {
-            string[] headerValues;
-            return request.Headers.TryGetValue(header, out headerValues) && headerValues.Length == 1
-                   && string.Equals(value, headerValues[0], StringComparison.OrdinalIgnoreCase);
-        }
+        //private static bool IsHeaderEqual(IOwinRequest request, string header, string value)
+        //{
+        //    string[] headerValues;
+        //    return request.Headers.TryGetValue(header, out headerValues) && headerValues.Length == 1
+        //           && string.Equals(value, headerValues[0], StringComparison.OrdinalIgnoreCase);
+        //}
 
         private async Task Save(TransportMessage message)
         {

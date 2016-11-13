@@ -98,9 +98,9 @@ namespace FailureFirehose
             config.UsePersistence<InMemoryPersistence>();
             config.Recoverability().Delayed(settings => settings.NumberOfRetries(0));
             config.AuditProcessedMessagesTo("FailureFirehose_Receiver.ServiceControl");
-            config.EnableFeature<ServiceControlPump>();
+            //config.EnableFeature<ServiceControlPump>();
             config.EnableInstallers();
-            config.LimitMessageProcessingConcurrencyTo(150);
+            config.LimitMessageProcessingConcurrencyTo(30);
             config.Recoverability().Immediate(settings => settings.NumberOfRetries(5));
             config.CustomCheckPlugin("particular.servicecontrol");
             ServicePointManager.DefaultConnectionLimit = 300;
