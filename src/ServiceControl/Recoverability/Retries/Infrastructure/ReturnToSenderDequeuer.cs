@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
@@ -12,6 +13,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Operations.BodyStorage;
     using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
 
     public class ReturnToSenderDequeuer : IAdvancedSatellite
@@ -26,10 +28,12 @@ namespace ServiceControl.Recoverability
         Predicate<TransportMessage> shouldProcess; 
         readonly ISendMessages sender;
         CaptureIfMessageSendingFails faultManager;
+        IBodyStorage bodyStorage;
 
-        public ReturnToSenderDequeuer(ISendMessages sender, IDocumentStore store, IBus bus, Configure configure)
+        public ReturnToSenderDequeuer(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IBus bus, Configure configure)
         {
             this.sender = sender;
+            this.bodyStorage = bodyStorage;
 
             Action executeOnFailure = () =>
             {
@@ -66,12 +70,40 @@ namespace ServiceControl.Recoverability
             return true;
         }
 
+        static byte[] ReadFully(Stream input)
+        {
+            var buffer = new byte[16 * 1024];
+            using (var ms = new MemoryStream())
+            {
+                int read;
+                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    ms.Write(buffer, 0, read);
+                }
+                return ms.ToArray();
+            }
+        }
+
         void HandleMessage(TransportMessage message)
         {
             var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
 
             message.Headers.Remove("ServiceControl.TargetEndpointAddress");
             message.Headers.Remove("ServiceControl.Retry.StagingId");
+
+            string attemptMessageId;
+            if (message.Headers.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out attemptMessageId))
+            {
+                Stream stream;
+                if (bodyStorage.TryFetch(attemptMessageId, out stream))
+                {
+                    using (stream)
+                    {
+                        message.Body = ReadFully(stream);
+                    }
+                }
+                message.Headers.Remove("ServiceControl.Retry.Attempt.MessageId");
+            }
 
             try
             {
@@ -80,6 +112,10 @@ namespace ServiceControl.Recoverability
             catch (Exception)
             {
                 message.Headers["ServiceControl.TargetEndpointAddress"] = destination;
+                if (attemptMessageId != null)
+                {
+                    message.Headers["ServiceControl.Retry.Attempt.MessageId"] = attemptMessageId;
+                }
 
                 throw;
             }
