@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.EndpointControl.Handlers
 {
     using System;
+    using System.Collections.Generic;
     using Infrastructure;
     using InternalMessages;
     using NServiceBus;
@@ -23,22 +24,22 @@
 
         class EnrichWithEndpointDetails : ImportEnricher
         {
-            public override void Enrich(ImportMessage message)
+            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(message.PhysicalMessage.Headers);
+                var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(headers);
                 // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
                 // have the relevant information via the headers, which were added in v4.
                 if (sendingEndpoint != null)
                 {
-                    message.Metadata.Add("SendingEndpoint", sendingEndpoint);
+                    metadata.Add("SendingEndpoint", sendingEndpoint);
                 }
 
-                var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
+                var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(headers);
                 // The ReceivingEndpoint will be null for messages from v3.3.x endpoints that were successfully
                 // processed because we dont have the information from the relevant headers.
                 if (receivingEndpoint != null)
                 {
-                    message.Metadata.Add("ReceivingEndpoint", receivingEndpoint);
+                    metadata.Add("ReceivingEndpoint", receivingEndpoint);
                 }
             }
         }
@@ -54,9 +55,9 @@
                 this.knownEndpointsCache = knownEndpointsCache;
             }
 
-            public override void Enrich(ImportMessage message)
+            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(message.PhysicalMessage.Headers);
+                var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(headers);
 
                 // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
                 // have the relevant information via the headers, which were added in v4.
@@ -65,7 +66,7 @@
                     TryAddEndpoint(sendingEndpoint);
                 }
 
-                var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(message.PhysicalMessage.Headers);
+                var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(headers);
                 TryAddEndpoint(receivingEndpoint);
             }
 

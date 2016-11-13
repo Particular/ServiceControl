@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using NServiceBus;
-    using Contracts.Operations;
 
     public class ProcessedMessage
     {
@@ -12,21 +11,21 @@
            MessageMetadata = new Dictionary<string, object>();
         }
 
-        public ProcessedMessage(ImportSuccessfullyProcessedMessage message)
+        public ProcessedMessage(Dictionary<string, string> headers, Dictionary<string, object> metadata)
         {
-            UniqueMessageId = message.UniqueMessageId;            
-            MessageMetadata = message.Metadata;
-            Headers = message.PhysicalMessage.Headers;
+            UniqueMessageId = headers.UniqueId();
+            MessageMetadata = metadata;
+            Headers = headers;
 
             string processedAt;
-            
-            if (message.PhysicalMessage.Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out processedAt))
+
+            if (Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out processedAt))
             {
                 ProcessedAt = DateTimeExtensions.ToUtcDateTime(processedAt);
             }
             else
             {
-                ProcessedAt = DateTime.UtcNow;//best guess    
+                ProcessedAt = DateTime.UtcNow; // best guess
             }
         }
 
@@ -37,7 +36,7 @@
         public Dictionary<string, object> MessageMetadata { get; set; }
 
         public Dictionary<string, string> Headers { get; set; }
-         
+
         public DateTime ProcessedAt { get; set; }
     }
 }

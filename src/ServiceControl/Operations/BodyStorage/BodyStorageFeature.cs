@@ -1,12 +1,12 @@
 ﻿namespace ServiceControl.Operations.BodyStorage
 {
+    using System.Collections.Generic;
     using System.IO;
     using System.Text;
     using NServiceBus;
     using NServiceBus.Features;
     using RavenAttachments;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Contracts.Operations;
 
     public class BodyStorageFeature : Feature
     {
@@ -25,70 +25,51 @@
             context.Container.ConfigureComponent<BodyStorageEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        public class BodyStorageEnricher : ImportEnricher
+        public class BodyStorageEnricher
         {
-            public IBodyStorage BodyStorage { get; set; }
-            public Settings Settings { get; set; }
+            private IBodyStorage bodyStorage;
+            private Settings settings;
 
-            public override void Enrich(ImportMessage message)
+            public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
             {
-                var bodySize = GetContentLength(message);
-                message.Metadata.Add("ContentLength", bodySize);
+                this.bodyStorage = bodyStorage;
+                this.settings = settings;
+            }
+
+            public void StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            {
+                StoreMessageBody(body, headers, metadata, isFailedMessage: false);
+            }
+
+            public void StoreErrorMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            {
+                StoreMessageBody(body, headers, metadata, isFailedMessage: true);
+            }
+
+            private void StoreMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, bool isFailedMessage)
+            {
+                var bodySize = body?.Length ?? 0;
+                metadata.Add("ContentLength", bodySize);
                 if (bodySize == 0)
                 {
                     return;
                 }
 
-                var contentType = GetContentType(message, "text/xml");
-                message.Metadata.Add("ContentType", contentType);
+                var contentType = GetContentType(headers, "text/xml");
+                metadata.Add("ContentType", contentType);
 
-                var stored = TryStoreBody(message, bodySize, contentType);
+                var stored = TryStoreBody(body, headers, metadata, bodySize, contentType, isFailedMessage);
                 if (!stored)
                 {
-                    message.Metadata.Add("BodyNotStored", true);
+                    metadata.Add("BodyNotStored", true);
                 }
             }
 
-            bool TryStoreBody(ImportMessage message, int bodySize, string contentType)
-            {
-                var bodyId = message.MessageId;
-                var storedInBodyStorage = false;
-                var bodyUrl = $"/messages/{bodyId}/body";
-                var isFailedMessage = message is ImportFailedMessage;
-                var isBinary = contentType.Contains("binary");
-                var isBelowMaxSize = bodySize <= Settings.MaxBodySizeToStore;
-                var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
-
-                if (isFailedMessage || isBelowMaxSize)
-                {
-                    bodyUrl = StoreBodyInBodyStorage(message, bodyId, contentType, bodySize);
-                    storedInBodyStorage = true;
-                }
-
-                if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
-                {
-                    message.Metadata.Add("Body", Encoding.UTF8.GetString(message.PhysicalMessage.Body));
-                }
-
-                message.Metadata.Add("BodyUrl", bodyUrl);
-
-                return storedInBodyStorage;
-            }
-
-            static int GetContentLength(ImportMessage message)
-            {
-                if (message.PhysicalMessage.Body == null)
-                {
-                    return 0;
-                }
-                return message.PhysicalMessage.Body.Length;
-            }
-
-            static string GetContentType(ImportMessage message, string defaultContentType)
+            static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
             {
                 string contentType;
 
-                if (!message.PhysicalMessage.Headers.TryGetValue(Headers.ContentType, out contentType))
+                if (!headers.TryGetValue(Headers.ContentType, out contentType))
                 {
                     contentType = defaultContentType;
                 }
@@ -96,11 +77,36 @@
                 return contentType;
             }
 
-            string StoreBodyInBodyStorage(ImportMessage message, string bodyId, string contentType, int bodySize)
+            bool TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType, bool isFailedMessage)
             {
-                using (var bodyStream = new MemoryStream(message.PhysicalMessage.Body))
+                var bodyId = headers.MessageId();
+                var storedInBodyStorage = false;
+                var bodyUrl = $"/messages/{bodyId}/body";
+                var isBinary = contentType.Contains("binary");
+                var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
+                var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
+
+                if (isFailedMessage || isBelowMaxSize)
                 {
-                    var bodyUrl = BodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
+                    bodyUrl = StoreBodyInBodyStorage(body, bodyId, contentType, bodySize);
+                    storedInBodyStorage = true;
+                }
+
+                if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
+                {
+                    metadata.Add("Body", Encoding.UTF8.GetString(body));
+                }
+
+                metadata.Add("BodyUrl", bodyUrl);
+
+                return storedInBodyStorage;
+            }
+
+            string StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
+            {
+                using (var bodyStream = new MemoryStream(body))
+                {
+                    var bodyUrl = bodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
                     return bodyUrl;
                 }
             }

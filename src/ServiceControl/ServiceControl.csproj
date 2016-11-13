@@ -384,7 +384,7 @@
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
-    <Compile Include="MessageFailures\Handlers\IFailedMessageEnricher.cs" />
+    <Compile Include="Recoverability\Grouping\IFailedMessageEnricher.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesByRangeHandler.cs" />
     <Compile Include="MessageFailures\IHaveStatus.cs" />
     <Compile Include="MessageFailures\InternalMessages\ReclassificationOfErrorMessageComplete.cs" />
@@ -397,11 +397,7 @@
     <Compile Include="MessageRedirects\MessageRedirectsCollection.cs" />
     <Compile Include="Operations\EndpointDetailsParser.cs" />
     <Compile Include="Contracts\Operations\EndpointHeartbeatReceived.cs" />
-    <Compile Include="Contracts\Operations\ImportFailedMessage.cs" />
-    <Compile Include="Contracts\Operations\ImportMessage.cs" />
-    <Compile Include="Contracts\Operations\ImportSuccessfullyProcessedMessage.cs" />
     <Compile Include="Contracts\Operations\MessageStatus.cs" />
-    <Compile Include="Contracts\Operations\PhysicalMessage.cs" />
     <Compile Include="CustomChecks\DeleteCustomCheck.cs" />
     <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
     <Compile Include="EndpointControl\DetectNewEndpointsFromImportsEnricher.cs" />
@@ -507,6 +503,7 @@
     <Compile Include="Operations\ExceptionExtensions.cs" />
     <Compile Include="Operations\FailedAuditImport.cs" />
     <Compile Include="Operations\FailedErrorImport.cs" />
+    <Compile Include="Operations\FailedMessageFactory.cs" />
     <Compile Include="Operations\IEnrichImportedMessages.cs" />
     <Compile Include="Operations\ImportEnricher.cs" />
     <Compile Include="Operations\LicenseStatusKeeper.cs" />
