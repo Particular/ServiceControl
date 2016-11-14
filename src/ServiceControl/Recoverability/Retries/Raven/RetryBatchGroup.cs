@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using Raven.Imports.Newtonsoft.Json;
 
     public class RetryBatchGroup
@@ -16,5 +17,7 @@ namespace ServiceControl.Recoverability
         public int InitialBatchSize { get; set; }
 
         public string Originator{ get; set; }
+
+        public DateTime StartTime { get; set; }
     }
 }

@@ -249,7 +249,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
             gateway.RetryOperationManager = retryManager;
 
-            gateway.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>("Test-group", RetryType.FailureGroup, x => x.FailureGroupId == "Test-group", "Test-Context");
+            gateway.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>("Test-group", RetryType.FailureGroup, DateTime.UtcNow, x => x.FailureGroupId == "Test-group", "Test-Context");
 
             documentStore.WaitForIndexing();
 

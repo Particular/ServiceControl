@@ -32,6 +32,7 @@ namespace ServiceControl.Recoverability
             string RequestId { get; }
             RetryType RetryType { get; }
             string Originator { get; set; }
+            DateTime StartTime { get; set; }
             IEnumerator<StreamResult<FailedMessage>> GetDocuments(IDocumentSession session);
         }
 
@@ -41,17 +42,19 @@ namespace ServiceControl.Recoverability
         {
             Expression<Func<TType, bool>> filter;
 
-            public IndexBasedBulkRetryRequest(string requestId, RetryType retryType, string originator, Expression<Func<TType, bool>> filter)
+            public IndexBasedBulkRetryRequest(string requestId, RetryType retryType, string originator, DateTime startTime, Expression<Func<TType, bool>> filter)
             {
                 RequestId = requestId;
                 RetryType = retryType;
                 Originator = originator;
                 this.filter = filter;
+                StartTime = startTime;
             }
 
             public string RequestId { get; set; }
             public RetryType RetryType { get; set; }
             public string Originator { get; set; }
+            public DateTime StartTime { get; set; }
 
             public IEnumerator<StreamResult<FailedMessage>> GetDocuments(IDocumentSession session)
             {
@@ -96,18 +99,18 @@ namespace ServiceControl.Recoverability
             return response;
         }
 
-        public void StartRetryForIndex<TType, TIndex>(string requestId, RetryType retryType, Expression<Func<TType, bool>> filter = null, string originator = null)
+        public void StartRetryForIndex<TType, TIndex>(string requestId, RetryType retryType, DateTime startTime, Expression<Func<TType, bool>> filter = null, string originator = null)
             where TIndex : AbstractIndexCreationTask, new()
             where TType : IHaveStatus
         {
             log.InfoFormat("Enqueuing index based bulk retry '{0}'", originator);
 
-            var request = new IndexBasedBulkRetryRequest<TType, TIndex>(requestId, retryType, originator, filter);
+            var request = new IndexBasedBulkRetryRequest<TType, TIndex>(requestId, retryType, originator, startTime, filter);
 
             bulkRequests.Enqueue(request);
         }
 
-        public void StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, string originator = null, string batchName = null)
+        public void StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, string originator = null, string batchName = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
@@ -115,7 +118,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var batchDocumentId = retryDocumentManager.CreateBatchDocument(requestId, retryType, messageIds.Length, originator, batchName);
+            var batchDocumentId = retryDocumentManager.CreateBatchDocument(requestId, retryType, messageIds.Length, originator, startTime, batchName);
 
             log.InfoFormat("Created Batch '{0}' with {1} messages for '{2}'", batchDocumentId, messageIds.Length, batchName);
 
@@ -156,10 +159,10 @@ namespace ServiceControl.Recoverability
 
             for (var i = 0; i < batches.Count; i++)
             {
-                StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.Originator, GetBatchName(i + 1, batches.Count, request.Originator));
+                StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.StartTime, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator));
                 numberOfMessagesAdded += batches[i].Length;
 
-                RetryOperationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded, request.Originator);
+                RetryOperationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);
             }
         }
 

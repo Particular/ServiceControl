@@ -35,7 +35,7 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string requestId, RetryType retryType, int initialBatchSize, string originator, string batchName = null)
+        public string CreateBatchDocument(string requestId, RetryType retryType, int initialBatchSize, string originator, DateTime startTime, string batchName = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = store.OpenSession())
@@ -47,6 +47,7 @@ namespace ServiceControl.Recoverability
                     RequestId = requestId,
                     RetryType = retryType,
                     Originator = originator,
+                    StartTime = startTime,
                     InitialBatchSize = initialBatchSize,
                     RetrySessionId = RetrySessionId, 
                     Status = RetryBatchStatus.MarkingDocuments
@@ -183,7 +184,7 @@ namespace ServiceControl.Recoverability
                 if (!string.IsNullOrWhiteSpace(group.RequestId))
                 {
                     log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
-                    RetryOperationManager.PrepareAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator);
+                    RetryOperationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.StartTime);
                 }
             }
         }
