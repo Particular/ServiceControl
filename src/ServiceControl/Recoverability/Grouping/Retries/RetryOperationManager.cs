@@ -12,7 +12,7 @@
             this.notifier = notifier;
         }
 
-        static Dictionary<string, RetryOperationSummary> Operations = new Dictionary<string, RetryOperationSummary>();
+        internal static Dictionary<string, RetryOperationSummary> Operations = new Dictionary<string, RetryOperationSummary>();
 
         public void Wait(string requestId, RetryType retryType, DateTime started, string originator = null)
         {
