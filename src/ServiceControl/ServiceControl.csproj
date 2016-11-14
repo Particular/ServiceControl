@@ -560,6 +560,7 @@
     <Compile Include="Recoverability\Retries\FailedMessageRetries.cs" />
     <Compile Include="Recoverability\Retries\MessagesSubmittedForRetry.cs" />
     <Compile Include="Recoverability\Retries\MessagesSubmittedForRetryFailed.cs" />
+    <Compile Include="Recoverability\Retries\QueuedRetryItem.cs" />
     <Compile Include="Recoverability\Retries\Raven\FailedMessageRetries_ByBatch.cs" />
     <Compile Include="Recoverability\Retries\FailedMessageRetry.cs" />
     <Compile Include="Recoverability\Retries\Raven\RetryBatches_ByStatus_ReduceInitialBatchSize.cs" />

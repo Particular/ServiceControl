@@ -12,13 +12,14 @@
             this.bus = bus;
         }
 
-        public void Wait(string requestId, RetryType retryType, double progression)
+        public void Wait(string requestId, RetryType retryType, double progression, int? slot)
         {
             bus.Publish<RetryOperationWaiting>(e =>
             {
                 e.RequestId = requestId;
                 e.RetryType = retryType;
                 e.Progression = progression;
+                e.Slot = slot;
             });
         }
 
