@@ -11,7 +11,7 @@
         public void Wait_should_set_wait_state()
         {
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
-            summary.Wait("FailureGroup1");
+            summary.Wait(DateTime.UtcNow, "FailureGroup1");
             Assert.AreEqual(RetryState.Waiting, summary.RetryState);
             Assert.AreEqual(0, summary.NumberOfMessagesForwarded);
             Assert.AreEqual(0, summary.NumberOfMessagesPrepared);
@@ -25,7 +25,7 @@
         {
             var notifier = new TestNotifier();
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup) {Notifier = notifier};
-            summary.Wait();
+            summary.Wait(DateTime.UtcNow);
 
             Assert.True(notifier.WaitNotified);
             Assert.AreEqual(0.00, notifier.Progression);
@@ -67,12 +67,10 @@
         {
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
             summary.Prepare(1000);
-            summary.PrepareBatch(1000, "FailureGroup1");
+            summary.PrepareBatch(1000);
             Assert.AreEqual(RetryState.Preparing, summary.RetryState);
             Assert.AreEqual(1000, summary.NumberOfMessagesPrepared);
             Assert.AreEqual(1000, summary.TotalNumberOfMessages);
-            Assert.AreEqual("FailureGroup1", summary.Originator);
-
         }
 
         [Test]
@@ -81,7 +79,7 @@
             var notifier = new TestNotifier();
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup) { Notifier = notifier };
             summary.Prepare(1000);
-            summary.PrepareBatch(1000, null);
+            summary.PrepareBatch(1000);
 
             Assert.True(notifier.PrepareBatchNotified);
             Assert.AreEqual(1000, notifier.NumberOfMessagesPrepared);
@@ -94,7 +92,7 @@
         {
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
             summary.Prepare(1000);
-            summary.PrepareBatch(1000, null);
+            summary.PrepareBatch(1000);
             summary.Forwarding();
 
             Assert.AreEqual(RetryState.Forwarding, summary.RetryState);
@@ -108,7 +106,7 @@
             var notifier = new TestNotifier();
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup) { Notifier = notifier };
             summary.Prepare(1000);
-            summary.PrepareBatch(1000, null);
+            summary.PrepareBatch(1000);
             summary.Forwarding();
 
             Assert.True(notifier.ForwardingNotified);
@@ -122,7 +120,7 @@
         {
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
             summary.Prepare(1000);
-            summary.PrepareBatch(1000, null);
+            summary.PrepareBatch(1000);
             summary.Forwarding();
             summary.BatchForwarded(500);
 
@@ -137,7 +135,7 @@
             var notifier = new TestNotifier();
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup) { Notifier = notifier };
             summary.Prepare(1000);
-            summary.PrepareBatch(1000, null);
+            summary.PrepareBatch(1000);
             summary.Forwarding();
             summary.BatchForwarded(500);
 
@@ -152,7 +150,7 @@
         {
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
             summary.Prepare(1000);
-            summary.PrepareBatch(1000, null);
+            summary.PrepareBatch(1000);
             summary.Forwarding();
             summary.BatchForwarded(1000);
 
@@ -166,8 +164,9 @@
         {
             var notifier = new TestNotifier();
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup) { Notifier = notifier };
+            summary.Wait(DateTime.UtcNow, "FailureGroup1");
             summary.Prepare(1000);
-            summary.PrepareBatch(1000, "FailureGroup1");
+            summary.PrepareBatch(1000);
             summary.Forwarding();
             summary.BatchForwarded(1000);
 
@@ -182,9 +181,9 @@
         public void Skip_should_set_update_skipped_messages()
         {
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
-            summary.Wait();
+            summary.Wait(DateTime.UtcNow);
             summary.Prepare(2000);
-            summary.PrepareBatch(1000, "FailureGroup1");
+            summary.PrepareBatch(1000);
             summary.Skip(1000);
 
             Assert.AreEqual(RetryState.Preparing, summary.RetryState);
@@ -195,9 +194,9 @@
         public void Skip_should_complete_when_all_skipped()
         {
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
-        summary.Wait();
+            summary.Wait(DateTime.UtcNow);
             summary.Prepare(1000);
-            summary.PrepareBatch(1000, "FailureGroup1");
+            summary.PrepareBatch(1000);
             summary.Skip(1000);
 
             Assert.AreEqual(RetryState.Completed, summary.RetryState);
@@ -208,9 +207,9 @@
         public void Skip_and_forward_combination_should_complete_when_done()
         {
             var summary = new RetryOperationSummary("abc123", RetryType.FailureGroup);
-            summary.Wait();
+            summary.Wait(DateTime.UtcNow);
             summary.Prepare(2000);
-            summary.PrepareBatch(1000, "FailureGroup1");
+            summary.PrepareBatch(1000);
             summary.Skip(1000);
             summary.Forwarding();
             summary.BatchForwarded(1000);
@@ -275,7 +274,7 @@
             Progression = progression;
         }
 
-        public void Completed(string requestId, RetryType retryType, bool failed, double progression, DateTime completionTime, string originator)
+        public void Completed(string requestId, RetryType retryType, bool failed, double progression, DateTime startTime, DateTime completionTime, string originator)
         {
             CompletedNotified = true;
             Failed = failed;

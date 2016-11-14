@@ -22,6 +22,7 @@
             {
                 RequestId = message.RequestId,
                 RetryType = message.RetryType,
+                StartTime = message.StartTime,
                 CompletionTime = message.CompletionTime,
                 Originator = message.Originator,
             };
