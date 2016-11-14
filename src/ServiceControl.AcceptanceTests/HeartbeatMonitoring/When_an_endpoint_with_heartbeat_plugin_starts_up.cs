@@ -6,7 +6,6 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
@@ -40,10 +39,8 @@
         {
             public StartingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
-                {
-                    c.EnableFeature<Audit>();
-                }).IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.Heartbeat.dll"));
+                EndpointSetup<DefaultServerWithAudit>()
+                    .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.Heartbeat.dll"));
             }
 
             class SendMessage : IWantToRunWhenBusStartsAndStops
