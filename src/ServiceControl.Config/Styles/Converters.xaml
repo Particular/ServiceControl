@@ -9,7 +9,7 @@
     <converters:BoolToVisibilityConverter x:Key="boolToVisHiddenInverted"
                                           Invert="True"
                                           IsHidden="True" />
-
+    <converters:SelectedIndexToVisibilityConverter  x:Key="HasSelectedIndex"  />
     <converters:StringNullOrEmptyToVisibilityConverter x:Key="nullOrEmptyToVis" />
     <converters:NegaterConverter x:Key="negate" />
 </ResourceDictionary>

@@ -237,6 +237,10 @@
                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                               ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
                                               IsHitTestVisible="False" />
+                            <TextBlock Grid.Row="1" Margin="3,3,23,3" 
+                                       Text="Please Select..." 
+                                       Foreground="{StaticResource Gray50Brush}" 
+                                       Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(SelectedIndex), Converter={StaticResource HasSelectedIndex}}" />
                             <TextBox x:Name="PART_EditableTextBox"
                                      Grid.Row="1"
                                      Margin="3,3,23,3"
