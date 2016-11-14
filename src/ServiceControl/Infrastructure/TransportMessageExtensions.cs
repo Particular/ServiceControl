@@ -16,18 +16,20 @@
                 return endpoint;
             }
 
-            //var replyToAddress = headers.ReplyToAddress();
-            //if (replyToAddress != null)
-            //{
-            //    return replyToAddress.Queue;
-            //}
-
-            // If the ReplyToAddress is null, then the message came from a send-only endpoint.
             // This message could be a failed message.
             if (headers.TryGetValue("NServiceBus.FailedQ", out endpoint))
             {
                 return endpoint;
             }
+
+            // In v5, a message that comes through the Audit Queue
+            // has it's ReplyToAddress overwritten to match the processing endpoint
+            var replyToAddress = headers.ReplyToAddress();
+            if (replyToAddress != null)
+            {
+                return replyToAddress.Queue;
+            }
+
             string messageTypes;
             if (headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes))
             {
@@ -74,17 +76,20 @@
                 return endpoint;
             }
 
-            //if (message.ReplyToAddress != null)
-            //{
-            //    return message.ReplyToAddress.Queue;
-            //}
-
-            // If the ReplyToAddress is null, then the message came from a send-only endpoint.
             // This message could be a failed message.
             if (message.Headers.TryGetValue("NServiceBus.FailedQ", out endpoint))
             {
                 return endpoint;
             }
+
+            // In v5, a message that comes through the Audit Queue
+            // has it's ReplyToAddress overwritten to match the processing endpoint
+            var replyToAddress = message.ReplyToAddress;
+            if (replyToAddress != null)
+            {
+                return replyToAddress.Queue;
+            }
+
             string messageTypes;
             if (message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes))
             {

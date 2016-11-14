@@ -47,15 +47,15 @@
             Assert.AreEqual("TheEndpoint",message.ProcessingEndpointName());
         }
 
-        //[Test]
-        //public void With_ReplyToAddress_should_return_ReplyToAddress()
-        //{
-        //    var headers = new Dictionary<string, string>
-        //    {
-        //        [Headers.ReplyToAddress] = new Address("TheEndpoint", String.Empty).ToString()
-        //    };
-        //    var message = new TransportMessage(null, headers);
-        //    Assert.AreEqual("TheEndpoint",message.ProcessingEndpointName());
-        //}
+        [Test]
+        public void With_ReplyToAddress_should_return_ReplyToAddress()
+        {
+            var headers = new Dictionary<string, string>
+            {
+                [Headers.ReplyToAddress] = new Address("TheEndpoint", String.Empty).ToString()
+            };
+            var message = new TransportMessage(null, headers);
+            Assert.AreEqual("TheEndpoint", message.ProcessingEndpointName());
+        }
     }
 }

@@ -361,7 +361,7 @@
                     else
                     {
                         Context.FromAddress = Settings.LocalAddress().ToString();
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.EndpointName()).ToString();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().ToString()).ToString();
                         throw new Exception("Simulated Exception");
                     }
                 }
