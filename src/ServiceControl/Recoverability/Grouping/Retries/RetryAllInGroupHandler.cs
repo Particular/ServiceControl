@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -30,9 +31,10 @@ namespace ServiceControl.Recoverability
                 originator = group.Title;
             }
 
-            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup, originator);
+            var started = message.Started ?? DateTime.UtcNow;
+            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator);
 
-            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, x => x.FailureGroupId == message.GroupId, originator);
+            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator);
         }
 
         public RetriesGateway Retries { get; set; }
