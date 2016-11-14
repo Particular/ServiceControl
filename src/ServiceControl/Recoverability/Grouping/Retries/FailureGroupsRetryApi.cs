@@ -22,9 +22,12 @@ namespace ServiceControl.Recoverability
 
             var started = DateTime.UtcNow;
 
-            RetryOperationManager.Wait(groupId, RetryType.FailureGroup, started);
+            if (!RetryOperationManager.IsOperationInProgressFor(groupId, RetryType.FailureGroup))
+            {
+                RetryOperationManager.Wait(groupId, RetryType.FailureGroup, started);
 
-            Bus.SendLocal(new RetryAllInGroup {GroupId = groupId, Started = started});
+                Bus.SendLocal(new RetryAllInGroup { GroupId = groupId, Started = started });
+            }
 
             return HttpStatusCode.Accepted;
         }

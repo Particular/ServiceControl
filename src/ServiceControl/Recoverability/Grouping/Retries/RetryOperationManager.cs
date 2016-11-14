@@ -21,6 +21,17 @@
             summary.Wait(started, originator);
         }
 
+        public bool IsOperationInProgressFor(string requestId, RetryType retryType)
+        {
+            RetryOperationSummary summary;
+            if (!Operations.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
+            {
+                return false;
+            }
+
+            return summary.RetryState != RetryState.Completed;
+        }
+
         public void Prepairing(string requestId, RetryType retryType, int totalNumberOfMessages)
         {
             var summary = GetOrCreate(retryType, requestId);
