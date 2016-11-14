@@ -12,13 +12,24 @@
             this.notifier = notifier;
         }
 
-        static Dictionary<string, RetryOperationSummary> Operations = new Dictionary<string, RetryOperationSummary>();
+        internal static Dictionary<string, RetryOperationSummary> Operations = new Dictionary<string, RetryOperationSummary>();
 
         public void Wait(string requestId, RetryType retryType, DateTime started, string originator = null)
         {
             var summary = GetOrCreate(retryType, requestId);
 
             summary.Wait(started, originator);
+        }
+
+        public bool IsOperationInProgressFor(string requestId, RetryType retryType)
+        {
+            RetryOperationSummary summary;
+            if (!Operations.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
+            {
+                return false;
+            }
+
+            return summary.RetryState != RetryState.Completed;
         }
 
         public void Prepairing(string requestId, RetryType retryType, int totalNumberOfMessages)

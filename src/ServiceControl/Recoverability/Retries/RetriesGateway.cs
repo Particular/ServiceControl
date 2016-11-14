@@ -168,18 +168,21 @@ namespace ServiceControl.Recoverability
         void ProcessRequest(IBulkRetryRequest request)
         {
             var batches = GetRequestedBatches(request);
-
-            var numberOfMessagesAdded = 0;
             var totalMessages = batches.Sum(b => b.Length);
 
-            RetryOperationManager.Prepairing(request.RequestId, request.RetryType, totalMessages);
-
-            for (var i = 0; i < batches.Count; i++)
+            if (!RetryOperationManager.IsOperationInProgressFor(request.RequestId, request.RetryType) && totalMessages > 0)
             {
-                StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.StartTime, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator));
-                numberOfMessagesAdded += batches[i].Length;
+                var numberOfMessagesAdded = 0;
 
-                RetryOperationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);
+                RetryOperationManager.Prepairing(request.RequestId, request.RetryType, totalMessages);
+
+                for (var i = 0; i < batches.Count; i++)
+                {
+                    StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.StartTime, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator));
+                    numberOfMessagesAdded += batches[i].Length;
+
+                    RetryOperationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);
+                }
             }
         }
 

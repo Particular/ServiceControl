@@ -16,7 +16,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
- 			FailureGroupView group;
+            FailureGroupView group;
 
             using (var session = Store.OpenSession())
             {
