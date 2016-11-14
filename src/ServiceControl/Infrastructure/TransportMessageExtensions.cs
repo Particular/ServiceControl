@@ -16,11 +16,11 @@
                 return endpoint;
             }
 
-            var replyToAddress = headers.ReplyToAddress();
-            if (replyToAddress != null)
-            {
-                return replyToAddress.Queue;
-            }
+            //var replyToAddress = headers.ReplyToAddress();
+            //if (replyToAddress != null)
+            //{
+            //    return replyToAddress.Queue;
+            //}
 
             // If the ReplyToAddress is null, then the message came from a send-only endpoint.
             // This message could be a failed message.
@@ -74,10 +74,10 @@
                 return endpoint;
             }
 
-            if (message.ReplyToAddress != null)
-            {
-                return message.ReplyToAddress.Queue;
-            }
+            //if (message.ReplyToAddress != null)
+            //{
+            //    return message.ReplyToAddress.Queue;
+            //}
 
             // If the ReplyToAddress is null, then the message came from a send-only endpoint.
             // This message could be a failed message.
