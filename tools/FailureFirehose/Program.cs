@@ -40,6 +40,7 @@ namespace FailureFirehose
             Console.WriteLine("1 - Sender");
             Console.WriteLine("2 - Receiver");
             Console.WriteLine("3 - Retry/Archive");
+            Console.WriteLine("4 - Receiver with pump");
 
             Action action = () => {};
             bool wrongOption;
@@ -56,6 +57,10 @@ namespace FailureFirehose
                         break;
                     case '2':
                         action = () => RunReceiver(source.Token);
+                        break;
+
+                    case '4':
+                        action = () => RunReceiver(source.Token, true);
                         break;
 
                     case '3':
@@ -91,14 +96,17 @@ namespace FailureFirehose
             }
         }
 
-        static void RunReceiver(CancellationToken token)
+        static void RunReceiver(CancellationToken token, bool pumpOn = false)
         {
             var config = new EndpointConfiguration("FailureFirehose_Receiver");
             config.UseTransport<MsmqTransport>().Transactions(TransportTransactionMode.None);
             config.UsePersistence<InMemoryPersistence>();
             config.Recoverability().Delayed(settings => settings.NumberOfRetries(0));
             config.AuditProcessedMessagesTo("FailureFirehose_Receiver.ServiceControl");
-            //config.EnableFeature<ServiceControlPump>();
+            if (pumpOn)
+            {
+                config.EnableFeature<ServiceControlPump>();
+            }
             config.EnableInstallers();
             config.LimitMessageProcessingConcurrencyTo(30);
             config.Recoverability().Immediate(settings => settings.NumberOfRetries(5));

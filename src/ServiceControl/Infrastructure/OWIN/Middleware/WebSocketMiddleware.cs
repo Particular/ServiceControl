@@ -2,31 +2,25 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Net.WebSockets;
-    using System.Threading;
     using System.Threading.Tasks;
     using Autofac;
-    using Metrics;
     using Microsoft.Owin;
-    using NServiceBus;
     using Raven.Client;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.MessageAuditing;
     using ServiceControl.Operations;
+    using ServiceControl.Operations.BodyStorage;
 
     internal class WebSocketMiddleware : OwinMiddleware
     {
         private readonly IDocumentStore store;
-        private Lazy<IEnrichImportedMessages[]> enrichers;
-        PinnableBufferCache receivePool = new PinnableBufferCache("Receive pool", 4 * 1024 * 1024);
-        PinnableBufferCache upgradePool = new PinnableBufferCache("Upgrade pool", 1024);
-        private readonly Metrics.Timer timer = Metric.Context("Processing").Timer("Audit Messages", Unit.Custom("Messages"));
-        private readonly string webSocketContextKey = typeof(WebSocketContext).FullName;
+        private readonly Lazy<IEnrichImportedMessages[]> enrichers;
+        private readonly PinnableBufferCache receivePool = new PinnableBufferCache("Receive pool", 4 * 1024 * 1024);
+        private readonly PinnableBufferCache upgradePool = new PinnableBufferCache("Upgrade pool", 3 * 1024);
+        private readonly Lazy<BodyStorageFeature.BodyStorageEnricher> bodyStorageEnricher;
 
         public WebSocketMiddleware(OwinMiddleware next, IContainer container) : base(next)
         {
+            bodyStorageEnricher = new Lazy<BodyStorageFeature.BodyStorageEnricher> (() => container.Resolve<BodyStorageFeature.BodyStorageEnricher>());
             store = container.Resolve<IDocumentStore>();
             enrichers = new Lazy<IEnrichImportedMessages[]>(() => container.Resolve<IEnumerable<IEnrichImportedMessages>>().ToArray());
         }
@@ -37,155 +31,30 @@
 
             if (accept != null)
             {
-                var buffer = upgradePool.AllocateBuffer();
-                accept(new Dictionary<string, object>
+                try
                 {
-                    {"websocket.ReceiveBufferSize", 256},
-                    {"websocket.Buffer", new ArraySegment<byte>(buffer)}
-                }, e => HandleRequest(e).ContinueWith(_ => upgradePool.FreeBuffer(buffer)));
+                    var buffer = upgradePool.AllocateBuffer();
+                    accept(new Dictionary<string, object>
+                    {
+                        {"websocket.ReceiveBufferSize", 1024},
+                        {"websocket.Buffer", new ArraySegment<byte>(buffer)}
+                    }, async e  =>
+                    {
+                        await new WebSocketReceiver(store, bodyStorageEnricher.Value, enrichers.Value, receivePool).Receive(e).ConfigureAwait(false);
+
+                        upgradePool.FreeBuffer(buffer);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.Out.WriteLine(ex);
+                }
             }
             else
             {
                 context.Response.StatusCode = 400;
-                await Task.FromResult(0);
+                await Task.FromResult(0).ConfigureAwait(false);
             }
-        }
-
-        private async Task HandleRequest(IDictionary<string, object> e)
-        {
-            var socketContext = (WebSocketContext) e[webSocketContextKey];
-            var callCancelled = (CancellationToken) e["websocket.CallCancelled"];
-
-            try
-            {
-                await WebSocketLoopAsync(socketContext.WebSocket, callCancelled);
-            }
-            catch (OperationCanceledException)
-            {
-                if (!callCancelled.IsCancellationRequested)
-                {
-                    throw;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.Out.WriteLine(ex);
-            }
-            finally
-            {
-                if (socketContext.WebSocket != null)
-                {
-                    if (socketContext.WebSocket.State != WebSocketState.Closed || socketContext.WebSocket.State != WebSocketState.Aborted)
-                    {
-                        await socketContext.WebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Client has dropped.", callCancelled).ConfigureAwait(false);
-                    }
-                    socketContext.WebSocket.Dispose();
-                }
-            }
-        }
-
-        private async Task WebSocketLoopAsync(WebSocket socketContextWebSocket, CancellationToken callCancelled)
-        {
-            while (!callCancelled.IsCancellationRequested && socketContextWebSocket.State == WebSocketState.Open)
-            {
-                using (timer.NewContext())
-                {
-                    byte[] buffer = null, receiveBuffer = null;
-                    Dictionary<string, string> headers;
-                    byte[] body;
-
-                    try
-                    {
-                        buffer = receivePool.AllocateBuffer();
-                        receiveBuffer = receivePool.AllocateBuffer();
-
-                        WebSocketReceiveResult receiveResult;
-                        var totalMessageSize = 0;
-
-                        do
-                        {
-                            receiveResult = await socketContextWebSocket.ReceiveAsync(new ArraySegment<byte>(receiveBuffer), callCancelled).ConfigureAwait(false);
-
-                            if (receiveResult.MessageType == WebSocketMessageType.Close)
-                            {
-                                return;
-                            }
-
-                            Buffer.BlockCopy(receiveBuffer, 0, buffer, totalMessageSize, receiveResult.Count);
-                            totalMessageSize += receiveResult.Count;
-
-                        } while (!receiveResult.EndOfMessage);
-
-                        using (var reader = new BinaryReader(new MemoryStream(buffer, 0, totalMessageSize)))
-                        {
-                            var headersCount = reader.ReadInt32();
-                            headers = new Dictionary<string, string>(headersCount);
-
-                            for (var i = 0; i < headersCount; i++)
-                            {
-                                headers[reader.ReadString()] = reader.ReadString();
-                            }
-
-                            body = reader.ReadBytes(reader.ReadInt32());
-                        }
-                    }
-                    finally
-                    {
-                        receivePool.FreeBuffer(buffer);
-                        receivePool.FreeBuffer(receiveBuffer);
-                    }
-
-                    var transportMessage = new TransportMessage(headers[Headers.MessageId], headers)
-                    {
-                        Body = body
-                    };
-
-                    await Save(transportMessage).ConfigureAwait(false);
-
-                    await Console.Out.WriteLineAsync("Message saved");
-                }
-            }
-        }
-
-        //private static bool IsWebSocketRequest(IOwinRequest request)
-        //{
-        //    var isUpgrade = IsHeaderEqual(request, "Connection", "Upgrade,Keep-Alive") || IsHeaderEqual(request, "Connection", "Upgrade");
-        //    var isWebSocket = IsHeaderEqual(request, "Upgrade", "WebSocket");
-        //    return isUpgrade & isWebSocket;
-        //}
-
-        //private static bool IsHeaderEqual(IOwinRequest request, string header, string value)
-        //{
-        //    string[] headerValues;
-        //    return request.Headers.TryGetValue(header, out headerValues) && headerValues.Length == 1
-        //           && string.Equals(value, headerValues[0], StringComparison.OrdinalIgnoreCase);
-        //}
-
-        private async Task Save(TransportMessage message)
-        {
-            var entity = ConvertToSaveMessage(message);
-            using (var session = store.OpenAsyncSession())
-            {
-                await session.StoreAsync(entity).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
-            }
-        }
-
-        private ProcessedMessage ConvertToSaveMessage(TransportMessage message)
-        {
-            var receivedMessage = new ImportSuccessfullyProcessedMessage(message);
-
-            foreach (var enricher in enrichers.Value)
-            {
-                enricher.Enrich(receivedMessage);
-            }
-
-            var auditMessage = new ProcessedMessage(receivedMessage)
-            {
-                // We do this so Raven does not spend time assigning a hilo key
-                Id = $"ProcessedMessages/{Guid.NewGuid()}"
-            };
-            return auditMessage;
         }
     }
 }

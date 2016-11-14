@@ -421,7 +421,7 @@ namespace System
             return true;
         }
 
-        private const int DefaultNumberOfBuffers = 16;
+        private const int DefaultNumberOfBuffers = 30;
         private string m_CacheName;
         private Func<object> m_factory;
 

@@ -287,6 +287,7 @@
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
     <Compile Include="Infrastructure\OWIN\Middleware\PinnableBufferCache.cs" />
     <Compile Include="Infrastructure\OWIN\Middleware\WebSocketMiddleware.cs" />
+    <Compile Include="Infrastructure\OWIN\Middleware\WebSocketReceiver.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\EventLogItemsCleaner.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryEventLogItemsIndex.cs" />
     <Compile Include="Infrastructure\RavenDB\Subscriptions\CachedRavenDBPersistence.cs" />
