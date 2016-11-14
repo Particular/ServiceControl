@@ -28,6 +28,13 @@
             summary.Prepare(totalNumberOfMessages);
         }
 
+        public void Prepairing(string requestId, RetryType retryType)
+        {
+            var summary = GetOrCreate(retryType, requestId);
+
+            summary.Prepare();
+        }
+
         public void PreparedAdoptedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, string originator, DateTime startTime)
         {
             var summary = GetOrCreate(retryType, requestId);
@@ -94,12 +101,12 @@
             return summary;
         }
 
-        public void UpdateWaitPosition(List<QueuedRetryItem> positions)
+        public void UpdateSlots(List<QueuedRetryItem> positions, string slotType)
         {
             foreach (var position in positions)
             {
                 var operation = GetStatusForRetryOperation(position.RequestId, position.RetryType);
-                operation?.WaitInNewSlot(position.Position);
+                operation?.SetNewSlot(position.Position);
             }
         }
     }

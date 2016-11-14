@@ -18,6 +18,10 @@ namespace ServiceControl.Recoverability
 
         public string Originator{ get; set; }
 
-        public DateTime StartTime { get; set; }
+		public DateTime StartTime { get; set; }
+		
+        public DateTime LastModified { get; set; }
+
+        public string FirstBatchId { get; set; }
     }
 }

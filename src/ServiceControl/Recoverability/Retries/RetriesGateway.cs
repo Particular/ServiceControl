@@ -109,7 +109,7 @@ namespace ServiceControl.Recoverability
             var request = new IndexBasedBulkRetryRequest<TType, TIndex>(requestId, retryType, originator, startTime, filter);
 
             bulkRequests.Enqueue(request);
-            RetryOperationManager.UpdateWaitPosition(GetPositions());
+            RetryOperationManager.UpdateSlots(GetPositions(), "waiting");
         }
 
         public void StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, string originator = null, string batchName = null)
@@ -146,7 +146,7 @@ namespace ServiceControl.Recoverability
                 return false;
             }
 
-            RetryOperationManager.UpdateWaitPosition(GetPositions());
+            RetryOperationManager.UpdateSlots(GetPositions(), "waiting");
             ProcessRequest(request);
             return true;
         }
@@ -167,6 +167,8 @@ namespace ServiceControl.Recoverability
 
         void ProcessRequest(IBulkRetryRequest request)
         {
+            RetryOperationManager.Prepairing(request.RequestId, request.RetryType);
+
             var batches = GetRequestedBatches(request);
 
             var numberOfMessagesAdded = 0;

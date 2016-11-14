@@ -242,7 +242,7 @@
             Progression = progression;
         }
 
-        public void Prepare(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, double progression)
+        public void Prepare(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, double progression, int? slot)
         {
             PrepareNotified = true;
             NumberOfMessagesPrepared = numberOfMessagesPrepared;

@@ -98,7 +98,7 @@ namespace ServiceControl.Recoverability
                             Id = failureGroup.Id,
                             Title = failureGroup.Title,
                             Type = failureGroup.Type,
-                            Count = failureGroup.Count,
+                            Count = GetMessagesRemaning(summary, failureGroup.Count),
                             First = failureGroup.First,
                             Last = failureGroup.Last,
                             StartTime = lastCompleted?.StartTime,
@@ -114,6 +114,16 @@ namespace ServiceControl.Recoverability
                     .WithTotalCount(stats)
                     .WithEtagAndLastModified(stats);
             }
+        }
+
+        private static int GetMessagesRemaning(RetryOperationSummary summary, int groupCount)
+        {
+            if (summary == null || summary.TotalNumberOfMessages == 0) //fall back to group count if we don't have updated summary
+            {
+                return groupCount;
+            }
+
+            return summary.GetMessagesRemaining();
         }
 
         private CompletedRetryOperation GetLastCompletedOperation(RetryOperationsHistory history, string requestId, RetryType retryType)

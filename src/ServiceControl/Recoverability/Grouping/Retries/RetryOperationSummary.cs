@@ -47,11 +47,21 @@
             Notifier?.Wait(requestId, retryType, GetProgression(), Slot);
         }
 
-        public void WaitInNewSlot(int slot)
+        public void SetNewSlot(int newSlot)
         {
-            Slot = slot;
+            if (Slot == newSlot)
+            {
+                return;
+            }
 
-            Notifier?.Wait(requestId, retryType, GetProgression(), Slot);
+            if (RetryState == RetryState.Waiting)
+            {
+                Notifier?.Wait(requestId, retryType, GetProgression(), Slot);
+            }
+            else if (RetryState == RetryState.Preparing)
+            {
+                Notifier?.Prepare(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression(), Slot);
+            }
         }
 
         public void Fail()
@@ -59,16 +69,23 @@
             Failed = true;
         }
 
-        public void Prepare(int totalNumberOfMessages)
+        public void Prepare()
         {
             RetryState = RetryState.Preparing;
-            TotalNumberOfMessages = totalNumberOfMessages;
             NumberOfMessagesForwarded = 0;
             NumberOfMessagesPrepared = 0;
+            Slot = null;
 
-            Notifier?.Prepare(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression());
+            Notifier?.Prepare(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression(), Slot);
         }
 
+        public void Prepare(int totalNumberOfMessages)
+        {
+            TotalNumberOfMessages = totalNumberOfMessages;
+
+            Prepare();
+        }
+        
         public void PrepareBatch(int numberOfMessagesPrepared)
         {
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
@@ -122,6 +139,11 @@
         {
             var progression = RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, RetryState);
             return Math.Round(progression, 2);
+        }
+
+        public int GetMessagesRemaining()
+        {
+            return TotalNumberOfMessages - (NumberOfMessagesForwarded + NumberOfMessagesSkipped);
         }
     }
 }
