@@ -206,6 +206,11 @@
         // ReSharper disable once UnusedMember.Global
         public bool ShowConnectionString => SelectedTransport != null && !string.IsNullOrEmpty(SelectedTransport.SampleConnectionString);
 
+        public bool ShowAuditForwardingQueue => AuditForwarding?.Value ?? false;
+
+        public bool ShowErrorForwardingQueue => ErrorForwarding?.Value ?? false;
+
+
         public string LogPath { get; set; }
         public ICommand SelectLogPath { get; set; }
 

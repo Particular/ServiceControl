@@ -11,5 +11,6 @@
                                           IsHidden="True" />
     <converters:SelectedIndexToVisibilityConverter  x:Key="HasSelectedIndex"  />
     <converters:StringNullOrEmptyToVisibilityConverter x:Key="nullOrEmptyToVis" />
+    <converters:StringNullOrEmptyToVisibilityConverter x:Key="nullOrEmptyToVisInverted" Invert="True" />
     <converters:NegaterConverter x:Key="negate" />
 </ResourceDictionary>

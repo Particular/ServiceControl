@@ -83,9 +83,10 @@ namespace ServiceControl.Config.Validation
             RuleFor(x => x.AuditForwarding)
                 .NotNull().WithMessage(Validations.MSG_SELECTAUDITFORWARDING);
 
+
             RuleFor(x => x.ErrorForwarding)
                 .NotNull().WithMessage(Validations.MSG_SELECTERRORFORWARDING);
-
+                
 
 
             RuleFor(x => x.LogPath)
@@ -109,7 +110,7 @@ namespace ServiceControl.Config.Validation
                 .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")
                 .NotEqual(x => x.AuditForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding")
                 .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .When(x => x.SubmitAttempted);
+                .When(x => x.SubmitAttempted && x.ErrorForwarding.Value);
 
             RuleFor(x => x.AuditQueueName)
                 .NotEmpty()
@@ -125,7 +126,7 @@ namespace ServiceControl.Config.Validation
                 .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")
                 .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
                 .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .When(x => x.SubmitAttempted);
+                .When(x => x.SubmitAttempted && x.ErrorForwarding.Value);
         }
     }
 }

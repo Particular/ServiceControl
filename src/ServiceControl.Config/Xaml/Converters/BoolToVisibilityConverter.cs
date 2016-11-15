@@ -10,7 +10,7 @@ namespace ServiceControl.Config.Xaml.Converters
         public bool Invert { get; set; }
 
         public bool IsHidden { get; set; }
-
+        
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var flag = false;

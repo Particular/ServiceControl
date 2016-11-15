@@ -194,32 +194,74 @@
                                FontWeight="Bold"
                                Text="QUEUES CONFIGURATION" />
                 </Border>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <controls:FormTextBox  Grid.Column="0" 
+                                           Grid.Row="0"
+                                           Grid.ColumnSpan="2"
+                                           Header="ERROR QUEUE NAME"
+                                           Text="{Binding ErrorQueueName}" />
 
+                    <controls:FormComboBox Grid.Column="0" 
+                                           Grid.Row="1"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Top" 
+                                           DisplayMemberPath="Name"
+                                           Header="ERROR FORWARDING"
+                                           ItemsSource="{Binding ErrorForwardingOptions}"
+                                           SelectedValue="{Binding ErrorForwarding}" />
 
-                <controls:FormTextBox Header="ERROR QUEUE NAME" Text="{Binding ErrorQueueName}" />
+                    <controls:FormTextBox Grid.Column="1" 
+                                          Grid.Row="1"
+                                          Header="ERROR FORWARDING QUEUE NAME" 
+                                          Text="{Binding ErrorForwardingQueueName}" 
+                                          Visibility="{Binding ShowErrorForwardingQueue, Converter={StaticResource boolToVis}}"/>
 
-                <controls:FormComboBox HorizontalAlignment="Stretch"
-                                       DisplayMemberPath="Name"
-                                       Header="ERROR FORWARDING"
-                                       ItemsSource="{Binding ErrorForwardingOptions}"
-                                       SelectedValue="{Binding ErrorForwarding}"
-                                       Visibility="{Binding ErrorForwardingVisible,
-                                                            Converter={StaticResource boolToVis}}"
-                                       Warning="{Binding ErrorForwardingWarning}" />
+                    <controls:FormWarningTextBlock Grid.Column="0" 
+                                           Grid.ColumnSpan="2"
+                                           Grid.Row="2"
+                                           Text="{Binding ErrorForwardingWarning}" 
+                                           Visibility="{Binding Path=(cm:IDataErrorInfo.Error), Converter={StaticResource nullOrEmptyToVisInverted}}" />
 
-                <controls:FormTextBox Header="ERROR FORWARDING QUEUE NAME" Text="{Binding ErrorForwardingQueueName}" />
+                    <controls:FormTextBox Grid.Column="0" 
+                                          Grid.ColumnSpan="2" 
+                                          Grid.Row="3"
+                                          Header="AUDIT QUEUE NAME" 
+                                          Text="{Binding AuditQueueName}" />
 
-                <controls:FormTextBox Header="AUDIT QUEUE NAME" Text="{Binding AuditQueueName}" />
+                    <controls:FormComboBox Grid.Column="0" 
+                                           Grid.Row="4"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Top" 
+                                           DisplayMemberPath="Name"
+                                           Header="AUDIT FORWARDING"
+                                           ItemsSource="{Binding AuditForwardingOptions}"
+                                           SelectedValue="{Binding AuditForwarding}" 
+                                           />
 
-                <controls:FormComboBox HorizontalAlignment="Stretch"
-                                       DisplayMemberPath="Name"
-                                       Header="AUDIT FORWARDING"
-                                       ItemsSource="{Binding AuditForwardingOptions}"
-                                       SelectedValue="{Binding AuditForwarding}"
-                                       Warning="{Binding AuditForwardingWarning}" />
-                <controls:FormTextBox Header="AUDIT FORWARDING QUEUE NAME"
-                                      Text="{Binding AuditForwardingQueueName}"
-                                      ToolTip="The audit forwarding queue will be created even if Audit Forwarding is not enabled." />
+                    <controls:FormTextBox Grid.Column="1" 
+                                          Grid.Row="4"
+                                          Header="AUDIT FORWARDING QUEUE NAME"
+                                          Text="{Binding AuditForwardingQueueName}"
+                                          Visibility="{Binding ShowAuditForwardingQueue, Converter={StaticResource boolToVis}}"/>
+
+                    <controls:FormWarningTextBlock Grid.Column="0" 
+                                           Grid.ColumnSpan="2"
+                                           Grid.Row="5"
+                                           Text="{Binding AuditForwardingWarning}" 
+                                           Visibility="{Binding Path=(cm:IDataErrorInfo.Error), Converter={StaticResource nullOrEmptyToVisInverted}}" />
+                    </Grid>
             </StackPanel>
         </sie:SharedInstanceEditorView.SharedContent>
     </sie:SharedInstanceEditorView>
