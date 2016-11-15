@@ -28,28 +28,26 @@ namespace ServiceControl.Pump
             return client;
         }
 
-        public async Task ReleaseClient(ClientWebSocket client, CancellationToken token)
+        public Task ReleaseClient(ClientWebSocket client, CancellationToken token)
         {
             if (client.State != WebSocketState.Open)
             {
-                await Cleanup(client, token).ConfigureAwait(false);
-                return;
+                return Cleanup(client, token);
             }
 
             stack.Push(client);
+
+            return Task.FromResult(0);
         }
 
-        private static async Task Cleanup(ClientWebSocket client, CancellationToken token)
+        private static Task Cleanup(WebSocket client, CancellationToken token)
         {
-            try
-            {
-                await client.CloseAsync(WebSocketCloseStatus.NormalClosure, String.Empty, token);
-            }
-            catch (Exception)
-            {
-                // We tried our best!
-            }
-            client.Dispose();
+            return client.CloseAsync(WebSocketCloseStatus.NormalClosure, String.Empty, token)
+                .ContinueWith(_ =>
+                {
+                    _.Exception?.Handle(exception => true);
+                    client.Dispose();
+                }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.DenyChildAttach, TaskScheduler.Default);
         }
 
         public void Dispose()

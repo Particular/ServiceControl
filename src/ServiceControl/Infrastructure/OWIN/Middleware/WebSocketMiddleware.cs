@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Autofac;
     using Microsoft.Owin;
@@ -25,7 +26,7 @@
             enrichers = new Lazy<IEnrichImportedMessages[]>(() => container.Resolve<IEnumerable<IEnrichImportedMessages>>().ToArray());
         }
 
-        public override async Task Invoke(IOwinContext context)
+        public override Task Invoke(IOwinContext context)
         {
             var accept = context.Get<Action<IDictionary<string, object>, Func<IDictionary<string, object>, Task>>>("websocket.Accept");
 
@@ -38,11 +39,11 @@
                     {
                         {"websocket.ReceiveBufferSize", 1024},
                         {"websocket.Buffer", new ArraySegment<byte>(buffer)}
-                    }, async e  =>
+                    }, e  =>
                     {
-                        await new WebSocketReceiver(store, bodyStorageEnricher.Value, enrichers.Value, receivePool).Receive(e).ConfigureAwait(false);
-
-                        upgradePool.FreeBuffer(buffer);
+                        return new WebSocketReceiver(store, bodyStorageEnricher.Value, enrichers.Value, receivePool)
+                            .Receive(e)
+                            .ContinueWith(_ => upgradePool.FreeBuffer(buffer), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.DenyChildAttach, TaskScheduler.Default);
                     });
                 }
                 catch (Exception ex)
@@ -53,8 +54,9 @@
             else
             {
                 context.Response.StatusCode = 400;
-                await Task.FromResult(0).ConfigureAwait(false);
             }
+
+            return Task.FromResult(0);
         }
     }
 }

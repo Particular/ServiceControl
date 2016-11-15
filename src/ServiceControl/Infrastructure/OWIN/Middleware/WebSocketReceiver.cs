@@ -40,12 +40,12 @@
             {
                 await Loop(socketContext.WebSocket, callCancelled);
 
-                Console.Out.WriteLine("websocket.CallCancelled = true");
+                await Console.Out.WriteLineAsync("websocket.CallCancelled = true");
 
             }
             catch (OperationCanceledException)
             {
-                Console.Out.WriteLine("websocket.CallCancelled = true with exception");
+                await Console.Out.WriteLineAsync("websocket.CallCancelled = true with exception");
 
                 if (!callCancelled.IsCancellationRequested)
                 {
@@ -54,7 +54,7 @@
             }
             catch (Exception ex)
             {
-                Console.Out.WriteLine(ex);
+                await Console.Out.WriteLineAsync(ex.ToString());
             }
             finally
             {
@@ -66,8 +66,7 @@
                     }
                     socketContext.WebSocket.Dispose();
 
-                    Console.Out.WriteLine("closed socket");
-
+                    await Console.Out.WriteLineAsync("closed socket");
                 }
             }
         }
