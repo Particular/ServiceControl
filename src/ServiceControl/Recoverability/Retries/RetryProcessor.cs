@@ -46,12 +46,25 @@ namespace ServiceControl.Recoverability
         {
             isRecoveringFromPrematureShutdown = false;
 
-            var stagingBatch = session.Query<RetryBatch>()
-                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
-                .FirstOrDefault(b => b.Status == RetryBatchStatus.Staging);
+            var batchGroups = session.Query<RetryBatchGroup, RetryBatches_ByOperation>()
+                .Customize(x => x.NoTracking())
+                .Where(x => x.HasStagingBatches)
+                .OrderBy(x => x.LastModified)
+                .ToArray();
+
+            if ( batchGroups.Length == 0)
+            {
+                return false;
+            }
+
+            retryOperationManager.UpdateSlots(CreatePositions(batchGroups), "Prepare");
+
+            var stagingBatch = session.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries)
+                .Load<RetryBatch>(batchGroups[0].FirstBatchId);
 
             if (stagingBatch != null)
             {
+
                 redirects = MessageRedirectsCollection.GetOrCreate(session);
                 var stagedMessages = Stage(stagingBatch, session);
                 var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
@@ -69,6 +82,21 @@ namespace ServiceControl.Recoverability
             }
 
             return false;
+        }
+
+        private List<QueuedRetryItem> CreatePositions(RetryBatchGroup[] groups)
+        {
+            List< QueuedRetryItem> items = new List<QueuedRetryItem>();
+            for (int i = 0; i < groups.Length; i++)
+            {
+                items.Add(new QueuedRetryItem
+                {
+                    Position = i,
+                    RetryType = groups[i].RetryType,
+                    RequestId = groups[i].RequestId
+                });
+            }
+            return items;
         }
 
         private bool ForwardCurrentBatch(IDocumentSession session)
@@ -131,6 +159,11 @@ namespace ServiceControl.Recoverability
             var matchingFailures = session.Load<FailedMessageRetry>(stagingBatch.FailureRetries)
                 .Where(r => r != null && r.RetryBatchId == stagingBatch.Id)
                 .ToArray();
+
+            foreach (var failure in matchingFailures)
+            {
+                session.Advanced.Evict(failure);
+            }
 
             var messageIds = matchingFailures.Select(x => x.FailedMessageId).ToArray();
 

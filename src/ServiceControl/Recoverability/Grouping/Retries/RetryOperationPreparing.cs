@@ -9,5 +9,6 @@
         public int NumberOfMessagesPreparing { get; set; }
         public int TotalNumberOfMessages { get; set; }
         public double Progression { get; set; }
+        public int? Slot { get; set; }
     }
 }

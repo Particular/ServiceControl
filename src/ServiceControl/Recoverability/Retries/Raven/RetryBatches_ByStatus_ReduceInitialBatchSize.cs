@@ -1,11 +1,12 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class RetryBatches_ByStatus_ReduceInitialBatchSize : AbstractIndexCreationTask<RetryBatch, RetryBatchGroup>
+    public class RetryBatches_ByOperation : AbstractIndexCreationTask<RetryBatch, RetryBatchGroup>
     {
-        public RetryBatches_ByStatus_ReduceInitialBatchSize()
+        public RetryBatches_ByOperation()
         {
             Map = docs => from doc in docs
                 select new
@@ -16,7 +17,9 @@ namespace ServiceControl.Recoverability
                     HasForwardingBatches = doc.Status == RetryBatchStatus.Forwarding,
                     doc.InitialBatchSize,
                     doc.Originator,
-                    doc.StartTime                              
+   				    doc.StartTime,
+                    LastModified = MetadataFor(doc).Value<DateTime>("Last-Modified"),
+                    FirstBatchId = doc.Id
                 };
 
             Reduce = results => from result in results
@@ -25,6 +28,7 @@ namespace ServiceControl.Recoverability
                     result.RequestId,
                     result.RetryType
                 }  into g
+                let lastModified = g.Min(x => x.LastModified)
                 select new 
                 {
                     g.Key.RequestId,
@@ -33,7 +37,9 @@ namespace ServiceControl.Recoverability
                     HasStagingBatches = g.Any(x => x.HasStagingBatches),
                     HasForwardingBatches = g.Any(x => x.HasForwardingBatches),
                     InitialBatchSize = g.Sum(x => x.InitialBatchSize),
-                    StartTime = g.First().StartTime
+                    g.First().StartTime,
+                    LastModified = lastModified,
+                    g.First(x => x.LastModified == lastModified).FirstBatchId 
                 };
             
             DisableInMemoryIndexing = true;

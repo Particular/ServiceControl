@@ -176,7 +176,7 @@ namespace ServiceControl.Recoverability
 
         internal void RebuildRetryOperationState(IDocumentSession session)
         {
-            var stagingBatchGroups = session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
+            var stagingBatchGroups = session.Query<RetryBatchGroup, RetryBatches_ByOperation>()
                 .Where(b => b.HasStagingBatches||b.HasForwardingBatches);
                
             foreach (var group in stagingBatchGroups)

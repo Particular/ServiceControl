@@ -23,7 +23,7 @@
             });
         }
 
-        public void Prepare(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, double progression)
+        public void Prepare(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, double progression, int? slot)
         {
             bus.Publish<RetryOperationPreparing>(e =>
             {
@@ -32,6 +32,7 @@
                 e.NumberOfMessagesPreparing = numberOfMessagesPrepared;
                 e.TotalNumberOfMessages = totalNumberOfMessages;
                 e.Progression = progression;
+                e.Slot = slot;
             });
         }
 

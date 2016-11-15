@@ -9,7 +9,7 @@
             switch (state)
             {
                 case RetryState.Preparing:
-                    return numberOfMessagesPrepared / total;
+                    return totalNumberOfMessages > 0 ? numberOfMessagesPrepared / total : 0.0;
                 case RetryState.Forwarding:
                     return (numberOfMessagesForwarded + numberOfMessagesSkipped) / total;
                 case RetryState.Completed:

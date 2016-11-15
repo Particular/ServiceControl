@@ -72,7 +72,7 @@ namespace ServiceControl.UnitTests.Recoverability
             {
                 CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 2001);
 
-                new RetryBatches_ByStatus_ReduceInitialBatchSize().Execute(documentStore);
+                new RetryBatches_ByOperation().Execute(documentStore);
 
                 var bodyStorage = new RavenAttachmentsBodyStorage
                 {
@@ -258,8 +258,12 @@ namespace ServiceControl.UnitTests.Recoverability
             gateway.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>("Test-group", RetryType.FailureGroup, DateTime.UtcNow, x => x.FailureGroupId == "Test-group", "Test-Context");
 
             documentStore.WaitForIndexing();
-
+            
             gateway.ProcessNextBulkRetry();
+
+            new RetryBatches_ByOperation().Execute(documentStore);
+
+            documentStore.WaitForIndexing();
         }
     }
 
