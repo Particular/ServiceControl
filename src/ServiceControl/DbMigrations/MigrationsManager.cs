@@ -27,7 +27,7 @@
             {
                 try
                 {
-                    log.Info($"Applying migration {migration.MigrationId}");
+                    log.Info($"Applying migration [{migration.MigrationId}]");
                     using (var session = store.OpenSession())
                     {
                         migration.Apply(session);
@@ -36,11 +36,11 @@
 
                         session.SaveChanges();
                     }
-                    log.Info($"Applying migration {migration.MigrationId} complete");
+                    log.Info($"Applying migration [{migration.MigrationId}] complete");
                 }
                 catch (Exception ex)
                 {
-                    log.Fatal($"Error while applying migration {migration.MigrationId}", ex);
+                    log.Fatal($"Error while applying migration [{migration.MigrationId}]", ex);
                     throw;
                 }
             }
