@@ -12,7 +12,7 @@
             this.requestId = requestId;
             this.retryType = retryType;
         }
-        
+
         public IRetryOperationProgressionNotifier Notifier { get; set; }
         public int TotalNumberOfMessages { get; private set; }
         public int NumberOfMessagesPrepared { get; private set; }
@@ -21,12 +21,12 @@
         public DateTime? CompletionTime { get; private set; }
         public bool Failed { get; private set; }
         public string Originator { get; private set; }
-		public DateTime Started { get; private set; }
+        public DateTime Started { get; private set; }
         public int? Slot { get; private set; }
         public RetryState RetryState { get; private set; }
         private readonly string requestId;
         private readonly RetryType retryType;
-        
+
 
         public static string MakeOperationId(string requestId, RetryType retryType)
         {
@@ -43,7 +43,7 @@
             CompletionTime = null;
             Originator = originator;
             Started = started;
-			
+
             Notifier?.Wait(requestId, retryType, GetProgression(), Slot);
         }
 
@@ -72,7 +72,7 @@
         public void PrepareBatch(int numberOfMessagesPrepared)
         {
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
-            
+
             Notifier?.PrepareBatch(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression());
         }
 
@@ -96,7 +96,7 @@
             NumberOfMessagesForwarded += numberOfMessagesForwarded;
 
             Notifier?.BatchForwarded(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages, GetProgression());
-            
+
             CheckForCompletion();
         }
 
@@ -122,6 +122,11 @@
         {
             var progression = RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, RetryState);
             return Math.Round(progression, 2);
+        }
+
+        public int GetMessagesRemaining()
+        {
+            return TotalNumberOfMessages - (NumberOfMessagesForwarded + NumberOfMessagesSkipped);
         }
     }
 }

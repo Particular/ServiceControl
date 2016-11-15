@@ -109,6 +109,7 @@ namespace ServiceControl.Recoverability
                             RetryStatus = summary?.RetryState.ToString() ?? "None",
                             Failed = summary?.Failed,
                             RetryProgress = summary?.GetProgression() ?? 0.0,
+                            RetryRemainingCount = GetMessagesRemaning(summary),
                             Slot = summary?.Slot
                         };
                     });
@@ -119,6 +120,16 @@ namespace ServiceControl.Recoverability
             }
         }
 
+        private static int GetMessagesRemaning(RetryOperationSummary summary)
+        {
+            if (summary == null || summary.TotalNumberOfMessages == 0)
+            {
+                return 0;
+            }
+        
+            return summary.GetMessagesRemaining();
+        }
+
         private CompletedRetryOperation GetLastCompletedOperation(RetryOperationsHistory history, string requestId, RetryType retryType)
         {
             return history.PreviousFullyCompletedOperations
@@ -126,18 +137,7 @@ namespace ServiceControl.Recoverability
                 .OrderByDescending(v => v.CompletionTime)
                 .FirstOrDefault();
         }
-
-
-        private DateTime? GetCompletionTime(RetryOperationsHistory history, string requestId, RetryType retryType)
-        {
-            var previous = history.PreviousFullyCompletedOperations 
-                .Where(v => v.RequestId == requestId && v.RetryType == retryType)
-                .OrderByDescending(v => v.CompletionTime)
-                .FirstOrDefault();
-
-            return previous?.CompletionTime;
-        }
-
+        
         dynamic GetAllGroupsCount(string classifier)
         {
             using (var session = Store.OpenSession())
