@@ -9,6 +9,7 @@
     using NServiceBus.Unicast.Messages;
     using NUnit.Framework;
     using Contexts;
+    using NServiceBus.Settings;
     using ServiceControl.Infrastructure;
 
     public class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest
@@ -74,13 +75,13 @@
                 public IBus Bus { get; set; }
 
                 public MyContext TestContext { get; set; }
+                public ReadOnlySettings Settings { get; set; }
 
                 public void Handle(MyMessage message)
                 {
                     var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
-                    var endpointName = Bus.CurrentMessageContext.ReplyToAddress.Queue;
 
-                    TestContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, endpointName).ToString();
+                    TestContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().ToString()).ToString();
 
                     if (!TestContext.RetryIssued)
                     {

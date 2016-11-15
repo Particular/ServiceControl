@@ -3,7 +3,9 @@
     using System;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Config;
     using NServiceBus.Features;
+    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
@@ -76,20 +78,23 @@
         {
             public ReceivingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
+                    .WithConfig<TransportConfig>(c =>
+                    {
+                        c.MaxRetries = 0;
+                    });
             }
 
             public class OriginalMessageHandler : IHandleMessages<OriginalMessage>
             {
                 public IBus Bus { get; set; }
                 public RetryReplyContext Context { get; set; }
+                public ReadOnlySettings Settings { get; set; }
 
                 public void Handle(OriginalMessage message)
                 {
                     var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
-                    // NOTE: If there's no Processing Endpoint (i.e. It's a failure) but there is a Reply To Address, then that's what get used by SC
-                    var endpointName = Bus.CurrentMessageContext.ReplyToAddress.Queue;
-                    Context.UniqueMessageId = DeterministicGuid.MakeId(messageId, endpointName).ToString();
+                    Context.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().ToString()).ToString();
 
                     if (!Context.RetryIssued)
                     {
