@@ -10,7 +10,7 @@
 
         public bool ShouldCreateQueue()
         {
-            return Settings.ErrorLogQueue != Address.Undefined;
+            return Settings.ForwardErrorMessages && Settings.ErrorLogQueue != Address.Undefined;
         }
 
         public Address Address => Settings.ErrorLogQueue;
