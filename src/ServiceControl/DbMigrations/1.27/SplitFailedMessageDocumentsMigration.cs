@@ -85,6 +85,11 @@
                     failedMessage.ProcessingAttempts.Remove(attempt);
                 }
             }
+
+            if (failedMessage.ProcessingAttempts.Count == 0)
+            {
+                session.Delete(failedMessage);
+            }
         }
 
         class ProcessingAttemptRecord
