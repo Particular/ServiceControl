@@ -236,7 +236,7 @@
         public bool Failed{ get; private set; }
         public string Originator { get; private set; }
 
-        public void Wait(string requestId, RetryType retryType, Progression progression, int? slot)
+        public void Wait(string requestId, RetryType retryType, Progression progression)
         {
             WaitNotified = true;
             Progression = progression;

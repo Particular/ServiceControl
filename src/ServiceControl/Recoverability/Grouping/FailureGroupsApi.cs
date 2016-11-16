@@ -105,8 +105,7 @@ namespace ServiceControl.Recoverability
                             RetryStatus = summary?.RetryState.ToString() ?? "None",
                             RetryFailed = summary?.Failed,
                             RetryProgress = summary?.GetProgression().Percentage ?? 0.0,
-                            RetryRemainingCount = summary?.GetProgression().MessagesRemaining,
-                            Slot = summary?.Slot
+                            RetryRemainingCount = summary?.GetProgression().MessagesRemaining
                         };
                     });
 

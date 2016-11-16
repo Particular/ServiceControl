@@ -4,7 +4,7 @@
 
     public interface IRetryOperationProgressionNotifier
     {
-        void Wait(string requestId, RetryType retryType, Progression progression, int? slot);
+        void Wait(string requestId, RetryType retryType, Progression progression);
         void Prepare(string requestId, RetryType retryType, int totalNumberOfMessages, Progression progression);
         void PrepareBatch(string requestId, RetryType retryType, int totalNumberOfMessages, Progression progression);
         void Forwarding(string requestId, RetryType retryType, int totalNumberOfMessages, Progression progression);
