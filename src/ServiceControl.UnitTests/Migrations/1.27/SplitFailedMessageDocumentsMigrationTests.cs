@@ -237,6 +237,58 @@
         }
 
         [Test]
+        public void SplitsMultipleSubscribers_ForInFligthRetries()
+        {
+            // Arrange
+            var messageId = Guid.NewGuid().ToString();
+            var subscriber1InputQueue = "Subscriber1@SOME-MACHINE";
+            var subscriber2InputQueue = "Subscriber2@SOME-MACHINE";
+            var replyToAddress = "SomeSendingEndpoint@SOME-MACHINE";
+
+            var uniqueMessageId = OldUniqueMessageId(messageId, replyToAddress: replyToAddress);
+
+            using (var session = documentStore.OpenSession())
+            {
+                var failedMessage = new FailedMessage
+                {
+                    Id = FailedMessage.MakeDocumentId(uniqueMessageId),
+                    UniqueMessageId = uniqueMessageId,
+                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                    {
+                        MakeProcessingAttempt(messageId,
+                            failedQ: subscriber1InputQueue,
+                            replyToAddress: replyToAddress
+                        ),
+                        MakeProcessingAttempt(messageId,
+                            failedQ: subscriber2InputQueue,
+                            replyToAddress: replyToAddress
+                        )
+                    },
+                    Status = FailedMessageStatus.RetryIssued
+                };
+
+                session.Store(failedMessage);
+                session.SaveChanges();
+            }
+
+            // Act
+            migration.Apply(documentStore);
+
+            // Assert
+            using (var session = documentStore.OpenSession())
+            {
+                var failedMessages = session.Query<FailedMessage>().ToArray();
+
+                Assert.AreEqual(2, failedMessages.Length, "There should be 2 failed messages");
+
+                Assert.AreEqual(1, failedMessages[0].ProcessingAttempts.Count, "The first failed message should have one processing attempt");
+                Assert.AreEqual(1, failedMessages[1].ProcessingAttempts.Count, "The second failed message should have one processing attempt");
+
+                Assert.IsTrue(failedMessages.Any(x => x.UniqueMessageId == uniqueMessageId), "The original document should be kept intact to properly handle in-flight retries if they fail again.");
+            }
+        }
+
+        [Test]
         public void IgnoresRetriesThroughRedirects()
         {
             // Arrange

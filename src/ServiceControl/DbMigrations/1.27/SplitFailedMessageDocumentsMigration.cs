@@ -57,51 +57,50 @@
                 Checked = 1
             };
 
-            var originalRecords = failedMessage.ProcessingAttempts.Select(x => new ProcessingAttemptRecord(x)).ToArray();
-            var retries = originalRecords.Where(x => x.RetryId != null).ToArray();
-            var nonRetries = originalRecords.Except(retries).ToArray();
+            var retryAttempts = failedMessage.ProcessingAttempts
+                .Select(x => new ProcessingAttemptRecord(x))
+                .Reverse().ToArray();
 
-            if (nonRetries.Length == 1)
+            ProcessingAttemptRecord[] collapsedRetries;
+
+            //If there is any failed message processing initiated from SC of any in-flight
+            if (retryAttempts.First().RetryId != null || failedMessage.Status == FailedMessageStatus.RetryIssued)
             {
-                return stats;
+                //Keep all SC-initiated failures + initial one
+                //TODO: check if skip one can throw
+                collapsedRetries = retryAttempts
+                    .SkipWhile(ra => ra.RetryId != null)
+                    .Skip(1).ToArray();
+            }
+            else
+            {
+                //Split all retry attempts from the original document
+                collapsedRetries = retryAttempts;
             }
 
-            var grouped = nonRetries.GroupBy(x => x.NewUniqueMessageId).ToArray();
-            if (grouped.Length == 1)
+            if (collapsedRetries.Any())
             {
-                return stats;
+                stats.FoundProblem = 1;
             }
 
-            stats.FoundProblem = 1;
-
-            foreach (var group in grouped)
+            foreach (var collapsedRetry in collapsedRetries)
             {
-                if (retries.Any(x => x.NewUniqueMessageId == group.Key))
-                {
-                    // We've retried to this endpoint so it's the primary
-                    continue;
-                }
-
                 var newFailedMessage = new FailedMessage
                 {
-                    Id = FailedMessage.MakeDocumentId(group.Key),
-                    UniqueMessageId = group.Key,
-                    ProcessingAttempts = group.Select(x => x.Attempt).OrderBy(x => x.FailureDetails.TimeOfFailure).ToList(),
+                    Id = FailedMessage.MakeDocumentId(collapsedRetry.NewUniqueMessageId),
+                    UniqueMessageId = collapsedRetry.NewUniqueMessageId,
+                    ProcessingAttempts = new[]
+                    {
+                        collapsedRetry.Attempt
+                    }.ToList(),
                     Status = FailedMessageStatus.Unresolved
                 };
-
-                var lastProcessingAttempt = newFailedMessage.ProcessingAttempts.Last();
-
-                newFailedMessage.FailureGroups = failedMessageFactory.GetGroups((string)lastProcessingAttempt.MessageMetadata["MessageType"], lastProcessingAttempt.FailureDetails);
 
                 stats.Created += 1;
 
                 session.Store(newFailedMessage);
 
-                foreach (var attempt in newFailedMessage.ProcessingAttempts)
-                {
-                    failedMessage.ProcessingAttempts.Remove(attempt);
-                }
+                failedMessage.ProcessingAttempts.Remove(collapsedRetry.Attempt);
             }
 
             if (failedMessage.ProcessingAttempts.Count == 0)
