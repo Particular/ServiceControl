@@ -1,6 +1,5 @@
 namespace Particular.ServiceControl
 {
-    using System.Threading;
     using Autofac;
     using NServiceBus;
     using Particular.ServiceControl.DbMigrations;
