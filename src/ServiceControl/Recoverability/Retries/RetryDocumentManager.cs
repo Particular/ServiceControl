@@ -111,13 +111,14 @@ namespace ServiceControl.Recoverability
             store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
-        internal void AdoptOrphanedBatches(out bool hasMoreWorkToDo)
+        internal void AdoptOrphanedBatches(DateTime cutoff, out bool hasMoreWorkToDo)
         {
             using (var session = store.OpenSession())
             {
                 RavenQueryStatistics stats;
 
                 var orphanedBatchIds = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
+                    .Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
                     .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
                     .Statistics(out stats)
                     .Select(b => b.Id)
