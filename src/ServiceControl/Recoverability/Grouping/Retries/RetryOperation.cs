@@ -3,17 +3,17 @@
     using System;
     using NServiceBus.Logging;
 
-    public class RetryOperationSummary
+    public class RetryOperation
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(RetryOperationSummary));
+        private static readonly ILog Log = LogManager.GetLogger(typeof(RetryOperation));
 
-        public RetryOperationSummary(string requestId, RetryType retryType)
+        public RetryOperation(string requestId, RetryType retryType)
         {
             this.requestId = requestId;
             this.retryType = retryType;
         }
 
-        public IRetryOperationProgressionNotifier Notifier { get; set; }
+        public IRetryOperationProgressNotifier Notifier { get; set; }
         public int TotalNumberOfMessages { get; private set; }
         public int NumberOfMessagesPrepared { get; private set; }
         public int NumberOfMessagesForwarded { get; private set; }
@@ -22,7 +22,6 @@
         public bool Failed { get; private set; }
         public string Originator { get; private set; }
         public DateTime Started { get; private set; }
-        public int? Slot { get; private set; }
         public RetryState RetryState { get; private set; }
         private readonly string requestId;
         private readonly RetryType retryType;
@@ -44,14 +43,7 @@
             Originator = originator;
             Started = started;
 
-            Notifier?.Wait(requestId, retryType, GetProgression(), Slot);
-        }
-
-        public void WaitInNewSlot(int slot)
-        {
-            Slot = slot;
-
-            Notifier?.Wait(requestId, retryType, GetProgression(), Slot);
+            Notifier?.Wait(requestId, retryType, GetProgress());
         }
 
         public void Fail()
@@ -66,14 +58,14 @@
             NumberOfMessagesForwarded = 0;
             NumberOfMessagesPrepared = 0;
 
-            Notifier?.Prepare(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression());
+            Notifier?.Prepare(requestId, retryType, TotalNumberOfMessages, GetProgress());
         }
 
         public void PrepareBatch(int numberOfMessagesPrepared)
         {
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
 
-            Notifier?.PrepareBatch(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression());
+            Notifier?.PrepareBatch(requestId, retryType, TotalNumberOfMessages, GetProgress());
         }
 
         public void PrepareAdoptedBatch(int numberOfMessagesPrepared, string originator, DateTime startTime)
@@ -88,14 +80,14 @@
         {
             RetryState = RetryState.Forwarding;
 
-            Notifier?.Forwarding(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages, GetProgression());
+            Notifier?.Forwarding(requestId, retryType, TotalNumberOfMessages, GetProgress());
         }
 
         public void BatchForwarded(int numberOfMessagesForwarded)
         {
             NumberOfMessagesForwarded += numberOfMessagesForwarded;
 
-            Notifier?.BatchForwarded(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages, GetProgression());
+            Notifier?.BatchForwarded(requestId, retryType, TotalNumberOfMessages, GetProgress());
 
             CheckForCompletion();
         }
@@ -113,20 +105,19 @@
                 RetryState = RetryState.Completed;
                 CompletionTime = DateTime.Now;
 
-                Notifier?.Completed(requestId, retryType, Failed, GetProgression(), Started, CompletionTime.Value, Originator);
+                Notifier?.Completed(requestId, retryType, Failed, GetProgress(), Started, CompletionTime.Value, Originator);
                 Log.Info($"Retry operation {requestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");
             }
         }
-
-        public double GetProgression()
+        
+        public Progress GetProgress()
         {
-            var progression = RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, RetryState);
-            return Math.Round(progression, 2);
-        }
+            var percentage = RetryOperationProgressCalculator.CalculateProgress(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, RetryState);
+            var roundedPercentage = Math.Round(percentage, 2);
+            
+            var remaining = TotalNumberOfMessages - (NumberOfMessagesForwarded + NumberOfMessagesSkipped);
 
-        public int GetMessagesRemaining()
-        {
-            return TotalNumberOfMessages - (NumberOfMessagesForwarded + NumberOfMessagesSkipped);
+            return new Progress(roundedPercentage, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, remaining);
         }
     }
 }

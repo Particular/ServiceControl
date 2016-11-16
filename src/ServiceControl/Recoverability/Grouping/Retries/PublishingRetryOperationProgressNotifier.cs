@@ -3,83 +3,78 @@
     using NServiceBus;
     using System;
 
-    public class PublishingRetryOperationProgressionNotifier : IRetryOperationProgressionNotifier
+    public class PublishingRetryOperationProgressNotifier : IRetryOperationProgressNotifier
     {
         private readonly IBus bus;
 
-        public PublishingRetryOperationProgressionNotifier(IBus bus)
+        public PublishingRetryOperationProgressNotifier(IBus bus)
         {
             this.bus = bus;
         }
 
-        public void Wait(string requestId, RetryType retryType, double progression, int? slot)
+        public void Wait(string requestId, RetryType retryType, Progress progress)
         {
             bus.Publish<RetryOperationWaiting>(e =>
             {
                 e.RequestId = requestId;
                 e.RetryType = retryType;
-                e.Progression = progression;
-                e.Slot = slot;
+                e.Progress = progress;
             });
         }
 
-        public void Prepare(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, double progression)
+        public void Prepare(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
         {
             bus.Publish<RetryOperationPreparing>(e =>
             {
                 e.RequestId = requestId;
                 e.RetryType = retryType;
-                e.NumberOfMessagesPreparing = numberOfMessagesPrepared;
                 e.TotalNumberOfMessages = totalNumberOfMessages;
-                e.Progression = progression;
+                e.Progress = progress;
             });
         }
 
-        public void PrepareBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, double progression)
+        public void PrepareBatch(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
         {
             bus.Publish<RetryOperationPreparing>(e =>
             {
                 e.RequestId = requestId;
                 e.RetryType = retryType;
-                e.NumberOfMessagesPreparing = numberOfMessagesPrepared;
                 e.TotalNumberOfMessages = totalNumberOfMessages;
-                e.Progression = progression;
+                e.Progress = progress;
             });
         }
 
-        public void Forwarding(string requestId, RetryType retryType, int numberOfMessagesForwarded, int totalNumberOfMessages, double progression)
+        public void Forwarding(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
         {
             bus.Publish<RetryOperationForwarding>(e =>
             {
                 e.RequestId = requestId;
                 e.RetryType = retryType;
-                e.NumberOfMessagesForwarded = numberOfMessagesForwarded;
                 e.TotalNumberOfMessages = totalNumberOfMessages;
-                e.Progression = progression;
+                e.Progress = progress;
             });
 
         }
 
-        public void BatchForwarded(string requestId, RetryType retryType, int numberOfMessagesForwarded, int totalNumberOfMessages, double progression)
+        public void BatchForwarded(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
         {
             bus.Publish<RetryMessagesForwarded>(e =>
             {
                 e.RequestId = requestId;
                 e.RetryType = retryType;
-                e.NumberOfMessagesForwarded = numberOfMessagesForwarded;
                 e.TotalNumberOfMessages = totalNumberOfMessages;
-                e.Progression = progression;
+                e.Progress = progress;
             });
         }
 
-        public void Completed(string requestId, RetryType retryType, bool failed, double progression, DateTime startTime, DateTime completionTime, string originator)
+        public void Completed(string requestId, RetryType retryType, bool failed, Progress progress, DateTime startTime, DateTime completionTime, string originator)
         {
             bus.Publish<RetryOperationCompleted>(e =>
             {
                 e.RequestId = requestId;
                 e.RetryType = retryType;
                 e.Failed = failed;
-                e.Progression = progression;
+                e.Progress = progress;
                 e.StartTime = startTime;
                 e.CompletionTime = completionTime;
                 e.Originator = originator;

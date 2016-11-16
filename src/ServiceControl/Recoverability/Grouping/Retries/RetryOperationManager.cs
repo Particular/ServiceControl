@@ -5,14 +5,14 @@
 
     public class RetryOperationManager
     {
-        private readonly IRetryOperationProgressionNotifier notifier;
+        private readonly IRetryOperationProgressNotifier notifier;
         
-        public RetryOperationManager(IRetryOperationProgressionNotifier notifier)
+        public RetryOperationManager(IRetryOperationProgressNotifier notifier)
         {
             this.notifier = notifier;
         }
 
-        internal static Dictionary<string, RetryOperationSummary> Operations = new Dictionary<string, RetryOperationSummary>();
+        internal static Dictionary<string, RetryOperation> Operations = new Dictionary<string, RetryOperation>();
 
         public void Wait(string requestId, RetryType retryType, DateTime started, string originator = null)
         {
@@ -23,8 +23,8 @@
 
         public bool IsOperationInProgressFor(string requestId, RetryType retryType)
         {
-            RetryOperationSummary summary;
-            if (!Operations.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
+            RetryOperation summary;
+            if (!Operations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary))
             {
                 return false;
             }
@@ -81,37 +81,28 @@
             summary.Skip(numberOfMessagesSkipped);
         }
 
-        private RetryOperationSummary GetOrCreate(RetryType retryType, string requestId)
+        private RetryOperation GetOrCreate(RetryType retryType, string requestId)
         {
-            RetryOperationSummary summary;
-            if (!Operations.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary))
+            RetryOperation summary;
+            if (!Operations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary))
             {
-                summary = new RetryOperationSummary(requestId, retryType) { Notifier = notifier };
-                Operations[RetryOperationSummary.MakeOperationId(requestId, retryType)] = summary;
+                summary = new RetryOperation(requestId, retryType) { Notifier = notifier };
+                Operations[RetryOperation.MakeOperationId(requestId, retryType)] = summary;
             }
             return summary;
         }
 
-        private static RetryOperationSummary Get(string requestId, RetryType retryType)
+        private static RetryOperation Get(string requestId, RetryType retryType)
         {
-            return Operations[RetryOperationSummary.MakeOperationId(requestId, retryType)];
+            return Operations[RetryOperation.MakeOperationId(requestId, retryType)];
         }
         
-        public RetryOperationSummary GetStatusForRetryOperation(string requestId, RetryType retryType)
+        public RetryOperation GetStatusForRetryOperation(string requestId, RetryType retryType)
         {
-            RetryOperationSummary summary;
-            Operations.TryGetValue(RetryOperationSummary.MakeOperationId(requestId, retryType), out summary);
+            RetryOperation summary;
+            Operations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary);
 
             return summary;
-        }
-
-        public void UpdateWaitPosition(List<QueuedRetryItem> positions)
-        {
-            foreach (var position in positions)
-            {
-                var operation = GetStatusForRetryOperation(position.RequestId, position.RetryType);
-                operation?.WaitInNewSlot(position.Position);
-            }
         }
     }
 }

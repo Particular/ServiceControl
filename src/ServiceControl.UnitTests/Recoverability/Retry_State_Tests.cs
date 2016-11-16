@@ -23,7 +23,7 @@ namespace ServiceControl.UnitTests.Recoverability
         public void When_a_group_is_processed_it_is_set_to_the_Preparing_state()
         {
             var retryManager = new RetryOperationManager(new TestNotifier());
-            RetryOperationManager.Operations = new Dictionary<string, RetryOperationSummary>();
+            RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -38,7 +38,7 @@ namespace ServiceControl.UnitTests.Recoverability
         public void When_a_group_is_prepared_and_SC_is_started_the_group_is_marked_as_failed()
         {
             var retryManager = new RetryOperationManager(new TestNotifier());
-            RetryOperationManager.Operations = new Dictionary<string, RetryOperationSummary>();
+            RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -66,7 +66,7 @@ namespace ServiceControl.UnitTests.Recoverability
         public void When_a_group_is_prepared_with_three_batches_and_SC_is_restarted_while_the_first_group_is_being_forwarded_then_the_count_still_matches()
         {
             var retryManager = new RetryOperationManager(new TestNotifier());
-            RetryOperationManager.Operations = new Dictionary<string, RetryOperationSummary>();
+            RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -100,7 +100,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
                     // Simulate SC restart
                     retryManager = new RetryOperationManager(new TestNotifier());
-                    RetryOperationManager.Operations = new Dictionary<string, RetryOperationSummary>();
+                    RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
 
                     var documentManager = new CustomRetryDocumentManager(false, documentStore)
                     {
@@ -123,7 +123,7 @@ namespace ServiceControl.UnitTests.Recoverability
         public void When_a_group_is_forwarded_the_status_is_Completed()
         {
             var retryManager = new RetryOperationManager(new TestNotifier());
-            RetryOperationManager.Operations = new Dictionary<string, RetryOperationSummary>();
+            RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -163,7 +163,7 @@ namespace ServiceControl.UnitTests.Recoverability
         public void When_a_group_has_one_batch_out_of_two_forwarded_the_status_is_Forwarding()
         {
             var retryManager = new RetryOperationManager(new TestNotifier());
-            RetryOperationManager.Operations = new Dictionary<string, RetryOperationSummary>();
+            RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {

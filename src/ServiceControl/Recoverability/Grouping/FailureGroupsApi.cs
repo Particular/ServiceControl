@@ -1,6 +1,5 @@
 namespace ServiceControl.Recoverability
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Nancy;
@@ -107,10 +106,9 @@ namespace ServiceControl.Recoverability
                             StartTime = lastCompleted?.StartTime,
                             CompletionTime = lastCompleted?.CompletionTime,
                             RetryStatus = summary?.RetryState.ToString() ?? "None",
-                            Failed = summary?.Failed,
-                            RetryProgress = summary?.GetProgression() ?? 0.0,
-                            RetryRemainingCount = GetMessagesRemaning(summary),
-                            Slot = summary?.Slot
+                            RetryFailed = summary?.Failed,
+                            RetryProgress = summary?.GetProgress().Percentage ?? 0.0,
+                            RetryRemainingCount = summary?.GetProgress().MessagesRemaining
                         };
                     });
 
@@ -118,16 +116,6 @@ namespace ServiceControl.Recoverability
                     .WithTotalCount(stats)
                     .WithEtagAndLastModified(stats);
             }
-        }
-
-        private static int GetMessagesRemaning(RetryOperationSummary summary)
-        {
-            if (summary == null || summary.TotalNumberOfMessages == 0)
-            {
-                return 0;
-            }
-        
-            return summary.GetMessagesRemaining();
         }
 
         private CompletedRetryOperation GetLastCompletedOperation(RetryOperationsHistory history, string requestId, RetryType retryType)
