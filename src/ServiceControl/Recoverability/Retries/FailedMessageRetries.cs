@@ -26,7 +26,7 @@
             context.Container.ConfigureComponent<RetriesGateway>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<RetryProcessor>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<RetryOperationManager>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<PublishingRetryOperationProgressionNotifier>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<PublishingRetryOperationProgressNotifier>(DependencyLifecycle.SingleInstance);
         }
 
         class BulkRetryBatchCreation : FeatureStartupTask

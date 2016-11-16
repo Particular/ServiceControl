@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Recoverability
 {
-    public static class RetryOperationProgressionCalculator
+    public static class RetryOperationProgressCalculator
     {
-        public static double CalculateProgression(int totalNumberOfMessages, int numberOfMessagesPrepared, int numberOfMessagesForwarded, int numberOfMessagesSkipped, RetryState state)
+        public static double CalculateProgress(int totalNumberOfMessages, int numberOfMessagesPrepared, int numberOfMessagesForwarded, int numberOfMessagesSkipped, RetryState state)
         {
             double total = totalNumberOfMessages;
 

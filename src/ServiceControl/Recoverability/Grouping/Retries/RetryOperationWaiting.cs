@@ -6,6 +6,6 @@
     {
         public string RequestId { get; set; }
         public RetryType RetryType { get; set; }
-        public Progression Progression { get; set; }
+        public Progress Progress { get; set; }
     }
 }
