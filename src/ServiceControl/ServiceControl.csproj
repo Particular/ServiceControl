@@ -539,6 +539,7 @@
     <Compile Include="Recoverability\Grouping\Raven\FailureGroupView.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\IFailureClassifier.cs" />
     <Compile Include="Recoverability\Grouping\Retries\IRetryOperationProgressionNotifier.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\Progression.cs" />
     <Compile Include="Recoverability\Grouping\Retries\PublishingRetryOperationProgressionNotifier.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationCompleted.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryMessagesForwarded.cs" />

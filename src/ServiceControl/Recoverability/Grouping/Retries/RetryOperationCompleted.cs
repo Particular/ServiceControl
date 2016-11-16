@@ -9,7 +9,7 @@
         public RetryType RetryType { get; set; }
         public string Originator { get; set; }
         public bool Failed { get; set; }
-        public double Progression { get; set; }
+        public Progression Progression { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime CompletionTime { get; set; }
     }

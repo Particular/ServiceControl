@@ -6,7 +6,7 @@
     {
         public string RequestId { get; set; }
         public RetryType RetryType { get; set; }
-        public double Progression { get; set; }
+        public Progression Progression { get; set; }
         public int? Slot { get; set; }
     }
 }

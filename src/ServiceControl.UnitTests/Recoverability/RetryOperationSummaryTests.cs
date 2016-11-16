@@ -213,7 +213,7 @@
             summary.Skip(1000);
             summary.Forwarding();
             summary.BatchForwarded(1000);
-
+            
             Assert.AreEqual(RetryState.Completed, summary.RetryState);
             Assert.AreEqual(1000, summary.NumberOfMessagesForwarded);
             Assert.AreEqual(1000, summary.NumberOfMessagesSkipped);
@@ -232,49 +232,49 @@
         public int NumberOfMessagesPrepared  { get; private set; }
         public int NumberOfMessagesForwarded { get; private set; }
         public int TotalNumberOfMessages { get; private set; }
-        public double Progression { get; set; }
+        public Progression Progression { get; set; }
         public bool Failed{ get; private set; }
         public string Originator { get; private set; }
 
-        public void Wait(string requestId, RetryType retryType, double progression, int? slot)
+        public void Wait(string requestId, RetryType retryType, Progression progression, int? slot)
         {
             WaitNotified = true;
             Progression = progression;
         }
 
-        public void Prepare(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, double progression)
+        public void Prepare(string requestId, RetryType retryType, int totalNumberOfMessages, Progression progression)
         {
             PrepareNotified = true;
-            NumberOfMessagesPrepared = numberOfMessagesPrepared;
+            NumberOfMessagesPrepared = progression.MessagesPrepared;
             TotalNumberOfMessages = totalNumberOfMessages;
             Progression = progression;
         }
 
-        public void PrepareBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, double progression)
+        public void PrepareBatch(string requestId, RetryType retryType, int totalNumberOfMessages, Progression progression)
         {
             PrepareBatchNotified = true;
-            NumberOfMessagesPrepared = numberOfMessagesPrepared;
+            NumberOfMessagesPrepared = progression.MessagesPrepared;
             TotalNumberOfMessages = totalNumberOfMessages;
             Progression = progression;
         }
 
-        public void Forwarding(string requestId, RetryType retryType, int numberOfMessagesForwarded, int totalNumberOfMessages, double progression)
+        public void Forwarding(string requestId, RetryType retryType, int totalNumberOfMessages, Progression progression)
         {
             ForwardingNotified = true;
-            NumberOfMessagesForwarded = numberOfMessagesForwarded;
+            NumberOfMessagesForwarded = progression.MessagesForwarded;
             TotalNumberOfMessages = totalNumberOfMessages;
             Progression = progression;
         }
 
-        public void BatchForwarded(string requestId, RetryType retryType, int numberOfMessagesForwarded, int totalNumberOfMessages, double progression)
+        public void BatchForwarded(string requestId, RetryType retryType, int totalNumberOfMessages, Progression progression)
         {
             BatchForwardedNotified = true;
-            NumberOfMessagesForwarded = numberOfMessagesForwarded;
+            NumberOfMessagesForwarded = progression.MessagesForwarded;
             TotalNumberOfMessages = totalNumberOfMessages;
             Progression = progression;
         }
 
-        public void Completed(string requestId, RetryType retryType, bool failed, double progression, DateTime startTime, DateTime completionTime, string originator)
+        public void Completed(string requestId, RetryType retryType, bool failed, Progression progression, DateTime startTime, DateTime completionTime, string originator)
         {
             CompletedNotified = true;
             Failed = failed;

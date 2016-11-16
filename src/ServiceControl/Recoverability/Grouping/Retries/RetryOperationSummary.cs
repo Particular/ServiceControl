@@ -66,14 +66,14 @@
             NumberOfMessagesForwarded = 0;
             NumberOfMessagesPrepared = 0;
 
-            Notifier?.Prepare(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression());
+            Notifier?.Prepare(requestId, retryType, TotalNumberOfMessages, GetProgression());
         }
 
         public void PrepareBatch(int numberOfMessagesPrepared)
         {
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
 
-            Notifier?.PrepareBatch(requestId, retryType, NumberOfMessagesPrepared, TotalNumberOfMessages, GetProgression());
+            Notifier?.PrepareBatch(requestId, retryType, TotalNumberOfMessages, GetProgression());
         }
 
         public void PrepareAdoptedBatch(int numberOfMessagesPrepared, string originator, DateTime startTime)
@@ -88,14 +88,14 @@
         {
             RetryState = RetryState.Forwarding;
 
-            Notifier?.Forwarding(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages, GetProgression());
+            Notifier?.Forwarding(requestId, retryType, TotalNumberOfMessages, GetProgression());
         }
 
         public void BatchForwarded(int numberOfMessagesForwarded)
         {
             NumberOfMessagesForwarded += numberOfMessagesForwarded;
 
-            Notifier?.BatchForwarded(requestId, retryType, NumberOfMessagesForwarded, TotalNumberOfMessages, GetProgression());
+            Notifier?.BatchForwarded(requestId, retryType, TotalNumberOfMessages, GetProgression());
 
             CheckForCompletion();
         }
@@ -117,16 +117,15 @@
                 Log.Info($"Retry operation {requestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");
             }
         }
-
-        public double GetProgression()
+        
+        public Progression GetProgression()
         {
-            var progression = RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, RetryState);
-            return Math.Round(progression, 2);
-        }
+            var progressionPercentage = RetryOperationProgressionCalculator.CalculateProgression(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, RetryState);
+            var roundedPercentage = Math.Round(progressionPercentage, 2);
+            
+            var remaining = TotalNumberOfMessages - (NumberOfMessagesForwarded + NumberOfMessagesSkipped);
 
-        public int GetMessagesRemaining()
-        {
-            return TotalNumberOfMessages - (NumberOfMessagesForwarded + NumberOfMessagesSkipped);
+            return new Progression(roundedPercentage, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, remaining);
         }
     }
 }
