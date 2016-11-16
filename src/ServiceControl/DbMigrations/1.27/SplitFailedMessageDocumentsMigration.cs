@@ -17,10 +17,12 @@
             failedMessageFactory = new FailedMessageFactory(failedEnrichers);
         }
 
-        public void Apply(IDocumentStore store)
+        public string Apply(IDocumentStore store)
         {
             var currentPage = 0;
             int retrievedResults;
+
+            var stats = new MigrationStats();
 
             do
             {
@@ -38,30 +40,39 @@
 
                     foreach (var failedMessage in failedMessages)
                     {
-                        Check(failedMessage, session);
+                        stats += Check(failedMessage, session);
                     }
 
                     session.SaveChanges();
                 }
             } while (retrievedResults == PageSize);
+
+            return $"Found {stats.FoundProblem} issue(s) in {stats.Checked} Failed Message document(s). Created {stats.Created} new document(s). Deleted {stats.Deleted} old document(s).";
         }
 
-        private void Check(FailedMessage failedMessage, IDocumentSession session)
+        private MigrationStats Check(FailedMessage failedMessage, IDocumentSession session)
         {
+            var stats = new MigrationStats
+            {
+                Checked = 1
+            };
+
             var originalRecords = failedMessage.ProcessingAttempts.Select(x => new ProcessingAttemptRecord(x)).ToArray();
             var retries = originalRecords.Where(x => x.RetryId != null).ToArray();
             var nonRetries = originalRecords.Except(retries).ToArray();
 
             if (nonRetries.Length == 1)
             {
-                return;
+                return stats;
             }
 
             var grouped = nonRetries.GroupBy(x => x.NewUniqueMessageId).ToArray();
             if (grouped.Length == 1)
             {
-                return;
+                return stats;
             }
+
+            stats.FoundProblem = 1;
 
             foreach (var group in grouped)
             {
@@ -83,6 +94,8 @@
 
                 newFailedMessage.FailureGroups = failedMessageFactory.GetGroups((string)lastProcessingAttempt.MessageMetadata["MessageType"], lastProcessingAttempt.FailureDetails);
 
+                stats.Created += 1;
+
                 session.Store(newFailedMessage);
 
                 foreach (var attempt in newFailedMessage.ProcessingAttempts)
@@ -94,7 +107,10 @@
             if (failedMessage.ProcessingAttempts.Count == 0)
             {
                 session.Delete(failedMessage);
+                stats.Deleted = 1;
             }
+
+            return stats;
         }
 
         class ProcessingAttemptRecord
@@ -115,6 +131,23 @@
             public FailedMessage.ProcessingAttempt Attempt { get; }
             public string RetryId { get; }
             public string NewUniqueMessageId { get;  }
+        }
+
+        struct MigrationStats
+        {
+            public int Checked { get; set; }
+            public int FoundProblem { get; set; }
+            public int Created { get; set; }
+            public int Deleted { get; set; }
+
+            public static MigrationStats operator +(MigrationStats left, MigrationStats right)
+                => new MigrationStats
+                    {
+                        Checked = left.Checked + right.Checked,
+                        Created = left.Created + right.Created,
+                        FoundProblem = left.FoundProblem + right.FoundProblem,
+                        Deleted = left.Deleted + right.Deleted
+                    };
         }
 
         public string MigrationId { get; } = "Split Failed Message Documents";

@@ -9,12 +9,13 @@
 
         public List<Migration> AppliedMigrations { get; set; } = new List<Migration>();
 
-        public void Add(string migrationId)
+        public void Add(string migrationId, string report)
         {
             AppliedMigrations.Add(new Migration
             {
                 MigrationId = migrationId,
-                DateApplied = DateTime.UtcNow
+                DateApplied = DateTime.UtcNow,
+                Report = report
             });
         }
 
@@ -22,6 +23,7 @@
         {
             public string MigrationId { get; set; }
             public DateTime DateApplied { get; set; }
+            public string Report { get; set; }
         }
     }
 

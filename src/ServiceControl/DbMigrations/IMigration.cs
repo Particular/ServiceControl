@@ -5,6 +5,6 @@
     public interface IMigration
     {
         string MigrationId { get; }
-        void Apply(IDocumentStore store);
+        string Apply(IDocumentStore store);
     }
 }

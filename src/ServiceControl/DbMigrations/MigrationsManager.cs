@@ -29,9 +29,9 @@
                 {
                     log.Info($"Applying migration [{migration.MigrationId}]");
 
-                    Apply(migration);
+                    var report = Apply(migration);
 
-                    log.Info($"Applying migration [{migration.MigrationId}] complete");
+                    log.Info($"Applying migration [{migration.MigrationId}] complete: {report}");
                 }
                 catch (Exception ex)
                 {
@@ -41,14 +41,15 @@
             }
         }
 
-        private void Apply(IMigration migration)
+        private string Apply(IMigration migration)
         {
-            migration.Apply(store);
+            var report = migration.Apply(store);
             using (var session = store.OpenSession())
             {
-                session.Load<Migrations>(Migrations.DocumentId).Add(migration.MigrationId);
+                session.Load<Migrations>(Migrations.DocumentId).Add(migration.MigrationId, report);
                 session.SaveChanges();
             }
+            return report;
         }
 
         private Migrations LoadMigrationsRecord()
