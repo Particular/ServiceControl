@@ -49,7 +49,6 @@
                 TimeSpan.FromSeconds(20));
 
             StartDispatcher();
-            signal.Set();
         }
 
         protected override void OnStop()
