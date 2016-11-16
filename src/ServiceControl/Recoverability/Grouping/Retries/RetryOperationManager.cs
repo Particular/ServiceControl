@@ -29,7 +29,7 @@
                 return false;
             }
 
-            return summary.RetryState != RetryState.Completed;
+            return summary.RetryState != RetryState.Completed && summary.RetryState != RetryState.Waiting;
         }
 
         public void Prepairing(string requestId, RetryType retryType, int totalNumberOfMessages)
