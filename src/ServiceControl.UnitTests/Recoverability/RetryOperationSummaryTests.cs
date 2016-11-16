@@ -28,7 +28,7 @@
             summary.Wait(DateTime.UtcNow);
 
             Assert.True(notifier.WaitNotified);
-            Assert.AreEqual(0.00, notifier.Progression);
+            Assert.AreEqual(0.00, notifier.Progression.Percentage);
         }
 
         [Test]
@@ -59,7 +59,7 @@
             Assert.True(notifier.PrepareNotified);
             Assert.AreEqual(0, notifier.NumberOfMessagesPrepared);
             Assert.AreEqual(1000, notifier.TotalNumberOfMessages);
-            Assert.AreEqual(0, notifier.Progression);
+            Assert.AreEqual(0, notifier.Progression.Percentage);
         }
 
         [Test]
@@ -84,7 +84,7 @@
             Assert.True(notifier.PrepareBatchNotified);
             Assert.AreEqual(1000, notifier.NumberOfMessagesPrepared);
             Assert.AreEqual(1000, notifier.TotalNumberOfMessages);
-            Assert.AreEqual(1.0, notifier.Progression);
+            Assert.AreEqual(1.0, notifier.Progression.Percentage);
         }
 
         [Test]
@@ -112,7 +112,7 @@
             Assert.True(notifier.ForwardingNotified);
             Assert.AreEqual(0, notifier.NumberOfMessagesForwarded);
             Assert.AreEqual(1000, notifier.TotalNumberOfMessages);
-            Assert.AreEqual(0.0, notifier.Progression);
+            Assert.AreEqual(0.0, notifier.Progression.Percentage);
         }
 
         [Test]
@@ -142,7 +142,7 @@
             Assert.True(notifier.BatchForwardedNotified);
             Assert.AreEqual(500, notifier.NumberOfMessagesForwarded);
             Assert.AreEqual(1000, notifier.TotalNumberOfMessages);
-            Assert.AreEqual(0.5, notifier.Progression);
+            Assert.AreEqual(0.5, notifier.Progression.Percentage);
         }
 
         [Test]
@@ -172,7 +172,7 @@
 
             Assert.True(notifier.CompletedNotified);
             Assert.AreEqual(false, notifier.Failed);
-            Assert.AreEqual(1.0, notifier.Progression);
+            Assert.AreEqual(1.0, notifier.Progression.Percentage);
             Assert.AreEqual("FailureGroup1", notifier.Originator);
         }
 
