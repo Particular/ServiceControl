@@ -182,6 +182,61 @@
         }
 
         [Test]
+        public void SplitsMultipleSubscribers_AfterRedirectedRetry()
+        {
+            // Arrange
+            var messageId = Guid.NewGuid().ToString();
+            var sourceQueue = "Source";
+            var serviceAOldQueue = "Service-A-Old";
+            var serviceBQueue = "Service-B";
+            var serviceANewQueue = "Service-A-New";
+
+            var uniqueMessageId = OldUniqueMessageId(messageId, replyToAddress: serviceANewQueue, failedQ: serviceAOldQueue);
+
+            using (var session = documentStore.OpenSession())
+            {
+                var failedMessage = new FailedMessage
+                {
+                    Id = FailedMessage.MakeDocumentId(uniqueMessageId),
+                    UniqueMessageId = uniqueMessageId,
+                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                    {
+                        MakeProcessingAttempt(messageId,
+                            failedQ: serviceBQueue,
+                            replyToAddress: sourceQueue
+                        ),
+                        MakeProcessingAttempt(messageId,
+                            failedQ: serviceAOldQueue,
+                            replyToAddress: sourceQueue
+                        ),
+                        MakeProcessingAttempt(messageId,
+                            failedQ: serviceANewQueue,
+                            replyToAddress: sourceQueue,
+                            retryId: uniqueMessageId
+                        )
+                    },
+                    Status = FailedMessageStatus.RetryIssued
+                };
+
+                session.Store(failedMessage);
+                session.SaveChanges();
+            }
+
+            // Act
+            migration.Apply(documentStore);
+
+            // Assert
+            using (var session = documentStore.OpenSession())
+            {
+                var failedMessages = session.Query<FailedMessage>().ToArray();
+
+                Assert.AreEqual(2, failedMessages.Length, "There should be two FailedMessage. One for Service B failure and second with two failed attempts for Service A.");
+                Assert.AreEqual(2, failedMessages[0].ProcessingAttempts.Count, "The FailedMessage for Service A should have 2 ProcessingAttempts");
+                Assert.AreEqual(1, failedMessages[1].ProcessingAttempts.Count, "The FailedMessage for Service A should have 1 ProcessingAttempt");
+            }
+        }
+
+        [Test]
         public void IgnoresRetriesThroughRedirects()
         {
             // Arrange
