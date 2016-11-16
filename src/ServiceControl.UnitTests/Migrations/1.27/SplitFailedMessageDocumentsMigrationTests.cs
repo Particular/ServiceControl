@@ -52,12 +52,7 @@
             }
 
             // Act
-            using (var session = documentStore.OpenSession())
-            {
-                migration.Apply(session);
-
-                session.SaveChanges();
-            }
+            migration.Apply(documentStore);
 
             // Assert
             using (var session = documentStore.OpenSession())
@@ -105,12 +100,7 @@
             }
 
             // Act
-            using (var session = documentStore.OpenSession())
-            {
-                migration.Apply(session);
-
-                session.SaveChanges();
-            }
+            migration.Apply(documentStore);
 
             // Assert
             using (var session = documentStore.OpenSession())
@@ -167,12 +157,7 @@
             }
 
             // Act
-            using (var session = documentStore.OpenSession())
-            {
-                migration.Apply(session);
-
-                session.SaveChanges();
-            }
+            migration.Apply(documentStore);
 
             // Assert
             using (var session = documentStore.OpenSession())
@@ -233,12 +218,7 @@
             }
 
             // Act
-            using (var session = documentStore.OpenSession())
-            {
-                migration.Apply(session);
-
-                session.SaveChanges();
-            }
+            migration.Apply(documentStore);
 
             // Assert
             using (var session = documentStore.OpenSession())

@@ -28,14 +28,9 @@
                 try
                 {
                     log.Info($"Applying migration [{migration.MigrationId}]");
-                    using (var session = store.OpenSession())
-                    {
-                        migration.Apply(session);
 
-                        session.Load<Migrations>(Migrations.DocumentId).Add(migration.MigrationId);
+                    Apply(migration);
 
-                        session.SaveChanges();
-                    }
                     log.Info($"Applying migration [{migration.MigrationId}] complete");
                 }
                 catch (Exception ex)
@@ -43,6 +38,16 @@
                     log.Fatal($"Error while applying migration [{migration.MigrationId}]", ex);
                     throw;
                 }
+            }
+        }
+
+        private void Apply(IMigration migration)
+        {
+            migration.Apply(store);
+            using (var session = store.OpenSession())
+            {
+                session.Load<Migrations>(Migrations.DocumentId).Add(migration.MigrationId);
+                session.SaveChanges();
             }
         }
 

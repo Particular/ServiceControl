@@ -17,27 +17,32 @@
             failedMessageFactory = new FailedMessageFactory(failedEnrichers);
         }
 
-        public void Apply(IDocumentSession session)
+        public void Apply(IDocumentStore store)
         {
             var currentPage = 0;
             int retrievedResults;
 
             do
             {
-                var failedMessages = session.Advanced.LoadStartingWith<FailedMessage>(
-                    FailedMessage.MakeDocumentId(string.Empty),
-                    start: PageSize*currentPage,
-                    pageSize: PageSize);
-
-                currentPage++;
-
-                retrievedResults = failedMessages.Length;
-
-                foreach (var failedMessage in failedMessages)
+                using (var session = store.OpenSession())
                 {
-                    Check(failedMessage, session);
-                }
 
+                    var failedMessages = session.Advanced.LoadStartingWith<FailedMessage>(
+                        FailedMessage.MakeDocumentId(string.Empty),
+                        start: PageSize*currentPage,
+                        pageSize: PageSize);
+
+                    currentPage++;
+
+                    retrievedResults = failedMessages.Length;
+
+                    foreach (var failedMessage in failedMessages)
+                    {
+                        Check(failedMessage, session);
+                    }
+
+                    session.SaveChanges();
+                }
             } while (retrievedResults == PageSize);
         }
 
