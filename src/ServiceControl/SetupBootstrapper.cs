@@ -1,5 +1,6 @@
 namespace Particular.ServiceControl
 {
+    using System.Threading;
     using Autofac;
     using NServiceBus;
     using Particular.ServiceControl.DbMigrations;
@@ -32,8 +33,8 @@ namespace Particular.ServiceControl
 
             containerBuilder.RegisterModule<MigrationsModule>();
 
-            var container = containerBuilder.Build();
-
+            using (documentStore)
+            using (var container = containerBuilder.Build())
             using (NServiceBusFactory.Create(settings, container, null, documentStore, configuration))
             {
                 container.Resolve<MigrationsManager>().ApplyMigrations();
