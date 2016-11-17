@@ -55,7 +55,7 @@
                             ctx => ctx.Subscriber1Subscribed && ctx.Subscriber2Subscribed,
                             bus => bus.Publish<SampleEvent>()
                         )
-                ).Done(ctx => TryGetMany("/api/errors", out failedMessages) && failedMessages.Count > 1)
+                ).Done(ctx => TryGetMany("/api/errors", out failedMessages) && failedMessages.Count >= 2)
                 .Run();
 
             var subscriber1FailedMessage = failedMessages.SingleOrDefault(msg => msg.ReceivingEndpoint.Name.Contains("Subscriber1"));
