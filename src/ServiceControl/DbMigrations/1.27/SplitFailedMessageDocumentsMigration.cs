@@ -105,6 +105,12 @@
                     Status = FailedMessageStatus.Unresolved
                 };
 
+                object messageType;
+                if (collapsedRetry.Attempt.MessageMetadata.TryGetValue("MessageType", out messageType))
+                {
+                    newFailedMessage.FailureGroups = failedMessageFactory.GetGroups((string) messageType, collapsedRetry.Attempt.FailureDetails);
+                }
+
                 stats.Created += 1;
 
                 session.Store(newFailedMessage);

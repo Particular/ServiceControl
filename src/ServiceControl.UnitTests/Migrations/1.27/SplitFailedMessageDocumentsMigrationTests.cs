@@ -11,6 +11,7 @@
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Recoverability;
 
     [TestFixture]
     public class SplitFailedMessageDocumentsMigrationTests
@@ -52,6 +53,7 @@
             }
 
             // Act
+            var migration = CreateMigration();
             migration.Apply(documentStore);
 
             // Assert
@@ -100,6 +102,7 @@
             }
 
             // Act
+            var migration = CreateMigration();
             migration.Apply(documentStore);
 
             // Assert
@@ -157,6 +160,7 @@
             }
 
             // Act
+            var migration = CreateMigration();
             migration.Apply(documentStore);
 
             // Assert
@@ -223,6 +227,7 @@
             }
 
             // Act
+            var migration = CreateMigration();
             migration.Apply(documentStore);
 
             // Assert
@@ -272,6 +277,7 @@
             }
 
             // Act
+            var migration = CreateMigration();
             migration.Apply(documentStore);
 
             // Assert
@@ -325,6 +331,7 @@
             }
 
             // Act
+            var migration = CreateMigration();
             migration.Apply(documentStore);
 
             // Assert
@@ -334,6 +341,66 @@
 
                 Assert.AreEqual(1, failedMessages.Length, "There should still be one FailedMessage");
                 Assert.AreEqual(2, failedMessages[0].ProcessingAttempts.Count, "The FailedMessage should have 2 ProcessingAttempts");
+            }
+        }
+
+        [Test]
+        public void NewFailedMessagesAreGrouped()
+        {
+            // Arrange
+            var messageId = Guid.NewGuid().ToString();
+            var subscriber1InputQueue = "Subscriber1@SOME-MACHINE";
+            var subscriber2InputQueue = "Subscriber2@SOME-MACHINE";
+            var replyToAddress = "SomeSendingEndpoint@SOME-MACHINE";
+
+            var uniqueMessageId = OldUniqueMessageId(messageId, replyToAddress: replyToAddress);
+
+            using (var session = documentStore.OpenSession())
+            {
+                var failedMessage = new FailedMessage
+                {
+                    Id = FailedMessage.MakeDocumentId(uniqueMessageId),
+                    UniqueMessageId = uniqueMessageId,
+                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                    {
+                        MakeProcessingAttempt(messageId,
+                            failedQ: subscriber1InputQueue,
+                            replyToAddress: replyToAddress
+                        ),
+                        MakeProcessingAttempt(messageId,
+                            failedQ: subscriber2InputQueue,
+                            replyToAddress: replyToAddress
+                        )
+                    },
+                    Status = FailedMessageStatus.RetryIssued
+                };
+
+                session.Store(failedMessage);
+                session.SaveChanges();
+            }
+
+            var failedMessageEnricher = new FakeFailedMessageEnricher();
+            builder.Register(failedMessageEnricher);
+
+            // Act
+            var migration = CreateMigration();
+            migration.Apply(documentStore);
+
+            // Assert
+            using (var session = documentStore.OpenSession())
+            {
+                var failedMessages = session.Query<FailedMessage>().ToArray();
+
+                var newFailedMessage = failedMessages.SingleOrDefault(x => x.UniqueMessageId != uniqueMessageId);
+                Assert.IsNotNull(newFailedMessage, "There should have been a new failed message");
+
+                Assert.IsNotNull(newFailedMessage.FailureGroups, "Failure Groups should have been set");
+                Assert.IsNotEmpty(newFailedMessage.FailureGroups, "There should be at least one failure group");
+
+                var group = newFailedMessage.FailureGroups.First();
+
+                Assert.IsNotNull(group, "Failure Group should not be null");
+                Assert.AreEqual("GroupId", group.Id);
             }
         }
 
@@ -403,16 +470,16 @@
             return attempt;
         }
 
+        private SplitFailedMessageDocumentsMigration CreateMigration() => new SplitFailedMessageDocumentsMigration(builder);
+
         private IDocumentStore documentStore;
-        private SplitFailedMessageDocumentsMigration migration;
+        private FakeBuilder builder;
 
         [SetUp]
         public void Setup()
         {
             documentStore = InMemoryStoreBuilder.GetInMemoryStore();
-
-            var builder = new FakeBuilder();
-            migration = new SplitFailedMessageDocumentsMigration(builder);
+            builder = new FakeBuilder();
         }
 
         [TearDown]
@@ -423,6 +490,20 @@
 
         public class FakeBuilder : IBuilder
         {
+            private IList<object> registeredItems = new List<object>();
+
+            public void Register<T>(T item) => registeredItems.Add(item);
+
+            public IEnumerable<T> BuildAll<T>()
+            {
+                return registeredItems.OfType<T>();
+            }
+
+            public IEnumerable<object> BuildAll(Type typeToBuild)
+            {
+                return registeredItems.Where(typeToBuild.IsInstanceOfType);
+            }
+
             public void Dispose()
             {
                 throw new NotImplementedException();
@@ -443,16 +524,6 @@
                 throw new NotImplementedException();
             }
 
-            public IEnumerable<T> BuildAll<T>()
-            {
-                return Enumerable.Empty<T>();
-            }
-
-            public IEnumerable<object> BuildAll(Type typeToBuild)
-            {
-                return BuildAll<object>();
-            }
-
             public void Release(object instance)
             {
                 throw new NotImplementedException();
@@ -462,6 +533,19 @@
             {
                 throw new NotImplementedException();
             }
+        }
+
+        public class FakeFailedMessageEnricher : IFailedMessageEnricher
+        {
+            public IEnumerable<FailedMessage.FailureGroup> Enrich(string messageType, FailureDetails failureDetails) => new[]
+            {
+                new FailedMessage.FailureGroup
+                {
+                    Id = "GroupId",
+                    Title = failureDetails.AddressOfFailingEndpoint,
+                    Type = "FakeFailedMessageEnricher"
+                }
+            };
         }
     }
 }
