@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -55,7 +56,15 @@
                             ctx => ctx.Subscriber1Subscribed && ctx.Subscriber2Subscribed,
                             bus => bus.Publish<SampleEvent>()
                         )
-                ).Done(ctx => TryGetMany("/api/errors", out failedMessages) && failedMessages.Count >= 2)
+                ).Done(ctx =>
+                {
+                    if (TryGetMany("/api/errors", out failedMessages) && failedMessages.Sum(x => x.NumberOfProcessingAttempts) >= 2)
+                    {
+                        return true;
+                    }
+                    Thread.Sleep(1000);
+                    return false;
+                })
                 .Run();
 
             var subscriber1FailedMessage = failedMessages.SingleOrDefault(msg => msg.ReceivingEndpoint.Name.Contains("Subscriber1"));
