@@ -1,56 +1,73 @@
 ﻿namespace Particular.ServiceControl.DbMigrations
 {
+    using System;
+    using System.Globalization;
+    using System.IO;
     using System.Linq;
-    using global::ServiceControl;
     using global::ServiceControl.MessageFailures;
-    using global::ServiceControl.Operations;
-    using global::ServiceControl.Recoverability;
-    using NServiceBus.ObjectBuilder;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class SplitFailedMessageDocumentsMigration : IMigration
     {
-        public SplitFailedMessageDocumentsMigration(IBuilder builder)
-        {
-            var failedEnrichers = builder.BuildAll<IFailedMessageEnricher>().ToArray();
+        private readonly LoggingSettings loggingSettings;
 
-            failedMessageFactory = new FailedMessageFactory(failedEnrichers);
+        public SplitFailedMessageDocumentsMigration(LoggingSettings loggingSettings)
+        {
+            this.loggingSettings = loggingSettings;
         }
 
         public string Apply(IDocumentStore store)
         {
-            var currentPage = 0;
-            int retrievedResults;
-
+            string report;
             var stats = new MigrationStats();
+            var now = DateTime.Now;
+            var fileName = Path.Combine(loggingSettings.LogPath, $"Issue842.Report.{now.ToString("yyyy.MM.dd-HH.mm", CultureInfo.InvariantCulture)}.txt");
 
-            do
+            using (var file = File.OpenWrite(fileName))
+            using (var writer = new StreamWriter(file))
             {
-                using (var session = store.OpenSession())
+                var currentPage = 0;
+                int retrievedResults;
+                do
                 {
-
-                    var failedMessages = session.Advanced.LoadStartingWith<FailedMessage>(
-                        FailedMessage.MakeDocumentId(string.Empty),
-                        start: PageSize*currentPage,
-                        pageSize: PageSize);
-
-                    currentPage++;
-
-                    retrievedResults = failedMessages.Length;
-
-                    foreach (var failedMessage in failedMessages)
+                    using (var session = store.OpenSession())
                     {
-                        stats += Check(failedMessage, session);
+
+                        var failedMessages = session.Advanced.LoadStartingWith<FailedMessage>(
+                            FailedMessage.MakeDocumentId(string.Empty),
+                            start: PageSize * currentPage,
+                            pageSize: PageSize);
+
+                        currentPage++;
+
+                        retrievedResults = failedMessages.Length;
+
+                        foreach (var failedMessage in failedMessages)
+                        {
+                            stats += Check(failedMessage, writer);
+                        }
+
+                        session.SaveChanges();
                     }
+                } while (retrievedResults == PageSize);
 
-                    session.SaveChanges();
+
+                if (stats.FoundProblem > 0)
+                {
+                    report = $"Found {stats.FoundProblem} issue(s) in {stats.Checked} Failed Message document(s).";
                 }
-            } while (retrievedResults == PageSize);
+                else
+                {
+                    report = "No problems found";
+                }
 
-            return $"Found {stats.FoundProblem} issue(s) in {stats.Checked} Failed Message document(s). Created {stats.Created} new document(s). Deleted {stats.Deleted} old document(s).";
+                writer.WriteLine($"\n{report}");
+            }
+            return $"{report} - Report written to {fileName}";
         }
 
-        private MigrationStats Check(FailedMessage failedMessage, IDocumentSession session)
+        private MigrationStats Check(FailedMessage failedMessage, TextWriter writer)
         {
             var stats = new MigrationStats
             {
@@ -61,70 +78,26 @@
                 .Select(x => new ProcessingAttemptRecord(x))
                 .ToArray();
 
-            ProcessingAttemptRecord[] collapsedRetries;
+            var retries = processingAttempts.Where(x => x.IsRetry).ToArray();
 
-            var retries = processingAttempts.Where(x => x.RetryId != null).ToArray();
+            var nonRetries = processingAttempts.Except(retries).ToArray();
 
-            if (retries.Any())
+            if (nonRetries.Length <= 1)
             {
-                var firstRetry = retries.First();
-
-                var attemptThatWasRetried = processingAttempts.Reverse()
-                    .SkipWhile(x => x != firstRetry)
-                    .Skip(1) // The first retry
-                    .Take(1); // The attempt before the first retry
-
-                var recordsToKeepWithCurrentDocument = retries.Concat(attemptThatWasRetried);
-
-                collapsedRetries = processingAttempts.Except(recordsToKeepWithCurrentDocument).ToArray();
-            }
-            else if (failedMessage.Status != FailedMessageStatus.Unresolved)
-            {
-                collapsedRetries = processingAttempts.Take(processingAttempts.Length - 1).ToArray();
-            }
-            else
-            {
-                collapsedRetries = processingAttempts;
+                return stats;
             }
 
-            if (collapsedRetries.Any())
+            writer.WriteLine($"{failedMessage.UniqueMessageId} {failedMessage.Status}");
+            stats.FoundProblem = 1;
+
+            foreach (var attempt in processingAttempts)
             {
-                stats.FoundProblem = 1;
+                var retryMarker = attempt.IsRetry ? "R" : "A";
+
+                writer.WriteLine($"\t{retryMarker}: {attempt.MessageId} {attempt.MessageType} {attempt.FailedQ}");
             }
 
-            foreach (var collapsedRetry in collapsedRetries)
-            {
-                collapsedRetry.Attempt.MessageMetadata["SplitFrom"] = failedMessage.UniqueMessageId;
-
-                var newFailedMessage = new FailedMessage
-                {
-                    Id = FailedMessage.MakeDocumentId(collapsedRetry.NewUniqueMessageId),
-                    UniqueMessageId = collapsedRetry.NewUniqueMessageId,
-                    ProcessingAttempts = new[]
-                    {
-                        collapsedRetry.Attempt
-                    }.ToList(),
-                    Status = FailedMessageStatus.Unresolved
-                };
-
-                object messageType;
-                if (collapsedRetry.Attempt.MessageMetadata.TryGetValue("MessageType", out messageType))
-                {
-                    newFailedMessage.FailureGroups = failedMessageFactory.GetGroups((string) messageType, collapsedRetry.Attempt.FailureDetails);
-                }
-
-                stats.Created += 1;
-
-                session.Store(newFailedMessage);
-
-                failedMessage.ProcessingAttempts.Remove(collapsedRetry.Attempt);
-            }
-
-            if (failedMessage.ProcessingAttempts.Count == 0)
-            {
-                session.Delete(failedMessage);
-                stats.Deleted = 1;
-            }
+            writer.WriteLine();
 
             return stats;
         }
@@ -138,37 +111,46 @@
                 string uniqueMessageId;
                 if (attempt.Headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out uniqueMessageId))
                 {
-                    RetryId = uniqueMessageId;
+                    IsRetry = true;
                 }
 
-                NewUniqueMessageId = attempt.Headers.UniqueId();
+                object msgType;
+                if (attempt.MessageMetadata.TryGetValue("MessageType", out msgType))
+                {
+                    MessageType = (string) msgType;
+                }
+
+                string failedQ;
+                if (attempt.Headers.TryGetValue("NServiceBus.FailedQ", out failedQ))
+                {
+                    FailedQ = failedQ;
+                }
+
             }
 
             public FailedMessage.ProcessingAttempt Attempt { get; }
-            public string RetryId { get; }
-            public string NewUniqueMessageId { get;  }
+
+            public bool IsRetry { get; }
+            public string MessageType { get; } = "~";
+            public string FailedQ { get; } = "~";
+            public string MessageId => Attempt.MessageId;
         }
 
         struct MigrationStats
         {
             public int Checked { get; set; }
             public int FoundProblem { get; set; }
-            public int Created { get; set; }
-            public int Deleted { get; set; }
 
             public static MigrationStats operator +(MigrationStats left, MigrationStats right)
                 => new MigrationStats
-                    {
-                        Checked = left.Checked + right.Checked,
-                        Created = left.Created + right.Created,
-                        FoundProblem = left.FoundProblem + right.FoundProblem,
-                        Deleted = left.Deleted + right.Deleted
-                    };
+                {
+                    Checked = left.Checked + right.Checked,
+                    FoundProblem = left.FoundProblem + right.FoundProblem
+                };
         }
 
         public string MigrationId { get; } = "Split Failed Message Documents";
 
         private const int PageSize = 1024;
-        private FailedMessageFactory failedMessageFactory;
     }
 }
