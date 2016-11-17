@@ -268,6 +268,8 @@
     <Compile Include="SessionCopBehavior.cs" />
     <Compile Include="SignalRHttpClient.cs" />
     <Compile Include="SubscriptionBehavior.cs" />
+    <Compile Include="TraceIncomingBehavior.cs" />
+    <Compile Include="TraceOutgoingBehavior.cs" />
     <Compile Include="When_a_message_is_imported_twice.cs" />
     <Compile Include="Audit\When_a_message_has_been_successfully_processed.cs" />
     <Compile Include="AcceptanceTest.cs" />

@@ -557,7 +557,9 @@ namespace ServiceBus.Management.AcceptanceTests
                 typeof(MessageMapperInterceptor),
                 typeof(RegisterWrappers),
                 typeof(SessionCopInBehavior),
-                typeof(SessionCopInBehaviorForMainPipe)
+                typeof(SessionCopInBehaviorForMainPipe),
+                typeof(TraceIncomingBehavior),
+                typeof(TraceOutgoingBehavior)
             }));
             configuration.EnableInstallers();
 
@@ -577,6 +579,8 @@ namespace ServiceBus.Management.AcceptanceTests
 
             configuration.Pipeline.Register<SessionCopInBehavior.Registration>();
             configuration.Pipeline.Register<SessionCopInBehaviorForMainPipe.Registration>();
+            configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
+            configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
 
             CustomConfiguration(configuration);
 
