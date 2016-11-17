@@ -94,6 +94,8 @@
 
             foreach (var collapsedRetry in collapsedRetries)
             {
+                collapsedRetry.Attempt.MessageMetadata["SplitFrom"] = failedMessage.UniqueMessageId;
+
                 var newFailedMessage = new FailedMessage
                 {
                     Id = FailedMessage.MakeDocumentId(collapsedRetry.NewUniqueMessageId),
