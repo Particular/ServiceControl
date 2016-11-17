@@ -277,6 +277,11 @@
                         return false;
                     }
 
+                    if (!ctx.DecoyProcessed)
+                    {
+                        return false;
+                    }
+
                     if (!TryGet($"/api/errors/{ctx.UniqueMessageId}", out failedMessage))
                     {
                         return false;
@@ -394,6 +399,7 @@
                     }
                     else
                     {
+                        Context.DecoyProcessed = true;
                         throw new Exception("Simulated Exception");
                     }
                 }
@@ -407,6 +413,7 @@
             public bool RetrySent { get; set; }
             public int RetryCount { get; set; }
             public string FromAddress { get; set; }
+            public bool DecoyProcessed { get; set; }
             public bool DecoyRetried { get; set; }
         }
 
