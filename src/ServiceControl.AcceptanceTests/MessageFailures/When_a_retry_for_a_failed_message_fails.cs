@@ -100,7 +100,7 @@
 
                 public void Handle(MyMessage message)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress().ToString();
                     Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
                     if (!Context.Succeed) //simulate that the exception will be resolved with the retry

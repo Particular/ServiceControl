@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Config;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NServiceBus.Transports;
@@ -24,7 +25,7 @@
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            CustomConfiguration = config => { config.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(b.Build<IBodyStorage>(), new SendMessagesWrapper(b.Build<ISendMessages>()), b.Build<IDocumentStore>(), b.Build<IBus>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)); };
+            CustomConfiguration = config => { config.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(b.Build<IBodyStorage>(), new SendMessagesWrapper(b.Build<ISendMessages>(), b.Build<MyContext>()), b.Build<IDocumentStore>(), b.Build<IBus>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)); };
 
             Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.Given((bus, ctx) =>
@@ -75,15 +76,17 @@
         private class SendMessagesWrapper : ISendMessages
         {
             private readonly ISendMessages original;
+            private readonly MyContext context;
 
-            public SendMessagesWrapper(ISendMessages original)
+            public SendMessagesWrapper(ISendMessages original, MyContext context)
             {
                 this.original = original;
+                this.context = context;
             }
 
             public void Send(TransportMessage message, SendOptions sendOptions)
             {
-                if (sendOptions.Destination.Queue == "nonexistingqueue")
+                if (sendOptions.Destination.Queue == context.DecommissionedEndpointName)
                 {
                     throw new QueueNotFoundException();
                 }
@@ -96,7 +99,11 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>())
+                    .WithConfig<TransportConfig>(c =>
+                    {
+                        c.MaxRetries = 0;
+                    });
             }
 
             public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
@@ -107,7 +114,7 @@
 
                 public void Handle(MessageThatWillFail message)
                 {
-                    Context.MessageThatWillFailUniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.EndpointName()).ToString();
+                    Context.MessageThatWillFailUniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().ToString()).ToString();
 
                     if (!Context.RetryForMessageThatWillFailAndThenBeResolvedIssued) //simulate that the exception will be resolved with the retry
                     {
@@ -132,13 +139,12 @@
                 public void Start()
                 {
                     var transportMessage = new TransportMessage(context.DecommissionedEndpointMessageId, new Dictionary<string, string>());
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = context.DecommissionedEndpointName;
                     transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty;
-                    transportMessage.Headers["NServiceBus.FailedQ"] = "nonexistingqueue";
+                    transportMessage.Headers["NServiceBus.FailedQ"] = context.DecommissionedEndpointName;
                     transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
 
                     sendMessages.Send(transportMessage, new SendOptions(Address.Parse("error")));

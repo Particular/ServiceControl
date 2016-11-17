@@ -55,7 +55,7 @@
                 [Headers.ReplyToAddress] = new Address("TheEndpoint", String.Empty).ToString()
             };
             var message = new TransportMessage(null, headers);
-            Assert.AreEqual("TheEndpoint",message.ProcessingEndpointName());
+            Assert.AreEqual("TheEndpoint", message.ProcessingEndpointName());
         }
     }
 }

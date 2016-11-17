@@ -128,7 +128,6 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                     var date = new DateTime(2015, 9 + i, 20 + i, 0, 0, 0);
                     var msg = new TransportMessage(i + MessageId, new Dictionary<string, string>
                     {
-                        {Headers.ProcessingEndpoint, "EndpointName"},
                         {"NServiceBus.ExceptionInfo.ExceptionType", "System.Exception"},
                         {"NServiceBus.ExceptionInfo.Message", "An error occurred"},
                         {"NServiceBus.ExceptionInfo.Source", "NServiceBus.Core"},

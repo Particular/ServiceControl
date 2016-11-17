@@ -7,6 +7,7 @@
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Config;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
@@ -92,7 +93,11 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
+                    .WithConfig<TransportConfig>(c =>
+                    {
+                        c.MaxRetries = 0;
+                    });
             }
 
             public class MyMessageHandler :
@@ -107,7 +112,7 @@
 
                 public void Handle(MyMessageA message)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress().ToString();
                     Context.MessageIdA = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
