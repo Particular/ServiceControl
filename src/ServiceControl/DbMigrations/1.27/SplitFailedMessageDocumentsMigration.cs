@@ -57,25 +57,34 @@
                 Checked = 1
             };
 
-            var retryAttempts = failedMessage.ProcessingAttempts
+            var processingAttempts = failedMessage.ProcessingAttempts
                 .Select(x => new ProcessingAttemptRecord(x))
-                .Reverse().ToArray();
+                .ToArray();
 
             ProcessingAttemptRecord[] collapsedRetries;
 
-            //If there is any failed message processing initiated from SC of any in-flight
-            if (retryAttempts.First().RetryId != null || failedMessage.Status == FailedMessageStatus.RetryIssued)
+            var retries = processingAttempts.Where(x => x.RetryId != null).ToArray();
+
+            if (retries.Any())
             {
-                //Keep all SC-initiated failures + initial one
-                //TODO: check if skip one can throw
-                collapsedRetries = retryAttempts
-                    .SkipWhile(ra => ra.RetryId != null)
-                    .Skip(1).ToArray();
+                var firstRetry = retries.First();
+
+                var attemptThatWasRetried = processingAttempts.Reverse()
+                    .SkipWhile(x => x != firstRetry)
+                    .Skip(1) // The first retry
+                    .Take(1); // The attempt before the first retry
+
+                var recordsToKeepWithCurrentDocument = retries.Union(attemptThatWasRetried);
+
+                collapsedRetries = processingAttempts.Except(recordsToKeepWithCurrentDocument).ToArray();
+            }
+            else if (failedMessage.Status == FailedMessageStatus.RetryIssued)
+            {
+                collapsedRetries = processingAttempts.Take(processingAttempts.Length - 1).ToArray();
             }
             else
             {
-                //Split all retry attempts from the original document
-                collapsedRetries = retryAttempts;
+                collapsedRetries = processingAttempts;
             }
 
             if (collapsedRetries.Any())
