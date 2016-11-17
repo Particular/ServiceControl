@@ -74,11 +74,11 @@
                     .Skip(1) // The first retry
                     .Take(1); // The attempt before the first retry
 
-                var recordsToKeepWithCurrentDocument = retries.Union(attemptThatWasRetried);
+                var recordsToKeepWithCurrentDocument = retries.Concat(attemptThatWasRetried);
 
                 collapsedRetries = processingAttempts.Except(recordsToKeepWithCurrentDocument).ToArray();
             }
-            else if (failedMessage.Status == FailedMessageStatus.RetryIssued)
+            else if (failedMessage.Status != FailedMessageStatus.Unresolved)
             {
                 collapsedRetries = processingAttempts.Take(processingAttempts.Length - 1).ToArray();
             }
