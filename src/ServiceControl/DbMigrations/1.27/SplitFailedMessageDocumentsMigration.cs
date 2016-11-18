@@ -33,8 +33,6 @@
 
             using (var session = store.OpenSession())
             {
-                MoveFailedMessagesToTemporaryCollection(session);
-
                 var redirects = MessageRedirectsCollection.GetOrCreate(session);
 
                 int retrievedResults;
@@ -43,13 +41,9 @@
                 do
                 {
                     var failedMessages = session.Advanced.LoadStartingWith<FailedMessage>(
-                        $"{TemporaryCollectionName}/",
-                        start: PageSize*currentPage,
+                        $"FailedMessages/",
+                        start: PageSize*currentPage++,
                         pageSize: PageSize);
-
-                    currentPage++;
-
-                    retrievedResults = failedMessages.Length;
 
                     foreach (var failedMessage in failedMessages)
                     {
@@ -58,9 +52,9 @@
 
                     session.SaveChanges();
 
-                } while (retrievedResults == PageSize);
+                    retrievedResults = failedMessages.Length;
 
-                DeleteFailedMessagesFromTemporaryCollection(session);
+                } while (retrievedResults == PageSize);
             }
 
             return $"Found {stats.FoundProblem} issue(s) in {stats.Checked} Failed Message document(s). Created {stats.Created} new document(s). Deleted {stats.Deleted} old document(s).";
@@ -98,6 +92,21 @@
             WaitForNonStaleIndexes(session);
         }
 
+        static void MoveFailedMessageToOriginalCollection(IDocumentSession session, FailedMessage document)
+        {
+            session.Advanced.DocumentStore.DatabaseCommands.Patch(
+                document.Id,
+                new []
+                {
+                    new PatchRequest
+                    {
+                        Name = "Raven-Entity-Name",
+                        Value = "FailedMessages",
+                        Type = PatchCommandType.Set
+                    }
+                });
+        }
+
         private static void WaitForNonStaleIndexes(IDocumentSession session)
         {
             session.Query<dynamic>(DocumentsByEntityName)
@@ -114,18 +123,9 @@
                 .Select((a, i) => new ProcessingAttemptRecord(a, i, redirects))
                 .ToArray();
 
-            //When FailedMessage has only one attempt we bring it back unchanged
+            //When FailedMessage has only one attempt we do nothing
             if (processingAttempts.Count(pa => pa.IsRetry == false) == 1)
             {
-                session.Store(new FailedMessage
-                {
-                    Id = FailedMessage.MakeDocumentId(originalFailedMessage.UniqueMessageId),
-                    FailureGroups = originalFailedMessage.FailureGroups,
-                    ProcessingAttempts = originalFailedMessage.ProcessingAttempts,
-                    Status = originalFailedMessage.Status,
-                    UniqueMessageId = originalFailedMessage.UniqueMessageId
-                });
-
                 return stats;
             }
 
@@ -165,8 +165,10 @@
                     newFailedMessage.FailureGroups = failedMessageFactory.GetGroups((string)messageType, lastAttempt.FailureDetails);
                 }
 
-                session.Store(newFailedMessages);
+                session.Store(newFailedMessage);
             });
+
+            session.Delete(originalFailedMessage);
 
             //Update stats
             if (newFailedMessages.All(f => f.UniqueMessageId != originalFailedMessage.UniqueMessageId))

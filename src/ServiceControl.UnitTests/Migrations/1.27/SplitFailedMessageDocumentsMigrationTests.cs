@@ -20,8 +20,9 @@
     [TestFixture]
     public class When_splitting_multisubscriber_failure_attempts
     {
+
         [Test]
-        public void Should_combined_attempts_from_the_same_endpoint_v5()
+        public void Should_combine_attempts_from_the_same_endpoint_v5()
         {
             // Arrange
             var scenarioInfo = new ScenarioInfo();
@@ -30,13 +31,18 @@
             {
                 new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber1InputQueue, scenarioInfo.ReplyToAddress),
                 new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber1InputQueue, scenarioInfo.ReplyToAddress),
+                new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber2InputQueue, scenarioInfo.ReplyToAddress),
             };
 
+            //The second attempt is a retry coming from subscriber 1
+            attempts[1].Attempt.Headers["ServiceControl.Retry.UniqueMessageId"] = scenarioInfo.GetOriginalUniqueId();
+
+            FailedMessage originalFailedMessage;
 
             new RavenDocumentsByEntityName().Execute(documentStore);
             using (var session = documentStore.OpenSession())
             {
-                var failedMessage = new FailedMessage
+                originalFailedMessage = new FailedMessage
                 {
                     Id = FailedMessage.MakeDocumentId(scenarioInfo.GetOriginalUniqueId()),
                     UniqueMessageId = scenarioInfo.GetOriginalUniqueId(),
@@ -44,7 +50,7 @@
                     Status = FailedMessageStatus.Unresolved
                 };
 
-                session.Store(failedMessage);
+                session.Store(originalFailedMessage);
                 session.SaveChanges();
             }
 
@@ -57,12 +63,20 @@
             {
                 var failedMessages = session.Query<FailedMessage>().ToArray();
 
-                Assert.AreEqual(1, failedMessages.Length, "There should be 1 failed message");
+                Assert.AreEqual(2, failedMessages.Length, "There should be 2 failed message for subscriber 1 and subscriber 2");
 
-                var failedMessage = failedMessages.Single();
-                Assert.AreEqual(failedMessage.ProcessingAttempts.Count, 2, $"Attempt for {attempts[0].Attempt.FailureDetails.AddressOfFailingEndpoint} is not marked Unresolved");
+                var subscriber1FailedMessage = failedMessages.FirstOrDefault(fm => fm.ProcessingAttempts.Count == 2);
+                var subscriber2FailedMessage = failedMessages.FirstOrDefault(fm => fm.ProcessingAttempts.Count == 1);
 
-                Assert.AreEqual(failedMessage.UniqueMessageId, attempts[0].UniqueMessageId);
+                Assert.IsNotNull(subscriber1FailedMessage);
+                Assert.IsNotNull(subscriber2FailedMessage);
+
+                Assert.AreEqual(
+                    originalFailedMessage.ProcessingAttempts[0].FailureDetails.AddressOfFailingEndpoint,
+                    subscriber1FailedMessage.ProcessingAttempts[0].FailureDetails.AddressOfFailingEndpoint);
+                Assert.AreEqual(
+                    originalFailedMessage.ProcessingAttempts[1].FailureDetails.AddressOfFailingEndpoint,
+                    subscriber1FailedMessage.ProcessingAttempts[1].FailureDetails.AddressOfFailingEndpoint);
             }
         }
 
@@ -76,13 +90,18 @@
             {
                 new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber1InputQueue, scenarioInfo.ReplyToAddress, scenarioInfo.Subscriber1Endpoint),
                 new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber1InputQueue, scenarioInfo.ReplyToAddress, scenarioInfo.Subscriber1Endpoint),
+                new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber2InputQueue, scenarioInfo.ReplyToAddress, scenarioInfo.Subscriber2Endpoint),
             };
 
+            //The second attempt is a retry coming from V6 instance
+            attempts[1].Attempt.Headers["ServiceControl.Retry.UniqueMessageId"] = scenarioInfo.GetOriginalUniqueId();
+
+            FailedMessage originalFailedMessage;
 
             new RavenDocumentsByEntityName().Execute(documentStore);
             using (var session = documentStore.OpenSession())
             {
-                var failedMessage = new FailedMessage
+                originalFailedMessage = new FailedMessage
                 {
                     Id = FailedMessage.MakeDocumentId(scenarioInfo.GetOriginalUniqueId()),
                     UniqueMessageId = scenarioInfo.GetOriginalUniqueId(),
@@ -90,7 +109,7 @@
                     Status = FailedMessageStatus.Unresolved
                 };
 
-                session.Store(failedMessage);
+                session.Store(originalFailedMessage);
                 session.SaveChanges();
             }
 
@@ -103,12 +122,20 @@
             {
                 var failedMessages = session.Query<FailedMessage>().ToArray();
 
-                Assert.AreEqual(1, failedMessages.Length, "There should be 1 failed message");
+                Assert.AreEqual(2, failedMessages.Length, "There should be 2 failed message for subscriber 1 and subscriber 2");
 
-                var failedMessage = failedMessages.Single();
-                Assert.AreEqual(failedMessage.ProcessingAttempts.Count, 2, $"Attempt for {attempts[0].Attempt.FailureDetails.AddressOfFailingEndpoint} is not marked Unresolved");
+                var subscriber1FailedMessage = failedMessages.FirstOrDefault(fm => fm.ProcessingAttempts.Count == 2);
+                var subscriber2FailedMessage = failedMessages.FirstOrDefault(fm => fm.ProcessingAttempts.Count == 1);
 
-                Assert.AreEqual(failedMessage.UniqueMessageId, attempts[0].UniqueMessageId);
+                Assert.IsNotNull(subscriber1FailedMessage);
+                Assert.IsNotNull(subscriber2FailedMessage);
+
+                Assert.AreEqual(
+                    originalFailedMessage.ProcessingAttempts[0].FailureDetails.AddressOfFailingEndpoint,
+                    subscriber1FailedMessage.ProcessingAttempts[0].FailureDetails.AddressOfFailingEndpoint);
+                Assert.AreEqual(
+                    originalFailedMessage.ProcessingAttempts[1].FailureDetails.AddressOfFailingEndpoint,
+                    subscriber1FailedMessage.ProcessingAttempts[1].FailureDetails.AddressOfFailingEndpoint);
             }
         }
 
@@ -120,17 +147,20 @@
 
             var attempts = new List<ProcessingAttemptInfo>
             {
-                new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber1InputQueue, scenarioInfo.ReplyToAddress) ,
+                new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber1InputQueue, scenarioInfo.ReplyToAddress),
                 new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber1InputQueue, scenarioInfo.ReplyToAddress, scenarioInfo.Subscriber1Endpoint),
+                new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber2InputQueue, scenarioInfo.ReplyToAddress, scenarioInfo.Subscriber2Endpoint),
             };
 
             //The second attempt is a retry coming from V6 instance
             attempts[1].Attempt.Headers["ServiceControl.Retry.UniqueMessageId"] = scenarioInfo.GetOriginalUniqueId();
 
+            FailedMessage originalFailedMessage;
+
             new RavenDocumentsByEntityName().Execute(documentStore);
             using (var session = documentStore.OpenSession())
             {
-                var failedMessage = new FailedMessage
+                originalFailedMessage = new FailedMessage
                 {
                     Id = FailedMessage.MakeDocumentId(scenarioInfo.GetOriginalUniqueId()),
                     UniqueMessageId = scenarioInfo.GetOriginalUniqueId(),
@@ -138,7 +168,7 @@
                     Status = FailedMessageStatus.Unresolved
                 };
 
-                session.Store(failedMessage);
+                session.Store(originalFailedMessage);
                 session.SaveChanges();
             }
 
@@ -151,12 +181,20 @@
             {
                 var failedMessages = session.Query<FailedMessage>().ToArray();
 
-                Assert.AreEqual(1, failedMessages.Length, "There should be 1 failed message");
+                Assert.AreEqual(2, failedMessages.Length, "There should be 2 failed message for subscriber 1 and subscriber 2");
 
-                var failedMessage = failedMessages.Single();
-                Assert.AreEqual(failedMessage.ProcessingAttempts.Count, 2, $"Attempt for {attempts[0].Attempt.FailureDetails.AddressOfFailingEndpoint} is not marked Unresolved");
+                var subscriber1FailedMessage = failedMessages.FirstOrDefault(fm => fm.ProcessingAttempts.Count == 2);
+                var subscriber2FailedMessage = failedMessages.FirstOrDefault(fm => fm.ProcessingAttempts.Count == 1);
 
-                Assert.AreEqual(failedMessage.UniqueMessageId, attempts[0].UniqueMessageId);
+                Assert.IsNotNull(subscriber1FailedMessage);
+                Assert.IsNotNull(subscriber2FailedMessage);
+
+                Assert.AreEqual(
+                    originalFailedMessage.ProcessingAttempts[0].FailureDetails.AddressOfFailingEndpoint,
+                    subscriber1FailedMessage.ProcessingAttempts[0].FailureDetails.AddressOfFailingEndpoint);
+                Assert.AreEqual(
+                    originalFailedMessage.ProcessingAttempts[1].FailureDetails.AddressOfFailingEndpoint,
+                    subscriber1FailedMessage.ProcessingAttempts[1].FailureDetails.AddressOfFailingEndpoint);
             }
         }
 
@@ -171,6 +209,9 @@
                 new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber1InputQueue, scenarioInfo.ReplyToAddress, scenarioInfo.Subscriber1Endpoint),
                 new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber2InputQueue, scenarioInfo.ReplyToAddress, scenarioInfo.Subscriber1Endpoint),
             };
+
+            //The second attempt is a retry coming from V6 instance
+            attempts[1].Attempt.Headers["ServiceControl.Retry.UniqueMessageId"] = scenarioInfo.GetOriginalUniqueId();
 
 
             new RavenDocumentsByEntityName().Execute(documentStore);
@@ -282,6 +323,8 @@
                 new ProcessingAttemptInfo(scenarioInfo.MessageId, redirectForSubscriber2, scenarioInfo.ReplyToAddress, scenarioInfo.Subscriber2Endpoint),
             };
 
+            //The third attempt is a redirected retry
+            attempts[2].Attempt.Headers["ServiceControl.Retry.UniqueMessageId"] = scenarioInfo.GetOriginalUniqueId();
 
             new RavenDocumentsByEntityName().Execute(documentStore);
             using (var session = documentStore.OpenSession())
@@ -424,10 +467,10 @@
                 Assert.IsNotNull(firstAttemptFailure, $"Attempt for {attempts[0].Attempt.FailureDetails.AddressOfFailingEndpoint} not found");
                 Assert.AreEqual(firstAttemptFailure.Status, FailedMessageStatus.Unresolved, $"Attempt for {attempts[0].Attempt.FailureDetails.AddressOfFailingEndpoint} is not marked Unresolved");
 
-
+                //HINT: In both cases the status should be Unresolved as we do not know which attempt retry caused the whole document to be marked as resolved
                 var secondAttemptFailure = failedMessages.SingleOrDefault(f => f.UniqueMessageId == attempts[1].UniqueMessageId);
                 Assert.IsNotNull(secondAttemptFailure, $"Attempt for {attempts[1].Attempt.FailureDetails.AddressOfFailingEndpoint} not found");
-                Assert.AreEqual(secondAttemptFailure.Status, FailedMessageStatus.Resolved, $"Attempt for {attempts[1].Attempt.FailureDetails.AddressOfFailingEndpoint} is not marked Resolved");
+                Assert.AreEqual(secondAttemptFailure.Status, FailedMessageStatus.Unresolved, $"Attempt for {attempts[1].Attempt.FailureDetails.AddressOfFailingEndpoint} is not marked Resolved");
             }
         }
 
