@@ -134,6 +134,7 @@
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapperTests.cs" />
     <Compile Include="Infrastructure\SerializationTests.cs" />
     <Compile Include="MessageExtensions.cs" />
+    <Compile Include="Migrations\1.27\SplitFailedMessageDocumentsMigrationTests.cs" />
     <Compile Include="ObjectApprover.cs" />
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
