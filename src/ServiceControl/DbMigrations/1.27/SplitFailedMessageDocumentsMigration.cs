@@ -1,6 +1,5 @@
 ﻿namespace Particular.ServiceControl.DbMigrations
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using global::ServiceControl;
@@ -24,44 +23,27 @@
         }
 
         const string DocumentsByEntityName = "Raven/DocumentsByEntityName";
+        const string TemporaryCollectionName = "FailedMessagesCopy";
 
         public string Apply(IDocumentStore store)
         {
-            var currentPage = 0;
+            store.Conventions.DefaultQueryingConsistency = ConsistencyOptions.AlwaysWaitForNonStaleResultsAsOfLastWrite;
 
             var stats = new MigrationStats();
-            const string tempCollectionName = "FailedMessagesCopy";
-
-            store.Conventions.DefaultQueryingConsistency = ConsistencyOptions.AlwaysWaitForNonStaleResultsAsOfLastWrite;
 
             using (var session = store.OpenSession())
             {
+                MoveFailedMessagesToTemporaryCollection(session);
+
                 var redirects = MessageRedirectsCollection.GetOrCreate(session);
 
-                WaitForNonStaleIndexes(session);
-
-                session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(DocumentsByEntityName, new IndexQuery
-                {
-                    Query = "Tag:FailedMessages"
-                }, new ScriptedPatchRequest
-                {
-                    Script = $@"PutDocument('{tempCollectionName}/' + this.UniqueMessageId, this, {{ ""Raven-Entity-Name"" : ""{tempCollectionName}"", ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}"" }})"
-                });
-
-                WaitForNonStaleIndexes(session);
-
-                session.Advanced.DocumentStore.DatabaseCommands.DeleteByIndex(DocumentsByEntityName, new IndexQuery
-                {
-                    Query = "Tag:FailedMessages"
-                }, true);
-
-                WaitForNonStaleIndexes(session);
-
                 int retrievedResults;
+                int currentPage = 0;
+
                 do
                 {
                     var failedMessages = session.Advanced.LoadStartingWith<FailedMessage>(
-                        $"{tempCollectionName}/",
+                        $"{TemporaryCollectionName}/",
                         start: PageSize*currentPage,
                         pageSize: PageSize);
 
@@ -71,21 +53,49 @@
 
                     foreach (var failedMessage in failedMessages)
                     {
-                        stats += Check(failedMessage, redirects.Redirects, session);
+                        stats += MigrateFromTemporaryCollection(failedMessage, redirects.Redirects, session);
                     }
 
                     session.SaveChanges();
+
                 } while (retrievedResults == PageSize);
 
-                session.Advanced.DocumentStore.DatabaseCommands.DeleteByIndex(DocumentsByEntityName, new IndexQuery
-                {
-                    Query = "Tag:OldFailedMessages"
-                }, true);
-
-                WaitForNonStaleIndexes(session);
+                DeleteFailedMessagesFromTemporaryCollection(session);
             }
 
             return $"Found {stats.FoundProblem} issue(s) in {stats.Checked} Failed Message document(s). Created {stats.Created} new document(s). Deleted {stats.Deleted} old document(s).";
+        }
+
+        static void DeleteFailedMessagesFromTemporaryCollection(IDocumentSession session)
+        {
+            session.Advanced.DocumentStore.DatabaseCommands.DeleteByIndex(DocumentsByEntityName, new IndexQuery
+            {
+                Query = $"Tag:{TemporaryCollectionName}"
+            }, true);
+
+            WaitForNonStaleIndexes(session);
+        }
+
+        static void MoveFailedMessagesToTemporaryCollection(IDocumentSession session)
+        {
+            WaitForNonStaleIndexes(session);
+
+            session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(DocumentsByEntityName, new IndexQuery
+            {
+                Query = "Tag:FailedMessages"
+            }, new ScriptedPatchRequest
+            {
+                Script = $@"PutDocument('{TemporaryCollectionName}/' + this.UniqueMessageId, this, {{ ""Raven-Entity-Name"" : ""{TemporaryCollectionName}"", ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}"" }})"
+            });
+
+            WaitForNonStaleIndexes(session);
+
+            session.Advanced.DocumentStore.DatabaseCommands.DeleteByIndex(DocumentsByEntityName, new IndexQuery
+            {
+                Query = "Tag:FailedMessages"
+            }, true);
+
+            WaitForNonStaleIndexes(session);
         }
 
         private static void WaitForNonStaleIndexes(IDocumentSession session)
@@ -96,73 +106,83 @@
                 .ToList();
         }
 
-        private MigrationStats Check(FailedMessage failedMessage, List<MessageRedirect> redirects, IDocumentSession session)
+        private MigrationStats MigrateFromTemporaryCollection(FailedMessage originalFailedMessage, List<MessageRedirect> redirects, IDocumentSession session)
         {
-            var stats = new MigrationStats
-            {
-                Checked = 1
-            };
+            var stats = new MigrationStats { Checked = 1 };
 
-            var processingAttempts = failedMessage.ProcessingAttempts
+            var processingAttempts = originalFailedMessage.ProcessingAttempts
                 .Select((a, i) => new ProcessingAttemptRecord(a, i, redirects))
                 .ToArray();
 
-            var failedMessages = processingAttempts.GroupBy(p => p.NewUniqueMessageId).Select(g => new FailedMessage
+            //When FailedMessage has only one attempt we bring it back unchanged
+            if (processingAttempts.Count(pa => pa.IsRetry == false) == 1)
             {
-                Id = FailedMessage.MakeDocumentId(g.Key),
-                UniqueMessageId = g.Key,
-                ProcessingAttempts = g.OrderBy(a => a.Index).Select(a => a.Attempt).ToList(),
-            }).ToList();
+                session.Store(new FailedMessage
+                {
+                    Id = FailedMessage.MakeDocumentId(originalFailedMessage.UniqueMessageId),
+                    FailureGroups = originalFailedMessage.FailureGroups,
+                    ProcessingAttempts = originalFailedMessage.ProcessingAttempts,
+                    Status = originalFailedMessage.Status,
+                    UniqueMessageId = originalFailedMessage.UniqueMessageId
+                });
 
-            var hasMoreThan1Origin = failedMessages.Count > 1;
-
-            if (hasMoreThan1Origin)
-            {
-                stats.FoundProblem++;
+                return stats;
             }
 
-            failedMessages.ForEach(f =>
+            stats.FoundProblem++;
+            stats.Deleted++;
+
+            //Split the original FailedMessage into separate documents based on new unique message id
+            var newFailedMessages = processingAttempts
+                .GroupBy(p => p.NewUniqueMessageId)
+                .Select(g => new FailedMessage
+                {
+                    Id = FailedMessage.MakeDocumentId(g.Key),
+                    UniqueMessageId = g.Key,
+                    ProcessingAttempts = g.OrderBy(a => a.Index).Select(a => a.Attempt).ToList(),
+                }).ToList();
+
+
+            newFailedMessages.ForEach(newFailedMessage =>
             {
-                if (!hasMoreThan1Origin || //No split was required
-                    failedMessage.Status == FailedMessageStatus.Unresolved || //We cannot determine status and last known was unresolved, so keep it that way
-                    ((failedMessage.Status == FailedMessageStatus.RetryIssued || failedMessage.Status == FailedMessageStatus.Archived) && HasSameLast(failedMessage, f))) //Status indicates user action on last attempt and this is the split that has that attempt, so preserve user intent
+                //QUESTION: the RetryIssued case is true only if we don't have scenario when we split the documents before while send-out did not finish yet
+                if (HaveTheSameLastAttempt(originalFailedMessage, newFailedMessage) &&
+                    (originalFailedMessage.Status == FailedMessageStatus.Archived || originalFailedMessage.Status == FailedMessageStatus.RetryIssued ))
                 {
-                    f.Status = failedMessage.Status;
+                    newFailedMessage.Status = originalFailedMessage.Status;
+                }
+                else
+                {
+                    newFailedMessage.Status = FailedMessageStatus.Unresolved;
                 }
 
-                f.Status = FailedMessageStatus.Unresolved;
-
-                if (HasSameLast(failedMessage, f))
-                {
-                    f.Status = failedMessage.Status;
-                }
-
-                var lastAttempt = f.ProcessingAttempts.Last();
+                var lastAttempt = newFailedMessage.ProcessingAttempts.Last();
 
                 object messageType;
 
                 if (lastAttempt.MessageMetadata.TryGetValue("MessageType", out messageType))
                 {
-                    f.FailureGroups = failedMessageFactory.GetGroups((string)messageType, lastAttempt.FailureDetails);
+                    newFailedMessage.FailureGroups = failedMessageFactory.GetGroups((string)messageType, lastAttempt.FailureDetails);
                 }
 
-                if (failedMessage.UniqueMessageId != f.UniqueMessageId)
-                {
-                    stats.Created++;
-                }
+                session.Store(newFailedMessages);
             });
 
-            if (failedMessages.All(f => f.UniqueMessageId != failedMessage.UniqueMessageId))
+            //Update stats
+            if (newFailedMessages.All(f => f.UniqueMessageId != originalFailedMessage.UniqueMessageId))
             {
                 stats.Deleted++;
+                stats.Created += newFailedMessages.Count;
             }
-
-            failedMessages.ForEach(session.Store);
+            else
+            {
+                stats.Created += newFailedMessages.Count - 1;
+            }
 
             return stats;
         }
 
-        static bool HasSameLast(FailedMessage original, FailedMessage failure)
+        static bool HaveTheSameLastAttempt(FailedMessage original, FailedMessage failure)
         {
             var originalLast = original.ProcessingAttempts.Last();
             var failureLast = failure.ProcessingAttempts.Last();
@@ -172,10 +192,10 @@
 
         class ProcessingAttemptRecord
         {
-            public ProcessingAttemptRecord(FailedMessage.ProcessingAttempt attempt, int i, IEnumerable<MessageRedirect> redirects)
+            public ProcessingAttemptRecord(FailedMessage.ProcessingAttempt attempt, int index, IEnumerable<MessageRedirect> redirects)
             {
                 Attempt = attempt;
-                Index = i;
+                Index = index;
 
                 var headers = new Dictionary<string, string>(attempt.Headers);
 
@@ -189,11 +209,14 @@
                 }
 
                 NewUniqueMessageId = headers.UniqueId();
+
+                IsRetry = headers.ContainsKey("ServiceControl.Retry.UniqueMessageId");
             }
 
             public FailedMessage.ProcessingAttempt Attempt { get; }
             public string NewUniqueMessageId { get; }
             public int Index { get; }
+            public bool IsRetry { get; }
         }
 
         struct MigrationStats

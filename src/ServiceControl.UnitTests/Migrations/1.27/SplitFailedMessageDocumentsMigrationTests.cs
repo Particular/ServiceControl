@@ -113,17 +113,19 @@
         }
 
         [Test]
-        public void Should_combined_attempts_from_the_same_endpoint_mixed()
+        public void Should_combine_attempts_from_the_same_endpoint_with_v5_and_v6_instance()
         {
             // Arrange
             var scenarioInfo = new ScenarioInfo();
 
             var attempts = new List<ProcessingAttemptInfo>
             {
-                new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber1InputQueue, scenarioInfo.ReplyToAddress),
+                new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber1InputQueue, scenarioInfo.ReplyToAddress) ,
                 new ProcessingAttemptInfo(scenarioInfo.MessageId, scenarioInfo.Subscriber1InputQueue, scenarioInfo.ReplyToAddress, scenarioInfo.Subscriber1Endpoint),
             };
 
+            //The second attempt is a retry coming from V6 instance
+            attempts[1].Attempt.Headers["ServiceControl.Retry.UniqueMessageId"] = scenarioInfo.GetOriginalUniqueId();
 
             new RavenDocumentsByEntityName().Execute(documentStore);
             using (var session = documentStore.OpenSession())
