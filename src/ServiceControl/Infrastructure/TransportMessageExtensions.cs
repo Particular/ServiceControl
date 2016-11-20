@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using Infrastructure;
     using NServiceBus;
+    using NServiceBus.Faults;
 
     public static class HeaderExtensions
     {
@@ -17,7 +18,7 @@
             }
 
             // This message could be a failed message.
-            if (headers.TryGetValue("NServiceBus.FailedQ", out endpoint))
+            if (headers.TryGetValue(FaultsHeaderKeys.FailedQ, out endpoint))
             {
                 return endpoint;
             }
@@ -49,7 +50,7 @@
         public static string MessageId(this IReadOnlyDictionary<string, string> headers)
         {
             string str;
-            if (headers.TryGetValue("NServiceBus.MessageId", out str))
+            if (headers.TryGetValue(Headers.MessageId, out str))
                 return str;
             return default(string);
         }
@@ -58,7 +59,7 @@
         private static Address ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
         {
             string destination;
-            if (headers.TryGetValue("NServiceBus.ReplyToAddress", out destination))
+            if (headers.TryGetValue(Headers.ReplyToAddress, out destination))
                 return Address.Parse(destination);
             return default(Address);
         }
@@ -69,40 +70,7 @@
     {
         public static string ProcessingEndpointName(this TransportMessage message)
         {
-            string endpoint;
-
-            if (message.Headers.TryGetValue(Headers.ProcessingEndpoint, out endpoint))
-            {
-                return endpoint;
-            }
-
-            // This message could be a failed message.
-            if (message.Headers.TryGetValue("NServiceBus.FailedQ", out endpoint))
-            {
-                return endpoint;
-            }
-
-            // In v5, a message that comes through the Audit Queue
-            // has it's ReplyToAddress overwritten to match the processing endpoint
-            var replyToAddress = message.ReplyToAddress;
-            if (replyToAddress != null)
-            {
-                return replyToAddress.Queue;
-            }
-
-            string messageTypes;
-            if (message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes))
-            {
-                throw new Exception($"No processing endpoint could be determined for message ({message.Id}) with EnclosedMessageTypes ({messageTypes})");
-            }
-
-            throw new Exception($"No processing endpoint could be determined for message ({message.Id})");
+            return message.Headers.ProcessingEndpointName();
         }
-
-        public static string UniqueId(this TransportMessage message)
-        {
-            return DeterministicGuid.MakeId(message.Id, message.ProcessingEndpointName()).ToString();
-        }
-
     }
 }
