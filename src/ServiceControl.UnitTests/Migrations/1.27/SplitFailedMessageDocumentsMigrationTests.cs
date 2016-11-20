@@ -308,7 +308,7 @@
 
             foreach (var failedMessage in failedMessages)
             {
-                var attempt = attempts.Single(a => a.ExpectedUniqueMessageId == failedMessage.UniqueMessageId);
+                var attempt = attempts.SingleOrDefault(a => a.ExpectedUniqueMessageId == failedMessage.UniqueMessageId);
 
                 Assert.IsNotNull(attempt, "Could not find attempt for a failed message");
 
@@ -375,7 +375,7 @@
             const string V4RetryUniqueMessageIdHeader = "ServiceControl.RetryId";
             const string V5RetryUniqueMessageIdHeader = "ServiceControl.Retry.UniqueMessageId";
             public FailedMessage.ProcessingAttempt Attempt { get; }
-            public string ExpectedUniqueMessageId { get; set; }
+            public string ExpectedUniqueMessageId { get; }
             public string FailedQ { get; }
             public string EndpoingName { get; }
 
@@ -393,17 +393,16 @@
                     },
                     Headers = new Dictionary<string, string>
                     {
-                        { FaultsHeaderKeys.FailedQ, failedQ }
+                        { FaultsHeaderKeys.FailedQ, failedQ },
+                        { Headers.MessageId, scenario.MessageId },
+                        { Headers.ReplyToAddress, scenario.ReplyToAddress }
                     },
                     MessageMetadata = new Dictionary<string, object>
                     {
                         { "MessageType",  MessageType }
                     }
                 };
-                ExpectedUniqueMessageId = new Dictionary<string, string>
-                {
-                    { FaultsHeaderKeys.FailedQ, failedQ }
-                }.UniqueId();
+                ExpectedUniqueMessageId = Attempt.Headers.UniqueId();
 
                 if (isRetry)
                 {

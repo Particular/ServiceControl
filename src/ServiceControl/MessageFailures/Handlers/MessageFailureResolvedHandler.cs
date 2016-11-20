@@ -20,7 +20,11 @@
 
         public void Handle(MessageFailureResolvedByRetry message)
         {
-            MarkMessageAsResolved(message.FailedMessageId);
+            var alternativeUniqueMessageId = bus.GetMessageHeader(message, "ServiceControl.Retry.UniqueMessageId");
+            if (MarkMessageAsResolved(message.FailedMessageId) == MarkMessageAsResolvedStatus.NotFound && !string.IsNullOrWhiteSpace(alternativeUniqueMessageId))
+            {
+                MarkMessageAsResolved(alternativeUniqueMessageId);
+            }
         }
 
         public void Handle(MarkPendingRetryAsResolved message)
@@ -59,7 +63,7 @@
             }
         }
 
-        private void MarkMessageAsResolved(string failedMessageId)
+        private MarkMessageAsResolvedStatus MarkMessageAsResolved(string failedMessageId)
         {
             using (var session = store.OpenSession())
             {
@@ -69,13 +73,21 @@
 
                 if (failedMessage == null)
                 {
-                    return;
+                    return MarkMessageAsResolvedStatus.NotFound;
                 }
 
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
                 session.SaveChanges();
+
+                return MarkMessageAsResolvedStatus.Updated;
             }
+        }
+
+        private enum MarkMessageAsResolvedStatus
+        {
+            NotFound,
+            Updated
         }
     }
 }

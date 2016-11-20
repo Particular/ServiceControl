@@ -51,12 +51,17 @@
                     return;
                 }
 
-                bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = headers.UniqueId());
-
-                if (isNewRetry)
+                if (isOldRetry)
                 {
-                    bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = newRetryMessageId);
+                    bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = headers.UniqueId());
+                    return;
                 }
+
+                bus.CurrentMessageContext.Headers.Add("ServiceControl.Retry.UniqueMessageId", headers.UniqueId());
+                bus.Publish<MessageFailureResolvedByRetry>(m =>
+                {
+                    m.FailedMessageId = newRetryMessageId;
+                });
             }
         }
 

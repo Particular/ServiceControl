@@ -58,6 +58,8 @@
 
         private MigrationStats MigrateFromTemporaryCollection(FailedMessage originalFailedMessage, IDocumentSession session)
         {
+            var originalStatus = originalFailedMessage.Status;
+
             var stats = new MigrationStats { Checked = 1 };
 
             var processingAttempts = originalFailedMessage.ProcessingAttempts
@@ -65,7 +67,7 @@
                 .ToArray();
 
             //Split the original FailedMessage into separate documents based on new unique message id
-            var newFailedMessages = processingAttempts
+            var failedMessages = processingAttempts
                 .GroupBy(p => p.UniqueMessageId)
                 .Select(g => new FailedMessage
                 {
@@ -76,40 +78,54 @@
                 }).ToList();
 
             //Do nothing if we don't split the document
-            if (newFailedMessages.Count == 1) return stats;
+            if (failedMessages.Count == 1) return stats;
 
             stats.FoundProblem++;
 
-            session.Delete(originalFailedMessage);
-            stats.Deleted++;
-
-            newFailedMessages.ForEach(newFailedMessage =>
+            if (failedMessages.All(f => f.UniqueMessageId != originalFailedMessage.UniqueMessageId))
             {
-                var lastAttempt = newFailedMessage.ProcessingAttempts.Last();
+                session.Delete(originalFailedMessage);
+                stats.Deleted++;
+            }
+            else
+            {
+                var failedMessageCopy = failedMessages.Single(f => f.UniqueMessageId == originalFailedMessage.UniqueMessageId);
+                failedMessages.Remove(failedMessageCopy);
+                failedMessages.Add(originalFailedMessage);
+
+                originalFailedMessage.ProcessingAttempts = failedMessageCopy.ProcessingAttempts;
+                originalFailedMessage.Status = failedMessageCopy.Status;
+            }
+
+            failedMessages.ForEach(failedMessage =>
+            {
+                var lastAttempt = failedMessage.ProcessingAttempts.Last();
 
                 object messageType;
 
                 if (lastAttempt.MessageMetadata.TryGetValue("MessageType", out messageType))
                 {
-                    newFailedMessage.FailureGroups = failedMessageFactory.GetGroups((string)messageType, lastAttempt.FailureDetails);
-                    var splitGroup = CreateSplitFailureGroup(lastAttempt, messageType, originalFailedMessage.Status);
-                    if (splitGroup != null)
+                    if (!failedMessage.FailureGroups.Any())
                     {
-                        newFailedMessage.FailureGroups.Add(splitGroup);
+                        failedMessage.FailureGroups = failedMessageFactory.GetGroups((string)messageType, lastAttempt.FailureDetails);
                     }
+                    failedMessage.FailureGroups.Add(CreateSplitFailureGroup(lastAttempt, messageType, originalStatus));
                 }
 
-                session.Store(newFailedMessage);
+                if (failedMessage.UniqueMessageId == originalFailedMessage.UniqueMessageId) return;
+
+                session.Store(failedMessage);
                 stats.Created++;
             });
 
             return stats;
         }
 
-        public static FailedMessage.FailureGroup CreateSplitFailureGroup(FailedMessage.ProcessingAttempt attempt, object messageType, FailedMessageStatus status)
+        public static FailedMessage.FailureGroup CreateSplitFailureGroup(FailedMessage.ProcessingAttempt attempt, object messageType, FailedMessageStatus orignalStatus)
         {
+
             var endpointName = attempt.Headers.ContainsKey(Headers.OriginatingEndpoint) ? attempt.Headers[Headers.OriginatingEndpoint] : attempt.FailureDetails.AddressOfFailingEndpoint;
-            var classification = $"{endpointName}/{messageType}/{status}";
+            var classification = $"{endpointName}/{messageType}/{orignalStatus}";
             const string classifierName = "Split Failure";
             return new FailedMessage.FailureGroup
             {
