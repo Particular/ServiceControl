@@ -1,12 +1,10 @@
 ﻿namespace Particular.ServiceControl.DbMigrations
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using global::ServiceControl;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.MessageFailures;
-    using global::ServiceControl.MessageRedirects;
     using global::ServiceControl.Operations;
     using global::ServiceControl.Recoverability;
     using NServiceBus;

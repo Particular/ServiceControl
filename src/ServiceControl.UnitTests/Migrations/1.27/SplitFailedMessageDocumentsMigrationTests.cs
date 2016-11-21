@@ -9,11 +9,9 @@
     using NUnit.Framework;
     using Particular.ServiceControl.DbMigrations;
     using Raven.Client;
-    using Raven.Client.Indexes;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
-    using ServiceControl.MessageRedirects;
     using ServiceControl.Recoverability;
     using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
 
