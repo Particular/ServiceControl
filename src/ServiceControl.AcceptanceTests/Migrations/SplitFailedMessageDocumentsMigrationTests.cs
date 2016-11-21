@@ -204,11 +204,11 @@
                 public IBus Bus { get; set; }
                 public Context TestContext { get; set; }
                 public ReadOnlySettings Settings { get; set; }
-                private static int handleCount;
 
                 public void Handle(FailingMessage message)
                 {
-                    Console.WriteLine($"Handling message {Bus.CurrentMessageContext.Id}");
+                    TestContext.ProcessingAttemptCount++;
+                    Console.WriteLine($"Handling message {Bus.CurrentMessageContext.Id} attempt {TestContext.ProcessingAttemptCount}");
 
                     if (Bus.CurrentMessageContext.Headers.ContainsKey(TestContext.HeaderKey))
                     {
@@ -216,14 +216,13 @@
                         TestContext.RetryUniqueMessageId = Bus.CurrentMessageContext.Headers[TestContext.HeaderKey];
                         TestContext.Retried = true;
                     }
-                    else if (handleCount == 1)
+                    else if (TestContext.ProcessingAttemptCount == 1)
                     {
                         TestContext.MessageId = Bus.CurrentMessageContext.Id;
                         TestContext.ReplyToAddress = Bus.CurrentMessageContext.ReplyToAddress.ToString();
 
                         TestContext.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id, Settings.LocalAddress().ToString()).ToString();
                     }
-                    handleCount++;
 
                     if (TestContext.Retried && TestContext.HasSuccessInTheEnd)
                     {
@@ -240,7 +239,9 @@
             public string MessageId { get; set; }
             public string ReplyToAddress { get; set; }
 
-            public string OriginalUniqueMessageId => DeterministicGuid.MakeId(MessageId, Address.Parse(ReplyToAddress).Queue).ToString();
+            public string OriginalUniqueMessageId => string.IsNullOrEmpty(ReplyToAddress)
+                ? ""
+                : DeterministicGuid.MakeId(MessageId, Address.Parse(ReplyToAddress).Queue).ToString();
 
             public string HeaderKey { get; set; }
             public string RetryUniqueMessageId { get; internal set; }
@@ -250,6 +251,8 @@
             public bool HasSuccessInTheEnd { get; set; }
 
             public bool RetrySent { get; set; }
+
+            public int ProcessingAttemptCount { get; set; }
         }
 
         protected class RetryUniqueMessageIdMutator : IMutateIncomingTransportMessages
