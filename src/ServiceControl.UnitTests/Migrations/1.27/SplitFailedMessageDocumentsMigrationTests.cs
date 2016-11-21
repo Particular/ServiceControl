@@ -9,6 +9,7 @@
     using NUnit.Framework;
     using Particular.ServiceControl.DbMigrations;
     using Raven.Client;
+    using Raven.Client.Embedded;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
@@ -115,6 +116,8 @@
             // Act
             var migration = CreateMigration();
             migration.Apply(documentStore);
+
+            documentStore.WaitForIndexing();
 
             // Assert
             using (var session = documentStore.OpenSession())
@@ -312,9 +315,9 @@
 
                 var splitGroup = SplitFailedMessageDocumentsMigration.CreateSplitFailureGroup(failedMessage.ProcessingAttempts.Last(), ProcessingAttemptInfo.MessageType, attempt.OriginalFailedMessageStatus);
 
-                Assert.AreEqual(2, failedMessage.FailureGroups.Count, "A FailedMessage does not have all expected Failure Groups");
+                Assert.AreEqual(1, failedMessage.FailureGroups.Count, "A FailedMessage does not have all expected Failure Groups");
                 Assert.IsTrue(failedMessage.FailureGroups.Exists(g => g.Id == splitGroup.Id), "A FailedMessage does not have the expected Split Failure Group");
-                Assert.IsTrue(failedMessage.FailureGroups.Exists(g => g.Id == "GroupId"), "A FailedMessage does not have the expected Fake Failure Group");
+                Assert.IsFalse(failedMessage.FailureGroups.Exists(g => g.Id == "GroupId"), "A FailedMessage should not have the Fake Failure Group");
             }
         }
 
@@ -423,7 +426,7 @@
 
         private SplitFailedMessageDocumentsMigration CreateMigration() => new SplitFailedMessageDocumentsMigration(builder);
 
-        private IDocumentStore documentStore;
+        private EmbeddableDocumentStore documentStore;
         private FakeBuilder builder;
 
         [SetUp]
