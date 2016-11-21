@@ -97,6 +97,7 @@
         public void Should_handle_larger_than_pagesize_number_of_failedmessages()
         {
             const int multiplier = 2;
+
             using (var session = documentStore.OpenSession())
             {
                 for (var i = 0; i < SplitFailedMessageDocumentsMigration.PageSize*multiplier; i++)
@@ -112,9 +113,10 @@
             }
 
             // Act
+            documentStore.WaitForIndexing();
             var migration = CreateMigration();
-            migration.Apply(documentStore);
-
+            var migrationResult = migration.Apply(documentStore);
+            Console.WriteLine($"Migration Result: {migrationResult}");
             documentStore.WaitForIndexing();
 
             // Assert
@@ -122,11 +124,11 @@
             {
                 RavenQueryStatistics stats;
                 // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
-                session.Query<FailedMessage>().Statistics(out stats).Take(0).ToArray();
+                session.Query<FailedMessage>().Customize(q => q.WaitForNonStaleResultsAsOfNow()).Statistics(out stats).Take(0).ToArray();
 
                 var expectedCount = SplitFailedMessageDocumentsMigration.PageSize*multiplier*multiplier;
 
-                Assert.AreEqual(stats.TotalResults, expectedCount, $"There should be {expectedCount} failed messages after split");
+                Assert.AreEqual(expectedCount, stats.TotalResults, $"There should be {expectedCount} failed messages after split");
             }
         }
 

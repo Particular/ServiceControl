@@ -38,16 +38,23 @@
 
                     retrievedResults = failedMessages.Length;
                 }
-            } while (retrievedResults == PageSize);
+            } while (retrievedResults > 0);
 
             return $"Found {stats.FoundProblem} issue(s) in {stats.Checked} Failed Message document(s). Created {stats.Created} new document(s). Deleted {stats.Deleted} old document(s).";
         }
 
         private MigrationStats MigrateFromTemporaryCollection(FailedMessage originalFailedMessage, IDocumentSession session)
         {
+            var stats = new MigrationStats();
+
+            if (originalFailedMessage.ProcessingAttempts.Any(x => x.MessageMetadata.ContainsKey(SplitFromUniqueMessageIdHeader)))
+            {
+                return stats;
+            }
+
             var originalStatus = originalFailedMessage.Status;
 
-            var stats = new MigrationStats { Checked = 1 };
+            stats.Checked = 1;
 
             var processingAttempts = originalFailedMessage.ProcessingAttempts
                 .Select((a, i) => new ProcessingAttemptRecord(a, i))
