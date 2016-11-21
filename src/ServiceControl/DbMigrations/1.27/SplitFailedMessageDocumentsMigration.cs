@@ -97,6 +97,12 @@
 
                 if (failedMessage.UniqueMessageId == originalFailedMessage.UniqueMessageId) return;
 
+                foreach (var processingAttempt in failedMessage.ProcessingAttempts)
+                {
+                    processingAttempt.MessageMetadata[SplitFromUniqueMessageIdHeader] = originalFailedMessage.UniqueMessageId;
+                    processingAttempt.MessageMetadata[OriginalStatusHeader] = originalStatus;
+                }
+
                 session.Store(failedMessage);
                 stats.Created++;
             });
@@ -167,5 +173,7 @@
         public string MigrationId { get; } = "Split Failed Message Documents";
 
         public const int PageSize = 1024;
+        public const string SplitFromUniqueMessageIdHeader = "CollapsedSubscribers.SplitFromUniqueMessageId";
+        public const string OriginalStatusHeader = "CollapsedSubscribers.OriginalStatus";
     }
 }
