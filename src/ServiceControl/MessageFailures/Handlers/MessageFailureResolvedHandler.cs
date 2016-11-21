@@ -20,10 +20,9 @@
 
         public void Handle(MessageFailureResolvedByRetry message)
         {
-            var alternativeUniqueMessageId = bus.GetMessageHeader(message, "ServiceControl.Retry.UniqueMessageId");
-            if (MarkMessageAsResolved(message.FailedMessageId) == MarkMessageAsResolvedStatus.NotFound && !string.IsNullOrWhiteSpace(alternativeUniqueMessageId))
+            if (MarkMessageAsResolved(message.FailedMessageId) == MarkMessageAsResolvedStatus.NotFound && !string.IsNullOrWhiteSpace(message.AlternativeFailedMessageId))
             {
-                MarkMessageAsResolved(alternativeUniqueMessageId);
+                MarkMessageAsResolved(message.AlternativeFailedMessageId);
             }
         }
 

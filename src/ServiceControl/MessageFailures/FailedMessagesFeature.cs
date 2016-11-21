@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using NServiceBus;
+    using NServiceBus.Faults;
     using NServiceBus.Features;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
@@ -51,17 +53,25 @@
                     return;
                 }
 
-                if (isOldRetry)
-                {
-                    bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = headers.UniqueId());
-                    return;
-                }
+                var altHeaders = AuditHeadersToFailedMessageHeaders(headers);
 
-                bus.CurrentMessageContext.Headers.Add("ServiceControl.Retry.UniqueMessageId", headers.UniqueId());
                 bus.Publish<MessageFailureResolvedByRetry>(m =>
                 {
-                    m.FailedMessageId = newRetryMessageId;
+                    m.FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId;
+                    m.AlternativeFailedMessageId = altHeaders.UniqueId();
                 });
+            }
+            IReadOnlyDictionary<string, string> AuditHeadersToFailedMessageHeaders(IReadOnlyDictionary<string, string> headers)
+            {
+                var altHeaders = headers.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                if (headers.ContainsKey(Headers.ProcessingEndpoint))
+                {
+                    altHeaders.Remove(Headers.ProcessingEndpoint);
+                }
+
+                altHeaders.Add(FaultsHeaderKeys.FailedQ, headers[Headers.ReplyToAddress]);
+
+                return altHeaders;
             }
         }
 
