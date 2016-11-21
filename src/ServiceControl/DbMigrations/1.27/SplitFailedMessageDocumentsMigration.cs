@@ -5,22 +5,12 @@
     using global::ServiceControl;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.MessageFailures;
-    using global::ServiceControl.Operations;
-    using global::ServiceControl.Recoverability;
     using NServiceBus;
-    using NServiceBus.ObjectBuilder;
     using Raven.Client;
     using Raven.Client.Document;
 
     public class SplitFailedMessageDocumentsMigration : IMigration
     {
-        public SplitFailedMessageDocumentsMigration(IBuilder builder)
-        {
-            var failedEnrichers = builder.BuildAll<IFailedMessageEnricher>().ToArray();
-
-            failedMessageFactory = new FailedMessageFactory(failedEnrichers);
-        }
-
         public string Apply(IDocumentStore store)
         {
             store.Conventions.DefaultQueryingConsistency = ConsistencyOptions.AlwaysWaitForNonStaleResultsAsOfLastWrite;
@@ -177,6 +167,5 @@
         public string MigrationId { get; } = "Split Failed Message Documents";
 
         public const int PageSize = 1024;
-        private FailedMessageFactory failedMessageFactory;
     }
 }

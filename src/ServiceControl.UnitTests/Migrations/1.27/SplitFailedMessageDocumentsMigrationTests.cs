@@ -5,7 +5,6 @@
     using System.Linq;
     using NServiceBus;
     using NServiceBus.Faults;
-    using NServiceBus.ObjectBuilder;
     using NUnit.Framework;
     using Particular.ServiceControl.DbMigrations;
     using Raven.Client;
@@ -13,7 +12,6 @@
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
-    using ServiceControl.Recoverability;
     using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
 
     [TestFixture]
@@ -279,6 +277,7 @@
                     var scenarioInfo = new PreSplitScenario(status);
                     scenarioInfo.AddV4ProcessingAttempt(PreSplitScenario.Subscriber1InputQueue);
                     scenarioInfo.AddV4ProcessingAttempt(PreSplitScenario.Subscriber2InputQueue);
+                    scenarioInfo.AddGroup("GroupId", "Fake Group Title", "Fake Group Type");
                     scenarios.Add(scenarioInfo);
 
                     session.Store(scenarioInfo.FailedMessage);
@@ -286,9 +285,6 @@
 
                 session.SaveChanges();
             }
-
-            builder = new FakeBuilder();
-            builder.Register(new FakeFailedMessageEnricher());
 
             var attempts = scenarios.SelectMany(s => s.ProcessingAttempts.Select(pa => new { s.OriginalFailedMessageStatus, pa.ExpectedUniqueMessageId })).ToList();
 
@@ -337,6 +333,8 @@
 
             public List<ProcessingAttemptInfo> ProcessingAttempts { get; } = new List<ProcessingAttemptInfo>();
 
+            public List<FailedMessage.FailureGroup> FailureGroups { get; } = new List<FailedMessage.FailureGroup>();
+
             public string UniqueMessageId { get; }
 
             public PreSplitScenario(FailedMessageStatus originalStatus)
@@ -348,7 +346,8 @@
                     Id = FailedMessage.MakeDocumentId(UniqueMessageId),
                     UniqueMessageId = UniqueMessageId,
                     ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>(),
-                    Status = originalStatus
+                    Status = originalStatus,
+                    FailureGroups = new List<FailedMessage.FailureGroup>()
                 };
             }
 
@@ -367,6 +366,18 @@
                 var attempt = new ProcessingAttemptInfo(this, failedQ, endpointName, isRetry);
                 ProcessingAttempts.Add(attempt);
                 FailedMessage.ProcessingAttempts.Add(attempt.Attempt);
+            }
+
+            public void AddGroup(string id, string title, string type)
+            {
+                var failureGroup = new FailedMessage.FailureGroup
+                {
+                    Id = id,
+                    Title = title,
+                    Type = type
+                };
+                FailureGroups.Add(failureGroup);
+                FailedMessage.FailureGroups.Add(failureGroup);
             }
         }
 
@@ -424,82 +435,20 @@
             }
         }
 
-        private SplitFailedMessageDocumentsMigration CreateMigration() => new SplitFailedMessageDocumentsMigration(builder);
+        private SplitFailedMessageDocumentsMigration CreateMigration() => new SplitFailedMessageDocumentsMigration();
 
         private EmbeddableDocumentStore documentStore;
-        private FakeBuilder builder;
 
         [SetUp]
         public void Setup()
         {
             documentStore = InMemoryStoreBuilder.GetInMemoryStore();
-            builder = new FakeBuilder();
         }
 
         [TearDown]
         public void Teardown()
         {
             documentStore.Dispose();
-        }
-
-        public class FakeBuilder : IBuilder
-        {
-            private IList<object> registeredItems = new List<object>();
-
-            public void Register<T>(T item) => registeredItems.Add(item);
-
-            public IEnumerable<T> BuildAll<T>()
-            {
-                return registeredItems.OfType<T>();
-            }
-
-            public IEnumerable<object> BuildAll(Type typeToBuild)
-            {
-                return registeredItems.Where(typeToBuild.IsInstanceOfType);
-            }
-
-            public void Dispose()
-            {
-                throw new NotImplementedException();
-            }
-
-            public object Build(Type typeToBuild)
-            {
-                throw new NotImplementedException();
-            }
-
-            public IBuilder CreateChildBuilder()
-            {
-                throw new NotImplementedException();
-            }
-
-            public T Build<T>()
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Release(object instance)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void BuildAndDispatch(Type typeToBuild, Action<object> action)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public class FakeFailedMessageEnricher : IFailedMessageEnricher
-        {
-            public IEnumerable<FailedMessage.FailureGroup> Enrich(string messageType, FailureDetails failureDetails) => new[]
-            {
-                new FailedMessage.FailureGroup
-                {
-                    Id = "GroupId",
-                    Title = failureDetails.AddressOfFailingEndpoint,
-                    Type = "FakeFailedMessageEnricher"
-                }
-            };
         }
     }
 }
