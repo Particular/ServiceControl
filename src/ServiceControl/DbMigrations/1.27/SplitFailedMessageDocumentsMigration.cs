@@ -27,16 +27,16 @@
 
             var stats = new MigrationStats();
 
-            using (var session = store.OpenSession())
-            {
-                int retrievedResults;
-                int currentPage = 0;
+            int retrievedResults;
+            var currentPage = 0;
 
-                do
+            do
+            {
+                using (var session = store.OpenSession())
                 {
                     var failedMessages = session.Advanced.LoadStartingWith<FailedMessage>(
                         $"FailedMessages/",
-                        start: PageSize*currentPage++,
+                        start: PageSize * currentPage++,
                         pageSize: PageSize);
 
                     foreach (var failedMessage in failedMessages)
@@ -47,9 +47,8 @@
                     session.SaveChanges();
 
                     retrievedResults = failedMessages.Length;
-
-                } while (retrievedResults == PageSize);
-            }
+                }
+            } while (retrievedResults == PageSize);
 
             return $"Found {stats.FoundProblem} issue(s) in {stats.Checked} Failed Message document(s). Created {stats.Created} new document(s). Deleted {stats.Deleted} old document(s).";
         }
