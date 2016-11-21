@@ -98,16 +98,12 @@
             {
                 var lastAttempt = failedMessage.ProcessingAttempts.Last();
 
-                object messageType;
+                var messageType = GetMessageType(lastAttempt) ?? "Unknown Message Type";
 
-                if (lastAttempt.MessageMetadata.TryGetValue("MessageType", out messageType))
-                {
-                    if (!failedMessage.FailureGroups.Any())
+                failedMessage.FailureGroups = new List<FailedMessage.FailureGroup>
                     {
-                        failedMessage.FailureGroups = failedMessageFactory.GetGroups((string)messageType, lastAttempt.FailureDetails);
-                    }
-                    failedMessage.FailureGroups.Add(CreateSplitFailureGroup(lastAttempt, messageType, originalStatus));
-                }
+                        CreateSplitFailureGroup(lastAttempt, messageType, originalStatus)
+                    };
 
                 if (failedMessage.UniqueMessageId == originalFailedMessage.UniqueMessageId) return;
 
@@ -118,7 +114,17 @@
             return stats;
         }
 
-        public static FailedMessage.FailureGroup CreateSplitFailureGroup(FailedMessage.ProcessingAttempt attempt, object messageType, FailedMessageStatus orignalStatus)
+        private static string GetMessageType(FailedMessage.ProcessingAttempt processingAttempt)
+        {
+            object messageType;
+            if (processingAttempt.MessageMetadata.TryGetValue("MessageType", out messageType))
+            {
+                return messageType as string;
+            }
+            return null;
+        }
+
+        public static FailedMessage.FailureGroup CreateSplitFailureGroup(FailedMessage.ProcessingAttempt attempt, string messageType, FailedMessageStatus orignalStatus)
         {
 
             var endpointName = attempt.Headers.ContainsKey(Headers.OriginatingEndpoint) ? attempt.Headers[Headers.OriginatingEndpoint] : attempt.FailureDetails.AddressOfFailingEndpoint;
