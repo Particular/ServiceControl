@@ -37,7 +37,9 @@
             {
                 typeof(RegisterWrappers),
                 typeof(SessionCopInBehavior),
-                typeof(SessionCopInBehaviorForMainPipe)
+                typeof(SessionCopInBehaviorForMainPipe),
+                typeof(TraceIncomingBehavior),
+                typeof(TraceOutgoingBehavior)
             });
             var builder = new BusConfiguration();
 
@@ -59,6 +61,8 @@
             });
             builder.Pipeline.Register<SessionCopInBehavior.Registration>();
             builder.Pipeline.Register<SessionCopInBehaviorForMainPipe.Registration>();
+            builder.Pipeline.Register<TraceIncomingBehavior.Registration>();
+            builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
 
             var serializer = settings.GetOrNull("Serializer");
 
