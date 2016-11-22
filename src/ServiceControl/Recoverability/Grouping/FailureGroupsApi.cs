@@ -51,7 +51,10 @@ namespace ServiceControl.Recoverability
 
         dynamic GetSupportedClassifiers()
         {
-            var classifiers = Classifiers.Select(c => c.Name).ToArray();
+            var classifiers = Classifiers
+                .Select(c => c.Name)
+                .OrderByDescending(classifier => classifier == "Exception Type and Stack Trace")
+                .ToArray();
 
             return Negotiate.WithModel(classifiers)
                 .WithTotalCount(classifiers.Length);
