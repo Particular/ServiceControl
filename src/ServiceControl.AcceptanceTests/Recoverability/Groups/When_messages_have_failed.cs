@@ -112,7 +112,7 @@
 
                 public void Handle(MyMessageA message)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress().ToString();
+                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress().Queue;
                     Context.MessageIdA = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }

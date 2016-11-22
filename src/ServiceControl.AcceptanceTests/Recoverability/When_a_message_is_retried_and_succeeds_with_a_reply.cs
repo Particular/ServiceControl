@@ -94,7 +94,7 @@
                 public void Handle(OriginalMessage message)
                 {
                     var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
-                    Context.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().ToString()).ToString();
+                    Context.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
 
                     if (!Context.RetryIssued)
                     {

@@ -247,6 +247,7 @@
     <Compile Include="MessageRedirects\When_a_redirect_is_removed.cs" />
     <Compile Include="Contexts\DefaultServerWithAudit.cs" />
     <Compile Include="MessageRedirects\When_no_redirects_have_been_created.cs" />
+    <Compile Include="Migrations\SplitFailedMessageDocumentsMigrationTests.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_retried.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_archived.cs" />
     <Compile Include="Recoverability\Groups\When_a_message_fails_twice_with_different_exceptions.cs" />
@@ -268,6 +269,8 @@
     <Compile Include="SessionCopBehavior.cs" />
     <Compile Include="SignalRHttpClient.cs" />
     <Compile Include="SubscriptionBehavior.cs" />
+    <Compile Include="TraceIncomingBehavior.cs" />
+    <Compile Include="TraceOutgoingBehavior.cs" />
     <Compile Include="When_a_message_is_imported_twice.cs" />
     <Compile Include="Audit\When_a_message_has_been_successfully_processed.cs" />
     <Compile Include="AcceptanceTest.cs" />

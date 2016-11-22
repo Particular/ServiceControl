@@ -81,7 +81,7 @@
                 {
                     var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
-                    TestContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().ToString()).ToString();
+                    TestContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
 
                     if (!TestContext.RetryIssued)
                     {

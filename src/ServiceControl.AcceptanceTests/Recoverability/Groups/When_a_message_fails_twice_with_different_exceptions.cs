@@ -95,7 +95,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                 {
                     var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().ToString()).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
                     Context.UniqueMessageId = uniqueMessageId;
 
                     if (Context.Retrying)
