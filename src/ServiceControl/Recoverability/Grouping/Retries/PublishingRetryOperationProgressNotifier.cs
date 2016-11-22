@@ -22,7 +22,7 @@
             });
         }
 
-        public void Prepare(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
+        public void Prepare(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
         {
             bus.Publish<RetryOperationPreparing>(e =>
             {
@@ -30,10 +30,11 @@
                 e.RetryType = retryType;
                 e.TotalNumberOfMessages = totalNumberOfMessages;
                 e.Progress = progress;
+                e.IsFailed = isFailed;
             });
         }
 
-        public void PrepareBatch(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
+        public void PrepareBatch(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
         {
             bus.Publish<RetryOperationPreparing>(e =>
             {
@@ -41,10 +42,11 @@
                 e.RetryType = retryType;
                 e.TotalNumberOfMessages = totalNumberOfMessages;
                 e.Progress = progress;
+                e.IsFailed = isFailed;
             });
         }
 
-        public void Forwarding(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
+        public void Forwarding(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
         {
             bus.Publish<RetryOperationForwarding>(e =>
             {
@@ -52,11 +54,12 @@
                 e.RetryType = retryType;
                 e.TotalNumberOfMessages = totalNumberOfMessages;
                 e.Progress = progress;
+                e.IsFailed = isFailed;
             });
 
         }
 
-        public void BatchForwarded(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
+        public void BatchForwarded(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
         {
             bus.Publish<RetryMessagesForwarded>(e =>
             {
@@ -64,6 +67,7 @@
                 e.RetryType = retryType;
                 e.TotalNumberOfMessages = totalNumberOfMessages;
                 e.Progress = progress;
+                e.IsFailed = isFailed;
             });
         }
 

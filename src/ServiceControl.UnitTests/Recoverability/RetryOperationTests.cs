@@ -242,7 +242,7 @@
             Progress = progress;
         }
 
-        public void Prepare(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
+        public void Prepare(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
         {
             PrepareNotified = true;
             NumberOfMessagesPrepared = progress.MessagesPrepared;
@@ -250,7 +250,7 @@
             Progress = progress;
         }
 
-        public void PrepareBatch(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
+        public void PrepareBatch(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
         {
             PrepareBatchNotified = true;
             NumberOfMessagesPrepared = progress.MessagesPrepared;
@@ -258,7 +258,7 @@
             Progress = progress;
         }
 
-        public void Forwarding(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
+        public void Forwarding(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
         {
             ForwardingNotified = true;
             NumberOfMessagesForwarded = progress.MessagesForwarded;
@@ -266,7 +266,7 @@
             Progress = progress;
         }
 
-        public void BatchForwarded(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress)
+        public void BatchForwarded(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
         {
             BatchForwardedNotified = true;
             NumberOfMessagesForwarded = progress.MessagesForwarded;
