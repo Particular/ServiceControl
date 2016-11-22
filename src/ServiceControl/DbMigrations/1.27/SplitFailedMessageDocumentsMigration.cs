@@ -5,7 +5,7 @@
     using global::ServiceControl;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.MessageFailures;
-    using NServiceBus;
+    using global::ServiceControl.Recoverability;
     using Raven.Client;
     using Raven.Client.Document;
 
@@ -129,15 +129,14 @@
 
         public static FailedMessage.FailureGroup CreateSplitFailureGroup(FailedMessage.ProcessingAttempt attempt, string messageType, FailedMessageStatus orignalStatus)
         {
+            var classifier = new SplitFailedMessageClassifer();
+            var classification = classifier.ClassifyFailure(messageType, orignalStatus, attempt);
 
-            var endpointName = attempt.Headers.ContainsKey(Headers.OriginatingEndpoint) ? attempt.Headers[Headers.OriginatingEndpoint] : attempt.FailureDetails.AddressOfFailingEndpoint;
-            var classification = $"{endpointName}/{messageType}/{orignalStatus}";
-            const string classifierName = "Split Failure";
             return new FailedMessage.FailureGroup
             {
-                Id = DeterministicGuid.MakeId(classifierName, classification).ToString(),
+                Id = DeterministicGuid.MakeId(classifier.Name, classification).ToString(),
                 Title = classification,
-                Type = classifierName
+                Type = classifier.Name
             };
         }
 

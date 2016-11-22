@@ -389,6 +389,7 @@
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\SplitFailedMessageClassifer.cs" />
     <Compile Include="Recoverability\Grouping\IFailedMessageEnricher.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesByRangeHandler.cs" />
     <Compile Include="MessageFailures\IHaveStatus.cs" />
