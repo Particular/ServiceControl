@@ -2,6 +2,6 @@
 {
     public class MessageFailureResolvedByRetry : MessageFailureResolved
     {
-        public string AlternativeFailedMessageId { get; set; }
+        public string[] AlternativeFailedMessageIds { get; set; }
     }
 }

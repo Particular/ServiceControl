@@ -20,7 +20,7 @@
             // This message could be a failed message.
             if (headers.TryGetValue(FaultsHeaderKeys.FailedQ, out endpoint))
             {
-                return endpoint;
+                return Address.Parse(endpoint).Queue;
             }
 
             // In v5, a message that comes through the Audit Queue

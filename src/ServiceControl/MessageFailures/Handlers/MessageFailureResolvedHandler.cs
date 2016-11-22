@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System;
+    using System.Linq;
     using Contracts.MessageFailures;
     using NServiceBus;
     using Raven.Client;
@@ -20,9 +21,22 @@
 
         public void Handle(MessageFailureResolvedByRetry message)
         {
-            if (MarkMessageAsResolved(message.FailedMessageId) == MarkMessageAsResolvedStatus.NotFound && !string.IsNullOrWhiteSpace(message.AlternativeFailedMessageId))
+            if (MarkMessageAsResolved(message.FailedMessageId))
             {
-                MarkMessageAsResolved(message.AlternativeFailedMessageId);
+                return;
+            }
+
+            if (message.AlternativeFailedMessageIds == null)
+            {
+                return;
+            }
+
+            foreach (var alternative in message.AlternativeFailedMessageIds.Where(x => x != message.FailedMessageId))
+            {
+                if (MarkMessageAsResolved(alternative))
+                {
+                    return;
+                }
             }
         }
 
@@ -62,7 +76,7 @@
             }
         }
 
-        private MarkMessageAsResolvedStatus MarkMessageAsResolved(string failedMessageId)
+        private bool MarkMessageAsResolved(string failedMessageId)
         {
             using (var session = store.OpenSession())
             {
@@ -72,14 +86,14 @@
 
                 if (failedMessage == null)
                 {
-                    return MarkMessageAsResolvedStatus.NotFound;
+                    return false;
                 }
 
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
                 session.SaveChanges();
 
-                return MarkMessageAsResolvedStatus.Updated;
+                return true;
             }
         }
 

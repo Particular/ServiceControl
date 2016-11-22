@@ -221,7 +221,7 @@
                         TestContext.MessageId = Bus.CurrentMessageContext.Id;
                         TestContext.ReplyToAddress = Bus.CurrentMessageContext.ReplyToAddress.ToString();
 
-                        TestContext.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id, Settings.LocalAddress().ToString()).ToString();
+                        TestContext.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id, Settings.LocalAddress().Queue).ToString();
                     }
 
                     if (TestContext.Retried && TestContext.HasSuccessInTheEnd)

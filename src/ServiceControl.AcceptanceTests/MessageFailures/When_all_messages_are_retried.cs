@@ -58,7 +58,7 @@
                         }
 
                         c.RetryAllIssued = true;
-                        
+
                         Post<object>("/api/errors/retry/all");
 
                         return false;
@@ -101,7 +101,7 @@
                 {
                     var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().ToString()).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
 
                     if (message.MessageNumber == 1)
                     {

@@ -213,7 +213,7 @@
 
             public bool RetryIssued { get; set; }
 
-            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, LocalAddress).ToString();
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, Address.Parse(LocalAddress).Queue).ToString();
             public string LocalAddress { get; set; }
         }
     }

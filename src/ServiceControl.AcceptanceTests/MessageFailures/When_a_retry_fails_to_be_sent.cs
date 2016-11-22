@@ -114,7 +114,7 @@
 
                 public void Handle(MessageThatWillFail message)
                 {
-                    Context.MessageThatWillFailUniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().ToString()).ToString();
+                    Context.MessageThatWillFailUniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
 
                     if (!Context.RetryForMessageThatWillFailAndThenBeResolvedIssued) //simulate that the exception will be resolved with the retry
                     {

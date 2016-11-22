@@ -4,10 +4,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using NServiceBus;
-    using NServiceBus.Faults;
     using NServiceBus.Features;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
 
@@ -53,25 +53,33 @@
                     return;
                 }
 
-                var altHeaders = AuditHeadersToFailedMessageHeaders(headers);
-
                 bus.Publish<MessageFailureResolvedByRetry>(m =>
                 {
                     m.FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId;
-                    m.AlternativeFailedMessageId = altHeaders.UniqueId();
+                    m.AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray();
                 });
             }
-            IReadOnlyDictionary<string, string> AuditHeadersToFailedMessageHeaders(IReadOnlyDictionary<string, string> headers)
+
+            private IEnumerable<string> GetAlternativeUniqueMessageId(IReadOnlyDictionary<string, string> headers)
             {
-                var altHeaders = headers.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                if (headers.ContainsKey(Headers.ProcessingEndpoint))
+                var messageId = headers.MessageId();
+                string processingEndpoint;
+                if (headers.TryGetValue(Headers.ProcessingEndpoint, out processingEndpoint))
                 {
-                    altHeaders.Remove(Headers.ProcessingEndpoint);
+                    yield return DeterministicGuid.MakeId(messageId, processingEndpoint).ToString();
                 }
 
-                altHeaders.Add(FaultsHeaderKeys.FailedQ, headers[Headers.ReplyToAddress]);
+                string failedQ;
+                if (headers.TryGetValue("NServiceBus.FailedQ", out failedQ))
+                {
+                    yield return DeterministicGuid.MakeId(messageId, Address.Parse(failedQ).Queue).ToString();
+                }
 
-                return altHeaders;
+                string replyToAddress;
+                if (headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
+                {
+                    yield return DeterministicGuid.MakeId(messageId, Address.Parse(replyToAddress).Queue).ToString();
+                }
             }
         }
 

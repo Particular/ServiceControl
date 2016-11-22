@@ -292,7 +292,7 @@
             public string MessageId { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
-            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, LocalAddress).ToString();
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, Address.Parse(LocalAddress).Queue).ToString();
 
             public Func<HttpMessageHandler> Handler { get; set; }
             public bool SignalrEventReceived { get; set; }

@@ -58,7 +58,7 @@
                         }
 
                         c.RetryIssued = true;
-                        
+
                         Post<object>($"/api/recoverability/groups/{messageToBeRetriedAsPartOfGroupRetry.FailureGroups[0].Id}/errors/retry");
 
                         return false;
@@ -101,7 +101,7 @@
                 {
                     var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().ToString()).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
 
                     if (message.MessageNumber == 1)
                     {
