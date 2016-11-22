@@ -9,6 +9,6 @@
         void PrepareBatch(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress);
         void Forwarding(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress);
         void BatchForwarded(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress);
-        void Completed(string requestId, RetryType retryType, bool failed, Progress progress, DateTime startTime, DateTime completionTime, string originator);
+        void Completed(string requestId, RetryType retryType, bool failed, Progress progress, DateTime startTime, DateTime completionTime, string originator, int numberOfMessagesProcessed);
     }
 }

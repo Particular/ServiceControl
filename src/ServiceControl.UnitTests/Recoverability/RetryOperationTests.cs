@@ -274,7 +274,7 @@
             Progress = progress;
         }
 
-        public void Completed(string requestId, RetryType retryType, bool failed, Progress progress, DateTime startTime, DateTime completionTime, string originator)
+        public void Completed(string requestId, RetryType retryType, bool failed, Progress progress, DateTime startTime, DateTime completionTime, string originator, int numberOfMessagesProcessed)
         {
             CompletedNotified = true;
             Failed = failed;

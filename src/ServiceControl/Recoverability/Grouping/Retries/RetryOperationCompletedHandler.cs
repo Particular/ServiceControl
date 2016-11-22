@@ -13,11 +13,6 @@
 
         public void Handle(RetryOperationCompleted message)
         {
-            if (message.Failed)
-            {
-                return;
-            }
-
             var completedOperation = new CompletedRetryOperation
             {
                 RequestId = message.RequestId,
@@ -25,6 +20,8 @@
                 StartTime = message.StartTime,
                 CompletionTime = message.CompletionTime,
                 Originator = message.Originator,
+                WasFailed = message.Failed,
+                NumberOfMessagesProcessed = message.NumberOfMessagesProcessed
             };
 
             using (var session = Store.OpenSession())
