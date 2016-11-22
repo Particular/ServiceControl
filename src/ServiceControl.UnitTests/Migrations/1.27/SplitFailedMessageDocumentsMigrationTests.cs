@@ -156,7 +156,7 @@
             {
                 var failedMessages = session.Query<FailedMessage>().ToArray();
 
-                Assert.AreEqual(3, failedMessages.Length, "Expected FailedMessage Records is incorrect");
+                Assert.AreEqual(2, failedMessages.Length, "Expected FailedMessage Records is incorrect");
             }
         }
 
