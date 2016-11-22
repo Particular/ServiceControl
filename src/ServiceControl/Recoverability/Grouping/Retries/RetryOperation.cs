@@ -58,14 +58,14 @@
             NumberOfMessagesForwarded = 0;
             NumberOfMessagesPrepared = 0;
 
-            Notifier?.Prepare(requestId, retryType, TotalNumberOfMessages, GetProgress());
+            Notifier?.Prepare(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed);
         }
 
         public void PrepareBatch(int numberOfMessagesPrepared)
         {
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
 
-            Notifier?.PrepareBatch(requestId, retryType, TotalNumberOfMessages, GetProgress());
+            Notifier?.PrepareBatch(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed);
         }
 
         public void PrepareAdoptedBatch(int numberOfMessagesPrepared, string originator, DateTime startTime)
@@ -80,14 +80,14 @@
         {
             RetryState = RetryState.Forwarding;
 
-            Notifier?.Forwarding(requestId, retryType, TotalNumberOfMessages, GetProgress());
+            Notifier?.Forwarding(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed);
         }
 
         public void BatchForwarded(int numberOfMessagesForwarded)
         {
             NumberOfMessagesForwarded += numberOfMessagesForwarded;
 
-            Notifier?.BatchForwarded(requestId, retryType, TotalNumberOfMessages, GetProgress());
+            Notifier?.BatchForwarded(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed);
 
             CheckForCompletion();
         }
@@ -105,7 +105,7 @@
                 RetryState = RetryState.Completed;
                 CompletionTime = DateTime.Now;
 
-                Notifier?.Completed(requestId, retryType, Failed, GetProgress(), Started, CompletionTime.Value, Originator);
+                Notifier?.Completed(requestId, retryType, Failed, GetProgress(), Started, CompletionTime.Value, Originator, TotalNumberOfMessages);
                 Log.Info($"Retry operation {requestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");
             }
         }

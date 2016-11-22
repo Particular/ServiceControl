@@ -33,7 +33,7 @@ namespace ServiceControl.Recoverability
                     HasStagingBatches = g.Any(x => x.HasStagingBatches),
                     HasForwardingBatches = g.Any(x => x.HasForwardingBatches),
                     InitialBatchSize = g.Sum(x => x.InitialBatchSize),
-                    StartTime = g.First().StartTime
+                    g.First().StartTime
                 };
             
             DisableInMemoryIndexing = true;

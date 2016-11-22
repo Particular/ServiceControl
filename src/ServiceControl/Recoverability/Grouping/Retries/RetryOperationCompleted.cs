@@ -12,5 +12,6 @@
         public Progress Progress { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime CompletionTime { get; set; }
+        public int NumberOfMessagesProcessed { get; set; }
     }
 }
