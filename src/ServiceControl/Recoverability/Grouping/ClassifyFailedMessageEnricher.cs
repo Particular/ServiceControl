@@ -12,7 +12,7 @@ namespace ServiceControl.Recoverability
 
         public ClassifyFailedMessageEnricher(IEnumerable<IFailureClassifier> classifiers)
         {
-            this.classifiers = classifiers.Where(c => c.ApplyToNewFailures).ToArray();
+            this.classifiers = classifiers.ToArray();
         }
 
         public IEnumerable<FailedMessage.FailureGroup> Enrich(string messageType, FailureDetails failureDetails)

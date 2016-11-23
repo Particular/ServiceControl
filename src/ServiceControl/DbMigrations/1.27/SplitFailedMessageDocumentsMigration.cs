@@ -11,6 +11,13 @@
 
     public class SplitFailedMessageDocumentsMigration : IMigration
     {
+        private readonly IFailureClassifier[] classifiers;
+
+        public SplitFailedMessageDocumentsMigration(IFailureClassifier[] classifiers)
+        {
+            this.classifiers = classifiers;
+        }
+
         public string Apply(IDocumentStore store)
         {
             store.Conventions.DefaultQueryingConsistency = ConsistencyOptions.AlwaysWaitForNonStaleResultsAsOfLastWrite;
@@ -97,10 +104,7 @@
 
                 var messageType = GetMessageType(lastAttempt) ?? "Unknown Message Type";
 
-                failedMessage.FailureGroups = new List<FailedMessage.FailureGroup>
-                    {
-                        CreateSplitFailureGroup(lastAttempt, messageType, originalStatus)
-                    };
+                failedMessage.FailureGroups = CreateFailureGroups(messageType, lastAttempt).ToList();
 
                 if (failedMessage.UniqueMessageId == originalFailedMessage.UniqueMessageId) return;
 
@@ -117,6 +121,30 @@
             return stats;
         }
 
+        private IEnumerable<FailedMessage.FailureGroup> CreateFailureGroups(string messageType, FailedMessage.ProcessingAttempt attempt)
+        {
+            var failureDetails = new ClassifiableMessageDetails(messageType, attempt.FailureDetails);
+
+            foreach (var classifier in classifiers)
+            {
+                var failureGroupTitle = classifier.ClassifyFailure(failureDetails);
+                if (failureGroupTitle == null)
+                {
+                    continue;
+                }
+
+                var prefix = string.Format(GroupPrefixFormat, attempt.Headers.ProcessingEndpointName());
+
+                var fullTitle = $"{prefix}{failureGroupTitle}";
+                yield return new FailedMessage.FailureGroup
+                {
+                    Id = DeterministicGuid.MakeId(classifier.Name, fullTitle).ToString(),
+                    Title = fullTitle,
+                    Type = classifier.Name
+                };
+            }
+        }
+
         private static string GetMessageType(FailedMessage.ProcessingAttempt processingAttempt)
         {
             object messageType;
@@ -125,19 +153,6 @@
                 return messageType as string;
             }
             return null;
-        }
-
-        public static FailedMessage.FailureGroup CreateSplitFailureGroup(FailedMessage.ProcessingAttempt attempt, string messageType, FailedMessageStatus orignalStatus)
-        {
-            var classifier = new SplitFailedMessageClassifer();
-            var classification = classifier.ClassifyFailure(messageType, orignalStatus, attempt);
-
-            return new FailedMessage.FailureGroup
-            {
-                Id = DeterministicGuid.MakeId(classifier.Name, classification).ToString(),
-                Title = classification,
-                Type = classifier.Name
-            };
         }
 
         class ProcessingAttemptRecord
@@ -181,5 +196,6 @@
         public const int PageSize = 1024;
         public const string SplitFromUniqueMessageIdHeader = "CollapsedSubscribers.SplitFromUniqueMessageId";
         public const string OriginalStatusHeader = "CollapsedSubscribers.OriginalStatus";
+        public const string GroupPrefixFormat = "Issue 842 - {0} - ";
     }
 }

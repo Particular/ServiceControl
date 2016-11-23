@@ -12,6 +12,7 @@
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Recoverability;
     using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
 
     [TestFixture]
@@ -287,8 +288,10 @@
 
                 session.SaveChanges();
             }
+            AddClassifier(new ExceptionTypeAndStackTraceFailureClassifier());
+            AddClassifier(new MessageTypeFailureClassifier());
 
-            var attempts = scenarios.SelectMany(s => s.ProcessingAttempts.Select(pa => new { s.OriginalFailedMessageStatus, pa.ExpectedUniqueMessageId })).ToList();
+            var attempts = scenarios.SelectMany(s => s.ProcessingAttempts.Select(pa => new { s.OriginalFailedMessageStatus, pa.ExpectedUniqueMessageId, EndpointName = pa.Attempt.Headers.ProcessingEndpointName() })).ToList();
 
             // Act
             var migration = CreateMigration();
@@ -311,11 +314,13 @@
 
                 Assert.IsNotNull(attempt, "Could not find attempt for a failed message");
 
-                var splitGroup = SplitFailedMessageDocumentsMigration.CreateSplitFailureGroup(failedMessage.ProcessingAttempts.Last(), ProcessingAttemptInfo.MessageType, attempt.OriginalFailedMessageStatus);
+                Assert.AreEqual(2, failedMessage.FailureGroups.Count, "A FailedMessage does not have all expected Failure Groups");
 
-                Assert.AreEqual(1, failedMessage.FailureGroups.Count, "A FailedMessage does not have all expected Failure Groups");
-                Assert.IsTrue(failedMessage.FailureGroups.Exists(g => g.Id == splitGroup.Id), "A FailedMessage does not have the expected Split Failure Group");
-                Assert.IsFalse(failedMessage.FailureGroups.Exists(g => g.Id == "GroupId"), "A FailedMessage should not have the Fake Failure Group");
+                var expectedPrefix = string.Format(SplitFailedMessageDocumentsMigration.GroupPrefixFormat, attempt.EndpointName);
+
+                var nonMatchingGroups = failedMessage.FailureGroups.Where(x => x.Title.StartsWith(expectedPrefix) == false).ToArray();
+
+                Assert.IsFalse(nonMatchingGroups.Any(), $"All groups should start with the prefix: {expectedPrefix}");
             }
         }
 
@@ -403,7 +408,13 @@
                     ReplyToAddress = scenario.ReplyToAddress,
                     FailureDetails = new FailureDetails
                     {
-                        AddressOfFailingEndpoint = failedQ
+                        AddressOfFailingEndpoint = failedQ,
+                        Exception = new ExceptionDetails
+                        {
+                            ExceptionType = "SomeExceptionType",
+                            Message = "An Exception Message",
+                            Source = "TestScenario"
+                        }
                     },
                     Headers = new Dictionary<string, string>
                     {
@@ -437,13 +448,20 @@
             }
         }
 
-        private SplitFailedMessageDocumentsMigration CreateMigration() => new SplitFailedMessageDocumentsMigration();
+        private SplitFailedMessageDocumentsMigration CreateMigration() => new SplitFailedMessageDocumentsMigration(failureClassifiers.ToArray());
 
         private EmbeddableDocumentStore documentStore;
+        private IList<IFailureClassifier> failureClassifiers;
+
+        void AddClassifier(IFailureClassifier classifier)
+        {
+            failureClassifiers.Add(classifier);
+        }
 
         [SetUp]
         public void Setup()
         {
+            failureClassifiers = new List<IFailureClassifier>();
             documentStore = InMemoryStoreBuilder.GetInMemoryStore();
         }
 
