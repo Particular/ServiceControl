@@ -4,5 +4,6 @@ namespace ServiceControl.Recoverability
     {
         string Name { get; }
         string ClassifyFailure(ClassifiableMessageDetails failureDetails);
+        bool ApplyToNewFailures { get; }
     }
 }

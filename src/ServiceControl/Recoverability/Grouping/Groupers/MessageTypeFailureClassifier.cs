@@ -9,5 +9,7 @@ namespace ServiceControl.Recoverability
         {
             return failureDetails.MessageType;
         }
+
+        public bool ApplyToNewFailures => true;
     }
 }
