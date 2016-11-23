@@ -1,19 +1,25 @@
 namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
+    using System.Linq;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
     class ClassifyFailedMessageEnricher : IFailedMessageEnricher
     {
-        public IEnumerable<IFailureClassifier> Classifiers { get; set; }
+        private IFailureClassifier[] classifiers;
+
+        public ClassifyFailedMessageEnricher(IEnumerable<IFailureClassifier> classifiers)
+        {
+            this.classifiers = classifiers.Where(c => c.ApplyToNewFailures).ToArray();
+        }
 
         public IEnumerable<FailedMessage.FailureGroup> Enrich(string messageType, FailureDetails failureDetails)
         {
             var details = new ClassifiableMessageDetails(messageType, failureDetails);
 
-            foreach (var classifier in Classifiers)
+            foreach (var classifier in classifiers)
             {
                 var classification = classifier.ClassifyFailure(details);
 
