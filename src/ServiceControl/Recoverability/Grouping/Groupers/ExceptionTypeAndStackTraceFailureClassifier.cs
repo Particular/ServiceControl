@@ -25,8 +25,6 @@ namespace ServiceControl.Recoverability
             return GetNonStandardClassification(exception.ExceptionType);
         }
 
-        public bool ApplyToNewFailures => true;
-
         static string GetNonStandardClassification(string exceptionType)
         {
             return exceptionType + ": 0";

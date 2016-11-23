@@ -17,7 +17,6 @@
             context.Container.ConfigureComponent<ExceptionTypeAndStackTraceFailureClassifier>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<MessageTypeFailureClassifier>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<ClassifyFailedMessageEnricher>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<SplitFailedMessageClassifer>(DependencyLifecycle.SingleInstance);
         }
 
         class ReclassifyErrorsAtStartup : FeatureStartupTask
