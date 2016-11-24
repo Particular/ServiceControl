@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Recoverability
 {
+    using System;
     using NServiceBus;
 
     public class RetryOperationForwarding : IEvent
@@ -9,5 +10,6 @@
         public int TotalNumberOfMessages { get; set; }
         public Progress Progress { get; set; }
         public bool IsFailed { get; set; }
+        public DateTime StartTime { get; set; }
     }
 }

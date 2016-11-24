@@ -43,7 +43,7 @@
             Originator = originator;
             Started = started;
 
-            Notifier?.Wait(requestId, retryType, GetProgress());
+            Notifier?.Wait(requestId, retryType, GetProgress(), Started);
         }
 
         public void Fail()
@@ -58,14 +58,14 @@
             NumberOfMessagesForwarded = 0;
             NumberOfMessagesPrepared = 0;
 
-            Notifier?.Prepare(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed);
+            Notifier?.Prepare(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed, Started);
         }
 
         public void PrepareBatch(int numberOfMessagesPrepared)
         {
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
 
-            Notifier?.PrepareBatch(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed);
+            Notifier?.PrepareBatch(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed, Started);
         }
 
         public void PrepareAdoptedBatch(int numberOfMessagesPrepared, string originator, DateTime startTime)
@@ -80,14 +80,14 @@
         {
             RetryState = RetryState.Forwarding;
 
-            Notifier?.Forwarding(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed);
+            Notifier?.Forwarding(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed, Started);
         }
 
         public void BatchForwarded(int numberOfMessagesForwarded)
         {
             NumberOfMessagesForwarded += numberOfMessagesForwarded;
 
-            Notifier?.BatchForwarded(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed);
+            Notifier?.BatchForwarded(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed, Started);
 
             CheckForCompletion();
         }

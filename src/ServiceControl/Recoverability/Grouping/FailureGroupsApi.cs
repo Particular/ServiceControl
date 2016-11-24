@@ -103,12 +103,12 @@ namespace ServiceControl.Recoverability
                             Count = failureGroup.Count,
                             First = failureGroup.First,
                             Last = failureGroup.Last,
-                            StartTime = lastCompleted?.StartTime,
-                            CompletionTime = lastCompleted?.CompletionTime,
                             RetryStatus = summary?.RetryState.ToString() ?? "None",
                             RetryFailed = summary?.Failed,
                             RetryProgress = summary?.GetProgress().Percentage ?? 0.0,
-                            RetryRemainingCount = summary?.GetProgress().MessagesRemaining
+                            RetryRemainingCount = summary?.GetProgress().MessagesRemaining,
+                            RetryStartTime = summary?.Started,
+                            LastRetryCompletionTime = lastCompleted?.CompletionTime,
                         };
                     });
 

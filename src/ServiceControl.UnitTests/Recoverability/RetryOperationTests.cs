@@ -236,13 +236,13 @@
         public bool Failed{ get; private set; }
         public string Originator { get; private set; }
 
-        public void Wait(string requestId, RetryType retryType, Progress progress)
+        public void Wait(string requestId, RetryType retryType, Progress progress, DateTime startTime)
         {
             WaitNotified = true;
             Progress = progress;
         }
 
-        public void Prepare(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
+        public void Prepare(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed, DateTime startTime)
         {
             PrepareNotified = true;
             NumberOfMessagesPrepared = progress.MessagesPrepared;
@@ -250,7 +250,7 @@
             Progress = progress;
         }
 
-        public void PrepareBatch(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
+        public void PrepareBatch(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed, DateTime startTime)
         {
             PrepareBatchNotified = true;
             NumberOfMessagesPrepared = progress.MessagesPrepared;
@@ -258,7 +258,7 @@
             Progress = progress;
         }
 
-        public void Forwarding(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
+        public void Forwarding(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed, DateTime startTime)
         {
             ForwardingNotified = true;
             NumberOfMessagesForwarded = progress.MessagesForwarded;
@@ -266,7 +266,7 @@
             Progress = progress;
         }
 
-        public void BatchForwarded(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed)
+        public void BatchForwarded(string requestId, RetryType retryType, int totalNumberOfMessages, Progress progress, bool isFailed, DateTime startTime)
         {
             BatchForwardedNotified = true;
             NumberOfMessagesForwarded = progress.MessagesForwarded;
