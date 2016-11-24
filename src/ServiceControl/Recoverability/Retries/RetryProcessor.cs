@@ -11,7 +11,6 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageRedirects;
-    using ServiceControl.Operations.BodyStorage;
 
     class RetryProcessor
     {
@@ -28,9 +27,8 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(IBodyStorage bodyStorage, ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender)
+        public RetryProcessor(ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender, RetryOperationManager retryOperationManager)
         {
-			this.bodyStorage = bodyStorage;
             this.sender = sender;
             this.bus = bus;
             this.returnToSender = returnToSender;

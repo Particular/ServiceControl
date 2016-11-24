@@ -16,6 +16,8 @@ using NServiceBus.ObjectBuilder.Common;
 
 namespace ServiceControl.UnitTests.Recoverability
 {
+    using ServiceControl.Operations.BodyStorage;
+
     [TestFixture]
     public class Retry_State_Tests
     {
@@ -74,21 +76,21 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 new RetryBatches_ByStatus_ReduceInitialBatchSize().Execute(documentStore);
 
+                var testBus = new TestBus();
+
+                var sender = new TestSender();
+
                 var bodyStorage = new RavenAttachmentsBodyStorage
                 {
                     DocumentStore = documentStore
                 };
-
-                var testBus = new TestBus();
-
-                var sender = new TestSender();
 
                 var settingsHolder = new NServiceBus.Settings.SettingsHolder();
                 settingsHolder.Set("EndpointName", "TestEndpoint");
 
                 var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
 
-                var processor = new RetryProcessor(bodyStorage, sender, testBus, new TestReturnToSenderDequeuer(sender, documentStore, testBus, configure), retryManager);
+                var processor = new RetryProcessor(sender, testBus, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, testBus, configure), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -108,7 +110,7 @@ namespace ServiceControl.UnitTests.Recoverability
                     };
                     documentManager.RebuildRetryOperationState(session);
 
-                    processor = new RetryProcessor(bodyStorage, sender, testBus, new TestReturnToSenderDequeuer(sender, documentStore, testBus, configure), retryManager);
+                    processor = new RetryProcessor(sender, testBus, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, testBus, configure), retryManager);
 
                     processor.ProcessBatches(session);
                     session.SaveChanges();
@@ -128,22 +130,22 @@ namespace ServiceControl.UnitTests.Recoverability
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1);
+                
+                var testBus = new TestBus();
+
+                var sender = new TestSender();
 
                 var bodyStorage = new RavenAttachmentsBodyStorage
                 {
                     DocumentStore = documentStore
                 };
 
-                var testBus = new TestBus();
-
-                var sender = new TestSender();
-
                 var settingsHolder = new NServiceBus.Settings.SettingsHolder();
                 settingsHolder.Set("EndpointName", "TestEndpoint");
 
                 var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
-                var returnToSender = new TestReturnToSenderDequeuer(sender, documentStore, testBus, configure);
-                var processor = new RetryProcessor(bodyStorage, sender, testBus, returnToSender, retryManager);
+                var returnToSender = new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, testBus, configure);
+                var processor = new RetryProcessor(sender, testBus, returnToSender, retryManager);
 
                 using (var session = documentStore.OpenSession())
                 {
@@ -183,7 +185,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
 
-                var processor = new RetryProcessor(bodyStorage, sender, testBus, new TestReturnToSenderDequeuer(sender, documentStore, testBus, configure), retryManager);
+                var processor = new RetryProcessor(sender, testBus, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, testBus, configure), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -285,8 +287,8 @@ namespace ServiceControl.UnitTests.Recoverability
 
     public class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
     {
-        public TestReturnToSenderDequeuer(ISendMessages sender, IDocumentStore store, IBus bus, Configure configure)
-            : base(sender, store, bus, configure)
+        public TestReturnToSenderDequeuer(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IBus bus, Configure configure)
+            : base(bodyStorage, sender, store, bus, configure)
         {
         }
 

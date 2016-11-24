@@ -16,8 +16,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup);
-			FailureGroupView group;
+            FailureGroupView group;
 
             using (var session = Store.OpenSession())
             {
@@ -33,7 +32,6 @@ namespace ServiceControl.Recoverability
 
             var started = message.Started ?? DateTime.UtcNow;
             RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator);
-
             Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator);
         }
 

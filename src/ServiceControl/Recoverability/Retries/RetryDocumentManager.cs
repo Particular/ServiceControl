@@ -125,7 +125,6 @@ namespace ServiceControl.Recoverability
 				.Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
                 .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
                 .Statistics(out stats)
-                .Select(b => b.Id)
                 .ToArray();
 
             log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatches.Length);
