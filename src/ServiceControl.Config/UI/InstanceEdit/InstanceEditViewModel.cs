@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using Commands;
+    using ServiceControl.Config.Framework.Modules;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
@@ -12,7 +13,7 @@
     [InjectValidation]
     public class InstanceEditViewModel : SharedInstanceEditorViewModel
     {
-        public InstanceEditViewModel(ServiceControlInstance instance)
+        public InstanceEditViewModel(ServiceControlInstance instance, Installer installer) : base (installer)
         {
             DisplayName = "Edit Instance";
             SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
@@ -53,7 +54,7 @@
             ErrorForwardingVisible = instance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom;
 
             //Both Audit and Error Retention Property was introduced in same version
-            RetentionPeriodsVisible = instance.Version >= SettingsList.ErrorRetentionPeriod.SupportedFrom; 
+            RetentionPeriodsVisible = instance.Version >= SettingsList.ErrorRetentionPeriod.SupportedFrom;
         }
 
         public bool ErrorForwardingVisible { get; set; }

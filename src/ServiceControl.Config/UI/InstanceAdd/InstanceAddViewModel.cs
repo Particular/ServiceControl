@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Windows.Input;
     using ServiceControl.Config.Commands;
+    using ServiceControl.Config.Framework.Modules;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
@@ -13,7 +14,7 @@
     [InjectValidation]
     public class InstanceAddViewModel : SharedInstanceEditorViewModel
     {
-        public InstanceAddViewModel()
+        public InstanceAddViewModel(Installer installer) : base (installer)
         {
             DisplayName = "Add new instance";
 
@@ -50,6 +51,7 @@
             ErrorForwardingQueueName = "error.log";
             ErrorForwarding = ErrorForwardingOptions.First(p => !p.Value); //Default to Off.
             UseSystemAccount = true;
+            Version = installer.ZipInfo.Version;
         }
 
         public string DestinationPath { get; set; }

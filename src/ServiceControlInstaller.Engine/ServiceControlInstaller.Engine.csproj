@@ -97,6 +97,7 @@
     <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UserSidChecker.cs" />
+    <Compile Include="Configuration\Compatibility.cs" />
     <Compile Include="Configuration\RegistryReader.cs" />
     <Compile Include="Configuration\SettingConstants.cs" />
     <Compile Include="Configuration\SettingList.cs" />

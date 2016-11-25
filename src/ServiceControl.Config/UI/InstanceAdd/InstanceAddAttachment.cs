@@ -67,11 +67,11 @@
                 HostName = viewModel.HostName,
                 Port = Convert.ToInt32(viewModel.PortNumber),
                 VirtualDirectory = null, // TODO
-                AuditLogQueue = viewModel.AuditForwardingQueueName,
+                AuditLogQueue = viewModel.AuditForwarding.Value ? viewModel.AuditForwardingQueueName  : null,
                 AuditQueue = viewModel.AuditQueueName,
                 ForwardAuditMessages = viewModel.AuditForwarding.Value,
                 ErrorQueue = viewModel.ErrorQueueName,
-                ErrorLogQueue = viewModel.ErrorForwardingQueueName,
+                ErrorLogQueue = viewModel.ErrorForwarding.Value ? viewModel.ErrorForwardingQueueName : null ,
                 TransportPackage = viewModel.SelectedTransport.Name,
                 ConnectionString = viewModel.ConnectionString,
                 ErrorRetentionPeriod = viewModel.ErrorRetentionPeriod,

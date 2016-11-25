@@ -2,6 +2,8 @@ namespace ServiceControlInstaller.Engine.Configuration
 {
     using System;
 
+    // See Compatibility.cs for version switching that isn't related to Settings
+
     public static class SettingsList
     {
         public static SettingInfo VirtualDirectory = new SettingInfo{Name = "ServiceControl/VirtualDirectory"};

@@ -2,8 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Windows.Forms;
     using System.Windows.Input;
     using PropertyChanged;
+    using ServiceControl.Config.Framework.Modules;
     using ServiceControl.Config.Framework.Rx;
     using ServiceControl.Config.Validation;
     using ServiceControl.Config.Xaml.Controls;
@@ -23,8 +25,9 @@
         string password;
         TransportInfo selectedTransport;
 
-        public SharedInstanceEditorViewModel()
+        public SharedInstanceEditorViewModel(Installer installer)
         {
+            this.installer = installer;
             Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
             AuditForwardingOptions = new[]
             {
@@ -54,10 +57,15 @@
             };
         }
 
+        private Installer installer;
+
+
         [DoNotNotify]
         public ValidationTemplate ValidationTemplate { get; set; }
 
         public string InstanceName { get; set; }
+
+
 
         public string HostName
         {
@@ -107,6 +115,8 @@
             get { return UseProvidedAccount ? password : String.Empty; }
             set { password = value; }
         }
+
+        public Version Version { get; set; }
 
         public bool UseSystemAccount { get; set; }
 
@@ -158,17 +168,45 @@
         [AlsoNotifyFor("ErrorForwarding")]
         public string ErrorForwardingWarning => (ErrorForwarding != null && ErrorForwarding.Value) ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
 
+        public bool ShowAuditForwardingQueue
+        {
+            get
+            {
+                if (Compatibility.ForwardingQueuesAreOptional.SupportedFrom > Version)
+                {
+                    return true;
+                }
+                return AuditForwarding?.Value ?? false; 
+            }
+        }
+
+        public bool ShowErrorForwardingQueue
+        {
+            get
+            {
+                
+                if (Version >= SettingsList.ForwardErrorMessages.SupportedFrom)
+                {
+                    if (Compatibility.ForwardingQueuesAreOptional.SupportedFrom > Version)
+                    {
+                        return ErrorForwarding?.Value ?? false;
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
         public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;
         public int MinimumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMinInDays;
         public TimeSpanUnits ErrorRetentionUnits => TimeSpanUnits.Days;
-
         public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInHours;
         public int MaximumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMaxInHours;
         public TimeSpanUnits AuditRetentionUnits => TimeSpanUnits.Hours;
 
         public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; private set;}
         public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; private set; }
-
+        
         public double AuditRetention { get; set; }
         public TimeSpan AuditRetentionPeriod => AuditRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(AuditRetention) : TimeSpan.FromHours(AuditRetention);
 
@@ -176,6 +214,7 @@
         public TimeSpan ErrorRetentionPeriod => ErrorRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(ErrorRetention) : TimeSpan.FromHours(ErrorRetention);
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
+        
 
         protected void UpdateAuditRetention(TimeSpan value)
         {
@@ -205,11 +244,6 @@
 
         // ReSharper disable once UnusedMember.Global
         public bool ShowConnectionString => SelectedTransport != null && !string.IsNullOrEmpty(SelectedTransport.SampleConnectionString);
-
-        public bool ShowAuditForwardingQueue => AuditForwarding?.Value ?? false;
-
-        public bool ShowErrorForwardingQueue => ErrorForwarding?.Value ?? false;
-
 
         public string LogPath { get; set; }
         public ICommand SelectLogPath { get; set; }
