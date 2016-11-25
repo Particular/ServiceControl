@@ -44,13 +44,13 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
             Define(context)
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
+                    bus.Subscribe<HeartbeatRestored>();
+
                     if (c.HasNativePubSubSupport)
                     {
                         c.ExternalProcessorSubscribed = true;
-                        return;
                     }
 
-                    bus.Subscribe<HeartbeatRestored>();
                 }))
                 .Done(c => c.NotificationDelivered)
                 .Run();
@@ -77,7 +77,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 
             public class UnicastOverride : IProvideConfiguration<UnicastBusConfig>
             {
-
                 public UnicastBusConfig GetConfiguration()
                 {
                     var config = new UnicastBusConfig();

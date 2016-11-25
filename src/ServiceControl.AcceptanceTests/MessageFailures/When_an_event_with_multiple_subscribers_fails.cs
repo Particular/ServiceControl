@@ -24,6 +24,8 @@
             Define(context)
                 .WithEndpoint<FailingSubscriber1>(behavior => behavior.Given((bus, ctx) =>
                 {
+                    bus.Subscribe<SampleEvent>();
+
                     if (ctx.HasNativePubSubSupport)
                     {
                         ctx.Subscriber1Subscribed = true;
@@ -31,6 +33,8 @@
                 }))
                 .WithEndpoint<FailingSubscriber2>(behavior => behavior.Given((bus, ctx) =>
                 {
+                    bus.Subscribe<SampleEvent>();
+
                     if (ctx.HasNativePubSubSupport)
                     {
                         ctx.Subscriber2Subscribed = true;
