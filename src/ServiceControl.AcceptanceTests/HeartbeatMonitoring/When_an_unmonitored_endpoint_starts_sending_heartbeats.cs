@@ -34,7 +34,7 @@
                 .Done(c => TryGetMany("/api/endpoints/", out endpoints, e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats))
                 .Run();
 
-            myEndpoint = endpoints.FirstOrDefault(e => e.Name == EndpointName);
+            myEndpoint = endpoints.SingleOrDefault(e => e.Name == EndpointName);
             Assert.NotNull(myEndpoint);
             Assert.IsTrue(myEndpoint.Monitored);
             Assert.IsTrue(myEndpoint.IsSendingHeartbeats);
