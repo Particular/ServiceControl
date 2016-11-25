@@ -62,13 +62,14 @@
                 Logger.InfoFormat("Loading Embedded RavenDB license");
                 documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
             }
-            
+
             if (!maintenanceMode)
             {
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
             }
 
             documentStore.Configuration.DisableClusterDiscovery = true;
+            documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
             documentStore.Configuration.DisablePerformanceCounters = settings.DisableRavenDBPerformanceCounters;
             documentStore.Configuration.Port = settings.Port;
             documentStore.Configuration.HostName = (settings.Hostname == "*" || settings.Hostname == "+")

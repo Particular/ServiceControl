@@ -95,17 +95,15 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                 {
                     var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
                     Context.UniqueMessageId = uniqueMessageId;
 
                     if (Context.Retrying)
                     {
                         throw new IOException("The disk is full");
                     }
-                    else
-                    {
-                        throw new HttpException("The website is not responding");
-                    }
+
+                    throw new HttpException("The website is not responding");
                 }
             }
         }

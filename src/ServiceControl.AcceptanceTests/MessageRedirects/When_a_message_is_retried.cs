@@ -68,7 +68,7 @@
                 public void Handle(MessageToRetry message)
                 {
                     Context.FromAddress = Settings.LocalAddress().ToString();
-                    Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.EndpointName()).ToString();
+                    Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
                     throw new Exception("Message Failed");
                 }
             }

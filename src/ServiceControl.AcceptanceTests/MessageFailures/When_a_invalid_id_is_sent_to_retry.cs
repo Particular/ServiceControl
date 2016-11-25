@@ -5,6 +5,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
     using System;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Config;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
@@ -34,7 +35,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                                 // api not up yet
                             }
                         }
-                        
+
                         bus.SendLocal(new MessageThatWillFail());
                     })
                     .When(ctx =>
@@ -52,7 +53,11 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
+                    .WithConfig<TransportConfig>(c =>
+                    {
+                        c.MaxRetries = 0;
+                    });
             }
 
             public class MessageThatWillFailHandler: IHandleMessages<MessageThatWillFail>
@@ -65,7 +70,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                 {
                     if (!Context.ExceptionThrown) //simulate that the exception will be resolved with the retry
                     {
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.EndpointName()).ToString();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
                         Context.ExceptionThrown = Context.IssueRetry = true;
                         throw new Exception("Simulated exception");
                     }

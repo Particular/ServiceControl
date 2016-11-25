@@ -2,10 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using NServiceBus;
     using NServiceBus.Features;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
 
@@ -51,14 +53,32 @@
                     return;
                 }
 
-                if (isOldRetry)
+                bus.Publish<MessageFailureResolvedByRetry>(m =>
                 {
-                    bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = headers.UniqueId());
+                    m.FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId;
+                    m.AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray();
+                });
+            }
+
+            private IEnumerable<string> GetAlternativeUniqueMessageId(IReadOnlyDictionary<string, string> headers)
+            {
+                var messageId = headers.MessageId();
+                string processingEndpoint;
+                if (headers.TryGetValue(Headers.ProcessingEndpoint, out processingEndpoint))
+                {
+                    yield return DeterministicGuid.MakeId(messageId, processingEndpoint).ToString();
                 }
 
-                if (isNewRetry)
+                string failedQ;
+                if (headers.TryGetValue("NServiceBus.FailedQ", out failedQ))
                 {
-                    bus.Publish<MessageFailureResolvedByRetry>(m => m.FailedMessageId = newRetryMessageId);
+                    yield return DeterministicGuid.MakeId(messageId, Address.Parse(failedQ).Queue).ToString();
+                }
+
+                string replyToAddress;
+                if (headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
+                {
+                    yield return DeterministicGuid.MakeId(messageId, Address.Parse(replyToAddress).Queue).ToString();
                 }
             }
         }

@@ -20,13 +20,13 @@
             FailedMessage failure = null;
 
             Define(context)
-                .WithEndpoint<FailureEndpoint>(b => 
+                .WithEndpoint<FailureEndpoint>(b =>
                     b.Given(bus => bus.SendLocal(new MyMessage()))
                      .When(ctx => CheckProcessingAttemptsIs(ctx, 1),
                         (bus, ctx) => IssueRetry(ctx))
                      .When(ctx => CheckProcessingAttemptsIs(ctx, 2),
                         (bus, ctx) => IssueRetry(ctx))
-                )  
+                )
                 .Done(ctx => GetFailedMessage(ctx, out failure, f => f.ProcessingAttempts.Count == 3))
                 .Run(TimeSpan.FromMinutes(4));
 
@@ -42,7 +42,7 @@
             FailedMessage failure = null;
 
             Define(context)
-                .WithEndpoint<FailureEndpoint>(b => 
+                .WithEndpoint<FailureEndpoint>(b =>
                     b.Given(bus => bus.SendLocal(new MyMessage()))
                      .When(ctx => CheckProcessingAttemptsIs(ctx, 1),
                           (bus, ctx) => IssueRetry(ctx))
@@ -100,7 +100,7 @@
 
                 public void Handle(MyMessage message)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress().Queue;
                     Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
                     if (!Context.Succeed) //simulate that the exception will be resolved with the retry

@@ -278,6 +278,11 @@
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
+    <Compile Include="DbMigrations\Migrations.cs" />
+    <Compile Include="DbMigrations\IMigration.cs" />
+    <Compile Include="DbMigrations\MigrationsManager.cs" />
+    <Compile Include="DbMigrations\MigrationsModule.cs" />
+    <Compile Include="DbMigrations\1.27\SplitFailedMessageDocumentsMigration.cs" />
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
     </Compile>
