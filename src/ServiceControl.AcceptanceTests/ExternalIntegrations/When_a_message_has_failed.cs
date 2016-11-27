@@ -31,6 +31,8 @@
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
+                    bus.Subscribe<MessageFailed>();
+
                     if (c.HasNativePubSubSupport)
                     {
                         c.ExternalProcessorSubscribed = true;
