@@ -3,9 +3,12 @@
     using Infrastructure;
     using InternalMessages;
     using NServiceBus;
+    using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.Contracts.HeartbeatMonitoring;
 
-    class DetectEndpointsFromHeartbeats : IHandleMessages<HeartbeatingEndpointDetected>
+    class DetectEndpointsFromHeartbeats : 
+        IHandleMessages<HeartbeatingEndpointDetected>,
+        IHandleMessages<EndpointHeartbeatRestored>
     {
         public IBus Bus { get; set; }
 
@@ -21,9 +24,26 @@
                 {
                     EndpointInstanceId = id,
                     Endpoint = message.Endpoint,
-                    DetectedAt = message.DetectedAt
+                    DetectedAt = message.DetectedAt,
+                    EnableMonitoring = true
                 });
             }
+            else
+            {
+                Bus.SendLocal(new EnableEndpointMonitoring
+                {
+                    EndpointId = id
+                });
+            }
+        }
+
+        public void Handle(EndpointHeartbeatRestored message)
+        {
+            var id = DeterministicGuid.MakeId(message.Endpoint.Name, message.Endpoint.HostId.ToString());
+            Bus.SendLocal(new EnableEndpointMonitoring
+            {
+                EndpointId = id
+            });
         }
     }
 }

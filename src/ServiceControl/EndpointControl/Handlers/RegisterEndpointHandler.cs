@@ -54,6 +54,7 @@
                     {
                         EndpointDetails = message.Endpoint,
                         HostDisplayName = message.Endpoint.Host,
+                        Monitored = message.EnableMonitoring
                     };
 
                     if (id == Guid.Empty)
@@ -78,8 +79,10 @@
                             Id = id,
                             EndpointDetails = message.Endpoint,
                             HostDisplayName = message.Endpoint.Host,
+                            Monitored = knownEndpoint.Monitored || message.EnableMonitoring
                         });
                     }
+                    knownEndpoint.Monitored |= message.EnableMonitoring;
                 }
 
                 session.SaveChanges();
