@@ -11,10 +11,10 @@
             MessagesRemaining = messagesRemaining;
         }
 
-        public double Percentage { get; private set; }
-        public int MessagesPrepared { get; private set; }
-        public int MessagesForwarded { get; private set; }
-        public int MessagesSkipped { get; private set; }
-        public int MessagesRemaining { get; private set; }
+        public double Percentage { get; set; }
+        public int MessagesPrepared { get; set; }
+        public int MessagesForwarded { get; set; }
+        public int MessagesSkipped { get; set; }
+        public int MessagesRemaining { get; set; }
     }
 }
