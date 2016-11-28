@@ -59,23 +59,12 @@
 
                                 <VisualState Name="Disabled">
                                     <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
-                                                                       Storyboard.TargetName="border"
-                                                                       Storyboard.TargetProperty="Background">
-                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray60Brush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
-                                                                       Storyboard.TargetName="border"
-                                                                       Storyboard.TargetProperty="BorderBrush">
-                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray50Brush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
-                                                                       Storyboard.TargetName="border"
-                                                                       Storyboard.TargetProperty="(TextElement.Foreground)">
-                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray70Brush}" />
-                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="border" Storyboard.TargetProperty="(UIElement.Opacity)">
+                                            <EasingDoubleKeyFrame KeyTime="0" Value="0.30" />
+                                        </DoubleAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
+                                
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                     </Border>
@@ -131,24 +120,13 @@
 
                                 <VisualState Name="Disabled">
                                     <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
-                                                                       Storyboard.TargetName="border"
-                                                                       Storyboard.TargetProperty="Background">
-                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray60Brush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
-                                                                       Storyboard.TargetName="border"
-                                                                       Storyboard.TargetProperty="BorderBrush">
-                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray50Brush}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Duration="0:0:0"
-                                                                       Storyboard.TargetName="border"
-                                                                       Storyboard.TargetProperty="(TextElement.Foreground)">
-                                            <DiscreteObjectKeyFrame Value="{StaticResource Gray70Brush}" />
-                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="border" Storyboard.TargetProperty="(UIElement.Opacity)">
+                                            <EasingDoubleKeyFrame KeyTime="0" Value="0.30" />
+                                        </DoubleAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
                             </VisualStateGroup>
+                            
                         </VisualStateManager.VisualStateGroups>
                     </Border>
                 </ControlTemplate>
