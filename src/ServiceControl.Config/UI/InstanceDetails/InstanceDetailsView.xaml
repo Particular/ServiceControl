@@ -122,7 +122,7 @@
 
         <GroupBox Grid.Row="6"
                   Grid.ColumnSpan="2"
-                  Header="HOST">
+                  Header="URL">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
                 <Hyperlink.ContextMenu>
                     <ContextMenu>
