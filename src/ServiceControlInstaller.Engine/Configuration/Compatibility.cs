@@ -12,6 +12,6 @@
             public Version RemovedFrom { get; set; }
         }
 
-        public static CompatibilityInfo ForwardingQueuesAreOptional = new CompatibilityInfo{SupportedFrom = new Version(1, 27)};
+        public static CompatibilityInfo ForwardingQueuesAreOptional = new CompatibilityInfo{SupportedFrom = new Version(1, 28)};
     }
 }
