@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Windows.Input;
     using PropertyChanged;
-    using ServiceControl.Config.Framework.Modules;
     using ServiceControl.Config.Framework.Rx;
     using ServiceControl.Config.Validation;
     using ServiceControl.Config.Xaml.Controls;
