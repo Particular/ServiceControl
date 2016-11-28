@@ -42,6 +42,7 @@
             CompletionTime = null;
             Originator = originator;
             Started = started;
+            Failed = false;
 
             Notifier?.Wait(requestId, retryType, GetProgress(), Started);
         }
@@ -105,7 +106,7 @@
                 RetryState = RetryState.Completed;
                 CompletionTime = DateTime.Now;
 
-                Notifier?.Completed(requestId, retryType, Failed, GetProgress(), Started, CompletionTime.Value, Originator, TotalNumberOfMessages);
+                Notifier?.Completed(requestId, retryType, Failed, GetProgress(), Started, CompletionTime.Value, Originator, NumberOfMessagesForwarded);
                 Log.Info($"Retry operation {requestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");
             }
         }
