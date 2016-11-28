@@ -4,8 +4,8 @@
     using System.IO;
     using System.Linq;
     using System.Windows.Input;
+    using PropertyChanged;
     using ServiceControl.Config.Commands;
-    using ServiceControl.Config.Framework.Modules;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
@@ -14,7 +14,7 @@
     [InjectValidation]
     public class InstanceAddViewModel : SharedInstanceEditorViewModel
     {
-        public InstanceAddViewModel(Installer installer) : base (installer)
+        public InstanceAddViewModel()
         {
             DisplayName = "Add new instance";
 
@@ -51,7 +51,6 @@
             ErrorForwardingQueueName = "error.log";
             ErrorForwarding = ErrorForwardingOptions.First(p => !p.Value); //Default to Off.
             UseSystemAccount = true;
-            Version = installer.ZipInfo.Version;
         }
 
         public string DestinationPath { get; set; }
@@ -66,5 +65,42 @@
             DatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "DB");
             LogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "Logs");
         }
+
+        public string ErrorQueueName { get; set; }
+        public string ErrorForwardingQueueName { get; set; }
+        public string AuditQueueName { get; set; }
+        public string AuditForwardingQueueName { get; set; }
+        public ForwardingOption AuditForwarding { get; set; }
+        public ForwardingOption ErrorForwarding { get; set; }
+
+        [AlsoNotifyFor("AuditForwarding")]
+        public string AuditForwardingWarning => (AuditForwarding != null && AuditForwarding.Value) ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
+
+        [AlsoNotifyFor("ErrorForwarding")]
+        public string ErrorForwardingWarning => (ErrorForwarding != null && ErrorForwarding.Value) ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
+
+        public bool ShowAuditForwardingQueue => AuditForwarding?.Value ?? false;
+        public bool ShowErrorForwardingQueue => ErrorForwarding?.Value ?? false;
+                    
+        TransportInfo selectedTransport;
+
+        [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]
+        public TransportInfo SelectedTransport
+        {
+            get { return selectedTransport; }
+            set
+            {
+                ConnectionString = null;
+                selectedTransport = value;
+            }
+        }
+
+        public string ConnectionString { get; set; }
+
+        // ReSharper disable once UnusedMember.Global
+        public string SampleConnectionString => SelectedTransport != null ? SelectedTransport.SampleConnectionString : String.Empty;
+
+        // ReSharper disable once UnusedMember.Global
+        public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
     }
 }

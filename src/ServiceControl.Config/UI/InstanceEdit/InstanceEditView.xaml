@@ -220,9 +220,12 @@
                                            DisplayMemberPath="Name"
                                            Header="ERROR FORWARDING"
                                            ItemsSource="{Binding ErrorForwardingOptions}"
-                                           SelectedValue="{Binding ErrorForwarding}" />
+                                           SelectedValue="{Binding ErrorForwarding}"
+                                           Visibility="{Binding ShowErrorForwardingCombo, Converter={StaticResource boolToVis}}"
+                                           />
 
-                    <controls:FormTextBox Grid.Column="1" 
+                    <controls:FormTextBox Grid.Column="{Binding ErrorForwardingQueueColumn}" 
+                                          Grid.ColumnSpan="{Binding ErrorForwardingQueueColumnSpan}"
                                           Grid.Row="1"
                                           Header="ERROR FORWARDING QUEUE NAME" 
                                           Text="{Binding ErrorForwardingQueueName}" 

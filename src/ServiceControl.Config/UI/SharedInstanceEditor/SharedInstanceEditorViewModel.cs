@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Windows.Forms;
     using System.Windows.Input;
     using PropertyChanged;
     using ServiceControl.Config.Framework.Modules;
@@ -12,22 +11,14 @@
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
 
-    public class ForwardingOption
-    {
-        public string Name { get; set; }
-        public bool Value { get; set; }
-    }
-
     public class SharedInstanceEditorViewModel : RxProgressScreen
     {
         string hostName;
         string serviceAccount;
         string password;
-        TransportInfo selectedTransport;
-
-        public SharedInstanceEditorViewModel(Installer installer)
+      
+        public SharedInstanceEditorViewModel()
         {
-            this.installer = installer;
             Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
             AuditForwardingOptions = new[]
             {
@@ -57,15 +48,11 @@
             };
         }
 
-        private Installer installer;
-
-
+        
         [DoNotNotify]
         public ValidationTemplate ValidationTemplate { get; set; }
 
         public string InstanceName { get; set; }
-
-
 
         public string HostName
         {
@@ -116,8 +103,6 @@
             set { password = value; }
         }
 
-        public Version Version { get; set; }
-
         public bool UseSystemAccount { get; set; }
 
         public bool UseServiceAccount { get; set; }
@@ -153,50 +138,6 @@
             }
         }
 
-        public string ErrorQueueName { get; set; }
-        public string ErrorForwardingQueueName { get; set; }
-        public string AuditQueueName { get; set; }
-        public string AuditForwardingQueueName { get; set; }
-
-        public ForwardingOption AuditForwarding { get; set; }
-
-        public ForwardingOption ErrorForwarding { get; set; }
-
-        [AlsoNotifyFor("AuditForwarding")]
-        public string AuditForwardingWarning => (AuditForwarding != null && AuditForwarding.Value) ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
-
-        [AlsoNotifyFor("ErrorForwarding")]
-        public string ErrorForwardingWarning => (ErrorForwarding != null && ErrorForwarding.Value) ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
-
-        public bool ShowAuditForwardingQueue
-        {
-            get
-            {
-                if (Compatibility.ForwardingQueuesAreOptional.SupportedFrom > Version)
-                {
-                    return true;
-                }
-                return AuditForwarding?.Value ?? false; 
-            }
-        }
-
-        public bool ShowErrorForwardingQueue
-        {
-            get
-            {
-                
-                if (Version >= SettingsList.ForwardErrorMessages.SupportedFrom)
-                {
-                    if (Compatibility.ForwardingQueuesAreOptional.SupportedFrom > Version)
-                    {
-                        return ErrorForwarding?.Value ?? false;
-                    }
-                    return true;
-                }
-                return false;
-            }
-        }
-
         public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;
         public int MinimumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMinInDays;
         public TimeSpanUnits ErrorRetentionUnits => TimeSpanUnits.Days;
@@ -225,26 +166,7 @@
         {
             ErrorRetention = ErrorRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
         }
-
-        [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]
-        public TransportInfo SelectedTransport
-        {
-            get { return selectedTransport; }
-            set
-            {
-                ConnectionString = null;
-                selectedTransport = value;
-            }
-        }
-
-        public string ConnectionString { get; set; }
-
-        // ReSharper disable once UnusedMember.Global
-        public string SampleConnectionString => SelectedTransport != null ? SelectedTransport.SampleConnectionString : String.Empty;
-
-        // ReSharper disable once UnusedMember.Global
-        public bool ShowConnectionString => SelectedTransport != null && !string.IsNullOrEmpty(SelectedTransport.SampleConnectionString);
-
+        
         public string LogPath { get; set; }
         public ICommand SelectLogPath { get; set; }
 

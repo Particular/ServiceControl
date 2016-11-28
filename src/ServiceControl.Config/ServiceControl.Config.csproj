@@ -196,6 +196,7 @@
     </Compile>
     <Compile Include="UI\MessageBox\YesNoCancelDialogViewModel.cs" />
     <Compile Include="UI\MessageBox\ReportCardViewModel.cs" />
+    <Compile Include="UI\SharedInstanceEditor\ForwardingOption.cs" />
     <Compile Include="UI\SharedInstanceEditor\SharedInstanceEditorView.xaml.cs">
       <DependentUpon>SharedInstanceEditorView.xaml</DependentUpon>
     </Compile>

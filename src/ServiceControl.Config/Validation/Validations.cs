@@ -4,13 +4,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using FluentValidation;
-    using UI.SharedInstanceEditor;
-
+    
     public static class Validations
     {
         public const string MSG_EMAIL_NOT_VALID = "Not Valid.";
 
-        public const string MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING = "Transport '{0}' requires a connection string.";
+        public const string MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING = "This transport requires a connection string.";
         public const string MSG_CANTCONTAINWHITESPACE = "Cannot contain white space.";
 
         public const string MSG_SELECTAUDITFORWARDING = "Must select audit forwarding.";
@@ -54,17 +53,7 @@
             })
             .WithMessage(MSG_ILLEGAL_PATH_CHAR, string.Join(" ", ILLEGAL_PATH_CHARS));
         }
-
-        public static IRuleBuilderOptions<T, string> TransportConnectionStringValid<T>(this IRuleBuilder<T, string> ruleBuilder) where T : SharedInstanceEditorViewModel
-        {
-            return ruleBuilder.Must((model, connectionString) =>
-            {
-                if (string.IsNullOrEmpty(model.SelectedTransport?.SampleConnectionString)) return true;
-                return !string.IsNullOrWhiteSpace(connectionString);
-            })
-            .WithMessage(MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING, model => model.SelectedTransport.Name);
-        }
-
+        
         public static IRuleBuilderOptions<T, TProperty> MustNotBeIn<T, TProperty>(this IRuleBuilder<T, TProperty> ruleBuilder, Func<T, IEnumerable<TProperty>> list) where TProperty : class
         {
             return ruleBuilder.Must((t, p) => p != null && !list(t).Contains(p));
