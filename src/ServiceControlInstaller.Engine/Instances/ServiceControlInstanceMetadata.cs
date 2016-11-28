@@ -24,8 +24,13 @@ namespace ServiceControlInstaller.Engine.Instances
         public string LogPath { get; set; }
         public string DBPath { get; set; }
         public string HostName { get; set; }
+
+        [XmlElement(typeof(XmlTimeSpan))]
         public TimeSpan AuditRetentionPeriod { get; set; }
+
+        [XmlElement(typeof(XmlTimeSpan))]
         public TimeSpan ErrorRetentionPeriod { get; set; }
+
         public string InstallPath { get; set; }
         public int Port { get; set; }
         public string VirtualDirectory { get; set; }
@@ -66,7 +71,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{HostName}:{Port}/api/";
                 }
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
             }
         }
 
@@ -89,7 +94,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{host}:{Port}/storage/";
                 }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
+                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}storage/";
             }
         }
 
@@ -102,7 +107,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return baseUrl;
                 }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}";
             }
         }
 
