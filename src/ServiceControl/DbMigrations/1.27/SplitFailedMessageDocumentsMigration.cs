@@ -26,6 +26,7 @@
 
             int retrievedResults;
             var currentPage = 0;
+            List<string> toBeDeleted = new List<string>();
 
             do
             {
@@ -38,7 +39,7 @@
 
                     foreach (var failedMessage in failedMessages)
                     {
-                        stats += MigrateFromTemporaryCollection(failedMessage, session);
+                        stats += MigrateFromTemporaryCollection(failedMessage, session, toBeDeleted);
                     }
 
                     session.SaveChanges();
@@ -47,10 +48,16 @@
                 }
             } while (retrievedResults > 0);
 
+            foreach (var key in toBeDeleted)
+            {
+                store.DatabaseCommands.Delete(key, null);
+                stats.Deleted++;
+            }
+
             return $"Found {stats.FoundProblem} issue(s) in {stats.Checked} Failed Message document(s). Created {stats.Created} new document(s). Deleted {stats.Deleted} old document(s).";
         }
 
-        private MigrationStats MigrateFromTemporaryCollection(FailedMessage originalFailedMessage, IDocumentSession session)
+        private MigrationStats MigrateFromTemporaryCollection(FailedMessage originalFailedMessage, IDocumentSession session, List<string> toBeDeleted)
         {
             var stats = new MigrationStats();
 
@@ -85,8 +92,7 @@
 
             if (failedMessages.All(f => f.UniqueMessageId != originalFailedMessage.UniqueMessageId))
             {
-                session.Delete(originalFailedMessage);
-                stats.Deleted++;
+                toBeDeleted.Add(session.Advanced.GetDocumentId(originalFailedMessage));
             }
             else
             {
@@ -191,7 +197,7 @@
             };
         }
 
-        public string MigrationId { get; } = "Split Failed Message Documents";
+        public string MigrationId { get; } = "Split Failed Message Documents Once Again";
 
         public const int PageSize = 1024;
         public const string SplitFromUniqueMessageIdHeader = "CollapsedSubscribers.SplitFromUniqueMessageId";
