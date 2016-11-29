@@ -98,7 +98,6 @@
         public void Should_handle_larger_than_pagesize_number_of_failedmessages()
         {
             const int multiplier = 2;
-
             using (var session = documentStore.OpenSession())
             {
                 for (var i = 0; i < SplitFailedMessageDocumentsMigration.PageSize*multiplier; i++)
@@ -127,7 +126,7 @@
                 // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
                 session.Query<FailedMessage>().Customize(q => q.WaitForNonStaleResultsAsOfNow()).Statistics(out stats).Take(0).ToArray();
 
-                var expectedCount = SplitFailedMessageDocumentsMigration.PageSize*multiplier*multiplier;
+                var expectedCount = SplitFailedMessageDocumentsMigration.PageSize * multiplier * multiplier;
 
                 Assert.AreEqual(expectedCount, stats.TotalResults, $"There should be {expectedCount} failed messages after split");
             }
