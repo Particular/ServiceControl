@@ -86,9 +86,9 @@
             {
                 if (ServiceControlInstance.Version >= Compatibility.ForwardingQueuesAreOptional.SupportedFrom)
                 {
-                    return true;
+                    return AuditForwarding?.Value ?? false;
                 }
-                return AuditForwarding?.Value ?? false;
+                return true;
             }
         }
 
