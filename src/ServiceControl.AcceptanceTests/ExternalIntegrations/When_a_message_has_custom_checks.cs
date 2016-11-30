@@ -57,6 +57,9 @@
             Define(context)
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
+                    bus.Subscribe<CustomCheckSucceeded>();
+                    bus.Subscribe<CustomCheckFailed>();
+
                     if (c.HasNativePubSubSupport)
                     {
                         c.ExternalProcessorSubscribed = true;

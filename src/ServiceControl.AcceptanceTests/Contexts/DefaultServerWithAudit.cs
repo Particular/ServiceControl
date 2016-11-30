@@ -15,6 +15,7 @@
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Config.ConfigurationSource;
     using NServiceBus.Configuration.AdvanceExtensibility;
+    using NServiceBus.Features;
     using NServiceBus.Hosting.Helpers;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
 
@@ -43,6 +44,7 @@
             });
             var builder = new BusConfiguration();
 
+            builder.DisableFeature<AutoSubscribe>();
             builder.UsePersistence<InMemoryPersistence>();
             builder.EndpointName(endpointConfiguration.EndpointName);
             builder.TypesToScan(types);

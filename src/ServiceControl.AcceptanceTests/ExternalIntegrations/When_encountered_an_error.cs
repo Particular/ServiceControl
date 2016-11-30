@@ -54,6 +54,8 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
             Define(context)
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
+                    bus.Subscribe<HeartbeatStopped>();
+
                     if (c.HasNativePubSubSupport)
                     {
                         c.ExternalProcessorSubscribed = true;
