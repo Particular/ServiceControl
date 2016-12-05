@@ -801,6 +801,7 @@
         <Setter Property="FontSize" Value="13px" />
         <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
         <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Margin" Value="0,-10,0,0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:FormWarningTextBlock}">
@@ -814,7 +815,6 @@
                                              Grid.Column="0"
                                              Width="16"
                                              Height="16"
-                                             Margin="5,0"
                                              Foreground="{StaticResource WarningBrush}"
                                              VerticalAlignment="Top" 
                                              Template="{StaticResource WarningIcon}"
