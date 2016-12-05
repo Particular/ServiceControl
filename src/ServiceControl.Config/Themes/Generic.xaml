@@ -800,6 +800,7 @@
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="FontSize" Value="13px" />
         <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+        <Setter Property="IsTabStop" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:FormWarningTextBlock}">
@@ -818,7 +819,7 @@
                                              VerticalAlignment="Top" 
                                              Template="{StaticResource WarningIcon}"
                                              Visibility="{TemplateBinding  Text, Converter={StaticResource nullOrEmptyToVis}}"
-                                             IsTabStop="False"
+                                             IsTabStop="{TemplateBinding IsTabStop}"
                                  />
 
                         <TextBlock x:Name="PART_TextBlock" 
