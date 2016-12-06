@@ -18,6 +18,10 @@ namespace ServiceControl.Recoverability
 
         public string Originator{ get; set; }
 
+        public string Classifier { get; set; }
+
         public DateTime StartTime { get; set; }
+
+        public DateTime Last { get; set; }
     }
 }

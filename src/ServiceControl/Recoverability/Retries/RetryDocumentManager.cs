@@ -35,7 +35,7 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string requestId, RetryType retryType, int initialBatchSize, string originator, DateTime startTime, string batchName = null)
+        public string CreateBatchDocument(string requestId, RetryType retryType, int initialBatchSize, string originator, DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = store.OpenSession())
@@ -47,7 +47,9 @@ namespace ServiceControl.Recoverability
                     RequestId = requestId,
                     RetryType = retryType,
                     Originator = originator,
+                    Classifier = classifier,
                     StartTime = startTime,
+                    Last = last,
                     InitialBatchSize = initialBatchSize,
                     RetrySessionId = RetrySessionId, 
                     Status = RetryBatchStatus.MarkingDocuments
@@ -185,7 +187,7 @@ namespace ServiceControl.Recoverability
                 if (!string.IsNullOrWhiteSpace(group.RequestId))
                 {
                     log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
-                    RetryOperationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.StartTime);
+                    RetryOperationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last);
                 }
             }
         }

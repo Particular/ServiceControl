@@ -33,6 +33,7 @@ namespace ServiceControl.Recoverability
             string RequestId { get; }
             RetryType RetryType { get; }
             string Originator { get; set; }
+            string Classifier { get; set; }
             DateTime StartTime { get; set; }
             IEnumerator<StreamResult<FailedMessage>> GetDocuments(IDocumentSession session);
         }
@@ -43,18 +44,20 @@ namespace ServiceControl.Recoverability
         {
             Expression<Func<TType, bool>> filter;
 
-            public IndexBasedBulkRetryRequest(string requestId, RetryType retryType, string originator, DateTime startTime, Expression<Func<TType, bool>> filter)
+            public IndexBasedBulkRetryRequest(string requestId, RetryType retryType, string originator, string classifier, DateTime startTime, Expression<Func<TType, bool>> filter)
             {
                 RequestId = requestId;
                 RetryType = retryType;
                 Originator = originator;
                 this.filter = filter;
                 StartTime = startTime;
+                Classifier = classifier;
             }
 
             public string RequestId { get; set; }
             public RetryType RetryType { get; set; }
             public string Originator { get; set; }
+            public string Classifier { get; set; }
             public DateTime StartTime { get; set; }
 
             public IEnumerator<StreamResult<FailedMessage>> GetDocuments(IDocumentSession session)
@@ -72,22 +75,31 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        IList<string[]> GetRequestedBatches(IBulkRetryRequest request)
+        IList<string[]> GetRequestedBatches(IBulkRetryRequest request, out DateTime latestAttempt)
         {
             var response = new List<string[]>();
             var currentBatch = new List<string>(BatchSize);
+            latestAttempt = DateTime.MinValue;
 
             using (var session = store.OpenSession())
             using (var stream = request.GetDocuments(session))
             {
                 while (stream.MoveNext())
                 {
-                    currentBatch.Add(stream.Current.Document.UniqueMessageId);
+                    var current = stream.Current.Document;
+                    currentBatch.Add(current.UniqueMessageId);
+
                     if (currentBatch.Count == BatchSize)
                     {
                         response.Add(currentBatch.ToArray());
 
                         currentBatch.Clear();
+                    }
+
+                    var lastDocumentAttempt = current.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure).Max();
+                    if (lastDocumentAttempt > latestAttempt)
+                    {
+                        latestAttempt = lastDocumentAttempt;
                     }
                 }
 
@@ -100,18 +112,18 @@ namespace ServiceControl.Recoverability
             return response;
         }
 
-        public void StartRetryForIndex<TType, TIndex>(string requestId, RetryType retryType, DateTime startTime, Expression<Func<TType, bool>> filter = null, string originator = null)
+        public void StartRetryForIndex<TType, TIndex>(string requestId, RetryType retryType, DateTime startTime, Expression<Func<TType, bool>> filter = null, string originator = null, string classifier = null)
             where TIndex : AbstractIndexCreationTask, new()
             where TType : IHaveStatus
         {
             log.InfoFormat("Enqueuing index based bulk retry '{0}'", originator);
 
-            var request = new IndexBasedBulkRetryRequest<TType, TIndex>(requestId, retryType, originator, startTime, filter);
+            var request = new IndexBasedBulkRetryRequest<TType, TIndex>(requestId, retryType, originator, classifier, startTime, filter);
 
             bulkRequests.Enqueue(request);
         }
 
-        public void StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, string originator = null, string batchName = null)
+        public void StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
@@ -119,7 +131,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var batchDocumentId = retryDocumentManager.CreateBatchDocument(requestId, retryType, messageIds.Length, originator, startTime, batchName);
+            var batchDocumentId = retryDocumentManager.CreateBatchDocument(requestId, retryType, messageIds.Length, originator, startTime, last, batchName, classifier);
 
             log.InfoFormat("Created Batch '{0}' with {1} messages for '{2}'", batchDocumentId, messageIds.Length, batchName);
 
@@ -151,7 +163,8 @@ namespace ServiceControl.Recoverability
 
         void ProcessRequest(IBulkRetryRequest request)
         {
-            var batches = GetRequestedBatches(request);
+            DateTime latestAttempt;
+            var batches = GetRequestedBatches(request, out latestAttempt);
             var totalMessages = batches.Sum(b => b.Length);
 
             if (!RetryOperationManager.IsOperationInProgressFor(request.RequestId, request.RetryType) && totalMessages > 0)
@@ -162,7 +175,7 @@ namespace ServiceControl.Recoverability
 
                 for (var i = 0; i < batches.Count; i++)
                 {
-                    StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.StartTime, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator));
+                    StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.StartTime, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier);
                     numberOfMessagesAdded += batches[i].Length;
 
                     RetryOperationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);

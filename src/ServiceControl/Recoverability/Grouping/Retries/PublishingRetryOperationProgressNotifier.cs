@@ -76,7 +76,7 @@
             });
         }
 
-        public void Completed(string requestId, RetryType retryType, bool failed, Progress progress, DateTime startTime, DateTime completionTime, string originator, int numberOfMessagesProcessed)
+        public void Completed(string requestId, RetryType retryType, bool failed, Progress progress, DateTime startTime, DateTime completionTime, string originator, int numberOfMessagesProcessed, DateTime last, string classifier)
         {
             bus.Publish<RetryOperationCompleted>(e =>
             {
@@ -88,6 +88,8 @@
                 e.CompletionTime = completionTime;
                 e.Originator = originator;
                 e.NumberOfMessagesProcessed = numberOfMessagesProcessed;
+                e.Last = last;
+                e.Classifier = classifier;
             });
         }
     }

@@ -14,11 +14,11 @@
 
         internal static Dictionary<string, RetryOperation> Operations = new Dictionary<string, RetryOperation>();
 
-        public void Wait(string requestId, RetryType retryType, DateTime started, string originator = null)
+        public void Wait(string requestId, RetryType retryType, DateTime started, string originator = null, string classifier = null, DateTime? last = null)
         {
             var summary = GetOrCreate(retryType, requestId);
 
-            summary.Wait(started, originator);
+            summary.Wait(started, originator, classifier, last);
         }
 
         public bool IsOperationInProgressFor(string requestId, RetryType retryType)
@@ -39,12 +39,12 @@
             summary.Prepare(totalNumberOfMessages);
         }
 
-        public void PreparedAdoptedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, string originator, DateTime startTime)
+        public void PreparedAdoptedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, string originator, string classifier, DateTime startTime, DateTime last)
         {
             var summary = GetOrCreate(retryType, requestId);
 
             summary.Prepare(totalNumberOfMessages);
-            summary.PrepareAdoptedBatch(numberOfMessagesPrepared, originator, startTime);
+            summary.PrepareAdoptedBatch(numberOfMessagesPrepared, originator, classifier, startTime, last);
         }
 
         public void PreparedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared)

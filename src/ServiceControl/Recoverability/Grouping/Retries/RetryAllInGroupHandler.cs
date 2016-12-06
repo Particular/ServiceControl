@@ -23,16 +23,16 @@ namespace ServiceControl.Recoverability
                 group = session.Query<FailureGroupView, FailureGroupsViewIndex>()
                     .FirstOrDefault(x => x.Id == message.GroupId);
             }
-            string originator = null;
 
+            string originator = null;
             if (@group?.Title != null)
             {
                 originator = group.Title;
             }
-
+           
             var started = message.Started ?? DateTime.UtcNow;
-            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator);
-            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator);
+            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type,group?.Last);
+            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, group?.Type);
         }
 
         public RetriesGateway Retries { get; set; }

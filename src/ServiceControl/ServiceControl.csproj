@@ -557,7 +557,7 @@
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationManager.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryState.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryType.cs" />
-    <Compile Include="Recoverability\Retries\CompletedRetryOperation.cs" />
+    <Compile Include="Recoverability\Retries\HistoricRetryOperation.cs" />
     <Compile Include="Recoverability\Retries\Handlers\PendingRetriesHandler.cs" />
     <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
     <Compile Include="Recoverability\Retries\FailedMessageRetries.cs" />
@@ -580,8 +580,9 @@
     <Compile Include="Recoverability\Retries\RetryMessagesById.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryPendingMessages.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryPendingMessagesById.cs" />
-    <Compile Include="Recoverability\Retries\RetryOperationsHistory.cs" />
+    <Compile Include="Recoverability\Retries\RetryHistory.cs" />
     <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
+    <Compile Include="Recoverability\Retries\UnacknowledgedRetryOperation.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeInitiator.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeOutput.cs" />

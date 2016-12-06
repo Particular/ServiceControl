@@ -16,7 +16,9 @@ namespace ServiceControl.Recoverability
                     HasForwardingBatches = doc.Status == RetryBatchStatus.Forwarding,
                     doc.InitialBatchSize,
                     doc.Originator,
-                    doc.StartTime                              
+                    doc.Classifier,
+                    doc.StartTime,
+                    doc.Last                            
                 };
 
             Reduce = results => from result in results
@@ -33,7 +35,9 @@ namespace ServiceControl.Recoverability
                     HasStagingBatches = g.Any(x => x.HasStagingBatches),
                     HasForwardingBatches = g.Any(x => x.HasForwardingBatches),
                     InitialBatchSize = g.Sum(x => x.InitialBatchSize),
-                    g.First().StartTime
+                    g.First().StartTime,
+                    Last = g.Max(x =>x.Last),
+                    g.First().Classifier
                 };
             
             DisableInMemoryIndexing = true;
