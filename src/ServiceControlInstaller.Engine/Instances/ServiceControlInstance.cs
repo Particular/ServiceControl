@@ -229,8 +229,15 @@ namespace ServiceControlInstaller.Engine.Instances
 
             settings.Set(SettingsList.AuditQueue, AuditQueue);
             settings.Set(SettingsList.ErrorQueue, ErrorQueue);
+
+            if (Version >= Compatibility.ForwardingQueuesAreOptional.SupportedFrom)
+            {
+                if (!ForwardErrorMessages) ErrorLogQueue = null;
+                if (!ForwardAuditMessages) AuditLogQueue = null;
+            }
             settings.Set(SettingsList.ErrorLogQueue, ErrorLogQueue);
             settings.Set(SettingsList.AuditLogQueue, AuditLogQueue);
+            
             configuration.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", ConnectionString);
             configuration.Save();
 

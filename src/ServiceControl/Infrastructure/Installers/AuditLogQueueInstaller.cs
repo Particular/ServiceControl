@@ -10,7 +10,7 @@ namespace ServiceBus.Management.Infrastructure.Installers
 
         public bool ShouldCreateQueue()
         {
-            return Settings.AuditLogQueue != Address.Undefined;
+            return Settings.ForwardAuditMessages && Settings.AuditLogQueue != Address.Undefined;
         }
 
         public Address Address => Settings.AuditLogQueue;

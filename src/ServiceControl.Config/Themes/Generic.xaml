@@ -36,7 +36,7 @@
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto" />
-                                <RowDefinition Height="*" />
+                                <RowDefinition Height="auto" />
                                 <RowDefinition Height="auto" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
@@ -179,12 +179,12 @@
         <Border x:Name="PART_ContentHost"
                 Background="{TemplateBinding Background}"
                 Focusable="False"
-                Padding="3" />
+                Padding="2,1.5" />
     </ControlTemplate>
 
     <Style TargetType="{x:Type controls:FormComboBox}">
         <Setter Property="MinWidth" Value="120" />
-        <Setter Property="MinHeight" Value="20" />
+        <Setter Property="MinHeight" Value="18" />
         <Setter Property="Padding" Value="3" />
         <Setter Property="Margin" Value="0,5" />
         <Setter Property="SnapsToDevicePixels" Value="true" />
@@ -205,10 +205,10 @@
                             Padding="{TemplateBinding Padding}">
                         <Grid HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                              TextElement.FontSize="14">
+                              TextElement.FontSize="13">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto" />
-                                <RowDefinition Height="*" />
+                                <RowDefinition Height="auto" />
                                 <RowDefinition Height="auto" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
@@ -240,6 +240,7 @@
                             <TextBlock Grid.Row="1" Margin="3,3,23,3" 
                                        Text="Please Select..." 
                                        Foreground="{StaticResource Gray50Brush}" 
+                                       FontSize="13px"
                                        Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(SelectedIndex), Converter={StaticResource HasSelectedIndex}}" />
                             <TextBox x:Name="PART_EditableTextBox"
                                      Grid.Row="1"
@@ -790,4 +791,52 @@
         </Setter>
     </Style>
 
+    <Style TargetType="{x:Type controls:FormWarningTextBlock}">
+        <Setter Property="Text" Value="" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{StaticResource Gray70Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="FontSize" Value="13px" />
+        <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Margin" Value="0,-10,0,0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:FormWarningTextBlock}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Control x:Name="errorIcon"
+                                             Grid.Column="0"
+                                             Width="16"
+                                             Height="16"
+                                             Foreground="{StaticResource WarningBrush}"
+                                             VerticalAlignment="Top" 
+                                             Template="{StaticResource WarningIcon}"
+                                             Visibility="{TemplateBinding  Text, Converter={StaticResource nullOrEmptyToVis}}"
+                                             IsTabStop="{TemplateBinding IsTabStop}"
+                                 />
+
+                        <TextBlock x:Name="PART_TextBlock" 
+                               Width="Auto"
+                               Grid.Column="1"
+                               Foreground="{TemplateBinding Foreground}"
+                               FontSize="{TemplateBinding FontSize}" 
+                               FontFamily="{TemplateBinding FontFamily}" 
+                               FontWeight="{TemplateBinding FontWeight}"
+                               VerticalAlignment="Top" 
+                               HorizontalAlignment="Left"
+                               TextWrapping="Wrap"
+                               Text="{TemplateBinding Text}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+            </Setter>
+    </Style>
+    
 </ResourceDictionary>

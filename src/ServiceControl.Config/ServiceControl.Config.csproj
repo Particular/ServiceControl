@@ -196,6 +196,7 @@
     </Compile>
     <Compile Include="UI\MessageBox\YesNoCancelDialogViewModel.cs" />
     <Compile Include="UI\MessageBox\ReportCardViewModel.cs" />
+    <Compile Include="UI\SharedInstanceEditor\ForwardingOption.cs" />
     <Compile Include="UI\SharedInstanceEditor\SharedInstanceEditorView.xaml.cs">
       <DependentUpon>SharedInstanceEditorView.xaml</DependentUpon>
     </Compile>
@@ -254,6 +255,7 @@
     <Compile Include="Xaml\Controls\AppHeader.xaml.cs">
       <DependentUpon>AppHeader.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Xaml\Controls\FormWarningTextBlock.cs" />
     <Compile Include="Xaml\Controls\FormSlider.cs" />
     <Compile Include="Xaml\Controls\FormPasswordBox.cs" />
     <Compile Include="Xaml\Controls\FormPathTextBox.cs" />

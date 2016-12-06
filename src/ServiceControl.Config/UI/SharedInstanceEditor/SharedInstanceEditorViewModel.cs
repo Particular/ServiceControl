@@ -10,19 +10,12 @@
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
 
-    public class ForwardingOption
-    {
-        public string Name { get; set; }
-        public bool Value { get; set; }
-    }
-
     public class SharedInstanceEditorViewModel : RxProgressScreen
     {
         string hostName;
         string serviceAccount;
         string password;
-        TransportInfo selectedTransport;
-
+      
         public SharedInstanceEditorViewModel()
         {
             Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
@@ -54,6 +47,7 @@
             };
         }
 
+        
         [DoNotNotify]
         public ValidationTemplate ValidationTemplate { get; set; }
 
@@ -143,32 +137,16 @@
             }
         }
 
-        public string ErrorQueueName { get; set; }
-        public string ErrorForwardingQueueName { get; set; }
-        public string AuditQueueName { get; set; }
-        public string AuditForwardingQueueName { get; set; }
-
-        public ForwardingOption AuditForwarding { get; set; }
-
-        public ForwardingOption ErrorForwarding { get; set; }
-
-        [AlsoNotifyFor("AuditForwarding")]
-        public string AuditForwardingWarning => (AuditForwarding != null && AuditForwarding.Value) ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
-
-        [AlsoNotifyFor("ErrorForwarding")]
-        public string ErrorForwardingWarning => (ErrorForwarding != null && ErrorForwarding.Value) ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
-
         public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;
         public int MinimumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMinInDays;
         public TimeSpanUnits ErrorRetentionUnits => TimeSpanUnits.Days;
-
         public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInHours;
         public int MaximumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMaxInHours;
         public TimeSpanUnits AuditRetentionUnits => TimeSpanUnits.Hours;
 
         public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; private set;}
         public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; private set; }
-
+        
         public double AuditRetention { get; set; }
         public TimeSpan AuditRetentionPeriod => AuditRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(AuditRetention) : TimeSpan.FromHours(AuditRetention);
 
@@ -176,6 +154,7 @@
         public TimeSpan ErrorRetentionPeriod => ErrorRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(ErrorRetention) : TimeSpan.FromHours(ErrorRetention);
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
+        
 
         protected void UpdateAuditRetention(TimeSpan value)
         {
@@ -186,26 +165,7 @@
         {
             ErrorRetention = ErrorRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
         }
-
-        [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]
-        public TransportInfo SelectedTransport
-        {
-            get { return selectedTransport; }
-            set
-            {
-                ConnectionString = null;
-                selectedTransport = value;
-            }
-        }
-
-        public string ConnectionString { get; set; }
-
-        // ReSharper disable once UnusedMember.Global
-        public string SampleConnectionString => SelectedTransport != null ? SelectedTransport.SampleConnectionString : String.Empty;
-
-        // ReSharper disable once UnusedMember.Global
-        public bool ShowConnectionString => SelectedTransport != null && !string.IsNullOrEmpty(SelectedTransport.SampleConnectionString);
-
+        
         public string LogPath { get; set; }
         public ICommand SelectLogPath { get; set; }
 

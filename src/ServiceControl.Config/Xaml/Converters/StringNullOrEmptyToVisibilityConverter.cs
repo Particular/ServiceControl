@@ -7,10 +7,11 @@
 
     public class StringNullOrEmptyToVisibilityConverter : System.Windows.Markup.MarkupExtension, IValueConverter
     {
+        public bool Invert { get; set; }
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return string.IsNullOrEmpty(value as string)
-                ? Visibility.Collapsed : Visibility.Visible;
+            return  Invert ^ string.IsNullOrEmpty(value as string) ? Visibility.Collapsed : Visibility.Visible;
         }
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
