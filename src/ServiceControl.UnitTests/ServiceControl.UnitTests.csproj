@@ -139,6 +139,7 @@
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
+    <Compile Include="Recoverability\RetryGroupEtagHelperTests.cs" />
     <Compile Include="Recoverability\Retry_State_Tests.cs" />
     <Compile Include="Recoverability\ExceptionTypeAndStackTraceFailureClassifierTest.cs" />
     <Compile Include="Recoverability\RetryOperationTests.cs" />

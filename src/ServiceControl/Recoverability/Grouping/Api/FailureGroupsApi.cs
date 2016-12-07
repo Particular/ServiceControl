@@ -91,7 +91,9 @@ namespace ServiceControl.Recoverability
             {
                 var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
 
-                return Negotiate.WithModel(retryHistory);
+                return Negotiate
+                    .WithDeterministicEtag(retryHistory.GetHistoryOperationsUniqueIdentifier())
+                    .WithModel(retryHistory);
             }
         }
 
@@ -119,28 +121,44 @@ namespace ServiceControl.Recoverability
                 var standaloneUnacknowledgements = unacknowledgedForThisClassifier.Except(groupUnacknowledgements).ToArray();
                 var unacknowledged = GetUnacknowledgedGroups(classifier, standaloneUnacknowledgements);
                 
-                var results = active.Union(unacknowledged).OrderByDescending(g => g.Last);
-                
+                var results = active.Union(unacknowledged).OrderByDescending(g => g.Last).ToArray();
+
                 return Negotiate.WithModel(results)
-                    .WithTotalCount(stats)
-                    .WithEtagAndLastModified(stats);
+                    .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
             }
         }
 
-        private static IEnumerable<dynamic> GetUnacknowledgedGroups(string classifier, UnacknowledgedRetryOperation[] standaloneUnacknowledgements)
+        dynamic GetAllGroupsCount(string classifier)
+        {
+            using (var session = Store.OpenSession())
+            {
+                RavenQueryStatistics stats;
+
+                session.Query<FailureGroupView, FailureGroupsViewIndex>()
+                    .Where(v => v.Type == classifier)
+                    .Statistics(out stats)
+                    // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
+                    .Count();
+
+                return Negotiate
+                    .WithEtag(stats.IndexEtag);
+            }
+        }
+       
+        private static IEnumerable<RetryGroup> GetUnacknowledgedGroups(string classifier, UnacknowledgedRetryOperation[] standaloneUnacknowledgements)
         {
             return standaloneUnacknowledgements.Select(standalone =>
             {
                 var unacknowledged = standaloneUnacknowledgements.First(unack => unack.RequestId == standalone.RequestId && unack.RetryType == RetryType.FailureGroup);
 
-                return new
+                return new RetryGroup
                 {
                     Id = unacknowledged.RequestId,
                     Title = unacknowledged.Originator,
                     Type = classifier,
                     Count = unacknowledged.NumberOfMessagesProcessed,
-                    unacknowledged.Last,
-                    RetryStatus = RetryState.Completed,
+                    Last = unacknowledged.Last,
+                    RetryStatus = RetryState.Completed.ToString(),
                     RetryFailed = unacknowledged.Failed,
                     RetryStartTime = unacknowledged.StartTime,
                     NeedUserAcknowledgement = true
@@ -148,7 +166,7 @@ namespace ServiceControl.Recoverability
             });
         }
 
-        private IEnumerable<dynamic> GetActiveGroups(IEnumerable<FailureGroupView> activeGroups, RetryHistory history, UnacknowledgedRetryOperation[] groupUnacknowledgements)
+        private IEnumerable<RetryGroup> GetActiveGroups(IEnumerable<FailureGroupView> activeGroups, RetryHistory history, UnacknowledgedRetryOperation[] groupUnacknowledgements)
         {
             return activeGroups.Select(failureGroup =>
             {
@@ -156,14 +174,14 @@ namespace ServiceControl.Recoverability
                 var historic = GetLatestHistoricOperation(history, failureGroup.Id, RetryType.FailureGroup);
                 var unacknowledged = groupUnacknowledgements.FirstOrDefault(unack => unack.RequestId == failureGroup.Id && unack.RetryType == RetryType.FailureGroup);
 
-                return (new
+                return new RetryGroup
                 {
-                    failureGroup.Id,
-                    failureGroup.Title,
-                    failureGroup.Type,
-                    failureGroup.Count,
-                    failureGroup.First,
-                    failureGroup.Last,
+                    Id = failureGroup.Id,
+                    Title = failureGroup.Title,
+                    Type = failureGroup.Type,
+                    Count = failureGroup.Count,
+                    First = failureGroup.First,
+                    Last = failureGroup.Last,
                     RetryStatus = summary?.RetryState.ToString() ?? "None",
                     RetryFailed = summary?.Failed,
                     RetryProgress = summary?.GetProgress().Percentage ?? 0.0,
@@ -171,7 +189,7 @@ namespace ServiceControl.Recoverability
                     RetryStartTime = summary?.Started,
                     LastRetryCompletionTime = unacknowledged?.CompletionTime ?? historic?.CompletionTime,
                     NeedUserAcknowledgement = unacknowledged != null
-                });
+                };
             });
         }
 
@@ -183,24 +201,6 @@ namespace ServiceControl.Recoverability
                 .FirstOrDefault();
         }
         
-        dynamic GetAllGroupsCount(string classifier)
-        {
-            using (var session = Store.OpenSession())
-            {
-                RavenQueryStatistics stats;
-
-                var results = session
-                    .Query<FailureGroupView, FailureGroupsViewIndex>()
-                    .Where(v => v.Type == classifier)
-                    .Statistics(out stats)
-                    .Count();
-
-                return Negotiate
-                    .WithTotalCount(results)
-                    .WithEtagAndLastModified(stats);
-            }
-        }
-
         dynamic GetGroupErrors(string groupId)
         {
             using (var session = Store.OpenSession())

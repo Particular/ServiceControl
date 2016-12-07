@@ -91,6 +91,16 @@
                 e.Last = last;
                 e.Classifier = classifier;
             });
+
+            if (retryType == RetryType.FailureGroup)
+            {
+                bus.Publish<MessagesSubmittedForRetry>(m =>
+                {
+                    m.FailedMessageIds = new string[0];
+                    m.NumberOfFailedMessages = numberOfMessagesProcessed;
+                    m.Context = originator;
+                });
+            }
         }
     }
 }

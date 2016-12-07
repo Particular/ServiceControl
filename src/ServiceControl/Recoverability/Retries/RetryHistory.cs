@@ -35,6 +35,11 @@
                 .ToList();
         }
 
+        public string GetHistoryOperationsUniqueIdentifier()
+        {
+            return string.Join(",", HistoricOperations.Select(x => x.RequestId));
+        }
+
         public void AddToUnacknowledged(UnacknowledgedRetryOperation unacknowledgedRetryOperation)
         {
             UnacknowledgedOperations.Add(unacknowledgedRetryOperation);
@@ -44,7 +49,7 @@
         {
             return UnacknowledgedOperations.Where(x => x.Classifier == classifier).ToArray();
         }
-
+        
         public void Acknowledge(string requestId, RetryType type)
         {
             UnacknowledgedOperations.RemoveAll(x => x.RequestId == requestId && x.RetryType == type);

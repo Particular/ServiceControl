@@ -187,7 +187,7 @@ namespace ServiceControl.Recoverability
         {
             if (context == null)
                 return null;
-            return $"Retry '{context}' batch {pageNum} of {totalPages}";
+            return $"'{context}' batch {pageNum} of {totalPages}";
         }
 
         static ILog log = LogManager.GetLogger(typeof(RetriesGateway));

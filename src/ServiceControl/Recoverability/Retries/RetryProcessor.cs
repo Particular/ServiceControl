@@ -152,12 +152,17 @@ namespace ServiceControl.Recoverability
                 .ToArray();
 
             Parallel.ForEach(messages, message => StageMessage(message, stagingId));
-            
-            bus.Publish<MessagesSubmittedForRetry>(m =>
+
+            if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group 
             {
-                m.FailedMessageIds = messages.Select(x => x.UniqueMessageId).ToArray();
-                m.Context = stagingBatch.Context;
-            });
+                bus.Publish<MessagesSubmittedForRetry>(m =>
+                {
+                    var failedIds = messages.Select(x => x.UniqueMessageId).ToArray();
+                    m.FailedMessageIds = failedIds;
+                    m.NumberOfFailedMessages = failedIds.Length;
+                    m.Context = stagingBatch.Context;
+                });
+            }
 
             var msgLookup = messages.ToLookup(x => x.Id);
 

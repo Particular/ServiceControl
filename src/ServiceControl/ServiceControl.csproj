@@ -389,6 +389,8 @@
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
+    <Compile Include="Recoverability\Grouping\Api\RetryGroup.cs" />
+    <Compile Include="Recoverability\Grouping\Api\EtagHelper.cs" />
     <Compile Include="Recoverability\Grouping\IFailedMessageEnricher.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesByRangeHandler.cs" />
     <Compile Include="MessageFailures\IHaveStatus.cs" />
@@ -536,7 +538,7 @@
     <Compile Include="Recoverability\Grouping\Archiving\FailedMessageGroupArchived.cs" />
     <Compile Include="Recoverability\Grouping\Raven\FailedMessages_ByGroup.cs" />
     <Compile Include="Recoverability\Grouping\Raven\FailureGroupMessageView.cs" />
-    <Compile Include="Recoverability\Grouping\FailureGroupsApi.cs" />
+    <Compile Include="Recoverability\Grouping\Api\FailureGroupsApi.cs" />
     <Compile Include="Recoverability\Grouping\Raven\FailureGroupsViewIndex.cs" />
     <Compile Include="Recoverability\Grouping\Raven\FailureGroupView.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\IFailureClassifier.cs" />
