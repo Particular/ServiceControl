@@ -110,7 +110,7 @@
             if (NumberOfMessagesForwarded + NumberOfMessagesSkipped == TotalNumberOfMessages)
             {
                 RetryState = RetryState.Completed;
-                CompletionTime = DateTime.Now;
+                CompletionTime = DateTime.UtcNow;
 
                 Notifier?.Completed(requestId, retryType, Failed, GetProgress(), Started, CompletionTime.Value, Originator, NumberOfMessagesForwarded, Last ?? DateTime.MaxValue, Classifier);
                 Log.Info($"Retry operation {requestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");

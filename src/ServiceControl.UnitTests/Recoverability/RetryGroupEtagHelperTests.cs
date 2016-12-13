@@ -78,14 +78,14 @@
         }
 
         [Test]
-        public void LastRetryCompletionTime_changed_should_change_etag()
+        public void RetryCompletionTime_changed_should_change_etag()
         {
             var group = new RetryGroup();
             var data = new[] { group };
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
-            group.LastRetryCompletionTime = DateTime.UtcNow;
+            group.RetryCompletionTime = DateTime.UtcNow;
             var newEtag = EtagHelper.CalculateEtag(data);
 
             Assert.AreNotEqual(knownEtag, newEtag);

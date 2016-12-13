@@ -8,7 +8,7 @@ public static class EtagHelper
         var data = new StringBuilder();
         foreach (var g in groups)
         {
-            data.Append($"{g.Id}.{g.Count}.{g.RetryStatus}.{g.RetryProgress}.{g.RetryStartTime}.{g.LastRetryCompletionTime}.{g.NeedUserAcknowledgement}");
+            data.Append($"{g.Id}.{g.Count}.{g.RetryStatus}.{g.RetryProgress}.{g.RetryStartTime}.{g.RetryCompletionTime}.{g.NeedUserAcknowledgement}");
         }
         return data.ToString();
     }

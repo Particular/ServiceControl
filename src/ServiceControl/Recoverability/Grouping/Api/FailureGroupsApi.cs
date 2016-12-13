@@ -160,6 +160,7 @@ namespace ServiceControl.Recoverability
                     Last = unacknowledged.Last,
                     RetryStatus = RetryState.Completed.ToString(),
                     RetryFailed = unacknowledged.Failed,
+                    RetryCompletionTime = unacknowledged.CompletionTime,
                     RetryStartTime = unacknowledged.StartTime,
                     NeedUserAcknowledgement = true
                 };
@@ -187,7 +188,7 @@ namespace ServiceControl.Recoverability
                     RetryProgress = summary?.GetProgress().Percentage ?? 0.0,
                     RetryRemainingCount = summary?.GetProgress().MessagesRemaining,
                     RetryStartTime = summary?.Started,
-                    LastRetryCompletionTime = unacknowledged?.CompletionTime ?? historic?.CompletionTime,
+                    RetryCompletionTime = summary?.CompletionTime ?? (unacknowledged?.CompletionTime ?? historic?.CompletionTime),
                     NeedUserAcknowledgement = unacknowledged != null
                 };
             });

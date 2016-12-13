@@ -13,6 +13,6 @@ public class RetryGroup
     public double RetryProgress { get; set; }
     public int? RetryRemainingCount { get; set; }
     public DateTime? RetryStartTime { get; set; }
-    public DateTime? LastRetryCompletionTime { get; set; }
+    public DateTime? RetryCompletionTime { get; set; }
     public bool NeedUserAcknowledgement { get; set; }
 }
