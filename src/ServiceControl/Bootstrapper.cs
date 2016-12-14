@@ -7,6 +7,7 @@ namespace Particular.ServiceControl
     using System.ServiceProcess;
     using Autofac;
     using global::ServiceControl.Infrastructure;
+    using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
     using Microsoft.Owin.Hosting;
     using NLog;
@@ -79,6 +80,7 @@ namespace Particular.ServiceControl
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
+            DomainEvents.Container = container;
         }
 
         public IBus Start(bool isRunningAcceptanceTests = false)

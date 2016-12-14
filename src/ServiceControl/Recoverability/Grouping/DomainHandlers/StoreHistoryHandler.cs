@@ -1,17 +1,23 @@
-﻿namespace ServiceControl.Recoverability
+﻿namespace ServiceControl.Recoverability.Grouping.DomainHandlers
 {
-    using NServiceBus;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class RetryOperationCompletedHandler : IHandleMessages<RetryOperationCompleted>
+    public class StoreHistoryHandler: IDomainHandler<RetryOperationCompleted>
     {
-        public Settings Settings { get; set; }
-        public IDocumentStore Store { get; set; }
-        
+        private readonly IDocumentStore store;
+        private readonly Settings settings;
+
+        public StoreHistoryHandler(IDocumentStore store, Settings settings)
+        {
+            this.store = store;
+            this.settings = settings;
+        }
+
         public void Handle(RetryOperationCompleted message)
         {
-            using (var session = Store.OpenSession())
+            using (var session = store.OpenSession())
             {
                 var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
 
@@ -24,7 +30,7 @@
                     Originator = message.Originator,
                     Failed = message.Failed,
                     NumberOfMessagesProcessed = message.NumberOfMessagesProcessed
-                }, Settings.RetryHistoryDepth);
+                }, settings.RetryHistoryDepth);
 
                 retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
                 {

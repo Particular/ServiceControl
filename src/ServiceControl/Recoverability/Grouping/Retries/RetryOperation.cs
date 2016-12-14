@@ -2,6 +2,7 @@
 {
     using System;
     using NServiceBus.Logging;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public class RetryOperation
     {
@@ -12,8 +13,7 @@
             this.requestId = requestId;
             this.retryType = retryType;
         }
-
-        public IRetryOperationProgressNotifier Notifier { get; set; }
+        
         public int TotalNumberOfMessages { get; private set; }
         public int NumberOfMessagesPrepared { get; private set; }
         public int NumberOfMessagesForwarded { get; private set; }
@@ -47,8 +47,14 @@
             Failed = false;
             Last = last;
             Classifier = classifier;
-
-            Notifier?.Wait(requestId, retryType, GetProgress(), Started);
+            
+            DomainEvents.Raise(new RetryOperationWaiting
+            {
+                RequestId = requestId,
+                RetryType = retryType,
+                Progress = GetProgress(),
+                StartTime = Started
+            });
         }
 
         public void Fail()
@@ -63,14 +69,30 @@
             NumberOfMessagesForwarded = 0;
             NumberOfMessagesPrepared = 0;
 
-            Notifier?.Prepare(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed, Started);
+            DomainEvents.Raise(new RetryOperationPreparing 
+            {
+                RequestId = requestId,
+                RetryType = retryType,
+                TotalNumberOfMessages = TotalNumberOfMessages,
+                Progress = GetProgress(),
+                IsFailed = Failed,
+                StartTime = Started
+            });
         }
 
         public void PrepareBatch(int numberOfMessagesPrepared)
         {
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
 
-            Notifier?.PrepareBatch(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed, Started);
+            DomainEvents.Raise(new RetryOperationPreparing
+            {
+                RequestId = requestId,
+                RetryType = retryType,
+                TotalNumberOfMessages = TotalNumberOfMessages,
+                Progress = GetProgress(),
+                IsFailed = Failed,
+                StartTime = Started,
+            });
         }
 
         public void PrepareAdoptedBatch(int numberOfMessagesPrepared, string originator, string classifier, DateTime startTime, DateTime last)
@@ -87,15 +109,31 @@
         {
             RetryState = RetryState.Forwarding;
 
-            Notifier?.Forwarding(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed, Started);
+            DomainEvents.Raise(new RetryOperationForwarding
+            {
+                RequestId = requestId,
+                RetryType = retryType,
+                TotalNumberOfMessages = TotalNumberOfMessages,
+                Progress = GetProgress(),
+                IsFailed = Failed,
+                StartTime = Started
+            });
         }
 
         public void BatchForwarded(int numberOfMessagesForwarded)
         {
             NumberOfMessagesForwarded += numberOfMessagesForwarded;
 
-            Notifier?.BatchForwarded(requestId, retryType, TotalNumberOfMessages, GetProgress(), Failed, Started);
-
+            DomainEvents.Raise(new RetryMessagesForwarded
+            {
+                RequestId = requestId,
+                RetryType = retryType,
+                TotalNumberOfMessages = TotalNumberOfMessages,
+                Progress = GetProgress(),
+                IsFailed = Failed,
+                StartTime = Started,
+            });
+            
             CheckForCompletion();
         }
 
@@ -107,14 +145,39 @@
 
         private void CheckForCompletion()
         {
-            if (NumberOfMessagesForwarded + NumberOfMessagesSkipped == TotalNumberOfMessages)
+            if (NumberOfMessagesForwarded + NumberOfMessagesSkipped != TotalNumberOfMessages)
             {
-                RetryState = RetryState.Completed;
-                CompletionTime = DateTime.UtcNow;
-
-                Notifier?.Completed(requestId, retryType, Failed, GetProgress(), Started, CompletionTime.Value, Originator, NumberOfMessagesForwarded, Last ?? DateTime.MaxValue, Classifier);
-                Log.Info($"Retry operation {requestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");
+                return;
             }
+
+            RetryState = RetryState.Completed;
+            CompletionTime = DateTime.UtcNow;
+
+            DomainEvents.Raise(new RetryOperationCompleted
+            {
+                RequestId = requestId,
+                RetryType = retryType,
+                Failed = Failed,
+                Progress = GetProgress(),
+                StartTime = Started,
+                CompletionTime = CompletionTime.Value,
+                Originator = Originator,
+                NumberOfMessagesProcessed = NumberOfMessagesForwarded,
+                Last = Last ?? DateTime.MaxValue,
+                Classifier = Classifier,
+            });
+
+            if (retryType == RetryType.FailureGroup)
+            {
+                DomainEvents.Raise(new MessagesSubmittedForRetry
+                {
+                    FailedMessageIds = new string[0],
+                    NumberOfFailedMessages = NumberOfMessagesForwarded,
+                    Context = Originator
+                });
+            }
+                
+            Log.Info($"Retry operation {requestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");
         }
         
         public Progress GetProgress()
@@ -125,6 +188,11 @@
             var remaining = TotalNumberOfMessages - (NumberOfMessagesForwarded + NumberOfMessagesSkipped);
 
             return new Progress(roundedPercentage, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, remaining);
+        }
+
+        public bool NeedsAcknowledgement()
+        {
+            return RetryState == RetryState.Completed;
         }
     }
 }

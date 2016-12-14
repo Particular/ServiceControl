@@ -2,16 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     public class RetryOperationManager
     {
-        private readonly IRetryOperationProgressNotifier notifier;
-        
-        public RetryOperationManager(IRetryOperationProgressNotifier notifier)
-        {
-            this.notifier = notifier;
-        }
-
         internal static Dictionary<string, RetryOperation> Operations = new Dictionary<string, RetryOperation>();
 
         public void Wait(string requestId, RetryType retryType, DateTime started, string originator = null, string classifier = null, DateTime? last = null)
@@ -86,7 +80,7 @@
             RetryOperation summary;
             if (!Operations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary))
             {
-                summary = new RetryOperation(requestId, retryType) { Notifier = notifier };
+                summary = new RetryOperation(requestId, retryType);
                 Operations[RetryOperation.MakeOperationId(requestId, retryType)] = summary;
             }
             return summary;
@@ -103,6 +97,11 @@
             Operations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary);
 
             return summary;
+        }
+
+        public IEnumerable<RetryOperation> GetUnacknowledgedOperations()
+        {
+            return Operations.Values.Where(o => o.NeedsAcknowledgement());
         }
     }
 }
