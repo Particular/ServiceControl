@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     public class RetryOperationManager
     {
@@ -10,6 +9,11 @@
 
         public void Wait(string requestId, RetryType retryType, DateTime started, string originator = null, string classifier = null, DateTime? last = null)
         {
+            if (requestId == null) //legacy support for batches created before operations were introduced
+            {
+                return;
+            }
+
             var summary = GetOrCreate(retryType, requestId);
 
             summary.Wait(started, originator, classifier, last);
@@ -28,6 +32,11 @@
 
         public void Prepairing(string requestId, RetryType retryType, int totalNumberOfMessages)
         {
+            if (requestId == null) //legacy support for batches created before operations were introduced
+            {
+                return;
+            }
+
             var summary = GetOrCreate(retryType, requestId);
 
             summary.Prepare(totalNumberOfMessages);
@@ -35,6 +44,11 @@
 
         public void PreparedAdoptedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, string originator, string classifier, DateTime startTime, DateTime last)
         {
+            if (requestId == null) //legacy support for batches created before operations were introduced
+            {
+                return;
+            }
+
             var summary = GetOrCreate(retryType, requestId);
 
             summary.Prepare(totalNumberOfMessages);
@@ -43,6 +57,11 @@
 
         public void PreparedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared)
         {
+            if (requestId == null) //legacy support for batches created before operations were introduced
+            {
+                return;
+            }
+
             var summary = GetOrCreate(retryType, requestId);
 
             summary.PrepareBatch(numberOfMessagesPrepared);
@@ -50,6 +69,11 @@
 
         public void Forwarding(string requestId, RetryType retryType)
         {
+            if (requestId == null) //legacy support for batches created before operations were introduced
+            {
+                return;
+            }
+
             var summary = Get(requestId, retryType);
 
             summary.Forwarding();
@@ -57,6 +81,11 @@
         
         public void ForwardedBatch(string requestId, RetryType retryType, int numberOfMessagesForwarded)
         {
+            if (requestId == null) //legacy support for batches created before operations were introduced
+            {
+                return;
+            }
+
             var summary = Get(requestId, retryType);
 
             summary.BatchForwarded(numberOfMessagesForwarded);
@@ -64,6 +93,11 @@
 
         public void Fail(RetryType retryType, string requestId)
         {
+            if (requestId == null) //legacy support for batches created before operations were introduced
+            {
+                return;
+            }
+
             var summary = GetOrCreate(retryType, requestId);
 
             summary.Fail();
@@ -71,6 +105,11 @@
 
         public void Skip(string requestId, RetryType retryType, int numberOfMessagesSkipped)
         {
+            if (requestId == null) //legacy support for batches created before operations were introduced
+            {
+                return;
+            }
+
             var summary = GetOrCreate(retryType, requestId);
             summary.Skip(numberOfMessagesSkipped);
         }
@@ -97,11 +136,6 @@
             Operations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary);
 
             return summary;
-        }
-
-        public IEnumerable<RetryOperation> GetUnacknowledgedOperations()
-        {
-            return Operations.Values.Where(o => o.NeedsAcknowledgement());
         }
     }
 }
