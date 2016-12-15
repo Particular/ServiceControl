@@ -12,13 +12,15 @@ The code that handles each stage is idempotent so re-processing a batch is never
 
 ### Marking Documents
 
-When a retry batch is first created it has this state. This means that ServiceControl is finding and marking failed messages as belonging to this batch.
+A `RetryOperation` is created as an encompassing object to represent that entire set of batches within a retry for a group. This retry operation records the number of batches that comprised the original group as well as the number of batches that still remain to be completed. 
+
+When a retry batch is first created it has state `Marking Documents`. This means that ServiceControl is finding and marking failed messages as belonging to this batch.
 
 To do this, a new document is created for each failed message. Each one has an id `FailedMessageRetry/{messageId}` and contains the failed message id and the retry batch id. As only one document with this key can exist at a time, this ensures that a Failed Message can only ever belong to a single batch. This document will exist until such a time as a new Failed Message with same Id comes through the error queue. This guarantees that there can only be one outstanding retry for a failed message at a time.
 
 When all messages have been marked, a list of the `FailedMessageRetry` ids is appended to the batch and the batch changes status to `Staging`. The list inside of the Batch may contain failed messages which do not belong to this batch (because another batch claimed them in parallel). These will get filtered out during staging (below).
 
-When ServiceControl starts up it will attempt to adopt any batches that it finds in this status and move them to `Staging`. This can only happen if the SC process stops during the above process. Any documents that were already marked will be added to the batch. Any documents that had not yet been marked are ignored and will have to be retried again by the user. When SC starts up, it will generate a `Session ID` GUID. This GUID is stamped onto each new batch as it is created. This is how SC can tell if a batch is from a previous session and adopt it. Only Batches with a non-current session Id will be adotped by the orphan batch process.
+When ServiceControl starts up it will attempt to adopt any batches that it finds in this status and move them to `Staging`. This can only happen if the SC process stops during the above process. Any documents that were already marked will be added to the batch. Any documents that had not yet been marked are ignored and will have to be retried again by the user. When SC starts up, it will generate a `Session ID` GUID. This GUID is stamped onto each new batch as it is created. This is how SC can tell if a batch is from a previous session and adopt it. Only Batches with a non-current session Id will be adotped by the orphan batch process. There is a possibility of zombie `RetryOperation` documents at this stage.
 
 ### Staging
 

@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -22,19 +23,21 @@ namespace ServiceControl.Recoverability
                 group = session.Query<FailureGroupView, FailureGroupsViewIndex>()
                     .FirstOrDefault(x => x.Id == message.GroupId);
             }
-            string context = null;
 
+            string originator = null;
             if (@group?.Title != null)
             {
-                context = group.Title;
+                originator = group.Title;
             }
-
-            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(x => x.FailureGroupId == message.GroupId, context);
+           
+            var started = message.Started ?? DateTime.UtcNow;
+            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type,group?.Last);
+            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, group?.Type);
         }
 
         public RetriesGateway Retries { get; set; }
         public IDocumentStore Store { get; set; }
-
+		public RetryOperationManager RetryOperationManager { get; set; }
         static ILog log = LogManager.GetLogger(typeof(RetryAllInGroupHandler));
     }
 }

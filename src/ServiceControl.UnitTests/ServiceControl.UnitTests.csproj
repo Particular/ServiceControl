@@ -139,7 +139,11 @@
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
+    <Compile Include="Recoverability\RetryGroupEtagHelperTests.cs" />
+    <Compile Include="Recoverability\Retry_State_Tests.cs" />
     <Compile Include="Recoverability\ExceptionTypeAndStackTraceFailureClassifierTest.cs" />
+    <Compile Include="Recoverability\RetryOperationTests.cs" />
+    <Compile Include="Recoverability\RetryOperationProgressCalculatorTests.cs" />
     <Compile Include="Recoverability\MessageTypeFailureClassifierTest.cs" />
     <Compile Include="SagaAudit\SagaDetailsIndexTests.cs" />
     <Compile Include="SagaAudit\SagaListIndexTests.cs" />
@@ -156,6 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

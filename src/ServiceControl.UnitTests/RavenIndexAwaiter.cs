@@ -7,8 +7,12 @@ public static class RavenIndexAwaiter
 {
     public static void WaitForIndexing(this IDocumentStore store)
     {
-        var databaseCommands = store.DatabaseCommands;
-        Assert.True(SpinWait.SpinUntil(() => databaseCommands.GetStatistics().StaleIndexes.Length == 0, TimeSpan.FromSeconds(10)));
+        store.WaitForIndexing(10);
     }
 
+    public static void WaitForIndexing(this IDocumentStore store, int secondsToWait)
+    {
+        var databaseCommands = store.DatabaseCommands;
+        Assert.True(SpinWait.SpinUntil(() => databaseCommands.GetStatistics().StaleIndexes.Length == 0, TimeSpan.FromSeconds(secondsToWait)));
+    }
 }

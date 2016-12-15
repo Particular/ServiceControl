@@ -5,16 +5,18 @@ namespace ServiceControl.Recoverability
     using Nancy;
     using NServiceBus;
     using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceControl.Infrastructure.Extensions;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.MessageFailures.InternalMessages;
+    using ServiceControl.Recoverability.Grouping.Api;
 
     public class FailureGroupsApi : BaseModule
     {
         public IBus Bus { get; set; }
+
+        public GroupFetcher GroupFetcher { get; set; }
 
         public IEnumerable<IFailureClassifier> Classifiers { get; set; }
 
@@ -28,15 +30,38 @@ namespace ServiceControl.Recoverability
 
             Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}"] =
                 parameters => GetAllGroups(parameters.Classifier);
-
-            Head["/recoverability/groups/{classifier?Exception Type and Stack Trace}"] =
-                parameters => GetAllGroupsCount(parameters.Classifier);
-
+            
             Get["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrors(parameters.GroupId);
 
             Head["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrorsCount(parameters.GroupId);
+
+            Get["/recoverability/history/"] =
+            _ => GetRetryHistory();
+
+            Delete["/recoverability/unacknowledgedgroups/{groupId}"] = 
+                parameters => AcknowledgeOperation(parameters);
+        }
+
+        private dynamic AcknowledgeOperation(dynamic parameters)
+        {
+            var groupId = parameters.groupId;
+
+            using (var session = Store.OpenSession())
+            {
+                var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId());
+
+                if (retryHistory != null)
+                {
+                    retryHistory.Acknowledge(groupId, RetryType.FailureGroup);
+                }
+
+                session.Store(retryHistory);
+                session.SaveChanges();
+            }
+
+            return HttpStatusCode.OK;
         }
 
         dynamic ReclassifyErrors()
@@ -60,43 +85,28 @@ namespace ServiceControl.Recoverability
                 .WithTotalCount(classifiers.Length);
         }
 
+        dynamic GetRetryHistory()
+        {
+            using (var session = Store.OpenSession())
+            {
+                var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
+
+                return Negotiate
+                    .WithDeterministicEtag(retryHistory.GetHistoryOperationsUniqueIdentifier())
+                    .WithModel(retryHistory);
+            }
+        }
+
         dynamic GetAllGroups(string classifier)
         {
             using (var session = Store.OpenSession())
             {
-                RavenQueryStatistics stats;
-
-                var results = session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                    .Statistics(out stats)
-                    .Where(v => v.Type == classifier)
-                    .OrderByDescending(x => x.Last)
-                    .Take(200)
-                    .ToArray();
-
+                var results = GroupFetcher.GetGroups(session, classifier);
                 return Negotiate.WithModel(results)
-                    .WithTotalCount(stats)
-                    .WithEtagAndLastModified(stats);
+                    .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
             }
         }
-
-        dynamic GetAllGroupsCount(string classifier)
-        {
-            using (var session = Store.OpenSession())
-            {
-                RavenQueryStatistics stats;
-
-                var results = session
-                    .Query<FailureGroupView, FailureGroupsViewIndex>()
-                    .Where(v => v.Type == classifier)
-                    .Statistics(out stats)
-                    .Count();
-
-                return Negotiate
-                    .WithTotalCount(results)
-                    .WithEtagAndLastModified(stats);
-            }
-        }
-
+       
         dynamic GetGroupErrors(string groupId)
         {
             using (var session = Store.OpenSession())

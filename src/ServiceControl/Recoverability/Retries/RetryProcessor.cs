@@ -27,14 +27,49 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender)
+        public RetryProcessor(ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender, RetryOperationManager retryOperationManager)
         {
             this.sender = sender;
             this.bus = bus;
             this.returnToSender = returnToSender;
+            this.retryOperationManager = retryOperationManager;
         }
 
         public bool ProcessBatches(IDocumentSession session)
+        {
+            return ForwardCurrentBatch(session) || MoveStagedBatchesToForwardingBatch(session);
+        }
+
+        private bool MoveStagedBatchesToForwardingBatch(IDocumentSession session)
+        {
+            isRecoveringFromPrematureShutdown = false;
+
+            var stagingBatch = session.Query<RetryBatch>()
+                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+                .FirstOrDefault(b => b.Status == RetryBatchStatus.Staging);
+
+            if (stagingBatch != null)
+            {
+                redirects = MessageRedirectsCollection.GetOrCreate(session);
+                var stagedMessages = Stage(stagingBatch, session);
+                var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
+                retryOperationManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages);
+
+                if ( stagedMessages > 0)
+                {
+                    session.Store(new RetryBatchNowForwarding
+                    {
+                        RetryBatchId = stagingBatch.Id
+                    }, RetryBatchNowForwarding.Id);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ForwardCurrentBatch(IDocumentSession session)
         {
             var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
                 .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
@@ -52,23 +87,6 @@ namespace ServiceControl.Recoverability
                 return true;
             }
 
-            isRecoveringFromPrematureShutdown = false;
-
-            var stagingBatch = session.Query<RetryBatch>()
-                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
-                .FirstOrDefault(b => b.Status == RetryBatchStatus.Staging);
-
-            if (stagingBatch != null)
-            {
-                redirects = MessageRedirectsCollection.GetOrCreate(session);
-                if (Stage(stagingBatch, session))
-                {
-                    session.Store(new RetryBatchNowForwarding { RetryBatchId = stagingBatch.Id }, RetryBatchNowForwarding.Id);
-                }
-
-                return true;
-            }
-
             return false;
         }
 
@@ -76,18 +94,23 @@ namespace ServiceControl.Recoverability
         {
             var messageCount = forwardingBatch.FailureRetries.Count;
 
+            retryOperationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
+
             if (isRecoveringFromPrematureShutdown)
             {
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId));
+                retryOperationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
             }
-            else if (messageCount > 0)
+            else 
             {
+                
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), messageCount);
+                retryOperationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount);
             }
 
             session.Delete(forwardingBatch);
-
-            Log.Info($"Retry batch {forwardingBatch.Id} done");
+            
+            Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
         }
 
         static Predicate<TransportMessage> IsPartOfStagedBatch(string stagingId)
@@ -99,7 +122,7 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        bool Stage(RetryBatch stagingBatch, IDocumentSession session)
+        int Stage(RetryBatch stagingBatch, IDocumentSession session)
         {
             var stagingId = Guid.NewGuid().ToString();
             var failedMessageRetryDocs = session.Load<FailedMessageRetry>(stagingBatch.FailureRetries);
@@ -121,7 +144,7 @@ namespace ServiceControl.Recoverability
             {
                 Log.Info($"Retry batch {stagingBatch.Id} cancelled as all matching unresolved messages are already marked for retry as part of another batch");
                 session.Delete(stagingBatch);
-                return false;
+                return 0;
             }
 
             var messages = session.Load<FailedMessage>(messageIds)
@@ -129,12 +152,17 @@ namespace ServiceControl.Recoverability
                 .ToArray();
 
             Parallel.ForEach(messages, message => StageMessage(message, stagingId));
-            
-            bus.Publish<MessagesSubmittedForRetry>(m =>
+
+            if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group 
             {
-                m.FailedMessageIds = messages.Select(x => x.UniqueMessageId).ToArray();
-                m.Context = stagingBatch.Context;
-            });
+                bus.Publish<MessagesSubmittedForRetry>(m =>
+                {
+                    var failedIds = messages.Select(x => x.UniqueMessageId).ToArray();
+                    m.FailedMessageIds = failedIds;
+                    m.NumberOfFailedMessages = failedIds.Length;
+                    m.Context = stagingBatch.Context;
+                });
+            }
 
             var msgLookup = messages.ToLookup(x => x.Id);
 
@@ -142,8 +170,8 @@ namespace ServiceControl.Recoverability
             stagingBatch.StagingId = stagingId;
             stagingBatch.FailureRetries = matchingFailures.Where(x => msgLookup[x.FailedMessageId].Any()).Select(x => x.Id).ToArray();
 
-            Log.Info($"Retry batch {stagingBatch.Id} staged {messages.Length} messages");
-            return true;
+            Log.InfoFormat("Retry batch {0} staged {1} messages", stagingBatch.Id, messages.Length);
+            return messages.Length;
         }
 
         void StageMessage(FailedMessage message, string stagingId)
@@ -189,6 +217,7 @@ namespace ServiceControl.Recoverability
         ISendMessages sender;
         IBus bus;
         ReturnToSenderDequeuer returnToSender;
+        RetryOperationManager retryOperationManager;
         private MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
     }

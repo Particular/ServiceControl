@@ -10,6 +10,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using global::Nancy;
     using global::Nancy.Helpers;
     using global::Nancy.Responses.Negotiation;
+    using ServiceControl.Infrastructure;
 
     public static class NegotiatorExtensions
     {
@@ -139,6 +140,18 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             var responseLastModified = stats.IndexTimestamp;
 
             return WithEtagAndLastModified(negotiator, etag, responseLastModified);
+        }
+
+        public static Negotiator WithEtag(this Negotiator negotiator, string etag)
+        {
+            return negotiator
+                .WithHeader("ETag", etag);
+        }
+        
+        public static Negotiator WithDeterministicEtag(this Negotiator negotiator, string data, Etag ravenEtag = null)
+        {
+            var guid = DeterministicGuid.MakeId(data, (ravenEtag ?? Etag.Empty).ToString(), false);
+            return negotiator.WithEtag(guid.ToString());
         }
 
         public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, Etag etag, DateTime responseLastModified)
