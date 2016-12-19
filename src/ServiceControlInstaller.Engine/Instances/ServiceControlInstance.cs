@@ -201,7 +201,11 @@ namespace ServiceControlInstaller.Engine.Instances
             var queueNamesChanged = !(string.Equals(oldSettings.AuditQueue, AuditQueue, StringComparison.OrdinalIgnoreCase)
                                       && string.Equals(oldSettings.ErrorQueue, ErrorQueue, StringComparison.OrdinalIgnoreCase)
                                       && string.Equals(oldSettings.AuditLogQueue, AuditLogQueue, StringComparison.OrdinalIgnoreCase)
-                                      && string.Equals(oldSettings.ErrorLogQueue, ErrorLogQueue, StringComparison.OrdinalIgnoreCase));
+                                      && string.Equals(oldSettings.ErrorLogQueue, ErrorLogQueue, StringComparison.OrdinalIgnoreCase)
+                                      && oldSettings.ForwardErrorMessages == ForwardErrorMessages
+                                      && oldSettings.ForwardAuditMessages == ForwardAuditMessages
+                                      );
+
 
             RecreateUrlAcl(oldSettings);
 
