@@ -141,6 +141,7 @@
     <Compile Include="Operations\UpdateLicenseEnricherTest.cs" />
     <Compile Include="Recoverability\ExceptionTypeAndStackTraceFailureClassifierTest.cs" />
     <Compile Include="Recoverability\MessageTypeFailureClassifierTest.cs" />
+    <Compile Include="Recoverability\ReturnToSenderDequeuerTests.cs" />
     <Compile Include="SagaAudit\SagaDetailsIndexTests.cs" />
     <Compile Include="SagaAudit\SagaListIndexTests.cs" />
   </ItemGroup>

@@ -56,7 +56,7 @@ namespace ServiceControl.Recoverability
         {
             if (shouldProcess(message))
             {
-                HandleMessage(message);
+                HandleMessage(message, bodyStorage, sender);
 
                 if (IsCounting)
                 {
@@ -84,7 +84,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        void HandleMessage(TransportMessage message)
+        public static void HandleMessage(TransportMessage message, IBodyStorage bodyStorage, ISendMessages sender) //Public for testing
         {
             message.Headers.Remove("ServiceControl.Retry.StagingId");
             
