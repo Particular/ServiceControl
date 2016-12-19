@@ -44,13 +44,13 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .When(x => x.SubmitAttempted);
 
-            RuleFor(x => x.AuditForwardingQueueName).NotEmpty()
-                .NotEmpty().When(t => t.AuditForwarding != null)
+            RuleFor(x => x.AuditForwardingQueueName)
+                .NotEmpty()
                 .NotEqual(x => x.ErrorQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error")
                 .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")
                 .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
                 .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .When(x => x.SubmitAttempted && x.ErrorForwarding.Value);
+                .When(x => x.SubmitAttempted && x.AuditForwarding.Value);
 
             RuleFor(x => x.ConnectionString)
                .NotEmpty().WithMessage(Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)

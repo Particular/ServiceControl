@@ -117,10 +117,12 @@
             }
         }
 
+        public string TransportWarning => SelectedTransport?.Help;
+
         public string ConnectionString { get; set; }
 
         // ReSharper disable once UnusedMember.Global
-        public string SampleConnectionString => SelectedTransport != null ? SelectedTransport.SampleConnectionString : string.Empty;
+        public string SampleConnectionString => SelectedTransport?.SampleConnectionString;
 
         // ReSharper disable once UnusedMember.Global
         public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);

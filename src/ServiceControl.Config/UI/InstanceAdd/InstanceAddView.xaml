@@ -130,6 +130,10 @@
                                       Visibility="{Binding ShowConnectionString,
                                                            Converter={StaticResource boolToVis}}" />
 
+                <controls:FormWarningTextBlock 
+                                           Text="{Binding TransportWarning}" 
+                                           Visibility="{Binding Path=(cm:IDataErrorInfo.Error), Converter={StaticResource nullOrEmptyToVisInverted}}" />
+                
                 <TextBlock FontSize="14px"
                            Foreground="{StaticResource Gray60Brush}"
                            Text="SAMPLE CONNECTION STRING"

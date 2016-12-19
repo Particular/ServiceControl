@@ -38,6 +38,7 @@
             Cancel = Command.Create(() =>
             {
                 TryClose(false);
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
             }, () => !InProgress);
         }
 
