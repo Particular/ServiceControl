@@ -14,7 +14,7 @@ namespace ServiceControl.HeartbeatMonitoring
     using ServiceControl.HeartbeatMonitoring.InternalMessages;
     using ServiceControl.Infrastructure;
 
-    class HeartbeatsMonitor: Feature
+    class HeartbeatsMonitor : Feature
     {
         public HeartbeatsMonitor()
         {
@@ -32,70 +32,62 @@ namespace ServiceControl.HeartbeatMonitoring
 
         class HeartbeatMonitor : FeatureStartupTask
         {
-            public IBus Bus { get; set; }
+            IBus bus;
+            HeartbeatStatusProvider statusProvider;
+            TimeKeeper timeKeeper;
+            Timer timer;
+            static ILog log = LogManager.GetLogger<HeartbeatMonitor>();
 
-            public HeartbeatStatusProvider HeartbeatStatusProvider { get; set; }
-
-            static readonly ILog log = LogManager.GetLogger<HeartbeatMonitor>();
+            public HeartbeatMonitor(IBus bus, HeartbeatStatusProvider statusProvider, TimeKeeper timeKeeper)
+            {
+                this.bus = bus;
+                this.statusProvider = statusProvider;
+                this.timeKeeper = timeKeeper;
+            }
 
 
             protected override void OnStart()
             {
-                timer = new Timer(Refresh, null, 0, -1);
+                timer = timeKeeper.NewTimer(Refresh, TimeSpan.Zero, TimeSpan.FromSeconds(5));
             }
 
             protected override void OnStop()
             {
-                using (var manualResetEvent = new ManualResetEvent(false))
-                {
-                    timer.Dispose(manualResetEvent);
-
-                    manualResetEvent.WaitOne();
-                }
+                timeKeeper.Release(timer);
             }
 
-            void Refresh(object _)
+            bool Refresh()
             {
-                UpdateStatuses();
-
                 try
                 {
-                    timer.Change((int)TimeSpan.FromSeconds(5).TotalMilliseconds, -1);
+                    UpdateStatuses();
                 }
-                catch (ObjectDisposedException)
+                catch (Exception ex)
                 {
-                    //Because of the race condition between timer.Dispose and timer.Change
+                    log.Error("Error when trying to alert about potential missing heartbeat.", ex);
                 }
+                return true;
             }
 
             void UpdateStatuses()
             {
                 var now = DateTime.UtcNow;
 
-                foreach (var failingEndpoint in HeartbeatStatusProvider.GetPotentiallyFailedEndpoints(now))
+                foreach (var failingEndpoint in statusProvider.GetPotentiallyFailedEndpoints(now))
                 {
                     var id = DeterministicGuid.MakeId(failingEndpoint.Details.Name, failingEndpoint.Details.HostId.ToString());
 
-                    try
+                    bus.SendLocal(new RegisterPotentiallyMissingHeartbeats
                     {
-                        Bus.SendLocal(new RegisterPotentiallyMissingHeartbeats
-                        {
-                            EndpointInstanceId = id,
-                            DetectedAt = now,
-                            LastHeartbeatAt = failingEndpoint.LastHeartbeatAt
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error($"Error when trying to alert about potential missing heartbeat from endpoint {failingEndpoint.Details.Name}.", ex);
-                    }
+                        EndpointInstanceId = id,
+                        DetectedAt = now,
+                        LastHeartbeatAt = failingEndpoint.LastHeartbeatAt
+                    });
                 }
             }
-
-            Timer timer;
         }
 
-        class StatusInitialiser: FeatureStartupTask
+        class StatusInitialiser : FeatureStartupTask
         {
             readonly IDocumentStore store;
             readonly HeartbeatStatusProvider statusProvider;
@@ -114,7 +106,7 @@ namespace ServiceControl.HeartbeatMonitoring
             protected override void OnStop()
             {
                 if (task != null && !task.IsCompleted)
-                {                   
+                {
                     task.Wait();
                 }
             }
