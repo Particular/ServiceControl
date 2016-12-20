@@ -8,6 +8,7 @@ namespace ServiceControl.HeartbeatMonitoring
     using EndpointControl;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Logging;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.HeartbeatMonitoring.InternalMessages;
@@ -35,6 +36,8 @@ namespace ServiceControl.HeartbeatMonitoring
 
             public HeartbeatStatusProvider HeartbeatStatusProvider { get; set; }
 
+            static readonly ILog log = LogManager.GetLogger<HeartbeatMonitor>();
+
 
             protected override void OnStart()
             {
@@ -61,6 +64,7 @@ namespace ServiceControl.HeartbeatMonitoring
                 }
                 catch (ObjectDisposedException)
                 {
+                    //Because of the race condition between timer.Dispose and timer.Change
                 }
             }
 
@@ -72,12 +76,19 @@ namespace ServiceControl.HeartbeatMonitoring
                 {
                     var id = DeterministicGuid.MakeId(failingEndpoint.Details.Name, failingEndpoint.Details.HostId.ToString());
 
-                    Bus.SendLocal(new RegisterPotentiallyMissingHeartbeats
+                    try
                     {
-                        EndpointInstanceId = id,
-                        DetectedAt = now,
-                        LastHeartbeatAt = failingEndpoint.LastHeartbeatAt
-                    });
+                        Bus.SendLocal(new RegisterPotentiallyMissingHeartbeats
+                        {
+                            EndpointInstanceId = id,
+                            DetectedAt = now,
+                            LastHeartbeatAt = failingEndpoint.LastHeartbeatAt
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error($"Error when trying to alert about potential missing heartbeat from endpoint {failingEndpoint.Details.Name}.", ex);
+                    }
                 }
             }
 
