@@ -155,7 +155,7 @@
 
             protected override void OnStop()
             {
-                abortProcessing = true;
+                shuttingDown.Cancel();
                 timeKeeper.Release(timer);
             }
 
@@ -168,10 +168,10 @@
                     {
                         using (var session = store.OpenSession())
                         {
-                            batchesProcessed = processor.ProcessBatches(session);
+                            batchesProcessed = processor.ProcessBatches(session, shuttingDown.Token);
                             session.SaveChanges();
                         }
-                    } while (batchesProcessed && !abortProcessing);
+                    } while (batchesProcessed && !shuttingDown.IsCancellationRequested);
                 }
                 catch (Exception ex)
                 {
@@ -182,7 +182,7 @@
             IDocumentStore store;
             RetryProcessor processor;
             private readonly TimeKeeper timeKeeper;
-            private bool abortProcessing;
+            private CancellationTokenSource shuttingDown = new CancellationTokenSource();
         }
     }
 }
