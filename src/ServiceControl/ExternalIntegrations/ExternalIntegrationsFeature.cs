@@ -1,24 +1,26 @@
 namespace ServiceControl.ExternalIntegrations
 {
+    using System.Linq;
     using NServiceBus;
     using NServiceBus.Features;
+    using ServiceControl.ExternalIntegrations.Config;
 
     class ExternalIntegrationsFeature : Feature
     {
         public ExternalIntegrationsFeature()
         {
             EnableByDefault();
-            RegisterStartupTask<EventDispatcher>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            var eventPublisherTypes = context.Settings.GetAvailableTypes().Implementing<IEventPublisher>();
+            var adaptersConfig = AdapterConfigurationSection.GetAdapters();
 
-            foreach (var eventPublisherType in eventPublisherTypes)
-            {
-                context.Container.ConfigureComponent(eventPublisherType, DependencyLifecycle.SingleInstance);
-            }
+            var adapters = adaptersConfig.Adapters.Cast<AdapterElement>().Select(e => e.Name);
+
+            var integrationEndpoints = adapters.Select(a => $"{a}.integration").ToArray();
+
+            context.Container.ConfigureComponent(b => new IntegrationEventSender(b.Build<IBus>(), integrationEndpoints), DependencyLifecycle.SingleInstance);
         }
     }
 }

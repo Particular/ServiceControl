@@ -1,42 +1,19 @@
 namespace ServiceControl.ExternalIntegrations
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Raven.Client;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
 
-    public class HeartbeatRestoredPublisher : EventPublisher<EndpointHeartbeatRestored, HeartbeatRestoredPublisher.DispatchContext>
+    public class HeartbeatRestoredPublisher : EventPublisher<EndpointHeartbeatRestored, HeartbeatRestored>
     {
-        protected override DispatchContext CreateDispatchRequest(EndpointHeartbeatRestored @event)
+        protected override HeartbeatRestored Convert(EndpointHeartbeatRestored message)
         {
-            return new DispatchContext
+            return new HeartbeatRestored
             {
-                EndpointHost = @event.Endpoint.Host,
-                EndpointHostId = @event.Endpoint.HostId,
-                EndpointName = @event.Endpoint.Name,
-                RestoredAt = @event.RestoredAt,
+                RestoredAt = message.RestoredAt,
+                Host = message.Endpoint.Host,
+                HostId = message.Endpoint.HostId,
+                EndpointName = message.Endpoint.Name
             };
-        }
-
-        protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
-        {
-            return contexts.Select(r => new HeartbeatRestored
-            {
-                RestoredAt = r.RestoredAt,
-                Host = r.EndpointHost,
-                HostId = r.EndpointHostId,
-                EndpointName = r.EndpointName
-            });
-        }
-
-        public class DispatchContext
-        {
-            public string EndpointName { get; set; }
-            public Guid EndpointHostId { get; set; }
-            public string EndpointHost { get; set; }
-            public DateTime RestoredAt { get; set; }
         }
     }
 }

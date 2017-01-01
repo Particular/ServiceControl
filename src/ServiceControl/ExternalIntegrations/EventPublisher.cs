@@ -1,30 +1,18 @@
 namespace ServiceControl.ExternalIntegrations
 {
-    using System.Collections.Generic;
-    using System.Linq;
     using NServiceBus;
-    using Raven.Client;
 
-    public abstract class EventPublisher<TEvent, TDispatchContext> :IEventPublisher
-        where TEvent : IEvent
+    public abstract class EventPublisher<TInternalEvent, TPublicEvent> : IHandleMessages<TInternalEvent>
+        where TInternalEvent : IEvent
     {
-        public bool Handles(IEvent @event)
+        public IntegrationEventSender EventSender { get; set; }
+
+        public void Handle(TInternalEvent message)
         {
-            return @event is TEvent;
+            var publicEvent = Convert(message);
+            EventSender.Send(publicEvent);
         }
 
-        public object CreateDispatchContext(IEvent @event)
-        {
-            return CreateDispatchRequest((TEvent)@event);
-        }
-
-        protected abstract TDispatchContext CreateDispatchRequest(TEvent @event);
-
-        public IEnumerable<object> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IDocumentSession session)
-        {
-            return PublishEvents(allContexts.OfType<TDispatchContext>(), session);
-        }
-
-        protected abstract IEnumerable<object> PublishEvents(IEnumerable<TDispatchContext> contexts, IDocumentSession session);
+        protected abstract TPublicEvent Convert(TInternalEvent message);
     }
 }
