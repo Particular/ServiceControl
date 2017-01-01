@@ -65,7 +65,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")
                 .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
                 .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .When(x => x.SubmitAttempted && x.AuditForwarding.Value);
+                .When(x => x.SubmitAttempted && (x.AuditForwarding?.Value ?? false ));
 
             RuleFor(x => x.ConnectionString)
                 .NotEmpty().WithMessage(Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
