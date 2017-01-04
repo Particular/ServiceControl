@@ -28,6 +28,7 @@
         private IDisposable subscription;
         private Task task;
         private CancellationTokenSource tokenSource;
+        private Etag latestEtag = Etag.Empty;
 
         public EventDispatcher(IDocumentStore store, IBus bus, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
         {
@@ -63,6 +64,7 @@
 
         private void OnNext(DocumentChangeNotification documentChangeNotification)
         {
+            latestEtag = Etag.Max(documentChangeNotification.Etag, latestEtag);
             signal.Set();
         }
 
@@ -124,11 +126,13 @@
         {
             using (var session = store.OpenSession())
             {
-                var awaitingDispatching = session.Query<ExternalIntegrationDispatchRequest>().Take(settings.ExternalIntegrationsDispatchingBatchSize).ToArray();
+                RavenQueryStatistics stats;
+                var awaitingDispatching = session.Query<ExternalIntegrationDispatchRequest>().Statistics(out stats).Take(settings.ExternalIntegrationsDispatchingBatchSize).ToArray();
 
                 if (awaitingDispatching.Length == 0)
                 {
-                    return false;
+                    // If the index hasn't caught up, try again
+                    return stats.IndexEtag.CompareTo(latestEtag) < 0;
                 }
 
                 var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
