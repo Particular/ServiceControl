@@ -25,7 +25,7 @@ namespace ServiceControl.Recoverability
         bool endedPrematurelly;
         int? targetMessageCount;
         int actualMessageCount;
-        Predicate<TransportMessage> shouldProcess; 
+        Predicate<TransportMessage> shouldProcess;
         readonly ISendMessages sender;
         CaptureIfMessageSendingFails faultManager;
         IBodyStorage bodyStorage;
@@ -56,7 +56,7 @@ namespace ServiceControl.Recoverability
         {
             if (shouldProcess(message))
             {
-                HandleMessage(message);
+                HandleMessage(message, bodyStorage, sender);
 
                 if (IsCounting)
                 {
@@ -84,13 +84,10 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        void HandleMessage(TransportMessage message)
+        public static void HandleMessage(TransportMessage message, IBodyStorage bodyStorage, ISendMessages sender) //Public for testing
         {
-            var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
-
-            message.Headers.Remove("ServiceControl.TargetEndpointAddress");
             message.Headers.Remove("ServiceControl.Retry.StagingId");
-
+            
             string attemptMessageId;
             if (message.Headers.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out attemptMessageId))
             {
@@ -104,10 +101,17 @@ namespace ServiceControl.Recoverability
                 }
                 message.Headers.Remove("ServiceControl.Retry.Attempt.MessageId");
             }
-
+            var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
             try
             {
-                sender.Send(message, new SendOptions(destination));
+                string retryTo;
+                if (!message.Headers.TryGetValue("ServiceControl.RetryTo", out retryTo))
+                {
+                    retryTo = destination;
+                    message.Headers.Remove("ServiceControl.TargetEndpointAddress");
+                }
+
+                sender.Send(message, new SendOptions(retryTo));
             }
             catch (Exception)
             {

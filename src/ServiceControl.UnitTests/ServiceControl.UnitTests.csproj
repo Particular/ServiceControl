@@ -145,6 +145,7 @@
     <Compile Include="Recoverability\RetryOperationTests.cs" />
     <Compile Include="Recoverability\RetryOperationProgressCalculatorTests.cs" />
     <Compile Include="Recoverability\MessageTypeFailureClassifierTest.cs" />
+    <Compile Include="Recoverability\ReturnToSenderDequeuerTests.cs" />
     <Compile Include="SagaAudit\SagaDetailsIndexTests.cs" />
     <Compile Include="SagaAudit\SagaListIndexTests.cs" />
   </ItemGroup>
