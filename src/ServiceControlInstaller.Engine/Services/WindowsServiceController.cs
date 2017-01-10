@@ -5,6 +5,7 @@ namespace ServiceControlInstaller.Engine.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Management;
+    using System.Security;
     using System.ServiceProcess;
     using System.Text.RegularExpressions;
     using Microsoft.Win32;
@@ -244,18 +245,25 @@ namespace ServiceControlInstaller.Engine.Services
                 {
                     foreach (var serviceName in servicesBaseKey.GetSubKeyNames())
                     {
-                        using (var serviceKey = servicesBaseKey.OpenSubKey(serviceName))
+                        RegistryKey serviceKey = null;
+                        try
                         {
-                            if (serviceKey == null)
+                            try
                             {
-                                continue;
+                                serviceKey = servicesBaseKey.OpenSubKey(serviceName);
+                                if (serviceKey == null)
+                                    continue;
                             }
-
-                            var entryType = (int)serviceKey.GetValue("Type", 0);
+                            catch(SecurityException)
+                            {
+                               continue;                           
+                            }
+                           
+                            var entryType = (int) serviceKey.GetValue("Type", 0);
                             if (entryType == 1) // driver not a service
                                 continue;
 
-                            var imagePath = serviceKey.GetValue("ImagePath", null) as String;
+                            var imagePath = serviceKey.GetValue("ImagePath", null) as string;
                             if (imagePath == null)
                                 continue;
 
@@ -265,6 +273,10 @@ namespace ServiceControlInstaller.Engine.Services
                                 imagePath = match.Groups["PATH"].Value;
                                 yield return new WindowsServiceController(serviceName, imagePath);
                             }
+                        }
+                        finally
+                        {
+                            serviceKey?.Dispose();
                         }
                     }
                 }
