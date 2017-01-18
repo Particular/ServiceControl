@@ -3,6 +3,7 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -35,9 +36,9 @@ namespace ServiceControl.Recoverability
             this.retryOperationManager = retryOperationManager;
         }
 
-        public bool ProcessBatches(IDocumentSession session)
+        public bool ProcessBatches(IDocumentSession session, CancellationToken cancellationToken)
         {
-            return ForwardCurrentBatch(session) || MoveStagedBatchesToForwardingBatch(session);
+            return ForwardCurrentBatch(session, cancellationToken) || MoveStagedBatchesToForwardingBatch(session);
         }
 
         private bool MoveStagedBatchesToForwardingBatch(IDocumentSession session)
@@ -69,7 +70,7 @@ namespace ServiceControl.Recoverability
             return false;
         }
 
-        private bool ForwardCurrentBatch(IDocumentSession session)
+        private bool ForwardCurrentBatch(IDocumentSession session, CancellationToken cancellationToken)
         {
             var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
                 .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
@@ -80,7 +81,7 @@ namespace ServiceControl.Recoverability
 
                 if (forwardingBatch != null)
                 {
-                    Forward(forwardingBatch, session);
+                    Forward(forwardingBatch, session, cancellationToken);
                 }
 
                 session.Delete(nowForwarding);
@@ -90,7 +91,7 @@ namespace ServiceControl.Recoverability
             return false;
         }
 
-        void Forward(RetryBatch forwardingBatch, IDocumentSession session)
+        void Forward(RetryBatch forwardingBatch, IDocumentSession session, CancellationToken cancellationToken)
         {
             var messageCount = forwardingBatch.FailureRetries.Count;
 
@@ -98,18 +99,18 @@ namespace ServiceControl.Recoverability
 
             if (isRecoveringFromPrematureShutdown)
             {
-                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId));
+                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken);
                 retryOperationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
             }
-            else 
+            else
             {
-                
-                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), messageCount);
+
+                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount);
                 retryOperationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount);
             }
 
             session.Delete(forwardingBatch);
-            
+
             Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
         }
 
@@ -153,7 +154,7 @@ namespace ServiceControl.Recoverability
 
             Parallel.ForEach(messages, message => StageMessage(message, stagingId));
 
-            if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group 
+            if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
                 bus.Publish<MessagesSubmittedForRetry>(m =>
                 {

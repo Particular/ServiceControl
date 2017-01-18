@@ -15,6 +15,7 @@ using NServiceBus.ObjectBuilder.Common;
 
 namespace ServiceControl.UnitTests.Recoverability
 {
+    using System.Threading;
     using ServiceControl.Operations.BodyStorage;
 
     [TestFixture]
@@ -95,7 +96,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 using (var session = documentStore.OpenSession())
                 {
-                    processor.ProcessBatches(session); // mark ready
+                    processor.ProcessBatches(session, CancellationToken.None); // mark ready
                     session.SaveChanges();
 
 
@@ -111,7 +112,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
                     processor = new RetryProcessor(sender, testBus, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, testBus, configure), retryManager);
 
-                    processor.ProcessBatches(session);
+                    processor.ProcessBatches(session, CancellationToken.None);
                     session.SaveChanges();
                 }
 
@@ -148,10 +149,10 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 using (var session = documentStore.OpenSession())
                 {
-                    processor.ProcessBatches(session); // mark ready
+                    processor.ProcessBatches(session, CancellationToken.None); // mark ready
                     session.SaveChanges();
 
-                    processor.ProcessBatches(session);
+                    processor.ProcessBatches(session, CancellationToken.None);
                     session.SaveChanges();
                 }
 
@@ -190,10 +191,10 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 using (var session = documentStore.OpenSession())
                 {
-                    processor.ProcessBatches(session); // mark ready
+                    processor.ProcessBatches(session, CancellationToken.None); // mark ready
                     session.SaveChanges();
 
-                    processor.ProcessBatches(session);
+                    processor.ProcessBatches(session, CancellationToken.None);
                     session.SaveChanges();
                 }
 
@@ -291,7 +292,7 @@ namespace ServiceControl.UnitTests.Recoverability
         {
         }
 
-        public override void Run(Predicate<TransportMessage> filter, int? expectedMessageCount = default(int?))
+        public override void Run(Predicate<TransportMessage> filter, CancellationToken token, int? expectedMessageCount = default(int?))
         {
             // NOOP
         }

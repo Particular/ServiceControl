@@ -142,7 +142,7 @@ namespace ServiceControl.Recoverability
         {
         }
 
-        public virtual void Run(Predicate<TransportMessage> filter, int? expectedMessageCount = null)
+        public virtual void Run(Predicate<TransportMessage> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
         {
             try
             {
@@ -164,10 +164,10 @@ namespace ServiceControl.Recoverability
             }
             finally
             {
-                resetEvent.Wait();
+                resetEvent.Wait(cancellationToken);
             }
 
-            if (endedPrematurelly)
+            if (endedPrematurelly || cancellationToken.IsCancellationRequested)
             {
                 throw new Exception("We are in the process of shutting down. Safe to ignore.");
             }
