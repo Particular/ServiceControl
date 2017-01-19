@@ -87,7 +87,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ServiceControlInstaller.Powershell.dll-help.xml" />
+    <Content Include="ServiceControlInstaller.Powershell.dll-help.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="ServiceControlMgmt.psd1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
