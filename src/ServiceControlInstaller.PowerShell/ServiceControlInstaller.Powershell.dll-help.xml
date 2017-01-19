@@ -1069,10 +1069,8 @@ Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 				<maml:name>ErrorRetentionPeriod</maml:name>
 				<maml:description>
 					<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  
-The retention policy does not remove error messages that still in the unresolved state.
+The retention policy does not remove error messages that are in an unresolved state.
 The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
-					<maml:para>
-</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">TimeSpan</command:parameterValue>
 			</command:parameter>
@@ -1337,10 +1335,8 @@ Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 			<maml:name>ErrorRetentionPeriod</maml:name>
 			<maml:description>
 				<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  
-The retention policy does not remove error messages that still in the unresolved state.
+The retention policy does not remove error messages that are in an unresolved state.
 The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
-				<maml:para>
-</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">TimeSpan</command:parameterValue>
 			<dev:type>
@@ -1775,8 +1771,9 @@ Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 				<maml:name>ErrorRetentionPeriod</maml:name>
 				<maml:description>
 					<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  
-The retention policy does not remove error messages that still in the unresolved state.
-The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
+The retention policy does not remove error messages that are in an unresolved state.
+The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.
+</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">TimeSpan</command:parameterValue>
 			</command:parameter>
@@ -2016,8 +2013,9 @@ Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 			<maml:name>ErrorRetentionPeriod</maml:name>
 			<maml:description>
 				<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  
-The retention policy does not remove error messages that still in the unresolved state.
-The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
+The retention policy does not remove error messages that are in an unresolved state.
+The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.
+</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">TimeSpan</command:parameterValue>
 			<dev:type>
