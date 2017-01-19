@@ -923,7 +923,7 @@ The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-T
 			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Name</maml:name>
 				<maml:description>
-					<maml:para>The name of the ServiceControl instance.  This will be used as the Windows Service Name.  The name must be unique for all Windows services and not contain any spaces or special characters.</maml:para>
+					<maml:para>The name of the ServiceControl Instance.  This will be used as the Windows Service Name.  The name must be unique for all Windows Services and must not contain any spaces or special characters.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -951,7 +951,7 @@ The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-T
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>HostName</maml:name>
 				<maml:description>
-					<maml:para>The hostname to use in the URLACL.  Anyone who can access the ServiceControl URL has complete access to the message data stored within ServiceControl. This is why the default is to restrict this to localhost. Consider carefully the implications of exposing ServiceControl via a custom or wildcard URI.</maml:para>
+					<maml:para>The hostname to use in the URLACL (defaults to localhost).  Anyone who can access the ServiceControl URL has complete access to the message data stored within ServiceControl. The default is to only respond to the localhost. Consider carefully the implications of exposing ServiceControl via a custom or wildcard URL.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -980,14 +980,14 @@ The allowed port range is 1 to 49151. </maml:para>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>ErrorLogQueue</maml:name>
 				<maml:description>
-					<maml:para>The queue that error messages will be forwarded to if ForwardErrorMessages is enabled. See  ForwardErrorMessages for more information.</maml:para>
+					<maml:para>The queue that error messages will be forwarded to if ForwardErrorMessages is enabled. See ForwardErrorMessages for more information.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>AuditLogQueue</maml:name>
 				<maml:description>
-					<maml:para>The queue that audit messages will be forwarded to if ForwardAuditMessages is enabled. See  ForwardAuditMessages for more information. </maml:para>
+					<maml:para>The queue that audit messages will be forwarded to if ForwardAuditMessages is enabled. See ForwardAuditMessages for more information. </maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -1055,7 +1055,7 @@ When specifying Active Directory Group Managed Service Accounts use single quote
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>ServiceAccountPassword</maml:name>
 				<maml:description>
-					<maml:para>The password for the Service Account.  When using LocalSystem, LocalService,, NetworkService or an Active Directory Group Managed Service Account no password should be specified.</maml:para>
+					<maml:para>The password for the Service Account.  When using LocalSystem, LocalService, NetworkService or an Active Directory Group Managed Service Account no password should be specified.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -1089,7 +1089,7 @@ The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-T
 		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Name</maml:name>
 			<maml:description>
-				<maml:para>The name of the ServiceControl instance.  This will be used as the Windows Service Name.  The name must be unique for all Windows services and not contain any spaces or special characters.</maml:para>
+				<maml:para>The name of the ServiceControl Instance.  This will be used as the Windows Service Name.  The name must be unique for all Windows Services and must not contain any spaces or special characters.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1137,7 +1137,7 @@ The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-T
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>HostName</maml:name>
 			<maml:description>
-				<maml:para>The hostname to use in the URLACL.  Anyone who can access the ServiceControl URL has complete access to the message data stored within ServiceControl. This is why the default is to restrict this to localhost. Consider carefully the implications of exposing ServiceControl via a custom or wildcard URI.</maml:para>
+				<maml:para>The hostname to use in the URLACL (defaults to localhost).  Anyone who can access the ServiceControl URL has complete access to the message data stored within ServiceControl. The default is to only respond to the localhost. Consider carefully the implications of exposing ServiceControl via a custom or wildcard URL.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1186,7 +1186,7 @@ The allowed port range is 1 to 49151. </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>ErrorLogQueue</maml:name>
 			<maml:description>
-				<maml:para>The queue that error messages will be forwarded to if ForwardErrorMessages is enabled. See  ForwardErrorMessages for more information.</maml:para>
+				<maml:para>The queue that error messages will be forwarded to if ForwardErrorMessages is enabled. See ForwardErrorMessages for more information.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1198,7 +1198,7 @@ The allowed port range is 1 to 49151. </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>AuditLogQueue</maml:name>
 			<maml:description>
-				<maml:para>The queue that audit messages will be forwarded to if ForwardAuditMessages is enabled. See  ForwardAuditMessages for more information. </maml:para>
+				<maml:para>The queue that audit messages will be forwarded to if ForwardAuditMessages is enabled. See ForwardAuditMessages for more information. </maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1311,7 +1311,7 @@ When specifying Active Directory Group Managed Service Accounts use single quote
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>ServiceAccountPassword</maml:name>
 			<maml:description>
-				<maml:para>The password for the Service Account.  When using LocalSystem, LocalService,, NetworkService or an Active Directory Group Managed Service Account no password should be specified.</maml:para>
+				<maml:para>The password for the Service Account.  When using LocalSystem, LocalService, NetworkService or an Active Directory Group Managed Service Account no password should be specified.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1419,7 +1419,7 @@ New-ServiceControlInstance -Name &apos;ServiceControlTest&apos; `
 				<maml:para>Add a servicecontrol instance </maml:para>
 				<maml:para />
 				<maml:para />
-				<maml:para>WARNING: ServiceAccountset to default value &apos;LocalSystem&apos;
+				<maml:para>WARNING: ServiceAccount set to default value &apos;LocalSystem&apos;
 VERBOSE: Installing Service Control instance...
 
 
@@ -1459,7 +1459,7 @@ Version              : 1.33.0</maml:para>
 		<command:name>New-ServiceControlInstanceFromUnattendedFile</command:name>
 		<maml:description>
 			<maml:para>Create an instance from an unattended install file</maml:para>
-			<maml:para>DEPRECATED - This cmdlet  will be removed in a future version. To automate an installation the preferred approach is to use New-ServiceControlInstance instead of the unattended install fle.
+			<maml:para>DEPRECATED - This cmdlet  will be removed in a future version. To automate an installation the preferred approach is to use New-ServiceControlInstance instead of the unattended install file.
 </maml:para>
 		</maml:description>
 		<maml:copyright>
@@ -1494,7 +1494,7 @@ When specifying Active Directory Group Managed Service Accounts use single quote
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="2">
 				<maml:name>Password</maml:name>
 				<maml:description>
-					<maml:para>The password for the Service Account.  When using LocalSystem, LocalService,, NetworkService or an Active Directory Group Managed Service Account no password should be specified.</maml:para>
+					<maml:para>The password for the Service Account.  When using LocalSystem, LocalService, NetworkService or an Active Directory Group Managed Service Account no password should be specified.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -1536,7 +1536,7 @@ When specifying Active Directory Group Managed Service Accounts use single quote
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="2">
 			<maml:name>Password</maml:name>
 			<maml:description>
-				<maml:para>The password for the Service Account.  When using LocalSystem, LocalService,, NetworkService or an Active Directory Group Managed Service Account no password should be specified.</maml:para>
+				<maml:para>The password for the Service Account.  When using LocalSystem, LocalService, NetworkService or an Active Directory Group Managed Service Account no password should be specified.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1621,7 +1621,7 @@ When specifying Active Directory Group Managed Service Accounts use single quote
 		<command:name>New-ServiceControlUnattendedFile</command:name>
 		<maml:description>
 			<maml:para>Create an instance from an unattended install file.</maml:para>
-			<maml:para>DEPRECATED - This cmdlet  will be removed in a future version. To automate an installation the preferred approach is to use New-ServiceControlInstance instead of the unattended install fle.</maml:para>
+			<maml:para>DEPRECATED - This cmdlet  will be removed in a future version. To automate an installation the preferred approach is to use New-ServiceControlInstance instead of the unattended install file.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -1640,7 +1640,7 @@ When specifying Active Directory Group Managed Service Accounts use single quote
 			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Name</maml:name>
 				<maml:description>
-					<maml:para>The name of the ServiceControl Instance.  This will be used as the Windows Service Name.  The name must be unique for all Windows services and not contain any spaces or special characters.</maml:para>
+					<maml:para>The name of the ServiceControl Instance.  This will be used as the Windows Service Name.  The name must be unique for all Windows Services and must not contain any spaces or special characters.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -1668,7 +1668,7 @@ When specifying Active Directory Group Managed Service Accounts use single quote
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>HostName</maml:name>
 				<maml:description>
-					<maml:para>The hostname to use in the URLACL (defaults to localhost).  Anyone who can access the ServiceControl URL has complete access to the message data stored within ServiceControl. This is why the default is to only respond to the localhost. Consider carefully the implications of exposing ServiceControl via a custom or wildcard URL.</maml:para>
+					<maml:para>The hostname to use in the URLACL (defaults to localhost).  Anyone who can access the ServiceControl URL has complete access to the message data stored within ServiceControl. The default is to only respond to the localhost. Consider carefully the implications of exposing ServiceControl via a custom or wildcard URL.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -1697,14 +1697,14 @@ The allowed port range is 1 to 49151. </maml:para>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>ErrorLogQueue</maml:name>
 				<maml:description>
-					<maml:para>The queue that error messages will be forwarded to if ForwardErrorMessages is enabled. See  ForwardErrorMessages for more information </maml:para>
+					<maml:para>The queue that error messages will be forwarded to if ForwardErrorMessages is enabled. See ForwardErrorMessages for more information </maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>AuditLogQueue</maml:name>
 				<maml:description>
-					<maml:para>The queue that audit messages will be forwarded to if ForwardAuditMessages is enabled. See  ForwardAuditMessages for more information </maml:para>
+					<maml:para>The queue that audit messages will be forwarded to if ForwardAuditMessages is enabled. See ForwardAuditMessages for more information </maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -1792,7 +1792,7 @@ The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-T
 		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Name</maml:name>
 			<maml:description>
-				<maml:para>The name of the ServiceControl Instance.  This will be used as the Windows Service Name.  The name must be unique for all Windows services and not contain any spaces or special characters.</maml:para>
+				<maml:para>The name of the ServiceControl Instance.  This will be used as the Windows Service Name.  The name must be unique for all Windows Services and must not contain any spaces or special characters.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1840,7 +1840,7 @@ The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-T
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>HostName</maml:name>
 			<maml:description>
-				<maml:para>The hostname to use in the URLACL (defaults to localhost).  Anyone who can access the ServiceControl URL has complete access to the message data stored within ServiceControl. This is why the default is to only respond to the localhost. Consider carefully the implications of exposing ServiceControl via a custom or wildcard URL.</maml:para>
+				<maml:para>The hostname to use in the URLACL (defaults to localhost).  Anyone who can access the ServiceControl URL has complete access to the message data stored within ServiceControl. The default is to only respond to the localhost. Consider carefully the implications of exposing ServiceControl via a custom or wildcard URL.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1889,7 +1889,7 @@ The allowed port range is 1 to 49151. </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>ErrorLogQueue</maml:name>
 			<maml:description>
-				<maml:para>The queue that error messages will be forwarded to if ForwardErrorMessages is enabled. See  ForwardErrorMessages for more information </maml:para>
+				<maml:para>The queue that error messages will be forwarded to if ForwardErrorMessages is enabled. See ForwardErrorMessages for more information </maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1901,7 +1901,7 @@ The allowed port range is 1 to 49151. </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>AuditLogQueue</maml:name>
 			<maml:description>
-				<maml:para>The queue that audit messages will be forwarded to if ForwardAuditMessages is enabled. See  ForwardAuditMessages for more information </maml:para>
+				<maml:para>The queue that audit messages will be forwarded to if ForwardAuditMessages is enabled. See ForwardAuditMessages for more information </maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
