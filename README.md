@@ -1,12 +1,7 @@
-ServiceControl
+ServiceControl ![Current Version](https://img.shields.io/github/release/particular/servicecontrol.svg?style=flat&label=current%20version)
 =====================
 
 ServiceControl is the monitoring brain in the Particular Service Platform. It collects data on every single message flowing through the system (Audit Queue), errors (Error Queue), as well as additional information regarding sagas, endpoints heartbeats and custom checks (Control Queue). The information is then exposed to [ServicePulse](https://particular.net/servicepulse) and [ServiceInsight](https://particular.net/serviceinsight) via an HTTP API and SignalR notifications.
-
-License
-=====================
-
-ServiceControl requires an Advanced or higher license to operate. Visit https://particular.net/licensing for more details.
 
 Where to Download
 =====================
