@@ -360,7 +360,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 	<command:details>
 		<command:name>Get-ServiceControlInstances</command:name>
 		<maml:description>
-			<maml:para> List the currently configured ServiceControl instances.</maml:para>
+			<maml:para>List the currently configured ServiceControl instances.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -608,7 +608,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 	<command:details>
 		<command:name>Get-UrlAcls</command:name>
 		<maml:description>
-			<maml:para>List all registered URLACls.</maml:para>
+			<maml:para>List all registered URLACLs.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -618,7 +618,7 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para>List all registered URLACls. The listed entries can be used to diagnose URLACL issues which may prevent ServiceControl from starting. If you require a more feature rich tool for managing URLACLs please take a look at NETSH.EXE.</maml:para>
+		<maml:para>List all registered URLACLs. The listed entries can be used to diagnose URLACL issues which may prevent ServiceControl from starting. If you require a more feature rich tool for managing URLACLs please take a look at NETSH.EXE.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
