@@ -19,6 +19,7 @@ Implicit in these requirements is that ServiceControl should:
 
 - scale to an entire system based on the Particular Service Platform
 - be durable (i.e. no message loss)
+- be secure (i.e. calls to ServiceControl should be authenticated)
 
 ### Process and store the contents of the error queue
 
