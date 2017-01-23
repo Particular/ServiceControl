@@ -51,7 +51,7 @@
                 var expiredDate = DateTime.UtcNow.AddDays(-3);
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
                 var recentDate = DateTime.UtcNow.AddDays(-1);
-                var expiredMessages = BuilExpiredMessaged(expiredDate).ToList();
+                var expiredMessages = BuildExpiredMessaged(expiredDate).ToList();
                 using (var session = documentStore.OpenSession())
                 {
                     foreach (var message in expiredMessages)
@@ -87,9 +87,11 @@
             }
         }
 
-        IEnumerable<object> BuilExpiredMessaged(DateTime dateTime)
+        private static int doctestrange = 999;
+
+        IEnumerable<object> BuildExpiredMessaged(DateTime dateTime)
         {
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < doctestrange; i++)
             {
                 yield return new ProcessedMessage
                 {
@@ -103,7 +105,7 @@
         {
             new ExpiryProcessedMessageIndex().Execute(documentStore);
             documentStore.WaitForIndexing();
-            AuditMessageCleaner.Clean(100, documentStore.DocumentDatabase, expiryThreshold);
+            AuditMessageCleaner.Clean(doctestrange, documentStore.DocumentDatabase, expiryThreshold);
             documentStore.WaitForIndexing();
         }
 

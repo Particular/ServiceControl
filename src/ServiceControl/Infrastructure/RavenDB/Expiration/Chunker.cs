@@ -27,7 +27,7 @@
 
                 start = end + 1;
                 end += CHUNK_SIZE;
-                if (end > total)
+                if (end >= total)
                 {
                     end = total - 1;
                 }
