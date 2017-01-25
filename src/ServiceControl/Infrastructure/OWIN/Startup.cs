@@ -25,6 +25,10 @@
 
         public void Configuration(IAppBuilder app)
         {
+            app.Map("/injest", b =>
+            {
+                b.Use<WebSocketMiddleware>(container);
+            });
             app.Map("/metrics", b =>
             {
                 Metric.Config

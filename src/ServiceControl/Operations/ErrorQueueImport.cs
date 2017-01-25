@@ -32,7 +32,7 @@
         private static readonly RavenJObject JObjectMetadata;
         private static readonly JsonSerializer Serializer;
 
-        private readonly Timer timer = Metric.Timer("Error messages processed", Unit.Custom("Messages"));
+        private readonly Timer timer = Metric.Context("Processing").Timer("Error Messages", Unit.Custom("Messages"));
         private readonly IBuilder builder;
         private readonly IBus bus;
         private readonly CriticalError criticalError;

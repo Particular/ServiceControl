@@ -11,6 +11,7 @@ using NServiceBus;
 using NServiceBus.Features;
 using NServiceBus.Logging;
 using ServiceControl.Plugin.CustomChecks;
+using ServiceControl.Pump;
 
 namespace FailureFirehose
 {
@@ -39,6 +40,7 @@ namespace FailureFirehose
             Console.WriteLine("1 - Sender");
             Console.WriteLine("2 - Receiver");
             Console.WriteLine("3 - Retry/Archive");
+            Console.WriteLine("4 - Receiver with pump");
 
             Action action = () => {};
             bool wrongOption;
@@ -55,6 +57,10 @@ namespace FailureFirehose
                         break;
                     case '2':
                         action = () => RunReceiver(source.Token);
+                        break;
+
+                    case '4':
+                        action = () => RunReceiver(source.Token, true);
                         break;
 
                     case '3':
@@ -90,95 +96,100 @@ namespace FailureFirehose
             }
         }
 
-        static void RunReceiver(CancellationToken token)
+        static void RunReceiver(CancellationToken token, bool pumpOn = false)
         {
-            var config = new BusConfiguration();
-            config.EndpointName("FailureFirehose_Receiver");
-            config.UseTransport<MsmqTransport>();
-            config.Transactions().DisableDistributedTransactions().DoNotWrapHandlersExecutionInATransactionScope();
+            var config = new EndpointConfiguration("FailureFirehose_Receiver");
+            config.UseTransport<MsmqTransport>().Transactions(TransportTransactionMode.None);
             config.UsePersistence<InMemoryPersistence>();
-            config.DisableFeature<SecondLevelRetries>();
-            config.EnableFeature<Audit>();
-            config.EnableInstallers();
-
-            using (Bus.Create(config).Start())
+            config.Recoverability().Delayed(settings => settings.NumberOfRetries(0));
+            config.AuditProcessedMessagesTo("FailureFirehose_Receiver.ServiceControl");
+            if (pumpOn)
             {
-                Console.WriteLine("Receiver Bus Started");
-
-                token.WaitHandle.WaitOne();
+                config.EnableFeature<ServiceControlPump>();
             }
+            config.EnableInstallers();
+            config.LimitMessageProcessingConcurrencyTo(30);
+            config.Recoverability().Immediate(settings => settings.NumberOfRetries(5));
+            config.CustomCheckPlugin("particular.servicecontrol");
+            ServicePointManager.DefaultConnectionLimit = 300;
+            var endpoint = Endpoint.Start(config).GetAwaiter().GetResult();
+            Console.WriteLine("Receiver Bus Started");
+            token.WaitHandle.WaitOne();
+            endpoint.Stop().GetAwaiter().GetResult();
         }
 
         private static void RunSender(CancellationToken token)
         {
-            var config = new BusConfiguration();
-            config.EndpointName("FailureFirehose");
-            config.UseTransport<MsmqTransport>();
-            config.Transactions().DisableDistributedTransactions().DoNotWrapHandlersExecutionInATransactionScope();
+            var config = new EndpointConfiguration("FailureFirehose");
+            config.UseTransport<MsmqTransport>().Transactions(TransportTransactionMode.None);
             config.UsePersistence<InMemoryPersistence>();
-            config.DisableFeature<SecondLevelRetries>();
-            config.EnableFeature<Audit>();
+            config.Recoverability().Delayed(settings => settings.NumberOfRetries(0));
             config.EnableInstallers();
+            config.LimitMessageProcessingConcurrencyTo(30);
+            config.Recoverability().Immediate(settings => settings.NumberOfRetries(5));
+            config.CustomCheckPlugin("particular.servicecontrol");
 
             var rnd = new Random();
 
             var body = new string('a', MAX_BODY_SIZE);
 
-            using (var bus = Bus.Create(config).Start())
+            var bus = Endpoint.Start(config).GetAwaiter().GetResult();
+
+            Console.WriteLine("Sender Bus Started");
+
+            var iteration = 1;
+
+            while (!token.IsCancellationRequested)
             {
-                Console.WriteLine("Sender Bus Started");
+                var total = rnd.Next(MIN_MESSAGE_COUNT, MAX_MESSAGE_COUNT + 1);
+                Console.Write($"Iteration {iteration++}, sending {total} message(s)");
+                var stopwatch = new Stopwatch();
 
-                var iteration = 1;
+                stopwatch.Start();
+                var failureThreashold = (int) (total*(FAILURE_PERCENTAGE/100m));
 
-                while (!token.IsCancellationRequested)
+                Parallel.For(0, total, i =>
                 {
-                    var total = rnd.Next(MIN_MESSAGE_COUNT, MAX_MESSAGE_COUNT + 1);
-                    Console.Write($"Iteration {iteration++}, sending {total} message(s)");
-                    var stopwatch = new Stopwatch();
-
-                    stopwatch.Start();
-                    var failureThreashold = (int)(total * (FAILURE_PERCENTAGE / 100m));
-
-                    Parallel.For(0, total, i =>
+                    PerformSomeTaskThatFails performSomeTaskThatFails;
+                    unsafe
                     {
-                        PerformSomeTaskThatFails performSomeTaskThatFails;
-                        unsafe
+                        fixed (char* p = body)
                         {
-                            fixed (char* p = body)
+                            performSomeTaskThatFails = new PerformSomeTaskThatFails
                             {
-                                performSomeTaskThatFails = new PerformSomeTaskThatFails
-                                {
-                                    Id = i,
-                                    FailureThreashold = failureThreashold,
-                                    Body = new string(p, 0, rnd.Next(MIM_BODY_SIZE, MAX_BODY_SIZE)) // Saving on memory allocations by using a pointer
-                                };
-                            }
+                                Id = i,
+                                FailureThreashold = failureThreashold,
+                                Body = new string(p, 0, rnd.Next(MIM_BODY_SIZE, MAX_BODY_SIZE))
+                                // Saving on memory allocations by using a pointer
+                            };
                         }
-                        bus.Send("FailureFirehose_Receiver", performSomeTaskThatFails);
-                    });
-
-                    stopwatch.Stop();
-
-                    Console.Write($", completed in {stopwatch.Elapsed}");
-                    Console.WriteLine();
-
-                    var remainingTime = (int) (TimeSpan.FromSeconds(1) - stopwatch.Elapsed).TotalMilliseconds;
-                    if (remainingTime > 0)
-                    {
-                        Thread.Sleep(remainingTime);
                     }
+                    bus.Send("FailureFirehose_Receiver", performSomeTaskThatFails).GetAwaiter().GetResult();
+                });
 
-                    if (iteration > 20*60) // About every 20 minutes
-                    {
-                        Console.WriteLine("Restarting Iterations");
-                        iteration = 1;
-                    }
+                stopwatch.Stop();
+
+                Console.Write($", completed in {stopwatch.Elapsed}");
+                Console.WriteLine();
+
+                var remainingTime = (int) (TimeSpan.FromSeconds(1) - stopwatch.Elapsed).TotalMilliseconds;
+                if (remainingTime > 0)
+                {
+                    Thread.Sleep(remainingTime);
+                }
+
+                if (iteration > 20*60) // About every 20 minutes
+                {
+                    Console.WriteLine("Restarting Iterations");
+                    iteration = 1;
                 }
             }
+
+            bus.Stop().GetAwaiter().GetResult();
         }
     }
 
-    public class MyCheck : PeriodicCheck
+    public class MyCheck : CustomCheck
     {
         Random rnd = new Random();
 
@@ -186,7 +197,7 @@ namespace FailureFirehose
         {
         }
 
-        public override CheckResult PerformCheck()
+        public override Task<CheckResult> PerformCheck()
         {
             if (rnd.Next(0, 1) == 0)
             {
@@ -197,7 +208,7 @@ namespace FailureFirehose
         }
     }
 
-    public class MyCheck2 : PeriodicCheck
+    public class MyCheck2 : CustomCheck
     {
         Random rnd = new Random();
 
@@ -205,7 +216,7 @@ namespace FailureFirehose
         {
         }
 
-        public override CheckResult PerformCheck()
+        public override Task<CheckResult> PerformCheck()
         {
             if (rnd.Next(0, 1) == 0)
             {
@@ -225,7 +236,7 @@ namespace FailureFirehose
 
     public class FailingHandler : IHandleMessages<PerformSomeTaskThatFails>
     {
-        public void Handle(PerformSomeTaskThatFails message)
+        public Task Handle(PerformSomeTaskThatFails message, IMessageHandlerContext context)
         {
             if (message.Id < message.FailureThreashold)
             {
@@ -237,6 +248,8 @@ namespace FailureFirehose
                     default: throw new Exception("Some business thing happened");
                 }
             }
+
+            return Task.FromResult(0);
         }
     }
 

@@ -29,7 +29,7 @@
         private readonly Settings settings;
         private readonly IDocumentStore store;
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
-        private readonly Timer timer = Metric.Timer("Audit messages processed", Unit.Custom("Messages"));
+        private readonly Timer timer = Metric.Context("Processing").Timer("Audit Messages", Unit.Custom("Messages"));
 
         public AuditQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
         {
