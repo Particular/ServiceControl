@@ -167,12 +167,7 @@ namespace ServiceControl.Recoverability
         {
         }
 
-        public virtual void Run(Predicate<TransportMessage> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
-        {
-            Run(filter, cancellationToken, msg => { }, expectedMessageCount);
-        }
-
-        internal void Run(Predicate<TransportMessage> filter, CancellationToken cancellationToken, Action<string> log, int? expectedMessageCount = null)
+        public virtual void Run(Predicate<TransportMessage> filter, CancellationToken cancellationToken, Action<string> log, int? expectedMessageCount = null)
         {
             retryBatchLog = log;
 

@@ -130,7 +130,7 @@ namespace ServiceControl.UnitTests.Recoverability
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1);
-                
+
                 var testBus = new TestBus();
 
                 var sender = new TestSender();
@@ -292,7 +292,7 @@ namespace ServiceControl.UnitTests.Recoverability
         {
         }
 
-        public override void Run(Predicate<TransportMessage> filter, CancellationToken token, int? expectedMessageCount = default(int?))
+        public override void Run(Predicate<TransportMessage> filter, CancellationToken token, Action<string> retryBatchLog, int? expectedMessageCount = default(int?))
         {
             // NOOP
         }
