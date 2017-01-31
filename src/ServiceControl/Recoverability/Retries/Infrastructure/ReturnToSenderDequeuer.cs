@@ -156,7 +156,7 @@ namespace ServiceControl.Recoverability
             Log.DebugFormat("Handling message {0} of {1}", currentMessageCount, targetMessageCount);
             if (currentMessageCount >= targetMessageCount.GetValueOrDefault())
             {
-                retryBatchLog($"CountMessageAndStopIfReachedTarget target reached. Stopping ReturnToSenderDequeuer.");
+                retryBatchLog("CountMessageAndStopIfReachedTarget target reached. Stopping ReturnToSenderDequeuer.");
 
                 // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
                 Task.Factory.StartNew(StopInternal);
