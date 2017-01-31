@@ -135,13 +135,13 @@ namespace ServiceControl.Recoverability
             if (isRecoveringFromPrematureShutdown)
             {
                 LogBatch("Recovering from premature shutdown", forwardingBatch.Id);
-                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken);
+                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, msg => LogBatch(msg, forwardingBatch.Id));
                 retryOperationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
             }
             else
             {
 
-                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount);
+                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, msg => LogBatch(msg, forwardingBatch.Id), messageCount);
                 retryOperationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount);
             }
 
