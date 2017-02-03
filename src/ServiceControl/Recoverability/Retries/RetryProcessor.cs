@@ -196,10 +196,6 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.TargetEndpointAddress"] = addressOfFailingEndpoint;
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
-            if (!string.IsNullOrWhiteSpace(attempt.ReplyToAddress))
-            {
-                headersToRetryWith[Headers.ReplyToAddress] = attempt.ReplyToAddress;
-            }
             headersToRetryWith["ServiceControl.Retry.Attempt.MessageId"] = attempt.MessageId;
 
             var transportMessage = new TransportMessage(message.Id, headersToRetryWith)
