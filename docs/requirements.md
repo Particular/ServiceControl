@@ -10,16 +10,27 @@ ServiceControl should provide the following features:
 - process and store the contents of the error queue
 - replay messages from the error queue
 - process and store the contents of the audit queue
-- generate and collect heartbeat messages
+- monitor the availability of endpoints
 - generate and collect saga state changes
 - provide an API for monitoring user-defined conditions
-- provide operational events for consumption by other applications
+- provide integration hooks for developers to consume
+- search for messages
+- export failed message data for external analysis
+- report on the contents of the timeout manager
+- allow user to provide metadata about messages for operational support
+- allow user to easily provide feedback and usage data and diagnostics for the platform
+- monitor the health of SC itself
 
-Implicit in these requirements is that ServiceControl should:
+Implicit in these requirements is that the Service Platform should:
 
 - scale to an entire system based on the Particular Service Platform
 - be durable (i.e. no message loss)
 - be secure (i.e. calls to ServiceControl should be authenticated)
+- provide a smooth installation and upgrade experience
+- be performant
+- provide a clear and intuitive UI
+- be responsive with UI components (not in the HTML/mobile sense); i.e. it should always indicate when it is "doing something"
+- support all versions of all transports and all transport features
 
 ### Process and store the contents of the error queue
 
