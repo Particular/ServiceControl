@@ -561,6 +561,7 @@
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationManager.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryState.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryType.cs" />
+    <Compile Include="Recoverability\Retries\CorruptedReplyToHeaderStrategy.cs" />
     <Compile Include="Recoverability\Retries\HistoricRetryOperation.cs" />
     <Compile Include="Recoverability\Retries\Handlers\PendingRetriesHandler.cs" />
     <Compile Include="Recoverability\Retries\Infrastructure\ReturnToSenderDequeuer.cs" />
