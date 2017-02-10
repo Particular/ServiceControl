@@ -4,7 +4,6 @@
     using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
     using NServiceBus.Settings;
     using NServiceBus.Transports;
     using NServiceBus.Unicast;
@@ -13,12 +12,10 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    public class When_a_message_is_retried_from_the_retries_queue : AcceptanceTest
+    public class When_a_message_fails_from_the_retries_queue : AcceptanceTest
     {
-        private const string ExceptionMessage = "Simulated Exception";
-
         [Test]
-        public void Should_successfully_retry()
+        public void Should_successfully_retry_on_endpoint_queue()
         {
             var context = Define<Context>()
                 .WithEndpoint<FailingEndpoint>()
@@ -35,14 +32,7 @@
                     {
                         Thread.Sleep(1000);
 
-                        if (TryGet("/api/errors/" + c.UniqueMessageId, out failure) && failure.ProcessingAttempts.Count == 1)
-                        {
-                            Thread.Sleep(1000);
-                        }
-
-                        c.FailedMessage = failure;
-
-                        return failure.ProcessingAttempts.Count > 1 || c.MessageProcessed;
+                        return c.MessageProcessed;
                     }
 
                     if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure))
@@ -58,7 +48,6 @@
                 })
                 .Run(TimeSpan.FromSeconds(30));
 
-            Assert.AreEqual(1, context.FailedMessage.ProcessingAttempts.Count, "Message should only be sent to the error queue once");
             Assert.IsTrue(context.MessageProcessed, "Message never reached the handler");
         }
 
@@ -75,21 +64,12 @@
 
         class FailingEndpoint : EndpointConfigurationBuilder
         {
-            public Context TestContext { get; set; }
-
             public FailingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(config =>
-                {
-                    config.SecondLevelRetries().CustomRetryPolicy(msg => TimeSpan.Zero);
-                })
-                .WithConfig<TransportConfig>(c =>
-                {
-                    c.MaxRetries = 1;
-                });
+                EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class SendMessage : IWantToRunWhenBusStartsAndStops
+            public class SendMessage : IWantToRunWhenBusStartsAndStops
             {
                 public ISendMessages SendMessages { get; set; }
 
@@ -110,7 +90,7 @@
                     transportMessage.Headers["$.diagnostics.hostid"] = Settings.Get<Guid>("NServiceBus.HostInformation.HostId").ToString();
                     transportMessage.Headers["$.diagnostics.hostdisplayname"] = Settings.Get<string>("NServiceBus.HostInformation.DisplayName");
                     transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "System.Exception";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = ExceptionMessage;
+                    transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "Simulated Exception";
                     transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = null;
                     transportMessage.Headers["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty;
                     transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
@@ -130,19 +110,12 @@
                 }
             }
 
-            public class FailedMessageHandler : IHandleMessages<FailingMessage>
+            public class FailingMessageHandler : IHandleMessages<FailingMessage>
             {
                 public Context TestContext { get; set; }
 
-                //public ReadOnlySettings Settings { get; set; }
-                public IBus Bus { get; set; }
-
                 public void Handle(FailingMessage message)
                 {
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
-
-                    Console.WriteLine($"Handling message with Id {messageId}");
-
                     TestContext.MessageProcessed = true;
                 }
             }

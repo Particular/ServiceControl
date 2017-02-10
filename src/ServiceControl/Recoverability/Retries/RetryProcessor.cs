@@ -193,7 +193,14 @@ namespace ServiceControl.Recoverability
                 addressOfFailingEndpoint = redirect.ToPhysicalAddress;
             }
 
-            headersToRetryWith["ServiceControl.TargetEndpointAddress"] = addressOfFailingEndpoint;
+            var targetAddress = Address.Parse(addressOfFailingEndpoint);
+
+            if (targetAddress.Queue.EndsWith(".Retries"))
+            {
+                targetAddress = new Address(targetAddress.Queue.Remove(targetAddress.Queue.Length - 8), targetAddress.Machine);
+            }
+
+            headersToRetryWith["ServiceControl.TargetEndpointAddress"] = targetAddress.ToString();
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
             if (!string.IsNullOrWhiteSpace(attempt.ReplyToAddress))
