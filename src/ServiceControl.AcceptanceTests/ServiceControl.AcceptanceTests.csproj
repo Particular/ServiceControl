@@ -260,6 +260,7 @@
     <Compile Include="Recoverability\Groups\When_ServiceControl_has_started.cs" />
     <Compile Include="Recoverability\Groups\When_two_similar_messages_have_failed.cs" />
     <Compile Include="Recoverability\When_a_message_is_retried_and_succeeds_with_a_reply.cs" />
+    <Compile Include="Recoverability\When_a_message_is_retried_with_a_replyTo_header.cs" />
     <Compile Include="Recoverability\When_a_message_without_a_correlationid_header_is_retried.cs" />
     <Compile Include="SagaAudit\When_multiple_messages_are_emitted_by_a_saga.cs" />
     <Compile Include="SagaAudit\When_a_message_emitted_by_a_saga_is_audited.cs" />
