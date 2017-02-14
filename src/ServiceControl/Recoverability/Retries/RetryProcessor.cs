@@ -7,6 +7,7 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
+    using NServiceBus.Support;
     using NServiceBus.Transports;
     using NServiceBus.Unicast;
     using Raven.Client;
@@ -34,6 +35,7 @@ namespace ServiceControl.Recoverability
             this.bus = bus;
             this.returnToSender = returnToSender;
             this.retryOperationManager = retryOperationManager;
+            corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
         }
 
         public bool ProcessBatches(IDocumentSession session, CancellationToken cancellationToken)
@@ -196,11 +198,9 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.TargetEndpointAddress"] = addressOfFailingEndpoint;
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
-            if (!string.IsNullOrWhiteSpace(attempt.ReplyToAddress))
-            {
-                headersToRetryWith[Headers.ReplyToAddress] = attempt.ReplyToAddress;
-            }
             headersToRetryWith["ServiceControl.Retry.Attempt.MessageId"] = attempt.MessageId;
+
+            corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headersToRetryWith);
 
             var transportMessage = new TransportMessage(message.Id, headersToRetryWith)
             {
@@ -221,5 +221,6 @@ namespace ServiceControl.Recoverability
         RetryOperationManager retryOperationManager;
         private MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
+        private CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
     }
 }

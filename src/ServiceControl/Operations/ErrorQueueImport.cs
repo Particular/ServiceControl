@@ -137,6 +137,8 @@
 
             var failureDetails = failedMessageFactory.ParseFailureDetails(message.Headers);
 
+            var replyToAddress = message.ReplyToAddress == null ? null : message.ReplyToAddress.ToString();
+
             var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
                 message.Headers,
                 metadata,
@@ -144,7 +146,7 @@
                 message.MessageIntent,
                 message.Recoverable,
                 message.CorrelationId,
-                message.ReplyToAddress?.Queue);
+                replyToAddress);
 
             var groups = failedMessageFactory.GetGroups((string) metadata["MessageType"], failureDetails);
 
