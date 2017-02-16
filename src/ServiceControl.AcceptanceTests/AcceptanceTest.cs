@@ -106,12 +106,13 @@ namespace ServiceBus.Management.AcceptanceTests
             ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         }
 
+        private static string ignoreTransportsKey = nameof(IgnoreTransportsAttribute).Replace("Attribute", "");
+
         private void AssertTransportNotExplicitlyIgnored()
         {
-            var key = "IgnoreTransports";
-            if (TestContext.CurrentContext.Test.Properties.Contains(key))
+            if (TestContext.CurrentContext.Test.Properties.Contains(ignoreTransportsKey))
             {
-                if (((string[]) TestContext.CurrentContext.Test.Properties[key]).Contains(transportToUse.Name))
+                if (((string[]) TestContext.CurrentContext.Test.Properties[ignoreTransportsKey]).Contains(transportToUse.Name))
                 {
                     ignored = true;
                     Assert.Inconclusive($"Transport {transportToUse.Name} has been explicitly ignored for test {TestContext.CurrentContext.Test.Name}");
