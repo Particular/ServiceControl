@@ -111,7 +111,7 @@ namespace ServiceBus.Management.AcceptanceTests
             var key = (object) "IgnoreTransports";
             if (TestContext.CurrentContext.Test.Properties.Contains(key))
             {
-                if (((Type[]) TestContext.CurrentContext.Test.Properties[key]).Contains(transportToUse.Type))
+                if (((string[]) TestContext.CurrentContext.Test.Properties[key]).Contains(transportToUse.Name))
                 {
                     ignored = true;
                     Assert.Inconclusive($"Transport {transportToUse.Name} has been explicitly ignored for test {TestContext.CurrentContext.Test.Name}");
