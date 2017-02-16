@@ -68,6 +68,7 @@ namespace ServiceBus.Management.AcceptanceTests
         private string ravenPath;
         private ScenarioContext scenarioContext = new ConsoleContext();
         private IBus bus;
+        private bool ignored;
 
         protected Action<Settings> SetSettings = _ => { };
 
@@ -93,6 +94,8 @@ namespace ServiceBus.Management.AcceptanceTests
             Console.Out.WriteLine($"Using transport {transportToUse.Name}");
             Console.Out.WriteLine($"Using port {port}");
 
+            AssertTransportNotExplicitlyIgnored();
+
             Conventions.EndpointNamingConvention = t =>
             {
                 var baseNs = typeof(AcceptanceTest).Namespace;
@@ -103,9 +106,27 @@ namespace ServiceBus.Management.AcceptanceTests
             ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         }
 
+        private static string ignoreTransportsKey = nameof(IgnoreTransportsAttribute).Replace("Attribute", "");
+
+        private void AssertTransportNotExplicitlyIgnored()
+        {
+            if (TestContext.CurrentContext.Test.Properties.Contains(ignoreTransportsKey))
+            {
+                if (((string[]) TestContext.CurrentContext.Test.Properties[ignoreTransportsKey]).Contains(transportToUse.Name))
+                {
+                    ignored = true;
+                    Assert.Inconclusive($"Transport {transportToUse.Name} has been explicitly ignored for test {TestContext.CurrentContext.Test.Name}");
+                }
+            }
+        }
+
         [TearDown]
         public void Dispose()
         {
+            if (ignored)
+            {
+                return;
+            }
             using (new DiagnosticTimer("Test TearDown"))
             {
                 bootstrapper.Stop();

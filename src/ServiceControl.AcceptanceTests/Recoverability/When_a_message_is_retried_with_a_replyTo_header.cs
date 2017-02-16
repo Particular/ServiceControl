@@ -14,7 +14,8 @@
 
     public class When_a_message_is_retried_with_a_replyTo_header : AcceptanceTest
     {
-        [Test]
+        // TODO: Add these transports back if/when then are updated to match this behavior
+        [Test, IgnoreTransports("AzureServiceBus", "AzureStorageQueues", "RabbitMq")]
         public void The_header_should_not_be_changed()
         {
             var context = new ReplyToContext
@@ -26,8 +27,6 @@
 
             Define(context)
                 .WithEndpoint<VerifyHeaderEndpoint>()
-                // Verify that the wait for failed message and issue retry
-
                 .Done(x =>
                 {
                     if (!x.RetryIssued && TryGetMany("/api/errors", out failedMessages))
@@ -40,7 +39,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(context.ReplyToAddress, context.ReceivedReplyToAddress.ToString());
+            Assert.AreEqual(context.ReplyToAddress, context.ReceivedReplyToAddress);
         }
 
         class OriginalMessage : IMessage { }
@@ -48,7 +47,7 @@
         class ReplyToContext : ScenarioContext
         {
             public string ReplyToAddress { get; set; }
-            public Address ReceivedReplyToAddress { get; set; }
+            public string ReceivedReplyToAddress { get; set; }
             public bool RetryIssued { get; set; }
             public bool Done { get; set; }
         }
@@ -103,7 +102,11 @@
             {
                 public void MutateIncoming(TransportMessage transportMessage)
                 {
-                    context.ReceivedReplyToAddress = transportMessage.ReplyToAddress;
+                    string replyToAddress;
+                    if (transportMessage.Headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
+                    {
+                        context.ReceivedReplyToAddress = replyToAddress;
+                    }
                     context.Done = true;
                 }
 
