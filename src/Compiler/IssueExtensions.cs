@@ -7,22 +7,22 @@ namespace ReleaseNotesCompiler
     {
         public static bool IsBug(this Issue issue)
         {
-            return issue.Labels.Any(label => label.Name == "Bug");
+            return issue.Labels.Any(label => label.Name == "Type: Bug");
         }
 
         public static bool IsImprovement(this Issue issue)
         {
-            return issue.Labels.Any(label => label.Name == "Improvement");
+            return issue.Labels.Any(label => label.Name == "Type: Improvement");
         }
 
         public static bool IsFeature(this Issue issue)
         {
-            return issue.Labels.Any(label => label.Name == "New Feature");
+            return issue.Labels.Any(label => label.Name == "Type: Feature");
         }
 
         public static bool IsCritical(this Issue issue)
         {
-            return issue.Labels.Any(label => label.Name == "Critical Bug");
+            return issue.Labels.Any(label => label.Name == "Type: Critical Bug");
         }
     }
 }
