@@ -14,7 +14,8 @@
 
     public class When_a_message_is_retried_with_a_replyTo_header : AcceptanceTest
     {
-        [Test]
+        // TODO: Add these transports back if/when then are updated to match this behavior
+        [Test, IgnoreTransports(typeof(AzureServiceBusTransport), typeof(AzureStorageQueueTransport), typeof(RabbitMQTransport))]
         public void The_header_should_not_be_changed()
         {
             var context = new ReplyToContext

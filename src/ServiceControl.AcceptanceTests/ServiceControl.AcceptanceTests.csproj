@@ -259,6 +259,7 @@
     <Compile Include="Recoverability\Groups\When_message_groups_are_sorted_by_a_web_api_call.cs" />
     <Compile Include="Recoverability\Groups\When_ServiceControl_has_started.cs" />
     <Compile Include="Recoverability\Groups\When_two_similar_messages_have_failed.cs" />
+    <Compile Include="IgnoreTransportsAttribute.cs" />
     <Compile Include="Recoverability\When_a_message_is_retried_and_succeeds_with_a_reply.cs" />
     <Compile Include="Recoverability\When_a_message_is_retried_with_a_replyTo_header.cs" />
     <Compile Include="Recoverability\When_a_message_without_a_correlationid_header_is_retried.cs" />
