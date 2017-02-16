@@ -108,7 +108,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         private void AssertTransportNotExplicitlyIgnored()
         {
-            var key = (object) "IgnoreTransports";
+            var key = "IgnoreTransports";
             if (TestContext.CurrentContext.Test.Properties.Contains(key))
             {
                 if (((string[]) TestContext.CurrentContext.Test.Properties[key]).Contains(transportToUse.Name))
