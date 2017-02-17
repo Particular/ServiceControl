@@ -5,30 +5,33 @@ namespace ServiceControl.Recoverability
 
     static class StackTraceParser // "stolen" from https://code.google.com/p/elmah/source/browse/src/Elmah.AspNet/StackTraceParser.cs
     {
+        const string Space = @"[\x20\t]";
+        const string NotSpace = @"[^\x20\t]";
+
         static readonly Regex _regex = new Regex(@"
             ^
-            \s*
-            \w+ \s+ 
+            " + Space + @"*
+            \w+ " + Space + @"+
             (?<frame>
-                (?<type> .+ ) \.
-                (?<method> .+? ) \s*
-                (?<params>  \( ( \s* \)
-                               |        (?<pt> .+?) \s+ (?<pn> .+?) 
-                                 (, \s* (?<pt> .+?) \s+ (?<pn> .+?) )* \) ) )
-                ( \s+
+                (?<type> " + NotSpace + @"+ ) \.
+                (?<method> " + NotSpace + @"+? ) " + Space + @"*
+                (?<params>  \( ( " + Space + @"* \)
+                               |                    (?<pt> .+?) " + Space + @"+ (?<pn> .+?)
+                                 (, " + Space + @"* (?<pt> .+?) " + Space + @"+ (?<pn> .+?) )* \) ) )
+                ( " + Space + @"+
                     ( # Microsoft .NET stack traces
-                    \w+ \s+ 
-                    (?<file> [a-z] \: .+? ) 
-                    \: \w+ \s+ 
-                    (?<line> [0-9]+ ) \p{P}?  
+                    \w+ " + Space + @"+
+                    (?<file> [a-z] \: .+? )
+                    \: \w+ " + Space + @"+
+                    (?<line> [0-9]+ ) \p{P}?
                     | # Mono stack traces
-                    \[0x[0-9a-f]+\] \s+ \w+ \s+ 
+                    \[0x[0-9a-f]+\] " + Space + @"+ \w+ " + Space + @"+
                     <(?<file> [^>]+ )>
                     :(?<line> [0-9]+ )
                     )
                 )?
             )
-            \s* 
+            \s*
             $",
             RegexOptions.IgnoreCase
             | RegexOptions.Multiline
