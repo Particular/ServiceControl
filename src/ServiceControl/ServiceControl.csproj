@@ -251,6 +251,7 @@
     <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UserSidChecker.cs" />
+    <Compile Include="App_Packages\StackTraceParser\StackTraceParser.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
     <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
     <Compile Include="CompositeViews\Endpoints\HeartbeatInformation.cs" />
@@ -557,7 +558,6 @@
     <Compile Include="Recoverability\Grouping\InternalMessages\RetryOperationWaiting.cs" />
     <Compile Include="Recoverability\Grouping\InternalMessages\RetryAllInGroup.cs" />
     <Compile Include="Recoverability\Grouping\Handlers\RetryAllInGroupHandler.cs" />
-    <Compile Include="Recoverability\Grouping\Groupers\StackTraceParser.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperationManager.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryState.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryType.cs" />

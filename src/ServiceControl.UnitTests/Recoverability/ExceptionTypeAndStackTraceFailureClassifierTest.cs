@@ -59,7 +59,6 @@
 
             var classification = classifier.ClassifyFailure(standardStackTrace);
             Assert.AreEqual(@"exceptionType: System.Environment.GetStackTrace(Exception e)", classification);
-
         }
 
         [Test]

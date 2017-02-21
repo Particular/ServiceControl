@@ -18,7 +18,15 @@ namespace ServiceControl.Recoverability
             if(string.IsNullOrWhiteSpace(exception.StackTrace))
                 return GetNonStandardClassification(exception.ExceptionType);
 
-            var firstStackTraceFrame = StackTraceParser.Parse(exception.StackTrace).FirstOrDefault();
+            var firstStackTraceFrame = StackTraceParser.Parse(exception.StackTrace, (frame, type, method, parameterList, parameters, file, line) => new StackFrame
+            {
+                Type = type,
+                Method = method,
+                Params = parameterList,
+                File = file,
+                Line = line
+            }).FirstOrDefault();
+
             if (firstStackTraceFrame != null)
                 return exception.ExceptionType + ": " + firstStackTraceFrame.ToMethodIdentifier();
 
@@ -28,6 +36,20 @@ namespace ServiceControl.Recoverability
         static string GetNonStandardClassification(string exceptionType)
         {
             return exceptionType + ": 0";
+        }
+
+        public class StackFrame
+        {
+            public string Type { get; set; }
+            public string Method { get; set; }
+            public string Params { get; set; }
+            public string File { get; set; }
+            public string Line { get; set; }
+
+            public string ToMethodIdentifier()
+            {
+                return Type + "." + Method + Params;
+            }
         }
     }
 }
