@@ -213,6 +213,6 @@
     {
         public const string SingleDocumentId = "Subscriptions/All";
 
-        public IDictionary<string, Subscription> All { get; } = new Dictionary<string, Subscription>();
+        public IDictionary<string, Subscription> All { get; set; } = new Dictionary<string, Subscription>();
     }
 }
