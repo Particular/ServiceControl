@@ -55,13 +55,13 @@ namespace Particular.ServiceControl
 
         private void Initialize()
         {
+            timeKeeper = new TimeKeeper();
+
             var loggingSettings = new LoggingSettings(settings.ServiceName);
             ConfigureLogging(loggingSettings);
 
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
-
-            timeKeeper = new TimeKeeper();
 
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
@@ -162,7 +162,6 @@ Database Size:							{DataSize()}bytes
                 Header = new SimpleLayout(header)
             };
 
-
             var ravenFileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
@@ -181,6 +180,13 @@ Database Size:							{DataSize()}bytes
                 UseDefaultRowHighlightingRules = true
             };
 
+            var retryBatchTarget = new FileTarget
+            {
+                FileName = Path.Combine(loggingSettings.LogPath, "${event-properties:item=RetryBatchId}.txt"),
+                Layout = new SimpleLayout("${longdate}|${message}"),
+                Header = new SimpleLayout(header)
+            };
+
             var nullTarget = new NullTarget();
 
             // There lines don't appear to be necessary.  The rules seem to work without implicitly adding the targets?!?
@@ -188,6 +194,7 @@ Database Size:							{DataSize()}bytes
             nlogConfig.AddTarget("debugger", fileTarget);
             nlogConfig.AddTarget("raven", ravenFileTarget);
             nlogConfig.AddTarget("bitbucket", nullTarget);
+            nlogConfig.AddTarget("retrybatches", retryBatchTarget);
 
             // Only want to see raven errors
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", loggingSettings.RavenDBLogLevel, ravenFileTarget));
@@ -201,6 +208,12 @@ Database Size:							{DataSize()}bytes
             // Always want to see license logging regardless of default logging level
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget)
+            {
+                Final = true
+            });
+
+            //RetryBatches
+            nlogConfig.LoggingRules.Add(new LoggingRule("RetryBatch", LogLevel.Info, retryBatchTarget)
             {
                 Final = true
             });
@@ -227,6 +240,39 @@ Database Size:							{DataSize()}bytes
             };
             logger.InfoFormat("Logging to {0} with LoggingLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
             logger.InfoFormat("RavenDB logging to {0} with LoggingLevel '{1}'", ravenFileTarget.FileName.Render(logEventInfo), loggingSettings.RavenDBLogLevel.Name);
+
+            var retryBatchLogCleanerLogger = LogManager.GetLogger("RetryBatchLogCleaner");
+
+            logger.InfoFormat("Starting RetryBatch log cleaner with 2 day log expiration and 10 minute check interval", fileTarget.FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
+
+            timeKeeper.New(() =>
+            {
+                retryBatchLogCleanerLogger.Debug("Checking for expired RetryBatch logs");
+
+                var retryBatchLogFilePaths = Directory.EnumerateFiles(Path.Combine(loggingSettings.LogPath, "RetryBatches"), "*.txt").ToList();
+
+                if (!retryBatchLogFilePaths.Any())
+                {
+                    return;
+                }
+
+                var allFiles = retryBatchLogFilePaths.Select(f => new FileInfo(f)).ToList();
+
+                var expiredBefore = DateTime.Now.AddDays(-2);
+                var oldFiles = allFiles.Where(f => f.LastWriteTime < expiredBefore).ToList();
+
+                if (!oldFiles.Any())
+                {
+                    return;
+                }
+
+                retryBatchLogCleanerLogger.Info($"Removing {oldFiles.Count} out of {allFiles.Count} RetryBatch log files that have expired");
+
+                oldFiles.ForEach(f =>
+                {
+                    File.Delete(f.FullName);
+                });
+            }, TimeSpan.Zero, TimeSpan.FromMinutes(10));
         }
     }
 }

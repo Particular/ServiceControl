@@ -29,6 +29,7 @@ namespace ServiceControl.Recoverability
         readonly ISendMessages sender;
         CaptureIfMessageSendingFails faultManager;
         IBodyStorage bodyStorage;
+        private Action<string> retryBatchLog = msg => { };
 
         public ReturnToSenderDequeuer(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IBus bus, Configure configure)
         {
@@ -48,20 +49,30 @@ namespace ServiceControl.Recoverability
             };
 
             faultManager = new CaptureIfMessageSendingFails(store, bus, executeOnFailure);
-            timer = new Timer(state => StopInternal());
+            timer = new Timer(state =>
+            {
+                retryBatchLog("Timer callback invoked. Stopping ReturnToSenderDequeuer.");
+                StopInternal();
+            });
             InputAddress = Address.Parse(configure.Settings.EndpointName()).SubScope("staging");
         }
 
         public bool Handle(TransportMessage message)
         {
+            retryBatchLog($"Handling Message with id {message.Id}");
+
             if (shouldProcess(message))
             {
-                HandleMessage(message, bodyStorage, sender);
+                HandleMessage(message, bodyStorage, sender, retryBatchLog);
 
                 if (IsCounting)
                 {
                     CountMessageAndStopIfReachedTarget();
                 }
+            }
+            else
+            {
+                retryBatchLog($"Skipped Message with id {message.Id} and StagingId {message.Headers["ServiceControl.Retry.StagingId"]}");
             }
             if (!IsCounting)
             {
@@ -86,8 +97,13 @@ namespace ServiceControl.Recoverability
 
         public static void HandleMessage(TransportMessage message, IBodyStorage bodyStorage, ISendMessages sender) //Public for testing
         {
+            HandleMessage(message, bodyStorage, sender, msg => { });
+        }
+
+        private static void HandleMessage(TransportMessage message, IBodyStorage bodyStorage, ISendMessages sender, Action<string> retryBatchLog)
+        {
             message.Headers.Remove("ServiceControl.Retry.StagingId");
-            
+
             string attemptMessageId;
             if (message.Headers.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out attemptMessageId))
             {
@@ -111,10 +127,14 @@ namespace ServiceControl.Recoverability
                     message.Headers.Remove("ServiceControl.TargetEndpointAddress");
                 }
 
+                retryBatchLog($"Sending Message with id {message.Id} to {retryTo}");
+
                 sender.Send(message, new SendOptions(retryTo));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                retryBatchLog($"Exception while processing Message with Id {message.Id}: {ex.Message}");
+
                 message.Headers["ServiceControl.TargetEndpointAddress"] = destination;
                 if (attemptMessageId != null)
                 {
@@ -123,6 +143,8 @@ namespace ServiceControl.Recoverability
 
                 throw;
             }
+
+            retryBatchLog($"Handled Message with id {message.Id}");
         }
 
         bool IsCounting => targetMessageCount.HasValue;
@@ -130,9 +152,12 @@ namespace ServiceControl.Recoverability
         void CountMessageAndStopIfReachedTarget()
         {
             var currentMessageCount = Interlocked.Increment(ref actualMessageCount);
+            retryBatchLog($"CountMessageAndStopIfReachedTarget handling message {currentMessageCount} of {targetMessageCount}");
             Log.DebugFormat("Handling message {0} of {1}", currentMessageCount, targetMessageCount);
             if (currentMessageCount >= targetMessageCount.GetValueOrDefault())
             {
+                retryBatchLog("CountMessageAndStopIfReachedTarget target reached. Stopping ReturnToSenderDequeuer.");
+
                 // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
                 Task.Factory.StartNew(StopInternal);
             }
@@ -142,12 +167,15 @@ namespace ServiceControl.Recoverability
         {
         }
 
-        public virtual void Run(Predicate<TransportMessage> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
+        public virtual void Run(Predicate<TransportMessage> filter, CancellationToken cancellationToken, Action<string> log, int? expectedMessageCount = null)
         {
+            retryBatchLog = log;
+
             try
             {
                 if (expectedMessageCount.HasValue && expectedMessageCount.Value == 0)
                 {
+                    retryBatchLog("ReturnToSenderDequeuer expected message count is 0.");
                     return;
                 }
 
@@ -160,6 +188,7 @@ namespace ServiceControl.Recoverability
                 {
                     timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
                 }
+                retryBatchLog($"ReturnToSenderDequeuer started for {targetMessageCount} messages");
                 Log.InfoFormat("{0} started", GetType().Name);
             }
             finally
