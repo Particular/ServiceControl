@@ -430,7 +430,7 @@
 
                 if (isRetry)
                 {
-                    Attempt.Headers.Add(V4RetryUniqueMessageIdHeader, scenario.UniqueMessageId);
+                    Attempt.Headers.Add(V4RetryUniqueMessageIdHeader, ExpectedUniqueMessageId);
                 }
             }
 
@@ -442,7 +442,7 @@
                 if (isRetry)
                 {
                     Attempt.Headers.Remove(V4RetryUniqueMessageIdHeader);
-                    Attempt.Headers.Add(V5RetryUniqueMessageIdHeader, scenario.UniqueMessageId);
+                    Attempt.Headers.Add(V5RetryUniqueMessageIdHeader, ExpectedUniqueMessageId);
                 }
             }
         }
