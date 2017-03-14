@@ -2,7 +2,7 @@
 {
     using System;
 
-    public class UnacknowledgedRetryOperation
+    public class UnacknowledgedOperation
     {
         public string RequestId { get; set; }
         public RetryType RetryType { get; set; }

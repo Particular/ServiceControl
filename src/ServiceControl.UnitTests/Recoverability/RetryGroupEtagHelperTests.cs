@@ -10,7 +10,7 @@
         [Test]
         public void Id_changed_should_change_etag()
         {
-            var group = new RetryGroup() {Id = "old"};
+            var group = new GroupOperation() {Id = "old"};
             var data = new[] { group };
 
             var knownEtag = EtagHelper.CalculateEtag(data);
@@ -24,7 +24,7 @@
         [Test]
         public void Count_changed_should_change_etag()
         {
-            var group = new RetryGroup() {Count = 1 };
+            var group = new GroupOperation() {Count = 1 };
             var data = new[] { group };
 
             var knownEtag = EtagHelper.CalculateEtag(data);
@@ -38,12 +38,12 @@
         [Test]
         public void RetryStatus_changed_should_change_etag()
         {
-            var group = new RetryGroup() { RetryStatus = RetryState.Waiting.ToString()};
+            var group = new GroupOperation() { OperationStatus = RetryState.Waiting.ToString()};
             var data = new[] { group };
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
-            group.RetryStatus = RetryState.Preparing.ToString();
+            group.OperationStatus = RetryState.Preparing.ToString();
             var newEtag = EtagHelper.CalculateEtag(data);
 
             Assert.AreNotEqual(knownEtag, newEtag);
@@ -52,12 +52,12 @@
         [Test]
         public void RetryProgress_changed_should_change_etag()
         {
-            var group = new RetryGroup();
+            var group = new GroupOperation();
             var data = new[] { group };
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
-            group.RetryProgress = 0.01;
+            group.OperationProgress = 0.01;
             var newEtag = EtagHelper.CalculateEtag(data);
 
             Assert.AreNotEqual(knownEtag, newEtag);
@@ -66,12 +66,12 @@
         [Test]
         public void RetryStartTime_changed_should_change_etag()
         {
-            var group = new RetryGroup();
+            var group = new GroupOperation();
             var data = new[] { group };
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
-            group.RetryStartTime = DateTime.UtcNow;
+            group.OperationStartTime = DateTime.UtcNow;
             var newEtag = EtagHelper.CalculateEtag(data);
 
             Assert.AreNotEqual(knownEtag, newEtag);
@@ -80,12 +80,12 @@
         [Test]
         public void RetryCompletionTime_changed_should_change_etag()
         {
-            var group = new RetryGroup();
+            var group = new GroupOperation();
             var data = new[] { group };
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
-            group.RetryCompletionTime = DateTime.UtcNow;
+            group.OperationCompletionTime = DateTime.UtcNow;
             var newEtag = EtagHelper.CalculateEtag(data);
 
             Assert.AreNotEqual(knownEtag, newEtag);
@@ -94,7 +94,7 @@
         [Test]
         public void NeedUserAcknowledgement_changed_should_change_etag()
         {
-            var group = new RetryGroup();
+            var group = new GroupOperation();
             var data = new[] { group };
 
             var knownEtag = EtagHelper.CalculateEtag(data);
@@ -109,10 +109,10 @@
         public void Changing_item_count_should_change_etag()
         {
             
-            var data = new RetryGroup[0];
+            var data = new GroupOperation[0];
             var knownEtag = EtagHelper.CalculateEtag(data);
 
-            var group = new RetryGroup();
+            var group = new GroupOperation();
             data = new[] { group };
 
             var newEtag = EtagHelper.CalculateEtag(data);

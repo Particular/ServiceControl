@@ -392,7 +392,7 @@
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
     <Compile Include="Recoverability\Grouping\Api\GroupFetcher.cs" />
-    <Compile Include="Recoverability\Grouping\Api\RetryGroup.cs" />
+    <Compile Include="Recoverability\Grouping\Api\GroupOperation.cs" />
     <Compile Include="Recoverability\Grouping\Api\EtagHelper.cs" />
     <Compile Include="Recoverability\Grouping\DomainHandlers\PublishAllHandler.cs" />
     <Compile Include="Recoverability\Grouping\DomainHandlers\StoreHistoryHandler.cs" />
@@ -588,7 +588,7 @@
     <Compile Include="MessageFailures\InternalMessages\RetryPendingMessagesById.cs" />
     <Compile Include="Recoverability\Retries\RetryHistory.cs" />
     <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
-    <Compile Include="Recoverability\Retries\UnacknowledgedRetryOperation.cs" />
+    <Compile Include="Recoverability\Retries\UnacknowledgedOperation.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeInitiator.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeOutput.cs" />

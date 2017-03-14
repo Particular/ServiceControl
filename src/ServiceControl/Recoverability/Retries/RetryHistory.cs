@@ -7,7 +7,7 @@
     {
         public string Id { get; set; }
         public List<HistoricRetryOperation> HistoricOperations { get; set; }
-        public List<UnacknowledgedRetryOperation> UnacknowledgedOperations { get; set; }
+        public List<UnacknowledgedOperation> UnacknowledgedOperations { get; set; }
 
         public static string MakeId()
         {
@@ -19,7 +19,7 @@
             return new RetryHistory
             {
                 HistoricOperations = new List<HistoricRetryOperation>(),
-                UnacknowledgedOperations = new List<UnacknowledgedRetryOperation>(),
+                UnacknowledgedOperations = new List<UnacknowledgedOperation>(),
                 Id = MakeId()
             };
         }
@@ -40,12 +40,12 @@
             return string.Join(",", HistoricOperations.Select(x => x.RequestId));
         }
 
-        public void AddToUnacknowledged(UnacknowledgedRetryOperation unacknowledgedRetryOperation)
+        public void AddToUnacknowledged(UnacknowledgedOperation unacknowledgedRetryOperation)
         {
             UnacknowledgedOperations.Add(unacknowledgedRetryOperation);
         }
 
-        public UnacknowledgedRetryOperation[] GetUnacknowledgedByClassifier(string classifier)
+        public UnacknowledgedOperation[] GetUnacknowledgedByClassifier(string classifier)
         {
             return UnacknowledgedOperations.Where(x => x.Classifier == classifier).ToArray();
         }

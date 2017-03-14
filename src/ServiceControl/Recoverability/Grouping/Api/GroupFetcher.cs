@@ -6,14 +6,14 @@
 
     public class GroupFetcher
     {
-        private readonly RetryOperationManager retryOperationManager;
+        private readonly RetryOperationManager operationManager;
 
-        public GroupFetcher(RetryOperationManager retryOperationManager)
+        public GroupFetcher(RetryOperationManager operationManager)
         {
-            this.retryOperationManager = retryOperationManager;
+            this.operationManager = operationManager;
         }
 
-        public RetryGroup[] GetGroups(IDocumentSession session, string classifier)
+        public GroupOperation[] GetGroups(IDocumentSession session, string classifier)
         {
             var dbGroups = GetDBGroups(classifier, session);
 
@@ -35,7 +35,7 @@
             return groups.OrderByDescending(g => g.Last).ToArray();
         }
 
-        private void MakeSureForwardingBatchIsIncludedAsOpen(string classifier, RetryBatch forwardingBatch, List<RetryGroup> open)
+        private void MakeSureForwardingBatchIsIncludedAsOpen(string classifier, RetryBatch forwardingBatch, List<GroupOperation> open)
         {
             if (forwardingBatch == null || forwardingBatch.Classifier != classifier)
             {
@@ -47,11 +47,11 @@
                 return;
             }
 
-            var fg = MapOpenForForwardingOperation(classifier, forwardingBatch, retryOperationManager.GetStatusForRetryOperation(forwardingBatch.RequestId, RetryType.FailureGroup));
+            var fg = MapOpenForForwardingOperation(classifier, forwardingBatch, operationManager.GetStatusForRetryOperation(forwardingBatch.RequestId, RetryType.FailureGroup));
             open.Add(fg);
         }
 
-        private static UnacknowledgedRetryOperation[] MapAcksToOpenGroups(FailureGroupView[] groups, UnacknowledgedRetryOperation[] acks)
+        private static UnacknowledgedOperation[] MapAcksToOpenGroups(FailureGroupView[] groups, UnacknowledgedOperation[] acks)
         {
             return (from g in groups
                     join unack in acks on g.Id equals unack.RequestId
@@ -68,27 +68,27 @@
             return groups;
         }
 
-        private static bool IsCurrentForwardingOperationIncluded(List<RetryGroup> open, RetryBatch forwardingBatch)
+        private static bool IsCurrentForwardingOperationIncluded(List<GroupOperation> open, RetryBatch forwardingBatch)
         {
             return open.Any(x => x.Id == forwardingBatch.RequestId && x.Type == forwardingBatch.Classifier && forwardingBatch.RetryType == RetryType.FailureGroup);
         }
 
-        private static RetryGroup MapOpenForForwardingOperation(string classifier, RetryBatch forwardingBatch, RetryOperation summary)
+        private static GroupOperation MapOpenForForwardingOperation(string classifier, RetryBatch forwardingBatch, RetryOperation summary)
         {
             var progress = summary.GetProgress();
-            return new RetryGroup
+            return new GroupOperation
             {
                 Id = forwardingBatch.RequestId,
                 Title = forwardingBatch.Originator,
                 Type = classifier,
                 Count = 0,
                 Last = summary.Last,
-                RetryStatus = summary.RetryState.ToString(),
-                RetryFailed = summary.Failed,
-                RetryProgress = progress.Percentage,
-                RetryRemainingCount = progress.MessagesRemaining,
-                RetryCompletionTime = summary.CompletionTime,
-                RetryStartTime = summary.Started,
+                OperationStatus = summary.RetryState.ToString(),
+                OperationFailed = summary.Failed,
+                OperationProgress = progress.Percentage,
+                OperationRemainingCount = progress.MessagesRemaining,
+                OperationCompletionTime = summary.CompletionTime,
+                OperationStartTime = summary.Started,
                 NeedUserAcknowledgement = false
             };
         }
@@ -101,37 +101,37 @@
             return nowForwarding == null ? null : session.Load<RetryBatch>(nowForwarding.RetryBatchId);
         }
 
-        private static IEnumerable<RetryGroup> MapClosedGroups(string classifier, UnacknowledgedRetryOperation[] standaloneUnacknowledgements)
+        private static IEnumerable<GroupOperation> MapClosedGroups(string classifier, UnacknowledgedOperation[] standaloneUnacknowledgements)
         {
             return standaloneUnacknowledgements.Select(standalone =>
             {
                 var unacknowledged = standaloneUnacknowledgements.First(unack => unack.RequestId == standalone.RequestId && unack.RetryType == RetryType.FailureGroup);
 
-                return new RetryGroup
+                return new GroupOperation
                 {
                     Id = unacknowledged.RequestId,
                     Title = unacknowledged.Originator,
                     Type = classifier,
                     Count = unacknowledged.NumberOfMessagesProcessed,
                     Last = unacknowledged.Last,
-                    RetryStatus = RetryState.Completed.ToString(),
-                    RetryFailed = unacknowledged.Failed,
-                    RetryCompletionTime = unacknowledged.CompletionTime,
-                    RetryStartTime = unacknowledged.StartTime,
+                    OperationStatus = RetryState.Completed.ToString(),
+                    OperationFailed = unacknowledged.Failed,
+                    OperationCompletionTime = unacknowledged.CompletionTime,
+                    OperationStartTime = unacknowledged.StartTime,
                     NeedUserAcknowledgement = true
                 };
             });
         }
 
-        private IEnumerable<RetryGroup> MapOpenGroups(IEnumerable<FailureGroupView> activeGroups, RetryHistory history, UnacknowledgedRetryOperation[] groupUnacknowledgements)
+        private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<FailureGroupView> activeGroups, RetryHistory history, UnacknowledgedOperation[] groupUnacknowledgements)
         {
             return activeGroups.Select(failureGroup =>
             {
-                var summary = retryOperationManager.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
+                var summary = operationManager.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
                 var historic = GetLatestHistoricOperation(history, failureGroup.Id, RetryType.FailureGroup);
                 var unacknowledged = groupUnacknowledgements.FirstOrDefault(unack => unack.RequestId == failureGroup.Id && unack.RetryType == RetryType.FailureGroup);
 
-                return new RetryGroup
+                return new GroupOperation
                 {
                     Id = failureGroup.Id,
                     Title = failureGroup.Title,
@@ -139,12 +139,12 @@
                     Count = failureGroup.Count,
                     First = failureGroup.First,
                     Last = failureGroup.Last,
-                    RetryStatus = summary?.RetryState.ToString() ?? "None",
-                    RetryFailed = summary?.Failed,
-                    RetryProgress = summary?.GetProgress().Percentage ?? 0.0,
-                    RetryRemainingCount = summary?.GetProgress().MessagesRemaining,
-                    RetryStartTime = summary?.Started,
-                    RetryCompletionTime = summary?.CompletionTime ?? (unacknowledged?.CompletionTime ?? historic?.CompletionTime),
+                    OperationStatus = summary?.RetryState.ToString() ?? "None",
+                    OperationFailed = summary?.Failed,
+                    OperationProgress = summary?.GetProgress().Percentage ?? 0.0,
+                    OperationRemainingCount = summary?.GetProgress().MessagesRemaining,
+                    OperationStartTime = summary?.Started,
+                    OperationCompletionTime = summary?.CompletionTime ?? (unacknowledged?.CompletionTime ?? historic?.CompletionTime),
                     NeedUserAcknowledgement = unacknowledged != null
                 };
             });

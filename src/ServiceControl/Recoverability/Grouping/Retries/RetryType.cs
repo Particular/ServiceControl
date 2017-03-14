@@ -3,6 +3,7 @@
     public enum RetryType
     {
         Unknown = 0,
+
         SingleMessage = 1,
         FailureGroup = 2,
         MultipleMessages = 3,
