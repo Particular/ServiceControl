@@ -37,7 +37,7 @@ namespace ServiceControl.Recoverability
 
         public RetriesGateway Retries { get; set; }
         public IDocumentStore Store { get; set; }
-		public RetryOperationManager RetryOperationManager { get; set; }
+		public OperationManager RetryOperationManager { get; set; }
         static ILog log = LogManager.GetLogger(typeof(RetryAllInGroupHandler));
     }
 }

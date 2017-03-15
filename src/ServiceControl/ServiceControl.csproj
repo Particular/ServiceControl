@@ -391,6 +391,8 @@
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
+    <Compile Include="Recoverability\ArchiveOperation.cs" />
+    <Compile Include="Recoverability\ArchiveState.cs" />
     <Compile Include="Recoverability\Grouping\Api\GroupFetcher.cs" />
     <Compile Include="Recoverability\Grouping\Api\GroupOperation.cs" />
     <Compile Include="Recoverability\Grouping\Api\EtagHelper.cs" />
@@ -538,6 +540,9 @@
     <Compile Include="Recoverability\Grouping\Groupers\ClassifiableMessageDetails.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\MessageTypeFailureClassifier.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsHandler.cs" />
+    <Compile Include="Recoverability\Grouping\Raven\ArchiveHistory.cs" />
+    <Compile Include="Recoverability\Grouping\Raven\ArchiveType.cs" />
+    <Compile Include="Recoverability\Grouping\Raven\HistoricArchiveOperation.cs" />
     <Compile Include="Recoverability\Grouping\Raven\ReclassifyErrorSettings.cs" />
     <Compile Include="Recoverability\Grouping\Api\FailureGroupsRetryApi.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ExceptionTypeAndStackTraceFailureClassifier.cs" />
@@ -554,14 +559,16 @@
     <Compile Include="Recoverability\Grouping\InternalMessages\RetryMessagesForwarded.cs" />
     <Compile Include="Recoverability\Grouping\InternalMessages\RetryOperationForwarding.cs" />
     <Compile Include="Recoverability\Grouping\InternalMessages\RetryOperationPreparing.cs" />
-    <Compile Include="Recoverability\Grouping\Retries\RetryOperationProgressCalculator.cs" />
+    <Compile Include="Recoverability\Grouping\Retries\OperationProgressCalculator.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryOperation.cs" />
     <Compile Include="Recoverability\Grouping\InternalMessages\RetryOperationWaiting.cs" />
     <Compile Include="Recoverability\Grouping\InternalMessages\RetryAllInGroup.cs" />
     <Compile Include="Recoverability\Grouping\Handlers\RetryAllInGroupHandler.cs" />
-    <Compile Include="Recoverability\Grouping\Retries\RetryOperationManager.cs" />
+    <Compile Include="Recoverability\OperationManager.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryState.cs" />
     <Compile Include="Recoverability\Grouping\Retries\RetryType.cs" />
+    <Compile Include="Recoverability\IHistoricOperation.cs" />
+    <Compile Include="Recoverability\IOperationHistory.cs" />
     <Compile Include="Recoverability\Retries\CorruptedReplyToHeaderStrategy.cs" />
     <Compile Include="Recoverability\Retries\HistoricRetryOperation.cs" />
     <Compile Include="Recoverability\Retries\Handlers\PendingRetriesHandler.cs" />

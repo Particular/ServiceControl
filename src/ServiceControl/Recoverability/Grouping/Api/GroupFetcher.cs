@@ -6,9 +6,9 @@
 
     public class GroupFetcher
     {
-        private readonly RetryOperationManager operationManager;
+        private readonly OperationManager operationManager;
 
-        public GroupFetcher(RetryOperationManager operationManager)
+        public GroupFetcher(OperationManager operationManager)
         {
             this.operationManager = operationManager;
         }
@@ -17,20 +17,25 @@
         {
             var dbGroups = GetDBGroups(classifier, session);
 
-            var history = session.Load<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
-            var acks = history.GetUnacknowledgedByClassifier(classifier);
+            var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
+            var unacknowledgedRetries = retryHistory.GetUnacknowledgedByClassifier(classifier);
 
-            var openAcks = MapAcksToOpenGroups(dbGroups, acks);
+            var openRetryAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedRetries);
+            var closedRetryAcknowledgements = unacknowledgedRetries.Except(openRetryAcknowledgements).ToArray();
+            var closedRetryGroups = MapClosedGroups(classifier, closedRetryAcknowledgements);
+            var openRetryGroups = MapOpenGroups(dbGroups, retryHistory, openRetryAcknowledgements).ToList();
 
-            var closedAcks = acks.Except(openAcks).ToArray();
+            MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), openRetryGroups);
 
-            var closed = MapClosedGroups(classifier, closedAcks);
+            var archiveHistory = session.Load<ArchiveHistory>(ArchiveHistory.MakeId()) ?? ArchiveHistory.CreateNew();
+            var unacknowledgedArchives = archiveHistory.GetUnacknowledgedByClassifier(classifier);
 
-            var open = MapOpenGroups(dbGroups, history, openAcks).ToList();
+            var openArchiveAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedArchives);
+            var closedArchiveAcknowledgements = unacknowledgedArchives.Except(openArchiveAcknowledgements).ToArray();
+            var closedArchiveGroups = MapClosedGroups(classifier, closedArchiveAcknowledgements);
+            var openArchiveGroups = MapOpenGroups(dbGroups, archiveHistory, openArchiveAcknowledgements).ToList();
 
-            MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), open);
-
-            var groups = open.Union(closed);
+            var groups = openRetryGroups.Union(closedRetryGroups);
 
             return groups.OrderByDescending(g => g.Last).ToArray();
         }
@@ -105,7 +110,7 @@
         {
             return standaloneUnacknowledgements.Select(standalone =>
             {
-                var unacknowledged = standaloneUnacknowledgements.First(unack => unack.RequestId == standalone.RequestId && unack.RetryType == RetryType.FailureGroup);
+                var unacknowledged = standaloneUnacknowledgements.First(unack => unack.RequestId == standalone.RequestId && (RetryType)unack.OperationType == RetryType.FailureGroup);
 
                 return new GroupOperation
                 {
@@ -129,7 +134,7 @@
             {
                 var summary = operationManager.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
                 var historic = GetLatestHistoricOperation(history, failureGroup.Id, RetryType.FailureGroup);
-                var unacknowledged = groupUnacknowledgements.FirstOrDefault(unack => unack.RequestId == failureGroup.Id && unack.RetryType == RetryType.FailureGroup);
+                var unacknowledged = groupUnacknowledgements.FirstOrDefault(unack => unack.RequestId == failureGroup.Id && (RetryType)unack.OperationType == RetryType.FailureGroup);
 
                 return new GroupOperation
                 {
@@ -150,10 +155,45 @@
             });
         }
 
+        private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<FailureGroupView> activeGroups, ArchiveHistory history, UnacknowledgedOperation[] groupUnacknowledgements)
+        {
+            return activeGroups.Select(failureGroup =>
+            {
+                var summary = operationManager.GetStatusForArchiveOperation(failureGroup.Id, ArchiveType.FailureGroup);
+                var historic = GetLatestHistoricOperation(history, failureGroup.Id, ArchiveType.FailureGroup);
+                var unacknowledged = groupUnacknowledgements.FirstOrDefault(unack => unack.RequestId == failureGroup.Id && (ArchiveType)unack.OperationType == ArchiveType.FailureGroup);
+
+                return new GroupOperation
+                {
+                    Id = failureGroup.Id,
+                    Title = failureGroup.Title,
+                    Type = failureGroup.Type,
+                    Count = failureGroup.Count,
+                    First = failureGroup.First,
+                    Last = failureGroup.Last,
+                    OperationStatus = summary?.ArchiveState.ToString() ?? "None",
+                    OperationFailed = false,
+                    OperationProgress = summary?.GetProgress().Percentage ?? 0.0,
+                    OperationRemainingCount = summary?.GetProgress().MessagesRemaining,
+                    OperationStartTime = summary?.Started,
+                    OperationCompletionTime = summary?.CompletionTime ?? (unacknowledged?.CompletionTime ?? historic?.CompletionTime),
+                    NeedUserAcknowledgement = unacknowledged != null
+                };
+            });
+        }
+
         private static HistoricRetryOperation GetLatestHistoricOperation(RetryHistory history, string requestId, RetryType retryType)
         {
             return history.HistoricOperations
                 .Where(v => v.RequestId == requestId && v.RetryType == retryType)
+                .OrderByDescending(v => v.CompletionTime)
+                .FirstOrDefault();
+        }
+
+        private static HistoricArchiveOperation GetLatestHistoricOperation(ArchiveHistory history, string requestId, ArchiveType archiveType)
+        {
+            return history.HistoricOperations
+                .Where(v => v.RequestId == requestId && v.ArchiveType == archiveType)
                 .OrderByDescending(v => v.CompletionTime)
                 .FirstOrDefault();
         }

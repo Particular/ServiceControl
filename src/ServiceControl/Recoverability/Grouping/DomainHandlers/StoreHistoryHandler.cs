@@ -35,7 +35,7 @@
                 retryHistory.AddToUnacknowledged(new UnacknowledgedOperation
                 {
                     RequestId = message.RequestId,
-                    RetryType = message.RetryType,
+                    OperationType = message.RetryType,
                     StartTime = message.StartTime,
                     CompletionTime = message.CompletionTime,
                     Originator = message.Originator,

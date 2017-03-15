@@ -3,34 +3,34 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public class RetryHistory : IOperationHistory<HistoricRetryOperation>
+    public class ArchiveHistory : IOperationHistory<HistoricArchiveOperation>
     {
         public string Id { get; set; }
-        public List<HistoricRetryOperation> HistoricOperations { get; set; }
+        public List<HistoricArchiveOperation> HistoricOperations { get; set; }
         public List<UnacknowledgedOperation> UnacknowledgedOperations { get; set; }
 
         public static string MakeId()
         {
-            return "RetryOperations/History";
+            return "ArchiveOperations/History";
         }
 
-        public static RetryHistory CreateNew()
+        public static ArchiveHistory CreateNew()
         {
-            return new RetryHistory
+            return new ArchiveHistory
             {
-                HistoricOperations = new List<HistoricRetryOperation>(),
+                HistoricOperations = new List<HistoricArchiveOperation>(),
                 UnacknowledgedOperations = new List<UnacknowledgedOperation>(),
                 Id = MakeId()
             };
         }
 
-        public void AddToHistory(HistoricRetryOperation historicOperation, int historyDepth)
+        public void AddToHistory(HistoricArchiveOperation historicOperation, int historyDepth)
         {
             HistoricOperations = HistoricOperations.Union(new[]
                 {
                     historicOperation
                 })
-                .OrderByDescending(retry => retry.CompletionTime)
+                .OrderByDescending(archive => archive.CompletionTime)
                 .Take(historyDepth)
                 .ToList();
         }
@@ -40,19 +40,19 @@
             return string.Join(",", HistoricOperations.Select(x => x.RequestId));
         }
 
-        public void AddToUnacknowledged(UnacknowledgedOperation unacknowledgedRetryOperation)
+        public void AddToUnacknowledged(UnacknowledgedOperation unacknowledgedArchiveOperation)
         {
-            UnacknowledgedOperations.Add(unacknowledgedRetryOperation);
+            UnacknowledgedOperations.Add(unacknowledgedArchiveOperation);
         }
 
         public UnacknowledgedOperation[] GetUnacknowledgedByClassifier(string classifier)
         {
             return UnacknowledgedOperations.Where(x => x.Classifier == classifier).ToArray();
         }
-        
-        public void Acknowledge(string requestId, RetryType type)
+
+        public void Acknowledge(string requestId, ArchiveType type)
         {
-            UnacknowledgedOperations.RemoveAll(x => x.RequestId == requestId && (RetryType)x.OperationType == type);
+            UnacknowledgedOperations.RemoveAll(x => x.RequestId == requestId && (ArchiveType)x.OperationType == type);
         }
     }
 }

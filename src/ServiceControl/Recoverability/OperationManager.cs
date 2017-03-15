@@ -3,9 +3,10 @@
     using System;
     using System.Collections.Generic;
 
-    public class RetryOperationManager
+    public class OperationManager
     {
-        internal static Dictionary<string, RetryOperation> Operations = new Dictionary<string, RetryOperation>();
+        internal static Dictionary<string, RetryOperation> RetryOperations = new Dictionary<string, RetryOperation>();
+        internal static Dictionary<string, ArchiveOperation> ArchiveOperations = new Dictionary<string, ArchiveOperation>();
 
         public void Wait(string requestId, RetryType retryType, DateTime started, string originator = null, string classifier = null, DateTime? last = null)
         {
@@ -22,7 +23,7 @@
         public bool IsOperationInProgressFor(string requestId, RetryType retryType)
         {
             RetryOperation summary;
-            if (!Operations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary))
+            if (!RetryOperations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary))
             {
                 return false;
             }
@@ -117,23 +118,31 @@
         private RetryOperation GetOrCreate(RetryType retryType, string requestId)
         {
             RetryOperation summary;
-            if (!Operations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary))
+            if (!RetryOperations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary))
             {
                 summary = new RetryOperation(requestId, retryType);
-                Operations[RetryOperation.MakeOperationId(requestId, retryType)] = summary;
+                RetryOperations[RetryOperation.MakeOperationId(requestId, retryType)] = summary;
             }
             return summary;
         }
 
         private static RetryOperation Get(string requestId, RetryType retryType)
         {
-            return Operations[RetryOperation.MakeOperationId(requestId, retryType)];
+            return RetryOperations[RetryOperation.MakeOperationId(requestId, retryType)];
         }
-        
+
         public RetryOperation GetStatusForRetryOperation(string requestId, RetryType retryType)
         {
             RetryOperation summary;
-            Operations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary);
+            RetryOperations.TryGetValue(RetryOperation.MakeOperationId(requestId, retryType), out summary);
+
+            return summary;
+        }
+
+        public ArchiveOperation GetStatusForArchiveOperation(string requestId, ArchiveType archiveType)
+        {
+            ArchiveOperation summary;
+            ArchiveOperations.TryGetValue(ArchiveOperation.MakeOperationId(requestId, archiveType), out summary);
 
             return summary;
         }

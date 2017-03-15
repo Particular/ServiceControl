@@ -14,7 +14,7 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<RetryOperationManager>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<OperationManager>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<GroupFetcher>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<PublishAllHandler>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<StoreHistoryHandler>(DependencyLifecycle.SingleInstance);

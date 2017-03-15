@@ -24,8 +24,8 @@ namespace ServiceControl.UnitTests.Recoverability
         [Test]
         public void When_a_group_is_processed_it_is_set_to_the_Preparing_state()
         {
-            var retryManager = new RetryOperationManager();
-            RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
+            var retryManager = new OperationManager();
+            OperationManager.RetryOperations = new Dictionary<string, RetryOperation>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -39,8 +39,8 @@ namespace ServiceControl.UnitTests.Recoverability
         [Test]
         public void When_a_group_is_prepared_and_SC_is_started_the_group_is_marked_as_failed()
         {
-            var retryManager = new RetryOperationManager();
-            RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
+            var retryManager = new OperationManager();
+            OperationManager.RetryOperations = new Dictionary<string, RetryOperation>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -67,8 +67,8 @@ namespace ServiceControl.UnitTests.Recoverability
         [Test]
         public void When_a_group_is_prepared_with_three_batches_and_SC_is_restarted_while_the_first_group_is_being_forwarded_then_the_count_still_matches()
         {
-            var retryManager = new RetryOperationManager();
-            RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
+            var retryManager = new OperationManager();
+            OperationManager.RetryOperations = new Dictionary<string, RetryOperation>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -101,8 +101,8 @@ namespace ServiceControl.UnitTests.Recoverability
 
 
                     // Simulate SC restart
-                    retryManager = new RetryOperationManager();
-                    RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
+                    retryManager = new OperationManager();
+                    OperationManager.RetryOperations = new Dictionary<string, RetryOperation>();
 
                     var documentManager = new CustomRetryDocumentManager(false, documentStore)
                     {
@@ -124,8 +124,8 @@ namespace ServiceControl.UnitTests.Recoverability
         [Test]
         public void When_a_group_is_forwarded_the_status_is_Completed()
         {
-            var retryManager = new RetryOperationManager();
-            RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
+            var retryManager = new OperationManager();
+            OperationManager.RetryOperations = new Dictionary<string, RetryOperation>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -164,8 +164,8 @@ namespace ServiceControl.UnitTests.Recoverability
         [Test]
         public void When_a_group_has_one_batch_out_of_two_forwarded_the_status_is_Forwarding()
         {
-            var retryManager = new RetryOperationManager();
-            RetryOperationManager.Operations = new Dictionary<string, RetryOperation>();
+            var retryManager = new OperationManager();
+            OperationManager.RetryOperations = new Dictionary<string, RetryOperation>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -203,7 +203,7 @@ namespace ServiceControl.UnitTests.Recoverability
             }
         }
 
-        void CreateAFailedMessageAndMarkAsPartOfRetryBatch(IDocumentStore documentStore, RetryOperationManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)
+        void CreateAFailedMessageAndMarkAsPartOfRetryBatch(IDocumentStore documentStore, OperationManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)
         {
             var messages = Enumerable.Range(0, numberOfMessages).Select(i =>
             {
@@ -362,9 +362,11 @@ namespace ServiceControl.UnitTests.Recoverability
             }
         }
 
+#pragma warning disable CS0618
         public IInMemoryOperations InMemory
+#pragma warning restore CS0618
         {
-            get
+        get
             {
                 throw new NotImplementedException();
             }

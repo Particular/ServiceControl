@@ -29,7 +29,7 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender, RetryOperationManager retryOperationManager)
+        public RetryProcessor(ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender, OperationManager retryOperationManager)
         {
             this.sender = sender;
             this.bus = bus;
@@ -218,7 +218,7 @@ namespace ServiceControl.Recoverability
         ISendMessages sender;
         IBus bus;
         ReturnToSenderDequeuer returnToSender;
-        RetryOperationManager retryOperationManager;
+        OperationManager retryOperationManager;
         private MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
         private CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;

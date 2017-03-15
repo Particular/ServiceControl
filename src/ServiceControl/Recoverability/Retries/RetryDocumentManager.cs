@@ -18,7 +18,7 @@ namespace ServiceControl.Recoverability
     public class RetryDocumentManager
     {
         protected static string RetrySessionId = Guid.NewGuid().ToString();
-        public RetryOperationManager RetryOperationManager { get; set; }
+        public OperationManager RetryOperationManager { get; set; }
         private static RavenJObject defaultMetadata = RavenJObject.Parse($@"
                                     {{
                                         ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"", 
