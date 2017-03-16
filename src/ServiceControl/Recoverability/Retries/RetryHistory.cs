@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public class RetryHistory : IOperationHistory<HistoricRetryOperation>
+    public class RetryHistory
     {
         public string Id { get; set; }
         public List<HistoricRetryOperation> HistoricOperations { get; set; }

@@ -3,7 +3,7 @@ namespace ServiceControl.Recoverability
 {
     using System;
 
-    public class HistoricRetryOperation : IHistoricOperation
+    public class HistoricRetryOperation
     {
         public string RequestId { get; set; }
         public RetryType RetryType { get; set; }

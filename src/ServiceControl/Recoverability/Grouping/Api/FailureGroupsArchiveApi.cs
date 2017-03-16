@@ -20,15 +20,21 @@ namespace ServiceControl.Recoverability
                 return HttpStatusCode.BadRequest;
             }
 
-            Bus.SendLocal<ArchiveAllInGroup>(m =>
+            if (!ArchiveOperationManager.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
-                m.GroupId = groupId;
-                m.CutOff = DateTime.UtcNow;
-            });
+                ArchiveOperationManager.StartArchiving(groupId, ArchiveType.FailureGroup);
+
+                Bus.SendLocal<ArchiveAllInGroup>(m =>
+                {
+                    m.GroupId = groupId;
+                    m.CutOff = DateTime.UtcNow;
+                });
+            }
 
             return HttpStatusCode.Accepted;
         }
 
+		public OperationManager ArchiveOperationManager { get; set; }
         public IBus Bus { get; set; }
     }
 }

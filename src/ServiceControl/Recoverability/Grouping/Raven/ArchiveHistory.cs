@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public class ArchiveHistory : IOperationHistory<HistoricArchiveOperation>
+    public class ArchiveHistory
     {
         public string Id { get; set; }
         public List<HistoricArchiveOperation> HistoricOperations { get; set; }

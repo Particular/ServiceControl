@@ -7,77 +7,84 @@ namespace ServiceControl.Recoverability
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using ServiceControl.MessageFailures;
+    using Raven.Abstractions.Commands;
+    using System;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
         private static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
+        private const int batchSize = 2;
 
         private readonly IBus bus;
         private readonly IDocumentStore store;
+        private readonly ArchiveDocumentManager documentManager;
+        private readonly OperationManager archiveOperationManager;
 
-        public ArchiveAllInGroupHandler(IBus bus, IDocumentStore store)
+        public ArchiveAllInGroupHandler(IBus bus, IDocumentStore store, ArchiveDocumentManager documentManager, OperationManager archiveOperationManager)
         {
             this.bus = bus;
             this.store = store;
+            this.documentManager = documentManager;
+            this.archiveOperationManager = archiveOperationManager;
         }
 
         public void Handle(ArchiveAllInGroup message)
         {
             logger.Info($"Archiving of {message.GroupId} started");
+            ArchiveOperation archiveOperation = null;
 
-            FailedMessage.FailureGroup failureGroup;
-            DocumentPatchResult[] patchedDocumentIds;
-                
             using (var session = store.OpenSession())
             {
-                var result = session.Advanced.DocumentStore.DatabaseCommands.UpdateByIndex(
-                    new FailedMessages_ByGroup().IndexName,
-                    new IndexQuery
-                    {
-                        Query = $"FailureGroupId:{message.GroupId} AND Status:{(int) FailedMessageStatus.Unresolved}",
-                        Cutoff = message.CutOff
-                    },
-                    new[]
-                    {
-                        new PatchRequest
-                        {
-                            Type = PatchCommandType.Set,
-                            Name = "Status",
-                            Value = (int) FailedMessageStatus.Archived
-                        }
-                    }, true).WaitForCompletion();
+                session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
 
-                patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
-                logger.Info($"Archiving of {message.GroupId} ended");
-                logger.Info($"Archived {patchedDocumentIds.Length} for {message.GroupId}");
+                archiveOperation = documentManager.LoadArchiveOperation(session, message.GroupId, ArchiveType.FailureGroup);
 
-                if (patchedDocumentIds.Length == 0)
+                if (archiveOperation == null)
                 {
-                    return;
+                    var groupDetails = documentManager.GetGroupDetails(session, message.GroupId);
+                    if (groupDetails.NumberOfMessagesInGroup == 0)
+                    {
+                        logger.Warn($"No messages to archive in group {message.GroupId}");
+
+                        return;
+                    }
+                    
+                    archiveOperation = documentManager.CreateArchiveOperation(session, message.GroupId, ArchiveType.FailureGroup, message.CutOff, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize);
+                    session.SaveChanges();
                 }
-
-                var failedMessage = session.Load<FailedMessage>(patchedDocumentIds[0].Document);
-                failureGroup = failedMessage.FailureGroups.FirstOrDefault();
             }
 
-            var groupName = "Undefined";
+            archiveOperationManager.StartArchiving(archiveOperation.RequestId, archiveOperation.ArchiveType, archiveOperation.TotalNumberOfMessages, archiveOperation.NumberOfMessagesArchived, archiveOperation.Started, archiveOperation.GroupName, archiveOperation.NumberOfBatches, archiveOperation.CurrentBatch);
 
-            if (failureGroup?.Title != null)
+            while (archiveOperation.CurrentBatch < archiveOperation.NumberOfBatches)
             {
-                groupName = failureGroup.Title;
+                using (var batchSession = store.OpenSession())
+                {
+                    var nextBatch = documentManager.GetArchiveBatch(batchSession, archiveOperation.Id, archiveOperation.CurrentBatch);
+
+                    documentManager.ArchiveMessageGroupBatch(batchSession, nextBatch);
+
+                    archiveOperationManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch.DocumentIds.Count);
+                    archiveOperation = archiveOperationManager.GetStatusForArchiveOperation(archiveOperation.RequestId, archiveOperation.ArchiveType).ToArchiveOperation();
+
+                    documentManager.UpdateArchiveOperation(batchSession, archiveOperation);
+
+                    batchSession.SaveChanges();
+
+                    logger.Info($"Archiving of {nextBatch.DocumentIds.Count} messages from group {message.GroupId} completed");
+                }
             }
+
+            logger.Info($"Archiving of group {message.GroupId} completed");
+            archiveOperationManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType);
+            documentManager.RemoveArchiveOperation(store, archiveOperation);
 
             bus.Publish(new FailedMessageGroupArchived
             {
                 GroupId = message.GroupId,
-                GroupName = groupName,
-                MessagesCount = patchedDocumentIds.Length
+                GroupName = archiveOperation.GroupName,
+                MessagesCount = archiveOperation.TotalNumberOfMessages
             });
-        }
-
-        class DocumentPatchResult
-        {
-            public string Document { get; set; }
         }
     }
 }

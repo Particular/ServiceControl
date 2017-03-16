@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Recoverability
 {
-    public struct Progress
+    public struct RetryProgress
     {
-        public Progress(double percentage, int messagesPrepared, int messagesForwarded, int messagesSkipped, int messagesRemaining)
+        public RetryProgress(double percentage, int messagesPrepared, int messagesForwarded, int messagesSkipped, int messagesRemaining)
         {
             Percentage = percentage;
             MessagesPrepared = messagesPrepared;

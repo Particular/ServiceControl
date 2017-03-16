@@ -31,7 +31,7 @@ namespace ServiceControl.Recoverability
             }
            
             var started = message.Started ?? DateTime.UtcNow;
-            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type,group?.Last);
+            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type, group?.Last);
             Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, group?.Type);
         }
 

@@ -6,7 +6,7 @@
     public class OperationManager
     {
         internal static Dictionary<string, RetryOperation> RetryOperations = new Dictionary<string, RetryOperation>();
-        internal static Dictionary<string, ArchiveOperation> ArchiveOperations = new Dictionary<string, ArchiveOperation>();
+        internal static Dictionary<string, ArchiveOperationLogic> ArchiveOperations = new Dictionary<string, ArchiveOperationLogic>();
 
         public void Wait(string requestId, RetryType retryType, DateTime started, string originator = null, string classifier = null, DateTime? last = null)
         {
@@ -79,7 +79,7 @@
 
             summary.Forwarding();
         }
-        
+
         public void ForwardedBatch(string requestId, RetryType retryType, int numberOfMessagesForwarded)
         {
             if (requestId == null) //legacy support for batches created before operations were introduced
@@ -139,12 +139,66 @@
             return summary;
         }
 
-        public ArchiveOperation GetStatusForArchiveOperation(string requestId, ArchiveType archiveType)
+        public bool IsOperationInProgressFor(string requestId, ArchiveType archiveType)
         {
-            ArchiveOperation summary;
-            ArchiveOperations.TryGetValue(ArchiveOperation.MakeOperationId(requestId, archiveType), out summary);
+            ArchiveOperationLogic summary;
+            if (!ArchiveOperations.TryGetValue(ArchiveOperationLogic.MakeId(requestId, archiveType), out summary))
+            {
+                return false;
+            }
+
+            return summary.ArchiveState != ArchiveState.Completed;
+        }
+
+        private ArchiveOperationLogic GetOrCreate(ArchiveType archiveType, string requestId)
+        {
+            ArchiveOperationLogic summary;
+            if (!ArchiveOperations.TryGetValue(ArchiveOperationLogic.MakeId(requestId, archiveType), out summary))
+            {
+                summary = new ArchiveOperationLogic(requestId, archiveType);
+                ArchiveOperations[ArchiveOperationLogic.MakeId(requestId, archiveType)] = summary;
+            }
+            return summary;
+        }
+
+        public void StartArchiving(string requestId, ArchiveType archiveType, int totalNumberOfMessages, int numberOfMessagesArchived, DateTime started, string groupName, int numberOfBatches, int currentBatch)
+        {
+            var summary = GetOrCreate(archiveType, requestId);
+
+            summary.TotalNumberOfMessages = totalNumberOfMessages;
+            summary.NumberOfMessagesArchived = numberOfMessagesArchived;
+            summary.Started = started;
+            summary.GroupName = groupName;
+            summary.NumberOfBatches = numberOfBatches;
+            summary.CurrentBatch = currentBatch;
+
+            summary.Start();
+        }
+
+        public void StartArchiving(string requestId, ArchiveType archiveType)
+        {
+            StartArchiving(requestId, archiveType, 0, 0, DateTime.Now, "Undefined", 0, 0);
+        }
+
+        public ArchiveOperationLogic GetStatusForArchiveOperation(string requestId, ArchiveType archiveType)
+        {
+            ArchiveOperationLogic summary;
+            ArchiveOperations.TryGetValue(ArchiveOperationLogic.MakeId(requestId, archiveType), out summary);
 
             return summary;
+        }
+
+        public void BatchArchived(string requestId, ArchiveType archiveType, int numberOfMessagesArchivedInBatch)
+        {
+            var summary = GetOrCreate(archiveType, requestId);
+
+            summary.BatchArchived(numberOfMessagesArchivedInBatch);
+        }
+
+        public void ArchiveOperationCompleted(string requestId, ArchiveType archiveType)
+        {
+            var summary = GetOrCreate(archiveType, requestId);
+            summary.Complete();
         }
     }
 }

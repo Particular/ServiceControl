@@ -3,11 +3,11 @@
     using System;
     using NServiceBus;
 
-    public class RetryOperationWaiting : IEvent
+    public class ArchiveOperationStarting : IEvent
     {
         public string RequestId { get; set; }
-        public RetryType RetryType { get; set; }
-        public RetryProgress Progress { get; set; }
+        public ArchiveType ArchiveType { get; set; }
+        public ArchiveProgress Progress { get; set; }
         public DateTime StartTime { get; set; }
     }
 }

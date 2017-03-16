@@ -19,14 +19,14 @@
             }
         }
 
-        public static double CalculateProgress(int totalNumberOfMessages, int numberOfMessagesPrepared, int numberOfMessagesForwarded, int numberOfMessagesSkipped, ArchiveState state)
+        public static double CalculateProgress(int totalNumberOfMessages, int numberOfMessagesArchived, ArchiveState state)
         {
             double total = totalNumberOfMessages;
 
             switch (state)
             {
                 case ArchiveState.Archiving:
-                    return (numberOfMessagesForwarded + numberOfMessagesSkipped) / total;
+                    return numberOfMessagesArchived / total;
                 case ArchiveState.Completed:
                     return 1.0;
                 default:

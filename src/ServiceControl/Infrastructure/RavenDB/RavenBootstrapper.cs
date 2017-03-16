@@ -48,7 +48,7 @@
             Directory.CreateDirectory(settings.DbPath);
 
             documentStore.DataDirectory = settings.DbPath;
-            documentStore.UseEmbeddedHttpServer = true;// maintenanceMode || settings.ExposeRavenDB;
+            documentStore.UseEmbeddedHttpServer = maintenanceMode || settings.ExposeRavenDB;
             documentStore.EnlistInDistributedTransactions = false;
 
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
