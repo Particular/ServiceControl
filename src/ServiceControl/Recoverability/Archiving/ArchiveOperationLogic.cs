@@ -41,7 +41,7 @@
 
         internal void Start()
         {
-            ArchiveState = ArchiveState.Started;
+            ArchiveState = ArchiveState.ArchiveStarted;
             CompletionTime = null;
 
             DomainEvents.Raise(new ArchiveOperationStarting
@@ -55,7 +55,7 @@
 
         internal void BatchArchived(int numberOfMessagesArchivedInBatch)
         {
-            ArchiveState = ArchiveState.Archiving;
+            ArchiveState = ArchiveState.ArchiveProgressing;
             NumberOfMessagesArchived += numberOfMessagesArchivedInBatch;
             CurrentBatch++;
             Last = DateTime.Now;
@@ -72,7 +72,7 @@
 
         internal void Complete()
         {
-            ArchiveState = ArchiveState.Completed;
+            ArchiveState = ArchiveState.ArchiveCompleted;
             NumberOfMessagesArchived = TotalNumberOfMessages;
             CompletionTime = DateTime.Now;
             Last = DateTime.Now;

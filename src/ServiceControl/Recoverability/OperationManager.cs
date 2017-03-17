@@ -147,7 +147,7 @@
                 return false;
             }
 
-            return summary.ArchiveState != ArchiveState.Completed;
+            return summary.ArchiveState != ArchiveState.ArchiveCompleted;
         }
 
         private ArchiveOperationLogic GetOrCreate(ArchiveType archiveType, string requestId)

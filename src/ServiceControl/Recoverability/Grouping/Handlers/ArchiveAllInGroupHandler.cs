@@ -31,7 +31,7 @@ namespace ServiceControl.Recoverability
         public void Handle(ArchiveAllInGroup message)
         {
             logger.Info($"Archiving of {message.GroupId} started");
-            ArchiveOperation archiveOperation = null;
+            ArchiveOperation archiveOperation;
 
             using (var session = store.OpenSession())
             {

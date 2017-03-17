@@ -25,9 +25,9 @@
 
             switch (state)
             {
-                case ArchiveState.Archiving:
+                case ArchiveState.ArchiveProgressing:
                     return numberOfMessagesArchived / total;
-                case ArchiveState.Completed:
+                case ArchiveState.ArchiveCompleted:
                     return 1.0;
                 default:
                     return 0.0;

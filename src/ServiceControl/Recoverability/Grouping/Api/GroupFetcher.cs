@@ -22,20 +22,21 @@
 
             var openRetryAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedRetries);
             var closedRetryAcknowledgements = unacknowledgedRetries.Except(openRetryAcknowledgements).ToArray();
-            var closedRetryGroups = MapClosedGroups(classifier, closedRetryAcknowledgements);
-            var openRetryGroups = MapOpenGroups(dbGroups, retryHistory, openRetryAcknowledgements).ToList();
+            var closedGroups = MapClosedGroups(classifier, closedRetryAcknowledgements);
+            var openGroups = MapOpenGroups(dbGroups, retryHistory, openRetryAcknowledgements).ToList();
 
-            MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), openRetryGroups);
+            MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), openGroups);
 
             var archiveHistory = session.Load<ArchiveHistory>(ArchiveHistory.MakeId()) ?? ArchiveHistory.CreateNew();
             var unacknowledgedArchives = archiveHistory.GetUnacknowledgedByClassifier(classifier);
 
             var openArchiveAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedArchives);
             var closedArchiveAcknowledgements = unacknowledgedArchives.Except(openArchiveAcknowledgements).ToArray();
-            var closedArchiveGroups = MapClosedGroups(classifier, closedArchiveAcknowledgements);
-            var openArchiveGroups = MapOpenGroups(dbGroups, archiveHistory, openArchiveAcknowledgements).ToList();
 
-            var groups = openRetryGroups.Union(closedRetryGroups);
+            closedGroups = MapClosedGroups(classifier, closedArchiveAcknowledgements);
+            openGroups = MapOpenGroups(openGroups, archiveHistory, openArchiveAcknowledgements).ToList();
+
+            var groups = openGroups.Union(closedGroups);
 
             return groups.OrderByDescending(g => g.Last).ToArray();
         }
@@ -155,7 +156,7 @@
             });
         }
 
-        private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<FailureGroupView> activeGroups, ArchiveHistory history, UnacknowledgedOperation[] groupUnacknowledgements)
+        private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<GroupOperation> activeGroups, ArchiveHistory history, UnacknowledgedOperation[] groupUnacknowledgements)
         {
             return activeGroups.Select(failureGroup =>
             {

@@ -2,8 +2,8 @@
 {
     public enum ArchiveState
     {
-        Started,
-        Archiving,
-        Completed,
+        ArchiveStarted,
+        ArchiveProgressing,
+        ArchiveCompleted,
     }
 }
