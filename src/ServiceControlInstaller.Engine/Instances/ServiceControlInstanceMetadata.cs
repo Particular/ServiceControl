@@ -61,8 +61,7 @@ namespace ServiceControlInstaller.Engine.Instances
             var zipInfo = ServiceControlZipInfo.Find(appDirectory);
             Version = zipInfo.Version;
         }
-
-
+        
         public string Url
         {
             get
@@ -145,9 +144,9 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void WriteConfigurationFile()
         {
-            var configuration = new ConfigurationWriter(this);
-            configuration.Validate();
-            configuration.Save();
+            var appConfig = new ServiceControlAppConfig(this);
+            appConfig.Validate();
+            appConfig.Save();
         }
 
         public void RegisterService()

@@ -58,7 +58,7 @@ namespace ServiceControlInstaller.PowerShell
                 {
                     if (instance.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
                     {
-                        var i = instance.ReadAppSetting(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
+                        var i = instance.AppConfig.Read(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
                         if (i != -1)
                         {
                             options.AuditRetentionPeriod = TimeSpan.FromHours(i);
