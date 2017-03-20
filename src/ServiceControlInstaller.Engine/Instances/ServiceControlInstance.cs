@@ -416,14 +416,17 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RemoveDataBaseFolder()
         {
-            
-            try
+            //Order by length descending in case they are nested paths
+            foreach (var folder in AppConfig.RavenDataPaths().OrderByDescending(p => p.Length))
             {
-                FileUtils.DeleteDirectory(DBPath, true, false);
-            }
-            catch
-            {
-                ReportCard.Warnings.Add($"Could not delete the database directory '{DBPath}'. Please remove manually");
+                try
+                {
+                    FileUtils.DeleteDirectory(folder, true, false);
+                }
+                catch
+                {
+                    ReportCard.Warnings.Add($"Could not delete the RavenDB directory '{folder}'. Please remove manually");
+                }
             }
         }
 
