@@ -120,7 +120,6 @@
     <Compile Include="ReportCard\ReportCard.cs" />
     <Compile Include="Services\ServiceRecoveryHelper.cs" />
     <Compile Include="Configuration\ConfigurationSectionExtensions.cs" />
-    <Compile Include="Configuration\ConfigurationWriter.cs" />
     <Compile Include="FileSystem\DeploymentZipInfo.cs" />
     <Compile Include="FileSystem\FileUtils.cs" />
     <Compile Include="FileSystem\NonLockingFileReader.cs" />
