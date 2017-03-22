@@ -31,6 +31,11 @@
             return summary.RetryState != RetryState.Completed && summary.RetryState != RetryState.Waiting;
         }
 
+        internal IEnumerable<ArchiveOperationLogic> GetArchivalOperations()
+        {
+            return ArchiveOperations.Values;
+        }
+
         public void Prepairing(string requestId, RetryType retryType, int totalNumberOfMessages)
         {
             if (requestId == null) //legacy support for batches created before operations were introduced

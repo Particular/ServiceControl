@@ -7,7 +7,7 @@
     {
         public ArchiveOperationLogic(string requestId, ArchiveType archiveType)
         {
-            this.requestId = requestId;
+            this.RequestId = requestId;
             this.archiveType = archiveType;
         }
 
@@ -20,8 +20,8 @@
         public DateTime Started { get; set; }
         public ArchiveState ArchiveState { get; set; }
         public string GroupName { get; set; }
+        public string RequestId { get; set; }
 
-        private readonly string requestId;
         private readonly ArchiveType archiveType;
 
         public static string MakeId(string requestId, ArchiveType archiveType)
@@ -46,7 +46,7 @@
 
             DomainEvents.Raise(new ArchiveOperationStarting
             {
-                RequestId = requestId,
+                RequestId = RequestId,
                 ArchiveType = archiveType,
                 Progress = GetProgress(),
                 StartTime = Started
@@ -62,7 +62,7 @@
 
             DomainEvents.Raise(new ArchiveOperationBatchCompleted
             {
-                RequestId = requestId,
+                RequestId = RequestId,
                 ArchiveType = archiveType,
                 Progress = GetProgress(),
                 StartTime = Started,
@@ -79,12 +79,13 @@
 
             DomainEvents.Raise(new ArchiveOperationCompleted
             {
-                RequestId = requestId,
+                RequestId = RequestId,
                 ArchiveType = archiveType,
                 Progress = GetProgress(),
                 StartTime = Started,
                 Last = Last.Value,
-                CompletionTime = CompletionTime.Value
+                CompletionTime = CompletionTime.Value,
+                GroupName = GroupName
             });
         }
 
@@ -94,9 +95,9 @@
             {
                 ArchiveType = archiveType,
                 GroupName = GroupName,
-                Id = ArchiveOperation.MakeId(requestId, archiveType),
+                Id = ArchiveOperation.MakeId(RequestId, archiveType),
                 NumberOfMessagesArchived = NumberOfMessagesArchived,
-                RequestId = requestId,
+                RequestId = RequestId,
                 Started = Started,
                 TotalNumberOfMessages = TotalNumberOfMessages,
                 NumberOfBatches = NumberOfBatches,

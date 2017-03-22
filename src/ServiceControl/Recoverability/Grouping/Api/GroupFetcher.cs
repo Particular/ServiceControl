@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using Raven.Client;
     using System.Linq;
+    using System;
 
     public class GroupFetcher
     {
@@ -24,6 +25,7 @@
             var closedRetryAcknowledgements = unacknowledgedRetries.Except(openRetryAcknowledgements).ToArray();
             var closedGroups = MapClosedGroups(classifier, closedRetryAcknowledgements);
             var openGroups = MapOpenGroups(dbGroups, retryHistory, openRetryAcknowledgements).ToList();
+            openGroups = MapOpenGroups(openGroups, operationManager.GetArchivalOperations()).ToList();
 
             MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), openGroups);
 
@@ -118,6 +120,27 @@
                     NeedUserAcknowledgement = true
                 };
             });
+        }
+
+        private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<GroupOperation> openGroups, IEnumerable<ArchiveOperationLogic> archiveOperations)
+        {
+            foreach (var group in openGroups)
+            {
+                var matchingArchive = archiveOperations.FirstOrDefault(op => op.RequestId == group.Id);
+
+                if (matchingArchive != null)
+                {
+                    group.OperationStatus = matchingArchive.ArchiveState.ToString() ?? "None";
+                    group.OperationFailed = false;
+                    group.OperationProgress = matchingArchive?.GetProgress().Percentage ?? 0.0;
+                    group.OperationRemainingCount = matchingArchive?.GetProgress().MessagesRemaining;
+                    group.OperationStartTime = matchingArchive?.Started;
+                    group.OperationCompletionTime = matchingArchive?.CompletionTime;
+                    group.NeedUserAcknowledgement = false;
+                }
+
+                yield return group;
+            }
         }
 
         private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<FailureGroupView> activeGroups, RetryHistory history, UnacknowledgedRetryOperation[] groupUnacknowledgements)
