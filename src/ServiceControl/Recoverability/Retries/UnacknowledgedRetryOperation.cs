@@ -2,10 +2,10 @@
 {
     using System;
 
-    public class UnacknowledgedOperation
+    public class UnacknowledgedRetryOperation
     {
         public string RequestId { get; set; }
-        public Enum OperationType { get; set; }
+        public RetryType OperationType { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime CompletionTime { get; set; }
         public DateTime Last { get; set; }

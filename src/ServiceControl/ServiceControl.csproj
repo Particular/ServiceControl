@@ -547,7 +547,6 @@
     <Compile Include="Recoverability\Grouping\InternalMessages\ArchiveOperationBatchCompleted.cs" />
     <Compile Include="Recoverability\Grouping\InternalMessages\ArchiveOperationCompleted.cs" />
     <Compile Include="Recoverability\Grouping\InternalMessages\ArchiveOperationStarting.cs" />
-    <Compile Include="Recoverability\Grouping\Raven\ArchiveHistory.cs" />
     <Compile Include="Recoverability\Grouping\Raven\ArchiveType.cs" />
     <Compile Include="Recoverability\Grouping\Raven\HistoricArchiveOperation.cs" />
     <Compile Include="Recoverability\Grouping\Raven\ReclassifyErrorSettings.cs" />
@@ -600,7 +599,7 @@
     <Compile Include="MessageFailures\InternalMessages\RetryPendingMessagesById.cs" />
     <Compile Include="Recoverability\Retries\RetryHistory.cs" />
     <Compile Include="Recoverability\Retries\RetryProcessor.cs" />
-    <Compile Include="Recoverability\Retries\UnacknowledgedOperation.cs" />
+    <Compile Include="Recoverability\Retries\UnacknowledgedRetryOperation.cs" />
     <Compile Include="Recoverability\Archiving\ArchiveProgress.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeInitiator.cs" />

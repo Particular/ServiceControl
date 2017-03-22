@@ -32,7 +32,7 @@
                     NumberOfMessagesProcessed = message.NumberOfMessagesProcessed
                 }, settings.RetryHistoryDepth);
 
-                retryHistory.AddToUnacknowledged(new UnacknowledgedOperation
+                retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
                 {
                     RequestId = message.RequestId,
                     OperationType = message.RetryType,

@@ -27,15 +27,6 @@
 
             MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), openGroups);
 
-            var archiveHistory = session.Load<ArchiveHistory>(ArchiveHistory.MakeId()) ?? ArchiveHistory.CreateNew();
-            var unacknowledgedArchives = archiveHistory.GetUnacknowledgedByClassifier(classifier);
-
-            var openArchiveAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedArchives);
-            var closedArchiveAcknowledgements = unacknowledgedArchives.Except(openArchiveAcknowledgements).ToArray();
-
-            closedGroups = MapClosedGroups(classifier, closedArchiveAcknowledgements);
-            openGroups = MapOpenGroups(openGroups, archiveHistory, openArchiveAcknowledgements).ToList();
-
             var groups = openGroups.Union(closedGroups);
 
             return groups.OrderByDescending(g => g.Last).ToArray();
@@ -57,7 +48,7 @@
             open.Add(fg);
         }
 
-        private static UnacknowledgedOperation[] MapAcksToOpenGroups(FailureGroupView[] groups, UnacknowledgedOperation[] acks)
+        private static UnacknowledgedRetryOperation[] MapAcksToOpenGroups(FailureGroupView[] groups, UnacknowledgedRetryOperation[] acks)
         {
             return (from g in groups
                     join unack in acks on g.Id equals unack.RequestId
@@ -107,7 +98,7 @@
             return nowForwarding == null ? null : session.Load<RetryBatch>(nowForwarding.RetryBatchId);
         }
 
-        private static IEnumerable<GroupOperation> MapClosedGroups(string classifier, UnacknowledgedOperation[] standaloneUnacknowledgements)
+        private static IEnumerable<GroupOperation> MapClosedGroups(string classifier, UnacknowledgedRetryOperation[] standaloneUnacknowledgements)
         {
             return standaloneUnacknowledgements.Select(standalone =>
             {
@@ -129,7 +120,7 @@
             });
         }
 
-        private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<FailureGroupView> activeGroups, RetryHistory history, UnacknowledgedOperation[] groupUnacknowledgements)
+        private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<FailureGroupView> activeGroups, RetryHistory history, UnacknowledgedRetryOperation[] groupUnacknowledgements)
         {
             return activeGroups.Select(failureGroup =>
             {
@@ -156,45 +147,10 @@
             });
         }
 
-        private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<GroupOperation> activeGroups, ArchiveHistory history, UnacknowledgedOperation[] groupUnacknowledgements)
-        {
-            return activeGroups.Select(failureGroup =>
-            {
-                var summary = operationManager.GetStatusForArchiveOperation(failureGroup.Id, ArchiveType.FailureGroup);
-                var historic = GetLatestHistoricOperation(history, failureGroup.Id, ArchiveType.FailureGroup);
-                var unacknowledged = groupUnacknowledgements.FirstOrDefault(unack => unack.RequestId == failureGroup.Id && (ArchiveType)unack.OperationType == ArchiveType.FailureGroup);
-
-                return new GroupOperation
-                {
-                    Id = failureGroup.Id,
-                    Title = failureGroup.Title,
-                    Type = failureGroup.Type,
-                    Count = failureGroup.Count,
-                    First = failureGroup.First,
-                    Last = failureGroup.Last,
-                    OperationStatus = summary?.ArchiveState.ToString() ?? "None",
-                    OperationFailed = false,
-                    OperationProgress = summary?.GetProgress().Percentage ?? 0.0,
-                    OperationRemainingCount = summary?.GetProgress().MessagesRemaining,
-                    OperationStartTime = summary?.Started,
-                    OperationCompletionTime = summary?.CompletionTime ?? (unacknowledged?.CompletionTime ?? historic?.CompletionTime),
-                    NeedUserAcknowledgement = unacknowledged != null
-                };
-            });
-        }
-
         private static HistoricRetryOperation GetLatestHistoricOperation(RetryHistory history, string requestId, RetryType retryType)
         {
             return history.HistoricOperations
                 .Where(v => v.RequestId == requestId && v.RetryType == retryType)
-                .OrderByDescending(v => v.CompletionTime)
-                .FirstOrDefault();
-        }
-
-        private static HistoricArchiveOperation GetLatestHistoricOperation(ArchiveHistory history, string requestId, ArchiveType archiveType)
-        {
-            return history.HistoricOperations
-                .Where(v => v.RequestId == requestId && v.ArchiveType == archiveType)
                 .OrderByDescending(v => v.CompletionTime)
                 .FirstOrDefault();
         }

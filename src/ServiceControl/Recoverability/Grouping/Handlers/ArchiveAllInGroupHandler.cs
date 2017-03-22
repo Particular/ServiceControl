@@ -49,6 +49,7 @@ namespace ServiceControl.Recoverability
                         return;
                     }
                     
+                    logger.Info($"Splitting group {message.GroupId} into batches");
                     archiveOperation = documentManager.CreateArchiveOperation(session, message.GroupId, ArchiveType.FailureGroup, message.CutOff, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize);
                     session.SaveChanges();
                 }
