@@ -136,6 +136,7 @@
                     group.OperationRemainingCount = matchingArchive?.GetProgress().MessagesRemaining;
                     group.OperationStartTime = matchingArchive?.Started;
                     group.OperationCompletionTime = matchingArchive?.CompletionTime;
+                    group.OperationMessagesCompletedCount = matchingArchive?.GetProgress().NumberOfMessagesArchived;
                     group.NeedUserAcknowledgement = false;
                 }
 

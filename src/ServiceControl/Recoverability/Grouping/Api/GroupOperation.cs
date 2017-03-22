@@ -6,6 +6,7 @@ public class GroupOperation
     public string Title { get; set; }
     public string Type { get; set; }
     public int Count { get; set; }
+    public int? OperationMessagesCompletedCount { get; set; }
     public DateTime? First { get; set; }
     public DateTime? Last { get; set; }
     public string OperationStatus { get; set; }
