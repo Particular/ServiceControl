@@ -204,6 +204,13 @@
         {
             var summary = GetOrCreate(archiveType, requestId);
             summary.Complete();
+
+            RemoveArchiveOperation(requestId, archiveType);
+        }
+
+        public void RemoveArchiveOperation(string requestId, ArchiveType archiveType)
+        {
+            ArchiveOperations.Remove(ArchiveOperationLogic.MakeId(requestId, archiveType));
         }
     }
 }
