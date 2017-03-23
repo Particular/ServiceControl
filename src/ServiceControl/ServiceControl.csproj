@@ -396,6 +396,7 @@
     <Compile Include="Recoverability\Grouping\Api\EtagHelper.cs" />
     <Compile Include="Recoverability\Grouping\DomainHandlers\PublishAllHandler.cs" />
     <Compile Include="Recoverability\Grouping\DomainHandlers\StoreHistoryHandler.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\AddressOfFailingEndpointClassifier.cs" />
     <Compile Include="Recoverability\Grouping\GroupRetries.cs" />
     <Compile Include="Recoverability\Grouping\IFailedMessageEnricher.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesByRangeHandler.cs" />
