@@ -20,6 +20,7 @@
             Assert.IsNotEmpty(classifiers, "No classifiers retrieved");
             Assert.Contains(ExceptionTypeAndStackTraceFailureClassifier.Id, classifiers, "ExceptionTypeAndStackTraceFailureClassifier was not found");
             Assert.Contains(MessageTypeFailureClassifier.Id, classifiers, "MessageTypeFailureClassifier was not found");
+            Assert.Contains(AddressOfFailingEndpointClassifier.Id, classifiers, "AddressOfFailingEndpointClassifier was not found");
         }
 
         class Context : ScenarioContext
