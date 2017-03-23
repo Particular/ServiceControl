@@ -436,7 +436,32 @@
             public ProcessingAttemptInfo(PreSplitScenario scenario, string failedQ, bool isRetry)
             {
                 FailedQ = failedQ;
-                Attempt = new FailedMessage.ProcessingAttempt
+                Attempt = CreateAttempt(scenario, failedQ);
+                ExpectedUniqueMessageId = Attempt.Headers.UniqueId();
+
+                if (isRetry)
+                {
+                    Attempt.Headers.Add(V4RetryUniqueMessageIdHeader, scenario.UniqueMessageId);
+                }
+            }
+
+            public ProcessingAttemptInfo(PreSplitScenario scenario, string failedQ, string endpointName, bool isRetry) 
+            {
+                FailedQ = failedQ;
+                Attempt = CreateAttempt(scenario, failedQ);
+                EndpoingName = endpointName;
+                Attempt.Headers.Add(Headers.ProcessingEndpoint, endpointName);
+
+                ExpectedUniqueMessageId = Attempt.Headers.UniqueId();
+                if (isRetry)
+                {
+                    Attempt.Headers.Add(V5RetryUniqueMessageIdHeader, scenario.UniqueMessageId);
+                }
+            }
+
+            static FailedMessage.ProcessingAttempt CreateAttempt(PreSplitScenario scenario, string failedQ)
+            {
+                return new FailedMessage.ProcessingAttempt
                 {
                     MessageId = scenario.MessageId,
                     AttemptedAt = DateTime.UtcNow.AddDays(-1),
@@ -462,24 +487,6 @@
                         { "MessageType",  MessageType }
                     }
                 };
-                ExpectedUniqueMessageId = Attempt.Headers.UniqueId();
-
-                if (isRetry)
-                {
-                    Attempt.Headers.Add(V4RetryUniqueMessageIdHeader, scenario.UniqueMessageId);
-                }
-            }
-
-            public ProcessingAttemptInfo(PreSplitScenario scenario, string failedQ, string endpointName, bool isRetry) : this(scenario, failedQ, isRetry)
-            {
-                EndpoingName = endpointName;
-                Attempt.Headers.Add(Headers.ProcessingEndpoint,endpointName);
-                ExpectedUniqueMessageId = Attempt.Headers.UniqueId();
-                if (isRetry)
-                {
-                    Attempt.Headers.Remove(V4RetryUniqueMessageIdHeader);
-                    Attempt.Headers.Add(V5RetryUniqueMessageIdHeader, scenario.UniqueMessageId);
-                }
             }
         }
 
