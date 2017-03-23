@@ -13,7 +13,7 @@ namespace ServiceControl.Recoverability
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
         private static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
-        private const int batchSize = 2;
+        private const int batchSize = 1000;
 
         private readonly IBus bus;
         private readonly IDocumentStore store;
@@ -68,6 +68,11 @@ namespace ServiceControl.Recoverability
                 using (var batchSession = store.OpenSession())
                 {
                     var nextBatch = documentManager.GetArchiveBatch(batchSession, archiveOperation.Id, archiveOperation.CurrentBatch);
+                    if (nextBatch == null)
+                    {
+                        // We're only here in the case where Raven indexes are stale
+                        break;
+                    }
 
                     documentManager.ArchiveMessageGroupBatch(batchSession, nextBatch);
 

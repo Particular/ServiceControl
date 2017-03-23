@@ -101,7 +101,7 @@
 
         public void ArchiveMessageGroupBatch(IDocumentSession session, ArchiveOperationBatch batch)
         {
-            var patchCommands = batch.DocumentIds
+            var patchCommands = batch?.DocumentIds
                 .Select(documentId =>
                 new PatchCommandData
                 {
@@ -117,8 +117,11 @@
                     }
                 });
 
-            var results = session.Advanced.DocumentStore.DatabaseCommands.Batch(patchCommands);
-            session.Advanced.DocumentStore.DatabaseCommands.Delete(batch.Id, null);
+            if (patchCommands != null)
+            {
+                var results = session.Advanced.DocumentStore.DatabaseCommands.Batch(patchCommands);
+                session.Advanced.DocumentStore.DatabaseCommands.Delete(batch.Id, null);
+            }
         }
 
         public void UpdateArchiveOperation(IDocumentSession session, ArchiveOperation archiveOperation)
