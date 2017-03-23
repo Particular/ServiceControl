@@ -30,6 +30,12 @@ namespace ServiceControl.Recoverability
 
         public void Handle(ArchiveAllInGroup message)
         {
+            if (archiveOperationManager.IsRetryInProgressFor(message.GroupId))
+            {
+                logger.Warn($"Attempt to archive a group ({message.GroupId}) which is currently in the process of being retried");
+                return;
+            }
+
             logger.Info($"Archiving of {message.GroupId} started");
             ArchiveOperation archiveOperation;
 

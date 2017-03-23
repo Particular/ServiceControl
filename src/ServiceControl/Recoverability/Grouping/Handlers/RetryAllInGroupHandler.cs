@@ -16,6 +16,12 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
+            if (RetryOperationManager.IsArchiveInProgressFor(message.GroupId))
+            {
+                log.Warn($"Attempt to retry a group ({message.GroupId}) which is currently in the process of being archived");
+                return;
+            }
+
             FailureGroupView group;
 
             using (var session = Store.OpenSession())

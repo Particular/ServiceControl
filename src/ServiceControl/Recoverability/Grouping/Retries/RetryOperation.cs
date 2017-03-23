@@ -194,5 +194,10 @@
         {
             return RetryState == RetryState.Completed;
         }
+
+        public bool IsInProgress()
+        {
+            return RetryState != RetryState.Completed && RetryState != RetryState.Waiting;
+        }
     }
 }

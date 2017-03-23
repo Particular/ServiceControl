@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Linq;
     using System.Collections.Generic;
 
     public class OperationManager
@@ -28,7 +29,17 @@
                 return false;
             }
 
-            return summary.RetryState != RetryState.Completed && summary.RetryState != RetryState.Waiting;
+            return summary.IsInProgress();
+        }
+
+        public bool IsRetryInProgressFor(string requestId)
+        {
+            return RetryOperations.Keys.Where(key => key.EndsWith($"/{requestId}")).Any(key => RetryOperations[key].IsInProgress());
+        }
+
+        public bool IsArchiveInProgressFor(string requestId)
+        {
+            return ArchiveOperations.Keys.Any(key => key.EndsWith($"/{requestId}"));
         }
 
         internal IEnumerable<ArchiveOperationLogic> GetArchivalOperations()
