@@ -196,6 +196,42 @@
         }
 
         [Test]
+        public void Should_split_retryissued_failuremessages_from_two_logical_subscribers_after_retrying()
+        {
+            // Arrange
+            var scenarioInfo = new PreSplitScenario(FailedMessageStatus.RetryIssued);
+            scenarioInfo.AddV5ProcessingAttempt(PreSplitScenario.Subscriber1InputQueue, PreSplitScenario.Subscriber1Endpoint);
+            scenarioInfo.AddV5ProcessingAttempt(PreSplitScenario.Subscriber2InputQueue, PreSplitScenario.Subscriber2Endpoint);
+            scenarioInfo.AddV5ProcessingAttempt(PreSplitScenario.Subscriber1InputQueue, PreSplitScenario.Subscriber1Endpoint, true);
+            using (var session = documentStore.OpenSession())
+            {
+                session.Store(scenarioInfo.FailedMessage);
+                session.SaveChanges();
+            }
+
+            // Act
+            var migration = CreateMigration();
+            migration.Apply(documentStore);
+
+            // Assert
+            using (var session = documentStore.OpenSession())
+            {
+                var failedMessages = session.Query<FailedMessage>().ToArray();
+
+                Assert.AreEqual(2, failedMessages.Length, "There should be 2 failed messages");
+
+                var firstAttemptFailure = failedMessages.SingleOrDefault(f => f.UniqueMessageId == scenarioInfo.ProcessingAttempts[0].ExpectedUniqueMessageId);
+                Assert.IsNotNull(firstAttemptFailure, "Attempt for Subscriber 1 not found");
+                Assert.AreEqual(firstAttemptFailure.Status, FailedMessageStatus.Unresolved, "Attempt for Subscriber 1 is not marked Unresolved");
+
+
+                var secondAttemptFailure = failedMessages.SingleOrDefault(f => f.UniqueMessageId == scenarioInfo.ProcessingAttempts[1].ExpectedUniqueMessageId);
+                Assert.IsNotNull(secondAttemptFailure, "Attempt for Subscriber 2 not found");
+                Assert.AreEqual(secondAttemptFailure.Status, FailedMessageStatus.Unresolved, "Attempt for Subscriber 2 is not marked Unresolved");
+            }
+        }
+
+        [Test]
         public void Should_split_resolved_failuremessages_from_two_logical_subscribers()
         {
             // Arrange
@@ -430,7 +466,7 @@
 
                 if (isRetry)
                 {
-                    Attempt.Headers.Add(V4RetryUniqueMessageIdHeader, ExpectedUniqueMessageId);
+                    Attempt.Headers.Add(V4RetryUniqueMessageIdHeader, scenario.UniqueMessageId);
                 }
             }
 
@@ -442,7 +478,7 @@
                 if (isRetry)
                 {
                     Attempt.Headers.Remove(V4RetryUniqueMessageIdHeader);
-                    Attempt.Headers.Add(V5RetryUniqueMessageIdHeader, ExpectedUniqueMessageId);
+                    Attempt.Headers.Add(V5RetryUniqueMessageIdHeader, scenario.UniqueMessageId);
                 }
             }
         }
