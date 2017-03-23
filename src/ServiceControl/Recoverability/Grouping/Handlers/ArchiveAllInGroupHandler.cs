@@ -1,14 +1,8 @@
 namespace ServiceControl.Recoverability
 {
-    using System.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Extensions;
     using Raven.Client;
-    using ServiceControl.MessageFailures;
-    using Raven.Abstractions.Commands;
-    using System;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {

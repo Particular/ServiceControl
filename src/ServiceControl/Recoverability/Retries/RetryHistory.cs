@@ -52,7 +52,7 @@
         
         public void Acknowledge(string requestId, RetryType type)
         {
-            UnacknowledgedOperations.RemoveAll(x => x.RequestId == requestId && (RetryType)x.OperationType == type);
+            UnacknowledgedOperations.RemoveAll(x => x.RequestId == requestId && x.OperationType == type);
         }
     }
 }

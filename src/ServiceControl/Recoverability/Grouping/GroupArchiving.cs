@@ -2,8 +2,6 @@
 {
     using NServiceBus;
     using NServiceBus.Features;
-    using ServiceControl.Recoverability.Grouping.Api;
-    using ServiceControl.Recoverability.Grouping.DomainHandlers;
 
     public class GroupArchiving : Feature
     {

@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using Raven.Client;
     using System.Linq;
-    using System;
 
     public class GroupFetcher
     {
@@ -104,7 +103,7 @@
         {
             return standaloneUnacknowledgements.Select(standalone =>
             {
-                var unacknowledged = standaloneUnacknowledgements.First(unack => unack.RequestId == standalone.RequestId && (RetryType)unack.OperationType == RetryType.FailureGroup);
+                var unacknowledged = standaloneUnacknowledgements.First(unack => unack.RequestId == standalone.RequestId && unack.OperationType == RetryType.FailureGroup);
 
                 return new GroupOperation
                 {
@@ -130,9 +129,9 @@
 
                 if (matchingArchive != null)
                 {
-                    group.OperationStatus = matchingArchive.ArchiveState.ToString() ?? "None";
+                    group.OperationStatus = matchingArchive.ArchiveState.ToString();
                     group.OperationFailed = false;
-                    group.OperationProgress = matchingArchive?.GetProgress().Percentage ?? 0.0;
+                    group.OperationProgress = matchingArchive.GetProgress().Percentage;
                     group.OperationRemainingCount = matchingArchive?.GetProgress().MessagesRemaining;
                     group.OperationStartTime = matchingArchive?.Started;
                     group.OperationCompletionTime = matchingArchive?.CompletionTime;
@@ -150,7 +149,7 @@
             {
                 var summary = operationManager.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
                 var historic = GetLatestHistoricOperation(history, failureGroup.Id, RetryType.FailureGroup);
-                var unacknowledged = groupUnacknowledgements.FirstOrDefault(unack => unack.RequestId == failureGroup.Id && (RetryType)unack.OperationType == RetryType.FailureGroup);
+                var unacknowledged = groupUnacknowledgements.FirstOrDefault(unack => unack.RequestId == failureGroup.Id && unack.OperationType == RetryType.FailureGroup);
 
                 return new GroupOperation
                 {

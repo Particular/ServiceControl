@@ -119,7 +119,7 @@
 
             if (patchCommands != null)
             {
-                var results = session.Advanced.DocumentStore.DatabaseCommands.Batch(patchCommands);
+                session.Advanced.DocumentStore.DatabaseCommands.Batch(patchCommands);
                 session.Advanced.DocumentStore.DatabaseCommands.Delete(batch.Id, null);
             }
         }
