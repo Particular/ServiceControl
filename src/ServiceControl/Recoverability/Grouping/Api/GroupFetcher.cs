@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using Raven.Client;
     using System.Linq;
+    using System;
 
     public class GroupFetcher
     {
@@ -22,11 +23,15 @@
 
             var openRetryAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedRetries);
             var closedRetryAcknowledgements = unacknowledgedRetries.Except(openRetryAcknowledgements).ToArray();
-            var closedGroups = MapClosedGroups(classifier, closedRetryAcknowledgements);
-            var openGroups = MapOpenGroups(dbGroups, retryHistory, openRetryAcknowledgements).ToList();
-            openGroups = MapOpenGroups(openGroups, operationManager.GetArchivalOperations()).ToList();
 
-            MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), openGroups);
+            var closedGroups = MapClosedGroups(classifier, closedRetryAcknowledgements);
+            closedGroups = closedGroups.Union(MapClosedGroups(classifier, operationManager.GetArchivalOperations().Where(archiveOp => archiveOp.NeedsAcknowledgement())));
+
+            var openGroups = MapOpenGroups(dbGroups, retryHistory, openRetryAcknowledgements);
+            openGroups = MapOpenGroups(openGroups, operationManager.GetArchivalOperations());
+            openGroups = openGroups.Where(group => !closedGroups.Any(closedGroup => closedGroup.Id == group.Id));
+
+            MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), openGroups.ToList());
 
             var groups = openGroups.Union(closedGroups);
 
@@ -121,6 +126,29 @@
             });
         }
 
+        private IEnumerable<GroupOperation> MapClosedGroups(string classifier, IEnumerable<ArchiveOperationLogic> completedArchiveOperations)
+        {
+            return completedArchiveOperations.Select(archiveOperation =>
+            {
+                return new GroupOperation
+                {
+                    Id = archiveOperation.RequestId,
+                    Title = archiveOperation.GroupName,
+                    Type = classifier,
+                    Count = archiveOperation.NumberOfMessagesArchived,
+                    Last = archiveOperation.Last,
+                    OperationStatus = archiveOperation.ArchiveState.ToString(),
+                    OperationFailed = false,
+                    OperationProgress = archiveOperation.GetProgress().Percentage,
+                    OperationRemainingCount = archiveOperation?.GetProgress().MessagesRemaining,
+                    OperationStartTime = archiveOperation?.Started,
+                    OperationCompletionTime = archiveOperation?.CompletionTime,
+                    OperationMessagesCompletedCount = archiveOperation?.GetProgress().NumberOfMessagesArchived,
+                    NeedUserAcknowledgement = archiveOperation.NeedsAcknowledgement(),
+                };
+            });
+        }
+
         private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<GroupOperation> openGroups, IEnumerable<ArchiveOperationLogic> archiveOperations)
         {
             foreach (var group in openGroups)
@@ -136,7 +164,7 @@
                     group.OperationStartTime = matchingArchive?.Started;
                     group.OperationCompletionTime = matchingArchive?.CompletionTime;
                     group.OperationMessagesCompletedCount = matchingArchive?.GetProgress().NumberOfMessagesArchived;
-                    group.NeedUserAcknowledgement = false;
+                    group.NeedUserAcknowledgement = matchingArchive.NeedsAcknowledgement();
                 }
 
                 yield return group;

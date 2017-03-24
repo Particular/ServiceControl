@@ -7,8 +7,8 @@
     {
         public ArchiveOperationLogic(string requestId, ArchiveType archiveType)
         {
-            this.RequestId = requestId;
-            this.archiveType = archiveType;
+            RequestId = requestId;
+            ArchiveType = archiveType;
         }
 
         public int TotalNumberOfMessages { get; set; }
@@ -21,8 +21,7 @@
         public ArchiveState ArchiveState { get; set; }
         public string GroupName { get; set; }
         public string RequestId { get; set; }
-
-        private readonly ArchiveType archiveType;
+        public ArchiveType ArchiveType { get; set; }
 
         public static string MakeId(string requestId, ArchiveType archiveType)
         {
@@ -47,7 +46,7 @@
             DomainEvents.Raise(new ArchiveOperationStarting
             {
                 RequestId = RequestId,
-                ArchiveType = archiveType,
+                ArchiveType = ArchiveType,
                 Progress = GetProgress(),
                 StartTime = Started
             });
@@ -63,7 +62,7 @@
             DomainEvents.Raise(new ArchiveOperationBatchCompleted
             {
                 RequestId = RequestId,
-                ArchiveType = archiveType,
+                ArchiveType = ArchiveType,
                 Progress = GetProgress(),
                 StartTime = Started,
                 Last = Last.Value
@@ -80,7 +79,7 @@
             DomainEvents.Raise(new ArchiveOperationCompleted
             {
                 RequestId = RequestId,
-                ArchiveType = archiveType,
+                ArchiveType = ArchiveType,
                 Progress = GetProgress(),
                 StartTime = Started,
                 Last = Last.Value,
@@ -93,9 +92,9 @@
         {
             return new ArchiveOperation
             {
-                ArchiveType = archiveType,
+                ArchiveType = ArchiveType,
                 GroupName = GroupName,
-                Id = ArchiveOperation.MakeId(RequestId, archiveType),
+                Id = ArchiveOperation.MakeId(RequestId, ArchiveType),
                 NumberOfMessagesArchived = NumberOfMessagesArchived,
                 RequestId = RequestId,
                 Started = Started,
@@ -103,6 +102,11 @@
                 NumberOfBatches = NumberOfBatches,
                 CurrentBatch = CurrentBatch
             };
+        }
+
+        internal bool NeedsAcknowledgement()
+        {
+            return ArchiveState == ArchiveState.ArchiveCompleted;
         }
     }
 }

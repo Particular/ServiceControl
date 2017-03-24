@@ -11,6 +11,19 @@ namespace ServiceControl.Recoverability
         {
             Post["/recoverability/groups/{groupId}/errors/archive"] =
                 parameters => ArchiveGroupErrors(parameters.GroupId);
+
+
+            Delete["/recoverability/groups/unacknowledgedgroups/{groupId}"] =
+                parameters => AcknowledgeOperation(parameters);
+        }
+
+        private dynamic AcknowledgeOperation(dynamic parameters)
+        {
+            var groupId = parameters.groupId;
+
+            ArchiveOperationManager.DismissArchiveOperation(groupId, ArchiveType.FailureGroup);
+
+            return HttpStatusCode.OK;
         }
 
         dynamic ArchiveGroupErrors(string groupId)

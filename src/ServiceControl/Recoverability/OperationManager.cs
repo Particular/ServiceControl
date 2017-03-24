@@ -216,10 +216,14 @@
             var summary = GetOrCreate(archiveType, requestId);
             summary.Complete();
 
+        }
+
+        public void DismissArchiveOperation(string requestId, ArchiveType archiveType)
+        {
             RemoveArchiveOperation(requestId, archiveType);
         }
 
-        public void RemoveArchiveOperation(string requestId, ArchiveType archiveType)
+        void RemoveArchiveOperation(string requestId, ArchiveType archiveType)
         {
             ArchiveOperations.Remove(ArchiveOperationLogic.MakeId(requestId, archiveType));
         }
