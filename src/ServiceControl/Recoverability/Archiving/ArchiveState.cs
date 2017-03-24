@@ -4,6 +4,7 @@
     {
         ArchiveStarted,
         ArchiveProgressing,
-        ArchiveCompleted,
+        ArchiveFinalizing,
+        ArchiveCompleted
     }
 }

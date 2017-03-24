@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -80,6 +81,10 @@ namespace ServiceControl.Recoverability
                     logger.Info($"Archiving of {nextBatch.DocumentIds.Count} messages from group {message.GroupId} completed");
                 }
             }
+
+            logger.Info($"Archiving of group {message.GroupId} is complete. Waiting for index updates.");
+            archiveOperationManager.ArchiveOperationFinalizing(archiveOperation.RequestId, archiveOperation.ArchiveType);
+            documentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, archiveOperation.ArchiveType, TimeSpan.FromMinutes(5));
 
             logger.Info($"Archiving of group {message.GroupId} completed");
             archiveOperationManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType);

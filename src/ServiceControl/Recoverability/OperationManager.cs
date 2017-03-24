@@ -211,11 +211,16 @@
             summary.BatchArchived(numberOfMessagesArchivedInBatch);
         }
 
+        public void ArchiveOperationFinalizing(string requestId, ArchiveType archiveType)
+        {
+            var summary = GetOrCreate(archiveType, requestId);
+            summary.FinalizeArchive();
+        }
+
         public void ArchiveOperationCompleted(string requestId, ArchiveType archiveType)
         {
             var summary = GetOrCreate(archiveType, requestId);
             summary.Complete();
-
         }
 
         public void DismissArchiveOperation(string requestId, ArchiveType archiveType)

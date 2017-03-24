@@ -124,6 +124,31 @@
             }
         }
 
+        public bool WaitForIndexUpdateOfArchiveOperation(IDocumentStore store, string requestId, ArchiveType archiveType, TimeSpan timeToWait)
+        {
+            using (var session = store.OpenSession())
+            {
+                var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName)
+                    .Customize(x => x.WaitForNonStaleResultsAsOfNow(timeToWait));
+
+                var docQuery = indexQuery
+                    .Where(failure => failure.FailureGroupId == requestId)
+                    .AsProjection<FailureGroupMessageView>();
+
+                try
+                {
+                    // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
+                    docQuery.Any();
+
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
         public void UpdateArchiveOperation(IDocumentSession session, ArchiveOperation archiveOperation)
         {
             session.Store(archiveOperation);

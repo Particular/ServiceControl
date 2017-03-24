@@ -27,6 +27,7 @@
             {
                 case ArchiveState.ArchiveProgressing:
                     return numberOfMessagesArchived / total;
+                case ArchiveState.ArchiveFinalizing:
                 case ArchiveState.ArchiveCompleted:
                     return 1.0;
                 default:

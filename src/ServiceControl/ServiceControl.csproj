@@ -545,6 +545,7 @@
     <Compile Include="Recoverability\Grouping\Groupers\MessageTypeFailureClassifier.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ReclassifyErrorsHandler.cs" />
     <Compile Include="Recoverability\Grouping\InternalMessages\ArchiveOperationBatchCompleted.cs" />
+    <Compile Include="Recoverability\Grouping\InternalMessages\ArchiveOperationFinalizing.cs" />
     <Compile Include="Recoverability\Grouping\InternalMessages\ArchiveOperationCompleted.cs" />
     <Compile Include="Recoverability\Grouping\InternalMessages\ArchiveOperationStarting.cs" />
     <Compile Include="Recoverability\Grouping\Raven\ArchiveType.cs" />

@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using Raven.Client;
     using System.Linq;
-    using System;
 
     public class GroupFetcher
     {

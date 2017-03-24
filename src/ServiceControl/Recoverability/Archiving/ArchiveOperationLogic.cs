@@ -69,6 +69,22 @@
             });
         }
 
+        internal void FinalizeArchive()
+        {
+            ArchiveState = ArchiveState.ArchiveFinalizing;
+            NumberOfMessagesArchived = TotalNumberOfMessages;
+            Last = DateTime.Now;
+
+            DomainEvents.Raise(new ArchiveOperationFinalizing
+            {
+                RequestId = RequestId,
+                ArchiveType = ArchiveType,
+                Progress = GetProgress(),
+                StartTime = Started,
+                Last = Last.Value
+            });
+        }
+
         internal void Complete()
         {
             ArchiveState = ArchiveState.ArchiveCompleted;
