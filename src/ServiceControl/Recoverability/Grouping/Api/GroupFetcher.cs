@@ -107,7 +107,7 @@
         {
             return standaloneUnacknowledgements.Select(standalone =>
             {
-                var unacknowledged = standaloneUnacknowledgements.First(unack => unack.RequestId == standalone.RequestId && unack.OperationType == RetryType.FailureGroup);
+                var unacknowledged = standaloneUnacknowledgements.First(unack => unack.RequestId == standalone.RequestId && unack.RetryType == RetryType.FailureGroup);
 
                 return new GroupOperation
                 {
@@ -176,7 +176,7 @@
             {
                 var summary = operationManager.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
                 var historic = GetLatestHistoricOperation(history, failureGroup.Id, RetryType.FailureGroup);
-                var unacknowledged = groupUnacknowledgements.FirstOrDefault(unack => unack.RequestId == failureGroup.Id && unack.OperationType == RetryType.FailureGroup);
+                var unacknowledged = groupUnacknowledgements.FirstOrDefault(unack => unack.RequestId == failureGroup.Id && unack.RetryType == RetryType.FailureGroup);
 
                 return new GroupOperation
                 {

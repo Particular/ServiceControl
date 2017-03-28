@@ -5,7 +5,7 @@
     public class UnacknowledgedRetryOperation
     {
         public string RequestId { get; set; }
-        public RetryType OperationType { get; set; }
+        public RetryType RetryType { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime CompletionTime { get; set; }
         public DateTime Last { get; set; }
