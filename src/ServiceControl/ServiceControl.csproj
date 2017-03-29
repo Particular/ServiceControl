@@ -549,7 +549,6 @@
     <Compile Include="Recoverability\Archiving\Messages\ArchiveOperationCompleted.cs" />
     <Compile Include="Recoverability\Archiving\Messages\ArchiveOperationStarting.cs" />
     <Compile Include="Recoverability\Grouping\Raven\ArchiveType.cs" />
-    <Compile Include="Recoverability\Grouping\Raven\HistoricArchiveOperation.cs" />
     <Compile Include="Recoverability\Grouping\Raven\ReclassifyErrorSettings.cs" />
     <Compile Include="Recoverability\Grouping\Api\FailureGroupsRetryApi.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\ExceptionTypeAndStackTraceFailureClassifier.cs" />
