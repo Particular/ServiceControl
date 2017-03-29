@@ -53,7 +53,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 var documentManager = new CustomRetryDocumentManager(false, documentStore)
                 {
-                    RetryOperationManager = retryManager
+                    OperationManager = retryManager
                 };
 
                 var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, null, documentStore);
@@ -106,7 +106,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
                     var documentManager = new CustomRetryDocumentManager(false, documentStore)
                     {
-                        RetryOperationManager = retryManager
+                        OperationManager = retryManager
                     };
                     documentManager.RebuildRetryOperationState(session);
 
@@ -253,9 +253,9 @@ namespace ServiceControl.UnitTests.Recoverability
             var documentManager = new CustomRetryDocumentManager(progressToStaged, documentStore);
             var gateway = new RetriesGateway(documentStore, documentManager);
 
-            documentManager.RetryOperationManager = retryManager;
+            documentManager.OperationManager = retryManager;
 
-            gateway.RetryOperationManager = retryManager;
+            gateway.OperationManager = retryManager;
 
             gateway.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>("Test-group", RetryType.FailureGroup, DateTime.UtcNow, x => x.FailureGroupId == "Test-group", "Test-Context");
 

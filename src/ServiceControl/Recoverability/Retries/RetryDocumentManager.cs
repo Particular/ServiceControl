@@ -18,7 +18,7 @@ namespace ServiceControl.Recoverability
     public class RetryDocumentManager
     {
         protected static string RetrySessionId = Guid.NewGuid().ToString();
-        public OperationManager RetryOperationManager { get; set; }
+        public OperationManager OperationManager { get; set; }
         private static RavenJObject defaultMetadata = RavenJObject.Parse($@"
                                     {{
                                         ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"", 
@@ -137,7 +137,7 @@ namespace ServiceControl.Recoverability
             {
                 if (batch.RetryType != RetryType.MultipleMessages)
                 {
-                    RetryOperationManager.Fail(batch.RetryType, batch.RequestId);
+                    OperationManager.Fail(batch.RetryType, batch.RequestId);
                 }
             }
 
@@ -187,7 +187,7 @@ namespace ServiceControl.Recoverability
                 if (!string.IsNullOrWhiteSpace(group.RequestId))
                 {
                     log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
-                    RetryOperationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last);
+                    OperationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last);
                 }
             }
         }

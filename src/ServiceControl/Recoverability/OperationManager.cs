@@ -177,23 +177,32 @@
             return summary;
         }
 
-        public void StartArchiving(string requestId, ArchiveType archiveType, int totalNumberOfMessages, int numberOfMessagesArchived, DateTime started, string groupName, int numberOfBatches, int currentBatch)
+        public void StartArchiving(ArchiveOperation archiveOperation)
         {
-            var summary = GetOrCreate(archiveType, requestId);
+            var summary = GetOrCreate(archiveOperation.ArchiveType, archiveOperation.RequestId);
 
-            summary.TotalNumberOfMessages = totalNumberOfMessages;
-            summary.NumberOfMessagesArchived = numberOfMessagesArchived;
-            summary.Started = started;
-            summary.GroupName = groupName;
-            summary.NumberOfBatches = numberOfBatches;
-            summary.CurrentBatch = currentBatch;
+            summary.TotalNumberOfMessages = archiveOperation.TotalNumberOfMessages;
+            summary.NumberOfMessagesArchived = archiveOperation.NumberOfMessagesArchived;
+            summary.Started = archiveOperation.Started;
+            summary.GroupName = archiveOperation.GroupName;
+            summary.NumberOfBatches = archiveOperation.NumberOfBatches;
+            summary.CurrentBatch = archiveOperation.CurrentBatch;
 
             summary.Start();
         }
 
         public void StartArchiving(string requestId, ArchiveType archiveType)
         {
-            StartArchiving(requestId, archiveType, 0, 0, DateTime.Now, "Undefined", 0, 0);
+            var summary = GetOrCreate(archiveType, requestId);
+
+            summary.TotalNumberOfMessages = 0;
+            summary.NumberOfMessagesArchived = 0;
+            summary.Started = DateTime.Now;
+            summary.GroupName = "Undefined";
+            summary.NumberOfBatches = 0;
+            summary.CurrentBatch = 0;
+
+            summary.Start();
         }
 
         public ArchiveOperationLogic GetStatusForArchiveOperation(string requestId, ArchiveType archiveType)

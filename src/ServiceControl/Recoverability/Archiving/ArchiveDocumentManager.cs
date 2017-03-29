@@ -51,13 +51,13 @@
 
             var docs = StreamResults(session, docQuery).ToArray();
 
-            var documentsToArchive = docs
+            var batches = docs
                 .GroupBy(d =>
                 {
                     return documentCount++ / batchSize;
                 });
 
-            foreach (var batch in documentsToArchive)
+            foreach (var batch in batches)
             {
                 var archiveBatch = new ArchiveOperationBatch
                 {

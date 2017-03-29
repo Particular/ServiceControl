@@ -20,7 +20,7 @@ namespace ServiceControl.Recoverability
 
         private IDocumentStore store;
         private RetryDocumentManager retryDocumentManager;
-        public OperationManager RetryOperationManager { get; set; }
+        public OperationManager OperationManager { get; set; }
         private ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
         public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager)
         {
@@ -167,18 +167,18 @@ namespace ServiceControl.Recoverability
             var batches = GetRequestedBatches(request, out latestAttempt);
             var totalMessages = batches.Sum(b => b.Length);
 
-            if (!RetryOperationManager.IsOperationInProgressFor(request.RequestId, request.RetryType) && totalMessages > 0)
+            if (!OperationManager.IsOperationInProgressFor(request.RequestId, request.RetryType) && totalMessages > 0)
             {
                 var numberOfMessagesAdded = 0;
 
-                RetryOperationManager.Prepairing(request.RequestId, request.RetryType, totalMessages);
+                OperationManager.Prepairing(request.RequestId, request.RetryType, totalMessages);
 
                 for (var i = 0; i < batches.Count; i++)
                 {
                     StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.StartTime, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier);
                     numberOfMessagesAdded += batches[i].Length;
 
-                    RetryOperationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);
+                    OperationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);
                 }
             }
         }

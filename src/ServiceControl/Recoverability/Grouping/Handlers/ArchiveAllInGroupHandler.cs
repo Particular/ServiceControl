@@ -56,7 +56,7 @@ namespace ServiceControl.Recoverability
                 }
             }
 
-            archiveOperationManager.StartArchiving(archiveOperation.RequestId, archiveOperation.ArchiveType, archiveOperation.TotalNumberOfMessages, archiveOperation.NumberOfMessagesArchived, archiveOperation.Started, archiveOperation.GroupName, archiveOperation.NumberOfBatches, archiveOperation.CurrentBatch);
+            archiveOperationManager.StartArchiving(archiveOperation);
 
             while (archiveOperation.CurrentBatch < archiveOperation.NumberOfBatches)
             {
