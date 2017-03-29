@@ -10,22 +10,9 @@ namespace ServiceControl.Recoverability
         public FailureGroupsArchiveApi()
         {
             Post["/recoverability/groups/{groupId}/errors/archive"] =
-                parameters => ArchiveGroupErrors(parameters.GroupId);
-
-
-            Delete["/recoverability/groups/unacknowledgedgroups/{groupId}"] =
-                parameters => AcknowledgeOperation(parameters);
+                parameters => ArchiveGroupErrors(parameters.GroupId);           
         }
-
-        private dynamic AcknowledgeOperation(dynamic parameters)
-        {
-            var groupId = parameters.groupId;
-
-            ArchiveOperationManager.DismissArchiveOperation(groupId, ArchiveType.FailureGroup);
-
-            return HttpStatusCode.OK;
-        }
-
+        
         dynamic ArchiveGroupErrors(string groupId)
         {
             if (String.IsNullOrWhiteSpace(groupId))
@@ -47,7 +34,7 @@ namespace ServiceControl.Recoverability
             return HttpStatusCode.Accepted;
         }
 
-		public OperationManager ArchiveOperationManager { get; set; }
+		public ArchivingManager ArchiveOperationManager { get; set; }
         public IBus Bus { get; set; }
     }
 }

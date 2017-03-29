@@ -33,6 +33,6 @@ namespace ServiceControl.Recoverability
         }
 
         public IBus Bus { get; set; }
-        public OperationManager RetryOperationManager { get; set; }
+        public RetryingManager RetryOperationManager { get; set; }
     }
 }

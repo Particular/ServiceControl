@@ -29,12 +29,12 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender, OperationManager operationManager)
+        public RetryProcessor(ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
         {
             this.sender = sender;
             this.bus = bus;
             this.returnToSender = returnToSender;
-            this.operationManager = operationManager;
+            this.retryingManager = retryingManager;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
         }
 
@@ -56,7 +56,7 @@ namespace ServiceControl.Recoverability
                 redirects = MessageRedirectsCollection.GetOrCreate(session);
                 var stagedMessages = Stage(stagingBatch, session);
                 var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
-                operationManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages);
+                retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages);
 
                 if ( stagedMessages > 0)
                 {
@@ -97,18 +97,18 @@ namespace ServiceControl.Recoverability
         {
             var messageCount = forwardingBatch.FailureRetries.Count;
 
-            operationManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
+            retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
 
             if (isRecoveringFromPrematureShutdown)
             {
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken);
-                operationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
+                retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
             }
             else
             {
 
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount);
-                operationManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount);
+                retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount);
             }
 
             session.Delete(forwardingBatch);
@@ -218,7 +218,7 @@ namespace ServiceControl.Recoverability
         ISendMessages sender;
         IBus bus;
         ReturnToSenderDequeuer returnToSender;
-        OperationManager operationManager;
+        RetryingManager retryingManager;
         private MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
         private CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;

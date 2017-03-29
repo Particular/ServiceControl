@@ -10,7 +10,6 @@ namespace ServiceControl.Recoverability
     using ServiceControl.Infrastructure.Extensions;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.MessageFailures.InternalMessages;
-    using ServiceControl.Recoverability.Grouping.Api;
 
     public class FailureGroupsApi : BaseModule
     {
@@ -39,31 +38,8 @@ namespace ServiceControl.Recoverability
 
             Get["/recoverability/history/"] =
             _ => GetRetryHistory();
-
-            Delete["/recoverability/unacknowledgedgroups/{groupId}"] = 
-                parameters => AcknowledgeOperation(parameters);
         }
-
-        private dynamic AcknowledgeOperation(dynamic parameters)
-        {
-            var groupId = parameters.groupId;
-
-            using (var session = Store.OpenSession())
-            {
-                var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId());
-
-                if (retryHistory != null)
-                {
-                    retryHistory.Acknowledge(groupId, RetryType.FailureGroup);
-                }
-
-                session.Store(retryHistory);
-                session.SaveChanges();
-            }
-
-            return HttpStatusCode.OK;
-        }
-
+        
         dynamic ReclassifyErrors()
         {
             Bus.SendLocal(new ReclassifyErrors

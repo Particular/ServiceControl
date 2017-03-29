@@ -3,9 +3,9 @@
     using ServiceControl.Infrastructure.DomainEvents;
     using System;
 
-    public class ArchiveOperationLogic
+    public class InMemoryArchive // in memory
     {
-        public ArchiveOperationLogic(string requestId, ArchiveType archiveType)
+        public InMemoryArchive(string requestId, ArchiveType archiveType)
         {
             RequestId = requestId;
             ArchiveType = archiveType;

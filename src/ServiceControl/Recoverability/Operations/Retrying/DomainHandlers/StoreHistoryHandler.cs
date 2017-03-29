@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Recoverability.Grouping.DomainHandlers
+﻿namespace ServiceControl.Recoverability.Retrying
 {
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
