@@ -2,11 +2,10 @@
 {
     using NServiceBus;
     using NServiceBus.Features;
-    using Retrying;
 
-    public class GroupRetrying : Feature
+    public class RetryingFeature : Feature
     {
-        public GroupRetrying()
+        public RetryingFeature()
         {
             EnableByDefault();
         }
@@ -15,7 +14,7 @@
         {
             context.Container.ConfigureComponent<RetryingManager>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<GroupFetcher>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<StoreHistoryHandler>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<Retrying.StoreHistoryHandler>(DependencyLifecycle.SingleInstance);
         }
     }
 }

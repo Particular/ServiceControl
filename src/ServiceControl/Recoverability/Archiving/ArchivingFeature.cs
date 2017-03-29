@@ -3,16 +3,16 @@
     using NServiceBus;
     using NServiceBus.Features;
 
-    public class GroupArchiving : Feature
+    public class ArchivingFeature : Feature
     {
-        public GroupArchiving()
+        public ArchivingFeature()
         {
             EnableByDefault();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<RetryingManager>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<ArchivingManager>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<ArchiveDocumentManager>(DependencyLifecycle.SingleInstance);
         }
     }

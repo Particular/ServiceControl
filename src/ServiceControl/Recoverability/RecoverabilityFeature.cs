@@ -3,9 +3,9 @@
     using NServiceBus;
     using NServiceBus.Features;
 
-    public class Grouping : Feature
+    public class RecoverabilityFeature : Feature
     {
-        public Grouping()
+        public RecoverabilityFeature()
         {
             EnableByDefault();
         }
