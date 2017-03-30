@@ -16,7 +16,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            if (RetryOperationManager.IsArchiveInProgressFor(message.GroupId))
+            if (ArchivingManager.IsArchiveInProgressFor(message.GroupId))
             {
                 log.Warn($"Attempt to retry a group ({message.GroupId}) which is currently in the process of being archived");
                 return;
@@ -37,13 +37,14 @@ namespace ServiceControl.Recoverability
             }
            
             var started = message.Started ?? DateTime.UtcNow;
-            RetryOperationManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type, group?.Last);
+            RetryingManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type, group?.Last);
             Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, group?.Type);
         }
 
         public RetriesGateway Retries { get; set; }
         public IDocumentStore Store { get; set; }
-        public OperationManager RetryOperationManager { get; set; }
+        public RetryingManager RetryingManager { get; set; }
+        public ArchivingManager ArchivingManager { get; set; }
         static ILog log = LogManager.GetLogger(typeof(RetryAllInGroupHandler));
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Recoverability.Grouping.DomainHandlers
+﻿namespace ServiceControl.Recoverability
 {
     using NServiceBus;
     using ServiceControl.Infrastructure.DomainEvents;

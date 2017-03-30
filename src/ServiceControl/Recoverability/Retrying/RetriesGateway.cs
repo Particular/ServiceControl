@@ -20,7 +20,7 @@ namespace ServiceControl.Recoverability
 
         private IDocumentStore store;
         private RetryDocumentManager retryDocumentManager;
-        public OperationManager OperationManager { get; set; }
+        public RetryingManager OperationManager { get; set; }
         private ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
         public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager)
         {

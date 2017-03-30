@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Recoverability.Grouping.Api
+﻿namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
     using Raven.Client;
@@ -6,11 +6,13 @@
 
     public class GroupFetcher
     {
-        private readonly OperationManager operationManager;
+        private readonly RetryingManager retryingManager;
+        private readonly ArchivingManager archivingManager;
 
-        public GroupFetcher(OperationManager operationManager)
+        public GroupFetcher(RetryingManager retryingManager, ArchivingManager archivingManager)
         {
-            this.operationManager = operationManager;
+            this.retryingManager = retryingManager;
+            this.archivingManager = archivingManager;
         }
 
         public GroupOperation[] GetGroups(IDocumentSession session, string classifier)
@@ -24,10 +26,10 @@
             var closedRetryAcknowledgements = unacknowledgedRetries.Except(openRetryAcknowledgements).ToArray();
 
             var closedGroups = MapClosedGroups(classifier, closedRetryAcknowledgements);
-            closedGroups = closedGroups.Union(MapClosedGroups(classifier, operationManager.GetArchivalOperations().Where(archiveOp => archiveOp.NeedsAcknowledgement())));
+            closedGroups = closedGroups.Union(MapClosedGroups(classifier, archivingManager.GetArchivalOperations().Where(archiveOp => archiveOp.NeedsAcknowledgement())));
 
             var openGroups = MapOpenGroups(dbGroups, retryHistory, openRetryAcknowledgements);
-            openGroups = MapOpenGroups(openGroups, operationManager.GetArchivalOperations());
+            openGroups = MapOpenGroups(openGroups, archivingManager.GetArchivalOperations());
             openGroups = openGroups.Where(group => !closedGroups.Any(closedGroup => closedGroup.Id == group.Id));
 
             MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), openGroups.ToList());
@@ -49,7 +51,7 @@
                 return;
             }
 
-            var fg = MapOpenForForwardingOperation(classifier, forwardingBatch, operationManager.GetStatusForRetryOperation(forwardingBatch.RequestId, RetryType.FailureGroup));
+            var fg = MapOpenForForwardingOperation(classifier, forwardingBatch, retryingManager.GetStatusForRetryOperation(forwardingBatch.RequestId, RetryType.FailureGroup));
             open.Add(fg);
         }
 
@@ -75,7 +77,7 @@
             return open.Any(x => x.Id == forwardingBatch.RequestId && x.Type == forwardingBatch.Classifier && forwardingBatch.RetryType == RetryType.FailureGroup);
         }
 
-        private static GroupOperation MapOpenForForwardingOperation(string classifier, RetryBatch forwardingBatch, RetryOperation summary)
+        private static GroupOperation MapOpenForForwardingOperation(string classifier, RetryBatch forwardingBatch, InMemoryRetry summary)
         {
             var progress = summary.GetProgress();
             return new GroupOperation
@@ -125,7 +127,7 @@
             });
         }
 
-        private IEnumerable<GroupOperation> MapClosedGroups(string classifier, IEnumerable<ArchiveOperationLogic> completedArchiveOperations)
+        private IEnumerable<GroupOperation> MapClosedGroups(string classifier, IEnumerable<InMemoryArchive> completedArchiveOperations)
         {
             return completedArchiveOperations.Select(archiveOperation =>
             {
@@ -148,7 +150,7 @@
             });
         }
 
-        private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<GroupOperation> openGroups, IEnumerable<ArchiveOperationLogic> archiveOperations)
+        private IEnumerable<GroupOperation> MapOpenGroups(IEnumerable<GroupOperation> openGroups, IEnumerable<InMemoryArchive> archiveOperations)
         {
             foreach (var group in openGroups)
             {
@@ -174,7 +176,7 @@
         {
             return activeGroups.Select(failureGroup =>
             {
-                var summary = operationManager.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
+                var summary = retryingManager.GetStatusForRetryOperation(failureGroup.Id, RetryType.FailureGroup);
                 var historic = GetLatestHistoricOperation(history, failureGroup.Id, RetryType.FailureGroup);
                 var unacknowledged = groupUnacknowledgements.FirstOrDefault(unack => unack.RequestId == failureGroup.Id && unack.RetryType == RetryType.FailureGroup);
 

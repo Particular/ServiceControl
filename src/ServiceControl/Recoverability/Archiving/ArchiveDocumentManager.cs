@@ -59,9 +59,9 @@
 
             foreach (var batch in batches)
             {
-                var archiveBatch = new ArchiveOperationBatch
+                var archiveBatch = new ArchiveBatch
                 {
-                    Id = ArchiveOperationBatch.MakeId(groupId, archiveType, batch.Key),
+                    Id = ArchiveBatch.MakeId(groupId, archiveType, batch.Key),
                     DocumentIds = batch.ToList()
                 };
 
@@ -82,9 +82,9 @@
             }
         }
 
-        public ArchiveOperationBatch GetArchiveBatch(IDocumentSession session, string archiveOperationId, int batchNumber)
+        public ArchiveBatch GetArchiveBatch(IDocumentSession session, string archiveOperationId, int batchNumber)
         {
-            return session.Load<ArchiveOperationBatch>($"{archiveOperationId}/{batchNumber}");
+            return session.Load<ArchiveBatch>($"{archiveOperationId}/{batchNumber}");
         }
 
         public GroupDetails GetGroupDetails(IDocumentSession session, string groupId)
@@ -99,7 +99,7 @@
             };
         }
 
-        public void ArchiveMessageGroupBatch(IDocumentSession session, ArchiveOperationBatch batch)
+        public void ArchiveMessageGroupBatch(IDocumentSession session, ArchiveBatch batch)
         {
             var patchCommands = batch?.DocumentIds
                 .Select(documentId =>

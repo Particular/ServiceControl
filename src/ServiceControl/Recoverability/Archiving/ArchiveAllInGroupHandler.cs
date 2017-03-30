@@ -13,19 +13,21 @@ namespace ServiceControl.Recoverability
         private readonly IBus bus;
         private readonly IDocumentStore store;
         private readonly ArchiveDocumentManager documentManager;
-        private readonly OperationManager archiveOperationManager;
+        private readonly ArchivingManager archiveOperationManager;
+        private readonly RetryingManager retryingManager;
 
-        public ArchiveAllInGroupHandler(IBus bus, IDocumentStore store, ArchiveDocumentManager documentManager, OperationManager archiveOperationManager)
+        public ArchiveAllInGroupHandler(IBus bus, IDocumentStore store, ArchiveDocumentManager documentManager, ArchivingManager archiveOperationManager, RetryingManager retryingManager)
         {
             this.bus = bus;
             this.store = store;
             this.documentManager = documentManager;
             this.archiveOperationManager = archiveOperationManager;
+            this.retryingManager = retryingManager;
         }
 
         public void Handle(ArchiveAllInGroup message)
         {
-            if (archiveOperationManager.IsRetryInProgressFor(message.GroupId))
+            if (retryingManager.IsRetryInProgressFor(message.GroupId))
             {
                 logger.Warn($"Attempt to archive a group ({message.GroupId}) which is currently in the process of being retried");
                 return;

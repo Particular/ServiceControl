@@ -4,11 +4,11 @@
     using NServiceBus.Logging;
     using ServiceControl.Infrastructure.DomainEvents;
 
-    public class RetryOperation
+    public class InMemoryRetry
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(RetryOperation));
+        private static readonly ILog Log = LogManager.GetLogger(typeof(InMemoryRetry));
 
-        public RetryOperation(string requestId, RetryType retryType)
+        public InMemoryRetry(string requestId, RetryType retryType)
         {
             this.requestId = requestId;
             this.retryType = retryType;
