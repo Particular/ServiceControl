@@ -1,13 +1,7 @@
 ﻿namespace Particular.ServiceControl.DbMigrations
 {
-    using System.Collections.Generic;
-    using System.Linq;
-    using global::ServiceControl;
-    using global::ServiceControl.Infrastructure;
-    using global::ServiceControl.MessageFailures;
     using global::ServiceControl.Recoverability;
     using Raven.Client;
-    using Raven.Client.Document;
 
     public class RerunClassifiersMigration : IMigration
     {

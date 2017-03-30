@@ -74,11 +74,6 @@ namespace ServiceControl.Recoverability
                     {
                         while (!abort && stream.MoveNext())
                         {
-                            if (stream.Current.Document.FailureGroups.Count > 0)
-                            {
-                                continue;
-                            }
-
                             currentBatch.Add(Tuple.Create(stream.Current.Document.Id, new ClassifiableMessageDetails(stream.Current.Document)));
 
                             if (currentBatch.Count == BatchSize)
