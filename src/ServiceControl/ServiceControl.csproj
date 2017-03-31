@@ -279,6 +279,7 @@
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
+    <Compile Include="DbMigrations\1.39\RerunClassifiersMigration.cs" />
     <Compile Include="DbMigrations\Migrations.cs" />
     <Compile Include="DbMigrations\IMigration.cs" />
     <Compile Include="DbMigrations\MigrationsManager.cs" />
