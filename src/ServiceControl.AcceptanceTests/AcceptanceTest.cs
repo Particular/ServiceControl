@@ -37,6 +37,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
     using LogManager = NServiceBus.Logging.LogManager;
+    using ServiceControl.Recoverability;
 
     [TestFixture]
     public abstract class AcceptanceTest
@@ -634,6 +635,9 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 bus = bootstrapper.Start(true);
             }
+
+            ArchivingManager.ArchiveOperations = new Dictionary<string, InMemoryArchive>();
+            RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
         }
 
         private class MessageMapperInterceptor : Feature
