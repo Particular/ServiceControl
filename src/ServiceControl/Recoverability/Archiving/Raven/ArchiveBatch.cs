@@ -9,7 +9,7 @@
 
         public static string MakeId(string requestId, ArchiveType archiveType, int batchNumber)
         {
-            return $"ArchiveBatch/{(int)archiveType}/{requestId}/{batchNumber}";
+            return $"ArchiveOperations/{(int)archiveType}/{requestId}/{batchNumber}";
         }
     }
 }
