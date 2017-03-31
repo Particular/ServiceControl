@@ -28,11 +28,11 @@
             var closedGroups = MapClosedGroups(classifier, closedRetryAcknowledgements);
             closedGroups = closedGroups.Union(MapClosedGroups(classifier, archivingManager.GetArchivalOperations().Where(archiveOp => archiveOp.NeedsAcknowledgement())));
 
-            var openGroups = MapOpenGroups(dbGroups, retryHistory, openRetryAcknowledgements);
-            openGroups = MapOpenGroups(openGroups, archivingManager.GetArchivalOperations());
-            openGroups = openGroups.Where(group => !closedGroups.Any(closedGroup => closedGroup.Id == group.Id));
+            var openGroups = MapOpenGroups(dbGroups, retryHistory, openRetryAcknowledgements).ToList();
+            openGroups = MapOpenGroups(openGroups, archivingManager.GetArchivalOperations()).ToList();
+            openGroups = openGroups.Where(group => !closedGroups.Any(closedGroup => closedGroup.Id == group.Id)).ToList();
 
-            MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), openGroups.ToList());
+            MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), openGroups);
 
             var groups = openGroups.Union(closedGroups);
 
