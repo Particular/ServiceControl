@@ -417,7 +417,9 @@ namespace ServiceControlInstaller.Engine.Instances
         public void RemoveDataBaseFolder()
         {
             //Order by length descending in case they are nested paths
-            foreach (var folder in AppConfig.RavenDataPaths().OrderByDescending(p => p.Length))
+            var folders = AppConfig.RavenDataPaths().ToList();
+
+            foreach (var folder in folders.OrderByDescending(p => p.Length))
             {
                 try
                 {

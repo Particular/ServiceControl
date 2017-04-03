@@ -92,9 +92,10 @@
         public IEnumerable<string> RavenDataPaths()
         {
             string[] keys = {
-                "Raven/IndexStoragePath"
+                 "Raven/IndexStoragePath"
                 ,"Raven/CompiledIndexCacheDirectory"
-                ,"Raven/Esent/LogsPath"
+                ,"Raven/Esent/LogsPath",
+                SettingsList.DBPath.Name
             };
 
             var settings = Config.AppSettings.Settings;
