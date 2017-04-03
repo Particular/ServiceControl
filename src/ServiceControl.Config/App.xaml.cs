@@ -2,7 +2,6 @@
 {
     using System;
     using System.Diagnostics;
-    using System.Security.Principal;
     using ServiceControl.Config.UI.MessageBox;
 
     public partial class App
@@ -18,14 +17,6 @@
         [STAThread]
         public static void Main(string[] args)
         {
-            var isElevated = new WindowsPrincipal(WindowsIdentity.GetCurrent())
-                    .IsInRole(WindowsBuiltInRole.Administrator);
-
-            if (!isElevated)
-            {
-                Console.WriteLine("Task requires app to be run with elevated permissions.");
-                return;
-            }
             Splash.Show();
             if (args.Length == 0)
             {
