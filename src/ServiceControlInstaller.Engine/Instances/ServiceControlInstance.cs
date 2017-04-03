@@ -29,6 +29,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public ServiceControlInstance(WindowsServiceController service)
         {
             Service = service;
+            AppConfig = new ServiceControlAppConfig(this);
             ReadConfiguration();
         }
 
@@ -58,6 +59,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public string Name => Service.ServiceName;
 
+        public ServiceControlAppConfig AppConfig;
+
         public void Reload()
         {
             ReadConfiguration();
@@ -85,7 +88,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{HostName}:{Port}/api/";
                 }
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
             }
         }
 
@@ -135,7 +138,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{host}:{Port}/api/";
                 }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}api/";
+                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
             }
         }
 
@@ -148,7 +151,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return baseUrl;
                 }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}";
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}";
             }
         }
 
@@ -182,7 +185,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         string DetermineTransportPackage()
         {
-            var transportAppSetting = ReadAppSetting(SettingsList.TransportType, "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
+            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
             var transport = Transports.All.FirstOrDefault(p => transportAppSetting.StartsWith(p.MatchOn , StringComparison.OrdinalIgnoreCase));
             if (transport != null)
             {
@@ -318,34 +321,6 @@ namespace ServiceControlInstaller.Engine.Instances
             return false;
         }
 
-        T ReadAppSetting<T>(SettingInfo keyInfo, T defaultValue)
-        {
-            return ReadAppSetting(keyInfo.Name, defaultValue);
-        }
-
-        public T ReadAppSetting<T>(string key, T defaultValue)
-        {
-            if (File.Exists(Service.ExePath))
-            {
-                var configManager = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
-                if (configManager.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
-                {
-                    return (T) Convert.ChangeType(configManager.AppSettings.Settings[key].Value, typeof(T));
-                }
-            }
-            try
-            {
-                var parts = key.Split("/".ToCharArray(), 2);
-                return RegistryReader<T>.Read(parts[0], parts[1], defaultValue);
-            }
-            catch (Exception)
-            {
-                // Fall through to default
-            }
-
-            return defaultValue;
-        }
-
         public void RemoveUrlAcl()
         {
             foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase)))
@@ -441,13 +416,19 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RemoveDataBaseFolder()
         {
-            try
+            //Order by length descending in case they are nested paths
+            var folders = AppConfig.RavenDataPaths().ToList();
+
+            foreach (var folder in folders.OrderByDescending(p => p.Length))
             {
-                FileUtils.DeleteDirectory(DBPath, true, false);
-            }
-            catch
-            {
-                ReportCard.Warnings.Add($"Could not delete the database directory '{DBPath}'. Please remove manually");
+                try
+                {
+                    FileUtils.DeleteDirectory(folder, true, false);
+                }
+                catch
+                {
+                    ReportCard.Warnings.Add($"Could not delete the RavenDB directory '{folder}'. Please remove manually");
+                }
             }
         }
 
@@ -480,9 +461,9 @@ namespace ServiceControlInstaller.Engine.Instances
 
             // Ensure Transport type is correct and populate the config with common settings even if they are defaults
             // Will not clobber other settings in the config 
-            var configWriter = new ConfigurationWriter(this);
-            configWriter.Validate();
-            configWriter.Save();
+            AppConfig = new ServiceControlAppConfig(this);
+            AppConfig.Validate();
+            AppConfig.Save();
         }
 
         public void UpgradeFiles(string zipFilePath)
@@ -508,12 +489,6 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 throw new Exception("Instance does not exists", ex);
             }
-        }
-
-        public static void CheckIfServiceNameTaken(string instanceName)
-        {
-            if (ServiceController.GetServices().SingleOrDefault(p => p.ServiceName.Equals(instanceName, StringComparison.OrdinalIgnoreCase)) != null)
-                throw new Exception($"Invalid Service Name. There is already a windows service called '{instanceName}'");
         }
 
         public void SetupInstance()
@@ -552,31 +527,31 @@ namespace ServiceControlInstaller.Engine.Instances
         void ReadConfiguration()
         {
             Service.Refresh();
-            HostName = ReadAppSetting(SettingsList.HostName, "localhost");
-            Port = ReadAppSetting(SettingsList.Port, 33333);
-            VirtualDirectory = ReadAppSetting(SettingsList.VirtualDirectory, (string) null);
-            LogPath = ReadAppSetting(SettingsList.LogPath, DefaultLogPath());
-            DBPath = ReadAppSetting(SettingsList.DBPath, DefaultDBPath());
-            AuditQueue = ReadAppSetting(SettingsList.AuditQueue, "audit");
-            AuditLogQueue = ReadAppSetting(SettingsList.AuditLogQueue, $"{AuditQueue}.log");
-            ForwardAuditMessages = ReadAppSetting(SettingsList.ForwardAuditMessages, false);
-            ForwardErrorMessages = ReadAppSetting(SettingsList.ForwardErrorMessages, false);
-            InMaintenanceMode = ReadAppSetting(SettingsList.MaintenanceMode, false);
-            ErrorQueue = ReadAppSetting(SettingsList.ErrorQueue, "error");
-            ErrorLogQueue = ReadAppSetting(SettingsList.ErrorLogQueue, $"{ErrorQueue}.log");
+            HostName = AppConfig.Read(SettingsList.HostName, "localhost");
+            Port = AppConfig.Read(SettingsList.Port, 33333);
+            VirtualDirectory = AppConfig.Read(SettingsList.VirtualDirectory, (string) null);
+            LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
+            DBPath = AppConfig.Read(SettingsList.DBPath, DefaultDBPath());
+            AuditQueue = AppConfig.Read(SettingsList.AuditQueue, "audit");
+            AuditLogQueue = AppConfig.Read(SettingsList.AuditLogQueue, $"{AuditQueue}.log");
+            ForwardAuditMessages = AppConfig.Read(SettingsList.ForwardAuditMessages, false);
+            ForwardErrorMessages = AppConfig.Read(SettingsList.ForwardErrorMessages, false);
+            InMaintenanceMode = AppConfig.Read(SettingsList.MaintenanceMode, false);
+            ErrorQueue = AppConfig.Read(SettingsList.ErrorQueue, "error");
+            ErrorLogQueue = AppConfig.Read(SettingsList.ErrorLogQueue, $"{ErrorQueue}.log");
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
             Description = GetDescription();
             ServiceAccount = Service.Account;
 
             TimeSpan errorRetentionPeriod;
-            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.ErrorRetentionPeriod, (string) null), out errorRetentionPeriod))
+            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.ErrorRetentionPeriod, (string) null), out errorRetentionPeriod))
             {
                 ErrorRetentionPeriod = errorRetentionPeriod;
 
             }
             TimeSpan auditRetentionPeriod;
-            if (TimeSpan.TryParse(ReadAppSetting(SettingsList.AuditRetentionPeriod, (string) null), out auditRetentionPeriod))
+            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.AuditRetentionPeriod, (string) null), out auditRetentionPeriod))
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
@@ -584,14 +559,12 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void DisableMaintenanceMode()
         {
-            var configWriter = new ConfigurationWriter(this);
-            configWriter.DisableMaintenanceMode();
+            AppConfig.DisableMaintenanceMode();
             InMaintenanceMode = false;
         }
         public void EnableMaintenanceMode()
         {
-            var configWriter = new ConfigurationWriter(this);
-            configWriter.EnableMaintenanceMode();
+            AppConfig.EnableMaintenanceMode();
             InMaintenanceMode = true;
         }
 
@@ -644,5 +617,8 @@ namespace ServiceControlInstaller.Engine.Instances
                 ReportCard.Errors.Add(ex.Message);
             }
         }
+
+       
+        
     }
 }

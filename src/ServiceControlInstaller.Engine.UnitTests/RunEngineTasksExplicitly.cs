@@ -6,6 +6,7 @@
     using System.Messaging;
     using System.ServiceProcess;
     using NUnit.Framework;
+    using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Unattended;
@@ -13,12 +14,12 @@
     [TestFixture]
     public class RunEngine
     {
-        const string deploymentCache = @"..\..\..\..\Zip";
+        const string DeploymentCache = @"..\..\..\..\Zip";
 
         [Test, Explicit]
         public void DeleteInstance()
         {
-            var installer = new UnattendInstaller(new TestLogger(), deploymentCache);
+            var installer = new UnattendInstaller(new TestLogger(), DeploymentCache);
             foreach (var instance in ServiceControlInstance.Instances().Where(p => p.Name.StartsWith("Test.ServiceControl", StringComparison.OrdinalIgnoreCase)))
             {
                 installer.Delete(instance.Name, true, true);
@@ -28,19 +29,20 @@
         [Test, Explicit]
         public void UpgradeInstance()
         {
-            var installer = new UnattendInstaller(new TestLogger(), deploymentCache);
-            foreach (var instance in ServiceControlInstance.Instances())  //.Where(p => p.Name.StartsWith("Test.ServiceControl", StringComparison.OrdinalIgnoreCase)))
+            var installer = new UnattendInstaller(new TestLogger(), DeploymentCache);
+            foreach (var instance in ServiceControlInstance.Instances().Where(p => p.Name.StartsWith("Test.ServiceControl", StringComparison.OrdinalIgnoreCase)))
             {
-                installer.Upgrade(instance, new InstanceUpgradeOptions {AuditRetentionPeriod = TimeSpan.FromDays(30), ErrorRetentionPeriod = TimeSpan.FromDays(15), OverrideEnableErrorForwarding = true});
+                installer.Upgrade(instance, new InstanceUpgradeOptions { AuditRetentionPeriod = TimeSpan.FromDays(30), ErrorRetentionPeriod = TimeSpan.FromDays(15), OverrideEnableErrorForwarding = true });
             }
         }
 
         [Test, Explicit]
         public void CreateInstanceMSMQ()
         {
-            var installer = new UnattendInstaller(new TestLogger(), deploymentCache);
+            var installer = new UnattendInstaller(new TestLogger(), DeploymentCache);
             var instanceName = "Test.ServiceControl.Msmq";
-            var root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Test", instanceName);
+            var root = Path.Combine(@"c:\Test", instanceName);
+            // ReSharper disable once UseObjectOrCollectionInitializer
             var details = new ServiceControlInstanceMetadata
             {
                 DisplayName = instanceName.Replace(".", " "),
@@ -52,14 +54,19 @@
                 HostName = "localhost",
                 Port = 33335,
                 VirtualDirectory = null,
-                AuditLogQueue = "audit.log",
-                AuditQueue = "audit",
+                AuditQueue = "audittest",
                 ForwardAuditMessages = false,
-                ErrorQueue = "error",
-                ErrorLogQueue = "error.log",
+                ForwardErrorMessages = false,
+                AuditRetentionPeriod = TimeSpan.FromHours(SettingConstants.AuditRetentionPeriodDefaultInHoursForUI),
+                ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI),
+                ErrorQueue = "testerror",
                 TransportPackage = "MSMQ",
-                ReportCard = new ReportCard()
+                ReportCard = new ReportCard(),
             };
+
+            // constructer of ServiceControlInstanceMetadata extracts version from zip
+            // but this fails for unit tests as the deploymentCache path is not used
+            details.Version = installer.ZipInfo.Version;
 
             details.Validate(s => false);
             if (details.ReportCard.HasErrors)
@@ -73,7 +80,7 @@
         public void ChangeConfigTests()
         {
             var logger = new TestLogger();
-            var installer = new UnattendInstaller(logger, deploymentCache);
+            var installer = new UnattendInstaller(logger, DeploymentCache);
 
             logger.Info("Deleting instances");
             DeleteInstance();
@@ -103,9 +110,9 @@
             msmqTestInstance.ErrorQueue = "alternateError";
             installer.Update(msmqTestInstance, true);
             Assert.IsTrue(msmqTestInstance.Service.Status == ServiceControllerStatus.Running, "Update Queues changed failed");
-       }
+        }
 
-       void RemoveAltMSMQQueues()
+        void RemoveAltMSMQQueues()
         {
             var removeThese = new[]
             {
@@ -118,7 +125,7 @@
             {
                 if (removeThese.Contains(queue.QueueName, StringComparer.OrdinalIgnoreCase))
                 {
-                    Console.WriteLine("Removing {0}", queue.QueueName);    
+                    Console.WriteLine("Removing {0}", queue.QueueName);
                     MessageQueue.Delete(@".\" + queue.QueueName);
                 }
             }

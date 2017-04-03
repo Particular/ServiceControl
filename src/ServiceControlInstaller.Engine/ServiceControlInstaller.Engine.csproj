@@ -2,6 +2,9 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+    <AllowedReferenceRelatedFileExtensions>.pdb</AllowedReferenceRelatedFileExtensions>
+  </PropertyGroup>
+  <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}</ProjectGuid>
@@ -97,8 +100,10 @@
     <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UserSidChecker.cs" />
+    <Compile Include="Configuration\AppConfigWrapper.cs" />
     <Compile Include="Configuration\Compatibility.cs" />
     <Compile Include="Configuration\RegistryReader.cs" />
+    <Compile Include="Configuration\ServiceControlAppConfig.cs" />
     <Compile Include="Configuration\SettingConstants.cs" />
     <Compile Include="Configuration\SettingList.cs" />
     <Compile Include="Configuration\SettingInfo.cs" />
@@ -118,8 +123,7 @@
     <Compile Include="ReportCard\ReportCard.cs" />
     <Compile Include="Services\ServiceRecoveryHelper.cs" />
     <Compile Include="Configuration\ConfigurationSectionExtensions.cs" />
-    <Compile Include="Configuration\ConfigurationWriter.cs" />
-    <Compile Include="FileSystem\DeploymentZipInfo.cs" />
+    <Compile Include="FileSystem\ServiceControlZipInfo.cs" />
     <Compile Include="FileSystem\FileUtils.cs" />
     <Compile Include="FileSystem\NonLockingFileReader.cs" />
     <Compile Include="Validation\IContainInstancePaths.cs" />

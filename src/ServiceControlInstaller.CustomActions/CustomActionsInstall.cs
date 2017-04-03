@@ -104,7 +104,7 @@
                             //Try migration first
                             if (instance.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
                             {
-                                var i = instance.ReadAppSetting(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
+                                var i = instance.AppConfig.Read(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
                                 if (i > 0)
                                 {
                                     options.AuditRetentionPeriod = TimeSpan.FromHours(i);

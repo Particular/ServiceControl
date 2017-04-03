@@ -1,22 +1,19 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration
 {
     using System;
-    using System.Configuration;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Xml.Linq;
     using ServiceControlInstaller.Engine.Instances;
 
-    internal class ConfigurationWriter
+    public class ServiceControlAppConfig : AppConfigWrapper
     {
         IServiceControlInstance details;
-        Configuration configuration;
-
-        public ConfigurationWriter(IServiceControlInstance details)
+        
+        public ServiceControlAppConfig(IServiceControlInstance details) : base(Path.Combine(details.InstallPath, "ServiceControl.exe.config"))
         {
             this.details = details;
-            var exeMapping = new ExeConfigurationFileMap { ExeConfigFilename = Path.Combine(details.InstallPath, "ServiceControl.exe.config") };
-            configuration = ConfigurationManager.OpenMappedExeConfiguration(exeMapping, ConfigurationUserLevel.None);
         }
 
         public void Validate()
@@ -29,22 +26,22 @@
 
         public void EnableMaintenanceMode()
         {
-            var settings = configuration.AppSettings.Settings;
+            var settings = Config.AppSettings.Settings;
             settings.Set(SettingsList.MaintenanceMode, Boolean.TrueString, details.Version);
-            configuration.Save();
+            Config.Save();
         }
 
         public void DisableMaintenanceMode()
         {
-            var settings = configuration.AppSettings.Settings;
+            var settings = Config.AppSettings.Settings;
             settings.Remove(SettingsList.MaintenanceMode.Name);
-            configuration.Save();
+            Config.Save();
         }
 
         public void Save()
         {
-            configuration.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
-            var settings = configuration.AppSettings.Settings;
+            Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
+            var settings = Config.AppSettings.Settings;
             var version = details.Version;
             settings.Set(SettingsList.VirtualDirectory, details.VirtualDirectory);
             settings.Set(SettingsList.Port, details.Port.ToString());
@@ -69,13 +66,13 @@
             }
             UpdateRuntimeSection();
             
-            configuration.Save();
+            Config.Save();
         }
 
         void UpdateRuntimeSection()
         {
             
-            var runtimesection = configuration.GetSection("runtime");
+            var runtimesection = Config.GetSection("runtime");
             var runtimeXml = XDocument.Parse(runtimesection.SectionInformation.GetRawXml() ?? "<runtime/>");
 
             // Set gcServer Value if it does not exist
@@ -89,6 +86,27 @@
                     runtimeXml.Root.Add(gcServer);
                     runtimesection.SectionInformation.SetRawXml(runtimeXml.Root.ToString());
                 }
+            }
+        }
+        
+        public IEnumerable<string> RavenDataPaths()
+        {
+            string[] keys = {
+                 "Raven/IndexStoragePath"
+                ,"Raven/CompiledIndexCacheDirectory"
+                ,"Raven/Esent/LogsPath",
+                SettingsList.DBPath.Name
+            };
+
+            var settings = Config.AppSettings.Settings;
+            foreach (var key in keys)
+            {
+                if (!settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                    continue;
+                var folderpath = settings[key].Value;
+                yield return folderpath.StartsWith("~")    //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
+                    ? Path.Combine(details.InstallPath, folderpath.Remove(0, 1))
+                    : folderpath;
             }
         }
     }
