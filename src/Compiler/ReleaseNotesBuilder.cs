@@ -144,7 +144,7 @@ namespace ReleaseNotesCompiler
         static void AddFooter(StringBuilder stringBuilder)
         {
             stringBuilder.AppendLine("## Where to get it");
-            stringBuilder.AppendLine("You can download this release from [website](http://particular.net/downloads).");
+            stringBuilder.AppendLine("You can download this release from our [website](http://particular.net/downloads).");
         }
 
         static void PrintHeading(string heading, StringBuilder builder)
