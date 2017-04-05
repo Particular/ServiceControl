@@ -50,9 +50,9 @@
             return UnacknowledgedOperations.Where(x => x.Classifier == classifier).ToArray();
         }
         
-        public void Acknowledge(string requestId, RetryType type)
+        public bool Acknowledge(string requestId, RetryType type)
         {
-            UnacknowledgedOperations.RemoveAll(x => x.RequestId == requestId && x.RetryType == type);
+            return UnacknowledgedOperations.RemoveAll(x => x.RequestId == requestId && x.RetryType == type) > 0;
         }
     }
 }
