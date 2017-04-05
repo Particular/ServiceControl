@@ -112,6 +112,35 @@
         }
 
         [Test]
+        public void Acknowledging_the_retry_should_be_successful()
+        {
+            FailedMessage failure = null;
+
+            var context = new MyContext();
+
+            Define(context)
+                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .Done(c =>
+                {
+                    if (!GetFailedMessage(c, out failure))
+                    {
+                        return false;
+                    }
+                    if (failure.Status == FailedMessageStatus.Resolved)
+                    {
+                        return true;
+                    }
+
+                    IssueRetry(c, () => Post<object>($"/api//recoverability/groups/{failure.FailureGroups.First().Id}/errors/retry"));
+
+                    return false;
+                })
+                .Run(TimeSpan.FromMinutes(2));
+
+            Delete($"/api/recoverability/unacknowledgedgroups/{failure.FailureGroups.First().Id}"); // Exception will throw if 404
+        }
+
+        [Test]
         public void Should_show_up_as_resolved_when_doing_a_retry_all_for_the_given_endpoint()
         {
             FailedMessage failure = null;
