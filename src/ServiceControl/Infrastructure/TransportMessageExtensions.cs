@@ -43,7 +43,10 @@
 
         public static string UniqueId(this IReadOnlyDictionary<string, string> headers)
         {
-            return DeterministicGuid.MakeId(headers.MessageId(), headers.ProcessingEndpointName()).ToString();
+            string existingUniqueMessageId;
+            return headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out existingUniqueMessageId)
+                ? existingUniqueMessageId
+                : DeterministicGuid.MakeId(headers.MessageId(), headers.ProcessingEndpointName()).ToString();
         }
 
         // NOTE: Duplicated from TransportMessage

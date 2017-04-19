@@ -170,9 +170,14 @@
 
                 var headers = new Dictionary<string, string>(attempt.Headers);
 
-                UniqueMessageId = headers.UniqueId();
+                UniqueMessageId = NewUniqueId(headers);
 
                 IsRetry = headers.ContainsKey("ServiceControl.Retry.UniqueMessageId");
+            }
+
+            static string NewUniqueId(IReadOnlyDictionary<string, string> headers)
+            {
+                return DeterministicGuid.MakeId(headers.MessageId(), headers.ProcessingEndpointName()).ToString();
             }
 
             public FailedMessage.ProcessingAttempt Attempt { get; }

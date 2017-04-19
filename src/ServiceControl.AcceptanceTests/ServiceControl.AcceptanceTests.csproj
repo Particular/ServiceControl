@@ -245,6 +245,7 @@
     <Compile Include="Contexts\ConfigureExtensions.cs" />
     <Compile Include="MessageRedirects\MessageRedirect.cs" />
     <Compile Include="MessageRedirects\RedirectRequest.cs" />
+    <Compile Include="MessageRedirects\When_a_message_fails_a_retry_with_a_redirect.cs" />
     <Compile Include="MessageRedirects\When_a_message_is_retried.cs" />
     <Compile Include="MessageRedirects\When_a_redirect_is_changed.cs" />
     <Compile Include="MessageRedirects\When_a_redirect_is_created.cs" />
