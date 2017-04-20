@@ -288,6 +288,7 @@
     <Compile Include="DbMigrations\MigrationsManager.cs" />
     <Compile Include="DbMigrations\MigrationsModule.cs" />
     <Compile Include="DbMigrations\1.27\SplitFailedMessageDocumentsMigration.cs" />
+    <Compile Include="ExternalIntegrations\FailedMessageArchivedPublisher.cs" />
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
     </Compile>
