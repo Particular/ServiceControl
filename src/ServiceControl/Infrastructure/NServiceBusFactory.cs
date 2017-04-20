@@ -32,6 +32,9 @@ namespace ServiceBus.Management.Infrastructure
             configuration.DisableFeature<TimeoutManager>();
             configuration.DisableFeature<Outbox>();
 
+            // Disable Callback queue creation for SQL Transport so it doesn't create the ServiceControl.MachineName queue.
+            configuration.ScaleOut().UseSingleBrokerQueue();
+
             configuration.UseSerialization<JsonSerializer>();
 
             configuration.Transactions()
