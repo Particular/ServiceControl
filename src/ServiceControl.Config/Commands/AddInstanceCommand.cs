@@ -11,9 +11,9 @@ namespace ServiceControl.Config.Commands
     {
         private readonly Func<InstanceAddViewModel> addInstance;
         private readonly IWindowManagerEx windowManager;
-        private readonly Installer installer;
+        private readonly ServiceControlInstanceInstaller installer;
 
-        public AddInstanceCommand(IWindowManagerEx windowManager, Func<InstanceAddViewModel> addInstance, Installer installer) : base(null)
+        public AddInstanceCommand(IWindowManagerEx windowManager, Func<InstanceAddViewModel> addInstance, ServiceControlInstanceInstaller installer) : base(null)
         {
             this.windowManager = windowManager;
             this.addInstance = addInstance;

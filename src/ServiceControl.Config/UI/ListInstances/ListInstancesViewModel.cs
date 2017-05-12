@@ -34,7 +34,7 @@
 
         private void RefreshInstances()
         {
-            var currentInstances = ServiceControlInstance.Instances();
+            var currentInstances = InstanceFinder.ServiceControlInstances();
 
             var addedInstances = currentInstances.Where(i => Instances.All(i2 => i2.Name != i.Name)).ToList();
             var removedInstances = Instances.Where(i => currentInstances.All(i2 => i2.Name != i.Name)).ToList();

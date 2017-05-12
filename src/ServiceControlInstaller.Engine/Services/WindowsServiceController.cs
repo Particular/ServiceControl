@@ -12,7 +12,7 @@ namespace ServiceControlInstaller.Engine.Services
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Api;
 
-    [System.ComponentModel.DesignerCategory("Code")]  //Stop the stupid design-time component view being inherited
+    [System.ComponentModel.DesignerCategory("Code")]
     public class WindowsServiceController : ServiceController
     {
         public WindowsServiceController(string serviceName, string exePath) : base(serviceName)
@@ -119,7 +119,7 @@ namespace ServiceControlInstaller.Engine.Services
             }
         }
 
-        public static void RegisterNewService(WindowsServiceDetails serviceInfo, params string[] serviceDependencies)
+        internal static void RegisterNewService(WindowsServiceDetails serviceInfo, params string[] serviceDependencies)
         {
             using (var win32Service = new ManagementClass("Win32_Service"))
             using (var inParams = win32Service.GetMethodParameters("Create"))
@@ -145,7 +145,7 @@ namespace ServiceControlInstaller.Engine.Services
                 var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                 if (wmiReturnCode != 0)
                 {
-                    var message = (wmiReturnCode < Win32ChangeErrorMessages.Length)
+                    var message = wmiReturnCode < Win32ChangeErrorMessages.Length
                         ? $"Failed to create service to {serviceInfo.Name} - {Win32ServiceErrorMessages[wmiReturnCode]}"
                         : "An unknown error occurred";
 
@@ -237,7 +237,7 @@ namespace ServiceControlInstaller.Engine.Services
         }
 
 
-        public static IEnumerable<WindowsServiceController> FindInstancesByExe(string exename)
+        internal static IEnumerable<WindowsServiceController> FindInstancesByExe(string exename)
         {
             var imagePathRegex = new Regex("^\"{0,1}(?<PATH>.+" + Regex.Escape(exename) + ")\"{0,1}", RegexOptions.IgnoreCase);
             using (var servicesBaseKey = Registry.LocalMachine.OpenSubKey(@"System\CurrentControlSet\Services"))

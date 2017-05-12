@@ -6,9 +6,9 @@
     using System.ServiceProcess;
     using Microsoft.Win32;
 
-    class MSMQConfigValidator
+    class MsmqConfigValidator
     {
-        class MSMQComponent
+        class MsmqComponent
         {
             public string Name { get; set; }
             public string DisplayName { get; set; }
@@ -35,12 +35,12 @@
 
         static void CheckServiceIsConfiguredCorrectly()
         {
-            var undesirableMsmqComponents = new List<MSMQComponent>
+            var undesirableMsmqComponents = new List<MsmqComponent>
             {
-                new MSMQComponent{Name = "msmq_MQDSServiceInstalled", DisplayName = "MSMQ Directory Services integration"},
-                new MSMQComponent{Name = "msmq_MulticastInstalled", DisplayName = "MSMQ Multicasting Support"},
-                new MSMQComponent{Name = "msmq_RoutingInstalled", DisplayName = "MSMQ Routing"},
-                new MSMQComponent{Name = "msmq_TriggersInstalled", DisplayName = "MSMQ Triggers"},
+                new MsmqComponent{Name = "msmq_MQDSServiceInstalled", DisplayName = "MSMQ Directory Services integration"},
+                new MsmqComponent{Name = "msmq_MulticastInstalled", DisplayName = "MSMQ Multicasting Support"},
+                new MsmqComponent{Name = "msmq_RoutingInstalled", DisplayName = "MSMQ Routing"},
+                new MsmqComponent{Name = "msmq_TriggersInstalled", DisplayName = "MSMQ Triggers"},
             };
             
             string[] valueNames;

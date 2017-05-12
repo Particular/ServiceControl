@@ -6,7 +6,7 @@
     using System.Messaging;
     using System.ServiceProcess;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Unattended;
@@ -19,8 +19,8 @@
         [Test, Explicit]
         public void DeleteInstance()
         {
-            var installer = new UnattendInstaller(new TestLogger(), DeploymentCache);
-            foreach (var instance in ServiceControlInstance.Instances().Where(p => p.Name.StartsWith("Test.ServiceControl", StringComparison.OrdinalIgnoreCase)))
+            var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
+            foreach (var instance in InstanceFinder.ServiceControlInstances().Where(p => p.Name.StartsWith("Test.ServiceControl", StringComparison.OrdinalIgnoreCase)))
             {
                 installer.Delete(instance.Name, true, true);
             }
@@ -29,21 +29,21 @@
         [Test, Explicit]
         public void UpgradeInstance()
         {
-            var installer = new UnattendInstaller(new TestLogger(), DeploymentCache);
-            foreach (var instance in ServiceControlInstance.Instances().Where(p => p.Name.StartsWith("Test.ServiceControl", StringComparison.OrdinalIgnoreCase)))
+            var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
+            foreach (var instance in InstanceFinder.ServiceControlInstances().Where(p => p.Name.StartsWith("Test.ServiceControl", StringComparison.OrdinalIgnoreCase)))
             {
-                installer.Upgrade(instance, new InstanceUpgradeOptions { AuditRetentionPeriod = TimeSpan.FromDays(30), ErrorRetentionPeriod = TimeSpan.FromDays(15), OverrideEnableErrorForwarding = true });
+                installer.Upgrade(instance, new ServiceControlUpgradeOptions { AuditRetentionPeriod = TimeSpan.FromDays(30), ErrorRetentionPeriod = TimeSpan.FromDays(15), OverrideEnableErrorForwarding = true });
             }
         }
 
         [Test, Explicit]
         public void CreateInstanceMSMQ()
         {
-            var installer = new UnattendInstaller(new TestLogger(), DeploymentCache);
+            var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
             var instanceName = "Test.ServiceControl.Msmq";
             var root = Path.Combine(@"c:\Test", instanceName);
             // ReSharper disable once UseObjectOrCollectionInitializer
-            var details = new ServiceControlInstanceMetadata
+            var details = new ServiceControlNewInstance
             {
                 DisplayName = instanceName.Replace(".", " "),
                 Name = instanceName,
@@ -80,7 +80,7 @@
         public void ChangeConfigTests()
         {
             var logger = new TestLogger();
-            var installer = new UnattendInstaller(logger, DeploymentCache);
+            var installer = new UnattendServiceControlInstaller(logger, DeploymentCache);
 
             logger.Info("Deleting instances");
             DeleteInstance();
@@ -92,20 +92,20 @@
             CreateInstanceMSMQ();
 
             logger.Info("Changing the URLACL");
-            var msmqTestInstance = ServiceControlInstance.Instances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
+            var msmqTestInstance = InstanceFinder.ServiceControlInstances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
             msmqTestInstance.HostName = Environment.MachineName;
             msmqTestInstance.Port = 33338;
             installer.Update(msmqTestInstance, true);
             Assert.IsTrue(msmqTestInstance.Service.Status == ServiceControllerStatus.Running, "Update URL change failed");
 
             logger.Info("Changing LogPath");
-            msmqTestInstance = ServiceControlInstance.Instances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
+            msmqTestInstance = InstanceFinder.ServiceControlInstances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
             msmqTestInstance.LogPath = @"c:\temp\testloggingchange";
             installer.Update(msmqTestInstance, true);
             Assert.IsTrue(msmqTestInstance.Service.Status == ServiceControllerStatus.Running, "Update Logging changed failed");
 
             logger.Info("Updating Queue paths");
-            msmqTestInstance = ServiceControlInstance.Instances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
+            msmqTestInstance = InstanceFinder.ServiceControlInstances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
             msmqTestInstance.AuditQueue = "alternateAudit";
             msmqTestInstance.ErrorQueue = "alternateError";
             installer.Update(msmqTestInstance, true);

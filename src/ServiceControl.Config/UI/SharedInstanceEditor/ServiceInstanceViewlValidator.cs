@@ -59,7 +59,7 @@ namespace ServiceControl.Config.Validation
 
         protected SharedInstanceEditorViewModelValidator()
         {
-            ServiceControlInstances = ServiceControlInstance.Instances();
+            ServiceControlInstances = InstanceFinder.ServiceControlInstances();
 
             RuleFor(x => x.InstanceName)
                 .NotEmpty()

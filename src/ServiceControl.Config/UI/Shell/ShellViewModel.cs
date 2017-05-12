@@ -88,7 +88,7 @@
             if (ActiveItem != null && ActiveItem != listInstances && ActiveItem != noInstances)
                 return;
 
-            HasInstances = ServiceControlInstance.Instances().Any();
+            HasInstances = InstanceFinder.ServiceControlInstances().Any();
 
             if (HasInstances)
             {

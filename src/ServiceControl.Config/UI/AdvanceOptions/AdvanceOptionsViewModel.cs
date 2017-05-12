@@ -11,7 +11,7 @@
     using ServiceControl.Config.Events;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Rx;
-    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
 
     class AdvanceOptionsViewModel : RxProgressScreen, IHandle<RefreshInstances>

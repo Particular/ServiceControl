@@ -11,21 +11,21 @@
     using ServiceControl.Config.UI.InstanceDetails;
     using ServiceControl.Config.UI.MessageBox;
     using ServiceControl.Config.Xaml.Controls;
-    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
 
     class UpgradeInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
         private readonly IEventAggregator eventAggregator;
-        private readonly Installer installer;
+        private readonly ServiceControlInstanceInstaller installer;
         private readonly IWindowManagerEx windowManager;
 
         public UpgradeInstanceCommand(Func<InstanceDetailsViewModel, bool> canExecuteMethod = null) : base(canExecuteMethod)
         {
         }
 
-        public UpgradeInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, Installer installer)
+        public UpgradeInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
@@ -41,12 +41,14 @@
                 return;
             }
             
-            var instance = ServiceControlInstance.FindByName(model.Name);
+            var instance = InstanceFinder.FindServiceControlInstance(model.Name);
+            
+
             instance.Service.Refresh();
 
-            var upgradeOptions = new InstanceUpgradeOptions();
+            var upgradeOptions = new ServiceControlUpgradeOptions();
             
-            if (!instance.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
+            if (!instance.AppConfig.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
             {
                 var result  = windowManager.ShowYesNoCancelDialog("UPGRADE QUESTION - DISABLE ERROR FORWARDING", "Error messages can be forwarded to a secondary error queue known as the Error Forwarding Queue. This queue exists to allow external tools to receive error messages. If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled.", "So what do you want to do ?", "Do NOT forward", "Yes I want to forward");
                 if (!result.HasValue)
@@ -59,9 +61,9 @@
             }
             
             //Grab old setting if it exists
-            if (!instance.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
+            if (!instance.AppConfig.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
             {
-                if (instance.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
+                if (instance.AppConfig.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
                 {
                     var i = instance.AppConfig.Read(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
                     if (i != -1)
@@ -97,7 +99,7 @@
                 }
             }
 
-            if (!instance.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
+            if (!instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
             {
                 var viewModel = new SliderDialogViewModel("UPGRADE QUESTION - DATABASE RETENTION",
                         "Service Control periodically purges resolved and archived error messages from the database.",

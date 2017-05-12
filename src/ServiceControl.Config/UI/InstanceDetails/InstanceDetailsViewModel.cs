@@ -20,7 +20,7 @@
             EditInstanceCommand showEditInstanceScreenCommand,
             UpgradeInstanceCommand upgradeInstanceToNewVersionCommand,
             AdvanceOptionsCommand advanceOptionsCommand,
-            Installer installer)
+            ServiceControlInstanceInstaller installer)
         {
             ServiceControlInstance = serviceControlInstance;
 

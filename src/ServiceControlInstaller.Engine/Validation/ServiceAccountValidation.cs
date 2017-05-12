@@ -4,13 +4,11 @@
     using System.Linq;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Api;
-    using ServiceControlInstaller.Engine.Instances;
-
+    
     class ServiceAccountValidation
     {
         public static void Validate(IServiceAccount instance)
         {
-
             var userAccount = UserAccount.ParseAccountName(instance.ServiceAccount);
   
             if (!userAccount.CheckPassword(instance.ServiceAccountPwd))

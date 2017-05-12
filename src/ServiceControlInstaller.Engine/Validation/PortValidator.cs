@@ -4,11 +4,11 @@
 
     public class PortValidator
     {
-        public static void Validate(IContainPort instance)
+        public static void Validate(IHttpInstance instance)
         {
-            if ((1 > instance.Port) || (49151 < instance.Port))
+            if (instance.Port < 1 || instance.Port > 49151)
             {
-                throw new EngineValidationException("Port number is not between 1 and 65535");
+                throw new EngineValidationException("Port number is not between 1 and 49151");
             }
 
             if (!PortUtils.CheckAvailable(instance.Port))

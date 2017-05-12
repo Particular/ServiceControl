@@ -7,14 +7,7 @@ namespace ServiceControl.Config.Framework.Rx
     {
         private static readonly ILog Log = LogManager.GetLog(typeof(Screen));
 
-        /// <summary>
-        /// Creates an instance of the screen.
-        /// </summary>
-        public RxScreen()
-        {
-            DisplayName = GetType().FullName;
-        }
-
+       
         /// <summary>
         /// Gets or Sets the Parent <see cref = "IConductor" />
         /// </summary>
@@ -23,7 +16,7 @@ namespace ServiceControl.Config.Framework.Rx
         /// <summary>
         /// Gets or Sets the Display Name
         /// </summary>
-        public virtual string DisplayName { get; set; }
+        public string DisplayName { get; set; }
 
         /// <summary>
         /// Gets or Sets the Modal Result

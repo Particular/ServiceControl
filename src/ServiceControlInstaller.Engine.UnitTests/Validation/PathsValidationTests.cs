@@ -11,17 +11,17 @@
     [TestFixture]
     public class PathsValidationTests
     {
-        List<IContainInstancePaths> instances;
+        List<IServiceControlPaths> instances;
 
         [SetUp]
         public void Init()
         {
-            var instanceA = new Mock<IContainInstancePaths>();
+            var instanceA = new Mock<IServiceControlPaths>();
             instanceA.SetupGet(p => p.InstallPath).Returns(@"c:\test\1\bin");
             instanceA.SetupGet(p => p.LogPath).Returns(@"c:\test\1\logs");
             instanceA.SetupGet(p => p.DBPath).Returns(@"c:\test\1\db");
 
-            instances = new List<IContainInstancePaths>
+            instances = new List<IServiceControlPaths>
             {
                 instanceA.Object
             };
@@ -30,17 +30,15 @@
         [Test]
         public void CheckPathsAreUnique_ShouldThrow()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                 InstallPath = @"c:\test\1\bin",
                 LogPath = @"c:\test\1\bin",
                 DBPath = @"c:\test\1\bin"
             };
 
-            var p = new PathsValidator(newInstance)
-            {
-                Instances = instances
-            };
+            var p = new PathsValidator(newInstance);
+            
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreUnique());
             Assert.That(ex.Message, Is.EqualTo("The installation path, log path and database path must be unique"));
         }
@@ -48,71 +46,29 @@
         [Test]
         public void CheckPathsAreUnique_ShouldSucceed()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                 InstallPath = @"c:\test\1\bin",
                 LogPath = @"c:\test\1\log",
                 DBPath = @"c:\test\1\db"
             };
 
-            var p = new PathsValidator(newInstance)
-            {
-                Instances = instances
-            };
+            var p = new PathsValidator(newInstance);
             Assert.DoesNotThrow(() => p.CheckPathsAreUnique());
         }
 
-        [Test]
-        public void CheckPathsNotUsedInOtherInstances_ShouldThrow()
-        {
-            var newInstance = new ServiceControlInstanceMetadata
-            {
-                InstallPath = @"c:\test\1\bin",  //This one is bad
-                LogPath = @"c:\test\2\logs",
-                DBPath = @"c:\test\2\db"
-            };
-
-            var p = new PathsValidator(newInstance)
-            {
-                Instances = instances
-            };
-            var ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsNotUsedInOtherInstances());
-            Assert.That(ex.Message, Is.EqualTo("The install path specified is already assigned to another instance"));
-        }
-
-        [Test]
-        public void CheckPathsNotUsedInOtherInstances_ShouldSuceed()
-        {
-            var newInstance = new ServiceControlInstanceMetadata
-            {
-                InstallPath = @"c:\test\2\bin",  
-                LogPath = @"c:\test\2\logs",
-                DBPath = @"c:\test\2\db"
-            };
-
-            var p = new PathsValidator(newInstance)
-            {
-                Instances = instances
-            };
-            Assert.DoesNotThrow(() => p.CheckPathsNotUsedInOtherInstances());
-
-        }
-
+        
         [Test]
         public void CheckPathsAreValid_ShouldSucceed()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                 InstallPath = @"c:\test\1\bin",
                 LogPath = @"c:\test\1\bin",
                 DBPath = @"c:\test\1\bin"
             };
 
-            var p = new PathsValidator(newInstance)
-            {
-                Instances = instances
-            };
-   
+            var p = new PathsValidator(newInstance);
             Assert.DoesNotThrow(() => p.CheckPathsAreValid());
         }
 
@@ -120,28 +76,22 @@
         public void CheckPathsAreValid_ShouldThrow()
         {
             //Invalid path
-            var p = new PathsValidator(new ServiceControlInstanceMetadata { InstallPath = @"?>c:\test\1\bin" } )
-            {
-                Instances = instances
-            };
+            var p = new PathsValidator(new ServiceControlNewInstance{InstallPath = @"?>c:\test\1\bin"});
+            
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreValid());
             Assert.That(ex.Message, Is.EqualTo("The install path is set to an invalid path"));
 
             //Partial path
-            p = new PathsValidator(new ServiceControlInstanceMetadata { InstallPath = @"\test\1\bin" })
+            p = new PathsValidator(new ServiceControlNewInstance
             {
-                Instances = instances
-            };
+                InstallPath = @"\test\1\bin"
+            });
 
             ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreValid());
             Assert.That(ex.Message, Is.EqualTo("The install path is set to an invalid path"));
 
             //No Drive
-            p = new PathsValidator(new ServiceControlInstanceMetadata { InstallPath = $@"{GetAnUnsedDriveLetter()}:\test\1\bin"
-            })
-            {
-                Instances = instances
-            };
+            p = new PathsValidator(new ServiceControlNewInstance { InstallPath = $@"{GetAnUnsedDriveLetter()}:\test\1\bin"});
             ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreValid());
             Assert.That(ex.Message, Is.EqualTo("The install path does not go to a supported drive"));
         }
@@ -149,17 +99,14 @@
         [Test]
         public void CheckNoNestedPaths_ShouldThrow()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                 InstallPath = @"c:\test\1",
                 LogPath = @"c:\test\1\log",
                 DBPath = @"c:\test\1\db"
             };
 
-            var p = new PathsValidator(newInstance)
-            {
-                Instances = instances
-            };
+            var p = new PathsValidator(newInstance);
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckNoNestedPaths());
             Assert.That(ex.Message, Is.StringContaining("Nested paths are not supported"));
         }
@@ -167,34 +114,29 @@
         [Test]
         public void CheckNoNestedSiblingPaths_ShouldSucceed()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                 InstallPath = @"c:\test\1\servicecontrol",
                 LogPath = @"c:\test\1\servicecontrollog",
                 DBPath = @"c:\test\1\servicecontroldb"
             };
 
-            var p = new PathsValidator(newInstance)
-            {
-                Instances = instances
-            };
+            var p = new PathsValidator(newInstance);
             Assert.DoesNotThrow(() => p.CheckNoNestedPaths());
         }
 
         [Test]
         public void CheckNoNestedPaths_ShouldSucceed()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                 InstallPath = @"c:\test\1\bin",
                 LogPath = @"c:\test\1\log",
                 DBPath = @"c:\test\1\db"
             };
 
-            var p = new PathsValidator(newInstance)
-            {
-                Instances = instances
-            };
+            var p = new PathsValidator(newInstance);
+            
             Assert.DoesNotThrow(() => p.CheckNoNestedPaths());
         }
 

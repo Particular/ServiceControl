@@ -18,12 +18,16 @@ if (!$requiredDLL) {
     throw "This module was imported incorrectly - use 'Import-Module .\ServiceControlMgmt.psd1' to load this module"  
 }
 
-New-Alias    -Value New-ServiceControlUnattendedFile -Name  sc-makeunattendfile
 New-Alias    -Value Get-ServiceControlInstances -Name sc-instances 
-New-Alias    -Value New-ServiceControlInstanceFromUnattendedFile -Name  sc-addfromunattendfile
 New-Alias    -Value Invoke-ServiceControlInstanceUpgrade -Name  sc-upgrade 
 New-Alias    -Value Remove-ServiceControlInstance -Name  sc-delete 
 New-Alias    -Value New-ServiceControlInstance -Name  sc-add 
+
+New-Alias    -Value Get-MonitoringInstances -Name mon-instances 
+New-Alias    -Value Invoke-MonitoringUpgrade -Name  mon-upgrade 
+New-Alias    -Value Remove-MonitoringInstance -Name  mon-delete 
+New-Alias    -Value New-MonitoringInstance -Name  mon-add 
+
 
 New-Alias    -Value Get-ServiceControlLicense -Name  sc-findlicense 
 New-Alias    -Value Import-ServiceControlLicense -Name  sc-addlicense 

@@ -152,6 +152,19 @@
     <!-- ServiceControl  -->
     <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="ServiceControl" SourceFolder="..\ServiceControl\bin\$(Configuration)" ZipFileName="$(ZipToCreate)" />
   </Target>
+  <!--
+    Copy the zip for servicecontrol monitoring to same folder as the SC.zip
+  -->
+  <Target Name="ServiceControlMonitoring" AfterTargets="ZipTarget">
+    <PropertyGroup>
+      <PackagesFolder>..\packages\</PackagesFolder>
+      <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
+    </PropertyGroup>
+    <ItemGroup>
+      <Zips Include="$(PackagesFolder)**/*monitoring*.zip" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Zips)" DestinationFolder="$(ZipTargetFolder)" />
+  </Target>
   <Import Project="..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

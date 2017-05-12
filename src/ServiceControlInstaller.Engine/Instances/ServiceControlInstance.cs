@@ -3,40 +3,24 @@
 namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
-    using System.Collections.ObjectModel;
     using System.Configuration;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
-    using System.ServiceProcess;
-    using System.Threading;
-    using System.Threading.Tasks;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Queues;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
     using ServiceControlInstaller.Engine.UrlAcl;
     using ServiceControlInstaller.Engine.Validation;
-    using TimeoutException = System.ServiceProcess.TimeoutException;
-
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public class ServiceControlInstance : IServiceControlInstance
+    
+    public class ServiceControlInstance : BaseService, IServiceControlInstance
     {
-        public ServiceControlInstance(WindowsServiceController service)
-        {
-            Service = service;
-            AppConfig = new ServiceControlAppConfig(this);
-            ReadConfiguration();
-        }
-
-        public string InstallPath => Path.GetDirectoryName(Service.ExePath);
-
-        public ReportCard ReportCard { get; set; }
-        public WindowsServiceController Service { get; set; }
+        
         public string LogPath { get; set; }
         public string DBPath { get; set; }
         public string HostName { get; set; }
@@ -50,33 +34,49 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool ForwardErrorMessages { get; set; }
         public string TransportPackage { get; set; }
         public string ConnectionString { get; set; }
-        public string Description { get; set; }
-        public string ServiceAccount { get; set; }
-        public string ServiceAccountPwd { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
         public bool InMaintenanceMode { get; set; }
+        public AppConfig AppConfig;
+        public ReportCard ReportCard { get; set; }
 
-        public string Name => Service.ServiceName;
-
-        public ServiceControlAppConfig AppConfig;
+        public ServiceControlInstance(WindowsServiceController service)
+        {
+            Service = service;
+            AppConfig = new AppConfig(this);
+            Reload();
+        }
 
         public void Reload()
         {
-            ReadConfiguration();
-        }
+            Service.Refresh();
+            HostName = AppConfig.Read(SettingsList.HostName, "localhost");
+            Port = AppConfig.Read(SettingsList.Port, 33333);
+            VirtualDirectory = AppConfig.Read(SettingsList.VirtualDirectory, (string)null);
+            LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
+            DBPath = AppConfig.Read(SettingsList.DBPath, DefaultDBPath());
+            AuditQueue = AppConfig.Read(SettingsList.AuditQueue, "audit");
+            AuditLogQueue = AppConfig.Read(SettingsList.AuditLogQueue, $"{AuditQueue}.log");
+            ForwardAuditMessages = AppConfig.Read(SettingsList.ForwardAuditMessages, false);
+            ForwardErrorMessages = AppConfig.Read(SettingsList.ForwardErrorMessages, false);
+            InMaintenanceMode = AppConfig.Read(SettingsList.MaintenanceMode, false);
+            ErrorQueue = AppConfig.Read(SettingsList.ErrorQueue, "error");
+            ErrorLogQueue = AppConfig.Read(SettingsList.ErrorLogQueue, $"{ErrorQueue}.log");
+            TransportPackage = DetermineTransportPackage();
+            ConnectionString = ReadConnectionString();
+            Description = GetDescription();
+            ServiceAccount = Service.Account;
 
-        public Version Version
-        {
-            get
+            TimeSpan errorRetentionPeriod;
+            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.ErrorRetentionPeriod, (string)null), out errorRetentionPeriod))
             {
-                // Service Can be registered but file deleted!
-                if (File.Exists(Service.ExePath))
-                {
-                    var fileVersion = FileVersionInfo.GetVersionInfo(Service.ExePath);
-                    return new Version(fileVersion.FileMajorPart, fileVersion.FileMinorPart, fileVersion.FileBuildPart);
-                }
-                return new Version(0, 0, 0);
+                ErrorRetentionPeriod = errorRetentionPeriod;
+
+            }
+            TimeSpan auditRetentionPeriod;
+            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.AuditRetentionPeriod, (string)null), out auditRetentionPeriod))
+            {
+                AuditRetentionPeriod = auditRetentionPeriod;
             }
         }
 
@@ -92,6 +92,9 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+        /// <summary>
+        /// Raven management URL 
+        /// </summary>
         public string StorageUrl
         {
             get
@@ -169,20 +172,6 @@ namespace ServiceControlInstaller.Engine.Instances
             return null;
         }
 
-        string GetDescription()
-        {
-            try
-            {
-                return Service.Description;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        string DebuggerDisplay => $"{Name} - {Url} - {Version}";
-
         string DetermineTransportPackage()
         {
             var transportAppSetting = AppConfig.Read(SettingsList.TransportType, "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
@@ -197,7 +186,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public void ApplyConfigChange()
         {
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
-            var oldSettings = FindByName(Name);
+            var oldSettings = InstanceFinder.FindServiceControlInstance(Name);
             
             var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
 
@@ -256,16 +245,15 @@ namespace ServiceControlInstaller.Engine.Instances
 
             if (queueNamesChanged || accountChanged || connectionStringChanged )
             {
-                QueueCreation.RunQueueCreation(this, accountName);
                 try
                 {
                     QueueCreation.RunQueueCreation(this);
                 }
-                catch (ServiceControlQueueCreationFailedException ex)
+                catch (QueueCreationFailedException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }
-                catch (ServiceControlQueueCreationTimeoutException ex)
+                catch (QueueCreationTimeoutException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }
@@ -304,23 +292,12 @@ namespace ServiceControlInstaller.Engine.Instances
             var profilePath = userAccountName.RetrieveProfilePath();
             if (profilePath == null)
             {
-                //TODO - Is null valid
                 return null;
             }
 
             return Path.Combine(profilePath, @"AppData\Local\Particular\ServiceControl\logs");
         }
-
-        public bool AppSettingExists(string key)
-        {
-            if (File.Exists(Service.ExePath))
-            {
-                var configManager = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
-                return configManager.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase);
-            }
-            return false;
-        }
-
+        
         public void RemoveUrlAcl()
         {
             foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase)))
@@ -335,57 +312,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 }
             }
         }
-
-        public bool TryStopService()
-        {
-            Service.Refresh();
-            if (Service.Status == ServiceControllerStatus.Stopped)
-            {
-                return true;
-            }
-
-            Service.Stop();
-
-            try
-            {
-                Service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
-                var t = new Task(() =>
-                {
-                    while (!HasUnderlyingProcessExited())
-                    {
-                        Thread.Sleep(100);
-                    }
-                });
-                t.Wait(5000);
-            }
-            catch (TimeoutException)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        public bool TryStartService()
-        {
-            Service.Refresh();
-            if (Service.Status == ServiceControllerStatus.Running)
-            {
-                return true;
-            }
-
-            Service.Start();
-
-            try
-            {
-                Service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
-            }
-            catch (TimeoutException)
-            {
-                return false;
-            }
-            return true;
-        }
-
+        
         /// <summary>
         ///     Returns false if a reboot is required to complete deletion
         /// </summary>
@@ -432,24 +359,6 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public string BackupAppConfig()
-        {
-            var backupDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControlInstaller", "ConfigBackups", FileUtils.SanitizeFolderName(Service.ServiceName));
-            if (!Directory.Exists(backupDirectory))
-            {
-                Directory.CreateDirectory(backupDirectory);
-            }
-            var configFile = $"{Service.ExePath}.config";
-            if (!File.Exists(configFile))
-            {
-                return null;
-            }
-
-            var destinationFile = Path.Combine(backupDirectory, $"{Guid.NewGuid():N}.config");
-            File.Copy(configFile, destinationFile);
-            return destinationFile;
-        }
-
         public void RestoreAppConfig(string sourcePath)
         {
             if (sourcePath == null)
@@ -459,101 +368,33 @@ namespace ServiceControlInstaller.Engine.Instances
             var configFile = $"{Service.ExePath}.config";
             File.Copy(sourcePath, configFile, true);
 
-            // Ensure Transport type is correct and populate the config with common settings even if they are defaults
+            // Populate the config with common settings even if they are defaults
             // Will not clobber other settings in the config 
-            AppConfig = new ServiceControlAppConfig(this);
+            AppConfig = new AppConfig(this);
             AppConfig.Validate();
             AppConfig.Save();
         }
 
         public void UpgradeFiles(string zipFilePath)
         {
-            FileUtils.DeleteDirectory(InstallPath, true, true, "license", "servicecontrol.exe.config");
+            FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlExe}.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
         }
-
-        public static ReadOnlyCollection<ServiceControlInstance> Instances()
-        {
-            var services = WindowsServiceController.FindInstancesByExe("ServiceControl.exe");
-            return new ReadOnlyCollection<ServiceControlInstance>(services.Where(p => File.Exists(p.ExePath)).Select(p => new ServiceControlInstance(p)).ToList());
-        }
-
-        public static ServiceControlInstance FindByName(string instanceName)
-        {
-            try
-            {
-                return Instances().Single(p => p.Name.Equals(instanceName, StringComparison.OrdinalIgnoreCase));
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Instance does not exists", ex);
-            }
-        }
-
+        
         public void SetupInstance()
         {
             try
             {
                 QueueCreation.RunQueueCreation(this);
             }
-            catch (ServiceControlQueueCreationFailedException ex)
+            catch (QueueCreationFailedException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-            catch (ServiceControlQueueCreationTimeoutException ex)
+            catch (QueueCreationTimeoutException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
-            }
-        }
-
-        bool HasUnderlyingProcessExited()
-        {
-            try
-            {
-                if (Service.ExePath != null)
-                {
-                    var process = Process.GetProcesses().FirstOrDefault(p => p.MainModule.FileName == Service.ExePath);
-                    return (process == null);
-                }
-            }
-            catch
-            {
-                //Service isn't accessible 
-            }
-            return true;
-        }
-
-        void ReadConfiguration()
-        {
-            Service.Refresh();
-            HostName = AppConfig.Read(SettingsList.HostName, "localhost");
-            Port = AppConfig.Read(SettingsList.Port, 33333);
-            VirtualDirectory = AppConfig.Read(SettingsList.VirtualDirectory, (string) null);
-            LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
-            DBPath = AppConfig.Read(SettingsList.DBPath, DefaultDBPath());
-            AuditQueue = AppConfig.Read(SettingsList.AuditQueue, "audit");
-            AuditLogQueue = AppConfig.Read(SettingsList.AuditLogQueue, $"{AuditQueue}.log");
-            ForwardAuditMessages = AppConfig.Read(SettingsList.ForwardAuditMessages, false);
-            ForwardErrorMessages = AppConfig.Read(SettingsList.ForwardErrorMessages, false);
-            InMaintenanceMode = AppConfig.Read(SettingsList.MaintenanceMode, false);
-            ErrorQueue = AppConfig.Read(SettingsList.ErrorQueue, "error");
-            ErrorLogQueue = AppConfig.Read(SettingsList.ErrorLogQueue, $"{ErrorQueue}.log");
-            TransportPackage = DetermineTransportPackage();
-            ConnectionString = ReadConnectionString();
-            Description = GetDescription();
-            ServiceAccount = Service.Account;
-
-            TimeSpan errorRetentionPeriod;
-            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.ErrorRetentionPeriod, (string) null), out errorRetentionPeriod))
-            {
-                ErrorRetentionPeriod = errorRetentionPeriod;
-
-            }
-            TimeSpan auditRetentionPeriod;
-            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.AuditRetentionPeriod, (string) null), out auditRetentionPeriod))
-            {
-                AuditRetentionPeriod = auditRetentionPeriod;
             }
         }
 
@@ -572,7 +413,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             try
             {
-                PathsValidator.Validate(this);
+                new PathsValidator(this).RunValidation(false);
             }
             catch (EngineValidationException ex)
             {
@@ -581,14 +422,14 @@ namespace ServiceControlInstaller.Engine.Instances
 
             try
             {
-                QueueNameValidator.Validate(this);
+                ServiceControlQueueNameValidator.Validate(this);
             }
             catch (EngineValidationException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
 
-            var oldSettings = FindByName(Name);
+            var oldSettings = InstanceFinder.FindServiceControlInstance(Name);
             var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
             var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
             if (passwordSet || accountChanged)
@@ -617,8 +458,5 @@ namespace ServiceControlInstaller.Engine.Instances
                 ReportCard.Errors.Add(ex.Message);
             }
         }
-
-       
-        
     }
 }

@@ -10,7 +10,7 @@
         [CustomAction]
         public static ActionResult ServiceControlInstanceCount(Session session)
         {
-            var instanceCount = ServiceControlInstance.Instances().Count;
+            var instanceCount = InstanceFinder.ServiceControlInstances().Count;
             session["SCINSTANCECOUNT"] = instanceCount.ToString();
             return ActionResult.Success;
         }
@@ -32,13 +32,13 @@
                     return ActionResult.NotExecuted;
             }
 
-            if (ServiceControlInstance.Instances().Count == 0)
+            if (InstanceFinder.ServiceControlInstances().Count == 0)
             {
                 return ActionResult.Success;
             }
             
-            var unattendedInstaller = new UnattendInstaller(logger, session["APPDIR"]);
-            foreach (var instance in ServiceControlInstance.Instances())
+            var unattendedInstaller = new UnattendServiceControlInstaller(logger, session["APPDIR"]);
+            foreach (var instance in InstanceFinder.ServiceControlInstances())
             {
                 try
                 {

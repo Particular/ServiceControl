@@ -2,7 +2,7 @@
 {
     using System;
     using System.Xml.Serialization;
-
+    
     public class XmlTimeSpan
     {
         private TimeSpan timeSpan;
@@ -40,7 +40,8 @@
         [XmlText]
         public string Value
         {
-            get {
+            get
+            {
                 return timeSpan.ToString();
             }
             set{

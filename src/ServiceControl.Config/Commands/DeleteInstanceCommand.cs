@@ -14,10 +14,10 @@
     {
         private readonly Func<DeleteInstanceConfirmationViewModel> deleteInstanceConfirmation;
         private readonly IEventAggregator eventAggregator;
-        private readonly Installer installer;
+        private readonly ServiceControlInstanceInstaller installer;
         private readonly IWindowManagerEx windowManager;
 
-        public DeleteInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, Installer installer, Func<DeleteInstanceConfirmationViewModel> deleteInstanceConfirmation) : base(model => model != null)
+        public DeleteInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer, Func<DeleteInstanceConfirmationViewModel> deleteInstanceConfirmation) : base(model => model != null)
         {
             this.windowManager = windowManager;
             this.deleteInstanceConfirmation = deleteInstanceConfirmation;
