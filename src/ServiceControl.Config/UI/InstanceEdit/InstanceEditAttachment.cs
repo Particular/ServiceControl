@@ -14,9 +14,9 @@ namespace ServiceControl.Config.UI.InstanceEdit
     {
         private readonly IWindowManagerEx windowManager;
         private readonly IEventAggregator eventAggregator;
-        private readonly Installer installer;
+        private readonly ServiceControlInstanceInstaller installer;
 
-        public InstanceEditAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, Installer installer)
+        public InstanceEditAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.installer = installer;

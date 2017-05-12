@@ -2,7 +2,7 @@ namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
 
-    public class InstanceUpgradeOptions
+    public class ServiceControlUpgradeOptions
     {
         public bool? OverrideEnableErrorForwarding { get; set; }
         public TimeSpan? ErrorRetentionPeriod { get; set; }

@@ -101,24 +101,31 @@
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UserSidChecker.cs" />
     <Compile Include="Configuration\AppConfigWrapper.cs" />
-    <Compile Include="Configuration\Compatibility.cs" />
+    <Compile Include="Configuration\Monitoring\SettingsList.cs" />
+    <Compile Include="Configuration\ServiceControl\Compatibility.cs" />
+    <Compile Include="Configuration\Monitoring\AppConfig.cs" />
     <Compile Include="Configuration\RegistryReader.cs" />
-    <Compile Include="Configuration\ServiceControlAppConfig.cs" />
-    <Compile Include="Configuration\SettingConstants.cs" />
-    <Compile Include="Configuration\SettingList.cs" />
+    <Compile Include="Configuration\ServiceControl\AppConfig.cs" />
+    <Compile Include="Configuration\ServiceControl\SettingConstants.cs" />
+    <Compile Include="Configuration\ServiceControl\SettingsList.cs" />
     <Compile Include="Configuration\SettingInfo.cs" />
-    <Compile Include="Instances\InstanceUpgradeOptions.cs" />
+    <Compile Include="FileSystem\ReleaseDateReader.cs" />
+    <Compile Include="FileSystem\MonitoringZipInfo.cs" />
+    <Compile Include="Instances\BaseService.cs" />
+    <Compile Include="Instances\Constants.cs" />
+    <Compile Include="Instances\Instances.cs" />
+    <Compile Include="Instances\ServiceControlUpgradeOptions.cs" />
+    <Compile Include="Instances\MonitoringInstance.cs" />
+    <Compile Include="Instances\MonitoringNewInstance.cs" />
+    <Compile Include="Unattended\UnattendMonitoringInstaller.cs" />
     <Compile Include="Unattended\XmlTimeSpan.cs" />
-    <Compile Include="Queues\ServiceControlQueueCreationException.cs" />
-    <Compile Include="Queues\ServiceControlQueueCreationTimeoutException.cs" />
+    <Compile Include="Queues\QueueCreationException.cs" />
+    <Compile Include="Queues\QueueCreationTimeoutException.cs" />
     <Compile Include="ReportCard\TruncatedStringList.cs" />
     <Compile Include="Validation\ConnectionStringValidator.cs" />
-    <Compile Include="Validation\IServiceAccount.cs" />
-    <Compile Include="Instances\IServiceControlInstance.cs" />
-    <Compile Include="Queues\RunQueueCreation.cs" />
+    <Compile Include="Queues\QueueCreation.cs" />
     <Compile Include="Validation\EngineValidationException.cs" />
-    <Compile Include="Validation\IContainPort.cs" />
-    <Compile Include="Validation\MSMQConfigValidator.cs" />
+    <Compile Include="Validation\MsmqConfigValidator.cs" />
     <Compile Include="ReportCard\Status.cs" />
     <Compile Include="ReportCard\ReportCard.cs" />
     <Compile Include="Services\ServiceRecoveryHelper.cs" />
@@ -126,25 +133,23 @@
     <Compile Include="FileSystem\ServiceControlZipInfo.cs" />
     <Compile Include="FileSystem\FileUtils.cs" />
     <Compile Include="FileSystem\NonLockingFileReader.cs" />
-    <Compile Include="Validation\IContainInstancePaths.cs" />
-    <Compile Include="Validation\IContainTransportInfo.cs" />
-    <Compile Include="Validation\PathsValidator.cs" />
-    <Compile Include="ILogging.cs" />
+    <Compile Include="Interfaces.cs" />
+    <Compile Include="Validation\PathInfo.cs" />
     <Compile Include="Validation\PortValidator.cs" />
-    <Compile Include="Validation\QueueNameValidator.cs" />
+    <Compile Include="Validation\ServiceControlQueueNameValidator.cs" />
     <Compile Include="Instances\ServiceControlInstance.cs" />
-    <Compile Include="Instances\ServiceControlInstanceMetadata.cs" />
+    <Compile Include="Instances\ServiceControlNewInstance.cs" />
     <Compile Include="Instances\TransportInfo.cs" />
     <Compile Include="Instances\Transports.cs" />
     <Compile Include="LicenseMgmt\DetectedLicense.cs" />
     <Compile Include="LicenseMgmt\LicenseDetails.cs" />
     <Compile Include="LicenseMgmt\LicenseManager.cs" />
     <Compile Include="Logging.cs" />
-    <Compile Include="Ports\PortUtils.cs" />
+    <Compile Include="Validation\PortUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\WindowsServiceController.cs" />
     <Compile Include="Services\WindowsServiceDetails.cs" />
-    <Compile Include="Unattended\UnattendInstaller.cs" />
+    <Compile Include="Unattended\UnattendServiceControlInstaller.cs" />
     <Compile Include="UrlAcl\Api\ErrorCode.cs" />
     <Compile Include="UrlAcl\Api\HttpApi.cs" />
     <Compile Include="UrlAcl\Api\HttpApiConstants.cs" />
@@ -163,10 +168,12 @@
     <Compile Include="UrlAcl\Api\HttpServiceConfigUrlAclSet.cs" />
     <Compile Include="UrlAcl\UrlReservation.cs" />
     <Compile Include="Validation\ServiceAccountValidation.cs" />
+    <Compile Include="Validation\PathsValidator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

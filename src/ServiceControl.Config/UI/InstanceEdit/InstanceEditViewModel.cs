@@ -5,7 +5,7 @@
     using Commands;
     using PropertyChanged;
     using ServiceControlInstaller.Engine.Accounts;
-    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
     using Validar;

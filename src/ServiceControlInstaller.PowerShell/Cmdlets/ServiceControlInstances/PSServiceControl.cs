@@ -3,11 +3,10 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
-    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.Validation;
-
-    public class PsServiceControl :  IContainPort, IContainInstancePaths, IContainTransportInfo
+    
+    public class PsServiceControl 
     {
         public static PsServiceControl FromInstance(ServiceControlInstance instance)
         {
@@ -56,6 +55,5 @@ namespace ServiceControlInstaller.PowerShell
         public string ServiceAccount { get; set; }
 
         public Version Version { get; set; }
-
     }
 }

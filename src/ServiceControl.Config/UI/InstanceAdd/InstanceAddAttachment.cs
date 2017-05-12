@@ -15,9 +15,9 @@
     {
         private readonly IWindowManagerEx windowManager;
         private readonly IEventAggregator eventAggregator;
-        private readonly Installer installer;
+        private readonly ServiceControlInstanceInstaller installer;
 
-        public InstanceAddAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, Installer installer)
+        public InstanceAddAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.installer = installer;
@@ -56,7 +56,7 @@
 
             viewModel.InProgress = true;
 
-            var instanceMetadata = new ServiceControlInstanceMetadata
+            var instanceMetadata = new ServiceControlNewInstance
             {
                 DisplayName = viewModel.InstanceName,
                 Name = viewModel.InstanceName.Replace(' ', '.'),

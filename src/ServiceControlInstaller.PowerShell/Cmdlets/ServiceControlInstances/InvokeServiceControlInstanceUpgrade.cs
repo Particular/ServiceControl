@@ -5,7 +5,7 @@ namespace ServiceControlInstaller.PowerShell
     using System;
     using System.IO;
     using System.Management.Automation;
-    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
 
@@ -38,12 +38,12 @@ namespace ServiceControlInstaller.PowerShell
             var logger = new PSLogger(Host);
 
             var zipFolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
-            var installer = new UnattendInstaller(logger, zipFolder);
-
+            var installer = new UnattendServiceControlInstaller(logger, zipFolder);
+            
             foreach (var name in Name)
             {
-                var options = new InstanceUpgradeOptions { AuditRetentionPeriod = AuditRetentionPeriod, ErrorRetentionPeriod = ErrorRetentionPeriod, OverrideEnableErrorForwarding =  ForwardErrorMessages};
-                var instance = ServiceControlInstance.FindByName(name);
+                var options = new ServiceControlUpgradeOptions { AuditRetentionPeriod = AuditRetentionPeriod, ErrorRetentionPeriod = ErrorRetentionPeriod, OverrideEnableErrorForwarding =  ForwardErrorMessages};
+                var instance = InstanceFinder.FindServiceControlInstance(name);
                 if (instance == null)
                 {
                     WriteWarning($"No action taken. An instance called {name} was not found");
@@ -55,7 +55,7 @@ namespace ServiceControlInstaller.PowerShell
                 // Migrate Value
                 if (!options.AuditRetentionPeriod.HasValue)
                 {
-                    if (instance.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
+                    if (instance.AppConfig.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
                     {
                         var i = instance.AppConfig.Read(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
                         if (i != -1)
@@ -64,18 +64,18 @@ namespace ServiceControlInstaller.PowerShell
                         }
                     }
                 }
-
-                if (!options.OverrideEnableErrorForwarding.HasValue & !instance.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
+                
+                if (!options.OverrideEnableErrorForwarding.HasValue & !instance.AppConfig.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
                 {
                     ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. ForwardErrorMessages parameter must be set to true or false because the configuration file has no setting for ForwardErrorMessages. This setting is mandatory as of version 1.12"), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
                 }
 
-                if (!options.ErrorRetentionPeriod.HasValue & !instance.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
+                if (!options.ErrorRetentionPeriod.HasValue & !instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
                 {
                     ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. ErrorRetentionPeriod parameter must be set to timespan because the configuration file has no setting for ErrorRetentionPeriod. This setting is mandatory as of version 1.13"), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
                 }
-
-                if (!options.AuditRetentionPeriod.HasValue & !instance.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
+                
+                if (!options.AuditRetentionPeriod.HasValue & !instance.AppConfig.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
                 {
                     ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. AuditRetentionPeriod parameter must be set to timespan because the configuration file has no setting for AuditRetentionPeriod. This setting is mandatory as of version 1.13"), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
                 }

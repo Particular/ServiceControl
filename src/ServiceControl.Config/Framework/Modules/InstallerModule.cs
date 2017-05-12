@@ -15,21 +15,21 @@
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<Installer>().SingleInstance();
+            builder.RegisterType<ServiceControlInstanceInstaller>().SingleInstance();
         }
     }
 
-    public class Installer
+    public class ServiceControlInstanceInstaller
     {
         public ServiceControlZipInfo ZipInfo { get; }
 
-        public Installer()
+        public ServiceControlInstanceInstaller()
         {
             var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             ZipInfo = ServiceControlZipInfo.Find(appDirectory);
         }
 
-        internal ReportCard Add(ServiceControlInstanceMetadata details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
+        internal ReportCard Add(ServiceControlNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
         {
             ZipInfo.ValidateZip();
 
@@ -59,7 +59,7 @@
                 instanceInstaller.RegisterService();
                 //Post Installation
                 progress.Report(8, 9, "Starting service...");
-                var instance = ServiceControlInstance.FindByName(instanceInstaller.Name);
+                var instance = InstanceFinder.FindServiceControlInstance(instanceInstaller.Name);
                 if (!instance.TryStartService())
                 {
                     instanceInstaller.ReportCard.Warnings.Add($"New instance did not startup - please check configuration for {instance.Name}");
@@ -69,11 +69,11 @@
             return instanceInstaller.ReportCard;
         }
 
-        internal ReportCard Upgrade(string instanceName, InstanceUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
+        internal ReportCard Upgrade(string instanceName, ServiceControlUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
         {
             progress = progress ?? new Progress<ProgressDetails>();
 
-            var instance = ServiceControlInstance.FindByName(instanceName);
+            var instance = InstanceFinder.FindServiceControlInstance(instanceName);
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
 
@@ -148,7 +148,7 @@
         {
             progress = progress ?? new Progress<ProgressDetails>();
             progress.Report(0, 7, "Stopping instance...");
-            var instance = ServiceControlInstance.FindByName(instanceName);
+            var instance = InstanceFinder.FindServiceControlInstance(instanceName);
             instance.ReportCard = new ReportCard();
 
             if (!instance.TryStopService())

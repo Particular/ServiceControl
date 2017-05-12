@@ -11,7 +11,7 @@ namespace ServiceControlInstaller.PowerShell
     {
         protected override void ProcessRecord()
         {
-            WriteObject(ServiceControlInstance.Instances().Select(PsServiceControl.FromInstance), true);
+            WriteObject(InstanceFinder.ServiceControlInstances().Select(PsServiceControl.FromInstance), true);
         }
     }
 }

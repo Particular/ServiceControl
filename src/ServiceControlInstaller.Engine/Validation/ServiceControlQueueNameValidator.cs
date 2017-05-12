@@ -5,9 +5,9 @@
     using System.Linq;
     using ServiceControlInstaller.Engine.Instances;
 
-    internal class QueueNameValidator
+    internal class ServiceControlQueueNameValidator
     {
-        internal List<IContainTransportInfo> instances;
+        internal List<IServiceControlTransportConfig> Instances;
         List<QueueInfo> queues;
 
         class QueueInfo
@@ -17,25 +17,25 @@
             public string QueueName { get; set; }
         }
 
-        public static void Validate(ServiceControlInstanceMetadata instance)
+        public static void Validate(ServiceControlNewInstance instance)
         {
-            var validator = new QueueNameValidator(instance)
+            var validator = new ServiceControlQueueNameValidator(instance)
             {
-                instances = ServiceControlInstance.Instances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage, StringComparison.OrdinalIgnoreCase)).AsEnumerable<IContainTransportInfo>().ToList()
+                Instances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage, StringComparison.OrdinalIgnoreCase)).AsEnumerable<IServiceControlTransportConfig>().ToList()
             };
             validator.RunValidation();
         }
 
         public static void Validate(ServiceControlInstance instance)
         {
-            var validator = new QueueNameValidator(instance)
+            var validator = new ServiceControlQueueNameValidator(instance)
             {
-                instances = ServiceControlInstance.Instances().Where(p => p.Name != instance.Name  & p.TransportPackage.Equals(instance.TransportPackage, StringComparison.OrdinalIgnoreCase)).AsEnumerable<IContainTransportInfo>().ToList()
+                Instances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name  & p.TransportPackage.Equals(instance.TransportPackage, StringComparison.OrdinalIgnoreCase)).AsEnumerable<IServiceControlTransportConfig>().ToList()
             };
             validator.RunValidation();
         }
 
-        internal QueueNameValidator(IContainTransportInfo instance)
+        internal ServiceControlQueueNameValidator(IServiceControlTransportConfig instance)
         {
             DetermineQueueNames(instance.AuditQueue, instance.ErrorQueue, instance.AuditLogQueue, instance.ErrorLogQueue, instance.ConnectionString);
         }
@@ -96,9 +96,9 @@
         internal void CheckQueueNamesAreNotTakenByAnotherInstance()
         {
             var allQueues = new List<QueueInfo>();
-            foreach (var instance in instances)
+            foreach (var instance in Instances)
             {
-                allQueues.AddRange(new QueueNameValidator(instance).queues);
+                allQueues.AddRange(new ServiceControlQueueNameValidator(instance).queues);
             }
 
             var duplicates = (from queue in queues where allQueues.Any(p => string.Equals(p.ConnectionString, queue.ConnectionString, StringComparison.OrdinalIgnoreCase) && string.Equals(p.QueueName, queue.QueueName, StringComparison.OrdinalIgnoreCase)) select queue.PropertyName).ToList();

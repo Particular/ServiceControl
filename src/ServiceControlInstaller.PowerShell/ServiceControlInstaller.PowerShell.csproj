@@ -60,9 +60,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cmdlets\Instances\PSServiceControl.cs" />
-    <Compile Include="Cmdlets\Instances\NewServiceControlInstance.cs" />
-    <Compile Include="Cmdlets\Instances\NewServiceControlUnattendedFile.cs" />
+    <Compile Include="Cmdlets\MonitoringInstances\GetMonitoringInstances.cs" />
+    <Compile Include="Cmdlets\MonitoringInstances\InvokeMonitoringUpgrade.cs" />
+    <Compile Include="Cmdlets\MonitoringInstances\NewMonitoringInstance.cs" />
+    <Compile Include="Cmdlets\MonitoringInstances\PsMonitoringService.cs" />
+    <Compile Include="Cmdlets\ServiceControlInstances\PSServiceControl.cs" />
+    <Compile Include="Cmdlets\ServiceControlInstances\NewServiceControlInstance.cs" />
+    <Compile Include="Cmdlets\ServiceControlInstances\NewServiceControlUnattendedFile.cs" />
+    <Compile Include="Cmdlets\MonitoringInstances\RemoveMonitoringInstance.cs" />
     <Compile Include="Validation\ValidatePathAttribute.cs" />
     <Compile Include="Validation\ValidateTimeSpanAttribute.cs" />
     <Compile Include="Cmdlets\Ports\PsPortAvailability.cs" />
@@ -71,13 +76,13 @@
     <Compile Include="Cmdlets\UrlAcls\GetUrlAcls.cs" />
     <Compile Include="Cmdlets\UrlAcls\RemoveUrlAcl.cs" />
     <Compile Include="Cmdlets\User\GetSecurityIdentifier.cs" />
-    <Compile Include="Cmdlets\Instances\GetServiceControlInstances.cs" />
+    <Compile Include="Cmdlets\ServiceControlInstances\GetServiceControlInstances.cs" />
     <Compile Include="Cmdlets\License\GetServiceControlLicense.cs" />
     <Compile Include="Cmdlets\Transports\GetServiceControlTransportTypes.cs" />
     <Compile Include="Cmdlets\License\ImportServiceControlLicense.cs" />
-    <Compile Include="Cmdlets\Instances\InstallServiceControlInstanceFromUnattendedFile.cs" />
-    <Compile Include="Cmdlets\Instances\InvokeServiceControlInstanceUpgrade.cs" />
-    <Compile Include="Cmdlets\Instances\RemoveServiceControlInstance.cs" />
+    <Compile Include="Cmdlets\ServiceControlInstances\InstallServiceControlInstanceFromUnattendedFile.cs" />
+    <Compile Include="Cmdlets\ServiceControlInstances\InvokeServiceControlInstanceUpgrade.cs" />
+    <Compile Include="Cmdlets\ServiceControlInstances\RemoveServiceControlInstance.cs" />
     <Compile Include="Cmdlets\Ports\TestIfPortIsAvailable.cs" />
     <Compile Include="Helpers\Account.cs" />
     <Compile Include="Helpers\PSLogger.cs" />

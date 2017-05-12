@@ -1,5 +1,4 @@
-﻿// ReSharper disable MemberCanBePrivate.Global
-namespace ServiceControlInstaller.Engine.Instances
+﻿namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
     using System.Collections.Generic;
@@ -8,10 +7,8 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
-    using System.Xml;
-    using System.Xml.Serialization;
     using ServiceControlInstaller.Engine.Accounts;
-    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.Monitoring;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Queues;
     using ServiceControlInstaller.Engine.ReportCard;
@@ -19,100 +16,42 @@ namespace ServiceControlInstaller.Engine.Instances
     using ServiceControlInstaller.Engine.UrlAcl;
     using ServiceControlInstaller.Engine.Validation;
 
-    public class ServiceControlInstanceMetadata : IServiceControlInstance
+    public class MonitoringNewInstance : IMonitoringInstance
     {
-        public string LogPath { get; set; }
-        public string DBPath { get; set; }
         public string HostName { get; set; }
-
-        [XmlElement(typeof(XmlTimeSpan))]
-        public TimeSpan AuditRetentionPeriod { get; set; }
-
-        [XmlElement(typeof(XmlTimeSpan))]
-        public TimeSpan ErrorRetentionPeriod { get; set; }
-
-        public string InstallPath { get; set; }
         public int Port { get; set; }
-        public string VirtualDirectory { get; set; }
+
         public string ErrorQueue { get; set; }
-        public string ErrorLogQueue { get; set; }
-        public string AuditQueue { get; set; }
-        public string AuditLogQueue { get; set; }
-        public bool ForwardAuditMessages { get; set; }
-        public bool ForwardErrorMessages { get; set; }
+        
+        
+        public string InstallPath { get; set; }
+        public string LogPath { get; set; }
+
         public string TransportPackage { get; set; }
         public string ConnectionString { get; set; }
+
+        public ReportCard ReportCard { get; set; }
+
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public string ServiceDescription { get; set; }
-
-        [XmlIgnore]
-        public Version Version { get; set; }
-        [XmlIgnore]
         public string ServiceAccount { get; set; }
-        [XmlIgnore]
         public string ServiceAccountPwd { get; set; }
-        [XmlIgnore]
-        public ReportCard ReportCard { get; set; }
 
-        public ServiceControlInstanceMetadata()
+        public Version Version { get; }
+
+        public MonitoringNewInstance()
         {
             var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var zipInfo = ServiceControlZipInfo.Find(appDirectory);
+            var zipInfo = MonitoringZipInfo.Find(appDirectory);
             Version = zipInfo.Version;
         }
 
-        public string Url
-        {
-            get
-            {
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return $"http://{HostName}:{Port}/api/";
-                }
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
-            }
-        }
-
-        public string StorageUrl
-        {
-            get
-            {
-                string host;
-                switch (HostName)
-                {
-                    case "*":
-                    case "+":
-                        host = "localhost";
-                        break;
-                    default:
-                        host = HostName;
-                        break;
-                }
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return $"http://{host}:{Port}/storage/";
-                }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}storage/";
-            }
-        }
-
-        public string AclUrl
-        {
-            get
-            {
-                var baseUrl = $"http://{HostName}:{Port}/";
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return baseUrl;
-                }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}";
-            }
-        }
+        public string Url => $"http://{HostName}:{Port}/";
 
         public void CopyFiles(string zipFilePath)
         {
-            //Clear out any files from previos runs of Add Instance, just in case user switches transport
+            //Clear out any files from previous runs of Add Instance, just in case user switches transport
             //Validation checks for the flag file so wont get here if the directory was also changed
             FileUtils.DeleteDirectory(InstallPath, true, true);
 
@@ -126,25 +65,20 @@ namespace ServiceControlInstaller.Engine.Instances
                 FileUtils.CreateDirectoryAndSetAcl(LogPath, modifyAccessRule);
             }
 
-            if (!string.IsNullOrWhiteSpace(DBPath))
-            {
-                FileUtils.CreateDirectoryAndSetAcl(DBPath, modifyAccessRule);
-            }
-
-            // Mark these directories with a flag
+            // Mark these directories with a flag 
             // These flags indicate the directory is empty check can be ignored
             // We need this because if an install screws up and doesn't complete it is ok to overwrite on a subsequent attempt
             // First run will still the check
             AddFlagFiles();
 
             // Copy the binaries from a zip
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl.Monitoring");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
         }
 
         public void WriteConfigurationFile()
         {
-            var appConfig = new ServiceControlAppConfig(this);
+            var appConfig = new AppConfig(this);
             appConfig.Validate();
             appConfig.Save();
         }
@@ -157,7 +91,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 ServiceAccountPwd = ServiceAccountPwd,
                 DisplayName = DisplayName,
                 Name = Name,
-                ImagePath = $"\"{Path.Combine(InstallPath, "ServiceControl.exe")}\" --serviceName={Name}",
+                ImagePath = $"\"{Path.Combine(InstallPath, Constants.MonitoringExe)}\" --serviceName={Name}",
                 ServiceDescription = ServiceDescription
             };
             var dependencies = new List<string>();
@@ -173,7 +107,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RegisterUrlAcl()
         {
-            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             reservation.Create();
         }
 
@@ -183,50 +117,14 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 QueueCreation.RunQueueCreation(this);
             }
-            catch (ServiceControlQueueCreationFailedException ex)
+            catch (QueueCreationFailedException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-            catch (ServiceControlQueueCreationTimeoutException ex)
+            catch (QueueCreationTimeoutException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-        }
-
-        public void Save(string path)
-        {
-            var serializer = new XmlSerializer(GetType());
-            using (var stream = File.OpenWrite(path))
-            {
-                serializer.Serialize(stream, this);
-            }
-        }
-
-        public static ServiceControlInstanceMetadata Load(string path)
-        {
-            ServiceControlInstanceMetadata instanceData;
-            var serializer = new XmlSerializer(typeof(ServiceControlInstanceMetadata));
-            using (var stream = File.OpenRead(path))
-            {
-                instanceData = (ServiceControlInstanceMetadata) serializer.Deserialize(stream);
-            }
-
-            var doc = new XmlDocument();
-            doc.Load(path);
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/AuditRetentionPeriod") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ErrorRetentionPeriod") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-            return instanceData;
         }
 
         public void Validate(Func<PathInfo, bool> promptToProceed)
@@ -235,9 +133,9 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 try
                 {
-                    MSMQConfigValidator.Validate();
+                    MsmqConfigValidator.Validate();
                 }
-                catch(EngineValidationException ex)
+                catch (EngineValidationException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }
@@ -254,7 +152,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             try
             {
-                ReportCard.CancelRequested = PathsValidator.Validate(this, promptToProceed);
+                ReportCard.CancelRequested = new PathsValidator(this).RunValidation(true, promptToProceed);
             }
             catch (EngineValidationException ex)
             {
@@ -263,7 +161,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
             try
             {
-                QueueNameValidator.Validate(this);
+                //TODO : QUEUE Validation
+               // QueueNameValidator.Validate(this);
             }
             catch (EngineValidationException ex)
             {
@@ -299,8 +198,8 @@ namespace ServiceControlInstaller.Engine.Instances
             foreach (var reservation in UrlReservation.GetAll().Where(p => p.Port == Port))
             {
                 // exclusive or of reservation and instance - if only one of them has "localhost" then the UrlAcl will clash
-                if (reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && !HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
-                    !reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+                if ((reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && !HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase)) ||
+                    (!reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase)))
                 {
                     throw new EngineValidationException($"Conflicting UrlAcls found - {Url} vs {reservation.Url}");
                 }
@@ -333,10 +232,9 @@ namespace ServiceControlInstaller.Engine.Instances
                 return new[]
                 {
                     Path.Combine(InstallPath, flagFileName),
-                    Path.Combine(DBPath, flagFileName),
                     Path.Combine(LogPath, flagFileName),
                 };
             }
         }
-    }
+     }
 }

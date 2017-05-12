@@ -6,7 +6,7 @@
     using System.Windows.Input;
     using PropertyChanged;
     using ServiceControl.Config.Commands;
-    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
     using Validar;
@@ -22,7 +22,7 @@
             SelectDatabasePath = new SelectPathCommand(p => DatabasePath = p, isFolderPicker: true, defaultPath: DatabasePath);
             SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
 
-            var serviceControlInstances = ServiceControlInstance.Instances();
+            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
             if (!serviceControlInstances.Any())
             {
                 InstanceName = "Particular.ServiceControl";

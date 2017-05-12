@@ -30,11 +30,11 @@ namespace ServiceControlInstaller.PowerShell
         {
             var logger = new PSLogger(Host);
             var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
-            var installer = new UnattendInstaller(logger, zipfolder);
+            var installer = new UnattendServiceControlInstaller(logger, zipfolder);
 
             foreach (var name in Name)
             {
-                var instance = ServiceControlInstance.FindByName(name);
+                var instance = InstanceFinder.FindServiceControlInstance(name);
                 if (instance == null)
                 {
                     WriteWarning($"No action taken. An instance called {name} was not found");

@@ -30,13 +30,13 @@
                 ServiceAccountPwd = null
             };
 
-            var existing = ServiceControlInstance.Instances().FirstOrDefault(p => p.Name == s.Name);
+            var existing = InstanceFinder.ServiceControlInstances().FirstOrDefault(p => p.Name == s.Name);
             if (existing != null)
             {
-                ServiceControlInstance.Instances().First(p => p.Name == s.Name).Service.Delete();
+                InstanceFinder.ServiceControlInstances().First(p => p.Name == s.Name).Service.Delete();
             }
             WindowsServiceController.RegisterNewService(s);
-            ServiceControlInstance.Instances().First(p => p.Name == s.Name).Service.Delete();
-        }
+            InstanceFinder.ServiceControlInstances().First(p => p.Name == s.Name).Service.Delete();
+        }   
     }
 }

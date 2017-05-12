@@ -11,27 +11,27 @@ namespace ServiceControlInstaller.Engine.Unattended
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Validation;
 
-    public class UnattendInstaller
+    public class UnattendServiceControlInstaller
     {
         Logging logger;
 
         public ServiceControlZipInfo ZipInfo { get; }
 
-        public UnattendInstaller(ILogging loggingInstance)
+        public UnattendServiceControlInstaller(ILogging loggingInstance)
         {
             logger = new Logging(loggingInstance);
             var sourceroot = Path.GetFullPath(Environment.ExpandEnvironmentVariables("."));
             ZipInfo = ServiceControlZipInfo.Find(sourceroot);
         }
 
-        public UnattendInstaller(ILogging loggingInstance, string deploymentCachePath)
+        public UnattendServiceControlInstaller(ILogging loggingInstance, string deploymentCachePath)
         {
             logger = new Logging(loggingInstance);
             var sourceroot = Path.GetFullPath(Environment.ExpandEnvironmentVariables(deploymentCachePath));
             ZipInfo = ServiceControlZipInfo.Find(sourceroot);
         }
 
-        public bool Add(ServiceControlInstanceMetadata details, Func<PathInfo, bool> promptToProceed)
+        public bool Add(ServiceControlNewInstance details, Func<PathInfo, bool> promptToProceed)
         {
             ZipInfo.ValidateZip();
 
@@ -84,7 +84,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             }
 
             //Post Installation
-            var instance = ServiceControlInstance.FindByName(instanceInstaller.Name);
+            var instance = InstanceFinder.FindServiceControlInstance(instanceInstaller.Name);
             if (!instance.TryStartService())
             {
                 logger.Warn("The service failed to start");
@@ -92,7 +92,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             return true;
         }
 
-        public bool Upgrade(ServiceControlInstance instance, InstanceUpgradeOptions options)
+        public bool Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions options)
         {
             ZipInfo.ValidateZip();
 
@@ -145,9 +145,6 @@ namespace ServiceControlInstaller.Engine.Unattended
                 logger.Error("Upgrade Failed: {0}", ex.Message);
                 return false;
             }
-
-
-
             return true;
         }
 
@@ -198,7 +195,7 @@ namespace ServiceControlInstaller.Engine.Unattended
         // ReSharper disable once UnusedMethodReturnValue.Global
         public bool Delete(string instanceName, bool removeDB, bool removeLogs)
         {
-            var instance = ServiceControlInstance.FindByName(instanceName);
+            var instance = InstanceFinder.FindServiceControlInstance(instanceName);
             instance.ReportCard = new ReportCard();
             if (!instance.TryStopService())
             {

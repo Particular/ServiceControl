@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.Configuration
+﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
     using System;
     using System.Collections.Generic;
@@ -7,11 +7,11 @@
     using System.Xml.Linq;
     using ServiceControlInstaller.Engine.Instances;
 
-    public class ServiceControlAppConfig : AppConfigWrapper
+    public class AppConfig : AppConfigWrapper
     {
         IServiceControlInstance details;
-
-        public ServiceControlAppConfig(IServiceControlInstance details) : base(Path.Combine(details.InstallPath, "ServiceControl.exe.config"))
+        
+        public AppConfig(IServiceControlInstance details) : base(Path.Combine(details.InstallPath, $"{Constants.ServiceControlExe}.config"))
         {
             this.details = details;
         }

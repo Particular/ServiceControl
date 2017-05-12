@@ -7,7 +7,7 @@
     using ServiceControl.Config.Framework.Rx;
     using ServiceControl.Config.Validation;
     using ServiceControl.Config.Xaml.Controls;
-    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
 
     public class SharedInstanceEditorViewModel : RxProgressScreen

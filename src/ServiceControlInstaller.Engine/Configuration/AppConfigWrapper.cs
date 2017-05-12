@@ -38,6 +38,11 @@
 
             return defaultValue;
         }
+
+        public bool AppSettingExists(string key)
+        {
+            return Config.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase);
+        }
     }
 }
 

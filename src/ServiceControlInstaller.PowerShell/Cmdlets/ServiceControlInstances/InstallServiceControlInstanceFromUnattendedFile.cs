@@ -10,7 +10,7 @@ namespace ServiceControlInstaller.PowerShell
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
     using ServiceControlInstaller.Engine.Validation;
-    using PathInfo = ServiceControlInstaller.Engine.Validation.PathInfo;
+    using PathInfo = Engine.Validation.PathInfo;
 
     [Cmdlet(VerbsCommon.New, "ServiceControlInstanceFromUnattendedFile")]
     public class NewServiceControlInstanceFromUnattendedFile : PSCmdlet
@@ -33,6 +33,7 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void BeginProcessing()
         {
+            WriteWarning("New-ServiceControlInstanceFromUnattendedFile is deprecated. Please New-ServiceControlInstance via PSScript it automate installation");
             Account.TestIfAdmin();
         }
 
@@ -41,19 +42,19 @@ namespace ServiceControlInstaller.PowerShell
             ProviderInfo provider;
             PSDriveInfo drive;
             var psPath =  SessionState.Path.GetUnresolvedProviderPathFromPSPath(UnattendFile, out provider, out drive);
-
-            var details = ServiceControlInstanceMetadata.Load(psPath);
+            
+            var details = ServiceControlNewInstance.Load(psPath);
             details.ServiceAccount = ServiceAccount;
             details.ServiceAccountPwd = Password;
             var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var logger = new PSLogger(Host);
-            var installer = new UnattendInstaller(logger, zipfolder);
+            var installer = new UnattendServiceControlInstaller(logger, zipfolder);
             try
             {
                 logger.Info("Installing Service Control instance...");
                 if (installer.Add(details, PromptToProceed))
                 {
-                    var instance = ServiceControlInstance.FindByName(details.Name);
+                    var instance = InstanceFinder.FindServiceControlInstance(details.Name);
                     if (instance != null)
                     {
                         WriteObject(PsServiceControl.FromInstance(instance));

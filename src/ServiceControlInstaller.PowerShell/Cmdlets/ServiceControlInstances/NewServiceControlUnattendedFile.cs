@@ -3,10 +3,12 @@
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace ServiceControlInstaller.PowerShell
 {
+
+
+
     using System;
     using System.Management.Automation;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
 
     [Cmdlet(VerbsCommon.New, "ServiceControlUnattendedFile")]
     public class NewServiceControlUnattendedFile : PSCmdlet
@@ -99,6 +101,8 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void BeginProcessing()
         {
+            WriteWarning("New-ServiceControlUnattendedFile is deprecated. Please New-ServiceControlInstance via PSScript it automate installation" );
+
             EnsureDependentPropertyIsBoundIfSet(ForwardErrorMessages, nameof(ErrorLogQueue), "ErrorLogQueue must be specified if ForwardErrorMessages is true");
             EnsureDependentPropertyIsBoundIfSet(ForwardAuditMessages, nameof(AuditLogQueue), "AuditLogQueue must be specified if ForwardAuditMessages is true");
 
@@ -115,7 +119,7 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void ProcessRecord()
         {
-            var details = new ServiceControlInstanceMetadata
+            var details = new Engine.Instances.ServiceControlNewInstance
             {
                 InstallPath = InstallPath,
                 LogPath = LogPath,
