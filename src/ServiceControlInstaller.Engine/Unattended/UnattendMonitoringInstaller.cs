@@ -5,7 +5,6 @@ namespace ServiceControlInstaller.Engine.Unattended
     using System;
     using System.IO;
     using System.ServiceProcess;
-    using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.LicenseMgmt;
