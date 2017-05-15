@@ -10,8 +10,7 @@
         [CustomAction]
         public static ActionResult ServiceControlInstanceCount(Session session)
         {
-            var instanceCount = InstanceFinder.ServiceControlInstances().Count +
-                                InstanceFinder.MonitoringInstances().Count;
+            var instanceCount = InstanceFinder.AllInstances().Count;
             session["SCINSTANCECOUNT"] = instanceCount.ToString();
             return ActionResult.Success;
         }

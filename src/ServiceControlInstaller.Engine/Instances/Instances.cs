@@ -1,6 +1,7 @@
 ﻿namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
+    using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
@@ -44,5 +45,12 @@
             }
         }
 
+        public static ReadOnlyCollection<IServiceInstance> AllInstances()
+        {
+            var services = new List<IServiceInstance>();
+            services.AddRange(ServiceControlInstances());
+            services.AddRange(MonitoringInstances());
+            return new ReadOnlyCollection<IServiceInstance>(services.OrderBy(o => o.Name).ToList());
+        }
     }
 }
