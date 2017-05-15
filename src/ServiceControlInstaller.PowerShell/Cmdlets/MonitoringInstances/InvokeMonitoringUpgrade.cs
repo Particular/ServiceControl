@@ -8,7 +8,7 @@ namespace ServiceControlInstaller.PowerShell
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
 
-    [Cmdlet(VerbsLifecycle.Invoke, "MonitoringUpgrade")]
+    [Cmdlet(VerbsLifecycle.Invoke, "MonitoringInstanceUpgrade")]
     public class InvokeMonitoringUpgrade : PSCmdlet
     {
         [ValidateNotNullOrEmpty]
