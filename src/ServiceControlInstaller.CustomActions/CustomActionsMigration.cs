@@ -8,12 +8,16 @@
     using ServiceControlInstaller.CustomActions.Extensions;
     using ServiceControlInstaller.Engine;
 
-    // We need to remove any reference to the previous MSI and below
-    // We can't simply upgrade since this would clobber the existing service
     public class CustomActionsMigrations
     {
         static readonly Guid UpgradeCode = new Guid("{8F59B8C7-A3EB-4D19-9B88-0EA69FF1B26C}");
 
+        // This list does not need to be updated beyond version 1.6.3
+        // After 1.6.3 a new MSI product code was used. This was done at the introduction of the management app.
+        // The older versions of the MSI handled install and uninstall of a single service, if we'd used the same MSI product code then the 
+        // installation of the management app would have also uninstalled existing ServiceControl instances.
+        // Instead this custom action removes the registry entries that indicate the old MSI was installed.  
+        // Add/Remove/Upgrade of the services is all done by the app now.
         static readonly Dictionary<string,string> oldProducts = new Dictionary<string, string>
         {
                 {"1.0.0", "{12BDB3E7-3A70-410A-A2C0-43037E33E3E6}"},
