@@ -34,26 +34,11 @@
 
         private void RefreshInstances()
         {
-            var currentInstances = ServiceControlInstance.Instances();
-
-            var addedInstances = currentInstances.Where(i => Instances.All(i2 => i2.Name != i.Name)).ToList();
-            var removedInstances = Instances.Where(i => currentInstances.All(i2 => i2.Name != i.Name)).ToList();
-
-            foreach (var item in addedInstances)
+            Instances.Clear();
+            foreach (var item in ServiceControlInstance.Instances())
             {
                 Instances.Add(instanceDetailsFunc(item));
             }
-
-            foreach (var item in removedInstances)
-            {
-                Instances.Remove(item);
-            }
-
-            foreach (var instance in Instances)
-            {
-                instance.ServiceControlInstance.Reload();
-            }
-            // Existing instances are updated in the InstanceDetailsViewModel
         }
 
         public void Handle(LicenseUpdated licenseUpdatedEvent)
