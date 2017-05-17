@@ -65,7 +65,7 @@
                         VerticalAlignment="Center"  
                         FontSize="13px"
                         Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}">
-                        <Hyperlink Foreground="DarkOrange" Command="{Binding AdvanceOptionsCommand}" CommandParameter="{Binding DataContext, ElementName=root}">IN MAINTENANCE MODE</Hyperlink>
+                        <Hyperlink Foreground="DarkOrange" Command="{Binding AdvancedOptionsCommand}" CommandParameter="{Binding DataContext, ElementName=root}">IN MAINTENANCE MODE</Hyperlink>
             </TextBlock>
         </StackPanel>
         <StackPanel Grid.Row="2"
@@ -89,13 +89,13 @@
                                                ElementName=root}"
                     Style="{StaticResource ConfigurationButton}" />
             <Button Margin="5,0"
-                    Command="{Binding AdvanceOptionsCommand}"
+                    Command="{Binding AdvancedOptionsCommand}"
                     CommandParameter="{Binding DataContext,
                                                ElementName=root}"
-                    Style="{StaticResource AdvanceOptionsButton}" />
+                    Style="{StaticResource AdvancedOptionsButton}" />
         </StackPanel>
 
-        <GroupBox Grid.Row="4" Header="SERVICECONTROL VERSION">
+        <GroupBox Grid.Row="4" Header="VERSION">
             <GroupBox.HeaderTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
@@ -111,7 +111,7 @@
                     </StackPanel>
                 </DataTemplate>
             </GroupBox.HeaderTemplate>
-            <TextBlock Text="{Binding Version, StringFormat=ServiceControl v{0}}" />
+            <TextBlock Text="{Binding Version}" />
         </GroupBox>
 
         <GroupBox Grid.Row="5"
@@ -152,17 +152,8 @@
 
         <GroupBox Grid.Row="7"
                   Grid.ColumnSpan="2"
-                  Header="DATA PATH">
-            <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding DBPath}">
-                <Hyperlink.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Command="{Binding CopyToClipboard}"
-                                  CommandParameter="{Binding DBPath}"
-                                  Header="Copy to Clipboard" />
-                    </ContextMenu>
-                </Hyperlink.ContextMenu>
-                <TextBlock FontSize="12px" Text="{Binding DBPath}" />
-            </Hyperlink>
+                  Header="INSTANCE TYPE">
+                <TextBlock FontSize="12px" Text="{Binding InstanceType}" />
         </GroupBox>
 
         <GroupBox Grid.Row="8"

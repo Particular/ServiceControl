@@ -161,14 +161,16 @@
     </Page>
     <Compile Include="AppBootstrapper.cs" />
     <Compile Include="Commands\AddInstanceCommand.cs" />
-    <Compile Include="Commands\AdvanceOptionsCommand.cs" />
+    <Compile Include="Commands\DeleteMonitoringlnstanceCommand.cs" />
+    <Compile Include="Commands\MonitoringAdvancedOptionsCommand.cs" />
+    <Compile Include="Commands\ServiceControlAdvanceOptionsCommand.cs" />
     <Compile Include="Commands\CopyToClipboardCommand.cs" />
     <Compile Include="Commands\EditInstanceCommand.cs" />
     <Compile Include="Commands\OpenURLCommand.cs" />
-    <Compile Include="Commands\DeleteInstanceCommand.cs" />
+    <Compile Include="Commands\DeleteServiceControlInstanceCommand.cs" />
     <Compile Include="Commands\OpenViewModelCommand.cs" />
     <Compile Include="Commands\SelectPathCommand.cs" />
-    <Compile Include="Commands\StartServiceInMaintenanceModeCommand.cs" />
+    <Compile Include="Commands\StartServiceControlInMaintenanceModeCommand.cs" />
     <Compile Include="Commands\UpgradeInstanceCommand.cs" />
     <Compile Include="Events\LicenseUpdated.cs" />
     <Compile Include="Events\RefreshInstances.cs" />
@@ -186,10 +188,18 @@
     <Compile Include="Framework\RaygunReporter.cs" />
     <Compile Include="Framework\Rx\RxProgressScreen.cs" />
     <Compile Include="Splash.cs" />
-    <Compile Include="UI\AdvanceOptions\AdvanceOptionsViewModel.cs" />
-    <Compile Include="UI\AdvanceOptions\AdvanceOptionsView.xaml.cs">
-      <DependentUpon>AdvanceOptionsView.xaml</DependentUpon>
+    <Compile Include="UI\AdvancedOptions\MonitoringAdvancedView.xaml.cs">
+      <DependentUpon>MonitoringAdvancedView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\AdvancedOptions\MonitoringAdvancedViewModel.cs" />
+    <Compile Include="UI\AdvancedOptions\ServiceControlAdvancedViewModel.cs" />
+    <Compile Include="UI\AdvancedOptions\ServiceControlAdvancedView.xaml.cs">
+      <DependentUpon>ServiceControlAdvancedView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\DeleteInstanceConfirmation\DeleteMonitoringConfirmationView.xaml.cs">
+      <DependentUpon>DeleteMonitoringConfirmationView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\DeleteInstanceConfirmation\DeleteMonitoringConfirmationViewModel.cs" />
     <Compile Include="UI\FeedBack\FeedBackViewModelValidator.cs" />
     <Compile Include="UI\MessageBox\ExceptionMessageBox.xaml.cs">
       <DependentUpon>ExceptionMessageBox.xaml</DependentUpon>
@@ -231,10 +241,10 @@
     <Compile Include="Framework\Rx\RxConductorBaseWithActiveItem.cs" />
     <Compile Include="UI\InstanceAdd\InstanceAddAttachment.cs" />
     <Compile Include="UI\InstanceAdd\InstanceAddViewModelValidator.cs" />
-    <Compile Include="UI\DeleteInstanceConfirmation\DeleteInstanceConfirmationView.xaml.cs">
-      <DependentUpon>DeleteInstanceConfirmationView.xaml</DependentUpon>
+    <Compile Include="UI\DeleteInstanceConfirmation\DeleteServiceControlConfirmationView.xaml.cs">
+      <DependentUpon>DeleteServiceControlConfirmationView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\DeleteInstanceConfirmation\DeleteInstanceConfirmationViewModel.cs" />
+    <Compile Include="UI\DeleteInstanceConfirmation\DeleteServiceControlConfirmationViewModel.cs" />
     <Compile Include="UI\FeedBack\FeedBackView.xaml.cs">
       <DependentUpon>FeedBackView.xaml</DependentUpon>
     </Compile>
@@ -316,7 +326,15 @@
     <Compile Include="Xaml\Behaviours\BorderlessWindowBehavior.cs" />
     <Compile Include="Xaml\Behaviours\StylizedBehaviors.cs" />
     <Compile Include="Xaml\Converters\BoolToVisibilityConverter.cs" />
-    <Page Include="UI\AdvanceOptions\AdvanceOptionsView.xaml">
+    <Page Include="UI\AdvancedOptions\MonitoringAdvancedView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\AdvancedOptions\ServiceControlAdvancedView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\DeleteInstanceConfirmation\DeleteMonitoringConfirmationView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -412,13 +430,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\DeleteInstanceConfirmation\DeleteInstanceConfirmationView.xaml">
+    <Page Include="UI\DeleteInstanceConfirmation\DeleteServiceControlConfirmationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <DesignData Include="UI\DeleteInstanceConfirmation\SampleData.xaml">
-      <SubType>Designer</SubType>
-    </DesignData>
     <Page Include="UI\FeedBack\FeedBackView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

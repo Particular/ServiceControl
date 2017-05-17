@@ -11,7 +11,7 @@
     using ServiceControlInstaller.Engine.Services;
     using TimeoutException = System.ServiceProcess.TimeoutException;
 
-    public abstract class BaseService
+    public abstract class BaseService : IServiceInstance
     {
         public string Description { get; set; }
         public string DisplayName { get; set; }

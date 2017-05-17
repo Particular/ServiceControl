@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Config.UI.DeleteInstanceConfirmation
 {
-    partial class DeleteInstanceConfirmationView
+    partial class DeleteServiceControlConfirmationView
     {
-        public DeleteInstanceConfirmationView()
+        public DeleteServiceControlConfirmationView()
         {
             InitializeComponent();
         }

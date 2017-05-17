@@ -315,5 +315,13 @@ namespace ServiceControlInstaller.Engine.Instances
                 };
             }
         }
+
+        public string BrowsableUrl
+        {
+            get
+            {
+                throw new NotImplementedException("Not available until the instance is installed");
+            } 
+        }
     }
 }

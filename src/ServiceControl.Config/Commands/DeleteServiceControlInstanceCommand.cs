@@ -7,17 +7,17 @@
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Commands;
     using ServiceControl.Config.Framework.Modules;
-    using ServiceControl.Config.UI.AdvanceOptions;
+    using ServiceControl.Config.UI.AdvancedOptions;
     using ServiceControl.Config.UI.DeleteInstanceConfirmation;
 
-    class DeleteInstanceCommand : AwaitableAbstractCommand<AdvanceOptionsViewModel>
+    class DeleteServiceControlInstanceCommand : AwaitableAbstractCommand<ServiceControlAdvancedViewModel>
     {
-        private readonly Func<DeleteInstanceConfirmationViewModel> deleteInstanceConfirmation;
+        private readonly Func<DeleteServiceControlConfirmationViewModel> deleteInstanceConfirmation;
         private readonly IEventAggregator eventAggregator;
         private readonly ServiceControlInstanceInstaller installer;
         private readonly IWindowManagerEx windowManager;
 
-        public DeleteInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer, Func<DeleteInstanceConfirmationViewModel> deleteInstanceConfirmation) : base(model => model != null)
+        public DeleteServiceControlInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer, Func<DeleteServiceControlConfirmationViewModel> deleteInstanceConfirmation) : base(model => model != null)
         {
             this.windowManager = windowManager;
             this.deleteInstanceConfirmation = deleteInstanceConfirmation;
@@ -25,7 +25,7 @@
             this.installer = installer;
         }
 
-        public override async Task ExecuteAsync(AdvanceOptionsViewModel model)
+        public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
         {
             var confirmation = deleteInstanceConfirmation();
             confirmation.InstanceName = model.Name;

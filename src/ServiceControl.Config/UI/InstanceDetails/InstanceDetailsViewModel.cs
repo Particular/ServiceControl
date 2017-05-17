@@ -11,58 +11,81 @@
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Modules;
     using ServiceControl.Config.Framework.Rx;
+    using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Instances;
 
     class InstanceDetailsViewModel : RxProgressScreen, IHandle<RefreshInstances>
     {
         public InstanceDetailsViewModel(
-            ServiceControlInstance serviceControlInstance,
+            BaseService instance,
             EditInstanceCommand showEditInstanceScreenCommand,
             UpgradeInstanceCommand upgradeInstanceToNewVersionCommand,
-            AdvanceOptionsCommand advanceOptionsCommand,
-            ServiceControlInstanceInstaller installer)
+            MonitoringAdvancedOptionsCommand advancedOptionsMonitoringCommand,
+            ServiceControlAdvancedOptionsCommand advancedOptionsServiceControlCommand,
+            ServiceControlInstanceInstaller serviceControlinstaller,
+            MonitoringInstanceInstaller monitoringinstaller)
         {
-            ServiceControlInstance = serviceControlInstance;
-
-            NewVersion = installer.ZipInfo.Version;
-
             OpenUrl = new OpenURLCommand();
             CopyToClipboard = new CopyToClipboardCommand();
-
-            EditCommand = showEditInstanceScreenCommand;
-            UpgradeToNewVersionCommand = upgradeInstanceToNewVersionCommand;
-
             StartCommand = Command.Create(() => StartService());
             StopCommand = Command.Create(() => StopService());
+            Version = instance.Version;
+            
+            ServiceInstance = instance;
 
-            AdvanceOptionsCommand = advanceOptionsCommand;
+            if (instance.GetType() == typeof(ServiceControlInstance))
+            {
+                ServiceControlInstance = (ServiceControlInstance)instance;
+                NewVersion = serviceControlinstaller.ZipInfo.Version;
+                EditCommand = showEditInstanceScreenCommand;
+                UpgradeToNewVersionCommand = upgradeInstanceToNewVersionCommand;
+                AdvancedOptionsCommand = advancedOptionsServiceControlCommand;
+                InstanceType = InstanceType.ServiceControl;
+                return;
+            }
+            if (instance.GetType() == typeof(MonitoringInstance))
+            {
+                MonitoringInstance = (MonitoringInstance) instance;
+                NewVersion = monitoringinstaller.ZipInfo.Version;
+                EditCommand = showEditInstanceScreenCommand;
+                UpgradeToNewVersionCommand = upgradeInstanceToNewVersionCommand;
+                AdvancedOptionsCommand = advancedOptionsMonitoringCommand;
+                InstanceType = InstanceType.Monitoring;
+                return;
+            }
+            throw new Exception("Unknown instance type");
         }
 
-        public ServiceControlInstance ServiceControlInstance { get; }
+        public BaseService ServiceInstance { get; }
 
-        public bool InMaintenanceMode => ServiceControlInstance.InMaintenanceMode;
+        public ServiceControlInstance ServiceControlInstance;
+        public MonitoringInstance MonitoringInstance;
 
-        public string Name => ServiceControlInstance.Name;
+        public bool InMaintenanceMode => ServiceControlInstance?.InMaintenanceMode ?? false;
 
-        public string Host => ServiceControlInstance.Url;
+        public string Name => ServiceInstance.Name;
 
-        public string BrowsableUrl => ServiceControlInstance.BrowsableUrl;
+        public string Host => ((IURLInfo)ServiceInstance).Url;
 
-        public string StorageUrl => ServiceControlInstance.StorageUrl;
+        public string BrowsableUrl => ((IURLInfo)ServiceInstance).BrowsableUrl;
+        
+        //public string StorageUrl => ServiceControlInstance?.StorageUrl;
 
-        public string InstallPath => ServiceControlInstance.InstallPath;
+        public string InstallPath => ((IServicePaths)ServiceInstance).InstallPath;
 
-        public string DBPath => ServiceControlInstance.DBPath;
+        public string DBPath => ServiceControlInstance?.DBPath;
 
-        public string LogPath => ServiceControlInstance.LogPath;
+        public string LogPath => ((IServicePaths)ServiceInstance).LogPath;
 
-        public Version Version => ServiceControlInstance.Version;
+        public Version Version { get; set; }
+
+        public InstanceType InstanceType { get; set; }
 
         public Version NewVersion { get; }
 
         public bool HasNewVersion => Version < NewVersion;
 
-        public string Transport => ServiceControlInstance.TransportPackage;
+        public string Transport => ((ITransportConfig) ServiceInstance).TransportPackage;
 
         public string Status
         {
@@ -70,7 +93,7 @@
             {
                 try
                 {
-                    return ServiceControlInstance.Service.Status.ToString().ToUpperInvariant();
+                    return ServiceInstance.Service.Status.ToString().ToUpperInvariant();
                 }
                 catch (InvalidOperationException)
                 {
@@ -85,7 +108,7 @@
             {
                 try
                 {
-                    return ServiceControlInstance.Service.Status != ServiceControllerStatus.Stopped;
+                    return ServiceInstance.Service.Status != ServiceControllerStatus.Stopped;
                 }
                 catch (InvalidOperationException)
                 {
@@ -100,7 +123,7 @@
             {
                 try
                 {
-                    return ServiceControlInstance.Service.Status == ServiceControllerStatus.Stopped;
+                    return ServiceInstance.Service.Status == ServiceControllerStatus.Stopped;
                 }
                 catch (InvalidOperationException)
                 {
@@ -121,7 +144,7 @@
                         ServiceControllerStatus.StartPending,
                         ServiceControllerStatus.StopPending,
                     };
-                    return !dontAllowStartOn.Any(p => p.Equals(ServiceControlInstance.Service.Status));
+                    return !dontAllowStartOn.Any(p => p.Equals(ServiceInstance.Service.Status));
                 }
                 catch (InvalidOperationException)
                 {
@@ -142,7 +165,7 @@
                         ServiceControllerStatus.StartPending,
                         ServiceControllerStatus.StopPending,
                     };
-                    return !dontAllowStopOn.Any(p => p.Equals(ServiceControlInstance.Service.Status));
+                    return !dontAllowStopOn.Any(p => p.Equals(ServiceInstance.Service.Status));
                 }
                 catch (InvalidOperationException)
                 {
@@ -151,19 +174,19 @@
             }
         }
 
-        public ICommand OpenUrl { get; }
+        public ICommand OpenUrl { get; private set; }
 
-        public ICommand CopyToClipboard { get; }
+        public ICommand CopyToClipboard { get; private set; }
 
-        public ICommand EditCommand { get; }
+        public ICommand EditCommand { get; private set; }
 
-        public ICommand AdvanceOptionsCommand { get; }
+        public ICommand AdvancedOptionsCommand { get; private set; }
 
-        public ICommand StartCommand { get; }
+        public ICommand StartCommand { get; private set; }
 
-        public ICommand StopCommand { get; }
+        public ICommand StopCommand { get; private set; }
 
-        public ICommand UpgradeToNewVersionCommand { get; }
+        public ICommand UpgradeToNewVersionCommand { get; private set; }
 
         public void Handle(RefreshInstances message)
         {
@@ -189,14 +212,14 @@
             try
             {
                 progress = progress ?? this.GetProgressObject(String.Empty);
-
+                
                 // We need this one here in case the user stopped the service by other means
-                if (InMaintenanceMode)
+                if (InstanceType == InstanceType.ServiceControl && InMaintenanceMode)
                 {
                     ServiceControlInstance.DisableMaintenanceMode();
                 }
                 progress.Report(new ProgressDetails("Starting Service"));
-                await Task.Run(() => result = ServiceControlInstance.TryStartService());
+                await Task.Run(() => result = ServiceInstance.TryStartService());
 
                 UpdateServiceProperties();
 
@@ -206,7 +229,7 @@
             {
                 if (disposeProgress)
                 {
-                    progress.Dispose();
+                    progress?.Dispose();
                 }
             }
         }
@@ -223,8 +246,8 @@
                 progress.Report(new ProgressDetails("Stopping Service"));
                 await Task.Run(() =>
                 {
-                    result = ServiceControlInstance.TryStopService();
-                    if (InMaintenanceMode)
+                    result = ServiceInstance.TryStopService();
+                    if (InstanceType == InstanceType.ServiceControl && InMaintenanceMode)
                     {
                         ServiceControlInstance.DisableMaintenanceMode();
                     }
@@ -238,14 +261,14 @@
             {
                 if (disposeProgress)
                 {
-                    progress.Dispose();
+                    progress?.Dispose();
                 }
             }
         }
 
         void UpdateServiceProperties()
         {
-            ServiceControlInstance.Service.Refresh();
+            ServiceInstance.Service.Refresh();
             NotifyOfPropertyChange("Status");
             NotifyOfPropertyChange("AllowStop");
             NotifyOfPropertyChange("AllowStart");

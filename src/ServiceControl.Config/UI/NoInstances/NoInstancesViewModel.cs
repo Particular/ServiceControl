@@ -1,18 +1,12 @@
-﻿using System.Windows.Input;
-using ServiceControl.Config.Commands;
-using ServiceControl.Config.Framework.Rx;
+﻿using ServiceControl.Config.Framework.Rx;
 
 namespace ServiceControl.Config.UI.NoInstances
 {
     class NoInstancesViewModel : RxScreen
     {
-        public NoInstancesViewModel(AddInstanceCommand addInstance)
+        public NoInstancesViewModel()
         {
             DisplayName = "DEPLOYED INSTANCES";
-
-            AddInstance = addInstance;
         }
-
-        public ICommand AddInstance { get; }
     }
 }
