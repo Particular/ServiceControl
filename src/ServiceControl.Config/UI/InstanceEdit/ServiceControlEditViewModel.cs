@@ -11,9 +11,9 @@
     using Validar;
 
     [InjectValidation]
-    public class InstanceEditViewModel : SharedInstanceEditorViewModel
+    public class ServiceControlEditViewModel : SharedServiceControlEditorViewModel
     {
-        public InstanceEditViewModel(ServiceControlInstance instance) 
+        public ServiceControlEditViewModel(ServiceControlInstance instance) 
         {
             DisplayName = "Edit Instance";
             SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);

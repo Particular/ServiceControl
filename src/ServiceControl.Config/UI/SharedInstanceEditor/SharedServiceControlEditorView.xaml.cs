@@ -2,10 +2,10 @@
 
 namespace ServiceControl.Config.UI.SharedInstanceEditor
 {
-    public partial class SharedInstanceEditorView
+    public partial class SharedServiceControlEditorView
     {
 
-        public SharedInstanceEditorView()
+        public SharedServiceControlEditorView()
         {
             InitializeComponent();
         }
@@ -17,7 +17,7 @@ namespace ServiceControl.Config.UI.SharedInstanceEditor
         }
 
         public static readonly DependencyProperty SaveTextProperty =
-            DependencyProperty.Register("SaveText", typeof(string), typeof(SharedInstanceEditorView), new PropertyMetadata("Save"));
+            DependencyProperty.Register("SaveText", typeof(string), typeof(SharedServiceControlEditorView), new PropertyMetadata("Save"));
 
         public object SharedContent
         {
@@ -26,6 +26,6 @@ namespace ServiceControl.Config.UI.SharedInstanceEditor
         }
 
         public static readonly DependencyProperty SharedContentProperty =
-            DependencyProperty.Register("SharedContent", typeof(object), typeof(SharedInstanceEditorView), new PropertyMetadata());
+            DependencyProperty.Register("SharedContent", typeof(object), typeof(SharedServiceControlEditorView), new PropertyMetadata());
     }
 }

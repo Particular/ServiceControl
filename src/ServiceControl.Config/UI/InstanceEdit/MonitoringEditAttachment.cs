@@ -10,13 +10,13 @@ namespace ServiceControl.Config.UI.InstanceEdit
     using ServiceControl.Config.Framework.Modules;
     using Validation;
 
-    class InstanceEditAttachment : Attachment<InstanceEditViewModel>
+    class MonitoringEditAttachment : Attachment<MonitoringEditViewModel>
     {
         private readonly IWindowManagerEx windowManager;
         private readonly IEventAggregator eventAggregator;
-        private readonly ServiceControlInstanceInstaller installer;
+        private readonly MonitoringInstanceInstaller installer;
 
-        public InstanceEditAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
+        public MonitoringEditAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.installer = installer;
@@ -54,7 +54,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 return;
             }
 
-            var instance = viewModel.ServiceControlInstance;
+            var instance = viewModel.MonitoringInstance;
             if (instance.Service.Status == ServiceControllerStatus.Running)
             {
                 if (!windowManager.ShowMessage("STOP INSTANCE AND MODIFY", $"{instance.Name} needs to be stopped in order to modify the settings. Do you want to proceed."))
@@ -70,15 +70,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.Description = viewModel.Description;
             instance.HostName = viewModel.HostName;
             instance.Port = Convert.ToInt32(viewModel.PortNumber);
-            instance.VirtualDirectory = null;
-            instance.AuditLogQueue = viewModel.AuditForwardingQueueName;
-            instance.AuditQueue = viewModel.AuditQueueName;
-            instance.ForwardAuditMessages = viewModel.AuditForwarding.Value;
-            instance.ForwardErrorMessages = viewModel.ErrorForwarding.Value;
             instance.ErrorQueue = viewModel.ErrorQueueName;
-            instance.ErrorLogQueue = viewModel.ErrorForwardingQueueName;
-            instance.AuditRetentionPeriod = viewModel.AuditRetentionPeriod;
-            instance.ErrorRetentionPeriod = viewModel.ErrorRetentionPeriod;
             instance.TransportPackage = viewModel.SelectedTransport.Name;
             instance.ConnectionString = viewModel.ConnectionString;
 

@@ -3,9 +3,9 @@ namespace ServiceControl.Config.UI.InstanceEdit
     using FluentValidation;
     using Validation;
 
-    public class InstanceEditViewModelValidator : SharedInstanceEditorViewModelValidator<InstanceEditViewModel>
+    public class ServiceControlEditViewModelValidator : SharedServiceControlEditorViewModelValidator<ServiceControlEditViewModel>
     {
-        public InstanceEditViewModelValidator()
+        public ServiceControlEditViewModelValidator()
         {
             RuleFor(x => x.ServiceAccount)
                 .NotEmpty()

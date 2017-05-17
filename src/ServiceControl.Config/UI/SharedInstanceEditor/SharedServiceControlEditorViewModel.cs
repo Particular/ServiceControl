@@ -10,13 +10,13 @@
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
 
-    public class SharedInstanceEditorViewModel : RxProgressScreen
+    public class SharedServiceControlEditorViewModel : RxProgressScreen
     {
         string hostName;
         string serviceAccount;
         string password;
       
-        public SharedInstanceEditorViewModel()
+        public SharedServiceControlEditorViewModel()
         {
             Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
             AuditForwardingOptions = new[]

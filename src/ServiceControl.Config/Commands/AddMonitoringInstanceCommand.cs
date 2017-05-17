@@ -7,13 +7,13 @@ namespace ServiceControl.Config.Commands
 {
     using ServiceControl.Config.Framework.Modules;
 
-    class AddInstanceCommand : AbstractCommand<object>
+    class AddMonitoringInstanceCommand : AbstractCommand<object>
     {
-        private readonly Func<InstanceAddViewModel> addInstance;
+        private readonly Func<MonitoringAddViewModel> addInstance;
         private readonly IWindowManagerEx windowManager;
-        private readonly ServiceControlInstanceInstaller installer;
+        private readonly MonitoringInstanceInstaller installer;
 
-        public AddInstanceCommand(IWindowManagerEx windowManager, Func<InstanceAddViewModel> addInstance, ServiceControlInstanceInstaller installer) : base(null)
+        public AddMonitoringInstanceCommand(IWindowManagerEx windowManager, Func<MonitoringAddViewModel> addInstance, MonitoringInstanceInstaller installer) : base(null)
         {
             this.windowManager = windowManager;
             this.addInstance = addInstance;

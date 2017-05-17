@@ -12,9 +12,9 @@
     using Validar;
 
     [InjectValidation]
-    public class InstanceAddViewModel : SharedInstanceEditorViewModel
+    public class ServiceControlAddViewModel : SharedServiceControlEditorViewModel
     {
-        public InstanceAddViewModel()
+        public ServiceControlAddViewModel()
         {
             DisplayName = "Add new instance";
 
