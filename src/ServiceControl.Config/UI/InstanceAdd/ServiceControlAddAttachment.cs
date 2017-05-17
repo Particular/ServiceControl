@@ -11,13 +11,13 @@
     using ServiceControlInstaller.Engine.Validation;
     using Validation;
 
-    internal class InstanceAddAttachment : Attachment<InstanceAddViewModel>
+    internal class ServiceControlAddAttachment : Attachment<ServiceControlAddViewModel>
     {
         private readonly IWindowManagerEx windowManager;
         private readonly IEventAggregator eventAggregator;
         private readonly ServiceControlInstanceInstaller installer;
 
-        public InstanceAddAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
+        public ServiceControlAddAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.installer = installer;

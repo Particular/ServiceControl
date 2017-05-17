@@ -15,17 +15,17 @@
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
 
-    class UpgradeInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
+    class UpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
         private readonly IEventAggregator eventAggregator;
         private readonly ServiceControlInstanceInstaller installer;
         private readonly IWindowManagerEx windowManager;
 
-        public UpgradeInstanceCommand(Func<InstanceDetailsViewModel, bool> canExecuteMethod = null) : base(canExecuteMethod)
+        public UpgradeServiceControlInstanceCommand(Func<InstanceDetailsViewModel, bool> canExecuteMethod = null) : base(canExecuteMethod)
         {
         }
 
-        public UpgradeInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
+        public UpgradeServiceControlInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;

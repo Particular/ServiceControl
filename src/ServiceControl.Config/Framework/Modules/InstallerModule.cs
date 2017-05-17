@@ -242,7 +242,7 @@
             ZipInfo = MonitoringZipInfo.Find(appDirectory);
         }
 
-        internal ReportCard Add(ServiceControlNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
+        internal ReportCard Add(MonitoringNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
         {
             ZipInfo.ValidateZip();
 

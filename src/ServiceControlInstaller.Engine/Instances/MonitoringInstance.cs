@@ -120,7 +120,7 @@
                 ReportCard.Errors.Add(ex.Message);
             }
             
-            var oldSettings = InstanceFinder.FindServiceControlInstance(Name);
+            var oldSettings = InstanceFinder.FindMonitoringInstance(Name);
             var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
             var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
             if (passwordSet || accountChanged)

@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Config.UI.InstanceAdd
 {
-    public partial class InstanceAddView
+    public partial class MonitoringAddView
     {
-        public InstanceAddView()
+        public MonitoringAddView()
         {
             InitializeComponent();
         }

@@ -18,10 +18,13 @@
     {
         public InstanceDetailsViewModel(
             BaseService instance,
-            EditInstanceCommand showEditInstanceScreenCommand,
-            UpgradeInstanceCommand upgradeInstanceToNewVersionCommand,
-            MonitoringAdvancedOptionsCommand advancedOptionsMonitoringCommand,
-            ServiceControlAdvancedOptionsCommand advancedOptionsServiceControlCommand,
+            EditServiceControlInstanceCommand showEditServiceControlScreenCommand,
+            EditMonitoringInstanceCommand showEditMonitoringScreenCommand,
+            UpgradeServiceControlInstanceCommand upgradeServiceControlCommand,
+            UpgradeMonitoringInstanceCommand upgradeMonitoringCommand,
+            AdvancedMonitoringOptionsCommand advancedOptionsMonitoringCommand,
+            AdvancedServiceControlOptionsCommand advancedOptionsServiceControlCommand,
+
             ServiceControlInstanceInstaller serviceControlinstaller,
             MonitoringInstanceInstaller monitoringinstaller)
         {
@@ -37,8 +40,8 @@
             {
                 ServiceControlInstance = (ServiceControlInstance)instance;
                 NewVersion = serviceControlinstaller.ZipInfo.Version;
-                EditCommand = showEditInstanceScreenCommand;
-                UpgradeToNewVersionCommand = upgradeInstanceToNewVersionCommand;
+                EditCommand = showEditServiceControlScreenCommand;
+                UpgradeToNewVersionCommand = upgradeServiceControlCommand;
                 AdvancedOptionsCommand = advancedOptionsServiceControlCommand;
                 InstanceType = InstanceType.ServiceControl;
                 return;
@@ -47,8 +50,8 @@
             {
                 MonitoringInstance = (MonitoringInstance) instance;
                 NewVersion = monitoringinstaller.ZipInfo.Version;
-                EditCommand = showEditInstanceScreenCommand;
-                UpgradeToNewVersionCommand = upgradeInstanceToNewVersionCommand;
+                EditCommand = showEditMonitoringScreenCommand;
+                UpgradeToNewVersionCommand = upgradeMonitoringCommand;
                 AdvancedOptionsCommand = advancedOptionsMonitoringCommand;
                 InstanceType = InstanceType.Monitoring;
                 return;

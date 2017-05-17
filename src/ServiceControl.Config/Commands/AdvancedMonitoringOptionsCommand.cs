@@ -7,20 +7,20 @@ namespace ServiceControl.Config.Commands
     using ServiceControl.Config.UI.InstanceDetails;
     using ServiceControlInstaller.Engine.Instances;
 
-    class ServiceControlAdvancedOptionsCommand : AbstractCommand<InstanceDetailsViewModel>
+    class AdvancedMonitoringOptionsCommand : AbstractCommand<InstanceDetailsViewModel>
     {
-        private readonly Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel;
+        private readonly Func<BaseService, MonitoringAdvancedViewModel> advancedOptionsModel;
         private readonly IWindowManagerEx windowManager;
 
-        public ServiceControlAdvancedOptionsCommand(IWindowManagerEx windowManager, Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel)
+        public AdvancedMonitoringOptionsCommand(IWindowManagerEx windowManager, Func<BaseService, MonitoringAdvancedViewModel> advancedOptionsModel)
         {
             this.windowManager = windowManager;
             this.advancedOptionsModel = advancedOptionsModel;
         }
-
+        
         public override void Execute(InstanceDetailsViewModel viewModel)
         {
-            var screen = advancedOptionsModel(viewModel.ServiceControlInstance);
+            var screen = advancedOptionsModel(viewModel.MonitoringInstance);
 
             windowManager.ShowInnerDialog(screen);
         }

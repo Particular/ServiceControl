@@ -23,7 +23,7 @@
         public ShellViewModel(
             NoInstancesViewModel noInstances,
             ListInstancesViewModel listInstances,
-            AddInstanceCommand addInstance,
+            AddServiceControlInstanceCommand addInstance,
             OpenViewModelCommand<License.LicenseViewModel> openLicense,
             IEventAggregator eventAggregator
             )

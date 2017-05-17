@@ -3,9 +3,9 @@ namespace ServiceControl.Config.UI.InstanceAdd
     using FluentValidation;
     using Validation;
 
-    public class InstanceAddViewModelValidator : SharedInstanceEditorViewModelValidator<InstanceAddViewModel>
+    public class ServiceControlAddViewModelValidator : SharedServiceControlEditorViewModelValidator<ServiceControlAddViewModel>
     {
-        public InstanceAddViewModelValidator()
+        public ServiceControlAddViewModelValidator()
         {
             RuleFor(x => x.ServiceAccount)
                 .NotEmpty()

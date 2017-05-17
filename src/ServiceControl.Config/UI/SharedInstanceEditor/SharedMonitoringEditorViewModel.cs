@@ -6,47 +6,18 @@
     using PropertyChanged;
     using ServiceControl.Config.Framework.Rx;
     using ServiceControl.Config.Validation;
-    using ServiceControl.Config.Xaml.Controls;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
 
-    public class SharedInstanceEditorViewModel : RxProgressScreen
+    public class SharedMonitoringEditorViewModel : RxProgressScreen
     {
         string hostName;
         string serviceAccount;
         string password;
 
-        public SharedInstanceEditorViewModel()
+        public SharedMonitoringEditorViewModel()
         {
             Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
-            AuditForwardingOptions = new[]
-            {
-                new ForwardingOption
-                {
-                    Name = "On",
-                    Value = true
-                },
-                new ForwardingOption
-                {
-                    Name = "Off",
-                    Value = false
-                }
-            };
-            ErrorForwardingOptions = new[]
-            {
-                new ForwardingOption
-                {
-                    Name = "On",
-                    Value = true
-                },
-                new ForwardingOption
-                {
-                    Name = "Off",
-                    Value = false
-                }
-            };
         }
-
 
         [DoNotNotify]
         public ValidationTemplate ValidationTemplate { get; set; }
@@ -116,7 +87,7 @@
                 {
                     return false;
                 }
-                if (ServiceAccount != null && ServiceAccount.EndsWith("$"))
+                if ((ServiceAccount != null) && ServiceAccount.EndsWith("$"))
                 {
                     return false;
                 }
@@ -137,35 +108,9 @@
             }
         }
 
-        public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;
-        public int MinimumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMinInDays;
-        public TimeSpanUnits ErrorRetentionUnits => TimeSpanUnits.Days;
-        public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInHours;
-        public int MaximumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMaxInHours;
-        public TimeSpanUnits AuditRetentionUnits => TimeSpanUnits.Hours;
 
-        public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; }
-        public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; }
-
-        public double AuditRetention { get; set; }
-        public TimeSpan AuditRetentionPeriod => AuditRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(AuditRetention) : TimeSpan.FromHours(AuditRetention);
-
-        public double ErrorRetention { get; set; }
-        public TimeSpan ErrorRetentionPeriod => ErrorRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(ErrorRetention) : TimeSpan.FromHours(ErrorRetention);
-
-        public IEnumerable<TransportInfo> Transports { get; }
-
-
-        protected void UpdateAuditRetention(TimeSpan value)
-        {
-            AuditRetention = AuditRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
-        }
-
-        protected void UpdateErrorRetention(TimeSpan value)
-        {
-            ErrorRetention = ErrorRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
-        }
-
+        public IEnumerable<TransportInfo> Transports { get; private set; }
+       
         public string LogPath { get; set; }
         public ICommand SelectLogPath { get; set; }
 
