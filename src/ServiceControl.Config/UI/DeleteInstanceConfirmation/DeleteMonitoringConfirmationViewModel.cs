@@ -4,9 +4,9 @@ using ServiceControl.Config.Framework.Rx;
 
 namespace ServiceControl.Config.UI.DeleteInstanceConfirmation
 {
-    class DeleteInstanceConfirmationViewModel : RxScreen
+    class DeleteMonitoringConfirmationViewModel : RxScreen
     {
-        public DeleteInstanceConfirmationViewModel()
+        public DeleteMonitoringConfirmationViewModel()
         {
             RemoveCommand = Command.Create(() => TryClose(true));
             CancelCommand = Command.Create(() => TryClose(false));
@@ -14,7 +14,6 @@ namespace ServiceControl.Config.UI.DeleteInstanceConfirmation
 
         public string InstanceName { get; set; }
 
-        public bool RemoveDatabase { get; set; }
         public bool RemoveLogs { get; set; }
 
         public ICommand RemoveCommand { get; set; }

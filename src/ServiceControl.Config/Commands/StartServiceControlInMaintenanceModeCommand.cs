@@ -5,21 +5,21 @@
     using ServiceControl.Config.Events;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Commands;
-    using ServiceControl.Config.UI.AdvanceOptions;
+    using ServiceControl.Config.UI.AdvancedOptions;
     using ServiceControlInstaller.Engine.ReportCard;
 
-    class StartServiceInMaintenanceModeCommand : AwaitableAbstractCommand<AdvanceOptionsViewModel>
+    class StartServiceControlInMaintenanceModeCommand : AwaitableAbstractCommand<ServiceControlAdvancedViewModel>
     {
         private readonly IWindowManagerEx windowManager;
         private readonly IEventAggregator eventAggregator;
 
-        public StartServiceInMaintenanceModeCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator) : base(model => !(model.IsRunning && model.InMaintenanceMode))
+        public StartServiceControlInMaintenanceModeCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator) : base(model => !(model.IsRunning && model.InMaintenanceMode))
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
         }
 
-        public override async Task ExecuteAsync(AdvanceOptionsViewModel model)
+        public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
         {
             model.ServiceControlInstance.Service.Refresh();
 

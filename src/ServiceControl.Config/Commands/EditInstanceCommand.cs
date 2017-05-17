@@ -6,8 +6,7 @@ namespace ServiceControl.Config.Commands
     using ServiceControl.Config.UI.InstanceDetails;
     using ServiceControl.Config.UI.InstanceEdit;
     using ServiceControlInstaller.Engine.Instances;
-
-
+    
     class EditInstanceCommand : AbstractCommand<InstanceDetailsViewModel>
     {
         private readonly Func<ServiceControlInstance, InstanceEditViewModel> editViewModel;
@@ -21,7 +20,7 @@ namespace ServiceControl.Config.Commands
 
         public override void Execute(InstanceDetailsViewModel viewModel)
         {
-            var editVM = editViewModel(viewModel.ServiceControlInstance);
+            var editVM = editViewModel((ServiceControlInstance)viewModel.ServiceInstance);
 
             windowManager.ShowInnerDialog(editVM);
         }

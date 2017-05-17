@@ -35,7 +35,6 @@
             OpenLicense = openLicense;
             DisplayName = "ServiceControl Config";
             IsModal = false;
-
             LoadAppVersion();
             CopyrightInfo = $"{DateTime.Now.Year} © Particular Software";
 
@@ -88,7 +87,7 @@
             if (ActiveItem != null && ActiveItem != listInstances && ActiveItem != noInstances)
                 return;
 
-            HasInstances = InstanceFinder.ServiceControlInstances().Any();
+            HasInstances = InstanceFinder.AllInstances().Any();
 
             if (HasInstances)
             {

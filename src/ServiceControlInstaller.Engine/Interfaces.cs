@@ -51,17 +51,23 @@
         Version Version { get; }
     }
 
+    public interface IURLInfo
+    {
+        string Url { get; }  
+        string BrowsableUrl { get; }
+    }
+
     public interface IServiceInstance : IServiceAccount, IVersionInfo
     {
         string Name { get;  }
         string DisplayName { get; }
     }
 
-    public interface IMonitoringInstance : IServiceInstance, IServicePaths, ITransportConfig, IHttpInstance
+    public interface IMonitoringInstance : IServiceInstance, IServicePaths, ITransportConfig, IHttpInstance, IURLInfo
     {
     }
 
-    public interface IServiceControlInstance : IServiceInstance,  IServiceControlPaths, IServiceControlTransportConfig, IHttpInstance
+    public interface IServiceControlInstance : IServiceInstance,  IServiceControlPaths, IServiceControlTransportConfig, IHttpInstance, IURLInfo
     {
         string VirtualDirectory { get;  }
         bool ForwardAuditMessages { get; }

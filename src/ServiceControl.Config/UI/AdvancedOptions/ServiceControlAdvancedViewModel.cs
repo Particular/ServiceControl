@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Config.UI.AdvanceOptions
+﻿namespace ServiceControl.Config.UI.AdvancedOptions
 {
     using System;
     using System.Linq;
@@ -14,12 +14,11 @@
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
 
-    class AdvanceOptionsViewModel : RxProgressScreen, IHandle<RefreshInstances>
+    class ServiceControlAdvancedViewModel : RxProgressScreen, IHandle<RefreshInstances>
     {
-        
-        public AdvanceOptionsViewModel(ServiceControlInstance instance, IEventAggregator eventAggregator, StartServiceInMaintenanceModeCommand maintenanceModeCommand, DeleteInstanceCommand deleteInstanceCommand)
+        public ServiceControlAdvancedViewModel(BaseService  instance, IEventAggregator eventAggregator, StartServiceControlInMaintenanceModeCommand maintenanceModeCommand, DeleteServiceControlInstanceCommand deleteInstanceCommand)
         {
-            ServiceControlInstance = instance;
+            ServiceControlInstance = (ServiceControlInstance) instance;
             DisplayName = "ADVANCED OPTIONS";
 
             StartServiceInMaintenanceModeCommand = new ReactiveCommand().DoAsync(async _ =>

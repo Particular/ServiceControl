@@ -45,12 +45,12 @@
             }
         }
 
-        public static ReadOnlyCollection<IServiceInstance> AllInstances()
+        public static ReadOnlyCollection<BaseService> AllInstances()
         {
-            var services = new List<IServiceInstance>();
+            var services = new List<BaseService>();
             services.AddRange(ServiceControlInstances());
             services.AddRange(MonitoringInstances());
-            return new ReadOnlyCollection<IServiceInstance>(services.OrderBy(o => o.Name).ToList());
+            return new ReadOnlyCollection<BaseService>(services.OrderBy(o => o.Name).ToList());
         }
     }
 }

@@ -379,7 +379,7 @@
         </Setter>
     </Style>
 
-    <Style x:Key="AdvanceOptionsButton"
+    <Style x:Key="AdvancedOptionsButton"
            BasedOn="{StaticResource IconButton}"
            TargetType="{x:Type Button}">
         <Setter Property="Template">

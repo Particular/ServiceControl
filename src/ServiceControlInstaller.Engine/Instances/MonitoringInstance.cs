@@ -48,13 +48,7 @@
             ServiceAccount = Service.Account;
         }
 
-        public string Url
-        {
-            get
-            {
-                return $"http://{HostName}:{Port}/";
-            }
-        }
+        public string Url => $"http://{HostName}:{Port}/";
 
         public string BrowsableUrl
         {
