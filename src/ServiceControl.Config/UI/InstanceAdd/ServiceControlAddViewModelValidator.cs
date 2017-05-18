@@ -14,6 +14,14 @@ namespace ServiceControl.Config.UI.InstanceAdd
             RuleFor(x => x.SelectedTransport)
                 .NotEmpty();
 
+            RuleFor(x => x.PortNumber)
+                .NotEmpty()
+                .ValidPort()
+                .PortAvailable()
+                .MustNotBeIn(x => UsedPorts(x.InstanceName))
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .When(x => x.SubmitAttempted);
+
             RuleFor(x => x.DestinationPath)
                 .NotEmpty()
                 .ValidPath()

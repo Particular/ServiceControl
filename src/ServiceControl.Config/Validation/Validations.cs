@@ -4,7 +4,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using FluentValidation;
-    
+    using ServiceControlInstaller.Engine.Ports;
+
     public static class Validations
     {
         public const string MSG_EMAIL_NOT_VALID = "Not Valid.";
@@ -19,6 +20,8 @@
         public const string MSG_UNIQUEQUEUENAME = "Must not equal {0} queue name.";
 
         public const string MSG_USE_PORTS_IN_RANGE = "Use Ports in range 1 - 49151. Ephemeral port range should not be used (49152 to 65535).";
+
+        public const string MSG_PORT_IN_USE = "The port specified is already in use by another process.";
 
         public const string MSG_MUST_BE_UNIQUE = "{0} must be unique across all instances";
 
@@ -44,6 +47,22 @@
             })
             .WithMessage(MSG_USE_PORTS_IN_RANGE);
         }
+
+        public static IRuleBuilderOptions<T, string> PortAvailable<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            return ruleBuilder.Must((t, port) =>
+            {
+                int result;
+                if (int.TryParse(port, out result))
+                {
+                    return PortUtils.CheckAvailable(result);
+                }
+
+                return false;
+            })
+            .WithMessage(MSG_PORT_IN_USE);
+        }
+
 
         public static IRuleBuilderOptions<T, string> ValidPath<T>(this IRuleBuilder<T, string> rulebuilder)
         {
