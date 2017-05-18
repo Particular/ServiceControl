@@ -24,6 +24,7 @@
             NoInstancesViewModel noInstances,
             ListInstancesViewModel listInstances,
             AddServiceControlInstanceCommand addInstance,
+            AddMonitoringInstanceCommand addMonitoringInstance,
             OpenViewModelCommand<License.LicenseViewModel> openLicense,
             IEventAggregator eventAggregator
             )
@@ -32,6 +33,7 @@
             this.noInstances = noInstances;
             OpenUrl = new OpenURLCommand();
             AddInstance = addInstance;
+            AddMonitoringInstance = addMonitoringInstance;
             OpenLicense = openLicense;
             DisplayName = "ServiceControl Config";
             IsModal = false;
@@ -62,11 +64,13 @@
 
         public bool HasInstances { get; private set; }
 
-        public ICommand AddInstance { get; }
+        public ICommand AddInstance { get; private set; }
 
-        public ICommand OpenLicense { get; }
+        public ICommand AddMonitoringInstance { get; private set; }
 
-        public ICommand OpenUrl { get; }
+        public ICommand OpenLicense { get; private set; }
+
+        public ICommand OpenUrl { get; private set; }
 
         public ICommand OpenFeedBack { get; set; }
 

@@ -55,7 +55,49 @@
                         Visibility="{Binding IsModal,
                                              Converter={StaticResource boolToVisInverted}}">
 
-                <Button Command="{Binding AddInstance}" Style="{StaticResource NewButton}" />
+                <ToggleButton Name="AddInstanceButton" Style="{StaticResource NewButton}" />
+
+                <Popup PlacementTarget="{Binding ElementName=AddInstanceButton}" 
+                       Placement="Bottom" 
+                       StaysOpen="False"
+                       IsOpen="{Binding ElementName=AddInstanceButton, Path=IsChecked}"
+                       VerticalOffset="5"
+                       AllowsTransparency="true"
+                       >
+                    <StackPanel Background="Black" Margin="0,0,8,8">
+                        <MenuItem Command="{Binding AddInstance}" 
+                                  Header="ServiceControl Instance" 
+                                  Style="{StaticResource DarkMenuItemStyle}" >
+                            <MenuItem.Icon>
+                                <Control Width="12"
+                                         Height="12"
+                                         SnapsToDevicePixels="True"
+                                         Template="{StaticResource NewIcon}" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Command="{Binding AddMonitoringInstance}" 
+                                  Header="Monitoring Instance" 
+                                  Style="{StaticResource DarkMenuItemStyle}" >
+                            <MenuItem.Icon>
+                                <Control Width="12"
+                                         Height="12"
+                                         SnapsToDevicePixels="True"
+                                         Template="{StaticResource NewIcon}" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <StackPanel.Triggers>
+                            <EventTrigger RoutedEvent="MenuItem.Click">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <BooleanAnimationUsingKeyFrames Storyboard.TargetName="AddInstanceButton" Storyboard.TargetProperty="IsChecked">
+                                            <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="False" />
+                                        </BooleanAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </StackPanel.Triggers>
+                    </StackPanel>
+                </Popup>
 
                 <Button Margin="20,0,0,0"
                         Command="{Binding OpenLicense}"
