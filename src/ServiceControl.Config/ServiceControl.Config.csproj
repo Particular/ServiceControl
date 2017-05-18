@@ -209,6 +209,7 @@
       <DependentUpon>MonitoringAddView.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\InstanceAdd\MonitoringlAddViewModel.cs" />
+    <Compile Include="UI\InstanceAdd\MonitoringAddViewModelValidator.cs" />
     <Compile Include="UI\InstanceEdit\MonitoringEditAttachment.cs" />
     <Compile Include="UI\InstanceEdit\MonitoringEditView.xaml.cs">
       <DependentUpon>MonitoringEditView.xaml</DependentUpon>

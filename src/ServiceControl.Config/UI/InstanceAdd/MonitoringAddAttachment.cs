@@ -62,6 +62,7 @@
                 Name = viewModel.InstanceName.Replace(' ', '.'),
                 ServiceDescription = viewModel.Description,
                 InstallPath = viewModel.DestinationPath,
+                LogPath = viewModel.LogPath,
                 HostName = viewModel.HostName,
                 Port = Convert.ToInt32(viewModel.PortNumber),
                 ErrorQueue = viewModel.ErrorQueueName,
