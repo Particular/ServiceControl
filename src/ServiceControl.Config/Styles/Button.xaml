@@ -587,9 +587,18 @@
         </Setter>
     </Style>
 
-    <Style x:Key="NewButton"
-           BasedOn="{StaticResource LinkButton}"
-           TargetType="{x:Type Button}">
+    <Style x:Key="NewButton" TargetType="{x:Type ToggleButton}">
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="SnapsToDevicePixels" Value="False" />
+        <Setter Property="Margin" Value="1" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{StaticResource ThemeBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ThemeBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate>
@@ -623,7 +632,7 @@
                                    FontSize="14"
                                    FontWeight="Bold"
                                    Foreground="{TemplateBinding Foreground}"
-                                   Text="NEW INSTANCE" />
+                                   Text="NEW ▾" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -700,4 +709,12 @@
     </Style>
 
     <Style BasedOn="{StaticResource BasicButton}" TargetType="{x:Type Button}" />
+
+    <!--  ==================== ContextMenu ====================  -->
+
+    <Style x:Key="DarkMenuItemStyle" TargetType="MenuItem">
+        <Setter Property="Background" Value="{StaticResource BlackBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource LightThemeBrush}" />
+    </Style>
+
 </ResourceDictionary>
