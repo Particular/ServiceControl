@@ -20,7 +20,7 @@
             SelectDestinationPath = new SelectPathCommand(p => DestinationPath = p, isFolderPicker: true, defaultPath: DestinationPath);
             SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
 
-            var monitoringInstances = InstanceFinder.ServiceControlInstances();
+            var monitoringInstances = InstanceFinder.MonitoringInstances();
             if (!monitoringInstances.Any())
             {
                 InstanceName = "Particular.Monitoring";
