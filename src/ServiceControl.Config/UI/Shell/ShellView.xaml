@@ -64,39 +64,44 @@
                        VerticalOffset="5"
                        AllowsTransparency="true"
                        >
-                    <StackPanel Background="Black" Margin="0,0,8,8">
-                        <MenuItem Command="{Binding AddInstance}" 
+                    <Border Padding="0 10" Background="Black">
+                        <StackPanel Background="Black">
+                            <MenuItem Command="{Binding AddInstance}" 
                                   Header="ServiceControl Instance" 
-                                  Style="{StaticResource DarkMenuItemStyle}" >
-                            <MenuItem.Icon>
-                                <Control Width="12"
-                                         Height="12"
+                                  Style="{StaticResource DarkMenuItemStyle}" 
+                                  Margin="10 0"
+                                      Padding="0">
+                                <MenuItem.Icon>
+                                    <Control Width="16"
+                                         Height="16"
                                          SnapsToDevicePixels="True"
-                                         Template="{StaticResource NewIcon}" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Command="{Binding AddMonitoringInstance}" 
+                                         Template="{StaticResource NewControlInstanceIcon}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Command="{Binding AddMonitoringInstance}" 
                                   Header="Monitoring Instance" 
-                                  Style="{StaticResource DarkMenuItemStyle}" >
-                            <MenuItem.Icon>
-                                <Control Width="12"
-                                         Height="12"
+                                  Style="{StaticResource DarkMenuItemStyle}" 
+                                  Margin="10 0">
+                                <MenuItem.Icon>
+                                    <Control Width="16"
+                                         Height="16"
                                          SnapsToDevicePixels="True"
-                                         Template="{StaticResource NewIcon}" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <StackPanel.Triggers>
-                            <EventTrigger RoutedEvent="MenuItem.Click">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <BooleanAnimationUsingKeyFrames Storyboard.TargetName="AddInstanceButton" Storyboard.TargetProperty="IsChecked">
-                                            <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="False" />
-                                        </BooleanAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </StackPanel.Triggers>
-                    </StackPanel>
+                                         Template="{StaticResource NewMonitoringInstanceIcon}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <StackPanel.Triggers>
+                                <EventTrigger RoutedEvent="MenuItem.Click">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <BooleanAnimationUsingKeyFrames Storyboard.TargetName="AddInstanceButton" Storyboard.TargetProperty="IsChecked">
+                                                <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="False" />
+                                            </BooleanAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </StackPanel.Triggers>
+                        </StackPanel>
+                    </Border>
                 </Popup>
 
                 <Button Margin="20,0,0,0"
