@@ -6,7 +6,7 @@ namespace ServiceControl.Config.UI.NoInstances
     {
         public NoInstancesViewModel()
         {
-            DisplayName = "DEPLOYED INSTANCES";
+            DisplayName = "";
         }
     }
 }

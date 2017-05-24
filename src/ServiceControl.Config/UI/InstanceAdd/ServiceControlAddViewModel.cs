@@ -16,7 +16,7 @@
     {
         public ServiceControlAddViewModel()
         {
-            DisplayName = "Add new instance";
+            DisplayName = "ADD SERVICECONTROL INSTANCE";
 
             SelectDestinationPath = new SelectPathCommand(p => DestinationPath = p, isFolderPicker: true, defaultPath: DestinationPath);
             SelectDatabasePath = new SelectPathCommand(p => DatabasePath = p, isFolderPicker: true, defaultPath: DatabasePath);

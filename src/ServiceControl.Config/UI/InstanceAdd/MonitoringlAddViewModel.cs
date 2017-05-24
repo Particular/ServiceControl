@@ -15,7 +15,7 @@
     {
         public MonitoringAddViewModel()
         {
-            DisplayName = "Add new instance";
+            DisplayName = "ADD MONITORING INSTANCE";
 
             SelectDestinationPath = new SelectPathCommand(p => DestinationPath = p, isFolderPicker: true, defaultPath: DestinationPath);
             SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
