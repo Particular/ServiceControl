@@ -14,7 +14,7 @@
     {
         public MonitoringEditViewModel(MonitoringInstance instance) 
         {
-            DisplayName = "Edit Instance";
+            DisplayName = "EDIT MONITORING INSTANCE";
             SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
 
             InstanceName = instance.Name;

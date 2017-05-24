@@ -15,7 +15,7 @@
     {
         public ServiceControlEditViewModel(ServiceControlInstance instance) 
         {
-            DisplayName = "Edit Instance";
+            DisplayName = "EDIT SERVICECONTROL INSTANCE";
             SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
 
             InstanceName = instance.Name;
