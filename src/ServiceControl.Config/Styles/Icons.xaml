@@ -266,8 +266,8 @@
 
     <ControlTemplate x:Key="RefreshIcon">
         <Viewbox Stretch="Uniform">
-            <Canvas Width="68" Height="42">
-                <Path Data="M14,0l-14,14h9v23h32l-9,-9h-14v-14h9zM54,42l14,-14h-9v-23h-32l9,9h14v14h-9z" Fill="{TemplateBinding Foreground}" />
+            <Canvas Width="8" Height="8">
+                <Path Data="M3.656 4.066l-1.813 2.07l-1.843 -2.07l1.219 0c0 -2.071 1.637 -3.75 3.656 -3.75c0.973 0 1.855 0.392 2.51 1.028l-0.814 0.93c-0.439 -0.438 -1.037 -0.708 -1.696 -0.708c-1.344 0 -2.438 1.121 -2.438 2.5l1.219 0Zm4.251 -2.071l-1.813 2.071l1.218 0c0 1.378 -1.093 2.5 -2.437 2.5c-0.659 0 -1.257 -0.271 -1.696 -0.708l-0.814 0.929c0.655 0.636 1.537 1.029 2.51 1.029c2.019 0 3.656 -1.679 3.656 -3.75l1.219 0l-1.843 -2.071l0 0Z" Fill="{TemplateBinding Foreground}" />
             </Canvas>
         </Viewbox>
     </ControlTemplate>

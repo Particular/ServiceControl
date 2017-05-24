@@ -673,36 +673,43 @@
     </Style>
 
     <Style x:Key="RefreshButton"
-           BasedOn="{StaticResource IconButton}"
+           BasedOn="{StaticResource LinkButton}"
            TargetType="{x:Type Button}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Border Background="{TemplateBinding Background}">
+                    <Grid Background="{TemplateBinding Background}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal" />
+                                <VisualState Name="MouseOver" Storyboard="{StaticResource LinkButtonMouseOverStoryboard}" />
+                                <VisualState Name="Pressed" Storyboard="{StaticResource LinkButtonPressedStoryboard}" />
+                                <VisualState Name="Disabled" Storyboard="{StaticResource LinkButtonDisabledStoryboard}" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
                         <Control x:Name="Icon"
-                                 Width="24"
-                                 Height="24"
+                                 Width="12"
+                                 Height="12"
                                  Background="{TemplateBinding Background}"
                                  BorderBrush="{TemplateBinding BorderBrush}"
                                  Foreground="{TemplateBinding Foreground}"
                                  SnapsToDevicePixels="True"
                                  Template="{StaticResource RefreshIcon}" />
 
-                        <Border.ToolTip>
-                            <ToolTip Placement="Right" Style="{StaticResource IconButtonToolTipStyle}">
-                                <TextBlock Text="REFRESH" />
-                            </ToolTip>
-                        </Border.ToolTip>
-
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup Name="CommonStates">
-                                <VisualState Name="Normal" />
-                                <VisualState Name="MouseOver" Storyboard="{StaticResource Icon2ButtonMouseOverStoryboard}" />
-                                <VisualState Name="Pressed" Storyboard="{StaticResource Icon2ButtonPressedStoryboard}" />
-                                <VisualState Name="Disabled" Storyboard="{StaticResource Icon2ButtonDisabledStoryboard}" />
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
-                    </Border>
+                        <TextBlock x:Name="Text"
+                                   Grid.Column="1"
+                                   Margin="5,0,0,0"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   Text="REFRESH" />
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
