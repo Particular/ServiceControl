@@ -66,6 +66,9 @@
 
         public bool InMaintenanceMode => ServiceControlInstance?.InMaintenanceMode ?? false;
 
+        public bool IsServiceControlInstance => ServiceInstance?.GetType() == typeof(ServiceControlInstance);
+        public bool IsMonitoringInstance => ServiceInstance?.GetType() == typeof(MonitoringInstance);
+
         public string Name => ServiceInstance.Name;
 
         public string Host => ((IURLInfo)ServiceInstance).Url;
