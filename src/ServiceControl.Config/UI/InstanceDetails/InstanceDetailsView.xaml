@@ -5,22 +5,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              x:Name="root"
              d:DesignHeight="300"
-             d:DesignWidth="300"
+             d:DesignWidth="700"
              mc:Ignorable="d">
     <Grid>
-        <Grid.Resources>
-            <Style TargetType="{x:Type TextBlock}">
-                <Setter Property="FontSize" Value="14px" />
-            </Style>
-        </Grid.Resources>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="10" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -34,15 +27,41 @@
                 Grid.ColumnSpan="2"
                 BorderBrush="{StaticResource Gray90Brush}"
                 BorderThickness="0,1,0,0" />
-      
-                    
-                    
-        <TextBlock VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2"
-                       FontSize="18px"
-                       FontWeight="Bold"
-                       Text="{Binding Name}" />
 
-        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
+        <TextBlock VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2"
+                   FontSize="18px"
+                   Text="{Binding Name}" />
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <ContentControl Margin="0,7,0,0"
+                            VerticalAlignment="Center"
+                            Template="{StaticResource ServiceControlInstanceIcon}" 
+                            Height="14px" 
+                            Visibility="{Binding IsServiceControlInstance,
+                                                 Converter={StaticResource boolToVis}}"/>
+            <ContentControl Margin="0,7,0,0"
+                            VerticalAlignment="Center"
+                            Template="{StaticResource MonitoringInstanceIcon}" 
+                            Height="14px" 
+                            Visibility="{Binding IsMonitoringInstance,
+                                                 Converter={StaticResource boolToVis}}"/>
+            <TextBlock Margin="3,5,0,0"
+                       VerticalAlignment="Center"
+                       FontSize="14px"
+                       Foreground="{StaticResource Gray70Brush}"
+                       Visibility="{Binding IsServiceControlInstance,
+                                                 Converter={StaticResource boolToVis}}"
+                Text="SERVICECONTROL INSTANCE" />
+            <TextBlock Margin="3,5,0,0"
+                       VerticalAlignment="Center"
+                       FontSize="14px"
+                       Foreground="{StaticResource Gray70Brush}"
+                       Visibility="{Binding IsMonitoringInstance,
+                                                 Converter={StaticResource boolToVis}}"
+                       Text="MONITORING INSTANCE" />
+
+        </StackPanel>
+        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
             <ContentControl Margin="0,7,0,0"
                             VerticalAlignment="Center"
                             Template="{StaticResource RunningIcon}"
@@ -65,11 +84,12 @@
                         VerticalAlignment="Center"  
                         FontSize="13px"
                         Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}">
-                        <Hyperlink Foreground="DarkOrange" Command="{Binding AdvancedOptionsCommand}" CommandParameter="{Binding DataContext, ElementName=root}">IN MAINTENANCE MODE</Hyperlink>
+                <Hyperlink Foreground="DarkOrange" Command="{Binding AdvancedOptionsCommand}" CommandParameter="{Binding DataContext, ElementName=root}">IN MAINTENANCE MODE</Hyperlink>
             </TextBlock>
         </StackPanel>
-        <StackPanel Grid.Row="2"
-                    Grid.ColumnSpan="2"
+
+        <StackPanel Grid.Row="1"
+                    Grid.Column="1"
                     Margin="0,0,0,7"
                     HorizontalAlignment="Right"
                     Orientation="Horizontal">
@@ -114,14 +134,8 @@
             <TextBlock Text="{Binding Version}" />
         </GroupBox>
 
-        <GroupBox Grid.Row="5"
+        <GroupBox Grid.Row="4"
                   Grid.Column="1"
-                  Header="TRANSPORT">
-            <TextBlock Text="{Binding Transport}" />
-        </GroupBox>
-
-        <GroupBox Grid.Row="6"
-                  Grid.ColumnSpan="2"
                   Header="URL">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
                 <Hyperlink.ContextMenu>
@@ -135,8 +149,7 @@
             </Hyperlink>
         </GroupBox>
 
-        <GroupBox Grid.Row="5"
-                  Grid.ColumnSpan="2"
+        <GroupBox Grid.Row="6" Grid.Column="0"
                   Header="INSTALLATION PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding InstallPath}">
                 <Hyperlink.ContextMenu>
@@ -146,18 +159,18 @@
                                   Header="Copy to Clipboard" />
                     </ContextMenu>
                 </Hyperlink.ContextMenu>
-                <TextBlock FontSize="12px" Text="{Binding InstallPath}" />
+                <StackPanel Orientation="Horizontal">
+                    <ContentControl Margin="0,7,0,0"
+                                        VerticalAlignment="Center"
+                                        Template="{StaticResource BrowseIcon}" 
+                                        Height="12px" />
+                    <TextBlock FontSize="12px" Text="Browse..." Margin="3,5,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
             </Hyperlink>
         </GroupBox>
 
-        <GroupBox Grid.Row="7"
-                  Grid.ColumnSpan="2"
-                  Header="INSTANCE TYPE">
-                <TextBlock FontSize="12px" Text="{Binding InstanceType}" />
-        </GroupBox>
-
-        <GroupBox Grid.Row="8"
-                  Grid.ColumnSpan="2"
+        <GroupBox Grid.Row="6"
+                  Grid.Column="1"
                   Header="LOG PATH">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding LogPath}">
                 <Hyperlink.ContextMenu>
@@ -167,12 +180,19 @@
                                   Header="Copy to Clipboard" />
                     </ContextMenu>
                 </Hyperlink.ContextMenu>
-                <TextBlock FontSize="12px" Text="{Binding LogPath}" />
+                <StackPanel Orientation="Horizontal">
+                    <ContentControl Margin="0,7,0,0"
+                                    VerticalAlignment="Center"
+                                    Template="{StaticResource BrowseIcon}" 
+                                    Height="12px" />
+                    <TextBlock FontSize="12px" Text="Browse..." Margin="3,5,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
             </Hyperlink>
         </GroupBox>
 
         <Border Grid.Row="1"
-                Grid.RowSpan="8"
+                Grid.RowSpan="7"
                 Grid.ColumnSpan="2"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
