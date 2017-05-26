@@ -338,4 +338,12 @@
             </Canvas>
         </Viewbox>
     </ControlTemplate>
+
+    <ControlTemplate x:Key="UpgradeIcon">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="12" Height="15">
+                <Path Data="M1.249 6.576l2.501 0c0 0 0.128 4.488 -3.75 8.312c7.411 -1.796 8.751 -8.312 8.751 -8.312l2.499 0l-4.979 -5.938l-5.022 5.938l0 0Z" Fill="{TemplateBinding Foreground}" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
 </ResourceDictionary>
