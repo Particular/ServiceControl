@@ -722,6 +722,8 @@
     <Style x:Key="DarkMenuItemStyle" TargetType="MenuItem">
         <Setter Property="Background" Value="{StaticResource BlackBrush}" />
         <Setter Property="Foreground" Value="{StaticResource LightThemeBrush}" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
 </ResourceDictionary>
