@@ -122,7 +122,30 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <UsingTask TaskName="GitVersionTask.GetVersion" AssemblyFile="..\packages\GitVersionTask.2.0.1\GitVersionTask.dll" />
-  <UsingTask TaskName="MSBuild.Community.Tasks.FileUpdate" AssemblyFile="$(SolutionDir)..\buildsupport\MSBuild.Community.Tasks.dll" />
+  <UsingTask TaskName="FileUpdate" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <Files ParameterType = "Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Pattern ParameterType = "System.String" Required="true" />
+      <ReplacementText ParameterType = "System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+               RegexOptions options = RegexOptions.Multiline | RegexOptions.IgnoreCase;
+               if (Files.Length > 0)  
+               {  
+                    for (int i = 0; i<Files.Length; i++)  
+                    {  
+                        string path = Files[i].GetMetadata("FullPath");
+                        File.WriteAllText(path, Regex.Replace(File.ReadAllText(path), Pattern, ReplacementText, options));
+                    }  
+                }  
+            ]]>
+      </Code>
+    </Task>
+  </UsingTask>
   <Target Name="AfterBuild">
     <ItemGroup>
       <PSModuleFile Include="$(OutputPath)\ServiceControlMgmt.psd1" />
@@ -130,7 +153,7 @@
     <GetVersion SolutionDirectory="$(SolutionDir)">
       <Output TaskParameter="MajorMinorPatch" PropertyName="MajorMinorPatch" />
     </GetVersion>
-    <FileUpdate Files="@(PSModuleFile)" Regex="{{Version}}" ReplacementText="$(MajorMinorPatch)" />
+    <FileUpdate Files="@(PSModuleFile)" Pattern="{{Version}}" ReplacementText="$(MajorMinorPatch)"/>
   </Target>
   <Import Project="..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
