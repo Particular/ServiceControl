@@ -344,8 +344,17 @@ namespace ServiceControlInstaller.Engine.Instances
                 return true;
             }
 
-            Service.Stop();
+            try
+            {
 
+                // Will throw with "The service cannot accept control messages at this time" message if the service is in a pending state 
+                Service.Stop();
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+            
             try
             {
                 Service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
@@ -373,7 +382,16 @@ namespace ServiceControlInstaller.Engine.Instances
                 return true;
             }
 
-            Service.Start();
+            try
+            {
+
+                // Will throw with "The service cannot accept control messages at this time" message if the service is in a pending state 
+                Service.Start();
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
 
             try
             {
