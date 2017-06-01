@@ -131,7 +131,7 @@
                     </StackPanel>
                 </DataTemplate>
             </GroupBox.HeaderTemplate>
-            <TextBlock Text="{Binding Version}" />
+            <TextBlock FontSize="14px" Text="{Binding Version}" />
         </GroupBox>
 
         <GroupBox Grid.Row="4"
@@ -145,7 +145,7 @@
                                   Header="Copy to Clipboard" />
                     </ContextMenu>
                 </Hyperlink.ContextMenu>
-                <TextBlock Text="{Binding Host}" />
+                <TextBlock FontSize="14px" Text="{Binding Host}" />
             </Hyperlink>
         </GroupBox>
 
@@ -164,7 +164,7 @@
                                         VerticalAlignment="Center"
                                         Template="{StaticResource BrowseIcon}" 
                                         Height="12px" />
-                    <TextBlock FontSize="12px" Text="Browse..." Margin="3,5,0,0" VerticalAlignment="Center"/>
+                    <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </Hyperlink>
         </GroupBox>
@@ -185,7 +185,7 @@
                                     VerticalAlignment="Center"
                                     Template="{StaticResource BrowseIcon}" 
                                     Height="12px" />
-                    <TextBlock FontSize="12px" Text="Browse..." Margin="3,5,0,0" VerticalAlignment="Center"/>
+                    <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
 
             </Hyperlink>

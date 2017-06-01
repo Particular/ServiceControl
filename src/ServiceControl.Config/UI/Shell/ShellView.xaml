@@ -67,10 +67,12 @@
                     <Border Padding="0 10" Background="Black">
                         <StackPanel Background="Black">
                             <MenuItem Command="{Binding AddInstance}" 
-                                  Header="ServiceControl Instance" 
+                                  Header="ServiceControl Instance"
+                                      FontSize="14px"
                                   Style="{StaticResource DarkMenuItemStyle}" 
                                   Margin="10 0"
-                                      Padding="0">
+                                      Padding="0"
+                                      >
                                 <MenuItem.Icon>
                                     <Control Width="16"
                                          Height="16"
@@ -81,7 +83,8 @@
                             <MenuItem Command="{Binding AddMonitoringInstance}" 
                                   Header="Monitoring Instance" 
                                   Style="{StaticResource DarkMenuItemStyle}" 
-                                  Margin="10 0">
+                                  Margin="10 0"
+                                      FontSize="14px">
                                 <MenuItem.Icon>
                                     <Control Width="16"
                                          Height="16"
@@ -131,7 +134,7 @@
                         <Setter Property="HorizontalAlignment" Value="Center" />
                         <Setter Property="VerticalAlignment" Value="Center" />
                         <Setter Property="Margin" Value="10,0" />
-                        <Setter Property="FontSize" Value="13px" />
+                        <Setter Property="FontSize" Value="14px" />
                     </Style>
                 </StackPanel.Resources>
 
@@ -150,12 +153,12 @@
                         Orientation="Horizontal"
                         Visibility="{Binding IsModal,
                                              Converter={StaticResource boolToVisInverted}}">
-                <TextBlock FontSize="13px"
+                <TextBlock FontSize="14px"
                            Foreground="{StaticResource Gray60Brush}"
                            Text="{Binding VersionInfo}" />
 
                 <TextBlock Margin="20,0,0,0"
-                           FontSize="13px"
+                           FontSize="14px"
                            Foreground="{StaticResource Gray60Brush}"
                            Text="{Binding CopyrightInfo}" />
             </StackPanel>
