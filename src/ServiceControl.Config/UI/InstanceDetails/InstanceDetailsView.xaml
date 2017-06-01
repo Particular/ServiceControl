@@ -156,7 +156,7 @@
                     <ContextMenu>
                         <MenuItem Command="{Binding CopyToClipboard}"
                                   CommandParameter="{Binding InstallPath}"
-                                  Header="Copy to Clipboard" />
+                                  Header="Copy path to clipboard" />
                     </ContextMenu>
                 </Hyperlink.ContextMenu>
                 <StackPanel Orientation="Horizontal">
@@ -177,7 +177,7 @@
                     <ContextMenu>
                         <MenuItem Command="{Binding CopyToClipboard}"
                                   CommandParameter="{Binding LogPath}"
-                                  Header="Copy to Clipboard" />
+                                  Header="Copy path to clipboard" />
                     </ContextMenu>
                 </Hyperlink.ContextMenu>
                 <StackPanel Orientation="Horizontal">
