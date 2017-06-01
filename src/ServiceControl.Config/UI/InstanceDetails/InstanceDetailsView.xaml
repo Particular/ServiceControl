@@ -30,6 +30,7 @@
 
         <TextBlock VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2"
                    FontSize="18px"
+                   FontWeight="Bold"
                    Text="{Binding Name}" />
 
         <StackPanel Grid.Row="2" Orientation="Horizontal">
