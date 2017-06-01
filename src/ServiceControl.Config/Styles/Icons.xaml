@@ -249,7 +249,7 @@
                     <TranslateTransform X="0" Y="0"/>
                 </Canvas.RenderTransform>
                 <Canvas.Resources/>
-                <Path Fill="#FF00A3C4" StrokeMiterLimit="1.41421" StrokeLineJoin="Round">
+                <Path Fill="#FF009FBF" StrokeMiterLimit="1.41421" StrokeLineJoin="Round">
                     <Path.Data>
                         <PathGeometry Figures="M10.18 4.05l-0.606 4.05l-7.248 0l-0.606 -4.05l8.46 0Zm-5.992 -4.05l-3.051 0l0.313 2.25l0.884 0l-0.188 -1.35l1.616 0c0.487 0.625 0.854 0.9 1.872 0.9l4.061 0l-0.088 0.45l0.893 0l0.262 -1.35l-5.128 0c-0.866 0 -0.893 -0.188 -1.446 -0.9l0 0Zm7.012 3.15l-10.5 0l0.875 5.85l8.75 0l0.875 -5.85Z" FillRule="NonZero"/>
                     </Path.Data>
