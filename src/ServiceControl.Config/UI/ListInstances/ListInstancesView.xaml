@@ -6,6 +6,6 @@
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <ItemsControl x:Name="Instances" Margin="60,0" />
+        <ItemsControl x:Name="Instances" Margin="60,0" AlternationCount="{Binding Path=Items.Count}" />
     </ScrollViewer>
 </UserControl>

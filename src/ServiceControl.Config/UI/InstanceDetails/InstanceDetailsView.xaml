@@ -28,7 +28,10 @@
                 Grid.ColumnSpan="2"
                 BorderBrush="{StaticResource Gray90Brush}"
                 BorderThickness="0,1,0,0" 
-                Padding="0 10"/>
+                Padding="0 10"
+                Visibility="{Binding Converter={StaticResource lastItemCollapseConverter}, 
+                                     RelativeSource={RelativeSource AncestorType={x:Type ContentPresenter}, 
+                                                                    AncestorLevel=3}}" />
 
         <TextBlock VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2"
                    FontSize="18px"
