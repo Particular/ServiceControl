@@ -7,6 +7,11 @@
              d:DesignHeight="300"
              d:DesignWidth="700"
              mc:Ignorable="d">
+    <UserControl.Resources>
+        <DataTemplate x:Key="SimpleHeaderedGroupBox">
+            <TextBlock Text="{Binding}" Foreground="{StaticResource Gray40Brush}" FontSize="13" />
+        </DataTemplate>
+    </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -142,7 +147,8 @@
 
         <GroupBox Grid.Row="4"
                   Grid.Column="1"
-                  Header="URL">
+                  Header="URL"
+                  HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
                 <Hyperlink.ContextMenu>
                     <ContextMenu>
@@ -158,7 +164,7 @@
         <GroupBox Grid.Row="6" Grid.Column="0"
                   Header="INSTALLATION PATH"
                   Margin="0 1 0 0"
-                  >
+                  HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding InstallPath}">
                 <Hyperlink.ContextMenu>
                     <ContextMenu>
@@ -180,7 +186,8 @@
         <GroupBox Grid.Row="6"
                   Grid.Column="1"
                   Header="LOG PATH"
-                  Margin="0 1 0 0">
+                  Margin="0 1 0 0"
+                  HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding LogPath}">
                 <Hyperlink.ContextMenu>
                     <ContextMenu>
