@@ -260,41 +260,19 @@
 
     <ControlTemplate x:Key="NewControlInstanceIcon">
         <Viewbox Stretch="Uniform">
-            <Canvas Width="13" Height="10">
-                <Canvas.RenderTransform>
-                    <TranslateTransform X="0" Y="0"/>
-                </Canvas.RenderTransform>
-                <Canvas.Resources/>
+            <Canvas Width="8" Height="8">
+                <Path Fill="#FF92117E" StrokeMiterLimit="1.41421" StrokeLineJoin="Round">
+                    <Path.Data>
+                        <PathGeometry Figures="M11.25 8.25l0 1.5l-0.75 0l0 -1.5l-1.5 0l0 -0.75l1.5 0l0 -1.5l0.75 0l0 1.5l1.5 0l0 0.75l-1.5 0Z" FillRule="EvenOdd"/>
+                    </Path.Data>
+                </Path>
                 <Canvas>
-                    <Path Fill="#FF92117E" StrokeMiterLimit="1.41421" StrokeLineJoin="Round">
+                    <Rectangle Canvas.Left="0" Canvas.Top="0" Width="8.25" Height="8.25" Name="rect3718" Fill="#FF92117E" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
+                    <Path Fill="#FFFFFFFF" StrokeMiterLimit="1.41421" StrokeLineJoin="Round">
                         <Path.Data>
-                            <PathGeometry Figures="M11.25 8.25l0 1.5l-0.75 0l0 -1.5l-1.5 0l0 -0.75l1.5 0l0 -1.5l0.75 0l0 1.5l1.5 0l0 0.75l-1.5 0Z" FillRule="EvenOdd"/>
+                            <PathGeometry Figures="M5.25 4.009l0 -0.556l-0.297 -0.104c-0.117 -0.039 -0.207 -0.129 -0.246 -0.233c-0.052 -0.116 -0.039 -0.232 0.013 -0.349l0.129 -0.284l-0.388 -0.388l-0.284 0.129c-0.104 0.052 -0.233 0.052 -0.349 0.013c-0.117 -0.052 -0.194 -0.142 -0.233 -0.246l-0.104 -0.297l-0.556 0l-0.103 0.297c-0.039 0.117 -0.129 0.207 -0.233 0.246c-0.116 0.052 -0.233 0.039 -0.349 -0.013l-0.284 -0.129l-0.388 0.388l0.129 0.284c0.052 0.104 0.052 0.233 0.013 0.349c-0.052 0.117 -0.142 0.194 -0.246 0.233l-0.297 0.104l0 0.556l0.297 0.103c0.117 0.039 0.207 0.129 0.246 0.233c0.052 0.116 0.039 0.233 -0.013 0.349l-0.129 0.284l0.388 0.388l0.284 -0.129c0.103 -0.052 0.233 -0.052 0.349 -0.013c0.117 0.052 0.194 0.142 0.233 0.246l0.103 0.297l0.556 0l0.104 -0.297c0.039 -0.117 0.129 -0.207 0.246 -0.259c0.116 -0.052 0.232 -0.039 0.349 0.013l0.284 0.142l0.388 -0.388l-0.129 -0.284c-0.052 -0.103 -0.052 -0.233 -0.013 -0.349c0.052 -0.117 0.142 -0.194 0.246 -0.233l0.284 -0.103Zm-2.043 0.478c-0.414 0 -0.75 -0.336 -0.75 -0.75c0 -0.414 0.336 -0.75 0.75 -0.75c0.414 0 0.75 0.336 0.75 0.75c0 0.414 -0.336 0.75 -0.75 0.75Zm3.892 1.138l0 -0.297l-0.155 -0.052c-0.065 -0.026 -0.103 -0.065 -0.129 -0.129c-0.026 -0.065 -0.026 -0.13 0 -0.181l0.077 -0.156l-0.207 -0.207l-0.155 0.078c-0.052 0.026 -0.129 0.026 -0.181 0c-0.065 -0.026 -0.103 -0.078 -0.129 -0.129l-0.052 -0.155l-0.297 0l-0.052 0.155c-0.026 0.064 -0.065 0.103 -0.129 0.129c-0.065 0.026 -0.13 0.026 -0.181 0l-0.156 -0.078l-0.206 0.207l0.077 0.156c0.026 0.051 0.026 0.129 0 0.181c-0.026 0.064 -0.077 0.103 -0.129 0.129l-0.155 0.052l0 0.297l0.155 0.052c0.064 0.026 0.103 0.064 0.129 0.129c0.026 0.065 0.026 0.129 0 0.181l-0.077 0.155l0.206 0.207l0.156 -0.077c0.051 -0.026 0.129 -0.026 0.181 0c0.064 0.025 0.103 0.077 0.129 0.129l0.052 0.155l0.297 0l0.052 -0.155c0.026 -0.065 0.064 -0.117 0.129 -0.129c0.065 -0.026 0.129 -0.026 0.181 0l0.155 0.077l0.207 -0.207l-0.077 -0.155c-0.026 -0.052 -0.026 -0.129 0 -0.181c0.026 -0.065 0.077 -0.103 0.129 -0.129l0.155 -0.052Zm-1.086 0.259c-0.22 0 -0.401 -0.181 -0.401 -0.401c0 -0.22 0.181 -0.401 0.401 -0.401c0.22 0 0.401 0.181 0.401 0.401c0 0.22 -0.181 0.401 -0.401 0.401Z" FillRule="NonZero"/>
                         </Path.Data>
                     </Path>
-                    <Canvas>
-                        <Rectangle Canvas.Left="0" Canvas.Top="0" Width="8.25" Height="8.25" Name="rect3718" Fill="#FF92117E" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="0.918" Canvas.Top="0.918" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="2.754" Canvas.Top="0.918" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="4.578" Canvas.Top="0.918" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="2.754" Canvas.Top="2.754" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="4.578" Canvas.Top="2.754" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="6.414" Canvas.Top="0.918" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="6.414" Canvas.Top="2.754" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="0.918" Canvas.Top="2.754" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="0.918" Canvas.Top="4.578" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="2.754" Canvas.Top="4.578" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="6.414" Canvas.Top="4.578" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="0.918" Canvas.Top="6.414" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="2.754" Canvas.Top="6.414" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="4.578" Canvas.Top="6.414" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="4.578" Canvas.Top="4.578" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Rectangle Canvas.Left="6.414" Canvas.Top="6.414" Width="0.918" Height="0.918" Fill="#FFA84198" StrokeMiterLimit="1.41421" StrokeLineJoin="Round"/>
-                        <Path Fill="#FFFFFFFF" StrokeMiterLimit="1.41421" StrokeLineJoin="Round">
-                            <Path.Data>
-                                <PathGeometry Figures="M5.25 4.009l0 -0.556l-0.297 -0.104c-0.117 -0.039 -0.207 -0.129 -0.246 -0.233c-0.052 -0.116 -0.039 -0.232 0.013 -0.349l0.129 -0.284l-0.388 -0.388l-0.284 0.129c-0.104 0.052 -0.233 0.052 -0.349 0.013c-0.117 -0.052 -0.194 -0.142 -0.233 -0.246l-0.104 -0.297l-0.556 0l-0.103 0.297c-0.039 0.117 -0.129 0.207 -0.233 0.246c-0.116 0.052 -0.233 0.039 -0.349 -0.013l-0.284 -0.129l-0.388 0.388l0.129 0.284c0.052 0.104 0.052 0.233 0.013 0.349c-0.052 0.117 -0.142 0.194 -0.246 0.233l-0.297 0.104l0 0.556l0.297 0.103c0.117 0.039 0.207 0.129 0.246 0.233c0.052 0.116 0.039 0.233 -0.013 0.349l-0.129 0.284l0.388 0.388l0.284 -0.129c0.103 -0.052 0.233 -0.052 0.349 -0.013c0.117 0.052 0.194 0.142 0.233 0.246l0.103 0.297l0.556 0l0.104 -0.297c0.039 -0.117 0.129 -0.207 0.246 -0.259c0.116 -0.052 0.232 -0.039 0.349 0.013l0.284 0.142l0.388 -0.388l-0.129 -0.284c-0.052 -0.103 -0.052 -0.233 -0.013 -0.349c0.052 -0.117 0.142 -0.194 0.246 -0.233l0.284 -0.103Zm-2.043 0.478c-0.414 0 -0.75 -0.336 -0.75 -0.75c0 -0.414 0.336 -0.75 0.75 -0.75c0.414 0 0.75 0.336 0.75 0.75c0 0.414 -0.336 0.75 -0.75 0.75Zm3.892 1.138l0 -0.297l-0.155 -0.052c-0.065 -0.026 -0.103 -0.065 -0.129 -0.129c-0.026 -0.065 -0.026 -0.13 0 -0.181l0.077 -0.156l-0.207 -0.207l-0.155 0.078c-0.052 0.026 -0.129 0.026 -0.181 0c-0.065 -0.026 -0.103 -0.078 -0.129 -0.129l-0.052 -0.155l-0.297 0l-0.052 0.155c-0.026 0.064 -0.065 0.103 -0.129 0.129c-0.065 0.026 -0.13 0.026 -0.181 0l-0.156 -0.078l-0.206 0.207l0.077 0.156c0.026 0.051 0.026 0.129 0 0.181c-0.026 0.064 -0.077 0.103 -0.129 0.129l-0.155 0.052l0 0.297l0.155 0.052c0.064 0.026 0.103 0.064 0.129 0.129c0.026 0.065 0.026 0.129 0 0.181l-0.077 0.155l0.206 0.207l0.156 -0.077c0.051 -0.026 0.129 -0.026 0.181 0c0.064 0.025 0.103 0.077 0.129 0.129l0.052 0.155l0.297 0l0.052 -0.155c0.026 -0.065 0.064 -0.117 0.129 -0.129c0.065 -0.026 0.129 -0.026 0.181 0l0.155 0.077l0.207 -0.207l-0.077 -0.155c-0.026 -0.052 -0.026 -0.129 0 -0.181c0.026 -0.065 0.077 -0.103 0.129 -0.129l0.155 -0.052Zm-1.086 0.259c-0.22 0 -0.401 -0.181 -0.401 -0.401c0 -0.22 0.181 -0.401 0.401 -0.401c0.22 0 0.401 0.181 0.401 0.401c0 0.22 -0.181 0.401 -0.401 0.401Z" FillRule="NonZero"/>
-                            </Path.Data>
-                        </Path>
-                    </Canvas>
                 </Canvas>
             </Canvas>
         </Viewbox>
@@ -302,11 +280,7 @@
 
     <ControlTemplate x:Key="NewMonitoringInstanceIcon">
         <Viewbox Stretch="Uniform">
-            <Canvas Width="13" Height="10">
-                <Canvas.RenderTransform>
-                    <TranslateTransform X="0" Y="0"/>
-                </Canvas.RenderTransform>
-                <Canvas.Resources/>
+            <Canvas Width="8" Height="8">
                 <Canvas>
                     <Path Fill="#FF00A3C4" StrokeMiterLimit="1.41421" StrokeLineJoin="Round">
                         <Path.Data>
