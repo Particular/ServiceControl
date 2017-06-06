@@ -9,7 +9,7 @@
     using ServiceControl.Config.UI.InstanceDetails;
     using ServiceControlInstaller.Engine.Instances;
     using System.Threading.Tasks;
-    
+
     class ListInstancesViewModel : RxScreen, IHandle<RefreshInstances>, IHandle<LicenseUpdated>
     {
         private readonly Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc;
@@ -24,6 +24,8 @@
             RefreshInstances();
         }
 
+        public bool ShowOnlyUpgrades { private get; set; }
+
         public IList<InstanceDetailsViewModel> Instances { get; }
 
         public void Handle(RefreshInstances message)
@@ -36,7 +38,9 @@
             Instances.Clear();
             foreach (var item in InstanceFinder.AllInstances())
             {
-                Instances.Add(instanceDetailsFunc(item));
+                var instance = instanceDetailsFunc(item);
+                if (ShowOnlyUpgrades && !instance.HasNewVersion) continue;
+                Instances.Add(instance);
             }
         }
 

@@ -17,6 +17,7 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="120" />
+                <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
@@ -57,8 +58,8 @@
 
                 <ToggleButton Name="AddInstanceButton" Style="{StaticResource NewButton}" />
 
-                <Popup PlacementTarget="{Binding ElementName=AddInstanceButton}" 
-                       Placement="Bottom" 
+                <Popup PlacementTarget="{Binding ElementName=AddInstanceButton}"
+                       Placement="Bottom"
                        StaysOpen="False"
                        IsOpen="{Binding ElementName=AddInstanceButton, Path=IsChecked}"
                        VerticalOffset="5"
@@ -66,8 +67,8 @@
                        >
                     <Border Padding="0 10" Background="Black">
                         <StackPanel Background="Black">
-                            <MenuItem Command="{Binding AddInstance}" 
-                                  Header="ServiceControl Instance" 
+                        <MenuItem Command="{Binding AddInstance}" 
+                                  Header="ServiceControl Instance"
                                   Style="{StaticResource DarkMenuItemStyle}" 
                                   Margin="10 0"
                                       Padding="0">
@@ -78,8 +79,8 @@
                                          Template="{StaticResource NewControlInstanceIcon}" />
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem Command="{Binding AddMonitoringInstance}" 
-                                  Header="Monitoring Instance" 
+                        <MenuItem Command="{Binding AddMonitoringInstance}" 
+                                  Header="Monitoring Instance"
                                   Style="{StaticResource DarkMenuItemStyle}" 
                                   Margin="10 0">
                                 <MenuItem.Icon>
@@ -108,12 +109,32 @@
                         Command="{Binding OpenLicense}"
                         Style="{StaticResource LicenseButton}" />
             </StackPanel>
-
-            <ContentControl Grid.Row="1"
-                            cal:View.Context="{Binding ActiveContext}"
-                            cal:View.Model="{Binding ActiveItem}" />
-
-            <Border Grid.Row="2"
+            <Grid Grid.Row="1"
+                  Margin="0,0,0,0"
+                  HorizontalAlignment="Stretch"
+                  Background="{StaticResource NotificationBackgroundBrush}"
+                  Visibility="{Binding UpgradesAvailable,
+                                         Converter={StaticResource boolToVis}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Control Margin="60,0,0,0" Width="15" Height="15" Template="{StaticResource UpgradeIcon}" Foreground="{StaticResource NotificationForegroundBrush}"/>
+                <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="5" Foreground="{StaticResource NotificationForegroundBrush}">Upgrades available for some instances.</TextBlock>
+                <CheckBox
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Margin="3"
+                    Foreground="{StaticResource WhiteBrush}"
+                    FontWeight="DemiBold"
+                    Command="{Binding ShowOnlyUpgrades}"
+                    CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}, Mode=OneWay}">Show only instances with available upgrades.</CheckBox>
+            </Grid>
+            <ContentControl Grid.Row="2"
+                        cal:View.Context="{Binding ActiveContext}"
+                        cal:View.Model="{Binding ActiveItem}" />
+            <Border Grid.Row="3"
                     Height="80"
                     BorderBrush="{StaticResource Gray90Brush}"
                     BorderThickness="0,1,0,0"
@@ -121,7 +142,7 @@
                     Visibility="{Binding IsModal,
                                          Converter={StaticResource boolToVisInverted}}" />
 
-            <StackPanel Grid.Row="2"
+            <StackPanel Grid.Row="3"
                         Margin="50,-8,60,0"
                         Orientation="Horizontal"
                         Visibility="{Binding IsModal,
@@ -143,7 +164,7 @@
                 </TextBlock>
             </StackPanel>
 
-            <StackPanel Grid.Row="2"
+            <StackPanel Grid.Row="3"
                         Margin="60,-8,59,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
