@@ -16,6 +16,9 @@
     <Color x:Key="ThemeColor">#009FBF</Color>
     <Color x:Key="DarkThemeColor">#008099</Color>
 
+    <Color x:Key="NotificationBackgroundColor">#00729C</Color>
+    <Color x:Key="NotificationForegroundColor">#B6F2FE</Color>
+
     <Color x:Key="LightErrorColor">#FF0D4D</Color>
     <Color x:Key="ErrorColor">#E6003D</Color>
     <Color x:Key="DarkErrorColor">#BF0033</Color>
@@ -42,6 +45,9 @@
     <SolidColorBrush x:Key="LightThemeBrush" Color="{StaticResource LightThemeColor}" />
     <SolidColorBrush x:Key="ThemeBrush" Color="{StaticResource ThemeColor}" />
     <SolidColorBrush x:Key="DarkThemeBrush" Color="{StaticResource DarkThemeColor}" />
+
+    <SolidColorBrush x:Key="NotificationBackgroundBrush" Color="{StaticResource NotificationBackgroundColor}" />
+    <SolidColorBrush x:Key="NotificationForegroundBrush" Color="{StaticResource NotificationForegroundColor}" />
 
     <SolidColorBrush x:Key="LightErrorBrush" Color="{StaticResource LightErrorColor}" />
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />

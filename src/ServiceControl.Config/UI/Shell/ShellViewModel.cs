@@ -19,7 +19,7 @@
     {
         private readonly ListInstancesViewModel listInstances;
         private readonly NoInstancesViewModel noInstances;
-
+        private bool isShowOnlyUpgradesChecked;
         public ShellViewModel(
             NoInstancesViewModel noInstances,
             ListInstancesViewModel listInstances,
@@ -46,6 +46,13 @@
                 // Used to "blink" the refresh button to indicate the refresh actually ran.
                 return Task.Delay(500);
             });
+
+            ShowOnlyUpgrades = Command.Create<bool>(isChecked =>
+            {
+                isShowOnlyUpgradesChecked = !isChecked;
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                return Task.Delay(500);
+            });
         }
 
         public object ActiveContext { get; set; }
@@ -64,6 +71,9 @@
 
         public bool HasInstances { get; private set; }
 
+        public bool ShowUpgradesBanner { get; private set; }
+
+
         public ICommand AddInstance { get; private set; }
 
         public ICommand AddMonitoringInstance { get; private set; }
@@ -75,6 +85,8 @@
         public ICommand OpenFeedBack { get; set; }
 
         public ICommand RefreshInstancesCmd { get; private set; }
+
+        public ICommand ShowOnlyUpgrades { get; private set; }
 
         protected override void OnInitialize()
         {
@@ -91,11 +103,15 @@
             if (ActiveItem != null && ActiveItem != listInstances && ActiveItem != noInstances)
                 return;
 
+            ShowUpgradesBanner = false;
+
             HasInstances = InstanceFinder.AllInstances().Any();
 
             if (HasInstances)
             {
+                listInstances.ShowOnlyUpgrades = isShowOnlyUpgradesChecked;
                 ActivateItem(listInstances);
+                ShowUpgradesBanner = listInstances.Instances.Any(i => i.HasNewVersion);
             }
             else
             {
