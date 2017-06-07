@@ -57,7 +57,7 @@
     <ControlTemplate x:Key="RunningIcon">
         <Viewbox Stretch="Uniform">
             <Canvas Width="10" Height="10">
-                <Path Data="M10,4.738l-10,5.262l-0.03,-10l10.03,4.738Z" Fill="{StaticResource Gray70Brush}" />
+                <Path Data="M10,4.738l-10,5.262l-0.03,-10l10.03,4.738Z" Fill="{StaticResource Gray40Brush}" />
             </Canvas>
         </Viewbox>
     </ControlTemplate>
@@ -67,7 +67,7 @@
             <Canvas Width="10" Height="10">
                 <Rectangle Width="10"
                            Height="10"
-                           Fill="{StaticResource Gray70Brush}" />
+                           Fill="{StaticResource Gray40Brush}" />
             </Canvas>
         </Viewbox>
     </ControlTemplate>

@@ -24,6 +24,7 @@
             <Border Grid.Row="0"
                     BorderBrush="{StaticResource Gray90Brush}"
                     BorderThickness="0,0,0,1"
+                    Margin="5"
                     SnapsToDevicePixels="True" />
 
             <controls:AppHeader Grid.Row="0"
@@ -71,7 +72,7 @@
                         <MenuItem Command="{Binding AddInstance}" 
                                   Header="ServiceControl Instance"
                                   Style="{StaticResource DarkMenuItemStyle}" 
-                                  Margin="2"
+                                  Margin="0,6,0,1"
                                   Grid.Row="0">
                             <MenuItem.Icon>
                                 <ContentControl Width="16" 
@@ -83,7 +84,7 @@
                         <MenuItem Command="{Binding AddMonitoringInstance}" 
                                   Header="Monitoring Instance" 
                                   Style="{StaticResource DarkMenuItemStyle}"
-                                  Margin="2"
+                                  Margin="0,1,0,6"
                                   Grid.Row="1">
                             <MenuItem.Icon>
                                 <ContentControl Width="16" 
@@ -116,7 +117,7 @@
                             cal:View.Model="{Binding ActiveItem}" />
 
             <Border Grid.Row="2"
-                    Height="80"
+                    Height="60"
                     BorderBrush="{StaticResource Gray90Brush}"
                     BorderThickness="0,1,0,0"
                     SnapsToDevicePixels="True"

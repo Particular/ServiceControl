@@ -719,7 +719,7 @@
 
     <!--  ==================== ContextMenu ====================  -->
 
-    <SolidColorBrush x:Key="MenuHiliteBrush">#007BC6</SolidColorBrush>
+    <SolidColorBrush x:Key="MenuHiliteBrush">#2D2D2D</SolidColorBrush>
     <SolidColorBrush x:Key="Grey60Brush">#999999</SolidColorBrush>
     
     <Style x:Key="DarkMenuItemStyle" TargetType="MenuItem">
@@ -782,7 +782,7 @@
                             <ContentPresenter x:Name="Icon"
                                               Grid.Column="0"
                                               VerticalAlignment="Center"
-                                              Margin="4"
+                                              Margin="10,6,6,6"
                                               ContentSource="Icon" />
                             <ContentPresenter x:Name="HeaderHost"
                                               Grid.Column="1"
@@ -895,12 +895,5 @@
             </Setter.Value>
         </Setter>
     </Style>
-
-    <!--<Style x:Key="DarkMenuItemStyle" TargetType="MenuItem">
-        <Setter Property="Background" Value="{StaticResource BlackBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource LightThemeBrush}" />
-        <Setter Property="HorizontalContentAlignment" Value="Left" />
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-    </Style>-->
 
 </ResourceDictionary>
