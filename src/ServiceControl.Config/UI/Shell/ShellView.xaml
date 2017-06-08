@@ -24,6 +24,7 @@
             <Border Grid.Row="0"
                     BorderBrush="{StaticResource Gray90Brush}"
                     BorderThickness="0,0,0,1"
+                    Margin="5"
                     SnapsToDevicePixels="True" />
 
             <controls:AppHeader Grid.Row="0"
@@ -62,46 +63,48 @@
                        StaysOpen="False"
                        IsOpen="{Binding ElementName=AddInstanceButton, Path=IsChecked}"
                        VerticalOffset="5"
-                       AllowsTransparency="true"
-                       >
-                    <Border Padding="0 10" Background="Black">
-                        <StackPanel Background="Black">
-                            <MenuItem Command="{Binding AddInstance}" 
-                                  Header="ServiceControl Instance" 
+                       AllowsTransparency="True">
+                    <Grid Margin="0" Background="Black">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <MenuItem Command="{Binding AddInstance}" 
+                                  Header="ServiceControl Instance"
                                   Style="{StaticResource DarkMenuItemStyle}" 
-                                  Margin="10 0"
-                                      Padding="0">
-                                <MenuItem.Icon>
-                                    <Control Width="16"
-                                         Height="16"
-                                         SnapsToDevicePixels="True"
-                                         Template="{StaticResource NewControlInstanceIcon}" />
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem Command="{Binding AddMonitoringInstance}" 
+                                  Margin="0,6,0,1"
+                                  Grid.Row="0">
+                            <MenuItem.Icon>
+                                <ContentControl Width="16" 
+                                                Height="16" 
+                                                SnapsToDevicePixels="True"
+                                                Template="{StaticResource NewControlInstanceIcon}" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Command="{Binding AddMonitoringInstance}" 
                                   Header="Monitoring Instance" 
-                                  Style="{StaticResource DarkMenuItemStyle}" 
-                                  Margin="10 0">
-                                <MenuItem.Icon>
-                                    <Control Width="16"
-                                         Height="16"
-                                         SnapsToDevicePixels="True"
-                                         Template="{StaticResource NewMonitoringInstanceIcon}" />
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <StackPanel.Triggers>
-                                <EventTrigger RoutedEvent="MenuItem.Click">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <BooleanAnimationUsingKeyFrames Storyboard.TargetName="AddInstanceButton" Storyboard.TargetProperty="IsChecked">
-                                                <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="False" />
-                                            </BooleanAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </StackPanel.Triggers>
-                        </StackPanel>
-                    </Border>
+                                  Style="{StaticResource DarkMenuItemStyle}"
+                                  Margin="0,1,0,6"
+                                  Grid.Row="1">
+                            <MenuItem.Icon>
+                                <ContentControl Width="16" 
+                                                Height="16" 
+                                                SnapsToDevicePixels="True"
+                                                Template="{StaticResource NewMonitoringInstanceIcon}" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Grid.Triggers>
+                            <EventTrigger RoutedEvent="MenuItem.Click">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <BooleanAnimationUsingKeyFrames Storyboard.TargetName="AddInstanceButton" Storyboard.TargetProperty="IsChecked">
+                                            <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="False" />
+                                        </BooleanAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Grid.Triggers>
+                    </Grid>
                 </Popup>
 
                 <Button Margin="20,0,0,0"
@@ -114,7 +117,7 @@
                             cal:View.Model="{Binding ActiveItem}" />
 
             <Border Grid.Row="2"
-                    Height="80"
+                    Height="60"
                     BorderBrush="{StaticResource Gray90Brush}"
                     BorderThickness="0,1,0,0"
                     SnapsToDevicePixels="True"
@@ -131,7 +134,7 @@
                         <Setter Property="HorizontalAlignment" Value="Center" />
                         <Setter Property="VerticalAlignment" Value="Center" />
                         <Setter Property="Margin" Value="10,0" />
-                        <Setter Property="FontSize" Value="13px" />
+                        <Setter Property="FontSize" Value="14px" />
                     </Style>
                 </StackPanel.Resources>
 
@@ -150,12 +153,12 @@
                         Orientation="Horizontal"
                         Visibility="{Binding IsModal,
                                              Converter={StaticResource boolToVisInverted}}">
-                <TextBlock FontSize="13px"
+                <TextBlock FontSize="14px"
                            Foreground="{StaticResource Gray60Brush}"
                            Text="{Binding VersionInfo}" />
 
                 <TextBlock Margin="20,0,0,0"
-                           FontSize="13px"
+                           FontSize="14px"
                            Foreground="{StaticResource Gray60Brush}"
                            Text="{Binding CopyrightInfo}" />
             </StackPanel>
