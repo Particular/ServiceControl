@@ -35,11 +35,26 @@
 
                         foreach (var part in multiSagaChanges.Select(s => s.Split(':')))
                         {
-                            sagasChanges.Add(part[0], part[1]);
+                            var id = part[0];
+                            var thisChange = part[1];
+                            string previousChange;
+                            if (!sagasChanges.TryGetValue(id, out previousChange))
+                            {
+                                sagasChanges[id] = thisChange;
+                            }
+                            else //Completed overrides New overrides Updated
+                            {
+                                if (string.Equals(thisChange, "Completed", StringComparison.OrdinalIgnoreCase)
+                                    || string.Equals(thisChange, "New", StringComparison.OrdinalIgnoreCase) && string.Equals(previousChange, "Updated", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    sagasChanges[id] = thisChange;
+                                }
+                            }
                         }
                     }
 
                     var sagas = sagasInvokedRaw.Split(';')
+                        .Distinct()
                         .Select(saga =>
                         {
                             var sagaInvoked = saga.Split(':');
