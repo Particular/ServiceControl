@@ -42,10 +42,10 @@
                             {
                                 sagasChanges[id] = thisChange;
                             }
-                            else //Completed overrides New overrides Updated
+                            else
                             {
-                                if (string.Equals(thisChange, "Completed", StringComparison.OrdinalIgnoreCase)
-                                    || string.Equals(thisChange, "New", StringComparison.OrdinalIgnoreCase) && string.Equals(previousChange, "Updated", StringComparison.OrdinalIgnoreCase))
+                                if (thisChange == "Completed"   //Completed overrides everything
+                                    || thisChange == "New" && previousChange == "Updated") //New overrides Updated
                                 {
                                     sagasChanges[id] = thisChange;
                                 }
