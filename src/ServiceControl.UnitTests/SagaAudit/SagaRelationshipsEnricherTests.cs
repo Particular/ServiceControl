@@ -90,5 +90,47 @@
             Assert.AreEqual(1, sagaData.Count);
             Assert.AreEqual("Completed", sagaData[0].ChangeStatus);
         }
+
+        [Test]
+        public void It_can_parse_malformed_headers_of_two_sagas()
+        {
+            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
+
+            var headers = new Dictionary<string, string>
+            {
+                ["NServiceBus.InvokedSagas"] = "ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6;ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6",
+                ["ServiceControl.SagaStateChange"] = "d440f0b8-1716-43f3-9a00-a79900d083a6:Updated;d440f0b8-1716-43f3-9a00-a79900d083a6:New"
+            };
+
+            var metadata = new Dictionary<string, object>();
+
+            enricher.Enrich(headers, metadata);
+
+            var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
+
+            Assert.AreEqual(1, sagaData.Count);
+            Assert.AreEqual("New", sagaData[0].ChangeStatus);
+        }
+
+        [Test]
+        public void It_can_parse_malformed_headers_of_three_sagas()
+        {
+            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
+
+            var headers = new Dictionary<string, string>
+            {
+                ["NServiceBus.InvokedSagas"] = "ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6;ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6;ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6;ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6",
+                ["ServiceControl.SagaStateChange"] = "d440f0b8-1716-43f3-9a00-a79900d083a6:Updated;d440f0b8-1716-43f3-9a00-a79900d083a6:New;d440f0b8-1716-43f3-9a00-a79900d083a6:Completed"
+            };
+
+            var metadata = new Dictionary<string, object>();
+
+            enricher.Enrich(headers, metadata);
+
+            var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
+
+            Assert.AreEqual(1, sagaData.Count);
+            Assert.AreEqual("Completed", sagaData[0].ChangeStatus);
+        }
     }
 }

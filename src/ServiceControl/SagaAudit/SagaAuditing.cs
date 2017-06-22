@@ -53,7 +53,9 @@
                         }
                     }
 
-                    var sagas = sagasInvokedRaw.Split(';')
+                    var invokedSagas = SplitInvokedSagas(sagasInvokedRaw);
+                    
+                    var sagas = invokedSagas
                         .Distinct()
                         .Select(saga =>
                         {
@@ -126,6 +128,33 @@
                     });
                 }
 
+            }
+
+            static IEnumerable<string> SplitInvokedSagas(string sagasInvokedRaw)
+            {
+                var semicolonCount = sagasInvokedRaw.Count(c => c == ';');
+                var colonCount = sagasInvokedRaw.Count(c => c == ':');
+                if (colonCount != semicolonCount + 1) //Malformed data coming from old version of saga audit plugin
+                {
+                    var tailSemicolon = sagasInvokedRaw.LastIndexOf(";", StringComparison.Ordinal);
+                    var tail = sagasInvokedRaw.Substring(tailSemicolon + 1);
+                    var head = sagasInvokedRaw.Substring(0, tailSemicolon);
+
+                    var headDeduplicated = head.Substring(0, head.Length / 2);
+
+                    foreach (var part in SplitInvokedSagas(headDeduplicated))
+                    {
+                        yield return part;
+                    }
+                    yield return tail;
+                }
+                else
+                {
+                    foreach (var part in sagasInvokedRaw.Split(';'))
+                    {
+                        yield return part;
+                    }
+                }
             }
         }
     }
