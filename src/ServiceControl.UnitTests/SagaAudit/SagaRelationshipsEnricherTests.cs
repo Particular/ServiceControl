@@ -92,35 +92,14 @@
         }
 
         [Test]
-        public void It_can_parse_malformed_headers_of_two_sagas()
-        {
-            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
-
-            var headers = new Dictionary<string, string>
-            {
-                ["NServiceBus.InvokedSagas"] = "ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6;ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6",
-                ["ServiceControl.SagaStateChange"] = "d440f0b8-1716-43f3-9a00-a79900d083a6:Updated;d440f0b8-1716-43f3-9a00-a79900d083a6:New"
-            };
-
-            var metadata = new Dictionary<string, object>();
-
-            enricher.Enrich(headers, metadata);
-
-            var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
-
-            Assert.AreEqual(1, sagaData.Count);
-            Assert.AreEqual("New", sagaData[0].ChangeStatus);
-        }
-
-        [Test]
         public void It_can_parse_malformed_headers_of_three_sagas()
         {
             var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
-                ["NServiceBus.InvokedSagas"] = "ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6;ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6;ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6;ConsoleApp1.MySaga:d440f0b8-1716-43f3-9a00-a79900d083a6",
-                ["ServiceControl.SagaStateChange"] = "d440f0b8-1716-43f3-9a00-a79900d083a6:Updated;d440f0b8-1716-43f3-9a00-a79900d083a6:New;d440f0b8-1716-43f3-9a00-a79900d083a6:Completed"
+                ["NServiceBus.InvokedSagas"] = "ConsoleApp1.MySaga2:9bc8ff00-9e10-41f6-8a56-a79a0060a762ConsoleApp1.MySaga2:9bc8ff00-9e10-41f6-8a56-a79a0060a762;ConsoleApp1.MySaga3:6f46e0e9-5476-4141-a1fd-a79a0060a782ConsoleApp1.MySaga2:9bc8ff00-9e10-41f6-8a56-a79a0060a762ConsoleApp1.MySaga2:9bc8ff00-9e10-41f6-8a56-a79a0060a762;ConsoleApp1.MySaga3:6f46e0e9-5476-4141-a1fd-a79a0060a782;ConsoleApp1.MySaga:c0ed4546-ddce-42d7-9ce2-a79a0060a782",
+                ["ServiceControl.SagaStateChange"] = "c0ed4546-ddce-42d7-9ce2-a79a0060a782:Updated;6f46e0e9-5476-4141-a1fd-a79a0060a782:New;9bc8ff00-9e10-41f6-8a56-a79a0060a762:Completed"
             };
 
             var metadata = new Dictionary<string, object>();
@@ -129,8 +108,7 @@
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
-            Assert.AreEqual(1, sagaData.Count);
-            Assert.AreEqual("Completed", sagaData[0].ChangeStatus);
+            Assert.AreEqual(3, sagaData.Count);
         }
     }
 }
