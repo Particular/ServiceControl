@@ -19,7 +19,7 @@
             context.Container.ConfigureComponent<SagaRelationshipsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class SagaRelationshipsEnricher : ImportEnricher
+        internal class SagaRelationshipsEnricher : ImportEnricher
         {
             public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
@@ -35,11 +35,28 @@
 
                         foreach (var part in multiSagaChanges.Select(s => s.Split(':')))
                         {
-                            sagasChanges.Add(part[0], part[1]);
+                            var id = part[0];
+                            var thisChange = part[1];
+                            string previousChange;
+                            if (!sagasChanges.TryGetValue(id, out previousChange))
+                            {
+                                sagasChanges[id] = thisChange;
+                            }
+                            else
+                            {
+                                if (thisChange == "Completed"   //Completed overrides everything
+                                    || thisChange == "New" && previousChange == "Updated") //New overrides Updated
+                                {
+                                    sagasChanges[id] = thisChange;
+                                }
+                            }
                         }
                     }
 
-                    var sagas = sagasInvokedRaw.Split(';')
+                    var invokedSagas = SplitInvokedSagas(sagasInvokedRaw);
+                    
+                    var sagas = invokedSagas
+                        .Distinct()
                         .Select(saga =>
                         {
                             var sagaInvoked = saga.Split(':');
@@ -111,6 +128,33 @@
                     });
                 }
 
+            }
+
+            static IEnumerable<string> SplitInvokedSagas(string sagasInvokedRaw)
+            {
+                var semicolonCount = sagasInvokedRaw.Count(c => c == ';');
+                var colonCount = sagasInvokedRaw.Count(c => c == ':');
+                if (colonCount != semicolonCount + 1) //Malformed data coming from old version of saga audit plugin
+                {
+                    var tailSemicolon = sagasInvokedRaw.LastIndexOf(";", StringComparison.Ordinal);
+                    var tail = sagasInvokedRaw.Substring(tailSemicolon + 1);
+                    var head = sagasInvokedRaw.Substring(0, tailSemicolon);
+
+                    var headDeduplicated = head.Substring(0, head.Length / 2);
+
+                    foreach (var part in SplitInvokedSagas(headDeduplicated))
+                    {
+                        yield return part;
+                    }
+                    yield return tail;
+                }
+                else
+                {
+                    foreach (var part in sagasInvokedRaw.Split(';'))
+                    {
+                        yield return part;
+                    }
+                }
             }
         }
     }
