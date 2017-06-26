@@ -29,7 +29,10 @@ namespace ServiceControl.Recoverability
 
             Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}"] =
                 parameters => GetAllGroups(parameters.Classifier);
-            
+
+            Get["/recoverability/endpoints"] =
+                parameters => GetAllEndpoints();
+
             Get["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrors(parameters.GroupId);
 
@@ -82,7 +85,12 @@ namespace ServiceControl.Recoverability
                     .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
             }
         }
-       
+
+        dynamic GetAllEndpoints()
+        {
+            return GetAllGroups(AddressOfFailingEndpointClassifier.Id);
+        }
+
         dynamic GetGroupErrors(string groupId)
         {
             using (var session = Store.OpenSession())
