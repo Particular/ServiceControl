@@ -20,7 +20,7 @@ namespace Particular.ServiceControl.Hosting
         
         public HostArguments(string[] args)
         {
-            if (SettingsReader<bool>.Read("MaintenanceMode"))
+            if (ConfigFileSettingsReader<bool>.Read("MaintenanceMode"))
             {
                 args = args.Concat(new[]
                 {
