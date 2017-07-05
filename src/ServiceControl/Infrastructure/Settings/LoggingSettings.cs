@@ -11,7 +11,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             LoggingLevel = InitializeLevel("LogLevel");
             RavenDBLogLevel = InitializeLevel("RavenDBLogLevel");
-            LogPath = Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", DefaultLogPathForInstance(serviceName)));
+            LogPath = Environment.ExpandEnvironmentVariables(ConfigFileSettingsReader<string>.Read("LogPath", DefaultLogPathForInstance(serviceName)));
         }
 
         LogLevel InitializeLevel(string key)
@@ -19,7 +19,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             var level = LogLevel.Warn;
             try
             {
-                level = LogLevel.FromString(SettingsReader<string>.Read(key, LogLevel.Warn.Name));
+                level = LogLevel.FromString(ConfigFileSettingsReader<string>.Read(key, LogLevel.Warn.Name));
             }
             catch
             {

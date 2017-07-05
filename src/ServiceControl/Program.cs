@@ -5,6 +5,7 @@
     using System.Reflection;
     using Commands;
     using Hosting;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class Program
     {
@@ -19,6 +20,9 @@
                 arguments.PrintUsage();
                 return;
             }
+
+            var loggingSettings = new LoggingSettings(arguments.ServiceName);
+            LoggingConfigurator.ConfigureLogging(loggingSettings);
 
             new CommandRunner(arguments.Commands).Execute(arguments);
         }

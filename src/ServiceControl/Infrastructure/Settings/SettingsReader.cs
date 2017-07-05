@@ -1,8 +1,5 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Settings
 {
-    using System;
-    using System.Configuration;
-
     public class SettingsReader<T>
     {
         public static T Read(string name, T defaultValue = default(T))
@@ -12,11 +9,10 @@
 
         public static T Read(string root, string name, T defaultValue = default(T))
         {
-            var fullKey = root + "/" + name;
-
-            if (ConfigurationManager.AppSettings[fullKey] != null)
+            T value;
+            if (ConfigFileSettingsReader<T>.TryRead(root, name, out value))
             {
-                return (T) Convert.ChangeType(ConfigurationManager.AppSettings[fullKey], typeof(T));
+                return value;
             }
 
             return RegistryReader<T>.Read(root, name, defaultValue);
