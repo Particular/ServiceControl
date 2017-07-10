@@ -142,23 +142,21 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             return WithEtagAndLastModified(negotiator, etag, responseLastModified);
         }
 
-        public static Negotiator WithEtag(this Negotiator negotiator, string etag)
-        {
-            return negotiator
-                .WithHeader("ETag", etag);
-        }
-        
         public static Negotiator WithDeterministicEtag(this Negotiator negotiator, string data, Etag ravenEtag = null)
         {
             var guid = DeterministicGuid.MakeId(data, (ravenEtag ?? Etag.Empty).ToString(), false);
-            return negotiator.WithEtag(guid.ToString());
+            return negotiator
+                .WithHeader("ETag", guid.ToString());
         }
 
         public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, Etag etag, DateTime responseLastModified)
         {
             var currentEtag = etag?.ToString();
+            if (currentEtag != null)
+            {
+                negotiator.WithHeader("ETag", currentEtag);
+            }
             return negotiator
-                .WithHeader("ETag", currentEtag)
                 .WithHeader("Last-Modified", responseLastModified.ToString("R"));
         }
 
