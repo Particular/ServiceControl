@@ -59,19 +59,19 @@
 
         public string VersionInfo { get; private set; }
 
-        public string CopyrightInfo { get; private set; }
+        public string CopyrightInfo { get; }
 
         public bool HasInstances { get; private set; }
 
-        public ICommand AddInstance { get; private set; }
+        public ICommand AddInstance { get; }
 
-        public ICommand OpenLicense { get; private set; }
+        public ICommand OpenLicense { get; }
 
-        public ICommand OpenUrl { get; private set; }
+        public ICommand OpenUrl { get; }
 
         public ICommand OpenFeedBack { get; set; }
 
-        public ICommand RefreshInstancesCmd { get; private set; }
+        public ICommand RefreshInstancesCmd { get; }
 
         protected override void OnInitialize()
         {

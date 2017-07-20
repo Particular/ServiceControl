@@ -14,7 +14,7 @@
         public string Title { get; private set; }
         public string Message { get; private set; }
 
-        public ICommand OK { get; private set; }
+        public ICommand OK { get; }
 
         public void SetResult(bool showSuccess)
         {

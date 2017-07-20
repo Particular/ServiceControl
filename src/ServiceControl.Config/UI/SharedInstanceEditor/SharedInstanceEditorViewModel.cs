@@ -144,8 +144,8 @@
         public int MaximumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMaxInHours;
         public TimeSpanUnits AuditRetentionUnits => TimeSpanUnits.Hours;
 
-        public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; private set;}
-        public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; private set; }
+        public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; }
+        public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; }
 
         public double AuditRetention { get; set; }
         public TimeSpan AuditRetentionPeriod => AuditRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(AuditRetention) : TimeSpan.FromHours(AuditRetention);
@@ -153,7 +153,7 @@
         public double ErrorRetention { get; set; }
         public TimeSpan ErrorRetentionPeriod => ErrorRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(ErrorRetention) : TimeSpan.FromHours(ErrorRetention);
 
-        public IEnumerable<TransportInfo> Transports { get; private set; }
+        public IEnumerable<TransportInfo> Transports { get; }
 
 
         protected void UpdateAuditRetention(TimeSpan value)

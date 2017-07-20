@@ -53,9 +53,9 @@
 
         public ICommand Cancel { get; set; }
 
-        public ICommand OpenUrl { get; private set; }
+        public ICommand OpenUrl { get; }
 
-        public ICommand CopyToClipboard { get; private set; }
+        public ICommand CopyToClipboard { get; }
 
         public string Name => ServiceControlInstance.Name;
 

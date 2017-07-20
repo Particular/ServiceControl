@@ -43,7 +43,7 @@
 
         public Address AddressOfAuditQueue { get; set; }
 
-        public IDictionary<Type, object> UserDefinedConfigSections { get; private set; }
+        public IDictionary<Type, object> UserDefinedConfigSections { get; }
 
         public string CustomMachineName { get; set; }
 

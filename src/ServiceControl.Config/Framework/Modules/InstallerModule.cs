@@ -226,8 +226,8 @@
                 Message = message;
             }
 
-            public bool Valid { get; private set; }
-            public string Message { get; private set; }
+            public bool Valid { get; }
+            public string Message { get; }
         }
     }
 }

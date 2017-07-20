@@ -28,6 +28,6 @@ namespace ServiceControl.Config.UI.MessageBox
 
         public bool HasWarnings => Warnings.Count > 0;
 
-        public ICommand Cancel { get; private set; }
+        public ICommand Cancel { get; }
     }
 }

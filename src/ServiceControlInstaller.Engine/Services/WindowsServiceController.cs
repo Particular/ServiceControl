@@ -20,7 +20,7 @@ namespace ServiceControlInstaller.Engine.Services
             ExePath = exePath;
         }
 
-        public string ExePath { get; private set; }
+        public string ExePath { get; }
 
         public string Description
         {

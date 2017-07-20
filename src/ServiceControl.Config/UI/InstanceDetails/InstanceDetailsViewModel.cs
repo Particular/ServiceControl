@@ -151,19 +151,19 @@
             }
         }
 
-        public ICommand OpenUrl { get; private set; }
+        public ICommand OpenUrl { get; }
 
-        public ICommand CopyToClipboard { get; private set; }
+        public ICommand CopyToClipboard { get; }
 
-        public ICommand EditCommand { get; private set; }
+        public ICommand EditCommand { get; }
 
-        public ICommand AdvanceOptionsCommand { get; private set; }
+        public ICommand AdvanceOptionsCommand { get; }
 
-        public ICommand StartCommand { get; private set; }
+        public ICommand StartCommand { get; }
 
-        public ICommand StopCommand { get; private set; }
+        public ICommand StopCommand { get; }
 
-        public ICommand UpgradeToNewVersionCommand { get; private set; }
+        public ICommand UpgradeToNewVersionCommand { get; }
 
         public void Handle(RefreshInstances message)
         {

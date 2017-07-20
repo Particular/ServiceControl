@@ -51,7 +51,7 @@
 
         public string Message { get; set; }
 
-        public ICommand Cancel { get; private set; }
-        public ICommand Save { get; private set; }
+        public ICommand Cancel { get; }
+        public ICommand Save { get; }
     }
 }

@@ -91,9 +91,9 @@
             Delete(this);
         }
 
-        public int Port { get; private set; }
-        public string HostName { get; private set; }
-        public string VirtualDirectory { get; private set; }
+        public int Port { get; }
+        public string HostName { get; }
+        public string VirtualDirectory { get; }
         public bool HTTPS { get; }
 
         public static ReadOnlyCollection<UrlReservation> GetAll()

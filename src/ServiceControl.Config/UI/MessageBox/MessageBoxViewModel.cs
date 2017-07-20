@@ -18,15 +18,15 @@ namespace ServiceControl.Config.UI.MessageBox
             HideCancel = hideCancel;
         }
 
-        public bool HideCancel { get; private set; }
+        public bool HideCancel { get; }
 
-        public string Title { get; private set; }
+        public string Title { get; }
 
-        public string Message { get; private set; }
+        public string Message { get; }
 
-        public string AcceptText { get; private set; }
+        public string AcceptText { get; }
 
-        public ICommand Ok { get; private set; }
-        public ICommand Cancel { get; private set; }
+        public ICommand Ok { get; }
+        public ICommand Cancel { get; }
     }
 }

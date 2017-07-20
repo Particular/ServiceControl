@@ -11,7 +11,7 @@
             CustomConfig = new List<Action<BusConfiguration>>();
         }
 
-        public Type EndpointBuilderType { get; private set; }
+        public Type EndpointBuilderType { get; }
 
         public List<IGivenDefinition> Givens { get; set; }
         public List<IWhenDefinition> Whens { get; set; }

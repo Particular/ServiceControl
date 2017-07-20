@@ -54,10 +54,10 @@
         }
 
         public string DestinationPath { get; set; }
-        public ICommand SelectDestinationPath { get; private set; }
+        public ICommand SelectDestinationPath { get; }
 
         public string DatabasePath { get; set; }
-        public ICommand SelectDatabasePath { get; private set; }
+        public ICommand SelectDatabasePath { get; }
 
         protected override void OnInstanceNameChanged()
         {

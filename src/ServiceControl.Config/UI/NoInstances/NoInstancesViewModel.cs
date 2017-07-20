@@ -13,6 +13,6 @@ namespace ServiceControl.Config.UI.NoInstances
             AddInstance = addInstance;
         }
 
-        public ICommand AddInstance { get; private set; }
+        public ICommand AddInstance { get; }
     }
 }

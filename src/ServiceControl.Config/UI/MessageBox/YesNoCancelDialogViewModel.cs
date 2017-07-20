@@ -23,11 +23,11 @@ namespace ServiceControl.Config.UI.MessageBox
         public string Title { get; set; }
         public string Message { get; set; }
         public string Question { get; set; }
-        public ICommand Cancel { get; private set; }
-        public ICommand No { get; private set; }
-        public string NoText { get; private set; }
-        public ICommand Yes { get; private set; }
-        public string YesText { get; private set; }
+        public ICommand Cancel { get; }
+        public ICommand No { get; }
+        public string NoText { get; }
+        public ICommand Yes { get; }
+        public string YesText { get; }
         public bool ShowCancelButton { get; set; }
     }
 }
