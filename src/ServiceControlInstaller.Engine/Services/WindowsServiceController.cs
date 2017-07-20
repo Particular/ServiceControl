@@ -78,7 +78,7 @@ namespace ServiceControlInstaller.Engine.Services
         public void ChangeAccountDetails(string serviceAccount, string servicePassword)
         {
             var userAccount = UserAccount.ParseAccountName(serviceAccount);
-            
+
             if (!(userAccount.IsLocalService() || userAccount.IsLocalService()))
             {
                 var privileges = Lsa.GetPrivileges(userAccount.QualifiedName).ToList();
@@ -88,7 +88,7 @@ namespace ServiceControlInstaller.Engine.Services
                     Lsa.GrantPrivileges(userAccount.QualifiedName, privileges.ToArray());
                 }
             }
-            
+
             var  objPath = $"Win32_Service.Name='{ServiceName}'";
             using (var win32Service = new ManagementObject(new ManagementPath(objPath)))
             {
@@ -187,7 +187,7 @@ namespace ServiceControlInstaller.Engine.Services
             {
                return @"NT AUTHORITY\LOCALSERVICE";
             }
-            
+
             return userAccount.QualifiedName;
         }
 
@@ -256,9 +256,9 @@ namespace ServiceControlInstaller.Engine.Services
                             }
                             catch(SecurityException)
                             {
-                               continue;                           
+                               continue;
                             }
-                           
+
                             var entryType = (int) serviceKey.GetValue("Type", 0);
                             if (entryType == 1) // driver not a service
                                 continue;
