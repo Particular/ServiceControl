@@ -19,11 +19,13 @@ namespace ServiceControl.Recoverability
     {
         protected static string RetrySessionId = Guid.NewGuid().ToString();
         public RetryingManager OperationManager { get; set; }
+
         private static RavenJObject defaultMetadata = RavenJObject.Parse($@"
                                     {{
-                                        ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"", 
+                                        ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
                                     }}");
+
         private static PatchRequest[] patchRequestsEmpty = new PatchRequest[0];
 
         private IDocumentStore store;
@@ -51,7 +53,7 @@ namespace ServiceControl.Recoverability
                     StartTime = startTime,
                     Last = last,
                     InitialBatchSize = initialBatchSize,
-                    RetrySessionId = RetrySessionId, 
+                    RetrySessionId = RetrySessionId,
                     Status = RetryBatchStatus.MarkingDocuments
                 });
                 session.SaveChanges();
@@ -95,16 +97,16 @@ namespace ServiceControl.Recoverability
                     {
                         new PatchRequest
                         {
-                            Type = PatchCommandType.Set, 
-                            Name = "Status", 
-                            Value = (int)RetryBatchStatus.Staging, 
-                            PrevVal = (int)RetryBatchStatus.MarkingDocuments
-                        }, 
+                            Type = PatchCommandType.Set,
+                            Name = "Status",
+                            Value = (int) RetryBatchStatus.Staging,
+                            PrevVal = (int) RetryBatchStatus.MarkingDocuments
+                        },
                         new PatchRequest
                         {
-                            Type = PatchCommandType.Set, 
-                            Name = "FailureRetries", 
-                            Value = new RavenJArray((IEnumerable)failedMessageRetryIds)
+                            Type = PatchCommandType.Set,
+                            Name = "FailureRetries",
+                            Value = new RavenJArray((IEnumerable) failedMessageRetryIds)
                         }
                     });
             }
@@ -124,7 +126,7 @@ namespace ServiceControl.Recoverability
             RavenQueryStatistics stats;
 
             var orphanedBatches = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-				.Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
+                .Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
                 .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
                 .Statistics(out stats)
                 .ToArray();
@@ -180,8 +182,8 @@ namespace ServiceControl.Recoverability
         internal void RebuildRetryOperationState(IDocumentSession session)
         {
             var stagingBatchGroups = session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
-                .Where(b => b.HasStagingBatches||b.HasForwardingBatches);
-               
+                .Where(b => b.HasStagingBatches || b.HasForwardingBatches);
+
             foreach (var group in stagingBatchGroups)
             {
                 if (!string.IsNullOrWhiteSpace(group.RequestId))

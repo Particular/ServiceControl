@@ -6,7 +6,7 @@
     using System.Runtime.InteropServices;
     using ServiceControlInstaller.Engine.Api;
 
-    internal class ServiceRecoveryHelper: IDisposable
+    internal class ServiceRecoveryHelper : IDisposable
     {
         [DllImport("advapi32.dll", EntryPoint = "OpenSCManager")]
         static extern IntPtr OpenSCManager(
@@ -46,7 +46,7 @@
 
             return service;
         }
-        
+
         public static void SetRecoveryOptions(string serviceName)
         {
             try
@@ -56,7 +56,7 @@
                     helper.SetRestartOnFailure(serviceName);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.Write(ex);
             }
@@ -102,7 +102,7 @@
                     Type = SC_ACTION_TYPE.SC_ACTION_NONE,
                     Delay = delay
                 };
-                Marshal.StructureToPtr(action2, (IntPtr)((long)actionPtr + Marshal.SizeOf(typeof(SC_ACTION))), false);
+                Marshal.StructureToPtr(action2, (IntPtr) ((long) actionPtr + Marshal.SizeOf(typeof(SC_ACTION))), false);
 
                 var failureActions = new SERVICE_FAILURE_ACTIONS
                 {
@@ -149,8 +149,8 @@
             GC.SuppressFinalize(this);
         }
 
-		void Dispose(bool disposing)
-        {            
+        void Dispose(bool disposing)
+        {
             if (!disposed)
             {
                 if (SCManager != IntPtr.Zero)

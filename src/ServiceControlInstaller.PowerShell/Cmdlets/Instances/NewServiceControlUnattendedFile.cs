@@ -85,13 +85,13 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Audit Data")]
         [ValidateNotNull]
         [ValidateTimeSpanRange(MinimumHours = SettingConstants.AuditRetentionPeriodMinInHours, MaximumHours = SettingConstants.AuditRetentionPeriodMaxInHours)] //1 hour to 365 days
-        public TimeSpan AuditRetentionPeriod {get; set;}
-        
+        public TimeSpan AuditRetentionPeriod { get; set; }
+
         [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Error Data")]
         [ValidateNotNull]
         [ValidateTimeSpanRange(MinimumHours = SettingConstants.ErrorRetentionPeriodMinInHours, MaximumHours = SettingConstants.ErrorRetentionPeriodMaxInHours)] //10 to 45 days
         public TimeSpan ErrorRetentionPeriod { get; set; }
-        
+
         [Parameter(Mandatory = true, HelpMessage = "The path of the XML file save the output to")]
         [ValidateNotNullOrEmpty]
         [ValidatePath]
@@ -118,7 +118,7 @@ namespace ServiceControlInstaller.PowerShell
             var details = new ServiceControlInstanceMetadata
             {
                 InstallPath = InstallPath,
-                LogPath =  LogPath,
+                LogPath = LogPath,
                 DBPath = DBPath,
                 Name = Name,
                 DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName,
@@ -127,13 +127,13 @@ namespace ServiceControlInstaller.PowerShell
                 Port = Port,
                 VirtualDirectory = VirtualDirectory,
                 AuditLogQueue = AuditLogQueue,
-		        AuditQueue = AuditQueue,
-		        ErrorLogQueue = ErrorLogQueue,
-		        ErrorQueue = ErrorQueue,
-		        ForwardAuditMessages = ForwardAuditMessages,
+                AuditQueue = AuditQueue,
+                ErrorLogQueue = ErrorLogQueue,
+                ErrorQueue = ErrorQueue,
+                ForwardAuditMessages = ForwardAuditMessages,
                 ForwardErrorMessages = ForwardErrorMessages,
                 ConnectionString = ConnectionString,
-		        TransportPackage = Transport,
+                TransportPackage = Transport,
                 AuditRetentionPeriod = AuditRetentionPeriod,
                 ErrorRetentionPeriod = ErrorRetentionPeriod
             };
