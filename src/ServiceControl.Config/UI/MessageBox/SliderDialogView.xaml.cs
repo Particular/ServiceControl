@@ -3,7 +3,7 @@
     /// <summary>
     /// Interaction logic for SliderDialogView.xaml
     /// </summary>
-    public partial class SliderDialogView 
+    public partial class SliderDialogView
     {
         public SliderDialogView()
         {

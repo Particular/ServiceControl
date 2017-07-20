@@ -38,7 +38,7 @@
                     if (messages.Count < 100)
                     {
                         Console.Out.WriteLine("Messages found: " + messages.Count);
-                  
+
                         Thread.Sleep(1000);
                     }
 
@@ -56,7 +56,7 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-              
+
                 public void Handle(MyMessage message)
                 {
                     throw new Exception("Simulated exception");
@@ -71,7 +71,7 @@
 
         public class MyContext : ScenarioContext
         {
-          
+
         }
     }
 }

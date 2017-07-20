@@ -4,7 +4,7 @@ namespace ServiceControl.Operations
 
     public class LicenseStatusKeeper
     {
-        ConcurrentDictionary<string, string> cache = new ConcurrentDictionary<string, string>(); 
+        ConcurrentDictionary<string, string> cache = new ConcurrentDictionary<string, string>();
 
         public void Set(string key, string value)
         {

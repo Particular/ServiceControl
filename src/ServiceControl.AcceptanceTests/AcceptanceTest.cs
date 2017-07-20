@@ -381,7 +381,7 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        protected void Delete(string url) 
+        protected void Delete(string url)
         {
             if (!url.StartsWith("http://"))
             {
@@ -408,9 +408,9 @@ namespace ServiceBus.Management.AcceptanceTests
 
             if (requestHasFailed == null)
             {
-               requestHasFailed = statusCode => statusCode != HttpStatusCode.OK && statusCode != HttpStatusCode.Accepted; 
+               requestHasFailed = statusCode => statusCode != HttpStatusCode.OK && statusCode != HttpStatusCode.Accepted;
             }
-            
+
             var json = JsonConvert.SerializeObject(payload, serializerSettings);
             var response = httpClient.PutAsync(url, new StringContent(json, null, "application/json")).GetAwaiter().GetResult();
 

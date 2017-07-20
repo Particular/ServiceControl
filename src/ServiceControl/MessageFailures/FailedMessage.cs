@@ -23,8 +23,8 @@
         public string Id { get; set; }
 
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
-        public List<FailureGroup> FailureGroups { get; set; } 
-        
+        public List<FailureGroup> FailureGroups { get; set; }
+
         public FailedMessageStatus Status { get; set; }
 
         public string UniqueMessageId { get; set; }

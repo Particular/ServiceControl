@@ -52,7 +52,7 @@ namespace ServiceControl.CompositeViews.Messages
                 select new
                 {
                     last.MessageId,
-                    MessageType = last.MessageMetadata["MessageType"], 
+                    MessageType = last.MessageMetadata["MessageType"],
                     IsSystemMessage = last.MessageMetadata["IsSystemMessage"],
                     Status = message.Status == FailedMessageStatus.Archived
                         ? MessageStatus.ArchivedFailure
@@ -70,7 +70,7 @@ namespace ServiceControl.CompositeViews.Messages
                 });
 
             Index(x => x.Query, FieldIndexing.Analyzed);
-            
+
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
 
             DisableInMemoryIndexing = true;

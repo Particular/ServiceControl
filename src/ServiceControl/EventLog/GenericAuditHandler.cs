@@ -6,8 +6,8 @@
     using ServiceControl.Infrastructure.SignalR;
 
     /// <summary>
-    /// Only for events that have been defined (under EventLog\Definitions), a logentry item will 
-    /// be saved in Raven and an event will be raised. 
+    /// Only for events that have been defined (under EventLog\Definitions), a logentry item will
+    /// be saved in Raven and an event will be raised.
     /// </summary>
     public class GenericAuditHandler : IHandleMessages<IEvent>
     {

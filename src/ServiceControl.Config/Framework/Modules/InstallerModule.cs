@@ -126,7 +126,7 @@
                     instance.ReportCard.Status = Status.Failed;
                     return instance.ReportCard;
                 }
-            
+
                 instance.ApplyConfigChange();
                 if (!instance.ReportCard.HasErrors)
                 {

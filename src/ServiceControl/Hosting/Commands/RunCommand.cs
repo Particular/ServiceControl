@@ -10,7 +10,7 @@
         {
             if (!args.Portable && !Environment.UserInteractive)
             {
-                RunNonBlocking(args);          
+                RunNonBlocking(args);
                 return;
             }
 
@@ -65,7 +65,7 @@
                 e.Cancel = true;
                 manualReset.Set();
                 Console.CancelKeyPress -= ConsoleOnCancelKeyPress;
-            } 
+            }
         }
     }
 }

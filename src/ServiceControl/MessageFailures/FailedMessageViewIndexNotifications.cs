@@ -36,7 +36,7 @@
 
         public void OnError(Exception error)
         {
-            //Ignore  
+            //Ignore
         }
 
         public void OnCompleted()

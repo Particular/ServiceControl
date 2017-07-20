@@ -168,6 +168,6 @@
             public bool? ControlMessageHeaderValue { get; set; }
             public string EnclosedMessageType { get; set; }
         }
- 
+
     }
 }

@@ -19,7 +19,7 @@
                 MessageId = Guid.NewGuid().ToString(),
                 IncludeProcessingEndpointHeader = false
             };
-         
+
             FailedMessageView failure = null;
             Define(context)
                 .WithEndpoint<SendOnlyEndpoint>()
@@ -27,7 +27,6 @@
                 .Run();
             Assert.IsNotNull(failure);
             Assert.IsTrue(failure.ReceivingEndpoint.Name.Contains("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
-            
          }
 
         [Test]
@@ -46,7 +45,6 @@
                 .Run();
             Assert.IsNotNull(failure);
             Assert.IsTrue(failure.ReceivingEndpoint.Name.Contains("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
-
         }
 
         public class SendOnlyEndpoint : EndpointConfigurationBuilder

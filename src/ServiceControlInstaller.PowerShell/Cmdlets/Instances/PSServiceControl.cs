@@ -47,7 +47,7 @@ namespace ServiceControlInstaller.PowerShell
 
         public string ErrorQueue { get;  set; }
         public string ErrorLogQueue { get; set; }
-        
+
         public string AuditQueue { get;  set; }
         public string AuditLogQueue { get;  set; }
         public bool ForwardAuditMessages { get; set; }
@@ -56,6 +56,6 @@ namespace ServiceControlInstaller.PowerShell
         public string ServiceAccount { get; set; }
 
         public Version Version { get; set; }
-        
+
     }
 }

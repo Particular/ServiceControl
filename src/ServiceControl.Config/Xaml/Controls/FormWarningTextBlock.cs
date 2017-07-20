@@ -16,7 +16,7 @@
             set { SetValue(TextProperty, value); }
         }
 
-        public static readonly DependencyProperty TextProperty = 
+        public static readonly DependencyProperty TextProperty =
             DependencyProperty.Register("Text", typeof(string), typeof(FormWarningTextBlock), new PropertyMetadata(string.Empty));
     }
 }

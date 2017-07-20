@@ -41,9 +41,9 @@
                     }
                     else
                     {
-                        license = (string)licenseValue;    
+                        license = (string)licenseValue;
                     }
-                    
+
                     return !string.IsNullOrEmpty(license);
                 }
             }

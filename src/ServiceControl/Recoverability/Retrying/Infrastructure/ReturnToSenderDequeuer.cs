@@ -87,7 +87,7 @@ namespace ServiceControl.Recoverability
         public static void HandleMessage(TransportMessage message, IBodyStorage bodyStorage, ISendMessages sender) //Public for testing
         {
             message.Headers.Remove("ServiceControl.Retry.StagingId");
-            
+
             string attemptMessageId;
             if (message.Headers.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out attemptMessageId))
             {

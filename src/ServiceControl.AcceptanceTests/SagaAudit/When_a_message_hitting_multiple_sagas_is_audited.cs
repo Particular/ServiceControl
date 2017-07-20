@@ -17,7 +17,7 @@
         {
             var context = new MyContext();
             MessagesView auditedMessage = null;
-           
+
             Define(context)
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(c =>
@@ -31,12 +31,12 @@
                 })
                 .Run(TimeSpan.FromSeconds(40));
 
-        
+
             Assert.NotNull(auditedMessage);
 
             Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, auditedMessage.InvokedSagas.First().SagaType);
             Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MyOtherSaga).FullName, auditedMessage.InvokedSagas.Last().SagaType);
-            
+
             Assert.AreEqual(context.SagaId, auditedMessage.InvokedSagas.First().SagaId);
             Assert.AreEqual(context.OtherSagaId, auditedMessage.InvokedSagas.Last().SagaId);
 
@@ -55,7 +55,7 @@
             public class MySaga:Saga<MySaga.MySagaData>,IAmStartedByMessages<MessageInitiatingSaga>
             {
                 public MyContext Context { get; set; }
-                
+
                 public void Handle(MessageInitiatingSaga message)
                 {
                     Context.SagaId = Data.Id;

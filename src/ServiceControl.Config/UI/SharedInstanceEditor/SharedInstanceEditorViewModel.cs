@@ -15,7 +15,7 @@
         string hostName;
         string serviceAccount;
         string password;
-      
+
         public SharedInstanceEditorViewModel()
         {
             Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
@@ -47,7 +47,7 @@
             };
         }
 
-        
+
         [DoNotNotify]
         public ValidationTemplate ValidationTemplate { get; set; }
 
@@ -146,7 +146,7 @@
 
         public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; private set;}
         public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; private set; }
-        
+
         public double AuditRetention { get; set; }
         public TimeSpan AuditRetentionPeriod => AuditRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(AuditRetention) : TimeSpan.FromHours(AuditRetention);
 
@@ -154,7 +154,7 @@
         public TimeSpan ErrorRetentionPeriod => ErrorRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(ErrorRetention) : TimeSpan.FromHours(ErrorRetention);
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
-        
+
 
         protected void UpdateAuditRetention(TimeSpan value)
         {
@@ -165,7 +165,7 @@
         {
             ErrorRetention = ErrorRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
         }
-        
+
         public string LogPath { get; set; }
         public ICommand SelectLogPath { get; set; }
 

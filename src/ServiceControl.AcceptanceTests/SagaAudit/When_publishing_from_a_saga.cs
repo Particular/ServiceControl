@@ -22,9 +22,9 @@
 
             Define(context)
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new StartSagaMessage())))
-                .Done(c => 
-                    c.ReceivedInitiatingMessage && 
-                  //  c.ReceivedEvent && 
+                .Done(c =>
+                    c.ReceivedInitiatingMessage &&
+                  //  c.ReceivedEvent &&
                     TryGet("/api/sagas/" + c.SagaId, out sagaHistory))
                 .Run();
 

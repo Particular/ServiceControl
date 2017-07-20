@@ -29,7 +29,7 @@ namespace ServiceControl.Recoverability
 
             Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}"] =
                 parameters => GetAllGroups(parameters.Classifier);
-            
+
             Get["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrors(parameters.GroupId);
 
@@ -39,7 +39,7 @@ namespace ServiceControl.Recoverability
             Get["/recoverability/history/"] =
             _ => GetRetryHistory();
         }
-        
+
         dynamic ReclassifyErrors()
         {
             Bus.SendLocal(new ReclassifyErrors
@@ -82,7 +82,7 @@ namespace ServiceControl.Recoverability
                     .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
             }
         }
-       
+
         dynamic GetGroupErrors(string groupId)
         {
             using (var session = Store.OpenSession())

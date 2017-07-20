@@ -49,7 +49,7 @@
                 MessageBox.Show("Unable to open the directory in Windows Explorer. The directory does not exist or access is denied", "Directory not available", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            
+
             Process.Start(new ProcessStartInfo
             {
                 UseShellExecute = true,

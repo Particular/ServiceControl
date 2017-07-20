@@ -2,13 +2,13 @@ namespace ServiceControlInstaller.PowerShell
 {
     using System;
     using System.Management.Automation;
-    
+
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
     class ValidateTimeSpanRangeAttribute : ValidateArgumentsAttribute
     {
         public int MinimumHours { get; set; }
         public int MaximumHours { get; set; }
-        
+
         protected override void Validate(object arguments, EngineIntrinsics engineIntrinsics)
         {
             var span = (TimeSpan) arguments;

@@ -25,7 +25,7 @@
             {
                 instanceA.Object
             };
-        } 
+        }
 
         [Test]
         public void CheckPathsAreUnique_ShouldThrow()
@@ -85,7 +85,7 @@
         {
             var newInstance = new ServiceControlInstanceMetadata
             {
-                InstallPath = @"c:\test\2\bin",  
+                InstallPath = @"c:\test\2\bin",
                 LogPath = @"c:\test\2\logs",
                 DBPath = @"c:\test\2\db"
             };
@@ -112,7 +112,7 @@
             {
                 Instances = instances
             };
-   
+
             Assert.DoesNotThrow(() => p.CheckPathsAreValid());
         }
 

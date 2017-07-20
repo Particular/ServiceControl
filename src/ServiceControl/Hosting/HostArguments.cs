@@ -17,7 +17,7 @@ namespace Particular.ServiceControl.Hosting
         public string ServiceName { get; set; }
         public string Username { get; set; }
         public bool Portable { get; set; }
-        
+
         public HostArguments(string[] args)
         {
             if (ConfigFileSettingsReader<bool>.Read("MaintenanceMode"))
@@ -31,7 +31,7 @@ namespace Particular.ServiceControl.Hosting
             var executionMode = ExecutionMode.Run;
             Commands = new List<Type> { typeof(RunCommand) };
             ServiceName = Settings.DEFAULT_SERVICE_NAME;
-         
+
             var defaultOptions = new OptionSet
             {
                 {
@@ -43,7 +43,7 @@ namespace Particular.ServiceControl.Hosting
                                            {
                                                {
                                                    "m|maint|maintenance",
-                                                   @"Run RavenDB only - use for DB maintenance", 
+                                                   @"Run RavenDB only - use for DB maintenance",
                                                    s => {
                                                             Commands = new List<Type>
                                                                        {
@@ -82,12 +82,12 @@ namespace Particular.ServiceControl.Hosting
             var externalUnitTestRunnerOptions = new OptionSet
             {
                 {
-                    "p|portable", 
-                    @"Internal use - runs as a console app, even non-interactively", 
+                    "p|portable",
+                    @"Internal use - runs as a console app, even non-interactively",
                     s => { Portable = true; }
                 }
             };
-            
+
             try
             {
                 externalInstallerOptions.Parse(args);
@@ -95,7 +95,7 @@ namespace Particular.ServiceControl.Hosting
                 {
                     return;
                 }
-                
+
                 maintenanceOptions.Parse(args);
                 if (executionMode == ExecutionMode.Maintenance)
                 {
@@ -111,7 +111,7 @@ namespace Particular.ServiceControl.Hosting
                 Help = true;
             }
         }
-        
+
         public void PrintUsage()
         {
             var helpText = String.Empty;
@@ -128,7 +128,7 @@ namespace Particular.ServiceControl.Hosting
                     }
                 }
             }
-            
+
             Console.Out.WriteLine(helpText);
         }
     }

@@ -10,7 +10,7 @@
     public class ServiceControlAppConfig : AppConfigWrapper
     {
         IServiceControlInstance details;
-        
+
         public ServiceControlAppConfig(IServiceControlInstance details) : base(Path.Combine(details.InstallPath, "ServiceControl.exe.config"))
         {
             this.details = details;
@@ -58,26 +58,26 @@
             settings.Set(SettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(SettingsList.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
 
-            // Add Settings for performance tuning 
+            // Add Settings for performance tuning
             // See https://github.com/Particular/ServiceControl/issues/655
             if (!settings.AllKeys.Contains("Raven/Esent/MaxVerPages"))
             {
                 settings.Add("Raven/Esent/MaxVerPages", "2048");
             }
             UpdateRuntimeSection();
-            
+
             Config.Save();
         }
 
         void UpdateRuntimeSection()
         {
-            
+
             var runtimesection = Config.GetSection("runtime");
             var runtimeXml = XDocument.Parse(runtimesection.SectionInformation.GetRawXml() ?? "<runtime/>");
 
             // Set gcServer Value if it does not exist
-            var gcServer = runtimeXml.Descendants("gcServer").SingleOrDefault();  
-            if (gcServer == null)  //So no config so we can set 
+            var gcServer = runtimeXml.Descendants("gcServer").SingleOrDefault();
+            if (gcServer == null)  //So no config so we can set
             {
                 gcServer = new XElement("gcServer");
                 gcServer.SetAttributeValue("enabled", "true");
@@ -88,7 +88,7 @@
                 }
             }
         }
-        
+
         public IEnumerable<string> RavenDataPaths()
         {
             string[] keys = {

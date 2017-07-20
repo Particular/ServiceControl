@@ -16,7 +16,7 @@
 
     class AdvanceOptionsViewModel : RxProgressScreen, IHandle<RefreshInstances>
     {
-        
+
         public AdvanceOptionsViewModel(ServiceControlInstance instance, IEventAggregator eventAggregator, StartServiceInMaintenanceModeCommand maintenanceModeCommand, DeleteInstanceCommand deleteInstanceCommand)
         {
             ServiceControlInstance = instance;
@@ -133,7 +133,7 @@
                 }
             }
         }
-        
+
         public bool IsStopped
         {
             get
@@ -178,6 +178,6 @@
             NotifyOfPropertyChange("InMaintenanceMode");
          }
 
-        
+
     }
 }

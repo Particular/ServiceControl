@@ -41,12 +41,12 @@
             var currentHeartbeatStatus = new HeartbeatStatusProvider();
             var hostId = Guid.NewGuid();
 
-            VerifyHeartbeatStats(currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails { Host = "Machine", Name = "NewEndpoint1" }), 0, 1); 
+            VerifyHeartbeatStats(currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails { Host = "Machine", Name = "NewEndpoint1" }), 0, 1);
             VerifyHeartbeatStats(currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint1" }, DateTime.UtcNow), 1, 0);
 
             var endpoint = currentHeartbeatStatus.GetPotentiallyFailedEndpoints(DateTime.UtcNow.AddDays(1)).SingleOrDefault();
 
-            
+
             Assert.AreEqual(hostId,endpoint.Details.HostId);
         }
 
@@ -64,7 +64,7 @@
             };
             currentHeartbeatStatus.RegisterNewEndpoint(endpoint);
             var stats = currentHeartbeatStatus.DisableMonitoring(endpoint);
-            
+
             VerifyHeartbeatStats(stats, 0, 0);
 
             //enable and make sure it counts again
@@ -103,14 +103,14 @@
             var hostId = Guid.NewGuid();
             var endpointWithNoHostId = new EndpointDetails
             {
-                Host = "Machine", 
+                Host = "Machine",
                 Name = "NewEndpoint"
             };
             currentHeartbeatStatus.RegisterNewEndpoint(endpointWithNoHostId);
             var endpointWithHostId = new EndpointDetails
             {
-                Host = "Machine", 
-                HostId = hostId, 
+                Host = "Machine",
+                HostId = hostId,
                 Name = "NewEndpoint"
             };
             var stats = currentHeartbeatStatus.RegisterHeartbeatingEndpoint(endpointWithHostId, DateTime.UtcNow);
@@ -151,14 +151,14 @@
 
             //unknown
             currentHeartbeatStatus.RegisterNewEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "InactiveEndpoint" });
-            
+
             //endpoint that has already failed
             currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "AlreadyFailedEndpoint" }, now);
             currentHeartbeatStatus.RegisterEndpointThatFailedToHeartbeat(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "AlreadyFailedEndpoint" });
-            
+
             //our failing one
             currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "FailingEndpoint" }, now);
-            
+
             //one that is outside the grace
             currentHeartbeatStatus.RegisterHeartbeatingEndpoint(new EndpointDetails { Host = "Machine", HostId = hostId, Name = "NewEndpoint2" }, now + gracePeriod);
 

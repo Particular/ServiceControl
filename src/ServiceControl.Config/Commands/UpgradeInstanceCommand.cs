@@ -40,12 +40,12 @@
                 windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact sales@particular.net", hideCancel: true);
                 return;
             }
-            
+
             var instance = ServiceControlInstance.FindByName(model.Name);
             instance.Service.Refresh();
 
             var upgradeOptions = new InstanceUpgradeOptions();
-            
+
             if (!instance.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
             {
                 var result  = windowManager.ShowYesNoCancelDialog("UPGRADE QUESTION - DISABLE ERROR FORWARDING", "Error messages can be forwarded to a secondary error queue known as the Error Forwarding Queue. This queue exists to allow external tools to receive error messages. If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled.", "So what do you want to do ?", "Do NOT forward", "Yes I want to forward");
@@ -57,7 +57,7 @@
                 }
                 upgradeOptions.OverrideEnableErrorForwarding = !result.Value;
             }
-            
+
             //Grab old setting if it exists
             if (!instance.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
             {
@@ -105,9 +105,9 @@
                         "Please specify the age at which these records should be removed",
                         TimeSpanUnits.Days,
                         SettingConstants.ErrorRetentionPeriodMinInDays,
-                        SettingConstants.ErrorRetentionPeriodMaxInDays, 
+                        SettingConstants.ErrorRetentionPeriodMaxInDays,
                         1,
-                        1, 
+                        1,
                         SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI);
 
                 if (windowManager.ShowSliderDialog(viewModel))
@@ -121,10 +121,10 @@
                     return;
                 }
             }
-            
+
             var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
                           windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", "Do you want to proceed?", "Yes I want to proceed", "No");
-            
+
             if (confirm)
             {
                 using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
@@ -137,7 +137,7 @@
                     if (!stopped)
                     {
                         eventAggregator.PublishOnUIThread(new RefreshInstances());
-                        
+
                         reportCard.Errors.Add("Failed to stop the service");
                         reportCard.SetStatus();
                         windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");

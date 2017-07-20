@@ -47,13 +47,13 @@
                     }
                 }
             }
-            catch 
+            catch
             {
                 // Give up and use default value
             }
 
             return defaultValue;
         }
-        
+
     }
 }

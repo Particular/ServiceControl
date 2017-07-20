@@ -24,7 +24,7 @@
 
         internal Func<IStartableBus> GetBus { get; set; }
 
-        internal Action StopBus { get; set; } 
+        internal Action StopBus { get; set; }
 
         public string EndpointName
         {

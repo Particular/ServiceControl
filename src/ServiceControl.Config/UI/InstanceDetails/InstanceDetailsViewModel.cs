@@ -189,7 +189,7 @@
             try
             {
                 progress = progress ?? this.GetProgressObject(String.Empty);
-                
+
                 // We need this one here in case the user stopped the service by other means
                 if (InMaintenanceMode)
                 {

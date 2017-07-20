@@ -9,7 +9,7 @@ namespace ServiceControlInstaller.PowerShell
         protected override void ProcessRecord()
         {
             var license = LicenseManager.FindLicense();
-            
+
             var p = new PSObject
             {
                 Properties =

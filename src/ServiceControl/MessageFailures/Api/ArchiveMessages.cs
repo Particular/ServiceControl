@@ -27,7 +27,7 @@
                 {
                     var request = new ArchiveMessage { FailedMessageId = id };
 
-                    Bus.SendLocal(request); 
+                    Bus.SendLocal(request);
                 }
 
                 return HttpStatusCode.Accepted;

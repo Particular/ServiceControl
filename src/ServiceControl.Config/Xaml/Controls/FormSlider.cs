@@ -21,7 +21,7 @@
             var slider = GetTemplateChild(SliderPartName) as Slider;
             var downButton = GetTemplateChild("PART_SliderDown") as Button;
             var upButton = GetTemplateChild("PART_SliderUp") as Button;
-            
+
             if (slider != null)
             {
                 if (downButton != null)

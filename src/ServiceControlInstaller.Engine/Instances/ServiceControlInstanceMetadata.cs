@@ -61,7 +61,7 @@ namespace ServiceControlInstaller.Engine.Instances
             var zipInfo = ServiceControlZipInfo.Find(appDirectory);
             Version = zipInfo.Version;
         }
-        
+
         public string Url
         {
             get
@@ -131,7 +131,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 FileUtils.CreateDirectoryAndSetAcl(DBPath, modifyAccessRule);
             }
 
-            // Mark these directories with a flag 
+            // Mark these directories with a flag
             // These flags indicate the directory is empty check can be ignored
             // We need this because if an install screws up and doesn't complete it is ok to overwrite on a subsequent attempt
             // First run will still the check
@@ -210,7 +210,7 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 instanceData = (ServiceControlInstanceMetadata) serializer.Deserialize(stream);
             }
-            
+
             var doc = new XmlDocument();
             doc.Load(path);
             if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)

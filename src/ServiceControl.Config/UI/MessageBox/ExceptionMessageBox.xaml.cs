@@ -17,7 +17,7 @@
 
         static ExceptionMessageBox()
         {
-      
+
         }
 
         public static void Attach()
@@ -56,7 +56,7 @@
             }
 
             var rootError = ex.GetBaseException();
-         
+
             ShowExceptionDialog(rootError);
         };
 
@@ -109,7 +109,6 @@
 
         async Task CallReportClick(object sender)
         {
-         
             ProgressTitle = "Processing";
             ProgressMessage = "Sending Exception Details...";
             InProgress = true;

@@ -14,7 +14,7 @@
         {
             PublishUpdate(StatusProvider.GetHeartbeatsStats());
         }
-        
+
         void PublishUpdate(HeartbeatsStats stats)
         {
             Bus.Publish(new HeartbeatsUpdated

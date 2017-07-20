@@ -42,7 +42,7 @@ namespace Particular.Licensing
 
             if (licenseType == null)
             {
-                licenseType = doc.SelectSingleNode("/license/@type");            
+                licenseType = doc.SelectSingleNode("/license/@type");
             }
 
             if (licenseType != null)

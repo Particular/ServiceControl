@@ -32,7 +32,7 @@
                 {"1.5.1", "{78E3CB24-D00A-4CC6-A7C2-CDB66231B8DA}"},
                 {"1.5.2", "{3AC40768-536F-4E2F-A2A4-E198E6FBA1E9}"},
                 {"1.5.3", "{8EFE762B-399A-4EB7-9C5E-AAB59EB73F98}"},
-                {"1.6.0", "{3260B961-C140-4BFC-9A54-583274405F43}"},                                      
+                {"1.6.0", "{3260B961-C140-4BFC-9A54-583274405F43}"},
                 {"1.6.1", "{FD225DAC-FE16-4634-9C80-C1F3533347B6}"},
                 {"1.6.2", "{164571BF-F42F-4492-9047-25101B0ABB87}"},
                 {"1.6.3", "{657CB451-3B6E-4266-90DF-F6C16A8AC2CE}"}
@@ -54,7 +54,7 @@
             {
                 if (installerKey == null)
                     return;
-                
+
                 logger.Info($"Found upgrade code for old version {UpgradeCode:B}");
                 foreach (var flippedProductCodeString in installerKey.GetValueNames())
                 {

@@ -10,6 +10,6 @@
 
     class CustomCheckDeleted : IEvent
     {
-        public Guid Id { get; set; }        
+        public Guid Id { get; set; }
     }
 }

@@ -115,7 +115,7 @@
             {
                 private readonly MyContext context;
                 bool executed;
-                
+
                 public FailingCustomCheck(MyContext context) : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5))
                 {
                     this.context = context;

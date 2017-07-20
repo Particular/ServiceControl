@@ -6,7 +6,7 @@ namespace ServiceControl.EventLog.Definitions
     {
         public MessagesSubmittedForRetryDefinition()
         {
-            Description(m => string.IsNullOrWhiteSpace(m.Context) 
+            Description(m => string.IsNullOrWhiteSpace(m.Context)
                 ? $"{m.NumberOfFailedMessages} failed message(s) submitted for retry."
                 : $"{m.Context} containing {m.NumberOfFailedMessages} message(s) submitted for retry."
                 );

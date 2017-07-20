@@ -94,6 +94,5 @@
 
         bool emptyPermutationFound;
 
-        
     }
 }

@@ -111,7 +111,7 @@ namespace ServiceControl.Config.Framework
             var result =  ShowOverlayDialog(viewModel);
             return result ?? false;
         }
-        
+
         public bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage = "", string warningsMessage = "")
         {
             var messageBox = reportCardViewModelFactory(reportcard);

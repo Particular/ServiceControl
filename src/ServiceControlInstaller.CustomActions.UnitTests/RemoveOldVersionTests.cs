@@ -3,7 +3,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class RemoveOldVersionTests 
+    public class RemoveOldVersionTests
     {
         [Test, Explicit]
         public void RunCleanup()

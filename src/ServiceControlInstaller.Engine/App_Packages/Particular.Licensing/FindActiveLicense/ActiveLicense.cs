@@ -19,7 +19,7 @@ namespace Particular.Licensing
 
             var licenseSourceResultToUse = LicenseSourceResult.DetermineBestLicenseSourceResult(results.ToArray());
             if (licenseSourceResultToUse != null)
-            { 
+            {
                 activeLicense.Report.Add($"Selected active license from {licenseSourceResultToUse.Location}");
                 var details = licenseSourceResultToUse.License;
                 if (details.ExpirationDate.HasValue)

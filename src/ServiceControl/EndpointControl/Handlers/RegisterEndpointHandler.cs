@@ -19,7 +19,7 @@
             var id = message.EndpointInstanceId;
 
             //Injecting store in this class because we want to know about ConcurrencyExceptions so that EndpointsCache.MarkAsProcessed is not called if the save fails.
-            using (var session = Store.OpenSession()) 
+            using (var session = Store.OpenSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
@@ -35,12 +35,12 @@
 
                     if (knownEndpoint == null)
                     {
-                        knownEndpoint = session.Query<KnownEndpoint, KnownEndpointIndex>().SingleOrDefault(e => e.HasTemporaryId && 
-                            e.EndpointDetails.Name == message.Endpoint.Name && 
+                        knownEndpoint = session.Query<KnownEndpoint, KnownEndpointIndex>().SingleOrDefault(e => e.HasTemporaryId &&
+                            e.EndpointDetails.Name == message.Endpoint.Name &&
                             e.EndpointDetails.Host == message.Endpoint.Host);
                     }
                 }
-               
+
                 if (knownEndpoint == null)
                 {
                     //new endpoint

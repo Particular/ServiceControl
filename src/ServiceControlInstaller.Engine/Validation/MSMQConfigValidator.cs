@@ -42,7 +42,7 @@
                 new MSMQComponent{Name = "msmq_RoutingInstalled", DisplayName = "MSMQ Routing"},
                 new MSMQComponent{Name = "msmq_TriggersInstalled", DisplayName = "MSMQ Triggers"},
             };
-            
+
             string[] valueNames;
 
             var regView = Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Default;
@@ -55,7 +55,7 @@
                 }
                valueNames = msmqkey.GetValueNames();
             }
-            
+
             var componentsToRemove = undesirableMsmqComponents.Where(undesirableComponent => valueNames.Contains(undesirableComponent.Name, StringComparer.OrdinalIgnoreCase)).Select(p => p.DisplayName).ToArray();
             if (componentsToRemove.Length > 0)
             {

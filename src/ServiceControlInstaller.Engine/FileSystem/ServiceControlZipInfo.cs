@@ -92,7 +92,7 @@
                 }
             }
         }
-        
+
         class AssemblyReleaseDateReader : MarshalByRefObject
         {
             internal DateTime GetReleaseDate(string assemblyPath)

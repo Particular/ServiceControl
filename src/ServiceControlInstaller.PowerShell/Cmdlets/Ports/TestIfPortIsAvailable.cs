@@ -12,7 +12,7 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateRange(1, 65535)]
         [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the port number to test")]
         public int[] Port  { get; set; }
-        
+
         protected override void ProcessRecord()
         {
             foreach (var port in Port)
@@ -29,7 +29,7 @@ namespace ServiceControlInstaller.PowerShell
                 {
                     WriteError(new ErrorRecord(ex, null, ErrorCategory.InvalidOperation, port));
                 }
-            }       
+            }
         }
     }
 }

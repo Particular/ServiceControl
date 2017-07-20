@@ -38,7 +38,6 @@
                       TestAndSetCreds(CredentialCache.DefaultNetworkCredentials);
                 Version = GetVersion();
             });
-            
         }
 
         bool TestAndSetCreds(ICredentials credentials)

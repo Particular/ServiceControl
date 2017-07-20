@@ -5,7 +5,7 @@
     using global::ServiceControl.Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
-    
+
     class LicenseCheckFeature : Feature
     {
         public LicenseCheckFeature()
@@ -13,7 +13,7 @@
             EnableByDefault();
             RegisterStartupTask<LicenseCheckFeatureStartup>();
         }
-        
+
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.Container.ConfigureComponent<ActiveLicense>(DependencyLifecycle.SingleInstance);

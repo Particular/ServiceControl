@@ -61,7 +61,7 @@
             Assert.AreEqual(0, summary.NumberOfMessagesForwarded);
             Assert.AreEqual(1000, summary.TotalNumberOfMessages);
         }
-        
+
         [Test]
         public void Batch_forwarded_should_set_forwarding_state()
         {
@@ -89,7 +89,7 @@
             Assert.AreEqual(1000, summary.NumberOfMessagesForwarded);
             Assert.AreEqual(1000, summary.TotalNumberOfMessages);
         }
-        
+
         [Test]
         public void Skip_should_set_update_skipped_messages()
         {
@@ -126,7 +126,7 @@
             summary.Skip(1000);
             summary.Forwarding();
             summary.BatchForwarded(1000);
-            
+
             Assert.AreEqual(RetryState.Completed, summary.RetryState);
             Assert.AreEqual(1000, summary.NumberOfMessagesForwarded);
             Assert.AreEqual(1000, summary.NumberOfMessagesSkipped);

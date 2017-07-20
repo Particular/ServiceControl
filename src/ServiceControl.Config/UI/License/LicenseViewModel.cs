@@ -45,7 +45,7 @@
             var details = new Dictionary<string, string>();
             LicenseWarning = null;
             license = LicenseManager.FindLicense();
-            
+
             details.Add("License Type:", license.Details.IsTrialLicense ? "Trial License" : license.Details.LicenseType);
             if (!license.Details.IsTrialLicense)
             {

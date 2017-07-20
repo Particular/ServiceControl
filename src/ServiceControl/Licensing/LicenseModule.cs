@@ -17,7 +17,7 @@
                 {
                     ActiveLicense.Refresh();
                 }
-            
+
                 var licenseInfo = new LicenseInfo
                 {
                     TrialLicense = ActiveLicense.Details.IsTrialLicense,

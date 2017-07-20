@@ -17,17 +17,17 @@
 
         public void OnEndpointShutdown(string endpointName)
         {
-            
+
         }
 
         public void TearDown()
         {
-            
+
         }
 
         public void Setup()
         {
-            
+
         }
     }
 }

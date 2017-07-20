@@ -21,7 +21,7 @@ namespace ServiceControlInstaller.PowerShell
         {
             foreach (var entry in UrlAcl)
             {
-                UrlReservation.Delete(entry);    
+                UrlReservation.Delete(entry);
             }
         }
     }

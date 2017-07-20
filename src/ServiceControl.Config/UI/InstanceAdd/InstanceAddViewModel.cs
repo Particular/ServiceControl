@@ -44,7 +44,7 @@
             AuditRetention = SettingConstants.AuditRetentionPeriodDefaultInHoursForUI;
             ErrorRetention = SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI;
             Description = "A ServiceControl Instance";
-            HostName = "localhost"; 
+            HostName = "localhost";
             AuditQueueName = "audit";
             AuditForwardingQueueName = "audit.log";
             ErrorQueueName = "error";
@@ -58,7 +58,7 @@
 
         public string DatabasePath { get; set; }
         public ICommand SelectDatabasePath { get; private set; }
-        
+
         protected override void OnInstanceNameChanged()
         {
             DestinationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Particular Software", InstanceName);
@@ -81,7 +81,7 @@
 
         public bool ShowAuditForwardingQueue => AuditForwarding?.Value ?? false;
         public bool ShowErrorForwardingQueue => ErrorForwarding?.Value ?? false;
-                    
+
         TransportInfo selectedTransport;
 
         [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]

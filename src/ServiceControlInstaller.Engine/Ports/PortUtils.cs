@@ -14,9 +14,8 @@
             }
 
             var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
-            return (ipGlobalProperties.GetActiveTcpListeners().All(p => p.Port != portNumber) &&
-                            ipGlobalProperties.GetActiveTcpConnections().All(p => p.LocalEndPoint.Port != portNumber));
-            
+            return ipGlobalProperties.GetActiveTcpListeners().All(p => p.Port != portNumber) &&
+                   ipGlobalProperties.GetActiveTcpConnections().All(p => p.LocalEndPoint.Port != portNumber);
         }
     }
 }

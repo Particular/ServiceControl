@@ -7,7 +7,7 @@
     public static class DomainEvents
     {
         public static IContainer Container { get; set; }
-        
+
         public static void Raise<T>(T domainEvent) where T : IEvent
         {
             if (Container == null)
@@ -30,7 +30,7 @@
             }
         }
     }
-    
+
     public interface IDomainHandler<in T> where T : IEvent
     {
         void Handle(T domainEvent);

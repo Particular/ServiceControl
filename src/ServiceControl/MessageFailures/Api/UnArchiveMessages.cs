@@ -27,7 +27,7 @@
 
                 var request = new InternalMessages.UnArchiveMessages { FailedMessageIds = ids };
 
-                Bus.SendLocal(request); 
+                Bus.SendLocal(request);
 
                 return HttpStatusCode.Accepted;
             };

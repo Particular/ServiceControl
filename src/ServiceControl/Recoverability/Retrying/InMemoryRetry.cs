@@ -13,7 +13,7 @@
             this.requestId = requestId;
             this.retryType = retryType;
         }
-        
+
         public int TotalNumberOfMessages { get; private set; }
         public int NumberOfMessagesPrepared { get; private set; }
         public int NumberOfMessagesForwarded { get; private set; }
@@ -47,7 +47,7 @@
             Failed = false;
             Last = last;
             Classifier = classifier;
-            
+
             DomainEvents.Raise(new RetryOperationWaiting
             {
                 RequestId = requestId,
@@ -69,7 +69,7 @@
             NumberOfMessagesForwarded = 0;
             NumberOfMessagesPrepared = 0;
 
-            DomainEvents.Raise(new RetryOperationPreparing 
+            DomainEvents.Raise(new RetryOperationPreparing
             {
                 RequestId = requestId,
                 RetryType = retryType,
@@ -133,7 +133,7 @@
                 IsFailed = Failed,
                 StartTime = Started,
             });
-            
+
             CheckForCompletion();
         }
 
@@ -176,15 +176,15 @@
                     Context = Originator
                 });
             }
-                
+
             Log.Info($"Retry operation {requestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");
         }
-        
+
         public RetryProgress GetProgress()
         {
             var percentage = OperationProgressCalculator.CalculateProgress(TotalNumberOfMessages, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, RetryState);
             var roundedPercentage = Math.Round(percentage, 2);
-            
+
             var remaining = TotalNumberOfMessages - (NumberOfMessagesForwarded + NumberOfMessagesSkipped);
 
             return new RetryProgress(roundedPercentage, NumberOfMessagesPrepared, NumberOfMessagesForwarded, NumberOfMessagesSkipped, remaining);

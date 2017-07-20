@@ -22,7 +22,7 @@
                 EnclosedMessageType = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
                 IncludeControlMessageHeader = false,
             };
-            
+
             MessagesView auditMessage = null;
             Define(context)
                 .WithEndpoint<ServerEndpoint>()
@@ -180,6 +180,6 @@
             public string EnclosedMessageType { get; set; }
             public bool QueryForMessages { get; set; }
         }
- 
+
     }
 }

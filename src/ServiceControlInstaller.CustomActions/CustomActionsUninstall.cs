@@ -36,7 +36,7 @@
             {
                 return ActionResult.Success;
             }
-            
+
             var unattendedInstaller = new UnattendInstaller(logger, session["APPDIR"]);
             foreach (var instance in ServiceControlInstance.Instances())
             {

@@ -71,7 +71,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                     transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
                     transportMessage.Headers["NServiceBus.FailedQ"] = settings.LocalAddress().ToString();
                     transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
-                    
+
                     sendMessages.Send(transportMessage, new SendOptions("error"));
                 }
 

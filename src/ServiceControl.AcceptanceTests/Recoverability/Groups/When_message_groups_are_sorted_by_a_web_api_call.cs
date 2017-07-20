@@ -148,7 +148,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
         public class MyContext : ScenarioContext
         {
-            
+
         }
     }
 }

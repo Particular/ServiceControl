@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Config.Extensions
 {
     using System;
-    
+
     static class StringExtensions
     {
         public static string TruncateSentence(this string value, int maxLength)

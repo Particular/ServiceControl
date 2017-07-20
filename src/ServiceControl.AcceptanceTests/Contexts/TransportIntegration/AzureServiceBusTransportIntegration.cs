@@ -31,7 +31,7 @@
 
         public void Setup()
         {
-            
+
         }
 
         class MyConfig : IProvideConfiguration<AzureServiceBusQueueConfig>

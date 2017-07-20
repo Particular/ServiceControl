@@ -156,7 +156,7 @@ namespace ServiceControl.Recoverability
             {
                 return false;
             }
-            
+
             ProcessRequest(request);
             return true;
         }

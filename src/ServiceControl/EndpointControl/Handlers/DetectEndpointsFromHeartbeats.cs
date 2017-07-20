@@ -6,7 +6,7 @@
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.Contracts.HeartbeatMonitoring;
 
-    class DetectEndpointsFromHeartbeats : 
+    class DetectEndpointsFromHeartbeats :
         IHandleMessages<HeartbeatingEndpointDetected>,
         IHandleMessages<EndpointHeartbeatRestored>
     {

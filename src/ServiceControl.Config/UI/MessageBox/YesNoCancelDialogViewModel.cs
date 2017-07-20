@@ -4,7 +4,7 @@ namespace ServiceControl.Config.UI.MessageBox
     using Caliburn.Micro;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Rx;
-    
+
     class YesNoCancelViewModel : RxScreen
     {
         public YesNoCancelViewModel(string title, string message, string question, string yesText, string noText)

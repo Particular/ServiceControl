@@ -4,6 +4,6 @@ namespace ServiceControl.Contracts.HeartbeatMonitoring
 
     public class HeartbeatMonitoringEnabled : HeartbeatStatusChanged
     {
-        public Guid EndpointInstanceId { get; set; } 
+        public Guid EndpointInstanceId { get; set; }
     }
 }

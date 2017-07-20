@@ -37,7 +37,7 @@
         {
             Cleanup();
         }
-        
+
         void Cleanup()
         {
             var dir = new DirectoryInfo(Path.GetTempPath());
