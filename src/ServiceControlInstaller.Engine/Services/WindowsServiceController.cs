@@ -105,7 +105,7 @@ namespace ServiceControlInstaller.Engine.Services
                 var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                 if (wmiReturnCode != 0)
                 {
-                    var message = (wmiReturnCode < Win32ChangeErrorMessages.Length)
+                    var message = wmiReturnCode < Win32ChangeErrorMessages.Length
                         ? $"Failed to change service credentials on service {ServiceName} - {Win32ChangeErrorMessages[wmiReturnCode]}"
                         : "An unknown error occurred";
 
@@ -145,7 +145,7 @@ namespace ServiceControlInstaller.Engine.Services
                 var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                 if (wmiReturnCode != 0)
                 {
-                    var message = (wmiReturnCode < Win32ChangeErrorMessages.Length)
+                    var message = wmiReturnCode < Win32ChangeErrorMessages.Length
                         ? $"Failed to create service to {serviceInfo.Name} - {Win32ServiceErrorMessages[wmiReturnCode]}"
                         : "An unknown error occurred";
 
@@ -197,7 +197,7 @@ namespace ServiceControlInstaller.Engine.Services
             using (var classInstance = new ManagementObject(@"\\.\root\cimv2", $"Win32_Service.Name='{ServiceName}'", null))
             using (var outParams = classInstance.InvokeMethod("Delete", null, null))
             {
-                if ((outParams == null) || (Convert.ToInt32(outParams["ReturnValue"]) != 0))
+                if (outParams == null || Convert.ToInt32(outParams["ReturnValue"]) != 0)
                 {
                     throw new ManagementException($"Failed to delete service to {ServiceName}");
                 }

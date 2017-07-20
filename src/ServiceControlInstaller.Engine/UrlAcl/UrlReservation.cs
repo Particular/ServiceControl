@@ -31,11 +31,11 @@
             var matchResults = urlPattern.Match(url);
             if (matchResults.Success)
             {
-                HTTPS = (matchResults.Groups["protocol"].Value.Equals("https", StringComparison.OrdinalIgnoreCase));
+                HTTPS = matchResults.Groups["protocol"].Value.Equals("https", StringComparison.OrdinalIgnoreCase);
                 HostName = matchResults.Groups["hostname"].Value;
                 if (String.IsNullOrEmpty(matchResults.Groups["port"].Value))
                 {
-                    Port = (HTTPS) ? 443 : 80;
+                    Port = HTTPS ? 443 : 80;
                 }
                 else
                 {
@@ -113,7 +113,7 @@
                 while (retVal == 0)
                 {
                     inputConfigInfoSet.Token = (uint)i;
-                    var pInputConfigInfo = Marshal.AllocHGlobal((Marshal.SizeOf(typeof(HttpServiceConfigUrlAclQuery))));
+                    var pInputConfigInfo = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(HttpServiceConfigUrlAclQuery)));
                     Marshal.StructureToPtr(inputConfigInfoSet, pInputConfigInfo, false);
 
                     var pOutputConfigInfo = Marshal.AllocHGlobal(0);

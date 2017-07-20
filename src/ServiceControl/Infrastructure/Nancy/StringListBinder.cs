@@ -76,7 +76,7 @@
 
             var bodyDeserializedModel = DeserializeRequestBody(bindingContext);
 
-            return (instance as IEnumerable<string>) ?? bodyDeserializedModel;
+            return instance as IEnumerable<string> ?? bodyDeserializedModel;
         }
 
         private BindingContext CreateBindingContext(NancyContext context, Type modelType, object instance,
@@ -186,7 +186,7 @@
             var contentType =
                 context.Request.Headers.ContentType;
 
-            return (string.IsNullOrEmpty(contentType))
+            return string.IsNullOrEmpty(contentType)
                 ? string.Empty
                 : contentType;
         }

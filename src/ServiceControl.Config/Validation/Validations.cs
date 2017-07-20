@@ -37,7 +37,7 @@
                 int result;
                 if (int.TryParse(port, out result))
                 {
-                    return (result >= 1 && result <= 49151);
+                    return result >= 1 && result <= 49151;
                 }
 
                 return false;

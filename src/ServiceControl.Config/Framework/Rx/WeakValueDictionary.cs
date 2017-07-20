@@ -149,7 +149,7 @@ namespace ServiceControl.Config.Framework.Rx
                 throw new ArgumentNullException(nameof(array));
             if (arrayIndex < 0 || arrayIndex >= array.Length)
                 throw new ArgumentOutOfRangeException(nameof(arrayIndex));
-            if ((arrayIndex + Count) > array.Length)
+            if (arrayIndex + Count > array.Length)
                 throw new ArgumentException(
                     "The number of elements in the source collection is greater than the available space from arrayIndex to the end of the destination array.");
 
@@ -326,7 +326,7 @@ namespace ServiceControl.Config.Framework.Rx
                     throw new ArgumentNullException(nameof(array));
                 if (arrayIndex < 0 || arrayIndex >= array.Length)
                     throw new ArgumentOutOfRangeException(nameof(arrayIndex));
-                if ((arrayIndex + Count) > array.Length)
+                if (arrayIndex + Count > array.Length)
                     throw new ArgumentException(
                         "The number of elements in the source collection is greater than the available space from arrayIndex to the end of the destination array.");
 

@@ -99,7 +99,7 @@
             }
             else
             {
-                var account = (accountName.StartsWith(@".\")) ?  new NTAccount(accountName.Remove(0,2)) :  new NTAccount(accountName);
+                var account = accountName.StartsWith(@".\") ?  new NTAccount(accountName.Remove(0,2)) :  new NTAccount(accountName);
                 userAccount.SID = (SecurityIdentifier) account.Translate(typeof(SecurityIdentifier));
             }
 

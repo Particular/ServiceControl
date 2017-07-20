@@ -71,10 +71,10 @@
         public ForwardingOption ErrorForwarding { get; set; }
 
         [AlsoNotifyFor("AuditForwarding")]
-        public string AuditForwardingWarning => (AuditForwarding != null && AuditForwarding.Value) ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
+        public string AuditForwardingWarning => AuditForwarding != null && AuditForwarding.Value ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
 
         [AlsoNotifyFor("ErrorForwarding")]
-        public string ErrorForwardingWarning => (ErrorForwarding != null && ErrorForwarding.Value) ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
+        public string ErrorForwardingWarning => ErrorForwarding != null && ErrorForwarding.Value ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
 
         public bool ShowErrorForwardingCombo => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom;
         public int ErrorForwardingQueueColumn => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom ? 1 : 0;

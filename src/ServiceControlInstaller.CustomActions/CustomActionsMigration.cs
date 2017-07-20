@@ -74,7 +74,7 @@
                         bool keyExists;
                         using (var productKey = Registry.LocalMachine.OpenSubKey(regkey))
                         {
-                            keyExists = (productKey != null);
+                            keyExists = productKey != null;
                         }
 
                         if (keyExists)
@@ -106,7 +106,7 @@
                                     bool descriptiveUninstallPresent;
                                     using (var descriptiveUninstallkey = wowRegistryRoot.OpenSubKey(descriptiveUninstallKeyPath))
                                     {
-                                        descriptiveUninstallPresent = (descriptiveUninstallkey != null);
+                                        descriptiveUninstallPresent = descriptiveUninstallkey != null;
                                     }
                                     if (descriptiveUninstallPresent)
                                     {

@@ -22,7 +22,7 @@
 
             url = FixUrlOn64bitSystem(url);
 
-            return !uri.IsFile || (File.Exists(url) || Directory.Exists(url));
+            return !uri.IsFile || File.Exists(url) || Directory.Exists(url);
         }
 
         static string FixUrlOn64bitSystem(string url)

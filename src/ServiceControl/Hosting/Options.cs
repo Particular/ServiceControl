@@ -397,8 +397,8 @@ namespace Particular.ServiceControl.Hosting
                     nameof(maxValueCount));
             }
             if (Array.IndexOf(Names, "<>") >= 0 &&
-                ((Names.Length == 1 && OptionValueType != OptionValueType.None) ||
-                 (Names.Length > 1 && MaxValueCount > 1)))
+                (Names.Length == 1 && OptionValueType != OptionValueType.None ||
+                 Names.Length > 1 && MaxValueCount > 1))
             {
                 throw new ArgumentException(
                     "The default option handler '<>' cannot require values.",
@@ -1007,7 +1007,7 @@ namespace Particular.ServiceControl.Hosting
         {
             string rn;
             if (n.Length >= 1 && (n[n.Length - 1] == '+' || n[n.Length - 1] == '-') &&
-                Contains((rn = n.Substring(0, n.Length - 1))))
+                Contains(rn = n.Substring(0, n.Length - 1)))
             {
                 var p = this[rn];
                 var v = n[n.Length - 1] == '+' ? option : null;
@@ -1238,7 +1238,7 @@ namespace Particular.ServiceControl.Hosting
                     case '}':
                         if (start < 0)
                         {
-                            if ((i + 1) == description.Length || description[i + 1] != '}')
+                            if (i + 1 == description.Length || description[i + 1] != '}')
                             {
                                 throw new InvalidOperationException("Invalid option description: " + description);
                             }
@@ -1286,7 +1286,7 @@ namespace Particular.ServiceControl.Hosting
                 if (end < description.Length)
                 {
                     var c = description[end];
-                    if (c == '-' || (char.IsWhiteSpace(c) && c != '\n'))
+                    if (c == '-' || char.IsWhiteSpace(c) && c != '\n')
                     {
                         ++end;
                     }

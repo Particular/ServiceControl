@@ -25,8 +25,8 @@
 
             return contentMimeType.Equals("application/json", StringComparison.InvariantCultureIgnoreCase) ||
                    contentMimeType.Equals("text/json", StringComparison.InvariantCultureIgnoreCase) ||
-                   (contentMimeType.StartsWith("application/vnd", StringComparison.InvariantCultureIgnoreCase) &&
-                    contentMimeType.EndsWith("+json", StringComparison.InvariantCultureIgnoreCase));
+                   contentMimeType.StartsWith("application/vnd", StringComparison.InvariantCultureIgnoreCase) &&
+                   contentMimeType.EndsWith("+json", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

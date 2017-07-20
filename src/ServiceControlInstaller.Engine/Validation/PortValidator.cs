@@ -6,7 +6,7 @@
     {
         public static void Validate(IContainPort instance)
         {
-            if ((1 > instance.Port) || (49151 < instance.Port))
+            if (1 > instance.Port || 49151 < instance.Port)
             {
                 throw new EngineValidationException("Port number is not between 1 and 65535");
             }

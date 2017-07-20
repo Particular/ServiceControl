@@ -112,7 +112,7 @@
         {
             get
             {
-                if ((expirationProcessTimerInSeconds < 0) || (expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds))
+                if (expirationProcessTimerInSeconds < 0 || expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
                 {
                     logger.Error($"ExpirationProcessTimerInSeconds settings is invalid, the valid range is 0 to {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
                     return ExpirationProcessTimerInSecondsDefault;

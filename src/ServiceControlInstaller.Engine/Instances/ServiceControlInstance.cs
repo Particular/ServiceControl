@@ -286,7 +286,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         string DefaultDBPath()
         {
-            var host = (HostName == "*") ? "%" : HostName;
+            var host = HostName == "*" ? "%" : HostName;
             var dbFolder = $"{host}-{Port}";
             if (!string.IsNullOrEmpty(VirtualDirectory))
             {
@@ -532,7 +532,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 if (Service.ExePath != null)
                 {
                     var process = Process.GetProcesses().FirstOrDefault(p => p.MainModule.FileName == Service.ExePath);
-                    return (process == null);
+                    return process == null;
                 }
             }
             catch

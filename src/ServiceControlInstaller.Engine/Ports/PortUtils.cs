@@ -8,7 +8,7 @@
     {
         public static bool CheckAvailable(int portNumber)
         {
-            if ((1 > portNumber) || (49151 < portNumber))
+            if (1 > portNumber || 49151 < portNumber)
             {
                 throw new ArgumentOutOfRangeException(nameof(portNumber),"Port number is not between 1 and 49151");
             }

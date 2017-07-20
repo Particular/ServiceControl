@@ -299,8 +299,8 @@ namespace ServiceControlInstaller.Engine.Instances
             foreach (var reservation in UrlReservation.GetAll().Where(p => p.Port == Port))
             {
                 // exclusive or of reservation and instance - if only one of them has "localhost" then the UrlAcl will clash
-                if ((reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && !HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase)) ||
-                    (!reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase)))
+                if (reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && !HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
+                    !reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new EngineValidationException($"Conflicting UrlAcls found - {Url} vs {reservation.Url}");
                 }

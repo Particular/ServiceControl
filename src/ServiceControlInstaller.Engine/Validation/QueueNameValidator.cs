@@ -101,7 +101,7 @@
                 allQueues.AddRange(new QueueNameValidator(instance).queues);
             }
 
-            var duplicates = (from queue in queues where allQueues.Any(p => (string.Equals(p.ConnectionString, queue.ConnectionString, StringComparison.OrdinalIgnoreCase)) && (string.Equals(p.QueueName, queue.QueueName, StringComparison.OrdinalIgnoreCase))) select queue.PropertyName).ToList();
+            var duplicates = (from queue in queues where allQueues.Any(p => string.Equals(p.ConnectionString, queue.ConnectionString, StringComparison.OrdinalIgnoreCase) && string.Equals(p.QueueName, queue.QueueName, StringComparison.OrdinalIgnoreCase)) select queue.PropertyName).ToList();
 
             if (duplicates.Count == 1)
             {

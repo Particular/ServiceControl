@@ -18,8 +18,8 @@
 
         public void SetResult(bool showSuccess)
         {
-            Title = (showSuccess) ? "FEEDBACK SENT SUCCESSFULLY" : "SEND FEEDBACK FAILED";
-            Message = (showSuccess) ? "Thanks for sharing your feedback" : "Failed to send feedback";
+            Title = showSuccess ? "FEEDBACK SENT SUCCESSFULLY" : "SEND FEEDBACK FAILED";
+            Message = showSuccess ? "Thanks for sharing your feedback" : "Failed to send feedback";
         }
     }
 }
