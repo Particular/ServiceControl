@@ -17,13 +17,13 @@
             this.failedEnrichers = failedEnrichers;
         }
 
-        public List<FailedMessage.FailureGroup> GetGroups(string messageType, FailureDetails failureDetails)
+        public List<FailedMessage.FailureGroup> GetGroups(string messageType, FailureDetails failureDetails, FailedMessage.ProcessingAttempt processingAttempt)
         {
             var groups = new List<FailedMessage.FailureGroup>();
 
             foreach (var enricher in failedEnrichers)
             {
-                groups.AddRange(enricher.Enrich(messageType, failureDetails));
+                groups.AddRange(enricher.Enrich(messageType, failureDetails, processingAttempt));
             }
             return groups;
         }
