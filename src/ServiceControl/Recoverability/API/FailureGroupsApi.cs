@@ -29,7 +29,10 @@ namespace ServiceControl.Recoverability
 
             Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}"] =
                 parameters => GetAllGroups(parameters.Classifier);
-            
+
+            Get["/recoverability/groups/{classifier}/{endpointName}"] =
+                parameters => GetAllGroups(parameters.Classifier, parameters.EndpointName);
+
             Get["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrors(parameters.GroupId);
 
@@ -73,16 +76,16 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        dynamic GetAllGroups(string classifier)
+        dynamic GetAllGroups(string classifier, string classifierFilter = null)
         {
             using (var session = Store.OpenSession())
             {
-                var results = GroupFetcher.GetGroups(session, classifier);
+                var results = GroupFetcher.GetGroups(session, classifier, classifierFilter);
                 return Negotiate.WithModel(results)
                     .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
             }
         }
-       
+
         dynamic GetGroupErrors(string groupId)
         {
             using (var session = Store.OpenSession())

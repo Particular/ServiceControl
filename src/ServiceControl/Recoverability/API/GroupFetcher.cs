@@ -15,9 +15,9 @@
             this.archivingManager = archivingManager;
         }
 
-        public GroupOperation[] GetGroups(IDocumentSession session, string classifier)
+        public GroupOperation[] GetGroups(IDocumentSession session, string classifier, string classifierFilter)
         {
-            var dbGroups = GetDBGroups(classifier, session);
+            var dbGroups = GetDBGroups(session, classifier, classifierFilter);
 
             var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
             var unacknowledgedRetries = retryHistory.GetUnacknowledgedByClassifier(classifier);
@@ -62,14 +62,19 @@
                     select unack).ToArray();
         }
 
-        private static FailureGroupView[] GetDBGroups(string classifier, IDocumentSession session)
+        private static FailureGroupView[] GetDBGroups(IDocumentSession session, string classifier, string classifierFilter)
         {
             var groups = session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                .Where(v => v.Type == classifier)
-                .OrderByDescending(x => x.Last)
+                .Where(v => v.Type == classifier);
+
+            if (!string.IsNullOrWhiteSpace(classifierFilter))
+            {
+                groups = groups.Where(v => v.Title == classifierFilter);
+            }
+
+            return groups.OrderByDescending(x => x.Last)
                 .Take(200)
                 .ToArray();
-            return groups;
         }
 
         private static bool IsCurrentForwardingOperationIncluded(List<GroupOperation> open, RetryBatch forwardingBatch)
