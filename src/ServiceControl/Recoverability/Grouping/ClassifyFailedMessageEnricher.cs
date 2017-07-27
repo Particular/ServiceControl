@@ -15,9 +15,9 @@ namespace ServiceControl.Recoverability
             this.classifiers = classifiers.ToArray();
         }
 
-        public IEnumerable<FailedMessage.FailureGroup> Enrich(string messageType, FailureDetails failureDetails)
+        public IEnumerable<FailedMessage.FailureGroup> Enrich(string messageType, FailureDetails failureDetails, FailedMessage.ProcessingAttempt processingAttempt)
         {
-            var details = new ClassifiableMessageDetails(messageType, failureDetails);
+            var details = new ClassifiableMessageDetails(messageType, failureDetails, processingAttempt);
 
             foreach (var classifier in classifiers)
             {

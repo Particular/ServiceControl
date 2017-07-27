@@ -69,6 +69,7 @@ namespace ServiceControl.Recoverability
                         .Where(f => f.Status == FailedMessageStatus.Unresolved);
 
                     var currentBatch = new List<Tuple<string, ClassifiableMessageDetails>>();
+                    var totalMessagesReclassified = 0;
 
                     using (var stream = session.Advanced.Stream(query.As<FailedMessage>()))
                     {
@@ -80,6 +81,9 @@ namespace ServiceControl.Recoverability
                             {
                                 ReclassifyBatch(currentBatch);
                                 currentBatch.Clear();
+
+                                totalMessagesReclassified += BatchSize;
+                                logger.Info($"Reclassification of batch of {BatchSize} failed messages completed. Total messages reclassified: {totalMessagesReclassified}");
                             }
                         }
                     }
