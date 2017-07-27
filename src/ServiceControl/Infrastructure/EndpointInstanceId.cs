@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl
 {
     using System.Collections.Generic;
-    using NServiceBus;
     using ServiceControl.Contracts.Operations;
 
     public class EndpointInstanceId
@@ -27,7 +26,7 @@
         {
             var details = EndpointDetailsParser.ReceivingEndpoint(headers);
 
-            string instanceId = null;
+            string instanceId;
             headers.TryGetValue("NServiceBus.Metric.InstanceId", out instanceId);
 
             return new EndpointInstanceId(details.Name, instanceId ?? details.HostId.ToString(), details.Host);
