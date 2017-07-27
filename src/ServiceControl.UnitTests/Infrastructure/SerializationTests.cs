@@ -27,7 +27,7 @@
                 Assert.AreEqual(expected, Encoding.Default.GetString(stream.ToArray()));
             }
         }
-        
+
         private DTO CreateMessages()
         {
             return new DTO

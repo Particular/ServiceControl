@@ -6,7 +6,7 @@
 
     public class FeedBackNoticeViewModel : RxScreen
     {
-        public ICommand OpenUrl { get; private set; }
+        public ICommand OpenUrl { get; }
 
         public FeedBackNoticeViewModel()
         {

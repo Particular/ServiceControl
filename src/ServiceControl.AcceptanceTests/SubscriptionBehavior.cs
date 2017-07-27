@@ -12,7 +12,7 @@
         public static void OnEndpointSubscribed(this BusConfiguration b, Action<SubscriptionEventArgs> action)
         {
             b.Pipeline.Register<SubscriptionBehavior.Registration>();
-            
+
             b.RegisterComponents(c => c.ConfigureComponent(builder => new SubscriptionBehavior(action), DependencyLifecycle.InstancePerCall));
         }
     }

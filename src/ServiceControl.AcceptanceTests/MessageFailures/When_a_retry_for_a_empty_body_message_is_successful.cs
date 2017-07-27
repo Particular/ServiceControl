@@ -30,7 +30,7 @@
                     if (!c.RetryIssued && GetFailedMessage(c, out failure))
                     {
                         IssueRetry(c, () => Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
-                           
+
                         return false;
                     }
 
@@ -119,7 +119,7 @@
 
                 public void Stop()
                 {
-                    
+
                 }
             }
 

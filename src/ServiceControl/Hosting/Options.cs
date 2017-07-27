@@ -16,10 +16,10 @@
 // distribute, sublicense, and/or sell copies of the Software, and to
 // permit persons to whom the Software is furnished to do so, subject to
 // the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -40,16 +40,16 @@
 // A Getopt::Long-inspired option parsing library for C#.
 //
 // NDesk.Options.OptionSet is built upon a key/value table, where the
-// key is a option format string and the value is a delegate that is 
+// key is a option format string and the value is a delegate that is
 // invoked when the format string is matched.
 //
 // Option format strings:
-//  Regex-like BNF Grammar: 
+//  Regex-like BNF Grammar:
 //    name: .+
 //    type: [=:]
 //    sep: ( [^{}]+ | '{' .+ '}' )?
 //    aliases: ( name type sep ) ( '|' name type sep )*
-// 
+//
 // Each '|'-delimited name is an alias for the associated action.  If the
 // format string ends in a '=', it has a required value.  If the format
 // string ends in a ':', it has an optional value.  If neither '=' or ':'
@@ -95,7 +95,7 @@
 //  p.Parse (new string[]{"-v", "--v", "/v", "-name=A", "/name", "B", "extra"});
 //
 // The above would parse the argument string array, and would invoke the
-// lambda expression three times, setting `verbose' to 3 when complete.  
+// lambda expression three times, setting `verbose' to 3 when complete.
 // It would also print out "A" and "B" to standard output.
 // The returned array would contain the string "extra".
 //
@@ -397,8 +397,8 @@ namespace Particular.ServiceControl.Hosting
                     nameof(maxValueCount));
             }
             if (Array.IndexOf(Names, "<>") >= 0 &&
-                ((Names.Length == 1 && OptionValueType != OptionValueType.None) ||
-                 (Names.Length > 1 && MaxValueCount > 1)))
+                (Names.Length == 1 && OptionValueType != OptionValueType.None ||
+                 Names.Length > 1 && MaxValueCount > 1))
             {
                 throw new ArgumentException(
                     "The default option handler '<>' cannot require values.",
@@ -840,18 +840,18 @@ namespace Particular.ServiceControl.Hosting
 			OptionContext c = CreateOptionContext ();
 			c.OptionIndex = -1;
 			var def = GetOptionForName ("<>");
-			var unprocessed = 
+			var unprocessed =
 				from argument in arguments
 				where ++c.OptionIndex >= 0 && (process || def != null)
 					? process
-						? argument == "--" 
+						? argument == "--"
 							? (process = false)
 							: !Parse (argument, c)
-								? def != null 
-									? Unprocessed (null, def, c, argument) 
+								? def != null
+									? Unprocessed (null, def, c, argument)
 									: true
 								: false
-						: def != null 
+						: def != null
 							? Unprocessed (null, def, c, argument)
 							: true
 					: true
@@ -1007,7 +1007,7 @@ namespace Particular.ServiceControl.Hosting
         {
             string rn;
             if (n.Length >= 1 && (n[n.Length - 1] == '+' || n[n.Length - 1] == '-') &&
-                Contains((rn = n.Substring(0, n.Length - 1))))
+                Contains(rn = n.Substring(0, n.Length - 1)))
             {
                 var p = this[rn];
                 var v = n[n.Length - 1] == '+' ? option : null;
@@ -1238,7 +1238,7 @@ namespace Particular.ServiceControl.Hosting
                     case '}':
                         if (start < 0)
                         {
-                            if ((i + 1) == description.Length || description[i + 1] != '}')
+                            if (i + 1 == description.Length || description[i + 1] != '}')
                             {
                                 throw new InvalidOperationException("Invalid option description: " + description);
                             }
@@ -1286,7 +1286,7 @@ namespace Particular.ServiceControl.Hosting
                 if (end < description.Length)
                 {
                     var c = description[end];
-                    if (c == '-' || (char.IsWhiteSpace(c) && c != '\n'))
+                    if (c == '-' || char.IsWhiteSpace(c) && c != '\n')
                     {
                         ++end;
                     }

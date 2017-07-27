@@ -10,9 +10,9 @@ namespace ServiceControl.Recoverability
         public FailureGroupsArchiveApi()
         {
             Post["/recoverability/groups/{groupId}/errors/archive"] =
-                parameters => ArchiveGroupErrors(parameters.GroupId);           
+                parameters => ArchiveGroupErrors(parameters.GroupId);
         }
-        
+
         dynamic ArchiveGroupErrors(string groupId)
         {
             if (String.IsNullOrWhiteSpace(groupId))
@@ -34,7 +34,7 @@ namespace ServiceControl.Recoverability
             return HttpStatusCode.Accepted;
         }
 
-		public ArchivingManager ArchiveOperationManager { get; set; }
+        public ArchivingManager ArchiveOperationManager { get; set; }
         public IBus Bus { get; set; }
     }
 }

@@ -93,7 +93,7 @@
                 }
             }
         }
-        
+
         public class MyMessage : IMessage
         {
         }

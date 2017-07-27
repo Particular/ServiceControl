@@ -63,9 +63,9 @@
                 return true;
             }
 
-            // AD Group Managed Service Account are always named with a trailing $ 
+            // AD Group Managed Service Account are always named with a trailing $
             // In this case the installing user does not provide a password and Windows handles the password management
-            if (Name.EndsWith("$"))  
+            if (Name.EndsWith("$"))
             {
                 return true;
             }
@@ -81,7 +81,7 @@
                 return context.ValidateCredentials(Name, password, ContextOptions.Negotiate);
             }
         }
-        
+
         public static UserAccount ParseAccountName(string accountName)
         {
             var systemAliases = new[]
@@ -91,7 +91,7 @@
                 "local system",
                 "localsystem"
             };
-            
+
             var userAccount = new UserAccount();
             if (systemAliases.Contains(accountName, StringComparer.OrdinalIgnoreCase))
             {
@@ -99,11 +99,11 @@
             }
             else
             {
-                var account = (accountName.StartsWith(@".\")) ?  new NTAccount(accountName.Remove(0,2)) :  new NTAccount(accountName);
+                var account = accountName.StartsWith(@".\") ?  new NTAccount(accountName.Remove(0,2)) :  new NTAccount(accountName);
                 userAccount.SID = (SecurityIdentifier) account.Translate(typeof(SecurityIdentifier));
             }
 
-            //Resolve SID back the other way 
+            //Resolve SID back the other way
             var resolvedAccount = (NTAccount) userAccount.SID.Translate(typeof(NTAccount));
             var parts = resolvedAccount.Value.Split("\\".ToCharArray(), 2);
             userAccount.Domain = parts[0];
@@ -115,7 +115,7 @@
             }
             else
             {
-                userAccount.DisplayName = parts[1];    
+                userAccount.DisplayName = parts[1];
             }
 
             if (!userAccount.Domain.Equals(LocalizedNTAuthority(), StringComparison.OrdinalIgnoreCase))

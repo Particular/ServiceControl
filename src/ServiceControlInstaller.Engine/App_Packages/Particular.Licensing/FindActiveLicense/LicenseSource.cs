@@ -1,11 +1,11 @@
 ﻿namespace Particular.Licensing
 {
     using System;
-    
-    abstract class LicenseSource 
+
+    abstract class LicenseSource
     {
         protected string Location;
-        
+
         protected LicenseSource(string location)
         {
             Location = location;

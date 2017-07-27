@@ -98,7 +98,7 @@
                 this.retryDocumentManager = retryDocumentManager;
                 this.timeKeeper = timeKeeper;
                 this.store = store;
-				startTime = DateTime.UtcNow;
+                startTime = DateTime.UtcNow;
             }
 
             internal bool AdoptOrphanedBatches()

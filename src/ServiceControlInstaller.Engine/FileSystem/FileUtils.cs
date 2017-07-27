@@ -18,7 +18,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
            if (!Directory.Exists(path))
            {
                return;
-           } 
+           }
 
            if (recursive)
            {
@@ -80,7 +80,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 {
                     var dir = Path.GetDirectoryName(e.FileName);
                     string filename = null;
-                    
+
                     // ReSharper disable once PossibleNullReferenceException
                     if (dir.StartsWith(zipFolderNameToExtract, StringComparison.OrdinalIgnoreCase))
                     {

@@ -7,7 +7,7 @@
     using NServiceBus.Saga;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
-  
+
     public class When_a_message_emitted_by_a_saga_is_audited : AcceptanceTest
     {
 
@@ -16,7 +16,7 @@
         {
             var context = new MyContext();
             MessagesView auditedMessage = null;
-           
+
             Define(context)
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(c => TryGetSingle("/api/messages", out auditedMessage, m => m.MessageId == c.MessageId))
@@ -84,5 +84,4 @@
         }
     }
 
-    
 }

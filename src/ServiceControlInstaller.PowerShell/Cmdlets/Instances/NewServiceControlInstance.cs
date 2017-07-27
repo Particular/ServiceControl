@@ -48,11 +48,11 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Specify AuditQueue name to consume messages from. Default is audit")]
         [ValidateNotNullOrEmpty]
         public string AuditQueue { get; set; }
-        
+
         [Parameter(Mandatory = false, HelpMessage = "Specify Queue name to forward error messages to")]
         [ValidateNotNullOrEmpty]
         public string ErrorLogQueue { get; set; }
-        
+
         [Parameter(Mandatory = false, HelpMessage = "Specify Queue name to forward audit messages to")]
         [ValidateNotNullOrEmpty]
         public string AuditLogQueue { get; set; }
@@ -79,10 +79,10 @@ namespace ServiceControlInstaller.PowerShell
 
         [Parameter(Mandatory = true, HelpMessage = "Specify if audit messages are forwarded to the queue specified by AuditLogQueue")]
         public SwitchParameter ForwardAuditMessages { get; set; }
-        
+
         [Parameter(Mandatory = false, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue")]
         public SwitchParameter ForwardErrorMessages { get; set; }
-        
+
         [Parameter(HelpMessage = "The Account to run the Windows service. If not specified then LocalSystem is used")]
         public string ServiceAccount { get; set; }
 
@@ -98,7 +98,7 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateNotNull]
         [ValidateTimeSpanRange(MinimumHours = 240, MaximumHours = 1080)] //10 to 45 days
         public TimeSpan ErrorRetentionPeriod { get; set; }
-        
+
         [Parameter(Mandatory = false)]
         public SwitchParameter Force { get; set; }
 
@@ -166,7 +166,7 @@ namespace ServiceControlInstaller.PowerShell
                 ConnectionString = ConnectionString,
                 TransportPackage = Transport
             };
-            
+
             var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var logger = new PSLogger(Host);
 

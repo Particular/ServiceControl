@@ -69,8 +69,8 @@
 
             var result = failedMessage.ToEvent();
             Assert.IsNull(result.MessageType);
-        } 
-        
+        }
+
         [Test]
         public void If_content_type_is_missing_it_is_ignored()
         {

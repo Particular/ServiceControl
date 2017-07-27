@@ -104,7 +104,7 @@
 
                 public override CheckResult PerformCheck()
                 {
-                    if ((Interlocked.Increment(ref counter) / 5) % 2 == 1)
+                    if (Interlocked.Increment(ref counter) / 5 % 2 == 1)
                     {
                         return CheckResult.Failed("fail!");
                     }

@@ -31,7 +31,7 @@
         public ICommand SendFeedBack { get; set; }
 
         public bool SubmitAttempted { get; set; }
-        
+
         void Send()
         {
             SubmitAttempted = true;

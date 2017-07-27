@@ -36,7 +36,7 @@
                         .WithEtagAndLastModified(stats);
                 }
             };
-            
+
             Delete["/customchecks/{id}"] = parameters =>
             {
                 Guid id = parameters.id;

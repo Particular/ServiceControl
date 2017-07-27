@@ -6,14 +6,14 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Saga;
     using NUnit.Framework;
-  
+
     public class When_a_message_hitting_a_saga_is_not_a_start_message : AcceptanceTest
     {
         [Test]
         public void Saga_info_should_not_be_available_through_the_http_api()
         {
             var context = new MyContext();
-           
+
             Define(context)
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MyMessage{OrderId = 1})))
                 .Done(c => c.SagaNotFound)

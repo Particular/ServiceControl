@@ -51,7 +51,7 @@
                 })
                 .Run(TimeSpan.FromSeconds(40));
 
-       
+
             Assert.AreEqual(context.MessageId, auditedMessage.MessageId);
             Assert.AreEqual(MessageStatus.Successful, auditedMessage.Status);
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, auditedMessage.ReceivingEndpoint.Name,
@@ -68,11 +68,11 @@
 
             Assert.AreNotEqual(DateTime.MinValue, auditedMessage.TimeSent, "Time sent should be correctly set");
             Assert.AreNotEqual(DateTime.MinValue, auditedMessage.ProcessedAt, "Processed At should be correctly set");
-           
+
             Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
             Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
             Assert.AreEqual(MessageIntentEnum.Send, auditedMessage.MessageIntent, "Message intent should be set");
-            
+
             var bodyAsString = Encoding.UTF8.GetString(body);
 
             Assert.True(bodyAsString.Contains(Payload), bodyAsString);
@@ -129,8 +129,8 @@
                 {
                     var message = new MyMessage();
 
-                    bus.SetMessageHeader(message, "ServiceControl.DebugSessionId", "DANCO-WIN8@Application1@2014-01-26T11:33:51"); 
-         
+                    bus.SetMessageHeader(message, "ServiceControl.DebugSessionId", "DANCO-WIN8@Application1@2014-01-26T11:33:51");
+
                     bus.Send(message);
                 }))
                 .WithEndpoint<Receiver>()

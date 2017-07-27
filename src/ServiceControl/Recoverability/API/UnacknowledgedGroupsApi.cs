@@ -18,7 +18,7 @@ namespace ServiceControl.Recoverability
                 ArchiveOperationManager.DismissArchiveOperation(groupId, ArchiveType.FailureGroup);
                 return HttpStatusCode.OK;
             }
-           
+
             using (var session = Store.OpenSession())
             {
                 var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId());
@@ -37,7 +37,7 @@ namespace ServiceControl.Recoverability
             return HttpStatusCode.NotFound;
         }
 
-		public ArchivingManager ArchiveOperationManager { get; set; }
-		public RetryingManager RetryingOperationManager { get; set; }
+        public ArchivingManager ArchiveOperationManager { get; set; }
+        public RetryingManager RetryingOperationManager { get; set; }
     }
 }

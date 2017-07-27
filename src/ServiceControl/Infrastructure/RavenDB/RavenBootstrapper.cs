@@ -72,7 +72,7 @@
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
             documentStore.Configuration.DisablePerformanceCounters = settings.DisableRavenDBPerformanceCounters;
             documentStore.Configuration.Port = settings.Port;
-            documentStore.Configuration.HostName = (settings.Hostname == "*" || settings.Hostname == "+")
+            documentStore.Configuration.HostName = settings.Hostname == "*" || settings.Hostname == "+"
                 ? "localhost"
                 : settings.Hostname;
             documentStore.Configuration.VirtualDirectory = $"{settings.VirtualDirectory}/storage";

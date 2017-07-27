@@ -1,7 +1,7 @@
 ﻿namespace ServiceControlInstaller.Engine.ReportCard
 {
     using System.Collections.Generic;
-    
+
     public class ReportCard
     {
         public Status Status { get; set; }

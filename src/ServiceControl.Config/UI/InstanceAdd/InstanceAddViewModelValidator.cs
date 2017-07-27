@@ -34,7 +34,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
             RuleFor(x => x.ErrorForwarding)
                 .NotNull().WithMessage(Validations.MSG_SELECTERRORFORWARDING);
 
-            
+
             RuleFor(x => x.ErrorQueueName)
                 .NotEmpty()
                 .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit")

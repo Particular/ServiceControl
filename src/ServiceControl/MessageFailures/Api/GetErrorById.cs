@@ -42,7 +42,7 @@
                     }
 
                     var result = Map(message, session);
-                    
+
                     return Negotiate.WithModel(result);
                 }
             };
@@ -51,7 +51,7 @@
         private static FailedMessageView Map(FailedMessage message, IDocumentSession session)
          {
              var processingAttempt = message.ProcessingAttempts.Last();
- 
+
              return new FailedMessageView
              {
                  Id = message.UniqueMessageId,

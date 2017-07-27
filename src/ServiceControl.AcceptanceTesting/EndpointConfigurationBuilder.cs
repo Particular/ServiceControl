@@ -78,7 +78,7 @@
             return CreateScenario();
         }
 
-       
+
         readonly EndpointConfiguration configuration = new EndpointConfiguration();
 
         public EndpointConfigurationBuilder WithConfig<T>(Action<T> action) where T : new()
@@ -88,7 +88,7 @@
             action(config);
 
             configuration.UserDefinedConfigSections[typeof (T)] = config;
-            
+
             return this;
         }
 

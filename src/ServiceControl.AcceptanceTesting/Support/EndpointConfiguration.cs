@@ -24,7 +24,7 @@
 
         internal Func<IStartableBus> GetBus { get; set; }
 
-        internal Action StopBus { get; set; } 
+        internal Action StopBus { get; set; }
 
         public string EndpointName
         {
@@ -43,7 +43,7 @@
 
         public Address AddressOfAuditQueue { get; set; }
 
-        public IDictionary<Type, object> UserDefinedConfigSections { get; private set; }
+        public IDictionary<Type, object> UserDefinedConfigSections { get; }
 
         public string CustomMachineName { get; set; }
 

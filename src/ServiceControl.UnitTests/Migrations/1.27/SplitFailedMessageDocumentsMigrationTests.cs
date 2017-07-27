@@ -445,7 +445,7 @@
                 }
             }
 
-            public ProcessingAttemptInfo(PreSplitScenario scenario, string failedQ, string endpointName, bool isRetry) 
+            public ProcessingAttemptInfo(PreSplitScenario scenario, string failedQ, string endpointName, bool isRetry)
             {
                 FailedQ = failedQ;
                 Attempt = CreateAttempt(scenario, failedQ);

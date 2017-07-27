@@ -31,7 +31,7 @@
         {
             return new XmlTimeSpan(input);
         }
-        
+
         public void FromTimeSpan(TimeSpan input)
         {
             timeSpan = input;

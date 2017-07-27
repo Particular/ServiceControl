@@ -9,7 +9,6 @@ namespace ServiceControlInstaller.PowerShell
     using ServiceControlInstaller.Engine.Unattended;
 
     [Cmdlet(VerbsCommon.Remove, "ServiceControlInstance")]
-    
     public class RemoveServiceControlInstance : PSCmdlet
     {
         [ValidateNotNullOrEmpty]

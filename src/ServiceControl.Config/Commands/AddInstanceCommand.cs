@@ -28,7 +28,7 @@ namespace ServiceControl.Config.Commands
                 windowManager.ShowMessage("LICENSE ERROR", $"Install could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact sales@particular.net", hideCancel: true);
                 return;
             }
-            
+
             var instanceViewModel = addInstance();
             windowManager.ShowInnerDialog(instanceViewModel);
         }

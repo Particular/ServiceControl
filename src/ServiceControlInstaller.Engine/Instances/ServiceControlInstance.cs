@@ -198,7 +198,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = FindByName(Name);
-            
+
             var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
 
             var queueNamesChanged = !(string.Equals(oldSettings.AuditQueue, AuditQueue, StringComparison.OrdinalIgnoreCase)
@@ -244,14 +244,14 @@ namespace ServiceControlInstaller.Engine.Instances
             }
             settings.Set(SettingsList.ErrorLogQueue, ErrorLogQueue);
             settings.Set(SettingsList.AuditLogQueue, AuditLogQueue);
-            
+
             configuration.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", ConnectionString);
             configuration.Save();
 
             var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
             var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
             var connectionStringChanged = !string.Equals(ConnectionString, oldSettings.ConnectionString, StringComparison.Ordinal);
-            
+
             //have to save config prior to creating queues (if needed)
 
             if (queueNamesChanged || accountChanged || connectionStringChanged )
@@ -286,7 +286,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         string DefaultDBPath()
         {
-            var host = (HostName == "*") ? "%" : HostName;
+            var host = HostName == "*" ? "%" : HostName;
             var dbFolder = $"{host}-{Port}";
             if (!string.IsNullOrEmpty(VirtualDirectory))
             {
@@ -347,14 +347,14 @@ namespace ServiceControlInstaller.Engine.Instances
             try
             {
 
-                // Will throw with "The service cannot accept control messages at this time" message if the service is in a pending state 
+                // Will throw with "The service cannot accept control messages at this time" message if the service is in a pending state
                 Service.Stop();
             }
             catch (InvalidOperationException)
             {
                 return false;
             }
-            
+
             try
             {
                 Service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
@@ -385,7 +385,7 @@ namespace ServiceControlInstaller.Engine.Instances
             try
             {
 
-                // Will throw with "The service cannot accept control messages at this time" message if the service is in a pending state 
+                // Will throw with "The service cannot accept control messages at this time" message if the service is in a pending state
                 Service.Start();
             }
             catch (InvalidOperationException)
@@ -478,7 +478,7 @@ namespace ServiceControlInstaller.Engine.Instances
             File.Copy(sourcePath, configFile, true);
 
             // Ensure Transport type is correct and populate the config with common settings even if they are defaults
-            // Will not clobber other settings in the config 
+            // Will not clobber other settings in the config
             AppConfig = new ServiceControlAppConfig(this);
             AppConfig.Validate();
             AppConfig.Save();
@@ -532,12 +532,12 @@ namespace ServiceControlInstaller.Engine.Instances
                 if (Service.ExePath != null)
                 {
                     var process = Process.GetProcesses().FirstOrDefault(p => p.MainModule.FileName == Service.ExePath);
-                    return (process == null);
+                    return process == null;
                 }
             }
             catch
             {
-                //Service isn't accessible 
+                //Service isn't accessible
             }
             return true;
         }
@@ -636,7 +636,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-       
-        
+
+
     }
 }

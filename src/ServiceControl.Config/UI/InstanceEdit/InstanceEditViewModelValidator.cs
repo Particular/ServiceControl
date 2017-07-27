@@ -9,7 +9,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
         {
             RuleFor(x => x.ServiceAccount)
                 .NotEmpty()
-                .When(x => x.SubmitAttempted); 
+                .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.SelectedTransport)
                 .NotEmpty();

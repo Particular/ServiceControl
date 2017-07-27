@@ -20,7 +20,7 @@ namespace ServiceControlInstaller.Engine.Services
             ExePath = exePath;
         }
 
-        public string ExePath { get; private set; }
+        public string ExePath { get; }
 
         public string Description
         {
@@ -78,7 +78,7 @@ namespace ServiceControlInstaller.Engine.Services
         public void ChangeAccountDetails(string serviceAccount, string servicePassword)
         {
             var userAccount = UserAccount.ParseAccountName(serviceAccount);
-            
+
             if (!(userAccount.IsLocalService() || userAccount.IsLocalService()))
             {
                 var privileges = Lsa.GetPrivileges(userAccount.QualifiedName).ToList();
@@ -88,7 +88,7 @@ namespace ServiceControlInstaller.Engine.Services
                     Lsa.GrantPrivileges(userAccount.QualifiedName, privileges.ToArray());
                 }
             }
-            
+
             var  objPath = $"Win32_Service.Name='{ServiceName}'";
             using (var win32Service = new ManagementObject(new ManagementPath(objPath)))
             {
@@ -105,7 +105,7 @@ namespace ServiceControlInstaller.Engine.Services
                 var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                 if (wmiReturnCode != 0)
                 {
-                    var message = (wmiReturnCode < Win32ChangeErrorMessages.Length)
+                    var message = wmiReturnCode < Win32ChangeErrorMessages.Length
                         ? $"Failed to change service credentials on service {ServiceName} - {Win32ChangeErrorMessages[wmiReturnCode]}"
                         : "An unknown error occurred";
 
@@ -145,7 +145,7 @@ namespace ServiceControlInstaller.Engine.Services
                 var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                 if (wmiReturnCode != 0)
                 {
-                    var message = (wmiReturnCode < Win32ChangeErrorMessages.Length)
+                    var message = wmiReturnCode < Win32ChangeErrorMessages.Length
                         ? $"Failed to create service to {serviceInfo.Name} - {Win32ServiceErrorMessages[wmiReturnCode]}"
                         : "An unknown error occurred";
 
@@ -187,7 +187,7 @@ namespace ServiceControlInstaller.Engine.Services
             {
                return @"NT AUTHORITY\LOCALSERVICE";
             }
-            
+
             return userAccount.QualifiedName;
         }
 
@@ -197,7 +197,7 @@ namespace ServiceControlInstaller.Engine.Services
             using (var classInstance = new ManagementObject(@"\\.\root\cimv2", $"Win32_Service.Name='{ServiceName}'", null))
             using (var outParams = classInstance.InvokeMethod("Delete", null, null))
             {
-                if ((outParams == null) || (Convert.ToInt32(outParams["ReturnValue"]) != 0))
+                if (outParams == null || Convert.ToInt32(outParams["ReturnValue"]) != 0)
                 {
                     throw new ManagementException($"Failed to delete service to {ServiceName}");
                 }
@@ -256,9 +256,9 @@ namespace ServiceControlInstaller.Engine.Services
                             }
                             catch(SecurityException)
                             {
-                               continue;                           
+                               continue;
                             }
-                           
+
                             var entryType = (int) serviceKey.GetValue("Type", 0);
                             if (entryType == 1) // driver not a service
                                 continue;

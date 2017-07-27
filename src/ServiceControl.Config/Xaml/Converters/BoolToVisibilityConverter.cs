@@ -10,7 +10,7 @@ namespace ServiceControl.Config.Xaml.Converters
         public bool Invert { get; set; }
 
         public bool IsHidden { get; set; }
-        
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var flag = false;
@@ -18,7 +18,7 @@ namespace ServiceControl.Config.Xaml.Converters
             {
                 flag = (bool)value;
             }
-            return (flag ^ Invert) ? Visibility.Visible : (IsHidden ? Visibility.Hidden : Visibility.Collapsed);
+            return flag ^ Invert ? Visibility.Visible : (IsHidden ? Visibility.Hidden : Visibility.Collapsed);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

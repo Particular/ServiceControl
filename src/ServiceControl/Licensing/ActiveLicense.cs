@@ -4,11 +4,11 @@
     using System.IO;
     using NServiceBus.Logging;
     using Particular.Licensing;
-    
+
     public class ActiveLicense
     {
         public bool IsValid { get; set; }
-    
+
         internal License Details { get; set; }
 
         public ActiveLicense()
@@ -23,7 +23,7 @@
                new LicenseSourceHKLMRegKey(),
                new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "License", "License.xml")),
                new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ParticularPlatformLicense.xml")));
-            
+
             if (result.HasExpired)
             {
                 foreach (var report in result.Report)

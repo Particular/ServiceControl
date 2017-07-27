@@ -6,7 +6,7 @@
     {
         public LicenseSourceFilePath(string path) : base(path)
         {
-            
+
         }
 
         public override LicenseSourceResult Find(string applicationName)

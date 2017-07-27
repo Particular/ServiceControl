@@ -21,14 +21,14 @@
             var slider = GetTemplateChild(SliderPartName) as Slider;
             var downButton = GetTemplateChild("PART_SliderDown") as Button;
             var upButton = GetTemplateChild("PART_SliderUp") as Button;
-            
+
             if (slider != null)
             {
                 if (downButton != null)
                 {
                     downButton.Click += (sender, args) => {
                         var newValue = slider.Value - slider.SmallChange;
-                        slider.Value = (newValue < slider.Minimum) ? slider.Minimum : newValue;
+                        slider.Value = newValue < slider.Minimum ? slider.Minimum : newValue;
                     };
                 }
 
@@ -36,7 +36,7 @@
                 {
                     upButton.Click += (sender, args) => {
                         var newValue = slider.Value + slider.SmallChange;
-                        slider.Value = (newValue > slider.Maximum) ? slider.Maximum : newValue;
+                        slider.Value = newValue > slider.Maximum ? slider.Maximum : newValue;
                     };
                 }
             }
@@ -87,7 +87,7 @@
         {
             base.OnValueChanged(oldValue, newValue);
 
-            var period = (Units == TimeSpanUnits.Days) ? TimeSpan.FromDays(Math.Truncate(Value))
+            var period = Units == TimeSpanUnits.Days ? TimeSpan.FromDays(Math.Truncate(Value))
                                                        : TimeSpan.FromHours(Math.Truncate(Value));
 
             UpdateSummary(period);
@@ -102,10 +102,10 @@
             }
             else
             {
-                s.AppendFormat("{0} Day{1}", period.Days, (period.Days > 1) ? "s" : String.Empty);
+                s.AppendFormat("{0} Day{1}", period.Days, period.Days > 1 ? "s" : String.Empty);
                 if (period.Hours != 0)
                 {
-                    s.AppendFormat(" {0} Hour{1}", period.Hours, (period.Hours > 1) ? "s" : String.Empty);
+                    s.AppendFormat(" {0} Hour{1}", period.Hours, period.Hours > 1 ? "s" : String.Empty);
                 }
             }
 

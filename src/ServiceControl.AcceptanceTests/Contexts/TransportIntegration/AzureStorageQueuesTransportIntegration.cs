@@ -19,17 +19,17 @@
 
         public void OnEndpointShutdown(string endpointName)
         {
-            
+
         }
 
         public void TearDown()
         {
-            
+
         }
 
         public void Setup()
         {
-            
+
         }
 
         class MyConfig : IProvideConfiguration<AzureQueueConfig>

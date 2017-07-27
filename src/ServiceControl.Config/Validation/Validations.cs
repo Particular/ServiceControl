@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using FluentValidation;
-    
+
     public static class Validations
     {
         public const string MSG_EMAIL_NOT_VALID = "Not Valid.";
@@ -23,7 +23,7 @@
         public const string MSG_MUST_BE_UNIQUE = "{0} must be unique across all instances";
 
         public const string MSG_QUEUE_ALREADY_ASSIGNED = "This queue is already assigned to another instance";
-        
+
         public const string WRN_HOSTNAME_SHOULD_BE_LOCALHOST = "Not using localhost can expose ServiceControl to anonymous access.";
 
         public const string MSG_ILLEGAL_PATH_CHAR = "Paths cannot contain characters {0}";
@@ -37,7 +37,7 @@
                 int result;
                 if (int.TryParse(port, out result))
                 {
-                    return (result >= 1 && result <= 49151);
+                    return result >= 1 && result <= 49151;
                 }
 
                 return false;
@@ -53,7 +53,7 @@
             })
             .WithMessage(MSG_ILLEGAL_PATH_CHAR, string.Join(" ", ILLEGAL_PATH_CHARS));
         }
-        
+
         public static IRuleBuilderOptions<T, TProperty> MustNotBeIn<T, TProperty>(this IRuleBuilder<T, TProperty> ruleBuilder, Func<T, IEnumerable<TProperty>> list) where TProperty : class
         {
             return ruleBuilder.Must((t, p) => p != null && !list(t).Contains(p));

@@ -20,19 +20,19 @@
 
             var unattendedInstaller = new UnattendInstaller(logger, session["APPDIR"]);
             var zipInfo = ServiceControlZipInfo.Find(session["APPDIR"] ?? ".");
-            
+
             if (!zipInfo.Present)
             {
                logger.Error("Zip file not found. Service Control service instances can not be upgraded or installed");
                return ActionResult.Failure;
             }
-            
+
             UpgradeInstances(session, zipInfo, logger, unattendedInstaller);
             UnattendedInstall(session, logger, unattendedInstaller);
             ImportLicenseInstall(session, logger);
             return ActionResult.Success;
         }
-        
+
         static void UpgradeInstances(Session session, ServiceControlZipInfo zipInfo, MSILogger logger, UnattendInstaller unattendedInstaller)
         {
 
@@ -42,7 +42,7 @@
             if (string.IsNullOrWhiteSpace(upgradeInstancesPropertyValue))
                 return;
             upgradeInstancesPropertyValue = upgradeInstancesPropertyValue.Trim();
-            
+
             var forwardErrorMessagesPropertyValue = session["FORWARDERRORMESSAGES"];
             try
             {
@@ -123,7 +123,7 @@
                         logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{SettingsList.ErrorRetentionPeriod.Name}'");
                         continue;
                     }
-                    
+
                     if (!unattendedInstaller.Upgrade(instance, options))
                     {
                         logger.Warn($"Failed to upgrade {instance.Name} to {zipInfo.Version}");

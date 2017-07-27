@@ -20,7 +20,7 @@
             instanceA.SetupGet(p => p.AuditLogQueue).Returns(@"auditlog");
             instanceA.SetupGet(p => p.ErrorQueue).Returns(@"error");
             instanceA.SetupGet(p => p.ErrorLogQueue).Returns(@"errorlog");
-            
+
             var instanceB = new Mock<IContainTransportInfo>();
             instanceB.SetupGet(p => p.TransportPackage).Returns(@"RabbitMQ");
             instanceB.SetupGet(p => p.AuditQueue).Returns(@"RMQaudit");
@@ -28,7 +28,7 @@
             instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
             instanceB.SetupGet(p => p.ErrorLogQueue).Returns(@"RMQerrorlog");
             instanceB.SetupGet(p => p.ConnectionString).Returns(@"afakeconnectionstring");
-            
+
             instances = new List<IContainTransportInfo>
             {
                 instanceA.Object,

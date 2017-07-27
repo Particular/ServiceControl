@@ -9,7 +9,7 @@
     using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    
+
     public class GetBodyById : BaseModule
     {
 
@@ -67,7 +67,7 @@
 
                 return new Response { Contents = contents }
                     .WithContentType(contentType)
-                    .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R")) 
+                    .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R"))
                     .WithHeader("Content-Length", bodySize.ToString())
                     .WithHeader("ETag", currentEtag)
                     .WithStatusCode(HttpStatusCode.OK);

@@ -22,5 +22,5 @@ namespace ServiceControl.CompositeViews.Endpoints
         }
     }
 
-    
+
 }

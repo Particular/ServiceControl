@@ -126,7 +126,7 @@
                     instance.ReportCard.Status = Status.Failed;
                     return instance.ReportCard;
                 }
-            
+
                 instance.ApplyConfigChange();
                 if (!instance.ReportCard.HasErrors)
                 {
@@ -226,8 +226,8 @@
                 Message = message;
             }
 
-            public bool Valid { get; private set; }
-            public string Message { get; private set; }
+            public bool Valid { get; }
+            public string Message { get; }
         }
     }
 }

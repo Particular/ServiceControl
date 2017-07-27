@@ -7,7 +7,6 @@ namespace ServiceControlInstaller.Engine.UrlAcl.Api
     [StructLayout(LayoutKind.Sequential)]
     internal struct HttpServiceConfigIPListenParam
     {
-        
         public ushort AddressLength;
         public IntPtr Address;
     }

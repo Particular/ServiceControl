@@ -54,7 +54,6 @@ namespace ServiceControl.CompositeViews.Endpoints
                     }
                 }
 
-             
 
                 return HttpStatusCode.Accepted;
             };
@@ -68,7 +67,7 @@ namespace ServiceControl.CompositeViews.Endpoints
                     var query = session.Query<KnownEndpoint, KnownEndpointIndex>();
 
                     var results = new List<EndpointsView>();
-                    
+
                     using (var ie = session.Advanced.Stream(query, out stats))
                     {
                         while (ie.MoveNext())

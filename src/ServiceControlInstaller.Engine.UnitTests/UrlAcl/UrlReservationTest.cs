@@ -10,7 +10,7 @@
     public class UrlReservationTests
     {
         const string url = "http://bogushostname:12345/";
-    
+
         [Test]
         public void GetAllResults()
         {
@@ -34,7 +34,7 @@
             if (UrlReservation.GetAll().Any(p => p.Url.Equals(reservation.Url, StringComparison.OrdinalIgnoreCase)))
             {
                  UrlReservation.Delete(reservation);
-                 Assert.IsFalse(UrlReservation.GetAll().Any(p => p.Url.Equals(reservation.Url, StringComparison.OrdinalIgnoreCase)), "UrlAcl exists after deletion");                  
+                 Assert.IsFalse(UrlReservation.GetAll().Any(p => p.Url.Equals(reservation.Url, StringComparison.OrdinalIgnoreCase)), "UrlAcl exists after deletion");
             }
             Assert.Throws<Exception>(() => UrlReservation.Create(reservation), "UrlAcl incorrectly created with empty delegation");
         }
@@ -76,9 +76,9 @@
         public void AddUsersToUrlAcl()
         {
             var reservation = new UrlReservation(url, new SecurityIdentifier(WellKnownSidType.WorldSid, null));
-            reservation.Create(); 
+            reservation.Create();
 
-            // Read Back the URL 
+            // Read Back the URL
             reservation = UrlReservation.GetAll().First(p => p.Url == reservation.Url);
             Assert.IsTrue(reservation.Users.Count == 1, "User count is not 1");
             Assert.IsTrue(reservation.Users.First().Equals("Everyone", StringComparison.OrdinalIgnoreCase), "User is not 'Everyone'");
@@ -86,12 +86,12 @@
             var newAccountSid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
             reservation.AddSecurityIdentifier(newAccountSid);
             reservation.Create();
-            
+
             var account = (NTAccount) newAccountSid.Translate(typeof(NTAccount));
             reservation = UrlReservation.GetAll().First(p => p.Url == reservation.Url);
             Assert.IsTrue(reservation.Users.Count == 2, "User count is not 2");
             Assert.IsTrue(reservation.Users.Contains(account.Value, StringComparer.OrdinalIgnoreCase), "Added User not found");
-            
+
         }
 
         [Test]

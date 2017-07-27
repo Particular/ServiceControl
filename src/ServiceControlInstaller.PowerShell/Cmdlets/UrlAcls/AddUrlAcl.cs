@@ -14,7 +14,7 @@ namespace ServiceControlInstaller.PowerShell
     {
         [ValidateNotNullOrEmpty]
         [Parameter(Mandatory = true, Position = 0, HelpMessage = "The URL to add to the URLACL list. This should always in a trailing /")]
-        
+
         public string Url { get; set; }
 
         [ValidateNotNullOrEmpty]

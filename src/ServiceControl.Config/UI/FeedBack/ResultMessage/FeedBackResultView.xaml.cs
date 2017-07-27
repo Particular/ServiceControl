@@ -3,7 +3,7 @@
     /// <summary>
     /// Interaction logic for FeedBackResultView.xaml
     /// </summary>
-    public partial class FeedBackResultView 
+    public partial class FeedBackResultView
     {
         public FeedBackResultView()
         {

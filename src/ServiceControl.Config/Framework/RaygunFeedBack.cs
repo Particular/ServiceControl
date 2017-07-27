@@ -8,7 +8,7 @@
 
     public class RaygunFeedback: RaygunReporter
     {
-      
+
         RaygunClient raygunClient = new RaygunClient(RaygunApiKey);
         Guid trackingId = Guid.NewGuid();
 

@@ -2,6 +2,6 @@
 {
     public class MessageFailureResolvedManually : MessageFailureResolved
     {
-        
+
     }
 }

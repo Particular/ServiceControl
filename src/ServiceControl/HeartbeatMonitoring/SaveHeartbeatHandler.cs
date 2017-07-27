@@ -93,7 +93,7 @@ output('isNew');
                 }
             }, RavenJObject.Parse($@"
                                     {{
-                                        ""Raven-Entity-Name"": ""{store.Conventions.GetTypeTagName(typeof(Heartbeat))}"", 
+                                        ""Raven-Entity-Name"": ""{store.Conventions.GetTypeTagName(typeof(Heartbeat))}"",
                                         ""Raven-Clr-Type"": ""{typeof(Heartbeat).AssemblyQualifiedName}""
                                     }}"));
 

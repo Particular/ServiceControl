@@ -6,8 +6,8 @@ namespace ServiceControl.Recoverability
 
     public struct ClassifiableMessageDetails
     {
-        public FailureDetails Details { get; private set; }
-        public string MessageType { get; private set; }
+        public FailureDetails Details { get; }
+        public string MessageType { get; }
 
         public ClassifiableMessageDetails(FailedMessage message)
         {

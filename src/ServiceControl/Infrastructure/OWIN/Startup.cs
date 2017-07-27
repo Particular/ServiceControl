@@ -92,7 +92,7 @@
         public override IEnumerable<object> GetServices(Type serviceType)
         {
             object services;
-            
+
             if (container.TryResolve(IEnumerableType.MakeGenericType(serviceType), out services))
             {
                 return (IEnumerable<object>) services;

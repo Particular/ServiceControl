@@ -44,7 +44,7 @@
             AuditRetention = SettingConstants.AuditRetentionPeriodDefaultInHoursForUI;
             ErrorRetention = SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI;
             Description = "A ServiceControl Instance";
-            HostName = "localhost"; 
+            HostName = "localhost";
             AuditQueueName = "audit";
             AuditForwardingQueueName = "audit.log";
             ErrorQueueName = "error";
@@ -54,11 +54,11 @@
         }
 
         public string DestinationPath { get; set; }
-        public ICommand SelectDestinationPath { get; private set; }
+        public ICommand SelectDestinationPath { get; }
 
         public string DatabasePath { get; set; }
-        public ICommand SelectDatabasePath { get; private set; }
-        
+        public ICommand SelectDatabasePath { get; }
+
         protected override void OnInstanceNameChanged()
         {
             DestinationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Particular Software", InstanceName);
@@ -74,14 +74,14 @@
         public ForwardingOption ErrorForwarding { get; set; }
 
         [AlsoNotifyFor("AuditForwarding")]
-        public string AuditForwardingWarning => (AuditForwarding != null && AuditForwarding.Value) ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
+        public string AuditForwardingWarning => AuditForwarding != null && AuditForwarding.Value ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
 
         [AlsoNotifyFor("ErrorForwarding")]
-        public string ErrorForwardingWarning => (ErrorForwarding != null && ErrorForwarding.Value) ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
+        public string ErrorForwardingWarning => ErrorForwarding != null && ErrorForwarding.Value ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
 
         public bool ShowAuditForwardingQueue => AuditForwarding?.Value ?? false;
         public bool ShowErrorForwardingQueue => ErrorForwarding?.Value ?? false;
-                    
+
         TransportInfo selectedTransport;
 
         [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]

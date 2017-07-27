@@ -11,7 +11,7 @@
     using ServiceControl.MessageFailures.Api;
 
     [TestFixture]
-    public class FailedMessagesTests 
+    public class FailedMessagesTests
     {
         [Test]
         public void Should_allow_errors_with_no_metadata()

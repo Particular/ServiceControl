@@ -28,7 +28,6 @@ namespace ServiceControl.CompositeViews.Messages
                     BodySize = (int)metadata["ContentLength"],
                     ContentType = metadata["ContentType"],
                     BodyNotStored = (bool)metadata["BodyNotStored"]
-                    
                 };
         }
     }

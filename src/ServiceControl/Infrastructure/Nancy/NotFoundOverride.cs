@@ -12,7 +12,7 @@ namespace ServiceBus.Management.Infrastructure.Nancy
 
         public void Handle(HttpStatusCode statusCode, NancyContext context)
         {
-            
+
         }
     }
 }

@@ -58,7 +58,7 @@ namespace ServiceControl.ExternalIntegrations
         }
 
         static T GetNullableMetadataValue<T>(IReadOnlyDictionary<string, object> metadata, string key)
-            where T : class 
+            where T : class
         {
             object value;
             metadata.TryGetValue(key, out value);

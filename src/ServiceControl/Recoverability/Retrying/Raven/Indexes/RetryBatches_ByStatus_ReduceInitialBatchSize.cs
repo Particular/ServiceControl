@@ -18,7 +18,7 @@ namespace ServiceControl.Recoverability
                     doc.Originator,
                     doc.Classifier,
                     doc.StartTime,
-                    doc.Last                            
+                    doc.Last
                 };
 
             Reduce = results => from result in results
@@ -27,7 +27,7 @@ namespace ServiceControl.Recoverability
                     result.RequestId,
                     result.RetryType
                 }  into g
-                select new 
+                select new
                 {
                     g.Key.RequestId,
                     g.Key.RetryType,
@@ -39,7 +39,7 @@ namespace ServiceControl.Recoverability
                     Last = g.Max(x =>x.Last),
                     g.First().Classifier
                 };
-            
+
             DisableInMemoryIndexing = true;
         }
     }

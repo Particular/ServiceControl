@@ -16,7 +16,7 @@
         static Regex urlPattern = new Regex(@"^(?<protocol>https?)://(?<hostname>[^:/]+):?(?<port>\d{0,5})/?(?<virtual>[^:]*)/$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         const int GENERIC_EXECUTE = 536870912;
-        
+
         public string Url {get; }
 
         List<SecurityIdentifier> securityIdentifiers = new List<SecurityIdentifier>();
@@ -31,11 +31,11 @@
             var matchResults = urlPattern.Match(url);
             if (matchResults.Success)
             {
-                HTTPS = (matchResults.Groups["protocol"].Value.Equals("https", StringComparison.OrdinalIgnoreCase));
+                HTTPS = matchResults.Groups["protocol"].Value.Equals("https", StringComparison.OrdinalIgnoreCase);
                 HostName = matchResults.Groups["hostname"].Value;
                 if (String.IsNullOrEmpty(matchResults.Groups["port"].Value))
                 {
-                    Port = (HTTPS) ? 443 : 80;
+                    Port = HTTPS ? 443 : 80;
                 }
                 else
                 {
@@ -91,9 +91,9 @@
             Delete(this);
         }
 
-        public int Port { get; private set; }
-        public string HostName { get; private set; }
-        public string VirtualDirectory { get; private set; }
+        public int Port { get; }
+        public string HostName { get; }
+        public string VirtualDirectory { get; }
         public bool HTTPS { get; }
 
         public static ReadOnlyCollection<UrlReservation> GetAll()
@@ -101,7 +101,7 @@
             var reservations = new List<UrlReservation>();
 
             var retVal =  HttpApi.HttpInitialize(HttpApiConstants.Version1, HttpApiConstants.InitializeConfig, IntPtr.Zero);
-            
+
             if (retVal == ErrorCode.Success)
             {
                 var inputConfigInfoSet = new  HttpServiceConfigUrlAclQuery
@@ -113,13 +113,13 @@
                 while (retVal == 0)
                 {
                     inputConfigInfoSet.Token = (uint)i;
-                    var pInputConfigInfo = Marshal.AllocHGlobal((Marshal.SizeOf(typeof(HttpServiceConfigUrlAclQuery))));
+                    var pInputConfigInfo = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(HttpServiceConfigUrlAclQuery)));
                     Marshal.StructureToPtr(inputConfigInfoSet, pInputConfigInfo, false);
-                    
+
                     var pOutputConfigInfo = Marshal.AllocHGlobal(0);
                     var returnLength = 0;
                     retVal = HttpApi.HttpQueryServiceConfiguration(IntPtr.Zero,
-                        HttpServiceConfigId.HttpServiceConfigUrlAclInfo, 
+                        HttpServiceConfigId.HttpServiceConfigUrlAclInfo,
                         pInputConfigInfo,
                         Marshal.SizeOf(inputConfigInfoSet),
                         pOutputConfigInfo,
@@ -133,7 +133,7 @@
                         pOutputConfigInfo = Marshal.AllocHGlobal(Convert.ToInt32(returnLength));
 
                         retVal = HttpApi.HttpQueryServiceConfiguration(IntPtr.Zero,
-                        HttpServiceConfigId.HttpServiceConfigUrlAclInfo, 
+                        HttpServiceConfigId.HttpServiceConfigUrlAclInfo,
                         pInputConfigInfo,
                         Marshal.SizeOf(inputConfigInfoSet),
                         pOutputConfigInfo,
@@ -141,7 +141,7 @@
                         out returnLength,
                         IntPtr.Zero);
                     }
-                 
+
                     if ( retVal == ErrorCode.Success)
                     {
                         var outputConfigInfo = (HttpServiceConfigUrlAclSet) Marshal.PtrToStructure(pOutputConfigInfo, typeof(HttpServiceConfigUrlAclSet));
@@ -152,9 +152,9 @@
                     Marshal.FreeHGlobal(pInputConfigInfo);
                     i++;
                 }
-                
+
                 retVal = HttpApi.HttpTerminate(HttpApiConstants.InitializeConfig, IntPtr.Zero);
-                
+
             }
 
             if (retVal != ErrorCode.Success)
@@ -177,7 +177,7 @@
 
         private static void reserveURL(string networkURL, string securityDescriptor)
         {
-            
+
             var retVal = HttpApi.HttpInitialize(HttpApiConstants.Version1, HttpApiConstants.InitializeConfig, IntPtr.Zero);
             if (retVal == ErrorCode.Success)
             {
@@ -194,15 +194,15 @@
                 Marshal.StructureToPtr(inputConfigInfoSet, pInputConfigInfo, false);
 
                 retVal = HttpApi.HttpSetServiceConfiguration(IntPtr.Zero,
-                    HttpServiceConfigId.HttpServiceConfigUrlAclInfo, 
+                    HttpServiceConfigId.HttpServiceConfigUrlAclInfo,
                     pInputConfigInfo,
                     Marshal.SizeOf(inputConfigInfoSet),
                     IntPtr.Zero);
 
-                if (ErrorCode.AlreadyExists == retVal)  
+                if (ErrorCode.AlreadyExists == retVal)
                 {
                     retVal = HttpApi.HttpDeleteServiceConfiguration(IntPtr.Zero,
-                   HttpServiceConfigId.HttpServiceConfigUrlAclInfo, 
+                   HttpServiceConfigId.HttpServiceConfigUrlAclInfo,
                     pInputConfigInfo,
                     Marshal.SizeOf(inputConfigInfoSet),
                     IntPtr.Zero);
@@ -226,7 +226,7 @@
                 throw new Win32Exception(Convert.ToInt32(retVal));
             }
         }
-        
+
         public static void Delete(UrlReservation urlReservation)
         {
             var securityDescriptor = GenerateSecurityDescriptor(urlReservation.securityIdentifiers);

@@ -41,7 +41,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 logger.Error($"Install aborted - {checkLicenseResult.Message}");
                 return false;
             }
-            
+
             var instanceInstaller = details;
             instanceInstaller.ReportCard = new ReportCard();
 
@@ -104,7 +104,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             }
 
             instance.ReportCard = new ReportCard();
-            
+
             var restartService = instance.Service.Status == ServiceControllerStatus.Running;
             if (!instance.TryStopService())
             {
@@ -121,10 +121,10 @@ namespace ServiceControlInstaller.Engine.Unattended
                 {
                     instance.RestoreAppConfig(backupFile);
                 }
-            
+
                 options.ApplyChangesToInstance(instance);
                 instance.SetupInstance();
-                
+
                 if (instance.ReportCard.HasErrors)
                 {
                     foreach (var error in instance.ReportCard.Errors)
@@ -212,7 +212,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 instance.Service.SetStartupMode("Disabled");
                 instance.Service.Delete();
                 instance.RemoveUrlAcl();
-                instance.RemoveBinFolder(); 
+                instance.RemoveBinFolder();
                 if (removeLogs)
                 {
                     instance.RemoveLogsFolder();
@@ -280,8 +280,8 @@ namespace ServiceControlInstaller.Engine.Unattended
                 Message = message;
             }
 
-            public bool Valid { get; private set; }
-            public string Message { get; private set; }
+            public bool Valid { get; }
+            public string Message { get; }
         }
     }
 }

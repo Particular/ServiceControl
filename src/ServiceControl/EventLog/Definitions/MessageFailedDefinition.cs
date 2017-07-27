@@ -14,6 +14,6 @@
             RelatesToEndpoint(m => m.EndpointId);
 
             RaisedAt(m => m.FailureDetails.TimeOfFailure);
-        }       
+        }
     }
 }

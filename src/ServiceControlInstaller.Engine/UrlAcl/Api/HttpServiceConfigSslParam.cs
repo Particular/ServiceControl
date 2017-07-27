@@ -8,19 +8,19 @@ namespace ServiceControlInstaller.Engine.UrlAcl.Api
     internal struct HttpServiceConfigSslParam
     {
         public int SslHashLength;
-        
+
         public IntPtr SslHash;
-        
+
         public Guid AppId;
-        
+
         public string SslCertStoreName;
-        
+
         public uint DefaultCertCheckMode;
 
         public int DefaultRevocationFreshnessTime;
-        
+
         public int DefaultRevocationUrlRetrievalTimeout;
-        
+
         [MarshalAs(UnmanagedType.LPWStr)]
         public string DefaultSslCtlIdentifier;
 

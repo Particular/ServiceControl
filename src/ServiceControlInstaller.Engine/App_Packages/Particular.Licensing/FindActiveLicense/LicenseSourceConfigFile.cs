@@ -5,12 +5,12 @@
 
     class LicenseSourceConfigFile : LicenseSource
     {
-        
+
         public LicenseSourceConfigFile() : base("App config file")
         {
 
         }
-        
+
         public override LicenseSourceResult Find(string applicationName)
         {
             var embeddedLicense = ReadLicenseFromAppConfig(applicationName);

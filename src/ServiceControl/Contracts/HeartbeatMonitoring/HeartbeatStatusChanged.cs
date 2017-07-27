@@ -4,6 +4,6 @@
 
     public class HeartbeatStatusChanged : IEvent
     {
-        
+
     }
 }

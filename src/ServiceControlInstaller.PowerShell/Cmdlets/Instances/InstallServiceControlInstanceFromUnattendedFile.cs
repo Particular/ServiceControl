@@ -41,7 +41,7 @@ namespace ServiceControlInstaller.PowerShell
             ProviderInfo provider;
             PSDriveInfo drive;
             var psPath =  SessionState.Path.GetUnresolvedProviderPathFromPSPath(UnattendFile, out provider, out drive);
-            
+
             var details = ServiceControlInstanceMetadata.Load(psPath);
             details.ServiceAccount = ServiceAccount;
             details.ServiceAccountPwd = Password;

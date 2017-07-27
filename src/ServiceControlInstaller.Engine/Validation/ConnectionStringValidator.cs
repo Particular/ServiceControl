@@ -24,7 +24,7 @@
         {
             this.instance = instance;
         }
-        
+
         void CheckMsSqlConnectionString()
         {
             string[] customKeys = { "Queue Schema" };
@@ -59,7 +59,7 @@
                     }
                 }
 
-                //Attempt to connect to DB 
+                //Attempt to connect to DB
                 using (var s = new SqlConnection(builder.ConnectionString))
                 {
                     s.Open();

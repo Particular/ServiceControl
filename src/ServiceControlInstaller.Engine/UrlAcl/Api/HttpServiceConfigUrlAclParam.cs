@@ -7,7 +7,7 @@
     {
         [MarshalAs(UnmanagedType.LPWStr)]
         public string StringSecurityDescriptor;
-        
+
         public HttpServiceConfigUrlAclParam(string securityDescriptor)
         {
             StringSecurityDescriptor = securityDescriptor;

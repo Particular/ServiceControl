@@ -54,7 +54,7 @@
                     }
 
                     var invokedSagas = SplitInvokedSagas(sagasInvokedRaw);
-                    
+
                     var sagas = invokedSagas
                         .Distinct()
                         .Select(saga =>

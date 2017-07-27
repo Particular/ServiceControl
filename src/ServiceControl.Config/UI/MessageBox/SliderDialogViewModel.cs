@@ -9,9 +9,9 @@
 
     public class SliderDialogViewModel : RxScreen
     {
-        public SliderDialogViewModel(string title, 
-                                    string message, 
-                                    string periodHeader, 
+        public SliderDialogViewModel(string title,
+                                    string message,
+                                    string periodHeader,
                                     string periodExplanation,
                                     TimeSpanUnits periodUnits,
                                     int periodMinimumUnits,
@@ -42,7 +42,7 @@
         public int PeriodLargeStep { get; set; }
 
         public TimeSpanUnits PeriodUnits { get; set; }
-        
+
         public double Value { get; set; }
 
         public TimeSpan Period => PeriodUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(Value) : TimeSpan.FromHours(Value);
@@ -50,8 +50,8 @@
         public string Title { get; set; }
 
         public string Message { get; set; }
-        
-        public ICommand Cancel { get; private set; }
-        public ICommand Save { get; private set; }
+
+        public ICommand Cancel { get; }
+        public ICommand Save { get; }
     }
 }

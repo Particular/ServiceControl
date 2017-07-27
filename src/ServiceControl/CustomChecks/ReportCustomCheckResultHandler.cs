@@ -45,8 +45,8 @@
                 customCheck = session.Load<CustomCheck>(id);
 
                 if (customCheck == null ||
-                    (customCheck.Status == Status.Fail && !message.HasFailed) ||
-                    (customCheck.Status == Status.Pass && message.HasFailed))
+                    customCheck.Status == Status.Fail && !message.HasFailed ||
+                    customCheck.Status == Status.Pass && message.HasFailed)
                 {
                     if (customCheck == null)
                     {

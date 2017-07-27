@@ -41,7 +41,7 @@
                         windowManager.ShowActionReport(reportCard, "ISSUES STARTING INSTANCE IN MAINTENANCE MODE", "There were some errors when attempting to start instance in Maintenance Mode:");
                         return;
                     }
-                    
+
                     var started = await model.StartServiceInMaintenanceMode(progress);
 
                     if (!started)

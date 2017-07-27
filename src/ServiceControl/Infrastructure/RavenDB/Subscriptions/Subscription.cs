@@ -13,7 +13,5 @@
         public MessageType MessageType { get; set; }
 
         public List<Address> Clients { get; set; }
-
-        
     }
 }

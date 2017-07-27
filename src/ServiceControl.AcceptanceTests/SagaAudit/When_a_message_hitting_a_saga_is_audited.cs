@@ -9,7 +9,7 @@
     using NServiceBus.Saga;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
-  
+
     public class When_a_message_hitting_a_saga_is_audited : AcceptanceTest
     {
 
@@ -32,7 +32,7 @@
                 })
                 .Run(TimeSpan.FromSeconds(40));
 
-        
+
             Assert.NotNull(auditedMessage);
 
             Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, auditedMessage.InvokedSagas.Single().SagaType);
@@ -80,5 +80,5 @@
         }
     }
 
-    
+
 }

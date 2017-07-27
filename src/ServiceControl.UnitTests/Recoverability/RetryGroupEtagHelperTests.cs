@@ -108,7 +108,6 @@
         [Test]
         public void Changing_item_count_should_change_etag()
         {
-            
             var data = new GroupOperation[0];
             var knownEtag = EtagHelper.CalculateEtag(data);
 

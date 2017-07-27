@@ -20,7 +20,7 @@
         public override LicenseSourceResult Find(string applicationName)
         {
            var regLicense = ReadLicenseFromRegistry(RegistryView.Default);
-            
+
             if (!string.IsNullOrWhiteSpace(regLicense))
             {
                 return ValidateLicense(regLicense, applicationName);

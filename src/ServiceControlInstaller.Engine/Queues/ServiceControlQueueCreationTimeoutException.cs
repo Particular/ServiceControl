@@ -4,7 +4,7 @@
 
     public  class ServiceControlQueueCreationTimeoutException : Exception
     {
-    
+
         public ServiceControlQueueCreationTimeoutException(string message) : base(message)
         {
         }

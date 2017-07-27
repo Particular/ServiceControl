@@ -83,7 +83,7 @@
         [TimeToBeReceived("00:10:00")]
         public class MessageWithTtbr : ICommand
         {
-            
+
         }
 
         public class MyContext : ScenarioContext

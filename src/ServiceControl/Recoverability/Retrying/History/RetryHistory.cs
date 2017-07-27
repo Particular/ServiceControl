@@ -49,7 +49,7 @@
         {
             return UnacknowledgedOperations.Where(x => x.Classifier == classifier).ToArray();
         }
-        
+
         public bool Acknowledge(string requestId, RetryType type)
         {
             return UnacknowledgedOperations.RemoveAll(x => x.RequestId == requestId && x.RetryType == type) > 0;

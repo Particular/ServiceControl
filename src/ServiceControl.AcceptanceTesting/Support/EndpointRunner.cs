@@ -49,7 +49,7 @@
                 {
                     sendOnlyBus = Bus.CreateSendOnly(busConfiguration);
                 }
-                else 
+                else
                 {
                     bus = configuration.GetBus() ?? Bus.Create(busConfiguration);
                     var transportDefinition = ((UnicastBus)bus).Settings.Get<TransportDefinition>();
