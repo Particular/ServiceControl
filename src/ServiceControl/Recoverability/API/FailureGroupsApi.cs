@@ -38,6 +38,9 @@ namespace ServiceControl.Recoverability
 
             Get["/recoverability/history/"] =
             _ => GetRetryHistory();
+
+            Get["/recoverability/groups/{groupId}"] =
+                parameters => GetGroup(parameters.GroupId);
         }
 
         dynamic ReclassifyErrors()
@@ -80,6 +83,26 @@ namespace ServiceControl.Recoverability
                 var results = GroupFetcher.GetGroups(session, classifier, classifierFilter);
                 return Negotiate.WithModel(results)
                     .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
+            }
+        }
+
+        dynamic GetGroup(string groupId)
+        {
+            using (var session = Store.OpenSession())
+            {
+                RavenQueryStatistics stats;
+
+                var queryResult = session.Advanced
+                                    .LuceneQuery<FailureGroupView, FailureGroupsViewIndex>()
+                                    .Statistics(out stats)
+                                    .WhereEquals(group => group.Id, groupId)
+                                    .FilterByStatusWhere(Request)
+                                    .FilterByLastModifiedRange(Request)
+                                    .FirstOrDefault();
+
+                return Negotiate
+                         .WithModel(queryResult)
+                         .WithEtagAndLastModified(stats);
             }
         }
 
