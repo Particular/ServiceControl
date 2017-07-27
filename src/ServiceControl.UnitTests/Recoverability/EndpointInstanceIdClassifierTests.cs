@@ -23,7 +23,7 @@
         {
             var classifier = new EndpointInstanceClassifier();
 
-            var id = Guid.NewGuid().ToString();
+            var id = Guid.NewGuid().ToString("N");
             var failure = new ProcessingAttempt
             {
                 Headers = new System.Collections.Generic.Dictionary<string, string>
