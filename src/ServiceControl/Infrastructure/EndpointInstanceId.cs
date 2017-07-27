@@ -29,7 +29,7 @@
             string instanceId;
             headers.TryGetValue("NServiceBus.Metric.InstanceId", out instanceId);
 
-            return new EndpointInstanceId(details.Name, instanceId ?? details.HostId.ToString(), details.Host);
+            return new EndpointInstanceId(details.Name, instanceId ?? details.HostId.ToString("N"), details.Host);
         }
 
         protected bool Equals(EndpointInstanceId other)
