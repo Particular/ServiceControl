@@ -19,7 +19,7 @@
 
             var failedMessagesReclassified = reclassifier.ReclassifyFailedMessages(store, true, classifiers);
 
-            return "Add Endpoint details classifiers";
+            return $"Reclassified {failedMessagesReclassified} messages";
         }
 
         public string MigrationId { get; } = "Add Endpoint details classifiers";

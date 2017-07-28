@@ -1,20 +1,11 @@
 namespace ServiceControl.Recoverability
 {
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
-    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
     using Raven.Client;
-    using Raven.Client.Linq;
-    using Raven.Json.Linq;
     using ServiceControl.Infrastructure;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.MessageFailures.Api;
     using ServiceControl.MessageFailures.InternalMessages;
 
     class ReclassifyErrorsHandler : IHandleMessages<ReclassifyErrors>
