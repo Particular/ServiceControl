@@ -282,7 +282,7 @@
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
-    <Compile Include="DbMigrations\1.41.3\RerunClassifiersMigration.cs" />
+    <Compile Include="DbMigrations\1.41.3\AddEndpontDetailsClassifiers.cs" />
     <Compile Include="DbMigrations\1.39\RerunClassifiersMigration.cs" />
     <Compile Include="DbMigrations\Migrations.cs" />
     <Compile Include="DbMigrations\IMigration.cs" />
@@ -406,6 +406,7 @@
     <Compile Include="Recoverability\Archiving\InMemoryArchive.cs" />
     <Compile Include="Recoverability\Archiving\ArchiveState.cs" />
     <Compile Include="Recoverability\API\GroupFetcher.cs" />
+    <Compile Include="Recoverability\Grouping\Groupers\Reclassifier.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\EndpointNameClassifier.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\EndpointInstanceClassifier.cs" />
     <Compile Include="Recoverability\GroupOperation.cs" />

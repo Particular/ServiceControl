@@ -22,9 +22,7 @@ namespace ServiceControl.Recoverability
         readonly IBus bus;
         readonly IDocumentStore store;
         readonly IEnumerable<IFailureClassifier> classifiers;
-        const int BatchSize = 1000;
-        int failedMessagesReclassified;
-        private bool abort;
+        readonly Reclassifier reclassifier;
         private static int executing;
 
         ILog logger = LogManager.GetLogger<ReclassifyErrorsHandler>();
@@ -35,7 +33,7 @@ namespace ServiceControl.Recoverability
             this.store = store;
             this.classifiers = classifiers;
 
-            notifier.Register(() => { abort = true; });
+            reclassifier = new Reclassifier(notifier);
         }
 
         public void Handle(ReclassifyErrors message)
@@ -48,62 +46,7 @@ namespace ServiceControl.Recoverability
 
             try
             {
-                using (var session = store.OpenSession())
-                {
-                    ReclassifyErrorSettings settings = null;
-
-                    if (!message.Force)
-                    {
-                        settings = session.Load<ReclassifyErrorSettings>(ReclassifyErrorSettings.IdentifierCase);
-
-                        if (settings != null && settings.ReclassificationDone)
-                        {
-                            logger.Info("Skipping reclassification of failures as classification has already been done.");
-                            return;
-                        }
-                    }
-
-                    logger.Info("Reclassification of failures started.");
-
-                    var query = session.Query<FailedMessage, FailedMessageViewIndex>()
-                        .Where(f => f.Status == FailedMessageStatus.Unresolved);
-
-                    var currentBatch = new List<Tuple<string, ClassifiableMessageDetails>>();
-                    var totalMessagesReclassified = 0;
-
-                    using (var stream = session.Advanced.Stream(query.As<FailedMessage>()))
-                    {
-                        while (!abort && stream.MoveNext())
-                        {
-                            currentBatch.Add(Tuple.Create(stream.Current.Document.Id, new ClassifiableMessageDetails(stream.Current.Document)));
-
-                            if (currentBatch.Count == BatchSize)
-                            {
-                                ReclassifyBatch(currentBatch);
-                                currentBatch.Clear();
-
-                                totalMessagesReclassified += BatchSize;
-                                logger.Info($"Reclassification of batch of {BatchSize} failed messages completed. Total messages reclassified: {totalMessagesReclassified}");
-                            }
-                        }
-                    }
-
-                    if (currentBatch.Any())
-                    {
-                        ReclassifyBatch(currentBatch);
-                    }
-
-                    logger.Info("Reclassification of failures ended.");
-
-                    if (settings == null)
-                    {
-                        settings = new ReclassifyErrorSettings();
-                    }
-
-                    settings.ReclassificationDone = true;
-                    session.Store(settings);
-                    session.SaveChanges();
-                }
+                var failedMessagesReclassified = reclassifier.ReclassifyFailedMessages(store, message.Force, classifiers);
 
                 if (failedMessagesReclassified > 0)
                 {
@@ -116,54 +59,6 @@ namespace ServiceControl.Recoverability
             finally
             {
                 Interlocked.Exchange(ref executing, 0);
-            }
-        }
-
-        void ReclassifyBatch(IEnumerable<Tuple<string, ClassifiableMessageDetails>> docs)
-        {
-            Parallel.ForEach(docs, doc =>
-            {
-                var failureGroups = GetClassificationGroups(doc.Item2).Select(RavenJObject.FromObject);
-
-                try
-                {
-                    store.DatabaseCommands.Patch(doc.Item1,
-                        new[]
-                        {
-                            new PatchRequest
-                            {
-                                Type = PatchCommandType.Set,
-                                Name = "FailureGroups",
-                                Value = new RavenJArray(failureGroups),
-                            }
-                        });
-                    Interlocked.Increment(ref failedMessagesReclassified);
-                }
-                catch (ConcurrencyException)
-                {
-                    // Ignore concurrency exceptions
-                }
-            });
-        }
-
-        IEnumerable<FailedMessage.FailureGroup> GetClassificationGroups(ClassifiableMessageDetails details)
-        {
-            foreach (var classifier in classifiers)
-            {
-                var classification = classifier.ClassifyFailure(details);
-                if (classification == null)
-                {
-                    continue;
-                }
-
-                var id = DeterministicGuid.MakeId(classifier.Name, classification).ToString();
-
-                yield return new FailedMessage.FailureGroup
-                {
-                    Id = id,
-                    Title = classification,
-                    Type = classifier.Name
-                };
             }
         }
     }
