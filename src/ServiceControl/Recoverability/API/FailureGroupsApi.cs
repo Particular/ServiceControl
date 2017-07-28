@@ -76,7 +76,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        dynamic GetAllGroups(string classifier, string classifierFilter = null)
+        dynamic GetAllGroups(string classifier, string classifierFilter)
         {
             using (var session = Store.OpenSession())
             {

@@ -19,13 +19,6 @@ namespace ServiceControl.Recoverability
             MessageType = (string)ProcessingAttempt.MessageMetadata["MessageType"];
         }
 
-        public ClassifiableMessageDetails(string messageType, FailureDetails failureDetails)
-        {
-            Details = failureDetails;
-            ProcessingAttempt = null;
-            MessageType = messageType;
-        }
-
         public ClassifiableMessageDetails(string messageType, FailureDetails failureDetails, ProcessingAttempt processingAttempt)
         {
             Details = failureDetails;

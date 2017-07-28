@@ -10,7 +10,7 @@
         public void Failure_With_MessageType_should_group()
         {
             var classifier = new MessageTypeFailureClassifier();
-            var classification = classifier.ClassifyFailure(new ClassifiableMessageDetails(GetType().ToString(), null));
+            var classification = classifier.ClassifyFailure(new ClassifiableMessageDetails(GetType().ToString(), null, null));
 
             Assert.IsNotNull(classification);
         }
