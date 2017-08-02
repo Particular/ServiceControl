@@ -2,7 +2,6 @@
 {
     using NServiceBus;
     using NServiceBus.Features;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class FailedMessageClassification : Feature
     {
@@ -33,7 +32,6 @@
 
             protected override void OnStart()
             {
-                bus.SendLocal(new ReclassifyErrors());
             }
         }
     }
