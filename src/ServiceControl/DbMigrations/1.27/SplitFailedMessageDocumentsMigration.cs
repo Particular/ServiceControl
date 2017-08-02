@@ -129,7 +129,7 @@
 
         private IEnumerable<FailedMessage.FailureGroup> CreateFailureGroups(string messageType, FailedMessage.ProcessingAttempt attempt)
         {
-            var failureDetails = new ClassifiableMessageDetails(messageType, attempt.FailureDetails);
+            var failureDetails = new ClassifiableMessageDetails(messageType, attempt.FailureDetails, attempt);
 
             foreach (var classifier in classifiers)
             {

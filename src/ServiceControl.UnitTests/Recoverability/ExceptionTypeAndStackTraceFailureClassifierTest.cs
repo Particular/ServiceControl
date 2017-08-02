@@ -91,7 +91,7 @@ Cannot resolve parameter 'NHibernate.ISession session' of constructor 'Void .cto
                     ExceptionType = "exceptionType"
                 }
             };
-            return new ClassifiableMessageDetails(null, failureWithEmptyStackTrace);
+            return new ClassifiableMessageDetails(null, failureWithEmptyStackTrace, null);
         }
     }
 }

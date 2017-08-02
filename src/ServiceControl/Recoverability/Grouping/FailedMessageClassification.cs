@@ -2,7 +2,6 @@
 {
     using NServiceBus;
     using NServiceBus.Features;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class FailedMessageClassification : Feature
     {
@@ -18,6 +17,8 @@
             context.Container.ConfigureComponent<MessageTypeFailureClassifier>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<ClassifyFailedMessageEnricher>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<AddressOfFailingEndpointClassifier>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<EndpointInstanceClassifier>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<EndpointNameClassifier>(DependencyLifecycle.SingleInstance);
         }
 
         class ReclassifyErrorsAtStartup : FeatureStartupTask
@@ -31,7 +32,6 @@
 
             protected override void OnStart()
             {
-                bus.SendLocal(new ReclassifyErrors());
             }
         }
     }

@@ -148,7 +148,7 @@
                 message.CorrelationId,
                 replyToAddress);
 
-            var groups = failedMessageFactory.GetGroups((string) metadata["MessageType"], failureDetails);
+            var groups = failedMessageFactory.GetGroups((string) metadata["MessageType"], failureDetails, processingAttempt);
 
             Store(message.Headers.UniqueId(), processingAttempt, groups);
 

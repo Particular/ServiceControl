@@ -6,6 +6,6 @@
 
     public interface IFailedMessageEnricher
     {
-        IEnumerable<FailedMessage.FailureGroup> Enrich(string messageType, FailureDetails failureDetails);
+        IEnumerable<FailedMessage.FailureGroup> Enrich(string messageType, FailureDetails failureDetails, FailedMessage.ProcessingAttempt processingAttempt);
     }
 }
