@@ -123,7 +123,29 @@ namespace ServiceControl.Recoverability
             bulkRequests.Enqueue(request);
         }
 
-        public void StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null)
+        public void StartRetryForSingleMessage(string uniqueMessageId)
+        {
+            var requestId = uniqueMessageId;
+            var retryType = RetryType.SingleMessage;
+            var numberOfMessages = 1;
+
+            OperationManager.Prepairing(requestId, retryType, numberOfMessages);
+            StageRetryByUniqueMessageIds(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow);
+            OperationManager.PreparedBatch(requestId, retryType, numberOfMessages);
+        }
+
+        public void StartRetryForMessageSelection(string[] uniqueMessageIds)
+        {
+            var requestId = Guid.NewGuid().ToString();
+            var retryType = RetryType.MultipleMessages;
+            var numberOfMessages = uniqueMessageIds.Length;
+
+            OperationManager.Prepairing(requestId, retryType, numberOfMessages);
+            StageRetryByUniqueMessageIds(requestId, retryType, uniqueMessageIds, DateTime.UtcNow);
+            OperationManager.PreparedBatch(requestId, retryType, numberOfMessages);
+        }
+
+        private void StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
