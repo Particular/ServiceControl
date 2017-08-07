@@ -39,7 +39,7 @@ namespace ServiceControl.Recoverability
             Get["/recoverability/history/"] =
             _ => GetRetryHistory();
 
-            Get["/recoverability/groups/{groupId}"] =
+            Get["/recoverability/groups/id/{groupId}"] =
                 parameters => GetGroup(parameters.GroupId);
         }
 
