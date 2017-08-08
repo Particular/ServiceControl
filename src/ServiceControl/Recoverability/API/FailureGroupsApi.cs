@@ -27,8 +27,13 @@ namespace ServiceControl.Recoverability
             Post["/recoverability/groups/reclassify"] =
                 _ => ReclassifyErrors();
 
-            Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}/{classifierFilter?}"] =
-                parameters => GetAllGroups(parameters.Classifier, parameters.classifierFilter == "undefined" ? null : parameters.classifierFilter);
+            Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}"] =
+                parameters =>
+                {
+                    var classifierFilter = Request.Query["classifierFilter"] == null || Request.Query["classifierFilter"] == "undefined" ? null : Request.Query["classifierFilter"];
+
+                    return GetAllGroups(parameters.Classifier, classifierFilter);
+                };
 
             Get["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrors(parameters.GroupId);
@@ -78,6 +83,7 @@ namespace ServiceControl.Recoverability
 
         dynamic GetAllGroups(string classifier, string classifierFilter)
         {
+            System.Console.WriteLine($"classifer: {classifier} and filter: {classifierFilter}");
             using (var session = Store.OpenSession())
             {
                 var results = GroupFetcher.GetGroups(session, classifier, classifierFilter);

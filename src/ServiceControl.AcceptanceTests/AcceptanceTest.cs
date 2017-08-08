@@ -87,7 +87,7 @@ namespace ServiceBus.Management.AcceptanceTests
         [SetUp]
         public void Setup()
         {
-            port = FindAvailablePort(33333);
+            port = FindAvailablePort(33335);
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
 
@@ -626,7 +626,8 @@ namespace ServiceBus.Management.AcceptanceTests
                 Handler = new OwinHttpMessageHandler(appFunc)
                 {
                     UseCookies = false,
-                    AllowAutoRedirect = false
+                    AllowAutoRedirect = false,
+
                 };
                 httpClient = new HttpClient(Handler);
             }
