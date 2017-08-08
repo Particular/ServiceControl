@@ -27,8 +27,13 @@ namespace ServiceControl.Recoverability
             Post["/recoverability/groups/reclassify"] =
                 _ => ReclassifyErrors();
 
-            Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}/{classifierFilter?}"] =
-                parameters => GetAllGroups(parameters.Classifier, parameters.classifierFilter == "undefined" ? null : parameters.classifierFilter);
+            Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}"] =
+               parameters =>
+               {
+                   var classifierFilter = Request.Query["classifierFilter"] != "undefined" ? Request.Query["classifierFilter"] : null;
+
+                   return GetAllGroups(parameters.Classifier, classifierFilter);
+               };
 
             Get["/recoverability/groups/{groupId}/errors"] =
                 parameters => GetGroupErrors(parameters.GroupId);
