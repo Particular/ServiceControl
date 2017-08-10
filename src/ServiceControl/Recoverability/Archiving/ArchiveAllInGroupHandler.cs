@@ -55,6 +55,8 @@ namespace ServiceControl.Recoverability
                     logger.Info($"Splitting group {message.GroupId} into batches");
                     archiveOperation = documentManager.CreateArchiveOperation(session, message.GroupId, ArchiveType.FailureGroup, message.CutOff, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize);
                     session.SaveChanges();
+
+                    logger.Info($"Group {message.GroupId} has been split into {archiveOperation.NumberOfBatches} batches");
                 }
             }
 
@@ -68,8 +70,11 @@ namespace ServiceControl.Recoverability
                     if (nextBatch == null)
                     {
                         // We're only here in the case where Raven indexes are stale
+                        logger.Warn($"Attempting to archive a batch ({archiveOperation.Id}/{archiveOperation.CurrentBatch}) which appears to already have been archived.");
                         break;
                     }
+
+                    logger.Info($"Archiving {nextBatch.DocumentIds.Count} messages from group {message.GroupId} starting");
 
                     documentManager.ArchiveMessageGroupBatch(batchSession, nextBatch);
 
@@ -86,7 +91,10 @@ namespace ServiceControl.Recoverability
 
             logger.Info($"Archiving of group {message.GroupId} is complete. Waiting for index updates.");
             archiveOperationManager.ArchiveOperationFinalizing(archiveOperation.RequestId, archiveOperation.ArchiveType);
-            documentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, archiveOperation.ArchiveType, TimeSpan.FromMinutes(5));
+            if (!documentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, archiveOperation.ArchiveType, TimeSpan.FromMinutes(5)))
+            {
+                logger.Warn($"Archiving group {message.GroupId} completed but index not updated.");
+            }
 
             logger.Info($"Archiving of group {message.GroupId} completed");
             archiveOperationManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType);

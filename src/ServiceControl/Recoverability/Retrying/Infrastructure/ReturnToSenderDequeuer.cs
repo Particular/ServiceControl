@@ -63,10 +63,17 @@ namespace ServiceControl.Recoverability
                     CountMessageAndStopIfReachedTarget();
                 }
             }
+            else
+            {
+                Log.WarnFormat("Rejecting message from staging queue as it's not part of a fully staged batch: {0}", message.Id);
+            }
+
             if (!IsCounting)
             {
+                Log.Debug("Resetting timer");
                 timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
             }
+
             return true;
         }
 
@@ -88,6 +95,8 @@ namespace ServiceControl.Recoverability
         {
             message.Headers.Remove("ServiceControl.Retry.StagingId");
 
+            Log.DebugFormat("{0}: Retrieving message body", message.Id);
+
             string attemptMessageId;
             if (message.Headers.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out attemptMessageId))
             {
@@ -99,9 +108,28 @@ namespace ServiceControl.Recoverability
                         message.Body = ReadFully(stream);
                     }
                 }
+                else
+                { 
+                    Log.WarnFormat("{0}: Message Body not found for attempt Id {1}", message.Id, attemptMessageId);
+                }
                 message.Headers.Remove("ServiceControl.Retry.Attempt.MessageId");
             }
+            else
+            {
+                Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.Attempt.MessageId", message.Id);
+            }
+
+            if (message.Body != null)
+            {
+                Log.DebugFormat("{0}: Body size: {1} bytes", message.Id, message.Body.LongLength);
+            }
+            else
+            {
+                Log.DebugFormat("{0}: Body is NULL", message.Id);
+            }
+
             var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
+            Log.DebugFormat("{0}: Forwarding message to {1}", message.Id, destination);
             try
             {
                 string retryTo;
@@ -110,11 +138,17 @@ namespace ServiceControl.Recoverability
                     retryTo = destination;
                     message.Headers.Remove("ServiceControl.TargetEndpointAddress");
                 }
+                else
+                {
+                    Log.DebugFormat("{0}: Found ServiceControl.RetryTo header. Rerouting to {1}", message.Id, retryTo);
+                }
 
                 sender.Send(message, new SendOptions(retryTo));
+                Log.DebugFormat("{0}: Forwarded message to {1}", message.Id, retryTo);
             }
             catch (Exception)
             {
+                Log.WarnFormat("{0}: Error forwarding message, resetting headers", message.Id);
                 message.Headers["ServiceControl.TargetEndpointAddress"] = destination;
                 if (attemptMessageId != null)
                 {
@@ -133,6 +167,7 @@ namespace ServiceControl.Recoverability
             Log.DebugFormat("Handling message {0} of {1}", currentMessageCount, targetMessageCount);
             if (currentMessageCount >= targetMessageCount.GetValueOrDefault())
             {
+                Log.DebugFormat("Target count reached. Shutting down forwarder");
                 // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
                 Task.Factory.StartNew(StopInternal);
             }
@@ -146,6 +181,8 @@ namespace ServiceControl.Recoverability
         {
             try
             {
+                Log.DebugFormat("Started. Expectected message count {0}", expectedMessageCount);
+
                 if (expectedMessageCount.HasValue && expectedMessageCount.Value == 0)
                 {
                     return;
@@ -155,16 +192,20 @@ namespace ServiceControl.Recoverability
                 resetEvent.Reset();
                 targetMessageCount = expectedMessageCount;
                 actualMessageCount = 0;
+                Log.DebugFormat("Starting receiver");
                 receiver.StartInternal();
                 if (!expectedMessageCount.HasValue)
                 {
+                    Log.Debug("Running in timeout mode. Starting timer");
                     timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
                 }
                 Log.InfoFormat("{0} started", GetType().Name);
             }
             finally
             {
+                Log.DebugFormat("Waiting for finish");
                 resetEvent.Wait(cancellationToken);
+                Log.DebugFormat("Finished");
             }
 
             if (endedPrematurelly || cancellationToken.IsCancellationRequested)

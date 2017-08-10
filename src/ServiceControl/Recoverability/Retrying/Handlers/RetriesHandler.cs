@@ -30,12 +30,12 @@ namespace ServiceControl.Recoverability
 
         public void Handle(RetryMessagesById message)
         {
-            Retries.StageRetryByUniqueMessageIds(Guid.NewGuid().ToString(), RetryType.MultipleMessages, message.MessageUniqueIds, DateTime.UtcNow);
+            Retries.StartRetryForMessageSelection(message.MessageUniqueIds);
         }
 
         public void Handle(RetryMessage message)
         {
-            Retries.StageRetryByUniqueMessageIds(message.FailedMessageId, RetryType.SingleMessage, new[] { message.FailedMessageId }, DateTime.UtcNow);
+            Retries.StartRetryForSingleMessage(message.FailedMessageId);
         }
 
         public void Handle(MessageFailedRepeatedly message)
