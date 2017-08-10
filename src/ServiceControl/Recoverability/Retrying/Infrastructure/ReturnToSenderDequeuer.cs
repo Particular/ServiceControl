@@ -119,8 +119,14 @@ namespace ServiceControl.Recoverability
                 Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.Attempt.MessageId", message.Id);
             }
 
-            Log.DebugFormat("{0}: Body size: {1} bytes", message.Id, message.Body.LongLength);
-
+            if (message.Body != null)
+            {
+                Log.DebugFormat("{0}: Body size: {1} bytes", message.Id, message.Body.LongLength);
+            }
+            else
+            {
+                Log.DebugFormat("{0}: Body is NULL");
+            }
 
             var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
             Log.DebugFormat("{0}: Forwarding message to {1}", message.Id, destination);
