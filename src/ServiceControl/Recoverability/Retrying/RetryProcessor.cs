@@ -74,21 +74,35 @@ namespace ServiceControl.Recoverability
 
         private bool ForwardCurrentBatch(IDocumentSession session, CancellationToken cancellationToken)
         {
+            Log.Debug("Looking for batch to forward");
+
             var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
                 .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
 
             if (nowForwarding != null)
             {
+                Log.DebugFormat("Loading batch {0} for forwarding", nowForwarding.RetryBatchId);
+
                 var forwardingBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
 
                 if (forwardingBatch != null)
                 {
+                    Log.InfoFormat("Found batch {0}. Forwarding...", forwardingBatch.Id);
                     Forward(forwardingBatch, session, cancellationToken);
+                    Log.DebugFormat("Retry batch {0} forwarded.", forwardingBatch.Id);
                 }
+                else
+                {
+                    Log.WarnFormat("Could not find retry batch {0} to forward", nowForwarding.RetryBatchId);
+                }
+
+                Log.Debug("Removing Forwarding record");
 
                 session.Delete(nowForwarding);
                 return true;
             }
+
+            Log.Debug("No batch found to forward");
 
             return false;
         }
@@ -97,16 +111,18 @@ namespace ServiceControl.Recoverability
         {
             var messageCount = forwardingBatch.FailureRetries.Count;
 
+            Log.InfoFormat("Forwarding batch {0} with {1} messages", forwardingBatch.Id, messageCount);
             retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
 
             if (isRecoveringFromPrematureShutdown)
             {
+                Log.Warn("Recovering from premature shutdown. Starting forwarder in timeout mode");
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken);
                 retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
             }
             else
             {
-
+                Log.DebugFormat("Starting forwarder in counting mode with {0} messages", messageCount);
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount);
                 retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount);
             }
@@ -154,6 +170,8 @@ namespace ServiceControl.Recoverability
                 .Where(m => m != null)
                 .ToArray();
 
+            Log.DebugFormat("Staging {0} messages for Retry Batch {1} with staging attempt Id {2}", messages.Length, stagingBatch.Id, stagingId);
+
             Parallel.ForEach(messages, message => StageMessage(message, stagingId));
 
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
@@ -172,7 +190,7 @@ namespace ServiceControl.Recoverability
             stagingBatch.Status = RetryBatchStatus.Forwarding;
             stagingBatch.StagingId = stagingId;
             stagingBatch.FailureRetries = matchingFailures.Where(x => msgLookup[x.FailedMessageId].Any()).Select(x => x.Id).ToArray();
-
+            Log.DebugFormat("Retry batch {0} staged with Staging Id {1} and {2} matching failure retries", stagingBatch.Id, stagingBatch.StagingId, stagingBatch.FailureRetries.Count);
             Log.InfoFormat("Retry batch {0} staged {1} messages", stagingBatch.Id, messages.Length);
             return messages.Length;
         }
