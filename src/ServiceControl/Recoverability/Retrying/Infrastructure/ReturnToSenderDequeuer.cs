@@ -125,7 +125,7 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                Log.DebugFormat("{0}: Body is NULL");
+                Log.DebugFormat("{0}: Body is NULL", message.Id);
             }
 
             var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
