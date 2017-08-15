@@ -40,10 +40,7 @@
 
             try
             {
-                using (var localMachine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Default))
-                {
-                    new RegistryLicenseStore(localMachine).StoreLicense(licenseText);
-                }
+                new RegistryLicenseStore(Registry.LocalMachine).StoreLicense(licenseText);
             }
             catch (Exception)
             {
