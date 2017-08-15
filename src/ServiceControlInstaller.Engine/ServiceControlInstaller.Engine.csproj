@@ -22,7 +22,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;REGISTRYLICENSESOURCE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <LangVersion>6</LangVersion>
@@ -85,21 +85,23 @@
     <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\ActiveLicense.cs" />
     <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\ActiveLicenseFindResult.cs" />
     <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSource.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceConfigFile.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceAppConfigLicensePathSetting.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceAppConfigLicenseSetting.cs" />
     <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceFilePath.cs" />
     <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceHKCURegKey.cs" />
     <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceHKLMRegKey.cs" />
     <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceResult.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceUserProvided.cs" />
     <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\NonBlockingReader.cs" />
     <Compile Include="App_Packages\Particular.Licensing\License.cs" />
     <Compile Include="App_Packages\Particular.Licensing\LicenseDeserializer.cs" />
     <Compile Include="App_Packages\Particular.Licensing\LicenseExpirationChecker.cs" />
     <Compile Include="App_Packages\Particular.Licensing\LicenseVerifier.cs" />
     <Compile Include="App_Packages\Particular.Licensing\RegistryLicenseStore.cs" />
+    <Compile Include="App_Packages\Particular.Licensing\ReleaseDateAttribute.cs" />
     <Compile Include="App_Packages\Particular.Licensing\ReleaseDateReader.cs" />
     <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\UserSidChecker.cs" />
     <Compile Include="Configuration\AppConfigWrapper.cs" />
     <Compile Include="Configuration\Monitoring\SettingsList.cs" />
     <Compile Include="Configuration\ServiceControl\Compatibility.cs" />
@@ -182,5 +184,7 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets'))" />
+    <Error Condition="!Exists('..\packages\Particular.Licensing.Sources.1.0.0-alpha0004\build\Particular.Licensing.Sources.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Particular.Licensing.Sources.1.0.0-alpha0004\build\Particular.Licensing.Sources.targets'))" />
   </Target>
+  <Import Project="..\packages\Particular.Licensing.Sources.1.0.0-alpha0004\build\Particular.Licensing.Sources.targets" Condition="Exists('..\packages\Particular.Licensing.Sources.1.0.0-alpha0004\build\Particular.Licensing.Sources.targets')" />
 </Project>

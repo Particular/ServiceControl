@@ -1,4 +1,6 @@
-﻿namespace Particular.Licensing
+﻿#if REGISTRYLICENSESOURCE
+#pragma warning disable PC001 //Registry doesn't exist on non-Windows
+namespace Particular.Licensing
 {
     using System;
     using System.Security;
@@ -11,7 +13,6 @@
             keyPath = DefaultKeyPath;
             keyName = DefaultKeyName;
             regKey = Registry.CurrentUser;
-
         }
 
         public RegistryLicenseStore(RegistryKey regKey, string keyPath = DefaultKeyPath, string keyName = DefaultKeyName)
@@ -37,13 +38,12 @@
 
                     if (licenseValue is string[])
                     {
-                        license = string.Join(" ", (string[]) licenseValue);
+                        license = string.Join(" ", (string[])licenseValue);
                     }
                     else
                     {
                         license = (string)licenseValue;
                     }
-
                     return !string.IsNullOrEmpty(license);
                 }
             }
@@ -52,7 +52,6 @@
                 throw new Exception($"Failed to access '{FullPath}'. Do you have permission to read this key?", exception);
             }
         }
-
 
         public void StoreLicense(string license)
         {
@@ -79,9 +78,9 @@
         string keyPath;
         string keyName;
         RegistryKey regKey;
-
-
         const string DefaultKeyPath = @"SOFTWARE\ParticularSoftware";
         const string DefaultKeyName = "License";
     }
 }
+#pragma warning restore PC001
+#endif

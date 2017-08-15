@@ -11,7 +11,6 @@
                 return true;
             }
 
-
             if (license.UpgradeProtectionExpiration != null)
             {
                 var buildTimeStamp = ReleaseDateReader.GetReleaseDate();

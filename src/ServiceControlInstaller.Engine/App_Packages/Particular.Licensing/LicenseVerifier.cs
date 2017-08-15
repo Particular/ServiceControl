@@ -22,7 +22,6 @@
                 failure = ex;
                 return false;
             }
-
         }
 
         public static void Verify(string licenseText)
@@ -32,29 +31,29 @@
                 throw new Exception("Empty license string");
             }
 
-            var xmlVerifier = new SignedXmlVerifier(PublicKey);
-
-            xmlVerifier.VerifyXml(licenseText);
+            SignedXmlVerifier.VerifyXml(licenseText);
         }
 
-        public const string PublicKey = "<RSAKeyValue><Modulus>5M9/p7N+JczIN/e5eObahxeCIe//2xRLA9YTam7zBrcUGt1UlnXqL0l/8uO8rsO5tl+tjjIV9bOTpDLfx0H03VJyxsE8BEpSVu48xujvI25+0mWRnk4V50bDZykCTS3Du0c8XvYj5jIKOHPtU//mKXVULhagT8GkAnNnMj9CvTc=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>";
+        const string modulus = "5M9/p7N+JczIN/e5eObahxeCIe//2xRLA9YTam7zBrcUGt1UlnXqL0l/8uO8rsO5tl+tjjIV9bOTpDLfx0H03VJyxsE8BEpSVu48xujvI25+0mWRnk4V50bDZykCTS3Du0c8XvYj5jIKOHPtU//mKXVULhagT8GkAnNnMj9CvTc=";
+        const string exponent = "AQAB";
 
-        class SignedXmlVerifier
+        public const string PublicKey = "<RSAKeyValue><Modulus>" + modulus + "</Modulus><Exponent>" + exponent + "</Exponent></RSAKeyValue>";
+
+        static class SignedXmlVerifier
         {
-            readonly string publicKey;
-
-            public SignedXmlVerifier(string publicKey)
-            {
-                this.publicKey = publicKey;
-            }
-
-            public void VerifyXml(string xml)
+            public static void VerifyXml(string xml)
             {
                 var doc = LoadXmlDoc(xml);
 
                 using (var rsa = new RSACryptoServiceProvider())
                 {
-                    rsa.FromXmlString(publicKey);
+                    var parameters = new RSAParameters
+                    {
+                        Modulus = Convert.FromBase64String(modulus),
+                        Exponent = Convert.FromBase64String(exponent)
+                    };
+
+                    rsa.ImportParameters(parameters);
 
                     var nsMgr = new XmlNamespaceManager(doc.NameTable);
                     nsMgr.AddNamespace("sig", "http://www.w3.org/2000/09/xmldsig#");

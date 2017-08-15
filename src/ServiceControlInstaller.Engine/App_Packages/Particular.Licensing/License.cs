@@ -12,7 +12,7 @@
                 LicenseType = "Trial",
                 ExpirationDate = trialStartDate.AddDays(14),
                 IsExtendedTrial = false,
-                ValidApplications = new List<string> { "All"}
+                ValidApplications = new List<string> { "All" }
             };
         }
 
@@ -37,11 +37,11 @@
 
         public DateTime? UpgradeProtectionExpiration { get; internal set; }
 
-        public List<string> ValidApplications{ get; internal set; }
+        public List<string> ValidApplications { get; internal set; }
 
         public bool ValidForApplication(string applicationName)
         {
-            return ValidApplications.Contains(applicationName) || ValidApplications.Contains("All");
+            return ValidApplications.Contains(applicationName) || ValidApplications.Contains("All") || applicationName == "NServiceBus";
         }
     }
 }

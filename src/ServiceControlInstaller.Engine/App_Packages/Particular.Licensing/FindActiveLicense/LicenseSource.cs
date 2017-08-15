@@ -1,14 +1,16 @@
 ﻿namespace Particular.Licensing
 {
     using System;
+    using System.Collections.Generic;
+    using System.IO;
 
     abstract class LicenseSource
     {
-        protected string Location;
+        protected string location;
 
         protected LicenseSource(string location)
         {
-            Location = location;
+            this.location = location;
         }
 
         public abstract LicenseSourceResult Find(string applicationName);
@@ -20,12 +22,12 @@
                 throw new ArgumentException("No application name specified");
             }
 
-            var result = new LicenseSourceResult{Location = Location};
+            var result = new LicenseSourceResult { Location = location };
 
             Exception validationFailure;
             if (!LicenseVerifier.TryVerify(licenseText, out validationFailure))
             {
-                result.Result = $"License found at '{Location}' is not valid - {validationFailure.Message}";
+                result.Result = $"License found in {location} is not valid - {validationFailure.Message}";
                 return result;
             }
 
@@ -36,20 +38,36 @@
             }
             catch
             {
-                result.Result = $"License found at '{Location}' could not be deserialized";
+                result.Result = $"License found in {location} could not be deserialized";
                 return result;
             }
 
             if (license.ValidForApplication(applicationName))
             {
                 result.License = license;
-                result.Result = $"License found at '{Location}'";
+                result.Result = $"License found in {location}";
             }
             else
             {
-                result.Result = $"License found at '{Location}' was not valid for '{applicationName}'. Valid apps: '{string.Join(",", license.ValidApplications)}'";
+                result.Result = $"License found in {location} was not valid for '{applicationName}'. Valid apps: '{string.Join(",", license.ValidApplications)}'";
             }
             return result;
+        }
+
+        public static List<LicenseSource> GetStandardLicenseSources()
+        {
+            var sources = new List<LicenseSource>();
+
+            sources.Add(new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "license.xml")));
+            sources.Add(new LicenseSourceFilePath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ParticularSoftware", "license.xml")));
+            sources.Add(new LicenseSourceFilePath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "ParticularSoftware", "license.xml")));
+
+#if REGISTRYLICENSESOURCE
+            sources.Add(new LicenseSourceHKCURegKey(@"SOFTWARE\ParticularSoftware"));
+            sources.Add(new LicenseSourceHKLMRegKey(@"SOFTWARE\ParticularSoftware"));
+#endif
+
+            return sources;
         }
     }
 }

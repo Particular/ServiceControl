@@ -2,39 +2,34 @@
 {
     using System;
     using System.Globalization;
-    using Microsoft.Win32;
+    using System.IO;
 
     static class TrialStartDateStore
     {
+        public static string StorageFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ParticularSoftware");
+
+        public static string StorageLocation { get; } = Path.Combine(StorageFolder, "trialstart");
+
         public static DateTime GetTrialStartDate()
         {
-            var rootKey = Registry.LocalMachine;
-
-            if (UserSidChecker.IsNotSystemSid())
+            if (File.Exists(StorageLocation))
             {
-                rootKey = Registry.CurrentUser;
+                var trialStartString = File.ReadAllText(StorageLocation);
+                var trialStartDate = DateTimeOffset.ParseExact(trialStartString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+
+                return trialStartDate.Date;
             }
-            using (var registryKey = rootKey.CreateSubKey(StorageLocation))
+            else
             {
-                // ReSharper disable PossibleNullReferenceException
-                //CreateSubKey does not return null http://stackoverflow.com/questions/19849870/under-what-circumstances-will-registrykey-createsubkeystring-return-null
-                var trialStartDateString = (string)registryKey.GetValue("TrialStart", null);
-                // ReSharper restore PossibleNullReferenceException
-                if (trialStartDateString == null)
-                {
-                    var trialStart = DateTime.UtcNow;
-                    trialStartDateString = trialStart.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-                    registryKey.SetValue("TrialStart", trialStartDateString, RegistryValueKind.String);
+                Directory.CreateDirectory(StorageFolder);
 
-                    return trialStart;
-                }
+                var trialStartDate = DateTime.UtcNow;
+                var trialStartString = trialStartDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
-                var trialStartDate = DateTimeOffset.ParseExact(trialStartDateString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+                File.WriteAllText(StorageLocation, trialStartString);
 
                 return trialStartDate.Date;
             }
         }
-
-        public static string StorageLocation = @"SOFTWARE\ParticularSoftware";
     }
 }

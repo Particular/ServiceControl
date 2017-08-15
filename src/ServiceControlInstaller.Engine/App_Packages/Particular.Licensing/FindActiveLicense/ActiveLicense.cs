@@ -8,7 +8,7 @@ namespace Particular.Licensing
         /// <summary>
         /// Compare a bunch of license sources and choose an active license
         /// </summary>
-        public static ActiveLicenseFindResult Find(string applicationName, params LicenseSource[] licenseSources )
+        public static ActiveLicenseFindResult Find(string applicationName, params LicenseSource[] licenseSources)
         {
             var results = licenseSources.Select(licenseSource => licenseSource.Find(applicationName)).ToList();
             var activeLicense = new ActiveLicenseFindResult();
@@ -20,27 +20,47 @@ namespace Particular.Licensing
             var licenseSourceResultToUse = LicenseSourceResult.DetermineBestLicenseSourceResult(results.ToArray());
             if (licenseSourceResultToUse != null)
             {
-                activeLicense.Report.Add($"Selected active license from {licenseSourceResultToUse.Location}");
+                var selectedLicenseReportItem = $"Selected active license from {licenseSourceResultToUse.Location}";
+                activeLicense.Report.Add(selectedLicenseReportItem);
+                activeLicense.SelectedLicenseReport.Add(selectedLicenseReportItem);
+
                 var details = licenseSourceResultToUse.License;
                 if (details.ExpirationDate.HasValue)
                 {
-                    activeLicense.Report.Add(string.Format(CultureInfo.InvariantCulture, "License Expiration: {0:dd MMMM yyyy}", details.ExpirationDate.Value));
+                    var licenseExpirationReportItem = $"License Expiration: {details.ExpirationDate.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
+                    activeLicense.Report.Add(licenseExpirationReportItem);
+                    activeLicense.SelectedLicenseReport.Add(licenseExpirationReportItem);
 
                     if (details.UpgradeProtectionExpiration.HasValue)
                     {
-                        activeLicense.Report.Add(string.Format(CultureInfo.InvariantCulture, "Upgrade Protection Expiration: {0:dd MMMM yyyy}", details.UpgradeProtectionExpiration.Value));
+                        var upgradeProtectionReportItem = $"Upgrade Protection Expiration: {details.UpgradeProtectionExpiration.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
+                        activeLicense.Report.Add(upgradeProtectionReportItem);
+                        activeLicense.SelectedLicenseReport.Add(upgradeProtectionReportItem);
                     }
                 }
                 activeLicense.License = details;
                 activeLicense.Location = licenseSourceResultToUse.Location;
+
+                if (activeLicense.License.IsTrialLicense)
+                {
+                    // If the found license is a trial license then it is actually a extended trial license not a locally generated trial.
+                    // Set the property to indicate that it is an extended license as it's not set by the license generation
+                    activeLicense.License.IsExtendedTrial = true;
+                }
             }
 
             if (activeLicense.License == null)
             {
-                activeLicense.Report.Add("No valid license could be found, falling back to trial license");
-                activeLicense.License = License.TrialLicense(TrialStartDateStore.GetTrialStartDate());
+                var trialStartDate = TrialStartDateStore.GetTrialStartDate();
+
+                var trialLicenseReportItem = $"No valid license could be found. Falling back to trial license with start date '{trialStartDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}'.";
+                activeLicense.Report.Add(trialLicenseReportItem);
+                activeLicense.SelectedLicenseReport.Add(trialLicenseReportItem);
+
+                activeLicense.License = License.TrialLicense(trialStartDate);
                 activeLicense.Location = "Trial License";
             }
+
             activeLicense.HasExpired = LicenseExpirationChecker.HasLicenseExpired(activeLicense.License);
             return activeLicense;
         }

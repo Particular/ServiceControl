@@ -9,7 +9,8 @@
     {
         public static DetectedLicense FindLicense()
         {
-            var result = ActiveLicense.Find("ServiceControl", new LicenseSourceHKLMRegKey());
+            var sources = LicenseSource.GetStandardLicenseSources().ToArray();
+            var result = ActiveLicense.Find("ServiceControl", sources);
 
             return new DetectedLicense("HKEY_LOCAL_MACHINE", LicenseDetails.FromLicense(result.License));
         }
@@ -47,6 +48,8 @@
                 errorMessage = "Failed to import license into the registry";
                 return false;
             }
+
+            //TODO: import license into new registry location
 
             errorMessage = null;
             return true;

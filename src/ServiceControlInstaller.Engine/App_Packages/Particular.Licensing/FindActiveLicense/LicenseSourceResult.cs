@@ -5,7 +5,9 @@
     class LicenseSourceResult
     {
         internal License License { get; set; }
+
         internal string Location { get; set; }
+
         internal string Result { get; set; }
 
         public static LicenseSourceResult DetermineBestLicenseSourceResult(params LicenseSourceResult[] sourceResults)
