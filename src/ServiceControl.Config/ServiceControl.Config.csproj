@@ -110,6 +110,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Reactive.Core, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -183,10 +184,12 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\ValidatorExtensions.cs" />
     <Compile Include="Extensions\VisualTreeExtensions.cs" />
+    <Compile Include="Features.cs" />
     <Compile Include="Framework\Commands\AwaitableAbstractCommand.cs" />
     <Compile Include="Framework\IProgressViewModel.cs" />
     <Compile Include="Framework\Modules\InstallerModule.cs" />
     <Compile Include="Framework\Modules\MiscModule.cs" />
+    <Compile Include="Framework\Modules\FeatureTogglesModule.cs" />
     <Compile Include="Framework\RaygunFeedback.cs" />
     <Compile Include="Framework\RaygunReporter.cs" />
     <Compile Include="Framework\Rx\RxProgressScreen.cs" />
@@ -402,6 +405,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="App.config" />
     <None Include="app.manifest" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

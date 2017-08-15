@@ -56,7 +56,14 @@
                         Visibility="{Binding IsModal,
                                              Converter={StaticResource boolToVisInverted}}">
 
-                <ToggleButton Name="AddInstanceButton" Style="{StaticResource NewButton}" />
+                <Button Command="{Binding AddInstance}" Style="{StaticResource OriginalNewButton}" 
+                        Visibility="{Binding ShowMonitoringInstances, 
+                                     Converter={StaticResource boolToVisInverted}}"/>
+                
+                <ToggleButton Name="AddInstanceButton"
+                              Style="{StaticResource NewButton}" 
+                              Visibility="{Binding ShowMonitoringInstances,
+                                                   Converter={StaticResource boolToVis}}"/>
 
                 <Popup PlacementTarget="{Binding ElementName=AddInstanceButton}" 
                        Placement="Bottom" 
