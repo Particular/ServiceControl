@@ -18,5 +18,15 @@
                    FontSize="20"
                    Foreground="{StaticResource Gray60Brush}"
                    Text="No service instances installed" />
+
+        <Button Grid.Row="1"
+                Margin="10"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Command="{Binding AddInstance}"
+                Content="Add new instance"
+                Style="{StaticResource HiliteButton}" 
+                Visibility="{Binding ShowMonitoringInstances,
+                             Converter={StaticResource boolToVisInverted}}"/>
     </Grid>
 </UserControl>

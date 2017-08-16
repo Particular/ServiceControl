@@ -64,6 +64,9 @@
 
         public bool HasInstances { get; private set; }
 
+        [FeatureToggle(Feature.MonitoringInstances)]
+        public bool ShowMonitoringInstances { get; set; }
+
         public ICommand AddInstance { get; private set; }
 
         public ICommand AddMonitoringInstance { get; private set; }
