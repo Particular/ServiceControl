@@ -2,11 +2,21 @@
 
 namespace ServiceControl.Config.UI.NoInstances
 {
+    using System.Windows.Input;
+    using ServiceControl.Config.Commands;
+
     class NoInstancesViewModel : RxScreen
     {
-        public NoInstancesViewModel()
+        public NoInstancesViewModel(AddServiceControlInstanceCommand addInstance)
         {
             DisplayName = "";
+
+            AddInstance = addInstance;
         }
+
+        public ICommand AddInstance { get; }
+
+        [FeatureToggle(Feature.MonitoringInstances)]
+        public bool ShowMonitoringInstances { get; set; }
     }
 }
