@@ -2,7 +2,7 @@
 
 namespace ServiceControl.Config
 {
-    using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Configuration;
     using Autofac;
@@ -25,16 +25,16 @@ namespace ServiceControl.Config
 
     public class FeatureToggles
     {
-        private ConcurrentDictionary<string, bool> features = new ConcurrentDictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);
+        private HashSet<string> features = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
 
         public bool IsEnabled(string feature)
         {
-            return features.ContainsKey(feature);
+            return features.Contains(feature);
         }
 
         public void Enable(string feature)
         {
-            features.GetOrAdd(feature, key => true);
+            features.Add(feature);
         }
     }
 
