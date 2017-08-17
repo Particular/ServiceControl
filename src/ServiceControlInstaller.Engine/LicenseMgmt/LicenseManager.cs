@@ -49,7 +49,15 @@
                 return false;
             }
 
-            //TODO: import license into new registry location
+            try
+            {
+                new FilePathLicenseStore().StoreLicense(FilePathLicenseStore.UserLevelLicenseLocation, licenseText);
+            }
+            catch (Exception)
+            {
+                errorMessage = "Failed to import license into the filesystem";
+                return false;
+            }
 
             errorMessage = null;
             return true;
