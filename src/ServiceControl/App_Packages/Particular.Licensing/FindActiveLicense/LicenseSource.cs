@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
 
     abstract class LicenseSource
     {
@@ -58,9 +57,9 @@
         {
             var sources = new List<LicenseSource>();
 
-            sources.Add(new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "license.xml")));
-            sources.Add(new LicenseSourceFilePath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ParticularSoftware", "license.xml")));
-            sources.Add(new LicenseSourceFilePath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "ParticularSoftware", "license.xml")));
+            sources.Add(new LicenseSourceFilePath(FilePathLicenseStore.ApplicationLevelLicenseLocation));
+            sources.Add(new LicenseSourceFilePath(FilePathLicenseStore.UserLevelLicenseLocation));
+            sources.Add(new LicenseSourceFilePath(FilePathLicenseStore.MachineLevelLicenseLocation));
 
 #if REGISTRYLICENSESOURCE
             sources.Add(new LicenseSourceHKCURegKey(@"SOFTWARE\ParticularSoftware"));
