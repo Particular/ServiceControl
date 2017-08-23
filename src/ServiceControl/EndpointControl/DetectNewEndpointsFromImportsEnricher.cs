@@ -2,12 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
-    using Infrastructure;
-    using InternalMessages;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Monitoring;
 
     public class EndpointDetectionFeature : Feature
     {
@@ -46,13 +45,11 @@
 
         class DetectNewEndpointsFromImportsEnricher : ImportEnricher
         {
-            IBus bus;
-            KnownEndpointsCache knownEndpointsCache;
+            private EndpointInstanceMonitoring monitoring;
 
-            public DetectNewEndpointsFromImportsEnricher(IBus bus, KnownEndpointsCache knownEndpointsCache)
+            public DetectNewEndpointsFromImportsEnricher(EndpointInstanceMonitoring monitoring)
             {
-                this.bus = bus;
-                this.knownEndpointsCache = knownEndpointsCache;
+                this.monitoring = monitoring;
             }
 
             public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
@@ -84,42 +81,13 @@
                 // for backwards compat with version before 4_5 we might not have a hostid
                 if (endpointDetails.HostId == Guid.Empty)
                 {
-                    HandlePre45Endpoint(endpointDetails);
                     return;
                 }
 
-                HandlePost45Endpoint(endpointDetails);
-            }
-
-            void HandlePost45Endpoint(EndpointDetails endpointDetails)
-            {
-                var endpointInstanceId = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.HostId.ToString());
-                if (knownEndpointsCache.TryAdd(endpointInstanceId))
-                {
-                    var registerEndpoint = new RegisterEndpoint
-                    {
-                        EndpointInstanceId = endpointInstanceId,
-                        Endpoint = endpointDetails,
-                        DetectedAt = DateTime.UtcNow
-                    };
-                    bus.SendLocal(registerEndpoint);
-                }
-            }
-
-            void HandlePre45Endpoint(EndpointDetails endpointDetails)
-            {
-                //since for pre 4.5 endpoints we wont have a hostid then fake one
-                var endpointInstanceId = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.Host);
-                if (knownEndpointsCache.TryAdd(endpointInstanceId))
-                {
-                    var registerEndpoint = new RegisterEndpoint
-                    {
-                        //we don't set then endpoint instance id since we don't have the host id
-                        Endpoint = endpointDetails,
-                        DetectedAt = DateTime.UtcNow
-                    };
-                    bus.SendLocal(registerEndpoint);
-                }
+                monitoring.GetOrCreateMonitor(
+                    new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId),
+                    false
+                );
             }
         }
     }

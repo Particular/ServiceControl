@@ -128,7 +128,6 @@
     <Compile Include="ExternalIntegrations\MessageFailedConverterTests.cs" />
     <Compile Include="CompositeViews\MessagesViewTests.cs" />
     <Compile Include="Expiration\SagaAuditExpirationTests.cs" />
-    <Compile Include="Heartbeats\HeartbeatStatusProviderTests.cs" />
     <Compile Include="Infrastructure\PreventReindexing.cs" />
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapperTests.cs" />
@@ -168,7 +167,9 @@
     <None Include="packages.config" />
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Heartbeats\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

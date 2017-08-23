@@ -1,25 +1,37 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
-    using Contracts.EndpointControl;
-    using Contracts.Operations;
     using NServiceBus;
     using Plugin.Heartbeat.Messages;
+    using ServiceControl.Contracts.EndpointControl;
+    using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Monitoring;
 
     class RegisterEndpointStartupHandler : IHandleMessages<RegisterEndpointStartup>
     {
-        public IBus Bus { get; set; }
+        private EndpointInstanceMonitoring monitoring;
+
+        public RegisterEndpointStartupHandler(EndpointInstanceMonitoring monitoring)
+        {
+            this.monitoring = monitoring;
+        }
 
         public void Handle(RegisterEndpointStartup message)
         {
-            Bus.Publish<EndpointStarted>(e =>
+            monitoring.GetOrCreateMonitor(
+                new EndpointInstanceId(message.Endpoint, message.Host, message.HostId),
+                true
+            );
+
+            DomainEvents.Raise(new EndpointStarted
             {
-                e.EndpointDetails = new EndpointDetails
+                EndpointDetails = new EndpointDetails
                 {
                     Host = message.Host,
                     HostId = message.HostId,
                     Name = message.Endpoint
-                };
-                e.StartedAt = message.StartedAt;
+                },
+                StartedAt = message.StartedAt
             });
         }
     }

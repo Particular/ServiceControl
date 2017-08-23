@@ -256,11 +256,9 @@
     <Compile Include="App_Packages\Particular.Licensing\UserSidChecker.cs" />
     <Compile Include="App_Packages\StackTraceParser\StackTraceParser.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
-    <Compile Include="CompositeViews\Endpoints\GetEndpoints.cs" />
     <Compile Include="CompositeViews\Endpoints\HeartbeatInformation.cs" />
     <Compile Include="CompositeViews\Endpoints\KnownEndpointIndex.cs" />
     <Compile Include="CompositeViews\Endpoints\EnableEndpointMonitoring.cs" />
-    <Compile Include="CompositeViews\Endpoints\KnownEndpointUpdateHandler.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
     <Compile Include="CompositeViews\Messages\MessagesBodyTransformer.cs" />
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
@@ -289,6 +287,7 @@
     <Compile Include="DbMigrations\MigrationsManager.cs" />
     <Compile Include="DbMigrations\MigrationsModule.cs" />
     <Compile Include="DbMigrations\1.27\SplitFailedMessageDocumentsMigration.cs" />
+    <Compile Include="HeartbeatMonitoring\LegacyHandler.cs" />
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -356,13 +355,9 @@
     <Compile Include="ExternalIntegrations\IEventPublisher.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
-    <Compile Include="HeartbeatMonitoring\HeartbeatsStats.cs" />
     <Compile Include="HeartbeatMonitoring\InternalMessages\EndpointHeartbeat.cs" />
     <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterEndpointStartup.cs" />
     <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterPotentiallyMissingHeartbeats.cs" />
-    <Compile Include="HeartbeatMonitoring\MonitoringDisabledForEndpointHandler.cs" />
-    <Compile Include="HeartbeatMonitoring\MonitoringEnabledForEndpointHandler.cs" />
-    <Compile Include="HeartbeatMonitoring\RegisterPotentiallyMissingHeartbeatsHandler.cs" />
     <Compile Include="Hosting\Commands\AbstractCommand.cs" />
     <Compile Include="Hosting\Commands\CommandRunner.cs" />
     <Compile Include="Hosting\Commands\MaintCommand.cs" />
@@ -399,6 +394,17 @@
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
+    <Compile Include="Monitoring\Web\ApiModule.cs" />
+    <Compile Include="Monitoring\EndpointInstanceId.cs" />
+    <Compile Include="Monitoring\EndpointInstanceMonitor.cs" />
+    <Compile Include="Monitoring\EndpointInstanceMonitoring.cs" />
+    <Compile Include="Monitoring\EndpointMonitoringStats.cs" />
+    <Compile Include="Monitoring\Transport\HeartbeatHandler.cs" />
+    <Compile Include="Monitoring\HeartbeatMonitor.cs" />
+    <Compile Include="Monitoring\HeartbeatStatus.cs" />
+    <Compile Include="Monitoring\InMemoryMonitoring.cs" />
+    <Compile Include="Monitoring\MonitoringDataPersister.cs" />
+    <Compile Include="Monitoring\RecordedHeartbeat.cs" />
     <Compile Include="Recoverability\API\UnacknowledgedGroupsApi.cs" />
     <Compile Include="Recoverability\Archiving\ArchiveDocumentManager.cs" />
     <Compile Include="Recoverability\Archiving\Raven\ArchiveOperation.cs" />
@@ -435,9 +441,6 @@
     <Compile Include="CustomChecks\DeleteCustomCheck.cs" />
     <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
     <Compile Include="EndpointControl\DetectNewEndpointsFromImportsEnricher.cs" />
-    <Compile Include="EndpointControl\Handlers\DetectEndpointsFromHeartbeats.cs" />
-    <Compile Include="EndpointControl\Handlers\KnownEndpointsCache.cs" />
-    <Compile Include="EndpointControl\Handlers\RegisterEndpointHandler.cs" />
     <Compile Include="EndpointControl\KnownEndpoint.cs" />
     <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />
     <Compile Include="Contracts\EndpointControl\MonitoringEnabledForEndpoint.cs" />
@@ -465,14 +468,7 @@
     <Compile Include="CustomChecks\CustomChecksUpdated.cs" />
     <Compile Include="EventLog\IEventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogItem.cs" />
-    <Compile Include="HeartbeatMonitoring\HeartbeatingEndpoint.cs" />
-    <Compile Include="HeartbeatMonitoring\HeartbeatsMonitor.cs" />
-    <Compile Include="HeartbeatMonitoring\HeartbeatsIndex.cs" />
-    <Compile Include="HeartbeatMonitoring\HeartbeatStatus.cs" />
-    <Compile Include="HeartbeatMonitoring\HeartbeatStatusProvider.cs" />
-    <Compile Include="HeartbeatMonitoring\RaiseHeartbeatChanges.cs" />
     <Compile Include="HeartbeatMonitoring\RegisterEndpointStartupHandler.cs" />
-    <Compile Include="HeartbeatMonitoring\SaveHeartbeatHandler.cs" />
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
     <Compile Include="Infrastructure\Installers\AuditLogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\AuditQueueInstaller.cs" />
@@ -496,7 +492,6 @@
     <Compile Include="MessageFailures\Api\FailedMessageViewTransformer.cs" />
     <Compile Include="MessageFailures\Api\GetAllErrors.cs" />
     <Compile Include="MessageFailures\Api\GetErrorById.cs" />
-    <Compile Include="HeartbeatMonitoring\ApiModule.cs" />
     <Compile Include="MessageFailures\Handlers\ArchiveMessageHandler.cs" />
     <Compile Include="MessageFailures\FailedMessage.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
