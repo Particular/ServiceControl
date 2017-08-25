@@ -22,7 +22,6 @@ namespace ServiceControl.CompositeViews.Messages
             Get["/messages/search/{keyword*}"] = parameters =>
             {
                 string keyword = parameters.keyword;
-                keyword = keyword?.Replace("/", @"\");
                 return SearchByKeyword(keyword);
             };
 
