@@ -110,6 +110,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Reactive.Core, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -160,16 +161,21 @@
       <SubType>Designer</SubType>
     </Page>
     <Compile Include="AppBootstrapper.cs" />
-    <Compile Include="Commands\AddInstanceCommand.cs" />
-    <Compile Include="Commands\AdvanceOptionsCommand.cs" />
+    <Compile Include="Commands\AddMonitoringInstanceCommand.cs" />
+    <Compile Include="Commands\AddServiceControlInstanceCommand.cs" />
+    <Compile Include="Commands\DeleteMonitoringlnstanceCommand.cs" />
+    <Compile Include="Commands\EditMonitoringInstanceCommand.cs" />
+    <Compile Include="Commands\AdvancedMonitoringOptionsCommand.cs" />
+    <Compile Include="Commands\AdvancedServiceControlOptionsCommand.cs" />
     <Compile Include="Commands\CopyToClipboardCommand.cs" />
-    <Compile Include="Commands\EditInstanceCommand.cs" />
+    <Compile Include="Commands\EditServiceControlInstanceCommand.cs" />
     <Compile Include="Commands\OpenURLCommand.cs" />
-    <Compile Include="Commands\DeleteInstanceCommand.cs" />
+    <Compile Include="Commands\DeleteServiceControlInstanceCommand.cs" />
     <Compile Include="Commands\OpenViewModelCommand.cs" />
     <Compile Include="Commands\SelectPathCommand.cs" />
-    <Compile Include="Commands\StartServiceInMaintenanceModeCommand.cs" />
-    <Compile Include="Commands\UpgradeInstanceCommand.cs" />
+    <Compile Include="Commands\StartServiceControlInMaintenanceModeCommand.cs" />
+    <Compile Include="Commands\UpgradeMonitoringInstanceCommand.cs" />
+    <Compile Include="Commands\UpgradeServiceControlInstanceCommand.cs" />
     <Compile Include="Events\LicenseUpdated.cs" />
     <Compile Include="Events\RefreshInstances.cs" />
     <Compile Include="Extensions\GuidExtensions.cs" />
@@ -178,19 +184,41 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\ValidatorExtensions.cs" />
     <Compile Include="Extensions\VisualTreeExtensions.cs" />
+    <Compile Include="Features.cs" />
     <Compile Include="Framework\Commands\AwaitableAbstractCommand.cs" />
     <Compile Include="Framework\IProgressViewModel.cs" />
     <Compile Include="Framework\Modules\InstallerModule.cs" />
     <Compile Include="Framework\Modules\MiscModule.cs" />
+    <Compile Include="Framework\Modules\FeatureTogglesModule.cs" />
     <Compile Include="Framework\RaygunFeedback.cs" />
     <Compile Include="Framework\RaygunReporter.cs" />
     <Compile Include="Framework\Rx\RxProgressScreen.cs" />
     <Compile Include="Splash.cs" />
-    <Compile Include="UI\AdvanceOptions\AdvanceOptionsViewModel.cs" />
-    <Compile Include="UI\AdvanceOptions\AdvanceOptionsView.xaml.cs">
-      <DependentUpon>AdvanceOptionsView.xaml</DependentUpon>
+    <Compile Include="UI\AdvancedOptions\MonitoringAdvancedView.xaml.cs">
+      <DependentUpon>MonitoringAdvancedView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\AdvancedOptions\MonitoringAdvancedViewModel.cs" />
+    <Compile Include="UI\AdvancedOptions\ServiceControlAdvancedViewModel.cs" />
+    <Compile Include="UI\AdvancedOptions\ServiceControlAdvancedView.xaml.cs">
+      <DependentUpon>ServiceControlAdvancedView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\DeleteInstanceConfirmation\DeleteMonitoringConfirmationView.xaml.cs">
+      <DependentUpon>DeleteMonitoringConfirmationView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\DeleteInstanceConfirmation\DeleteMonitoringConfirmationViewModel.cs" />
     <Compile Include="UI\FeedBack\FeedBackViewModelValidator.cs" />
+    <Compile Include="UI\InstanceAdd\MonitoringAddAttachment.cs" />
+    <Compile Include="UI\InstanceAdd\MonitoringAddView.xaml.cs">
+      <DependentUpon>MonitoringAddView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\InstanceAdd\MonitoringlAddViewModel.cs" />
+    <Compile Include="UI\InstanceAdd\MonitoringAddViewModelValidator.cs" />
+    <Compile Include="UI\InstanceEdit\MonitoringEditAttachment.cs" />
+    <Compile Include="UI\InstanceEdit\MonitoringEditView.xaml.cs">
+      <DependentUpon>MonitoringEditView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\InstanceEdit\MonitoringEditViewModel.cs" />
+    <Compile Include="UI\InstanceEdit\MonitoringEditViewModelValidator.cs" />
     <Compile Include="UI\MessageBox\ExceptionMessageBox.xaml.cs">
       <DependentUpon>ExceptionMessageBox.xaml</DependentUpon>
     </Compile>
@@ -207,12 +235,17 @@
     <Compile Include="UI\MessageBox\YesNoCancelDialogViewModel.cs" />
     <Compile Include="UI\MessageBox\ReportCardViewModel.cs" />
     <Compile Include="UI\SharedInstanceEditor\ForwardingOption.cs" />
-    <Compile Include="UI\SharedInstanceEditor\SharedInstanceEditorView.xaml.cs">
-      <DependentUpon>SharedInstanceEditorView.xaml</DependentUpon>
+    <Compile Include="UI\SharedInstanceEditor\SharedMonitoringEditorView.xaml.cs">
+      <DependentUpon>SharedMonitoringEditorView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\SharedInstanceEditor\SharedInstanceEditorViewModel.cs" />
-    <Compile Include="UI\InstanceEdit\InstanceEditViewModelValidator.cs" />
-    <Compile Include="UI\SharedInstanceEditor\ServiceInstanceViewlValidator.cs" />
+    <Compile Include="UI\SharedInstanceEditor\SharedMonitoringEditorViewModel.cs" />
+    <Compile Include="UI\SharedInstanceEditor\SharedServiceControlEditorView.xaml.cs">
+      <DependentUpon>SharedServiceControlEditorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\SharedInstanceEditor\SharedServiceControlEditorViewModel.cs" />
+    <Compile Include="UI\InstanceEdit\ServiceControlEditViewModelValidator.cs" />
+    <Compile Include="UI\SharedInstanceEditor\SharedMontioringEditorViewModelValidator.cs" />
+    <Compile Include="UI\SharedInstanceEditor\SharedServiceControlEditorViewModelValidator.cs" />
     <Compile Include="Validation\Validations.cs" />
     <Compile Include="Validation\ValidationTemplate.cs" />
     <Compile Include="Framework\Command.cs" />
@@ -229,12 +262,12 @@
     <Compile Include="Framework\Rx\RxConductor.cs" />
     <Compile Include="Framework\Rx\RxConductorBase.cs" />
     <Compile Include="Framework\Rx\RxConductorBaseWithActiveItem.cs" />
-    <Compile Include="UI\InstanceAdd\InstanceAddAttachment.cs" />
-    <Compile Include="UI\InstanceAdd\InstanceAddViewModelValidator.cs" />
-    <Compile Include="UI\DeleteInstanceConfirmation\DeleteInstanceConfirmationView.xaml.cs">
-      <DependentUpon>DeleteInstanceConfirmationView.xaml</DependentUpon>
+    <Compile Include="UI\InstanceAdd\ServiceControlAddAttachment.cs" />
+    <Compile Include="UI\InstanceAdd\ServiceControlAddViewModelValidator.cs" />
+    <Compile Include="UI\DeleteInstanceConfirmation\DeleteServiceControlConfirmationView.xaml.cs">
+      <DependentUpon>DeleteServiceControlConfirmationView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\DeleteInstanceConfirmation\DeleteInstanceConfirmationViewModel.cs" />
+    <Compile Include="UI\DeleteInstanceConfirmation\DeleteServiceControlConfirmationViewModel.cs" />
     <Compile Include="UI\FeedBack\FeedBackView.xaml.cs">
       <DependentUpon>FeedBackView.xaml</DependentUpon>
     </Compile>
@@ -247,11 +280,11 @@
       <DependentUpon>FeedBackResultView.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\FeedBack\ResultMessage\FeedBackResultViewModel.cs" />
-    <Compile Include="UI\InstanceEdit\InstanceEditAttachment.cs" />
-    <Compile Include="UI\InstanceEdit\InstanceEditView.xaml.cs">
-      <DependentUpon>InstanceEditView.xaml</DependentUpon>
+    <Compile Include="UI\InstanceEdit\ServiceControlEditAttachment.cs" />
+    <Compile Include="UI\InstanceEdit\ServiceControlEditView.xaml.cs">
+      <DependentUpon>ServiceControlEditView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\InstanceEdit\InstanceEditViewModel.cs" />
+    <Compile Include="UI\InstanceEdit\ServiceControlEditViewModel.cs" />
     <Compile Include="UI\License\LicenseView.xaml.cs">
       <DependentUpon>LicenseView.xaml</DependentUpon>
     </Compile>
@@ -272,6 +305,7 @@
     <Compile Include="Xaml\Controls\CleanWindow.cs" />
     <Compile Include="Xaml\Controls\FormComboBox.cs" />
     <Compile Include="Xaml\Controls\FormTextBox.cs" />
+    <Compile Include="Xaml\Converters\IsLastItemInContainerVisibilityConverter.cs" />
     <Compile Include="Xaml\Converters\NegaterConverter.cs" />
     <Compile Include="Xaml\Converters\SelectedIndexToVisibilityConverter.cs" />
     <Compile Include="Xaml\Converters\StringNullOrEmptyToVisibilityConverter.cs" />
@@ -289,10 +323,10 @@
     <Compile Include="Framework\Rx\RxScreen.cs" />
     <Compile Include="Framework\Rx\WeakValueDictionary.cs" />
     <Compile Include="Framework\Rx\RxViewAware.cs" />
-    <Compile Include="UI\InstanceAdd\InstanceAddView.xaml.cs">
-      <DependentUpon>InstanceAddView.xaml</DependentUpon>
+    <Compile Include="UI\InstanceAdd\ServiceControlAddView.xaml.cs">
+      <DependentUpon>ServiceControlAddView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\InstanceAdd\InstanceAddViewModel.cs" />
+    <Compile Include="UI\InstanceAdd\ServiceControlAddViewModel.cs" />
     <Compile Include="UI\InstanceDetails\InstanceDetailsView.xaml.cs">
       <DependentUpon>InstanceDetailsView.xaml</DependentUpon>
     </Compile>
@@ -316,7 +350,23 @@
     <Compile Include="Xaml\Behaviours\BorderlessWindowBehavior.cs" />
     <Compile Include="Xaml\Behaviours\StylizedBehaviors.cs" />
     <Compile Include="Xaml\Converters\BoolToVisibilityConverter.cs" />
-    <Page Include="UI\AdvanceOptions\AdvanceOptionsView.xaml">
+    <Page Include="UI\AdvancedOptions\MonitoringAdvancedView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\AdvancedOptions\ServiceControlAdvancedView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\DeleteInstanceConfirmation\DeleteMonitoringConfirmationView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\InstanceAdd\MonitoringAddView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\InstanceEdit\MonitoringEditView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -325,6 +375,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\MessageBox\YesNoCancelDialogView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\SharedInstanceEditor\SharedMonitoringEditorView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -408,17 +462,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\InstanceAdd\InstanceAddView.xaml">
+    <Page Include="UI\InstanceAdd\ServiceControlAddView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\DeleteInstanceConfirmation\DeleteInstanceConfirmationView.xaml">
+    <Page Include="UI\DeleteInstanceConfirmation\DeleteServiceControlConfirmationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <DesignData Include="UI\DeleteInstanceConfirmation\SampleData.xaml">
-      <SubType>Designer</SubType>
-    </DesignData>
     <Page Include="UI\FeedBack\FeedBackView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -435,7 +486,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\InstanceEdit\InstanceEditView.xaml">
+    <Page Include="UI\InstanceEdit\ServiceControlEditView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -463,7 +514,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\SharedInstanceEditor\SharedInstanceEditorView.xaml">
+    <Page Include="UI\SharedInstanceEditor\SharedServiceControlEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

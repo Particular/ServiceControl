@@ -9,15 +9,15 @@
     using ServiceControl.Config.UI.InstanceDetails;
     using ServiceControlInstaller.Engine.Instances;
     using System.Threading.Tasks;
-
+    
     class ListInstancesViewModel : RxScreen, IHandle<RefreshInstances>, IHandle<LicenseUpdated>
     {
-        private readonly Func<ServiceControlInstance, InstanceDetailsViewModel> instanceDetailsFunc;
+        private readonly Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc;
 
-        public ListInstancesViewModel(Func<ServiceControlInstance, InstanceDetailsViewModel> instanceDetailsFunc)
+        public ListInstancesViewModel(Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc)
         {
             this.instanceDetailsFunc = instanceDetailsFunc;
-            DisplayName = "DEPLOYED INSTANCES";
+            DisplayName = "";
 
             Instances = new BindableCollection<InstanceDetailsViewModel>();
 
@@ -34,7 +34,7 @@
         private void RefreshInstances()
         {
             Instances.Clear();
-            foreach (var item in ServiceControlInstance.Instances())
+            foreach (var item in InstanceFinder.AllInstances())
             {
                 Instances.Add(instanceDetailsFunc(item));
             }

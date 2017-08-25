@@ -9,27 +9,27 @@
     [TestFixture]
     public class QueueValidationTests
     {
-        List<IContainTransportInfo> instances;
+        List<IServiceControlTransportConfig> instances;
 
         [SetUp]
         public void Init()
         {
-            var instanceA = new Mock<IContainTransportInfo>();
+            var instanceA = new Mock<IServiceControlTransportConfig>();
             instanceA.SetupGet(p => p.TransportPackage).Returns(@"MSMQ");
             instanceA.SetupGet(p => p.AuditQueue).Returns(@"audit");
             instanceA.SetupGet(p => p.AuditLogQueue).Returns(@"auditlog");
             instanceA.SetupGet(p => p.ErrorQueue).Returns(@"error");
             instanceA.SetupGet(p => p.ErrorLogQueue).Returns(@"errorlog");
-
-            var instanceB = new Mock<IContainTransportInfo>();
+            
+            var instanceB = new Mock<IServiceControlTransportConfig>();
             instanceB.SetupGet(p => p.TransportPackage).Returns(@"RabbitMQ");
             instanceB.SetupGet(p => p.AuditQueue).Returns(@"RMQaudit");
             instanceB.SetupGet(p => p.AuditLogQueue).Returns(@"RMQauditlog");
             instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
             instanceB.SetupGet(p => p.ErrorLogQueue).Returns(@"RMQerrorlog");
             instanceB.SetupGet(p => p.ConnectionString).Returns(@"afakeconnectionstring");
-
-            instances = new List<IContainTransportInfo>
+            
+            instances = new List<IServiceControlTransportConfig>
             {
                 instanceA.Object,
                 instanceB.Object
@@ -37,9 +37,9 @@
         }
 
         [Test]
-        public void CheckQueueNamesAreUnique_ShouldSucceed()
+        public void CheckQueueNamesAreUniqueShouldSucceed()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                TransportPackage = "MSMQ",
                AuditLogQueue = "auditlog",
@@ -48,17 +48,17 @@
                ErrorQueue = "error"
             };
 
-            var p = new QueueNameValidator(newInstance)
+            var p = new ServiceControlQueueNameValidator(newInstance)
             {
-                instances = new List<IContainTransportInfo>()
+                Instances = new List<IServiceControlTransportConfig>()
             };
             Assert.DoesNotThrow(() => p.CheckQueueNamesAreUniqueWithinInstance());
         }
 
         [Test]
-        public void CheckQueueNamesAreUnique_ShouldThrow()
+        public void CheckQueueNamesAreUniqueShouldThrow()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = "MSMQ",
                 AuditLogQueue = "audit",
@@ -67,9 +67,9 @@
                 ErrorQueue = "error"
             };
 
-            var p = new QueueNameValidator(newInstance)
+            var p = new ServiceControlQueueNameValidator(newInstance)
             {
-                instances = new List<IContainTransportInfo>()
+                Instances = new List<IServiceControlTransportConfig>()
             };
 
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreUniqueWithinInstance());
@@ -79,7 +79,7 @@
         [Test]
         public void CheckQueueNamesAreNotTakenByAnotherInstance_ShouldSucceed()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = "MSMQ",
                 AuditLogQueue = "auditlog2",
@@ -88,9 +88,9 @@
                 ErrorQueue = "error2"
             };
 
-            var p = new QueueNameValidator(newInstance)
+            var p = new ServiceControlQueueNameValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
             Assert.DoesNotThrow(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
         }
@@ -98,7 +98,7 @@
         [Test]
         public void CheckQueueNamesAreNotTakenByAnotherInstance_ShouldThrow()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = "MSMQ",
                 AuditLogQueue = "auditlog",
@@ -107,17 +107,17 @@
                 ErrorQueue = "error"
             };
 
-            var p = new QueueNameValidator(newInstance)
+            var p = new ServiceControlQueueNameValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
             Assert.That(ex.Message, Is.StringContaining("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
 
             // null queues will default to default names
-            p = new QueueNameValidator(new ServiceControlInstanceMetadata())
+            p = new ServiceControlQueueNameValidator(new ServiceControlNewInstance())
             {
-                instances = instances
+                Instances = instances
             };
 
             ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
@@ -127,7 +127,7 @@
         [Test]
         public void DuplicateQueueNamesAreAllowedOnDifferentTransports_ShouldNotThrow()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = "RabbitMQ",
                 AuditLogQueue = "auditlog",
@@ -136,17 +136,17 @@
                 ErrorQueue = "error"
             };
 
-            var p = new QueueNameValidator(newInstance)
+            var p = new ServiceControlQueueNameValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
             Assert.That(ex.Message, Is.StringContaining("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
 
             // null queues will default to default names
-            p = new QueueNameValidator(new ServiceControlInstanceMetadata())
+            p = new ServiceControlQueueNameValidator(new ServiceControlNewInstance())
             {
-                instances = instances
+                Instances = instances
             };
 
             ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
@@ -156,7 +156,7 @@
         [Test]
         public void EnsureDuplicateQueueNamesAreAllowedOnSameTransportWithDifferentConnectionString()
         {
-            var newInstance = new ServiceControlInstanceMetadata
+            var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = "RabbitMQ",
                 AuditQueue = "RMQaudit",
@@ -166,17 +166,17 @@
                 ConnectionString = "afakeconnectionstring"
             };
 
-            var p = new QueueNameValidator(newInstance)
+            var p = new ServiceControlQueueNameValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
             Assert.That(ex.Message, Is.StringContaining("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
 
             newInstance.ConnectionString = "differentconnectionstring";
-            p = new QueueNameValidator(newInstance)
+            p = new ServiceControlQueueNameValidator(newInstance)
             {
-                instances = instances
+                Instances = instances
             };
             Assert.DoesNotThrow(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
 

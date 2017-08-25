@@ -1,62 +1,71 @@
-﻿namespace ServiceControlInstaller.Engine.Validation
+namespace ServiceControlInstaller.Engine.Validation
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using ServiceControlInstaller.Engine.Instances;
-
-    public class PathInfo
-    {
-        public string Name { get; set; }
-        public string Path { get; set; }
-        public bool CheckIfEmpty { get; set; }
-    }
-
+    
     internal class PathsValidator
     {
-        internal List<IContainInstancePaths> Instances;
         List<PathInfo> paths;
 
-        internal PathsValidator(IContainInstancePaths instance)
+        public PathsValidator(IServicePaths instance)
         {
             var pathList = new List<PathInfo>
             {
                 new PathInfo
                 {
                     Name = "log path",
-                    Path = Environment.ExpandEnvironmentVariables(instance.LogPath ?? String.Empty)
-                },
-                new PathInfo
-                {
-                    Name = "DB path",
-                    Path = Environment.ExpandEnvironmentVariables(instance.DBPath ?? String.Empty),
-                    CheckIfEmpty = true
+                    Path = Environment.ExpandEnvironmentVariables(instance.LogPath ?? string.Empty)
                 },
                 new PathInfo
                 {
                     Name = "install path",
-                    Path = Environment.ExpandEnvironmentVariables(instance.InstallPath ?? String.Empty),
+                    Path = Environment.ExpandEnvironmentVariables(instance.InstallPath ?? string.Empty),
                     CheckIfEmpty = true
                 }
             };
             paths = pathList.Where(p => !string.IsNullOrWhiteSpace(p.Path)).ToList();
         }
 
-        void RunValidation(bool includeNewInstanceChecks)
+        public PathsValidator(IServiceControlPaths instance)
+        {
+            var pathList = new List<PathInfo>
+            {
+                new PathInfo
+                {
+                    Name = "log path",
+                    Path = Environment.ExpandEnvironmentVariables(instance.LogPath ?? string.Empty)
+                },
+                new PathInfo
+                {
+                    Name = "DB path",
+                    Path = Environment.ExpandEnvironmentVariables(instance.DBPath ?? string.Empty),
+                    CheckIfEmpty = true
+                },
+                new PathInfo
+                {
+                    Name = "install path",
+                    Path = Environment.ExpandEnvironmentVariables(instance.InstallPath ?? string.Empty),
+                    CheckIfEmpty = true
+                }
+            };
+            paths = pathList.Where(p => !string.IsNullOrWhiteSpace(p.Path)).ToList();
+        }
+
+        public void RunValidation(bool includeNewInstanceChecks)
         {
             RunValidation(includeNewInstanceChecks, info => false);
         }
 
-        bool RunValidation(bool includeNewInstanceChecks, Func<PathInfo, bool> promptToProceed)
+        public bool RunValidation(bool includeNewInstanceChecks, Func<PathInfo, bool> promptToProceed)
         {
             try
             {
                 CheckPathsAreValid();
                 CheckNoNestedPaths();
                 CheckPathsAreUnique();
-                CheckPathsNotUsedInOtherInstances();
-
+                
                 var cancelRequested = false;
                 //Do Checks that only make sense on add instance
                 if (includeNewInstanceChecks)
@@ -73,7 +82,6 @@
             {
                 throw new EngineValidationException("An unhandled exception occured while trying to validate the paths.", ex);
             }
-
         }
 
         bool CheckPathsAreEmpty(Func<PathInfo, bool> promptToProceed)
@@ -106,39 +114,7 @@
             return false;
         }
 
-        public static bool Validate(ServiceControlInstanceMetadata instance, Func<PathInfo, bool> promptToProceed)
-        {
-            var validator = new PathsValidator(instance)
-            {
-                Instances = ServiceControlInstance.Instances().AsEnumerable<IContainInstancePaths>().ToList()
-            };
-            return validator.RunValidation(true, promptToProceed);
-        }
-
-        public static void Validate(ServiceControlInstance instance)
-        {
-            var name = instance.Name;
-            var validator = new PathsValidator(instance)
-            {
-                Instances = ServiceControlInstance.Instances().Where(p => p.Name != name).AsEnumerable<IContainInstancePaths>().ToList()
-            };
-
-            validator.RunValidation(false);
-        }
-
-        internal void CheckPathsNotUsedInOtherInstances()
-        {
-            var existingInstancePaths = new List<string>();
-            existingInstancePaths.AddRange(Instances.Where(q => !string.IsNullOrWhiteSpace(q.InstallPath)).Select(p => Environment.ExpandEnvironmentVariables(p.InstallPath)));
-            existingInstancePaths.AddRange(Instances.Where(q => !string.IsNullOrWhiteSpace(q.DBPath)).Select(p => Environment.ExpandEnvironmentVariables(p.DBPath)));
-            existingInstancePaths.AddRange(Instances.Where(q => !string.IsNullOrWhiteSpace(q.LogPath)).Select(p => Environment.ExpandEnvironmentVariables(p.LogPath)));
-            existingInstancePaths = existingInstancePaths.Distinct().ToList();
-            foreach (var path in paths.Where(path => existingInstancePaths.Contains(path.Path, StringComparer.OrdinalIgnoreCase)))
-            {
-                throw new EngineValidationException($"The {path.Name} specified is already assigned to another instance");
-            }
-        }
-
+        
         internal void CheckNoNestedPaths()
         {
             foreach (var path in paths)

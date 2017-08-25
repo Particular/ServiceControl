@@ -23,7 +23,8 @@
         public ShellViewModel(
             NoInstancesViewModel noInstances,
             ListInstancesViewModel listInstances,
-            AddInstanceCommand addInstance,
+            AddServiceControlInstanceCommand addInstance,
+            AddMonitoringInstanceCommand addMonitoringInstance,
             OpenViewModelCommand<License.LicenseViewModel> openLicense,
             IEventAggregator eventAggregator
             )
@@ -32,10 +33,10 @@
             this.noInstances = noInstances;
             OpenUrl = new OpenURLCommand();
             AddInstance = addInstance;
+            AddMonitoringInstance = addMonitoringInstance;
             OpenLicense = openLicense;
             DisplayName = "ServiceControl Config";
             IsModal = false;
-
             LoadAppVersion();
             CopyrightInfo = $"{DateTime.Now.Year} © Particular Software";
 
@@ -63,11 +64,16 @@
 
         public bool HasInstances { get; private set; }
 
-        public ICommand AddInstance { get; }
+        [FeatureToggle(Feature.MonitoringInstances)]
+        public bool ShowMonitoringInstances { get; set; }
 
-        public ICommand OpenLicense { get; }
+        public ICommand AddInstance { get; private set; }
 
-        public ICommand OpenUrl { get; }
+        public ICommand AddMonitoringInstance { get; private set; }
+
+        public ICommand OpenLicense { get; private set; }
+
+        public ICommand OpenUrl { get; private set; }
 
         public ICommand OpenFeedBack { get; set; }
 
@@ -88,7 +94,7 @@
             if (ActiveItem != null && ActiveItem != listInstances && ActiveItem != noInstances)
                 return;
 
-            HasInstances = ServiceControlInstance.Instances().Any();
+            HasInstances = InstanceFinder.AllInstances().Any();
 
             if (HasInstances)
             {

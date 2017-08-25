@@ -13,4 +13,5 @@
     <converters:StringNullOrEmptyToVisibilityConverter x:Key="nullOrEmptyToVis" />
     <converters:StringNullOrEmptyToVisibilityConverter x:Key="nullOrEmptyToVisInverted" Invert="True" />
     <converters:NegaterConverter x:Key="negate" />
+    <converters:IsLastItemInContainerVisibilityConverter x:Key="lastItemCollapseConverter" LastItemVisibility="Collapsed" />
 </ResourceDictionary>

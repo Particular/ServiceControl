@@ -5,7 +5,7 @@
     using System.IO;
     using System.Linq;
     using Microsoft.Deployment.WindowsInstaller;
-    using ServiceControlInstaller.Engine.Configuration;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.LicenseMgmt;
@@ -18,9 +18,9 @@
         {
             var logger = new MSILogger(session);
 
-            var unattendedInstaller = new UnattendInstaller(logger, session["APPDIR"]);
+            var unattendedInstaller = new UnattendServiceControlInstaller(logger, session["APPDIR"]);
             var zipInfo = ServiceControlZipInfo.Find(session["APPDIR"] ?? ".");
-
+            
             if (!zipInfo.Present)
             {
                logger.Error("Zip file not found. Service Control service instances can not be upgraded or installed");
@@ -32,11 +32,10 @@
             ImportLicenseInstall(session, logger);
             return ActionResult.Success;
         }
-
-        static void UpgradeInstances(Session session, ServiceControlZipInfo zipInfo, MSILogger logger, UnattendInstaller unattendedInstaller)
+        
+        static void UpgradeInstances(Session session, ServiceControlZipInfo zipInfo, MSILogger logger, UnattendServiceControlInstaller unattendedInstaller)
         {
-
-            var options = new InstanceUpgradeOptions();
+            var options = new ServiceControlUpgradeOptions();
 
             var upgradeInstancesPropertyValue = session["UPGRADEINSTANCES"];
             if (string.IsNullOrWhiteSpace(upgradeInstancesPropertyValue))
@@ -77,12 +76,12 @@
             var instancesToUpgrade = new List<ServiceControlInstance>();
             if (upgradeInstancesPropertyValue.Equals("*", StringComparison.OrdinalIgnoreCase) || upgradeInstancesPropertyValue.Equals("ALL", StringComparison.OrdinalIgnoreCase))
             {
-                instancesToUpgrade.AddRange(ServiceControlInstance.Instances());
+                instancesToUpgrade.AddRange(InstanceFinder.ServiceControlInstances());
             }
             else
             {
                 var candidates = upgradeInstancesPropertyValue.Replace(" ", String.Empty).Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                instancesToUpgrade.AddRange(ServiceControlInstance.Instances().Where(instance => candidates.Contains(instance.Name, StringComparer.OrdinalIgnoreCase)));
+                instancesToUpgrade.AddRange(InstanceFinder.ServiceControlInstances().Where(instance => candidates.Contains(instance.Name, StringComparer.OrdinalIgnoreCase)));
             }
 
             // do upgrades
@@ -90,19 +89,18 @@
             {
                 if (zipInfo.Version > instance.Version)
                 {
-                    if (!instance.AppSettingExists(SettingsList.ForwardErrorMessages.Name) & !options.OverrideEnableErrorForwarding.Value)
+                    if (!instance.AppConfig.AppSettingExists(SettingsList.ForwardErrorMessages.Name) & !options.OverrideEnableErrorForwarding.Value)
                     {
                         logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{SettingsList.ForwardErrorMessages.Name}'");
                         continue;
                     }
-
-
+                    
                     if (!options.AuditRetentionPeriod.HasValue)
                     {
-                        if (!instance.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
+                        if (!instance.AppConfig.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
                         {
                             //Try migration first
-                            if (instance.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
+                            if (instance.AppConfig.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
                             {
                                 var i = instance.AppConfig.Read(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
                                 if (i > 0)
@@ -118,7 +116,7 @@
                         }
                     }
 
-                    if (!instance.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name) & !options.ErrorRetentionPeriod.HasValue)
+                    if (!instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name) & !options.ErrorRetentionPeriod.HasValue)
                     {
                         logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{SettingsList.ErrorRetentionPeriod.Name}'");
                         continue;
@@ -132,7 +130,7 @@
             }
         }
 
-        static void UnattendedInstall(Session session, MSILogger logger, UnattendInstaller unattendedInstaller)
+        static void UnattendedInstall(Session session, MSILogger logger, UnattendServiceControlInstaller unattendedInstaller)
         {
             logger.Info("Checking for unattended file");
 
@@ -151,7 +149,7 @@
             if (File.Exists(unattendedFilePath))
             {
                 logger.Info($"File Exists : {unattendedFilePropertyValue}");
-                var instanceToInstallDetails = ServiceControlInstanceMetadata.Load(unattendedFilePath);
+                var instanceToInstallDetails = ServiceControlNewInstance.Load(unattendedFilePath);
 
                 if (!string.IsNullOrWhiteSpace(serviceAccount))
                 {
@@ -194,6 +192,5 @@
                 logger.Error($"The specified license install file was not found : '{licenseFilePath}'");
             }
         }
-
     }
 }
