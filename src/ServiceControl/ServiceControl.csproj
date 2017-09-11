@@ -276,7 +276,6 @@
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatingEndpointDetected.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatMonitoringDisabled.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatMonitoringEnabled.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatStatusChanged.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
