@@ -4,6 +4,6 @@
 
     public class MessageFailureResolvedManually : IEvent
     {
-
+        public string FailedMessageId { get; set; }
     }
 }
