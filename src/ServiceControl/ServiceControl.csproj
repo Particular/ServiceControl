@@ -312,7 +312,6 @@
     <Compile Include="MessageFailures\InternalMessages\MarkPendingRetryAsResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
-    <Compile Include="Contracts\MessageFailures\MessageFailureResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolvedManually.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailuresUpdated.cs" />

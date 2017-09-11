@@ -1,6 +1,9 @@
 ﻿namespace ServiceControl.Contracts.MessageFailures
 {
-    public class FailedMessageArchived : MessageFailureResolved
+    using NServiceBus;
+
+    public class FailedMessageArchived : IEvent
     {
+        public string FailedMessageId { get; set; }
     }
 }
