@@ -224,11 +224,12 @@
             string failedMessageId;
             if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
             {
-                bus.Publish<MessageFailedRepeatedly>(m =>
+                bus.Publish<MessageFailed>(m =>
                 {
                     m.FailureDetails = failureDetails;
                     m.EndpointId = failingEndpointId;
                     m.FailedMessageId = failedMessageId;
+                    m.RepeatedFailure = true;
                 });
             }
             else
