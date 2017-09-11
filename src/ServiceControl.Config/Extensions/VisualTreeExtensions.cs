@@ -1,4 +1,5 @@
-﻿namespace ServiceControl.Config.Extensions
+﻿// ReSharper disable HeuristicUnreachableCode
+namespace ServiceControl.Config.Extensions
 {
     using System.Windows;
     using System.Windows.Controls;
@@ -22,6 +23,7 @@
                 var child = VisualTreeHelper.GetChild(parent, i);
                 // If the child is not of the request child type child
                 var childType = child;
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 if (childType == null)
                 {
                     // recursively drill down the tree
