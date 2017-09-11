@@ -122,6 +122,7 @@
   <ItemGroup>
     <Compile Include="ApprovalTestConfig.cs" />
     <Compile Include="CompositeViews\FailedMessagesTests.cs" />
+    <Compile Include="EventHierarchy.cs" />
     <Compile Include="Expiration\ChunkerTests.cs" />
     <Compile Include="Expiration\ProcessedMessageExpirationTests.cs" />
     <Compile Include="Expiration\RavenLastModifiedScope.cs" />
