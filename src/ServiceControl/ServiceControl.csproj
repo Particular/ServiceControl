@@ -276,7 +276,6 @@
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatingEndpointDetected.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatMonitoringDisabled.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatMonitoringEnabled.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatStatusChanged.cs" />
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
@@ -288,6 +287,7 @@
     <Compile Include="DbMigrations\MigrationsModule.cs" />
     <Compile Include="DbMigrations\1.27\SplitFailedMessageDocumentsMigration.cs" />
     <Compile Include="HeartbeatMonitoring\LegacyHandler.cs" />
+    <Compile Include="ExternalIntegrations\MessageFailedRepeatedlyPublisher.cs" />
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -313,7 +313,6 @@
     <Compile Include="MessageFailures\InternalMessages\MarkPendingRetryAsResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
-    <Compile Include="Contracts\MessageFailures\MessageFailureResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolvedByRetry.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailureResolvedManually.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailuresUpdated.cs" />
