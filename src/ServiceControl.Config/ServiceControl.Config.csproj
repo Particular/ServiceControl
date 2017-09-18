@@ -564,6 +564,9 @@
       <InProject>false</InProject>
     </FluentValidationExcludedCultures>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
   <Target Name="RemoveTranslationsAfterBuild" AfterTargets="AfterBuild">
     <RemoveDir Directories="@(FluentValidationExcludedCultures->'$(OutputPath)%(Filename)')" />
   </Target>
