@@ -4,7 +4,8 @@
     {
         string licenseText;
 
-        public LicenseSourceUserProvided(string licenseText) : base("User-provided")
+        public LicenseSourceUserProvided(string licenseText)
+            : base("User-provided")
         {
             this.licenseText = licenseText;
         }

@@ -21,7 +21,7 @@ namespace Particular.Licensing
             return new LicenseSourceResult
             {
                 Location = location,
-                Result = $"License not found in app config 'NServiceBus/License' setting"
+                Result = "License not found in app config 'NServiceBus/License' setting"
             };
         }
     }

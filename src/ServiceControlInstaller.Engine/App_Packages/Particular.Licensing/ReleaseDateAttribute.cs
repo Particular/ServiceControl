@@ -11,6 +11,7 @@
         }
 
         public string OriginalDate { get; }
+
         public string Date { get; }
     }
 }

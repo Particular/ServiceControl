@@ -34,10 +34,10 @@
             SignedXmlVerifier.VerifyXml(licenseText);
         }
 
-        const string modulus = "5M9/p7N+JczIN/e5eObahxeCIe//2xRLA9YTam7zBrcUGt1UlnXqL0l/8uO8rsO5tl+tjjIV9bOTpDLfx0H03VJyxsE8BEpSVu48xujvI25+0mWRnk4V50bDZykCTS3Du0c8XvYj5jIKOHPtU//mKXVULhagT8GkAnNnMj9CvTc=";
-        const string exponent = "AQAB";
+        const string Modulus = "5M9/p7N+JczIN/e5eObahxeCIe//2xRLA9YTam7zBrcUGt1UlnXqL0l/8uO8rsO5tl+tjjIV9bOTpDLfx0H03VJyxsE8BEpSVu48xujvI25+0mWRnk4V50bDZykCTS3Du0c8XvYj5jIKOHPtU//mKXVULhagT8GkAnNnMj9CvTc=";
+        const string Exponent = "AQAB";
 
-        public const string PublicKey = "<RSAKeyValue><Modulus>" + modulus + "</Modulus><Exponent>" + exponent + "</Exponent></RSAKeyValue>";
+        public const string PublicKey = "<RSAKeyValue><Modulus>" + Modulus + "</Modulus><Exponent>" + Exponent + "</Exponent></RSAKeyValue>";
 
         static class SignedXmlVerifier
         {
@@ -49,8 +49,8 @@
                 {
                     var parameters = new RSAParameters
                     {
-                        Modulus = Convert.FromBase64String(modulus),
-                        Exponent = Convert.FromBase64String(exponent)
+                        Modulus = Convert.FromBase64String(Modulus),
+                        Exponent = Convert.FromBase64String(Exponent)
                     };
 
                     rsa.ImportParameters(parameters);

@@ -4,9 +4,11 @@
     using System.Globalization;
     using System.IO;
 
+    using static System.Environment;
+
     static class TrialStartDateStore
     {
-        public static string StorageFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ParticularSoftware");
+        public static string StorageFolder { get; } = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData, SpecialFolderOption.DoNotVerify), "ParticularSoftware");
 
         public static string StorageLocation { get; } = Path.Combine(StorageFolder, "trialstart");
 
