@@ -77,7 +77,7 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateNotNullOrEmpty]
         public string Description { get; set; }
 
-        [Parameter(Mandatory = true, HelpMessage = "Specify if audit messages are forwarded to the queue specified by AuditLogQueue")]
+        [Parameter(Mandatory = false, HelpMessage = "Specify if audit messages are forwarded to the queue specified by AuditLogQueue")]
         public SwitchParameter ForwardAuditMessages { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue")]
