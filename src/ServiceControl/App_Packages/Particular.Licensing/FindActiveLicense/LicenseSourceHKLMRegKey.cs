@@ -1,4 +1,6 @@
-﻿namespace Particular.Licensing
+﻿#if REGISTRYLICENSESOURCE
+#pragma warning disable PC001 //Registry doesn't exist on non-Windows
+namespace Particular.Licensing
 {
     using System.Security;
     using Microsoft.Win32;
@@ -7,7 +9,8 @@
     {
         string keyPath;
 
-        public LicenseSourceHKLMRegKey(string path = @"SOFTWARE\ParticularSoftware") : base(LocationFriendlyName(path))
+        public LicenseSourceHKLMRegKey(string path = @"SOFTWARE\ParticularSoftware")
+            : base(LocationFriendlyName(path))
         {
             keyPath = path;
         }
@@ -25,8 +28,8 @@
 
             return LicenseSourceResult.DetermineBestLicenseSourceResult(reg32Result, reg64Result) ?? new LicenseSourceResult
             {
-                Location = Location,
-                Result = $"License not found in {Location}"
+                Location = location,
+                Result = $"License not found in {location}"
             };
         }
 
@@ -45,8 +48,8 @@
                     var regValue = registryKey.GetValue("License", null);
 
                     var licenseText = (regValue is string[])
-                        ? string.Join(" ", (string[]) regValue)
-                        : (string) regValue;
+                        ? string.Join(" ", (string[])regValue)
+                        : (string)regValue;
 
                     return ValidateLicense(licenseText, applicationName);
                 }
@@ -55,10 +58,12 @@
             {
                 return new LicenseSourceResult
                 {
-                    Location = Location,
-                    Result = $"Insufficent rights to read license from {Location}"
+                    Location = location,
+                    Result = $"Insufficent rights to read license from {location}"
                 };
             }
         }
     }
 }
+#pragma warning restore PC001
+#endif

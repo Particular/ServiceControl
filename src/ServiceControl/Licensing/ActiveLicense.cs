@@ -19,10 +19,10 @@
         public void Refresh()
         {
             Logger.Debug("Refreshing ActiveLicense");
-            var result = Particular.Licensing.ActiveLicense.Find("ServiceControl",
-               new LicenseSourceHKLMRegKey(),
-               new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "License", "License.xml")),
-               new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ParticularPlatformLicense.xml")));
+            var sources = LicenseSource.GetStandardLicenseSources();
+            sources.Add(new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "License", "License.xml")));
+            sources.Add(new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ParticularPlatformLicense.xml")));
+            var result = Particular.Licensing.ActiveLicense.Find("ServiceControl", sources.ToArray());
 
             if (result.HasExpired)
             {

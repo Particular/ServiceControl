@@ -8,16 +8,16 @@
     {
         public static DateTime GetReleaseDate()
         {
-            var attribute = (dynamic)Assembly.GetExecutingAssembly()
+            var attribute = Assembly.GetExecutingAssembly()
                 .GetCustomAttributes(false)
-                .FirstOrDefault(x => x.GetType().Name == "ReleaseDateAttribute");
+                .FirstOrDefault(x => x is ReleaseDateAttribute) as ReleaseDateAttribute;
 
             if (attribute == null)
             {
                 throw new Exception("No ReleaseDateAttribute could be found in assembly, please make sure GitVersion is enabled");
             }
 
-            return UniversalDateParser.Parse((string)attribute.OriginalDate);
+            return UniversalDateParser.Parse(attribute.OriginalDate);
         }
     }
 }

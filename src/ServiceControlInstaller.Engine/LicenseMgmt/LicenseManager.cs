@@ -9,7 +9,8 @@
     {
         public static DetectedLicense FindLicense()
         {
-            var result = ActiveLicense.Find("ServiceControl", new LicenseSourceHKLMRegKey());
+            var sources = LicenseSource.GetStandardLicenseSources().ToArray();
+            var result = ActiveLicense.Find("ServiceControl", sources);
 
             return new DetectedLicense("HKEY_LOCAL_MACHINE", LicenseDetails.FromLicense(result.License));
         }
@@ -40,14 +41,21 @@
 
             try
             {
-                using (var localMachine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Default))
-                {
-                    new RegistryLicenseStore(localMachine).StoreLicense(licenseText);
-                }
+                new RegistryLicenseStore(Registry.LocalMachine).StoreLicense(licenseText);
             }
             catch (Exception)
             {
                 errorMessage = "Failed to import license into the registry";
+                return false;
+            }
+
+            try
+            {
+                new FilePathLicenseStore().StoreLicense(FilePathLicenseStore.UserLevelLicenseLocation, licenseText);
+            }
+            catch (Exception)
+            {
+                errorMessage = "Failed to import license into the filesystem";
                 return false;
             }
 
