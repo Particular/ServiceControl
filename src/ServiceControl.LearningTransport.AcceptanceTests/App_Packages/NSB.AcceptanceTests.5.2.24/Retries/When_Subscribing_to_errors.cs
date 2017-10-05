@@ -17,10 +17,7 @@
                 Id = Guid.NewGuid()
             };
             Scenario.Define(context)
-                .WithEndpoint<SLREndpoint>(b => b.Given((bus, c) => bus.SendLocal(new MessageToBeRetried
-                {
-                    Id = c.Id
-                })))
+                .WithEndpoint<SLREndpoint>()
                 .AllowExceptions(e => e.Message.Contains("Simulated exception"))
                 .Done(c => c.MessageSentToError)
                 .Run(TimeSpan.FromMinutes(5));
