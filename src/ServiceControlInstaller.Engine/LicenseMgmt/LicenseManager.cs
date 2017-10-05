@@ -51,7 +51,7 @@
 
             try
             {
-                new FilePathLicenseStore().StoreLicense(FilePathLicenseStore.UserLevelLicenseLocation, licenseText);
+                new FilePathLicenseStore().StoreLicense(FilePathLicenseStore.MachineLevelLicenseLocation, licenseText);
             }
             catch (Exception)
             {
