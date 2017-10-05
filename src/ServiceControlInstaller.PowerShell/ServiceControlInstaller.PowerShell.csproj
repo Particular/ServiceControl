@@ -121,7 +121,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <UsingTask TaskName="GitVersionTask.GetVersion" AssemblyFile="..\packages\GitVersionTask.2.0.1\GitVersionTask.dll" />
   <UsingTask TaskName="FileUpdate" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
     <ParameterGroup>
       <Files ParameterType = "Microsoft.Build.Framework.ITaskItem[]" Required="true" />
@@ -150,16 +149,13 @@
     <ItemGroup>
       <PSModuleFile Include="$(OutputPath)\ServiceControlMgmt.psd1" />
     </ItemGroup>
-    <GetVersion SolutionDirectory="$(SolutionDir)">
-      <Output TaskParameter="MajorMinorPatch" PropertyName="MajorMinorPatch" />
-    </GetVersion>
-    <FileUpdate Files="@(PSModuleFile)" Pattern="{{Version}}" ReplacementText="$(MajorMinorPatch)"/>
+    <FileUpdate Files="@(PSModuleFile)" Pattern="{{Version}}" ReplacementText="$(GitVersion_MajorMinorPatch)" />
   </Target>
-  <Import Project="..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets')" />
+  <Import Project="..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.2.0.1\build\GitVersionTask.targets'))" />
+    <Error Condition="!Exists('..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets'))" />
   </Target>
 </Project>
