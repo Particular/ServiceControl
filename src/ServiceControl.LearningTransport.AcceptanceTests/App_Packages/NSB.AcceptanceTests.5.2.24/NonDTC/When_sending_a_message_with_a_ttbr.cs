@@ -73,7 +73,7 @@
                 public DispatcherInterceptor()
                 {
                     EnableByDefault();
-                    DependsOn<MsmqTransportConfigurator>();
+                    //DependsOn<MsmqTransportConfigurator>();
                 }
 
                 protected override void Setup(FeatureConfigurationContext context)
