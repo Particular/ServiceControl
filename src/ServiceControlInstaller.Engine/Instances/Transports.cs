@@ -50,6 +50,13 @@
                 TypeName = "NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ",
                 MatchOn = "NServiceBus.RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>"
+            },
+            new TransportInfo
+            {
+                Name = "Learning",
+                TypeName = "NServiceBus.LearningTransport, ServiceControl.LearningTransport",
+                MatchOn = "NServiceBus.LearningTransport",
+                SampleConnectionString = @"C:\.learningtransport"
             }
         };
     }
