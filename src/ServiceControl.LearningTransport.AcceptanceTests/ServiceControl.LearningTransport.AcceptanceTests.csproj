@@ -196,15 +196,6 @@
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\ScenarioDescriptors\Transports.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Scheduling\When_scheduling_a_recurring_task.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Serialization\When_serializing_a_message.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Timeouts\OutdatedTimeoutPersister.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Timeouts\TemporarilyUnavailableTimeoutPersister.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Timeouts\TransportWithFakeQueues.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Timeouts\UpdatedTimeoutPersister.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Timeouts\When_endpoint_uses_outdated_timeout_persistence_without_dtc.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Timeouts\When_endpoint_uses_outdated_timeout_persistence_with_disabled_dtc.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Timeouts\When_endpoint_uses_outdated_timeout_persistence_with_dtc.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Timeouts\When_endpoint_uses_updated_timeout_persistence.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Timeouts\When_timeout_storage_is_unavailable_temporarily.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Tx\FakePromotableResourceManager.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Tx\Issue_2481.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Tx\When_receiving_with_dtc_disabled.cs" />
