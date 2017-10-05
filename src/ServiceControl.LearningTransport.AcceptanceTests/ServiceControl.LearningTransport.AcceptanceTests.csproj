@@ -119,12 +119,6 @@
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\HostInformation\When_customising_hostinfo.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\HostInformation\When_feature_overrides_hostid.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\HostInformation\When_feature_overrides_hostinfo.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Msmq\When_Audit_OverrideTimeToBeReceived_set_and_transactional_Msmq.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Msmq\When_publishing_with_authorizer.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Msmq\When_TimeToBeReceivedOnForwardedMessages_set_and_transactional_Msmq.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Msmq\When_TimeToBeReceived_set_and_DTC_Msmq.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Msmq\When_TimeToBeReceived_set_and_receivetransaction_Msmq.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Msmq\When_unsubscribing_with_authorizer.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Mutators\Issue_1980.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Mutators\When_defining_outgoing_message_mutators.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.5.2.24\Mutators\When_outgoing_mutator_replaces_instance.cs" />
