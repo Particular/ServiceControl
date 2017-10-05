@@ -9,7 +9,7 @@ namespace ServiceControl.Config.UI.NoInstances
     {
         public NoInstancesViewModel(AddServiceControlInstanceCommand addInstance)
         {
-            DisplayName = "";
+            DisplayName = "DEPLOYED INSTANCES";
 
             AddInstance = addInstance;
         }

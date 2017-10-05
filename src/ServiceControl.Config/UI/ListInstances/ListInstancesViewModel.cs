@@ -17,7 +17,7 @@
         public ListInstancesViewModel(Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc)
         {
             this.instanceDetailsFunc = instanceDetailsFunc;
-            DisplayName = "";
+            DisplayName = "DEPLOYED INSTANCES";
 
             Instances = new BindableCollection<InstanceDetailsViewModel>();
 
