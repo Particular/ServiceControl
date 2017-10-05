@@ -46,6 +46,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.LearningTransport", "ServiceControl.LearningTransport\ServiceControl.LearningTransport.csproj", "{12F4B317-B885-4D43-A152-FDB5B0EA2042}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.LearningTransport.AcceptanceTests", "ServiceControl.LearningTransport.AcceptanceTests\ServiceControl.LearningTransport.AcceptanceTests.csproj", "{145A4671-E0DF-4955-829A-1355533C0E4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -112,6 +114,10 @@ Global
 		{12F4B317-B885-4D43-A152-FDB5B0EA2042}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12F4B317-B885-4D43-A152-FDB5B0EA2042}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12F4B317-B885-4D43-A152-FDB5B0EA2042}.Release|Any CPU.Build.0 = Release|Any CPU
+		{145A4671-E0DF-4955-829A-1355533C0E4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{145A4671-E0DF-4955-829A-1355533C0E4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{145A4671-E0DF-4955-829A-1355533C0E4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{145A4671-E0DF-4955-829A-1355533C0E4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
