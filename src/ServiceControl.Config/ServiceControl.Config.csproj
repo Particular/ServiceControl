@@ -246,6 +246,12 @@
     <Compile Include="UI\InstanceEdit\ServiceControlEditViewModelValidator.cs" />
     <Compile Include="UI\SharedInstanceEditor\SharedMontioringEditorViewModelValidator.cs" />
     <Compile Include="UI\SharedInstanceEditor\SharedServiceControlEditorViewModelValidator.cs" />
+    <Compile Include="UI\Shell\BetaTag.xaml.cs">
+      <DependentUpon>BetaTag.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Shell\NewInstanceOverlay.xaml.cs">
+      <DependentUpon>NewInstanceOverlay.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Validation\Validations.cs" />
     <Compile Include="Validation\ValidationTemplate.cs" />
     <Compile Include="Framework\Command.cs" />
@@ -381,6 +387,14 @@
     <Page Include="UI\SharedInstanceEditor\SharedMonitoringEditorView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Shell\BetaTag.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Shell\NewInstanceOverlay.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Xaml\Controls\AppHeader.xaml">
       <SubType>Designer</SubType>

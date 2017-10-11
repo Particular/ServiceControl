@@ -5,12 +5,14 @@
                       xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls"
                       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      xmlns:shell="clr-namespace:ServiceControl.Config.UI.Shell"
                       Title="ShellView"
                       Width="820"
                       Height="700"
                       MinWidth="640"
                       MinHeight="500"
                       Padding="0"
+                      x:Name="ShellContainer"
                       CloseOnEscape="False"
                       mc:Ignorable="d">
     <Grid>
@@ -65,53 +67,14 @@
                               Visibility="{Binding ShowMonitoringInstances,
                                                    Converter={StaticResource boolToVis}}"/>
 
-                <Popup PlacementTarget="{Binding ElementName=AddInstanceButton}" 
-                       Placement="Bottom" 
+                <Popup PlacementTarget="{Binding ElementName=RootBorder}" 
+                       Focusable="False"
                        StaysOpen="False"
-                       IsOpen="{Binding ElementName=AddInstanceButton, Path=IsChecked}"
-                       VerticalOffset="5"
-                       AllowsTransparency="True">
-                    <Grid Margin="0" Background="Black">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <MenuItem Command="{Binding AddInstance}" 
-                                  Header="ServiceControl Instance"
-                                  Style="{StaticResource DarkMenuItemStyle}" 
-                                  Margin="0,6,0,1"
-                                  Grid.Row="0">
-                            <MenuItem.Icon>
-                                <ContentControl Width="16" 
-                                                Height="16" 
-                                                SnapsToDevicePixels="True"
-                                                Template="{StaticResource NewControlInstanceIcon}" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Command="{Binding AddMonitoringInstance}" 
-                                  Header="Monitoring Instance" 
-                                  Style="{StaticResource DarkMenuItemStyle}"
-                                  Margin="0,1,0,6"
-                                  Grid.Row="1">
-                            <MenuItem.Icon>
-                                <ContentControl Width="16" 
-                                                Height="16" 
-                                                SnapsToDevicePixels="True"
-                                                Template="{StaticResource NewMonitoringInstanceIcon}" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Grid.Triggers>
-                            <EventTrigger RoutedEvent="MenuItem.Click">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <BooleanAnimationUsingKeyFrames Storyboard.TargetName="AddInstanceButton" Storyboard.TargetProperty="IsChecked">
-                                            <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="False" />
-                                        </BooleanAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Grid.Triggers>
-                    </Grid>
+                       IsOpen="{Binding ElementName=AddInstanceButton, Path=IsChecked, Mode=TwoWay}"
+                       VerticalOffset="115"
+                       AllowsTransparency="True"
+                       Width="{Binding ActualWidth, ElementName=ShellContainer}">
+                    <shell:NewInstanceOverlay />
                 </Popup>
 
                 <Button Margin="20,0,0,0"
@@ -174,6 +137,7 @@
         <Border HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 Background="#CCFFFFFF"
+                x:Name="RootBorder"
                 Visibility="{Binding ShowOverlay,
                                      Converter={StaticResource boolToVis}}">
             <ContentControl HorizontalAlignment="Stretch"

@@ -312,4 +312,12 @@
             </Canvas>
         </Viewbox>
     </ControlTemplate>
+    
+    <ControlTemplate x:Key="ExternalLink">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="768" Height="1024">
+                <Path Data="M640 768H128V257.90599999999995L256 256V128H0v768h768V576H640V768zM384 128l128 128L320 448l128 128 192-192 128 128V128H384z" Fill="{TemplateBinding Foreground}" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
 </ResourceDictionary>
