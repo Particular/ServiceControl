@@ -298,6 +298,7 @@
     <Compile Include="Xaml\Controls\AppHeader.xaml.cs">
       <DependentUpon>AppHeader.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Xaml\Controls\ExtendTrialHyperlink.cs" />
     <Compile Include="Xaml\Controls\FormWarningTextBlock.cs" />
     <Compile Include="Xaml\Controls\FormSlider.cs" />
     <Compile Include="Xaml\Controls\FormPasswordBox.cs" />

@@ -46,6 +46,7 @@ namespace ServiceControl.Config.Xaml.Behaviours
                         var parser = new ParserContext();
                         parser.XmlnsDictionary.Add(String.Empty, "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
                         parser.XmlnsDictionary.Add("x", "http://schemas.microsoft.com/winfx/2006/xaml");
+                        parser.XmlnsDictionary.Add("c", "clr-namespace:ServiceControl.Config.Xaml.Controls;assembly=ServiceControlConfig");
                         var doc = new FlowDocument();
 
                         using (var stream = new MemoryStream(Encoding.UTF8.GetBytes($"<Paragraph>{GetDocumentXaml(richTextBox)}</Paragraph>")))

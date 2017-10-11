@@ -34,7 +34,8 @@
                          FontSize="14"
                          Foreground="{StaticResource WhiteBrush}"
                          IsReadOnly="True"
-                         IsReadOnlyCaretVisible="False" />
+                         IsReadOnlyCaretVisible="False"
+                         IsDocumentEnabled="True"/>
 
             <StackPanel Grid.Row="2"
                         Margin="0,2,0,0"
