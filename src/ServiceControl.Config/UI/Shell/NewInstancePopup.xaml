@@ -37,7 +37,11 @@
                                     SnapsToDevicePixels="True"
                                     Template="{StaticResource NewControlInstanceIcon}" />
 
-                    <TextBlock Grid.Column="1" Margin="10" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center">
+                    <TextBlock Grid.Column="1" 
+                               Margin="10" 
+                               FontSize="13" 
+                               FontWeight="SemiBold" 
+                               VerticalAlignment="Center">
                         <Hyperlink Command="{Binding AddInstance}">Add ServiceControl Instance...</Hyperlink>
                     </TextBlock>
 
@@ -80,7 +84,6 @@
                    />
 
         <Grid Grid.Column="2" Margin="20">
-            
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="10" />
                 <ColumnDefinition Width="*" />
@@ -105,7 +108,11 @@
                                     SnapsToDevicePixels="True"
                                     Template="{StaticResource NewMonitoringInstanceIcon}" />
 
-                    <TextBlock Grid.Column="1" Margin="10" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center">
+                    <TextBlock Grid.Column="1" 
+                               Margin="10" 
+                               FontSize="13" 
+                               FontWeight="SemiBold" 
+                               VerticalAlignment="Center">
                         <Hyperlink Command="{Binding AddMonitoringInstance}">Add monitoring endpoint...</Hyperlink>
                     </TextBlock>
 
@@ -126,7 +133,11 @@
                        Margin="10" 
                        Text="Collects Monitoring data from endpoints running the NServiceBus.Metrics.ServiceControl plugin" TextWrapping="Wrap" />
 
-            <StackPanel Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Margin="10" Orientation="Horizontal">
+            <StackPanel Grid.Column="0" 
+                        Grid.Row="2" 
+                        Grid.ColumnSpan="2" 
+                        Margin="10" 
+                        Orientation="Horizontal">
                 <ContentControl Margin="0,2,3,0" 
                                 VerticalContentAlignment="Center" VerticalAlignment="Center"
                                 Width="12" 
@@ -135,8 +146,12 @@
                                 Foreground="White"
                                 Template="{StaticResource ExternalLink}" />
 
-                <TextBlock FontSize="13" TextWrapping="Wrap" VerticalAlignment="Center">
-                    <Hyperlink Foreground="White" TextDecorations="Underline" Command="{Binding}">Learn more about monitoring</Hyperlink>
+                <TextBlock FontSize="13" 
+                           TextWrapping="Wrap" 
+                           VerticalAlignment="Center">
+                    <Hyperlink Foreground="White" 
+                               TextDecorations="Underline" 
+                               Command="{Binding}">Learn more about monitoring</Hyperlink>
                 </TextBlock>
 
             </StackPanel>
