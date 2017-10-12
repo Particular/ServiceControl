@@ -246,11 +246,8 @@
     <Compile Include="UI\InstanceEdit\ServiceControlEditViewModelValidator.cs" />
     <Compile Include="UI\SharedInstanceEditor\SharedMontioringEditorViewModelValidator.cs" />
     <Compile Include="UI\SharedInstanceEditor\SharedServiceControlEditorViewModelValidator.cs" />
-    <Compile Include="UI\Shell\BetaTag.xaml.cs">
-      <DependentUpon>BetaTag.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Shell\NewInstanceOverlay.xaml.cs">
-      <DependentUpon>NewInstanceOverlay.xaml</DependentUpon>
+    <Compile Include="UI\Shell\NewInstancePopup.xaml.cs">
+      <DependentUpon>NewInstancePopup.xaml</DependentUpon>
     </Compile>
     <Compile Include="Validation\Validations.cs" />
     <Compile Include="Validation\ValidationTemplate.cs" />
@@ -356,6 +353,10 @@
     <Compile Include="Xaml\Behaviours\BorderlessWindowBehavior.cs" />
     <Compile Include="Xaml\Behaviours\StylizedBehaviors.cs" />
     <Compile Include="Xaml\Converters\BoolToVisibilityConverter.cs" />
+    <Page Include="Styles\Elements.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\AdvancedOptions\MonitoringAdvancedView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -388,11 +389,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UI\Shell\BetaTag.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UI\Shell\NewInstanceOverlay.xaml">
+    <Page Include="UI\Shell\NewInstancePopup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
