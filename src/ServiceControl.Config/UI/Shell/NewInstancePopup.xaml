@@ -4,9 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="600"
-             Background="Transparent">
-    <Grid Margin="0" Background="Black" Opacity="0.85">
+             d:DesignHeight="300" d:DesignWidth="600">
+    <Grid Margin="0" Background="Black" Opacity="0.91">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*" />
             <ColumnDefinition Width="Auto" />
@@ -15,17 +14,17 @@
 
         <Grid Grid.Column="0" Margin="20">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="14" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="40" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Border Margin="5" Height="40" Grid.Row="0" Grid.ColumnSpan="2">
-                <Grid Background="Transparent">
+            <Border Margin="-5,5,0,5" Height="40" Grid.Row="0" Grid.ColumnSpan="2">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="30" />
                         <ColumnDefinition Width="Auto" />
@@ -37,42 +36,42 @@
                                     SnapsToDevicePixels="True"
                                     Template="{StaticResource NewControlInstanceIcon}" />
 
-                    <TextBlock Grid.Column="1" 
+                    <TextBlock Grid.Column="1"
                                Margin="10" 
                                FontSize="13" 
                                FontWeight="SemiBold" 
                                VerticalAlignment="Center">
-                        <Hyperlink Command="{Binding AddInstance}">Add ServiceControl Instance...</Hyperlink>
+                        <Hyperlink Command="{Binding AddInstance}"  Style="{StaticResource UnderlinedLink}">Add ServiceControl Instance...</Hyperlink>
                     </TextBlock>
 
                 </Grid>
             </Border>
 
             <TextBlock Grid.Column="0" Grid.Row="1"
-                       Margin="0,10,0,0"
-                       HorizontalAlignment="Center"
+                       Margin="1,10,0,0"
+                       HorizontalAlignment="Left"
                        VerticalAlignment="Top"
-                       Text=" • " 
+                       Text="•" 
                        Foreground="{StaticResource Gray90Brush}" />
                 
             <TextBlock Grid.Column="0" Grid.Row="2"
-                       Margin="0,10,0,0"
-                       HorizontalAlignment="Center"
+                       Margin="1,10,0,0"
+                       HorizontalAlignment="Left"
                        VerticalAlignment="Top"
-                       Text=" • "
+                       Text="•"
                        Foreground="{StaticResource Gray90Brush}" />
 
             <TextBlock Grid.Column="1" Grid.Row="1" 
                        FontSize="13" 
                        Foreground="{StaticResource Gray90Brush}" 
-                       Margin="10" 
+                       Margin="0,10,10,10" 
                        Text="Collects Audited messages for visualization with ServiceInsight" 
                        TextWrapping="Wrap" />
 
             <TextBlock Grid.Column="1" Grid.Row="2"
                     FontSize="13" 
                     Foreground="{StaticResource Gray90Brush}" 
-                    Margin="10" 
+                    Margin="0,10,10,10" 
                     Text="Collects Failed messages to be retried with ServicePulse or ServiceInsight" 
                     TextWrapping="Wrap" />
         </Grid>
@@ -85,16 +84,16 @@
 
         <Grid Grid.Column="2" Margin="20">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="14" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="40" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             
-            <Border Margin="5" Height="40" Grid.ColumnSpan="2" Grid.Row="0">
+            <Border Margin="-5,0,5,0" Height="40" Grid.ColumnSpan="2" Grid.Row="0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="30" />
@@ -113,7 +112,7 @@
                                FontSize="13" 
                                FontWeight="SemiBold" 
                                VerticalAlignment="Center">
-                        <Hyperlink Command="{Binding AddMonitoringInstance}">Add monitoring endpoint...</Hyperlink>
+                        <Hyperlink Command="{Binding AddMonitoringInstance}" Style="{StaticResource UnderlinedLink}">Add monitoring endpoint...</Hyperlink>
                     </TextBlock>
 
                     <ContentControl Template="{StaticResource BetaTag}" Grid.Column="2" Margin="2" Width="30" />
@@ -121,40 +120,40 @@
             </Border>
 
             <TextBlock Grid.Column="0" Grid.Row="1"
-                       Margin="0,10,0,0"
-                       HorizontalAlignment="Center"
+                       Margin="1,10,0,10"
+                       HorizontalAlignment="Left"
                        VerticalAlignment="Top"
-                       Text=" • " 
+                       Text="•" 
                        Foreground="{StaticResource Gray90Brush}" />
 
             <TextBlock Grid.Column="1" Grid.Row="1" 
                        Foreground="{StaticResource Gray90Brush}" 
                        FontSize="13" 
-                       Margin="10" 
-                       Text="Collects Monitoring data from endpoints running the NServiceBus.Metrics.ServiceControl plugin" TextWrapping="Wrap" />
+                       Margin="0,10,10,10" 
+                       Text="Collects Monitoring data from endpoints running the NServiceBus.Metrics.ServiceControl plugin" 
+                       TextWrapping="Wrap" />
 
-            <StackPanel Grid.Column="0" 
-                        Grid.Row="2" 
-                        Grid.ColumnSpan="2" 
-                        Margin="10" 
-                        Orientation="Horizontal">
-                <ContentControl Margin="0,2,3,0" 
-                                VerticalContentAlignment="Center" VerticalAlignment="Center"
-                                Width="12" 
-                                Height="12" 
-                                SnapsToDevicePixels="True"
-                                Foreground="White"
-                                Template="{StaticResource ExternalLink}" />
+            <ContentControl Grid.Column="0" 
+                            Grid.Row="2" 
+                            Margin="0,5,3,0" 
+                            VerticalContentAlignment="Center" VerticalAlignment="Center"
+                            Width="12" 
+                            Height="12" 
+                            SnapsToDevicePixels="True"
+                            Foreground="White"
+                            Template="{StaticResource ExternalLink}" />
 
-                <TextBlock FontSize="13" 
-                           TextWrapping="Wrap" 
-                           VerticalAlignment="Center">
-                    <Hyperlink Foreground="White" 
-                               TextDecorations="Underline" 
-                               Command="{Binding}">Learn more about monitoring</Hyperlink>
-                </TextBlock>
+            <TextBlock Grid.Row="2" Grid.Column="1"
+                       Margin="0,10,10,10"
+                       FontSize="13"
+                       FontWeight="Normal"
+                       TextWrapping="Wrap" 
+                       VerticalAlignment="Center">
+                <Hyperlink Foreground="White" 
+                           TextDecorations="Underline" 
+                           Command="{Binding}">Learn more about monitoring</Hyperlink>
+            </TextBlock>
 
-            </StackPanel>
         </Grid>
 
     </Grid>
