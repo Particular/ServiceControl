@@ -64,6 +64,7 @@
                 
                 <ToggleButton Name="AddInstanceButton"
                               Style="{StaticResource NewButton}" 
+                              IsChecked="{Binding ShowingMenuOverlay, Mode=TwoWay}"
                               Visibility="{Binding ShowMonitoringInstances,
                                                    Converter={StaticResource boolToVis}}"/>
 
