@@ -78,7 +78,7 @@
 
         <Rectangle Grid.Column="1" 
                    Width="1" 
-                   Fill="{StaticResource Gray50Brush}"
+                   Fill="{StaticResource Gray20Brush}"
                    Margin="10"
                    />
 
