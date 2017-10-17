@@ -1,11 +1,6 @@
-﻿using System.Windows.Controls;
-using System.Windows.Input;
-
-namespace ServiceControl.Config.UI.Shell
+﻿namespace ServiceControl.Config.UI.Shell
 {
-	using System;
-
-	/// <summary>
+    /// <summary>
 	/// Interaction logic for NewInstanceOverlay.xaml
 	/// </summary>
 	public partial class NewInstanceOverlay
@@ -13,11 +8,6 @@ namespace ServiceControl.Config.UI.Shell
 		public NewInstanceOverlay()
 		{
 			InitializeComponent();
-		}
-
-		private void ViewPreviewMouseDown(object sender, MouseButtonEventArgs e)
-		{
-			Console.WriteLine(sender.GetType().Name);
 		}
 	}
 }
