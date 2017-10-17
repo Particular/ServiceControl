@@ -141,14 +141,16 @@
                             Height="12" 
                             SnapsToDevicePixels="True"
                             Foreground="White"
-                            Template="{StaticResource ExternalLink}" />
+                            Template="{StaticResource ExternalLink}"
+                            Visibility="Hidden"/>
 
             <TextBlock Grid.Row="2" Grid.Column="1"
                        Margin="0,10,10,10"
                        FontSize="13"
                        FontWeight="Normal"
                        TextWrapping="Wrap" 
-                       VerticalAlignment="Center">
+                       VerticalAlignment="Center"
+                       Visibility="Hidden">
                 <Hyperlink Foreground="White" 
                            TextDecorations="Underline" 
                            Command="{Binding}">Learn more about monitoring</Hyperlink>
