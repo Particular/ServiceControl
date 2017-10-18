@@ -23,6 +23,7 @@
     <Color x:Key="SuccessColor">#3DB982</Color>
 
     <Color x:Key="LightWarningColor">#FFfD0D</Color>
+    <Color x:Key="MidWarningColor">#FED21E</Color>
     <Color x:Key="WarningColor">#E6aD00</Color>
     <Color x:Key="DarkWarningColor">#BF7d00</Color>
 
@@ -50,6 +51,7 @@
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
 
     <SolidColorBrush x:Key="LightWarningBrush" Color="{StaticResource LightWarningColor}" />
+    <SolidColorBrush x:Key="MidWarningBrush" Color="{StaticResource MidWarningColor}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
     <SolidColorBrush x:Key="DarkWarningBrush" Color="{StaticResource DarkWarningColor}" />
 

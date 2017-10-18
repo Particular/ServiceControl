@@ -40,6 +40,9 @@
             LoadAppVersion();
             CopyrightInfo = $"{DateTime.Now.Year} © Particular Software";
 
+            addInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
+            addMonitoringInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
+
             RefreshInstancesCmd = Command.Create(() =>
             {
                 eventAggregator.PublishOnUIThread(new RefreshInstances());
@@ -56,6 +59,8 @@
 
         public bool ShowRefresh => HasInstances && !ShowOverlay && !IsModal;
 
+        public bool ShowingMenuOverlay { get; set; }
+
         public RxScreen Overlay { get; set; }
 
         public string VersionInfo { get; private set; }
@@ -64,8 +69,8 @@
 
         public bool HasInstances { get; private set; }
 
-        [FeatureToggle(Feature.MonitoringInstances)]
-        public bool ShowMonitoringInstances { get; set; }
+	    [FeatureToggle(Feature.MonitoringInstances)]
+	    public bool ShowMonitoringInstances { get; set; }
 
         public ICommand AddInstance { get; private set; }
 

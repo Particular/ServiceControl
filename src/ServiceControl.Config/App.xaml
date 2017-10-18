@@ -14,6 +14,7 @@
                 <ResourceDictionary Source="pack://application:,,,/Styles/TextBox.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Styles/ProgressBar.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Styles/Converters.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Styles/Elements.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/ParticularIcons.xaml" />
 
                 <ResourceDictionary>
