@@ -21,6 +21,7 @@ namespace ServiceControl.Config
     public static class Feature
     {
         public const string MonitoringInstances = "MonitoringInstances";
+        public const string LicenseChecks = "LicenseChecks";
     }
 
     public class FeatureToggles
@@ -35,6 +36,24 @@ namespace ServiceControl.Config
         public void Enable(string feature)
         {
             features.Add(feature);
+        }
+    }
+
+    public class FeatureToggleDefaults : IStartable
+    {
+        private FeatureToggles featureToggles;
+
+        public FeatureToggleDefaults(FeatureToggles featureToggles)
+        {
+            this.featureToggles = featureToggles;
+        }
+
+        public void Start()
+        {
+            if (DateTime.Today > new DateTime(2018, 2, 15, 0, 0, 0, DateTimeKind.Utc))
+            {
+                featureToggles.Enable(Feature.LicenseChecks);
+            }
         }
     }
 
