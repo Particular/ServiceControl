@@ -31,13 +31,16 @@
 
         public override async Task ExecuteAsync(InstanceDetailsViewModel model)
         {
-            var licenseCheckResult = installer.CheckLicenseIsValid();
-            if (!licenseCheckResult.Valid)
+            if (LicenseChecks)
             {
-                windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact sales@particular.net", hideCancel: true);
-                return;
+                var licenseCheckResult = installer.CheckLicenseIsValid();
+                if (!licenseCheckResult.Valid)
+                {
+                    windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact sales@particular.net", hideCancel: true);
+                    return;
+                }
             }
-            
+
             var instance = InstanceFinder.FindMonitoringInstance(model.Name);
             
 
@@ -88,5 +91,8 @@
                 eventAggregator.PublishOnUIThread(new RefreshInstances());
             }
         }
+
+        [FeatureToggle(Feature.LicenseChecks)]
+        public bool LicenseChecks { get; set; }
     }
 }

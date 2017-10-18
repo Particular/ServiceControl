@@ -22,15 +22,21 @@ namespace ServiceControl.Config.Commands
 
         public override void Execute(object obj)
         {
-            var licenseCheckResult = installer.CheckLicenseIsValid();
-            if (!licenseCheckResult.Valid)
+            if (LicenseChecks)
             {
-                windowManager.ShowMessage("LICENSE ERROR", $"Install could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact sales@particular.net", hideCancel: true);
-                return;
+                var licenseCheckResult = installer.CheckLicenseIsValid();
+                if (!licenseCheckResult.Valid)
+                {
+                    windowManager.ShowMessage("LICENSE ERROR", $"Install could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact sales@particular.net", hideCancel: true);
+                    return;
+                }
             }
 
             var instanceViewModel = addInstance();
             windowManager.ShowInnerDialog(instanceViewModel);
         }
+
+        [FeatureToggle(Feature.LicenseChecks)]
+        public bool LicenseChecks { get; set; }
     }
 }

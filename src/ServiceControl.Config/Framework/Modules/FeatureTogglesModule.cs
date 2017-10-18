@@ -13,6 +13,7 @@
         {
             builder.RegisterType<FeatureToggles>().SingleInstance();
             builder.RegisterType<ToggleFeaturesFromConfig>().AsImplementedInterfaces();
+            builder.RegisterType<FeatureToggleDefaults>().AsImplementedInterfaces();
         }
 
         protected override void AttachToComponentRegistration(IComponentRegistry componentRegistry, IComponentRegistration registration)
