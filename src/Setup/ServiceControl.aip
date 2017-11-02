@@ -156,7 +156,7 @@
     <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
-    <ROW TimeStampUrl="http://timestamp.verisign.com/scripts/timstamp.dll" SignerDescription="[|ProductName]" SignOptions="7" SignTool="0" Thumbprint="be71091fdbc50425ddac13edd5629b0a3b240985 Subject: NServiceBus Ltd.&#10;Issuer: Symantec Class 3 SHA256 Code Signing CA&#10;Valid from 09/22/2015 to 12/22/2017"/>
+    <ROW TimeStampUrl="http://timestamp.verisign.com/scripts/timstamp.dll" SignerDescription="[|ProductName]" SignOptions="7" SignTool="0" Thumbprint="28c81319c47f3afccb075cf5f97a58981972b73f Subject: NServiceBus Ltd.&#10;Issuer: Symantec Class 3 SHA256 Code Signing CA&#10;Valid from 11/01/2017 to 12/27/2020"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
     <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
