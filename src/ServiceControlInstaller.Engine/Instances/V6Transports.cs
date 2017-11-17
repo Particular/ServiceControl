@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public  class Transports
+    public class V6Transports
     {
         public static TransportInfo FindByName(string name)
         {
@@ -39,7 +39,7 @@
             new TransportInfo
             {
                 Name = "SQLServer",
-                TypeName = "NServiceBus.SqlServerTransport, NServiceBus.Transports.SQLServer",
+                TypeName = "NServiceBus.SqlServerTransport, NServiceBus.Transport.SQLServer",
                 MatchOn = "NServiceBus.SqlServer",
                 SampleConnectionString = "Data Source=<SQLInstance>;Initial Catalog=nservicebus;Integrated Security=True",
                 Help = "When integrated authentication is specified in the SQL connection string the the current installing user is used to create the required SQL tables structure not the service account."

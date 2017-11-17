@@ -18,9 +18,9 @@
 
         public void Validate()
         {
-            if (Transports.FindByName(details.TransportPackage) == null)
+            if (V5Transports.FindByName(details.TransportPackage) == null)
             {
-                throw new Exception($"Invalid Transport - Must be one of: {string.Join(",", Transports.All.Select(p => p.Name))}");
+                throw new Exception($"Invalid Transport - Must be one of: {string.Join(",", V5Transports.All.Select(p => p.Name))}");
             }
         }
 
@@ -50,7 +50,7 @@
             settings.Set(SettingsList.DBPath, details.DBPath);
             settings.Set(SettingsList.ForwardAuditMessages, details.ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
-            settings.Set(SettingsList.TransportType, Transports.FindByName(details.TransportPackage).TypeName, version);
+            settings.Set(SettingsList.TransportType, V5Transports.FindByName(details.TransportPackage).TypeName, version);
             settings.Set(SettingsList.AuditQueue, details.AuditQueue);
             settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
             settings.Set(SettingsList.ErrorLogQueue, details.ErrorLogQueue);

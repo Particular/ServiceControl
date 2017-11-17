@@ -175,12 +175,12 @@ namespace ServiceControlInstaller.Engine.Instances
         string DetermineTransportPackage()
         {
             var transportAppSetting = AppConfig.Read(SettingsList.TransportType, "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
-            var transport = Transports.All.FirstOrDefault(p => transportAppSetting.StartsWith(p.MatchOn , StringComparison.OrdinalIgnoreCase));
+            var transport = V5Transports.All.FirstOrDefault(p => transportAppSetting.StartsWith(p.MatchOn , StringComparison.OrdinalIgnoreCase));
             if (transport != null)
             {
                 return transport.Name;
             }
-            return Transports.All.First(p => p.Default).Name;
+            return V5Transports.All.First(p => p.Default).Name;
         }
 
         public void ApplyConfigChange()

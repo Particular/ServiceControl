@@ -18,7 +18,7 @@
       
         public SharedServiceControlEditorViewModel()
         {
-            Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
+            Transports = V5Transports.All;
             AuditForwardingOptions = new[]
             {
                 new ForwardingOption
