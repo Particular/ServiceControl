@@ -206,6 +206,7 @@
     <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureServiceBusTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\ITransportIntegration.cs" />
+    <Compile Include="Contexts\TransportIntegration\LearningTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\MsmqTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\SqlServerTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\RabbitMqTransportIntegration.cs" />
@@ -289,6 +290,10 @@
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj">
       <Project>{758357f6-cd31-4337-80c4-ba377fc257af}</Project>
       <Name>ServiceControl.AcceptanceTesting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.LearningTransport\ServiceControl.LearningTransport.csproj">
+      <Project>{12F4B317-B885-4D43-A152-FDB5B0EA2042}</Project>
+      <Name>ServiceControl.LearningTransport</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4c6b71b2-74ef-4b9e-88ff-c56532727c6d}</Project>

@@ -497,12 +497,12 @@ namespace ServiceBus.Management.AcceptanceTests
             var transportToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport");
             if (transportToUseString != null)
             {
-                transportToUse = (ITransportIntegration) Activator.CreateInstance(Type.GetType(typeof(MsmqTransportIntegration).FullName.Replace("Msmq", transportToUseString)) ?? typeof(MsmqTransportIntegration));
+                transportToUse = (ITransportIntegration) Activator.CreateInstance(Type.GetType(typeof(MsmqTransportIntegration).FullName.Replace("Msmq", transportToUseString)) ?? typeof(LearningTransportIntegration));
             }
 
             if (transportToUse == null)
             {
-                transportToUse = new MsmqTransportIntegration();
+                transportToUse = new LearningTransportIntegration();
             }
 
             var connectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
