@@ -16,7 +16,7 @@
 
         public SharedMonitoringEditorViewModel()
         {
-            Transports = ServiceControlInstaller.Engine.Instances.Transports.All;
+            Transports = MonitoringTransports.All;
         }
 
         [DoNotNotify]

@@ -118,6 +118,7 @@
     <Compile Include="Instances\Constants.cs" />
     <Compile Include="Instances\Instances.cs" />
     <Compile Include="Instances\InstanceType.cs" />
+    <Compile Include="Instances\MonitoringTransports.cs" />
     <Compile Include="Instances\ServiceControlUpgradeOptions.cs" />
     <Compile Include="Instances\MonitoringInstance.cs" />
     <Compile Include="Instances\MonitoringNewInstance.cs" />
