@@ -78,7 +78,7 @@
     </ItemGroup>
     <PropertyGroup>
       <SetupExeOutputFolder>$(SolutionDir)..\Assets\</SetupExeOutputFolder>
-      <SetupExeName>Particular.ServiceControl-$(GfvLegacySemVerPadded).exe</SetupExeName>
+      <SetupExeName>Particular.ServiceControl-$(GitVersion_LegacySemVerPadded).exe</SetupExeName>
     </PropertyGroup>
     <MakeDir Directories="$(SetupExeOutputFolder)" />
     <ItemGroup>
