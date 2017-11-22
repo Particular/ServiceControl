@@ -4,6 +4,7 @@
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
+    // ReSharper disable once UnusedMember.Global
     public class ServiceControlDTCSupport : INeedInitialization
     {
         public void Customize(BusConfiguration configuration)
