@@ -105,7 +105,7 @@ namespace ServiceControl.Monitoring
         {
             return new EndpointsView
             {
-                Id = Id.ToUniqueInstanceId(),
+                Id = Id.UniqueId,
                 Name = Id.LogicalName,
                 HostDisplayName = Id.HostName,
                 Monitored = Monitored,

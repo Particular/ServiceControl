@@ -8,12 +8,14 @@ namespace ServiceControl.Monitoring
         public readonly string LogicalName;
         public readonly string HostName;
         public readonly Guid HostGuid;
+        public Guid UniqueId { get; }
 
         public EndpointInstanceId(string logicalName, string hostName, Guid hostGuid)
         {
             LogicalName = logicalName;
             HostName = hostName;
             HostGuid = hostGuid;
+            UniqueId = DeterministicGuid.MakeId(LogicalName, HostGuid.ToString());
         }
 
         public override bool Equals(object obj)
@@ -39,6 +41,5 @@ namespace ServiceControl.Monitoring
             }
         }
 
-        public Guid ToUniqueInstanceId() => DeterministicGuid.MakeId(LogicalName, HostGuid.ToString());
     }
 }
