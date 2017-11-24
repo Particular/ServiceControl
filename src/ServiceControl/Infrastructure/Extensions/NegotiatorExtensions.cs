@@ -142,9 +142,9 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             return WithEtagAndLastModified(negotiator, etag, responseLastModified);
         }
 
-        public static Negotiator WithDeterministicEtag(this Negotiator negotiator, string data, Etag ravenEtag = null)
+        public static Negotiator WithDeterministicEtag(this Negotiator negotiator, string data)
         {
-            var guid = DeterministicGuid.MakeId(data, (ravenEtag ?? Etag.Empty).ToString(), false);
+            var guid = DeterministicGuid.MakeId(data);
             return negotiator
                 .WithHeader("ETag", guid.ToString());
         }

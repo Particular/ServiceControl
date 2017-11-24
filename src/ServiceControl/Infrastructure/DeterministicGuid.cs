@@ -1,40 +1,29 @@
 ﻿namespace ServiceControl.Infrastructure
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Security.Cryptography;
     using System.Text;
 
     public static class DeterministicGuid
     {
-        static ConcurrentDictionary<string, Guid> cacheData = new ConcurrentDictionary<string, Guid>();
-
-        public static Guid MakeId(string data, bool cache = true)
+        public static Guid MakeId(string data)
         {
-            return DeterministicGuidBuilder(data, cache);
+            return DeterministicGuidBuilder(data);
         }
 
-        public static Guid MakeId(string data1, string data2, bool cache = true)
+        public static Guid MakeId(string data1, string data2)
         {
-            return DeterministicGuidBuilder($"{data1}{data2}", cache);
+            return DeterministicGuidBuilder($"{data1}{data2}");
         }
 
-        public static Guid MakeId(string data1, string data2, string data3, bool cache = true)
+        public static Guid MakeId(string data1, string data2, string data3)
         {
-            return DeterministicGuidBuilder($"{data1}{data2}{data3}", cache);
+            return DeterministicGuidBuilder($"{data1}{data2}{data3}");
         }
 
-        private static Guid DeterministicGuidBuilder(string input, bool cache)
+        private static Guid DeterministicGuidBuilder(string input)
         {
             Guid g;
-
-            if (cache)
-            {
-                if (cacheData.TryGetValue(input, out g))
-                {
-                    return g;
-                }
-            }
 
             // use MD5 hash to get a 16-byte hash of the string
             using (var provider = new MD5CryptoServiceProvider())
@@ -44,12 +33,7 @@
                 // generate a guid from the hash:
                 g = new Guid(hashBytes);
             }
-
-            if (cache)
-            {
-                cacheData.TryAdd(input, g);
-            }
-
+            
             return g;
         }
     }

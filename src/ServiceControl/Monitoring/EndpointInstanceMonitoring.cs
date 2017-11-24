@@ -33,7 +33,7 @@ namespace ServiceControl.Monitoring
 
         public EndpointInstanceMonitor GetOrCreateMonitor(EndpointInstanceId endpointInstanceId, bool monitorIfNew)
         {
-            return endpoints.GetOrAdd(endpointInstanceId.ToUniqueInstanceId(), id => new EndpointInstanceMonitor(endpointInstanceId, monitorIfNew));
+            return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitorIfNew));
         }
 
         private void Update(EndpointMonitoringStats stats)
