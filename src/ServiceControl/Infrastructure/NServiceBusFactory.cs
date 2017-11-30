@@ -44,6 +44,7 @@ namespace ServiceBus.Management.Infrastructure
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
             configuration.EndpointName(settings.ServiceName);
+            configuration.ReportCustomChecksTo(settings.ServiceName);
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
             var transport = configuration.UseTransport(transportType);
             if (settings.TransportConnectionString != null)
