@@ -57,7 +57,7 @@
 
         public bool ShowOverlay => Overlay != null;
 
-        public bool ShowRefresh => HasInstances && !ShowOverlay && !IsModal;
+        public bool ShowRefresh => !ShowOverlay && !IsModal;
 
         public bool ShowingMenuOverlay { get; set; }
 
@@ -96,7 +96,7 @@
 
         private void RefreshInstances()
         {
-            if (ActiveItem != null && ActiveItem != listInstances && ActiveItem != noInstances)
+            if (ActiveItem != null && !(ActiveItem == listInstances || ActiveItem == noInstances))
                 return;
 
             HasInstances = InstanceFinder.AllInstances().Any();

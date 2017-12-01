@@ -35,7 +35,7 @@
                                 VerticalAlignment="Top" />
 
             <StackPanel Grid.Row="0"
-                        Margin="60,7"
+                        Margin="60,10"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Bottom"
                         Orientation="Horizontal">
@@ -46,6 +46,7 @@
                            Text="{Binding ActiveItem.DisplayName}" />
                 <Button Command="{Binding RefreshInstancesCmd}"
                         Style="{StaticResource RefreshButton}"
+                        Margin="20,0,0,0"
                         Visibility="{Binding ShowRefresh,
                                              Converter={StaticResource boolToVis}}" />
             </StackPanel>
