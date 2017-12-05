@@ -7,12 +7,4 @@
         <ResourceDictionary Source="pack://application:,,,/Styles/Converters.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <ControlTemplate x:Key="BetaTag">
-        <Viewbox Stretch="Uniform">
-            <Border Background="{StaticResource MidWarningBrush}" Margin="2">
-                <TextBlock Text="BETA" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" Margin="4"/>
-            </Border>
-        </Viewbox>
-    </ControlTemplate>
-
 </ResourceDictionary>
