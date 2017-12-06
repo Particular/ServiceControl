@@ -113,6 +113,14 @@
     <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.ASB.DLQMonitor\ServiceControl.ASB.DLQMonitor.csproj">
+      <Project>{70be1af0-4739-43e9-864e-4104a5781614}</Project>
+      <Name>ServiceControl.ASB.DLQMonitor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.MSMQ.DLQMonitor\ServiceControl.MSMQ.DLQMonitor.csproj">
+      <Project>{46f65684-6439-4199-806e-9ea4ca0ac31c}</Project>
+      <Name>ServiceControl.MSMQ.DLQMonitor</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.SqlServerWithDTC\ServiceControl.Transports.SqlServerWithDTC.csproj">
       <Project>{691074cb-67f0-45ce-b3de-ac9a94af29b4}</Project>
       <Name>ServiceControl.Transports.SqlServerWithDTC</Name>
@@ -144,11 +152,13 @@
     <!-- AzureServiceBus -->
     <AddToZip IncludeMask="NServiceBus.Azure.Transports.WindowsAzureServiceBus.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="Microsoft.Data.Services.Client.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="ServiceControl.ASB.DLQMonitor.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!-- RabbitMQ -->
     <AddToZip IncludeMask="NServiceBus.Transports.RabbitMQ.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="RabbitMQ.Client.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!-- MSMQ -->
     <AddToZip IncludeMask="CreateABlankFolderWithNoFiles" ZipFolder="Transports\MSMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="ServiceControl.MSMQ.DLQMonitor.*" ZipFolder="Transports\MSMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!-- ServiceControl  -->
     <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="ServiceControl" SourceFolder="..\ServiceControl\bin\$(Configuration)" ZipFileName="$(ZipToCreate)" />
   </Target>
