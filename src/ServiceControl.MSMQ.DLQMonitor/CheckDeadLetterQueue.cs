@@ -32,8 +32,10 @@
                 return CheckResult.Pass;
             }
 
-            Logger.DebugFormat("{0} messages in the Dead Letter Queue on {1}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular using support@particular.net if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.", currentValue, Environment.MachineName);
-            return CheckResult.Failed($"{currentValue} messages in the Dead Letter Queue on {Environment.MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular using support@particular.net if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.");
+            var result = $"{currentValue} messages in the Dead Letter Queue on {Environment.MachineName}. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular using support@particular.net if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.";
+
+            Logger.Warn(result);
+            return CheckResult.Failed(result);
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckDeadLetterQueue));
