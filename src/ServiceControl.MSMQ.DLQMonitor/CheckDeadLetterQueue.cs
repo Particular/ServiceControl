@@ -23,12 +23,12 @@
 
         public override CheckResult PerformCheck()
         {
-            Logger.Debug("Checking DLQ length");
+            Logger.Debug("Checking Dead Letter Queue length");
             var currentValue = dlqPerformanceCounter.NextValue();
 
             if (currentValue <= 0)
             {
-                Logger.Debug("No messages in DLQ");
+                Logger.Debug("No messages in Dead Letter Queue");
                 return CheckResult.Pass;
             }
 

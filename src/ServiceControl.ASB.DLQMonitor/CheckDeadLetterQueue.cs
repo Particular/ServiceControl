@@ -14,7 +14,7 @@
 
         public CheckDeadLetterQueue(Settings settings) : base(id: "Dead Letter Queue", category: "Transport", repeatAfter: TimeSpan.FromHours(1))
         {
-            Logger.Debug("ASB Dead Letter Queue custom check starting");
+            Logger.Debug("Azure Service Bus Dead Letter Queue custom check starting");
 
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
             var transportConnectionString = connectionStringSettings.ConnectionString;
@@ -25,7 +25,7 @@
 
         public override CheckResult PerformCheck()
         {
-            Logger.Debug("Checking DLQ length");
+            Logger.Debug("Checking Dead Letter Queue length");
 
             var queueDescription = namespaceManager.GetQueue(stagingQueue);
             var messageCountDetails = queueDescription.MessageCountDetails;
@@ -38,7 +38,7 @@
                 return CheckResult.Failed(result);
             }
 
-            Logger.Debug("No messages in DLQ");
+            Logger.Debug("No messages in Dead Letter Queue");
             return CheckResult.Pass;
         }
 
