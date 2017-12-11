@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
@@ -43,6 +43,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CustomTransportConfigurations", "CustomTransportConfigurations", "{A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.SqlServerWithDTC", "ServiceControl.SqlServerWithDTC\ServiceControl.Transports.SqlServerWithDTC.csproj", "{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.MSMQ.DLQMonitor", "ServiceControl.MSMQ.DLQMonitor\ServiceControl.MSMQ.DLQMonitor.csproj", "{46F65684-6439-4199-806E-9EA4CA0AC31C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.ASB.DLQMonitor", "ServiceControl.ASB.DLQMonitor\ServiceControl.ASB.DLQMonitor.csproj", "{70BE1AF0-4739-43E9-864E-4104A5781614}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -106,6 +110,14 @@ Global
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46F65684-6439-4199-806E-9EA4CA0AC31C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46F65684-6439-4199-806E-9EA4CA0AC31C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46F65684-6439-4199-806E-9EA4CA0AC31C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46F65684-6439-4199-806E-9EA4CA0AC31C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70BE1AF0-4739-43E9-864E-4104A5781614}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70BE1AF0-4739-43E9-864E-4104A5781614}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70BE1AF0-4739-43E9-864E-4104A5781614}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70BE1AF0-4739-43E9-864E-4104A5781614}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -120,5 +132,10 @@ Global
 		{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 		{20284C68-6381-4AE9-832C-F094E996D913} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
+		{46F65684-6439-4199-806E-9EA4CA0AC31C} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
+		{70BE1AF0-4739-43E9-864E-4104A5781614} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}
 	EndGlobalSection
 EndGlobal

@@ -56,9 +56,8 @@
       <HintPath>..\packages\Microsoft.Data.Services.Client.5.6.4\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.ServiceBus, Version=2.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.ServiceBus.2.6.0\lib\net40-full\Microsoft.ServiceBus.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Microsoft.ServiceBus, Version=2.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAzure.ServiceBus.2.8.2\lib\net40-full\Microsoft.ServiceBus.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.2.0.3\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
@@ -73,8 +72,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NServiceBus.Azure.Transports.WindowsAzureServiceBus, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.Azure.Transports.WindowsAzureServiceBus.6.4.0\lib\net45\NServiceBus.Azure.Transports.WindowsAzureServiceBus.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\NServiceBus.Azure.Transports.WindowsAzureServiceBus.6.4.2\lib\net45\NServiceBus.Azure.Transports.WindowsAzureServiceBus.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.Azure.Transports.WindowsAzureStorageQueues, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <HintPath>..\packages\NServiceBus.Azure.Transports.WindowsAzureStorageQueues.6.2.2\lib\net45\NServiceBus.Azure.Transports.WindowsAzureStorageQueues.dll</HintPath>
@@ -113,6 +111,14 @@
     <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.ASB.DLQMonitor\ServiceControl.ASB.DLQMonitor.csproj">
+      <Project>{70be1af0-4739-43e9-864e-4104a5781614}</Project>
+      <Name>ServiceControl.ASB.DLQMonitor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.MSMQ.DLQMonitor\ServiceControl.MSMQ.DLQMonitor.csproj">
+      <Project>{46f65684-6439-4199-806e-9ea4ca0ac31c}</Project>
+      <Name>ServiceControl.MSMQ.DLQMonitor</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.SqlServerWithDTC\ServiceControl.Transports.SqlServerWithDTC.csproj">
       <Project>{691074cb-67f0-45ce-b3de-ac9a94af29b4}</Project>
       <Name>ServiceControl.Transports.SqlServerWithDTC</Name>
@@ -144,11 +150,13 @@
     <!-- AzureServiceBus -->
     <AddToZip IncludeMask="NServiceBus.Azure.Transports.WindowsAzureServiceBus.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="Microsoft.Data.Services.Client.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="ServiceControl.ASB.DLQMonitor.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!-- RabbitMQ -->
     <AddToZip IncludeMask="NServiceBus.Transports.RabbitMQ.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="RabbitMQ.Client.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!-- MSMQ -->
     <AddToZip IncludeMask="CreateABlankFolderWithNoFiles" ZipFolder="Transports\MSMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="ServiceControl.MSMQ.DLQMonitor.*" ZipFolder="Transports\MSMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!-- ServiceControl  -->
     <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="ServiceControl" SourceFolder="..\ServiceControl\bin\$(Configuration)" ZipFileName="$(ZipToCreate)" />
   </Target>
