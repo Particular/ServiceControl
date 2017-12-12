@@ -51,10 +51,7 @@ namespace ServiceControl.Config
         public void Start()
         {
             featureToggles.Enable(Feature.MonitoringInstances);
-            if (DateTime.Today > new DateTime(2018, 2, 15, 0, 0, 0, DateTimeKind.Utc))
-            {
-                featureToggles.Enable(Feature.LicenseChecks);
-            }
+            featureToggles.Enable(Feature.LicenseChecks);
         }
     }
 
