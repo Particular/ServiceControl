@@ -121,6 +121,10 @@
             Assert.IsTrue(testUrl.Port == 443);
             Assert.IsTrue(testUrl.VirtualDirectory == "foo/api");
 
+            testUrl = new UrlReservation("https://[::1]:10253/");
+            Assert.IsTrue(testUrl.HTTPS);
+            Assert.IsTrue(testUrl.HostName == "[::1]");
+            Assert.IsTrue(testUrl.Port == 10253);
 
             // ReSharper disable once ObjectCreationAsStatement
             Assert.Throws<ArgumentException>(() => new UrlReservation("https://localhost:8000/foo/api"), "UrlAcl is invalid without trailing /");

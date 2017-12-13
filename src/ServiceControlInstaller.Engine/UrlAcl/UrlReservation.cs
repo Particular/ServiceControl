@@ -13,7 +13,7 @@
 
     public class UrlReservation
     {
-        static Regex urlPattern = new Regex(@"^(?<protocol>https?)://(?<hostname>[^:/]+):?(?<port>\d{0,5})/?(?<virtual>[^:]*)/$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        static Regex urlPattern = new Regex(@"^(?<protocol>https?)://(?<hostname>([^/]*?))(:(?<port>\d{0,5}))?(/(?<virtual>[^:]*))?/$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         const int GENERIC_EXECUTE = 536870912;
 
