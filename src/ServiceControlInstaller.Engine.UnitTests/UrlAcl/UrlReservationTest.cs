@@ -123,7 +123,7 @@
 
             testUrl = new UrlReservation("https://[::1]:10253/");
             Assert.IsTrue(testUrl.HTTPS);
-            Assert.IsTrue(testUrl.HostName == "::1");
+            Assert.IsTrue(testUrl.HostName == "[::1]");
             Assert.IsTrue(testUrl.Port == 10253);
 
             // ReSharper disable once ObjectCreationAsStatement
