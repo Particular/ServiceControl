@@ -17,7 +17,7 @@ namespace Particular.ServiceControl
         {
             LogManager.Use<NLogFactory>();
 
-            const long megaByte = 1073741824;
+            const long megaByte = 1024 * 1024;
             if (NLog.LogManager.Configuration != null)
             {
                 return;
