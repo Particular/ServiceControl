@@ -17,7 +17,6 @@ namespace Particular.ServiceControl.Hosting
         public string ServiceName { get; set; }
         public string Username { get; set; }
         public bool Portable { get; set; }
-
         public HostArguments(string[] args)
         {
             if (ConfigFileSettingsReader<bool>.Read("MaintenanceMode"))
@@ -88,6 +87,19 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
+            var reimportOptions = new OptionSet
+            {
+                {
+                    "import-failed-audits",
+                    "Import failed audit messages",
+                    s =>
+                    {
+                        Commands = new List<Type>{typeof(ImportFailedAuditsCommand)};
+                        executionMode = ExecutionMode.ImportFailedAudits;
+                    }
+                }
+            };
+
             try
             {
                 externalInstallerOptions.Parse(args);
@@ -102,6 +114,12 @@ namespace Particular.ServiceControl.Hosting
                     return;
                 }
 
+                reimportOptions.Parse(args);
+                if (executionMode == ExecutionMode.ImportFailedAudits)
+                {
+                    return;
+                }
+
                 defaultOptions.Parse(args);
                 externalUnitTestRunnerOptions.Parse(args);
             }
@@ -111,6 +129,7 @@ namespace Particular.ServiceControl.Hosting
                 Help = true;
             }
         }
+
 
         public void PrintUsage()
         {
@@ -137,6 +156,7 @@ namespace Particular.ServiceControl.Hosting
     {
         RunInstallers,
         Run,
+        ImportFailedAudits,
         Maintenance
     }
 }

@@ -615,7 +615,8 @@ namespace ServiceBus.Management.AcceptanceTests
 
             using (new DiagnosticTimer("Initializing Bootstrapper"))
             {
-                bootstrapper = new Bootstrapper(settings, configuration);
+                var loggingSettings = new LoggingSettings(settings.ServiceName);
+                bootstrapper = new Bootstrapper(() => { }, settings, configuration, loggingSettings);
             }
             using (new DiagnosticTimer("Initializing AppBuilder"))
             {

@@ -3,7 +3,6 @@ namespace Particular.ServiceControl
     using System;
     using System.IO;
     using System.Net;
-    using System.ServiceProcess;
     using Autofac;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
@@ -20,8 +19,9 @@ namespace Particular.ServiceControl
     public class Bootstrapper
     {
         private BusConfiguration configuration;
+        private LoggingSettings loggingSettings;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
-        private ServiceBase host;
+        private Action onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
         private TimeKeeper timeKeeper;
@@ -30,17 +30,15 @@ namespace Particular.ServiceControl
         public IDisposable WebApp;
 
         // Windows Service
-        public Bootstrapper(ServiceBase host)
+        public Bootstrapper(Action onCriticalError, Settings settings, BusConfiguration configuration, LoggingSettings loggingSettings)
         {
-            this.host = host;
-            settings = new Settings(host.ServiceName);
-            Initialize();
-        }
-
-        // Acceptance Tests
-        public Bootstrapper(Settings settings, BusConfiguration configuration)
-        {
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+            this.onCriticalError = onCriticalError;
             this.configuration = configuration;
+            this.loggingSettings = loggingSettings;
             this.settings = settings;
             Initialize();
         }
@@ -49,7 +47,6 @@ namespace Particular.ServiceControl
 
         private void Initialize()
         {
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
             RecordStartup(loggingSettings);
 
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
@@ -58,6 +55,7 @@ namespace Particular.ServiceControl
             timeKeeper = new TimeKeeper();
 
             var containerBuilder = new ContainerBuilder();
+
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
@@ -65,12 +63,6 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-
-            if (configuration == null)
-            {
-                configuration = new BusConfiguration();
-                configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
-            }
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
@@ -88,7 +80,7 @@ namespace Particular.ServiceControl
                 WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
             }
 
-            bus = NServiceBusFactory.CreateAndStart(settings, container, host, documentStore, configuration);
+            bus = NServiceBusFactory.CreateAndStart(settings, container, onCriticalError, documentStore, configuration);
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
 

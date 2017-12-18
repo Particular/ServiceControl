@@ -106,6 +106,9 @@
         public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
 
+        public bool IngestAuditMessages { get; set; } = true;
+        public bool IngestErrorMessages { get; set; } = true;
+
         public Address AuditLogQueue { get; set; }
 
         public int ExpirationProcessTimerInSeconds

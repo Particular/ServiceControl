@@ -293,6 +293,7 @@
     <Compile Include="DbMigrations\1.27\SplitFailedMessageDocumentsMigration.cs" />
     <Compile Include="HeartbeatMonitoring\LegacyHandler.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedRepeatedlyPublisher.cs" />
+    <Compile Include="Hosting\Commands\ImportFailedAuditsCommand.cs" />
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -409,6 +410,9 @@
     <Compile Include="Monitoring\InMemoryMonitoring.cs" />
     <Compile Include="Monitoring\MonitoringDataPersister.cs" />
     <Compile Include="Monitoring\RecordedHeartbeat.cs" />
+    <Compile Include="Operations\AuditImporter.cs" />
+    <Compile Include="Operations\FailedTransportMessage.cs" />
+    <Compile Include="Operations\ImportFailedAudits.cs" />
     <Compile Include="Recoverability\API\UnacknowledgedGroupsApi.cs" />
     <Compile Include="Recoverability\Archiving\ArchiveDocumentManager.cs" />
     <Compile Include="Recoverability\Archiving\Raven\ArchiveOperation.cs" />
@@ -549,7 +553,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
     <Compile Include="MessageAuditing\ProcessingStatistics.cs" />
-    <Compile Include="Operations\DetectFailedMessageImportsFeature.cs" />
+    <Compile Include="Operations\FailedAuditImporterFeature.cs" />
     <Compile Include="Recoverability\Archiving\Messages\ArchiveAllInGroup.cs" />
     <Compile Include="Recoverability\Archiving\ArchiveAllInGroupHandler.cs" />
     <Compile Include="Recoverability\Grouping\ClassifyFailedMessageEnricher.cs" />
@@ -631,7 +635,9 @@
     <Compile Include="SetupBootstrapper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

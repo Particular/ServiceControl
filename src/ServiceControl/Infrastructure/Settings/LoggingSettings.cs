@@ -7,25 +7,29 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
     public class LoggingSettings
     {
-        public LoggingSettings(string serviceName)
+        public LoggingSettings(string serviceName, LogLevel defaultLevel = null, LogLevel defaultRavenDBLevel = null)
         {
-            LoggingLevel = InitializeLevel("LogLevel");
-            RavenDBLogLevel = InitializeLevel("RavenDBLogLevel");
+            LoggingLevel = InitializeLevel("LogLevel", defaultLevel ?? LogLevel.Warn);
+            RavenDBLogLevel = InitializeLevel("RavenDBLogLevel", defaultRavenDBLevel ?? LogLevel.Warn);
             LogPath = Environment.ExpandEnvironmentVariables(ConfigFileSettingsReader<string>.Read("LogPath", DefaultLogPathForInstance(serviceName)));
         }
 
-        LogLevel InitializeLevel(string key)
+        LogLevel InitializeLevel(string key, LogLevel defaultLevel)
         {
-            var level = LogLevel.Warn;
+            string levelText;
+            if (!ConfigFileSettingsReader<string>.TryRead("ServiceControl", key, out levelText))
+            {
+                return defaultLevel;
+            }
             try
             {
-                level = LogLevel.FromString(ConfigFileSettingsReader<string>.Read(key, LogLevel.Warn.Name));
+                return LogLevel.FromString(levelText);
             }
             catch
             {
-                InternalLogger.Warn($"Failed to parse {key} setting. Defaulting to Warn.");
+                InternalLogger.Warn($"Failed to parse {key} setting. Defaulting to {defaultLevel.Name}.");
+                return defaultLevel;
             }
-            return level;
         }
 
         public LogLevel LoggingLevel { get; }

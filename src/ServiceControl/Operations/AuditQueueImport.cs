@@ -14,8 +14,6 @@
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.MessageAuditing;
-    using ServiceControl.Operations.BodyStorage;
 
     public class AuditQueueImport : IAdvancedSatellite, IDisposable
     {
@@ -23,15 +21,15 @@
         private readonly IBuilder builder;
         private readonly CriticalError criticalError;
         private readonly IEnrichImportedMessages[] enrichers;
-        private readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         private readonly ISendMessages forwarder;
         private readonly LoggingSettings loggingSettings;
         private readonly Settings settings;
+        private readonly AuditImporter auditImporter;
         private readonly IDocumentStore store;
         private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
         private readonly Timer timer = Metric.Timer("Audit messages processed", Unit.Custom("Messages"));
 
-        public AuditQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
+        public AuditQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, AuditImporter auditImporter)
         {
             this.builder = builder;
             this.forwarder = forwarder;
@@ -40,7 +38,7 @@
             this.criticalError = criticalError;
             this.loggingSettings = loggingSettings;
             this.settings = settings;
-            this.bodyStorageEnricher = bodyStorageEnricher;
+            this.auditImporter = auditImporter;
 
             enrichers = builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichAudits).ToArray();
         }
@@ -69,14 +67,19 @@
 
         public Address InputAddress => settings.AuditQueue;
 
-        public bool Disabled => false;
+        public bool Disabled => !settings.IngestAuditMessages;
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
             satelliteImportFailuresHandler = new SatelliteImportFailuresHandler(builder.Build<IDocumentStore>(),
                 Path.Combine(loggingSettings.LogPath, @"FailedImports\Audit"), tm => new FailedAuditImport
                 {
-                    Message = tm
+                    Message = new FailedTransportMessage()
+                    {
+                        Id = tm.Id,
+                        Headers = tm.Headers,
+                        Body = tm.Body
+                    }
                 },
                 criticalError);
 
@@ -90,7 +93,7 @@
 
         private void InnerHandle(TransportMessage message)
         {
-            var entity = ConvertToSaveMessage(message);
+            var entity = auditImporter.ConvertToSaveMessage(message);
             using (var session = store.OpenSession())
             {
                 session.Store(entity);
@@ -102,33 +105,6 @@
                 TransportMessageCleaner.CleanForForwarding(message);
                 forwarder.Send(message, new SendOptions(settings.AuditLogQueue));
             }
-        }
-
-        private ProcessedMessage ConvertToSaveMessage(TransportMessage message)
-        {
-            var metadata = new Dictionary<string, object>
-            {
-                ["MessageId"] = message.Id,
-                ["MessageIntent"] = message.MessageIntent,
-                ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
-            };
-
-            foreach (var enricher in enrichers)
-            {
-                enricher.Enrich(message.Headers, metadata);
-            }
-
-            bodyStorageEnricher.StoreAuditMessageBody(
-                message.Body,
-                message.Headers,
-                metadata);
-
-            var auditMessage = new ProcessedMessage(message.Headers, metadata)
-            {
-                // We do this so Raven does not spend time assigning a hilo key
-                Id = $"ProcessedMessages/{Guid.NewGuid()}"
-            };
-            return auditMessage;
         }
 
         private bool TerminateIfForwardingIsEnabledButQueueNotWritable()

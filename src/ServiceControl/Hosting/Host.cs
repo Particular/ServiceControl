@@ -2,6 +2,8 @@
 {
     using System;
     using System.ServiceProcess;
+    using NServiceBus;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class Host : ServiceBase
     {
@@ -29,7 +31,12 @@
 
         protected override void OnStart(string[] args)
         {
-            bootstrapper = new Bootstrapper(this);
+            var busConfiguration = new BusConfiguration();
+            busConfiguration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+
+            var loggingSettings = new LoggingSettings(ServiceName);
+
+            bootstrapper = new Bootstrapper(Stop, new Settings(ServiceName), busConfiguration, loggingSettings);
             bootstrapper.Start();
         }
 
