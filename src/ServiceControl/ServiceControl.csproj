@@ -415,6 +415,7 @@
     <Compile Include="Operations\ImportFailedAudits.cs" />
     <Compile Include="Operations\FailedErrorImportCustomCheck.cs" />
     <Compile Include="Operations\FailedAuditImportCustomCheck.cs" />
+    <Compile Include="Operations\FailedErrorImportCustomCheck.cs" />
     <Compile Include="Recoverability\API\UnacknowledgedGroupsApi.cs" />
     <Compile Include="Recoverability\Archiving\ArchiveDocumentManager.cs" />
     <Compile Include="Recoverability\Archiving\Raven\ArchiveOperation.cs" />

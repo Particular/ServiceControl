@@ -3,7 +3,9 @@
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Client;
+    using Raven.Client.Indexes;
     using System;
+    using System.Linq;
 
     class FailedErrorImportCustomCheck : CustomCheck
     {
@@ -37,5 +39,20 @@ Delete the failed import documents afterwards so that you don't see this warning
 
         readonly IDocumentStore store;
         static readonly ILog Logger = LogManager.GetLogger(typeof(FailedAuditImportCustomCheck));
+    }
+
+    class FailedErrorImportIndex : AbstractIndexCreationTask<FailedErrorImport>
+    {
+        public FailedErrorImportIndex()
+        {
+            Map = docs => from cc in docs
+                          select new FailedErrorImport
+                          {
+                              Id = cc.Id,
+                              Message = cc.Message
+                          };
+
+            DisableInMemoryIndexing = true;
+        }
     }
 }
