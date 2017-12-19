@@ -1,6 +1,7 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
     using Lucene.Net.Analysis.Standard;
@@ -25,6 +26,8 @@ namespace ServiceControl.CompositeViews.Messages
             public string ConversationId { get; set; }
             public string[] Query { get; set; }
             public DateTime TimeSent { get; set; }
+            public List<object> ProcessingAttempts { get; set; }
+            public Dictionary<string, object> MessageMetadata { get; set; }
         }
 
         public MessagesViewIndex()
@@ -44,6 +47,8 @@ namespace ServiceControl.CompositeViews.Messages
                     DeliveryTime = (TimeSpan?) message.MessageMetadata["DeliveryTime"],
                     Query = message.MessageMetadata.Select(_ => _.Value.ToString()).ToArray(),
                     ConversationId = (string) message.MessageMetadata["ConversationId"],
+                    MessageMetadata = message.MessageMetadata,
+                    ProcessingAttempts = null
                 });
 
             AddMap<FailedMessage>(messages => from message in messages
@@ -67,7 +72,31 @@ namespace ServiceControl.CompositeViews.Messages
                     DeliveryTime = (TimeSpan?) null,
                     Query = last.MessageMetadata.Select(_ => _.Value.ToString()),
                     ConversationId = last.MessageMetadata["ConversationId"],
+                    last.MessageMetadata,
+                    message.ProcessingAttempts,
                 });
+
+            Reduce = messages => from message in messages
+                group message by message.MessageId
+                into g
+                let first = g.First()
+                select new
+                {
+                    first.MessageId,
+                    first.MessageType,
+                    first.IsSystemMessage,
+                    first.Status,
+                    first.TimeSent,
+                    first.ProcessedAt,
+                    first.ReceivingEndpointName,
+                    first.CriticalTime,
+                    first.ProcessingTime,
+                    first.DeliveryTime,
+                    first.Query,
+                    first.ConversationId,
+                    first.ProcessingAttempts,
+                    first.MessageMetadata
+                };
 
             Index(x => x.Query, FieldIndexing.Analyzed);
 
