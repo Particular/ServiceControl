@@ -201,6 +201,7 @@
     <Compile Include="Audit\Audit_Messages_Have_Proper_IsSystemMessage_Tests.cs" />
     <Compile Include="Audit\FailedAuditsModule.cs" />
     <Compile Include="Audit\When_an_audit_message_has_ttbr_set.cs" />
+    <Compile Include="Audit\When_a_message_is_duplicated.cs" />
     <Compile Include="Audit\When_a_message_fails_to_import.cs" />
     <Compile Include="Audit\When_a_message_has_been_successfully_processed_from_sendonly.cs" />
     <Compile Include="Audit\Audit_Messages_That_Big_Bodies_Audit_Test.cs">
