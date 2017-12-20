@@ -2,7 +2,6 @@ namespace ServiceBus.Management.Infrastructure
 {
     using System;
     using System.Diagnostics;
-    using System.ServiceProcess;
     using Autofac;
     using NServiceBus;
     using NServiceBus.Configuration.AdvanceExtensibility;
@@ -13,7 +12,7 @@ namespace ServiceBus.Management.Infrastructure
 
     public static class NServiceBusFactory
     {
-        public static IStartableBus Create(Settings.Settings settings, IContainer container, ServiceBase host, IDocumentStore documentStore, BusConfiguration configuration)
+        public static IStartableBus Create(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration)
         {
             if (configuration == null)
             {
@@ -53,7 +52,7 @@ namespace ServiceBus.Management.Infrastructure
             }
             configuration.DefineCriticalErrorAction((s, exception) =>
             {
-                host?.Stop();
+                onCriticalError();
             });
 
             if (Environment.UserInteractive && Debugger.IsAttached)
@@ -64,9 +63,9 @@ namespace ServiceBus.Management.Infrastructure
             return Bus.Create(configuration);
         }
 
-        public static IBus CreateAndStart(Settings.Settings settings, IContainer container, ServiceBase host, IDocumentStore documentStore, BusConfiguration configuration)
+        public static IBus CreateAndStart(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration)
         {
-            var bus = Create(settings, container, host, documentStore, configuration);
+            var bus = Create(settings, container, onCriticalError, documentStore, configuration);
 
             container.Resolve<SubscribeToOwnEvents>().Run();
 

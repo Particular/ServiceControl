@@ -86,6 +86,9 @@
       <HintPath>..\packages\WindowsAzure.Storage.4.3.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Nancy, Version=1.4.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.1.4.3\lib\net40\Nancy.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -196,7 +199,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audit\Audit_Messages_Have_Proper_IsSystemMessage_Tests.cs" />
+    <Compile Include="Audit\FailedAuditsModule.cs" />
     <Compile Include="Audit\When_an_audit_message_has_ttbr_set.cs" />
+    <Compile Include="Audit\When_a_message_fails_to_import.cs" />
     <Compile Include="Audit\When_a_message_has_been_successfully_processed_from_sendonly.cs" />
     <Compile Include="Audit\Audit_Messages_That_Big_Bodies_Audit_Test.cs">
       <SubType>Code</SubType>
