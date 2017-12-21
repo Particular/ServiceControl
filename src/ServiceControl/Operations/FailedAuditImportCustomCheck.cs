@@ -25,8 +25,7 @@
                     if (ie.MoveNext())
                     {
                         var message = @"One or more audit messages have previously failed to import properly into ServiceControl and have been stored in the ServiceControl database.
-Due to a defect however, ServiceControl would not be able to automatically reimport them. Please run ServiceControl in the maintenance mode and use embedded RavenStudio available by default at http://localhost:33333/storage to examine the payloads of failed messages to ensure no information has been lost.
-Delete the failed import documents afterwards so that you don't see this warning message again.";
+The import of these messages could have failed for a number of reasons and ServiceControl is not able to automatically reimport them. For guidance on how to resolve this see https://docs.particular.net/search?q=import%20failed%20audit%20messages";
 
                         Logger.Warn(message);
                         return CheckResult.Failed(message);
