@@ -39,19 +39,4 @@ The import of these messages could have failed for a number of reasons and Servi
         readonly IDocumentStore store;
         static readonly ILog Logger = LogManager.GetLogger(typeof(FailedAuditImportCustomCheck));
     }
-
-    class FailedAuditImportIndex : AbstractIndexCreationTask<FailedAuditImport>
-    {
-        public FailedAuditImportIndex()
-        {
-            Map = docs => from cc in docs
-                          select new FailedAuditImport
-                          {
-                              Id = cc.Id,
-                              Message = cc.Message
-                          };
-
-            DisableInMemoryIndexing = true;
-        }
-    }
 }
