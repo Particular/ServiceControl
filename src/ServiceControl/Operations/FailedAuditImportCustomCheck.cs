@@ -24,7 +24,7 @@
                 {
                     if (ie.MoveNext())
                     {
-                        var message = @"One or more audit messages have previously failed to import properly into ServiceControl and have been stored in the ServiceControl database.
+                        var message = @"One or more audit messages have failed to import properly into ServiceControl and have been stored in the ServiceControl database.
 The import of these messages could have failed for a number of reasons and ServiceControl is not able to automatically reimport them. For guidance on how to resolve this see https://docs.particular.net/search?q=import%20failed%20audit%20messages";
 
                         Logger.Warn(message);
