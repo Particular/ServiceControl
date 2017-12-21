@@ -3,9 +3,7 @@
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Client;
-    using Raven.Client.Indexes;
     using System;
-    using System.Linq;
 
     class FailedAuditImportCustomCheck : CustomCheck
     {
