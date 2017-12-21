@@ -61,6 +61,11 @@ namespace ServiceControl.Operations
                 }
             }
             Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messaged. Failed re-importing {failed} messages.");
+
+            if (failed > 0)
+            {
+                Logger.Warn($"{failed} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help in recovering the messages.");
+            }
         }
 
         IDocumentStore store;
