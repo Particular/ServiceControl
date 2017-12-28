@@ -39,7 +39,7 @@
                 var licenseCheckResult = installer.CheckLicenseIsValid();
                 if (!licenseCheckResult.Valid)
                 {
-                    windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact sales@particular.net", hideCancel: true);
+                    windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
                     return;
                 }
             }
