@@ -50,6 +50,13 @@
                 TypeName = "NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ",
                 MatchOn = "NServiceBus.RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>"
+            },
+            new TransportInfo
+            {
+                Name = "AmazonSQS",
+                TypeName = "NServiceBus.SqsTransport, NServiceBus.AmazonSQS",
+                MatchOn = "NServiceBus.AmazonSQS",
+                SampleConnectionString = "Region=<REGION>"
             }
         };
     }
