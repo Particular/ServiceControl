@@ -34,7 +34,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             RuleFor(x => x.ConnectionString)
                 .NotEmpty().WithMessage(Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
-                .When(x => !string.IsNullOrWhiteSpace(x.SelectedTransport?.SampleConnectionString) && x.SubmitAttempted);
+                .When(x => (x.SelectedTransport?.ConnectionStringRequired).GetValueOrDefault(false) && x.SubmitAttempted);
         }
     }
 }

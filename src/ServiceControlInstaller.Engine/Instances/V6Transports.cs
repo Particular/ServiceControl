@@ -34,7 +34,8 @@
                 TypeName = "NServiceBus.MsmqTransport, NServiceBus.Core",
                 MatchOn = "NServiceBus.Msmq",
                 SampleConnectionString = string.Empty,
-                Default = true
+                Default = true,
+                ConnectionStringRequired = false
             },
             new TransportInfo
             {
@@ -57,7 +58,8 @@
                 TypeName = "NServiceBus.SqsTransport, NServiceBus.AmazonSQS",
                 MatchOn = "NServiceBus.AmazonSQS",
                 SampleConnectionString = "Region=<REGION>",
-                Help = "When the connection string is empty, the AWS_REGION environment variable is used. The region in the connection string takes precedence over the environment variable."
+                Help = "When the connection string is empty, the AWS_REGION environment variable is used. The region in the connection string takes precedence over the environment variable.",
+                ConnectionStringRequired = false,
             }
         };
     }
