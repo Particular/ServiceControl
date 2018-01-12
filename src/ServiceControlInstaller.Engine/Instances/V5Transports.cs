@@ -34,8 +34,7 @@
                 TypeName = "NServiceBus.MsmqTransport, NServiceBus.Core",
                 MatchOn = "NServiceBus.Msmq",
                 SampleConnectionString = string.Empty,
-                Default = true,
-                ConnectionStringRequired = false
+                Default = true
             },
             new TransportInfo
             {

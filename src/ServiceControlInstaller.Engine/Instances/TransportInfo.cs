@@ -8,6 +8,5 @@
         public string MatchOn { get; set; }
         public string Help { get; set; }
         public bool Default { get; set; }
-        public bool ConnectionStringRequired { get; set; } = true;
     }
 }
