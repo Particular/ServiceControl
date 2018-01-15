@@ -55,7 +55,7 @@
             {
                 Name = "AmazonSQS",
                 TypeName = "NServiceBus.SqsTransport, NServiceBus.AmazonSQS",
-                MatchOn = "NServiceBus.AmazonSQS",
+                MatchOn = "NServiceBus.SqsTransport",
                 SampleConnectionString = "AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;Region=<REGION>",
                 Help = "AccessKeyId will be promoted to AWS_ACCESS_KEY_ID, SecretAccessKey to AWS_SECRET_ACCESS_KEY and Region to AWS_REGION environment variable."
             }
