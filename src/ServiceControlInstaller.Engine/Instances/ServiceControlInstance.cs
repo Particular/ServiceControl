@@ -37,6 +37,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
         public bool InMaintenanceMode { get; set; }
+        public bool SkipQueueCreation { get; set; }
         public AppConfig AppConfig;
         public ReportCard ReportCard { get; set; }
 

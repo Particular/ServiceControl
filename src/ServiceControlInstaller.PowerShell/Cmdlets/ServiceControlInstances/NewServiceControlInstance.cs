@@ -99,6 +99,9 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateTimeSpanRange(MinimumHours = 240, MaximumHours = 1080)] //10 to 45 days
         public TimeSpan ErrorRetentionPeriod { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Do not automatically create queues")]
+        public SwitchParameter SkipQueueCreation { get; set; }
+
         [Parameter(Mandatory = false)]
         public SwitchParameter Force { get; set; }
 
@@ -164,7 +167,8 @@ namespace ServiceControlInstaller.PowerShell
                 AuditRetentionPeriod = AuditRetentionPeriod,
                 ErrorRetentionPeriod = ErrorRetentionPeriod,
                 ConnectionString = ConnectionString,
-                TransportPackage = Transport
+                TransportPackage = Transport,
+                SkipQueueCreation = SkipQueueCreation
             };
 
             var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);

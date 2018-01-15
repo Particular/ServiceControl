@@ -27,6 +27,9 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateTimeSpanRange(MinimumHours = 240, MaximumHours = 1080)] //10 to 45 days
         public TimeSpan? ErrorRetentionPeriod { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
+        public SwitchParameter SkipQueueCreation { get; set; }
+
 
         protected override void BeginProcessing()
         {
@@ -42,7 +45,7 @@ namespace ServiceControlInstaller.PowerShell
             
             foreach (var name in Name)
             {
-                var options = new ServiceControlUpgradeOptions { AuditRetentionPeriod = AuditRetentionPeriod, ErrorRetentionPeriod = ErrorRetentionPeriod, OverrideEnableErrorForwarding =  ForwardErrorMessages};
+                var options = new ServiceControlUpgradeOptions { AuditRetentionPeriod = AuditRetentionPeriod, ErrorRetentionPeriod = ErrorRetentionPeriod, OverrideEnableErrorForwarding =  ForwardErrorMessages, SkipQueueCreation = SkipQueueCreation};
                 var instance = InstanceFinder.FindServiceControlInstance(name);
                 if (instance == null)
                 {
