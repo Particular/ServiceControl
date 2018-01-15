@@ -55,6 +55,8 @@
 
         public bool DisableRavenDBPerformanceCounters { get; set; }
 
+        public bool SkipQueueCreation { get; set; }
+
         public string RootUrl
         {
             get

@@ -21,7 +21,11 @@ namespace Particular.ServiceControl
         {
             var configuration = new BusConfiguration();
             configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
-            configuration.EnableInstallers(username);
+
+            if (!settings.SkipQueueCreation)
+            {
+                configuration.EnableInstallers(username);
+            }
 
             var containerBuilder = new ContainerBuilder();
             var loggingSettings = new LoggingSettings(settings.ServiceName);

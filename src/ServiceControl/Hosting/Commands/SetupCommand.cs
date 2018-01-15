@@ -7,7 +7,10 @@
     {
         public override void Execute(HostArguments args)
         {
-            new SetupBootstrapper(new Settings(args.ServiceName)).Run(args.Username);
+            new SetupBootstrapper(new Settings(args.ServiceName)
+            {
+                SkipQueueCreation = args.SkipQueueCreation
+            }).Run(args.Username);
         }
     }
 }
