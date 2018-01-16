@@ -21,6 +21,42 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             return negotiator.WithPagingLinksAndTotalCount(stats.TotalResults, request);
         }
 
+        public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, string sort, string direction, string browseDirection, int pageSize, IEnumerable<int> totalCounts, int[] offsetValues, int[] newOffsetValues, Request request)
+        {
+            int pageNumber = request.Query.page.HasValue
+                ? int.Parse(request.Query.page)
+                : 1;
+
+            var newOffsets = string.Join(",", newOffsetValues);
+            var totalCount = totalCounts.Sum();
+
+            var lastPageOffsets = totalCounts.Select(x => x - 1);
+            var pageCount = totalCount / pageSize + 1;
+
+            var links = new List<string>();
+            if (pageNumber > 1)
+            {
+                links.Add(GenerateLink(request, "prev", pageSize, browseDirection == "left" ? newOffsets : string.Join(",", offsetValues.Select(o => o - 1)), direction, sort, "left", pageNumber - 1));
+                links.Add(GenerateLink(request, "first", pageSize, "", direction, sort, "right", 1));
+            }
+            if (pageNumber < pageCount)
+            {
+                links.Add(GenerateLink(request, "next", pageSize, browseDirection == "right" ? newOffsets : string.Join(",", offsetValues.Select(o => o + 1)), direction, sort, "right", pageNumber + 1));
+                links.Add(GenerateLink(request, "last", pageSize, string.Join(",", lastPageOffsets), direction, sort, "left", pageCount));
+            }
+
+            return negotiator
+                .WithHeader("Link", string.Join(",", links))
+                .WithHeader("Total-Count", totalCount.ToString())
+                .WithHeader("Page-Size", pageSize.ToString())
+                .WithHeader("Page-Number", pageNumber.ToString());
+        }
+
+        static string GenerateLink(Request request, string rel, int pageSize, string newOffsets, string direction, string sort, string browseDirection, int pageNumber)
+        {
+            return $"<{request.Path.TrimStart('/')}?per_page={pageSize}&offsets={newOffsets}&direction={direction}&sort={sort}&browse_direction={browseDirection}&page={pageNumber}>; rel=\"{rel}\"";
+        }
+
         public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, int totalCount,
             Request request)
         {
