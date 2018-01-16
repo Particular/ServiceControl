@@ -21,13 +21,12 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             return negotiator.WithPagingLinksAndTotalCount(stats.TotalResults, request);
         }
 
-        public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, string sort, string direction, string browseDirection, int pageSize, IEnumerable<int> totalCounts, int[] offsetValues, int[] newOffsetValues, Request request)
+        public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, string sortBy, string sortOrder, int pageSize, IEnumerable<int> totalCounts, IEnumerable<int> prevPageOffsets, IEnumerable<int> nextPageOffsets, Request request)
         {
             int pageNumber = request.Query.page.HasValue
                 ? int.Parse(request.Query.page)
                 : 1;
 
-            var newOffsets = string.Join(",", newOffsetValues);
             var totalCount = totalCounts.Sum();
 
             var lastPageOffsets = totalCounts.Select(x => x - 1);
@@ -36,13 +35,13 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             var links = new List<string>();
             if (pageNumber > 1)
             {
-                links.Add(GenerateLink(request, "prev", pageSize, browseDirection == "left" ? newOffsets : string.Join(",", offsetValues.Select(o => o - 1)), direction, sort, "left", pageNumber - 1));
-                links.Add(GenerateLink(request, "first", pageSize, "", direction, sort, "right", 1));
+                links.Add(GenerateLink(request, "prev", pageSize, string.Join(",", prevPageOffsets), sortOrder, sortBy, pageNumber - 1));
+                links.Add(GenerateLink(request, "first", pageSize, null, sortOrder, sortBy, 1));
             }
             if (pageNumber < pageCount)
             {
-                links.Add(GenerateLink(request, "next", pageSize, browseDirection == "right" ? newOffsets : string.Join(",", offsetValues.Select(o => o + 1)), direction, sort, "right", pageNumber + 1));
-                links.Add(GenerateLink(request, "last", pageSize, string.Join(",", lastPageOffsets), direction, sort, "left", pageCount));
+                links.Add(GenerateLink(request, "next", pageSize, string.Join(",", nextPageOffsets), sortOrder, sortBy, pageNumber + 1));
+                links.Add(GenerateLink(request, "last", pageSize, string.Join(",", lastPageOffsets), sortOrder, sortBy, pageCount));
             }
 
             return negotiator
@@ -52,9 +51,13 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 .WithHeader("Page-Number", pageNumber.ToString());
         }
 
-        static string GenerateLink(Request request, string rel, int pageSize, string newOffsets, string direction, string sort, string browseDirection, int pageNumber)
+        static string GenerateLink(Request request, string rel, int pageSize, string newOffsets, string sortOrder, string sortBy, int pageNumber)
         {
-            return $"<{request.Path.TrimStart('/')}?per_page={pageSize}&offsets={newOffsets}&direction={direction}&sort={sort}&browse_direction={browseDirection}&page={pageNumber}>; rel=\"{rel}\"";
+            var offsetsParam = !string.IsNullOrEmpty(newOffsets) 
+                ? $"&offset={newOffsets}" 
+                : "";
+
+            return $"<{request.Path.TrimStart('/')}?per_page={pageSize}{offsetsParam}&sort_by={sortOrder}&sort_order={sortBy}&page={pageNumber}>; rel=\"{rel}\"";
         }
 
         public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, int totalCount,

@@ -8,15 +8,16 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
     using Nancy;
+    using Newtonsoft.Json;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
+    using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     public class GetMessages : BaseModule
     {
-        static JsonSerializer jsonSerializer = new JsonSerializer();
+        static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
         static HttpClient httpClient = new HttpClient();
         static string[] secondaries = {"http://localhost:33334/api"};
 
@@ -34,7 +35,8 @@ namespace ServiceControl.CompositeViews.Messages
                 var offsetValues = new int[secondaries.Length + 1];
                 if (queryString.offset.HasValue)
                 {
-                    string[] offsetsSplit = queryString.offsets.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    string offset = queryString.offset;
+                    string[] offsetsSplit = offset.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                     offsetValues = offsetsSplit.Select(int.Parse).ToArray();
                     var pageNumber = offsetValues[0] / pageSize + 1;
                     queryString.page = pageNumber;
@@ -60,19 +62,18 @@ namespace ServiceControl.CompositeViews.Messages
                         .WithEtagAndLastModified(stats);
                 }
 
-                
-                string browseDirection = queryString.browse_direction.HasValue
-                    ? queryString.browse_direction
-                    : "right";
+                var browseRight = offsetValues[0] % pageSize == 0;
 
-                string sort = queryString.sort.HasValue
-                    ? queryString.sort
+                string sortBy = queryString.sort_by.HasValue
+                    ? queryString.sort_by
                     : "time_sent";
 
-                string direction = queryString.direction.HasValue
-                    ? queryString.direction
+                string sortOrder = queryString.sort_order.HasValue
+                    ? queryString.sort_order
                     : "desc";
-                var slaveResults = await DistributeQuery(pageSize, sort, direction, offsetValues.Skip(1).ToArray(), this.Request.Path);
+
+                var slaveOffsets = offsetValues.Skip(1).ToArray();
+                var slaveResults = await DistributeQuery(pageSize, sortBy, sortOrder, slaveOffsets, Request.Path);
 
                 var allResult = slaveResults.ToList();
                 allResult.Insert(0, new PartialQueryResult
@@ -82,10 +83,14 @@ namespace ServiceControl.CompositeViews.Messages
                     TotalCount = stats.TotalResults
                 });
 
-                var aggregatedResults = AggregateResults(pageSize, sort, direction, browseDirection, allResult);
+                var aggregatedResults = AggregateResults(pageSize, sortBy, sortOrder, browseRight, allResult);
+
+                var newOffsets = aggregatedResults.Item2;
+                var prevPageOffsets = !browseRight ? newOffsets : offsetValues.Select(x => x -1);
+                var nextPageOffsets = browseRight ? newOffsets : offsetValues.Select(x => x + 1);
 
                 return Negotiate.WithModel(aggregatedResults.Item1)
-                    .WithPagingLinksAndTotalCount(sort, direction, browseDirection, pageSize, allResult.Select(x => x.TotalCount), offsetValues, aggregatedResults.Item2, Request);
+                    .WithPagingLinksAndTotalCount(sortBy, sortOrder, pageSize, allResult.Select(x => x.TotalCount), prevPageOffsets, nextPageOffsets, Request);
             };
 
 
@@ -145,9 +150,13 @@ namespace ServiceControl.CompositeViews.Messages
 
         static async Task<PartialQueryResult> ParseResult(HttpResponseMessage responseMessage, int index)
         {
+            string body = await responseMessage.Content.ReadAsStringAsync();
+
             var responseStream = await responseMessage.Content.ReadAsStreamAsync();
             var jsonReader = new Newtonsoft.Json.JsonTextReader(new StreamReader(responseStream));
             var messages = jsonSerializer.Deserialize<MessagesView[]>(jsonReader);
+
+
 
             var totalCount = responseMessage.Headers.GetValues("Total-Count").Select(int.Parse).Cast<int?>().FirstOrDefault() ?? -1;
 
@@ -159,7 +168,7 @@ namespace ServiceControl.CompositeViews.Messages
             };
         }
 
-        Tuple<MessagesView[], int[]> AggregateResults(int pageSize, string sort, string sortDirection, string browseDirection, List<PartialQueryResult> partialResults)
+        Tuple<MessagesView[], int[]> AggregateResults(int pageSize, string sort, string sortDirection, bool browseRight, List<PartialQueryResult> partialResults)
         {
             var heads = new MessagesView[partialResults.Count];
             var localOffsets = partialResults.Select(x => x.StartOffset % pageSize).ToArray();
@@ -214,7 +223,7 @@ namespace ServiceControl.CompositeViews.Messages
                 }
                 //Find one with smallest/largest value depending on sort direction
                 Func<int, bool> comparison;
-                if (sortDirection == "asc" && browseDirection == "right" || sortDirection == "desc" && browseDirection == "left")
+                if (sortDirection == "asc" && browseRight || sortDirection == "desc" && !browseRight)
                 {
                     comparison = x => x < 0;
                 }
@@ -229,13 +238,13 @@ namespace ServiceControl.CompositeViews.Messages
                 }
                 results.Add(partialResults[next].Messages[localOffsets[next]]);
 
-                var offsetIncrement = browseDirection == "right" ? 1 : -1;
+                var offsetIncrement = browseRight ? 1 : -1;
 
                 localOffsets[next] += offsetIncrement;
                 newOffsets[next] += offsetIncrement;
                 heads[next] = null;
             }
-            //var newOffsets = partialResults.Select(x => x.StartOffset / pageSize).Zip(localOffsets, (x, y) => x + y).ToArray();
+
             return Tuple.Create(results.ToArray(), newOffsets);
         }
 
