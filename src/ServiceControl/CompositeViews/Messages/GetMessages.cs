@@ -19,7 +19,7 @@ namespace ServiceControl.CompositeViews.Messages
     {
         static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
         static HttpClient httpClient = new HttpClient();
-        static string[] remotes = {"http://localhost:33334/api"};
+        static string[] remotes = {"http://localhost:33360/api"};
 
         public GetMessages()
         {
@@ -55,7 +55,7 @@ namespace ServiceControl.CompositeViews.Messages
                 });
 
                 //Combine all the results
-                var aggregatedResults = AggregateResults(Request, queryResults.SelectMany(r => r.Messages));
+                var aggregatedResults = AggregateResults(Request.Query as DynamicDictionary, queryResults.SelectMany(r => r.Messages));
 
                 //Return all the results
                 return Negotiate.WithModel(aggregatedResults)
@@ -123,16 +123,16 @@ namespace ServiceControl.CompositeViews.Messages
             };
         }
 
-        MessagesView[] AggregateResults(dynamic queryString, IEnumerable<MessagesView> combinedMessages)
+        MessagesView[] AggregateResults(DynamicDictionary queryString, IEnumerable<MessagesView> combinedMessages)
         {
             //Set the default sort to time_sent if not already set
-            string sortBy = queryString.sort_by.HasValue
-                ? queryString.sort_by
+            string sortBy = queryString.ContainsKey("sort_by")
+                ? queryString["sort_by"]
                 : "time_sent";
 
             //Set the default sort direction to `desc` if not already set
-            string sortOrder = queryString.sort_order.HasValue
-                ? queryString.sort_order
+            string sortOrder = queryString.ContainsKey("sort_order")
+                ? queryString["sort_order"]
                 : "desc";
 
             Func<MessagesView, IComparable> keySelector = m => m.TimeSent;
