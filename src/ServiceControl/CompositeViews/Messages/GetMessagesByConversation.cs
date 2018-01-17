@@ -6,7 +6,7 @@
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class GetMessagesByConversation : QueryAggregatingModule
+    public class GetMessagesByConversation : MessageViewQueryAggregatingModule
     {
         public GetMessagesByConversation(Settings settings) 
             : base(settings)
@@ -30,7 +30,7 @@
                         .ConfigureAwait(false);
                 }
 
-                return await CombineWithRemoteResults(results, stats).ConfigureAwait(false);
+                return await CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
             };
         }
     }

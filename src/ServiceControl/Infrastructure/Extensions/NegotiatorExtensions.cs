@@ -149,15 +149,19 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 .WithHeader("ETag", guid.ToString());
         }
 
-        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, Etag etag, DateTime responseLastModified)
+        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, string etag, DateTime responseLastModified)
         {
-            var currentEtag = etag?.ToString();
-            if (currentEtag != null)
+            if (etag != null)
             {
-                negotiator.WithHeader("ETag", currentEtag);
+                negotiator.WithHeader("ETag", etag);
             }
             return negotiator
                 .WithHeader("Last-Modified", responseLastModified.ToString("R"));
+        }
+
+        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, Etag etag, DateTime responseLastModified)
+        {
+            return negotiator.WithEtagAndLastModified(etag?.ToString(), responseLastModified);
         }
 
         public static Negotiator WithLastModified(this Negotiator negotiator, DateTime responseLastModified)

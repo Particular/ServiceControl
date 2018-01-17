@@ -7,7 +7,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class GetMessagesByQuery : QueryAggregatingModule
+    public class GetMessagesByQuery : MessageViewQueryAggregatingModule
     {
         public GetMessagesByQuery(Settings settings) 
             : base(settings)
@@ -61,7 +61,7 @@ namespace ServiceControl.CompositeViews.Messages
                     .ConfigureAwait(false);
             }
 
-            return await CombineWithRemoteResults(results, stats).ConfigureAwait(false);
+            return await CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
         }
 
         async Task<dynamic> SearchByKeyword(string keyword)
@@ -80,7 +80,7 @@ namespace ServiceControl.CompositeViews.Messages
                     .ConfigureAwait(false);
             }
 
-            return await CombineWithRemoteResults(results, stats).ConfigureAwait(false);
+            return await CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
         }
     }
 }
