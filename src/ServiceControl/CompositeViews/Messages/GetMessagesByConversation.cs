@@ -1,42 +1,36 @@
 ﻿namespace ServiceControl.CompositeViews.Messages
 {
-    using System.Linq;
+    using System.Collections.Generic;
     using Infrastructure.Extensions;
-    using Nancy;
     using Raven.Client;
     using Raven.Client.Linq;
-    using ServiceBus.Management.Infrastructure.Extensions;
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceBus.Management.Infrastructure.Settings;
 
-    public class GetMessagesByConversation : BaseModule
+    public class GetMessagesByConversation : MessageViewQueryAggregatingModule
     {
-        public GetMessagesByConversation()
+        public GetMessagesByConversation(Settings settings) 
+            : base(settings)
         {
-            Get["/conversations/{conversationid}"] = parameters =>
+            Get["/conversations/{conversationid}", true] = async (parameters, token) =>
             {
-                using (var session = Store.OpenSession())
+                RavenQueryStatistics stats;
+                IList<MessagesView> results;
+
+                using (var session = Store.OpenAsyncSession())
                 {
                     string conversationId = parameters.conversationid;
 
-                    RavenQueryStatistics stats;
-                    var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                            .Statistics(out stats)
-                            .Where(m => m.ConversationId == conversationId)
-                            .Sort(Request)
-                            .Paging(Request)
-                            .TransformWith<MessagesViewTransformer, MessagesView>()
-                            .ToArray();
-
-                    if (results.Length == 0)
-                    {
-                        return HttpStatusCode.NotFound;
-                    }
-
-                    return Negotiate
-                        .WithModel(results)
-                        .WithPagingLinksAndTotalCount(stats, Request)
-                        .WithEtagAndLastModified(stats);
+                    results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                        .Statistics(out stats)
+                        .Where(m => m.ConversationId == conversationId)
+                        .Sort(Request)
+                        .Paging(Request)
+                        .TransformWith<MessagesViewTransformer, MessagesView>()
+                        .ToListAsync()
+                        .ConfigureAwait(false);
                 }
+
+                return await CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
             };
         }
     }
