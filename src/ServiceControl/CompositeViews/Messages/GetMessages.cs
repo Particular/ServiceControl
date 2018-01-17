@@ -14,28 +14,32 @@ namespace ServiceControl.CompositeViews.Messages
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class GetMessages : BaseModule
     {
         static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
         static HttpClient httpClient = new HttpClient();
-        static string[] remotes = {"http://localhost:33360/api"};
+        private string[] remotes;
 
-        public GetMessages()
+        public GetMessages(Settings settings)
         {
+            remotes = settings.RemoteInstances;
+
             Get["/messages", true] = async (parameters, token) =>
             {
-                MessagesView[] localMessages;
+                IList<MessagesView> localMessages;
                 RavenQueryStatistics stats;
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
-                    localMessages = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    localMessages = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                         .IncludeSystemMessagesWhere(Request)
                         .Statistics(out stats)
                         .Sort(Request)
                         .Paging(Request)
                         .TransformWith<MessagesViewTransformer, MessagesView>()
-                        .ToArray();
+                        .ToListAsync()
+                        .ConfigureAwait(false);
                 }
 
                 // Return if no secondaries
@@ -89,7 +93,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         class PartialQueryResult
         {
-            public MessagesView[] Messages { get; set; }
+            public IList<MessagesView> Messages { get; set; }
             public int TotalCount { get; set; }
         }
 
@@ -100,8 +104,8 @@ namespace ServiceControl.CompositeViews.Messages
                 .Select(requestUri => new HttpRequestMessage(HttpMethod.Get, requestUri))
                 .Select(async request =>
                 {
-                    var rawResponse = await httpClient.SendAsync(request);
-                    return await ParseResult(rawResponse);
+                    var rawResponse = await httpClient.SendAsync(request).ConfigureAwait(false);
+                    return await ParseResult(rawResponse).ConfigureAwait(false);
                 });
 
             var responses = await Task.WhenAll(queryTasks);
@@ -110,9 +114,9 @@ namespace ServiceControl.CompositeViews.Messages
 
         static async Task<PartialQueryResult> ParseResult(HttpResponseMessage responseMessage)
         {
-            var responseStream = await responseMessage.Content.ReadAsStreamAsync();
+            var responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
             var jsonReader = new JsonTextReader(new StreamReader(responseStream));
-            var messages = jsonSerializer.Deserialize<MessagesView[]>(jsonReader);
+            var messages = jsonSerializer.Deserialize<List<MessagesView>>(jsonReader);
 
             var totalCount = responseMessage.Headers.GetValues("Total-Count").Select(int.Parse).Cast<int?>().FirstOrDefault() ?? -1;
 
@@ -123,16 +127,16 @@ namespace ServiceControl.CompositeViews.Messages
             };
         }
 
-        MessagesView[] AggregateResults(DynamicDictionary queryString, IEnumerable<MessagesView> combinedMessages)
+        static MessagesView[] AggregateResults(DynamicDictionary queryString, IEnumerable<MessagesView> combinedMessages)
         {
             //Set the default sort to time_sent if not already set
-            string sortBy = queryString.ContainsKey("sort_by")
-                ? queryString["sort_by"]
+            string sortBy = queryString.ContainsKey("sort")
+                ? queryString["sort"]
                 : "time_sent";
 
             //Set the default sort direction to `desc` if not already set
-            string sortOrder = queryString.ContainsKey("sort_order")
-                ? queryString["sort_order"]
+            string sortOrder = queryString.ContainsKey("direction")
+                ? queryString["direction"]
                 : "desc";
 
             Func<MessagesView, IComparable> keySelector = m => m.TimeSent;
