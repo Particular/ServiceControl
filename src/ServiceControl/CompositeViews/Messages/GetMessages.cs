@@ -2,6 +2,7 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net.Http;
@@ -59,11 +60,13 @@ namespace ServiceControl.CompositeViews.Messages
                 });
 
                 //Combine all the results
-                var aggregatedResults = AggregateResults(Request.Query as DynamicDictionary, queryResults.SelectMany(r => r.Messages));
+                var aggregatedResults = SortResults(Request.Query as DynamicDictionary, queryResults.SelectMany(r => r.Messages));
 
                 //Return all the results
                 return Negotiate.WithModel(aggregatedResults)
-                    .WithPagingLinksAndTotalCount(queryResults.Sum(r => r.TotalCount), Request);
+                    .WithPagingLinksAndTotalCount(queryResults.Sum(r => r.TotalCount), Request)
+                    .WithDeterministicEtag(string.Join(string.Empty, queryResults.Select(r => r.ETag)))
+                    .WithLastModified(queryResults.Select(r => r.LastModified).Max());
             };
 
 
@@ -94,6 +97,8 @@ namespace ServiceControl.CompositeViews.Messages
         class PartialQueryResult
         {
             public IList<MessagesView> Messages { get; set; }
+            public string ETag { get; set; }
+            public DateTime LastModified { get; set; }
             public int TotalCount { get; set; }
         }
 
@@ -119,15 +124,30 @@ namespace ServiceControl.CompositeViews.Messages
             var messages = jsonSerializer.Deserialize<List<MessagesView>>(jsonReader);
 
             var totalCount = responseMessage.Headers.GetValues("Total-Count").Select(int.Parse).Cast<int?>().FirstOrDefault() ?? -1;
+            IEnumerable<string> etags;
+            string etag = null;
+            if (responseMessage.Headers.TryGetValues("ETag", out etags))
+            {
+                etag = etags.ElementAt(0);
+            }
+
+            IEnumerable<string> lastModifiedValues;
+            var lastModified = DateTime.UtcNow;
+            if (responseMessage.Headers.TryGetValues("Last-Modified", out lastModifiedValues))
+            {
+                lastModified = DateTime.ParseExact(lastModifiedValues.ElementAt(0), "R", CultureInfo.InvariantCulture);
+            }
 
             return new PartialQueryResult
             {
                 Messages = messages,
-                TotalCount = totalCount
+                TotalCount = totalCount,
+                ETag = etag,
+                LastModified = lastModified
             };
         }
 
-        static MessagesView[] AggregateResults(DynamicDictionary queryString, IEnumerable<MessagesView> combinedMessages)
+        static MessagesView[] SortResults(DynamicDictionary queryString, IEnumerable<MessagesView> combinedMessages)
         {
             //Set the default sort to time_sent if not already set
             string sortBy = queryString.ContainsKey("sort")
