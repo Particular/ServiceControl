@@ -174,7 +174,7 @@
 
         public int RetryHistoryDepth { get; set; }
 
-        public string[] RemoteInstances { get; }
+        public string[] RemoteInstances { get; set; }
 
         private Address GetAuditLogQueue()
         {
