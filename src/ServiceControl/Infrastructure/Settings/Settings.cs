@@ -52,6 +52,7 @@
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
+            RemoteInstances = GetRemoteInstances();
         }
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
@@ -172,6 +173,8 @@
         public int MaximumConcurrencyLevel { get; set; }
 
         public int RetryHistoryDepth { get; set; }
+
+        public string[] RemoteInstances { get; }
 
         private Address GetAuditLogQueue()
         {
@@ -391,6 +394,16 @@
                 throw new Exception(message);
             }
             return result;
+        }
+
+        private static string[] GetRemoteInstances()
+        {
+            var valueRead = SettingsReader<string>.Read("RemoteInstances");
+            if (!string.IsNullOrEmpty(valueRead))
+            {
+                return valueRead.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            return new string[] { };
         }
     }
 }
