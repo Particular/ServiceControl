@@ -60,20 +60,23 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         };
 
-        private Bootstrapper bootstrapper;
+        private Dictionary<string, Bootstrapper> bootstrappers = new Dictionary<string, Bootstrapper>();
+        private Dictionary<string, IBus> busses = new Dictionary<string, IBus>();
+        private Dictionary<string, HttpClient> httpClients = new Dictionary<string, HttpClient>();
         protected Action<BusConfiguration> CustomConfiguration = _ => { };
-        protected OwinHttpMessageHandler Handler;
+        protected Action<string, BusConfiguration> CustomInstanceConfiguration = (i, c) => { };
+        protected Dictionary<string, OwinHttpMessageHandler> Handlers = new Dictionary<string, OwinHttpMessageHandler>();
+        protected Dictionary<string, Settings> SettingsPerInstance = new Dictionary<string, Settings>();
 
-        private HttpClient httpClient;
-        private int port;
-        private string ravenPath;
         private ScenarioContext scenarioContext = new ConsoleContext();
-        private IBus bus;
         private bool ignored;
 
         protected Action<Settings> SetSettings = _ => { };
 
+        protected Action<string, Settings> SetInstanceSettings = (i, s) => { };
+
         private ITransportIntegration transportToUse;
+
 
         protected AcceptanceTest()
         {
@@ -87,14 +90,14 @@ namespace ServiceBus.Management.AcceptanceTests
         [SetUp]
         public void Setup()
         {
-            port = FindAvailablePort(33333);
             SetSettings = _ => { };
+            SetInstanceSettings = (i, s) => { };
             CustomConfiguration = _ => { };
+            CustomInstanceConfiguration = (i, c) => { };
 
             transportToUse = GetTransportIntegrationFromEnvironmentVar();
             Console.Out.WriteLine($"Using transport {transportToUse.Name}");
-            Console.Out.WriteLine($"Using port {port}");
-
+            
             AssertTransportNotExplicitlyIgnored();
 
             Conventions.EndpointNamingConvention = t =>
@@ -103,8 +106,6 @@ namespace ServiceBus.Management.AcceptanceTests
                 var testName = GetType().Name;
                 return t.FullName.Replace($"{baseNs}.", string.Empty).Replace($"{testName}+", string.Empty);
             };
-
-            ravenPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         }
 
         private static string ignoreTransportsKey = nameof(IgnoreTransportsAttribute).Replace("Attribute", "");
@@ -128,12 +129,20 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 return;
             }
-            using (new DiagnosticTimer("Test TearDown"))
+
+            foreach (var instanceAndSettings in SettingsPerInstance)
             {
-                bootstrapper.Stop();
-                httpClient.Dispose();
-                DeleteFolder(ravenPath);
+                var instanceName = instanceAndSettings.Key;
+                var settings = instanceAndSettings.Value;
+                using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
+                {
+                    bootstrappers[instanceName].Stop();
+                    httpClients[instanceName].Dispose();
+                    Handlers[instanceName].Dispose();
+                    DeleteFolder(settings.DbPath);
+                }
             }
+
         }
 
         private static void DeleteFolder(string path)
@@ -178,7 +187,7 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        protected void ExecuteWhen(Func<bool> execute, Action<IBus> action)
+        protected void ExecuteWhen(Func<bool> execute, Action<IBus> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             var timeout = TimeSpan.FromSeconds(1);
 
@@ -188,22 +197,22 @@ namespace ServiceBus.Management.AcceptanceTests
                 {
                 }
 
-                action(bus);
+                action(busses[instanceName]);
             });
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
+        protected IScenarioWithEndpointBehavior<T> Define<T>(params string[] instanceNames) where T : ScenarioContext, new()
         {
             Func<T> instance = () => new T();
             return Define(instance);
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(T context) where T : ScenarioContext, new()
+        protected IScenarioWithEndpointBehavior<T> Define<T>(T context, params string[] instanceNames) where T : ScenarioContext, new()
         {
             return Define(() => context);
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(Func<T> contextFactory) where T : ScenarioContext, new()
+        protected IScenarioWithEndpointBehavior<T> Define<T>(Func<T> contextFactory, params string[] instanceNames) where T : ScenarioContext, new()
         {
             var ctx = contextFactory();
 
@@ -215,18 +224,19 @@ namespace ServiceBus.Management.AcceptanceTests
             scenarioContext = ctx;
             scenarioContext.SessionId = Guid.NewGuid().ToString();
 
-            InitializeServiceControl(scenarioContext);
+            InitializeServiceControl(scenarioContext, instanceNames);
 
             return new ScenarioWithContext<T>(() => (T) scenarioContext);
         }
 
-        private async Task<T> GetInternal<T>(string url) where T : class
+        private async Task<T> GetInternal<T>(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{port}{url}";
+                url = $"http://localhost:{SettingsPerInstance[instanceName].Port}{url}";
             }
 
+            var httpClient = httpClients[instanceName];
             var response = await httpClient.GetAsync(url);
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
@@ -251,14 +261,14 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        protected bool TryGetMany<T>(string url, out List<T> response, Predicate<T> condition = null) where T : class
+        protected bool TryGetMany<T>(string url, out List<T> response, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (condition == null)
             {
                 condition = _ => true;
             }
 
-            response = GetInternal<List<T>>(url).GetAwaiter().GetResult();
+            response = GetInternal<List<T>>(url, instanceName).GetAwaiter().GetResult();
 
             if (response == null || !response.Any(m => condition(m)))
             {
@@ -269,14 +279,15 @@ namespace ServiceBus.Management.AcceptanceTests
             return true;
         }
 
-        protected HttpStatusCode Patch<T>(string url, T payload = null) where T : class
+        protected HttpStatusCode Patch<T>(string url, T payload = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{port}{url}";
+                url = $"http://localhost:{SettingsPerInstance[instanceName].Port}{url}";
             }
 
             var json = JsonConvert.SerializeObject(payload, serializerSettings);
+            var httpClient = httpClients[instanceName];
             var response = httpClient.PatchAsync(url, new StringContent(json, null, "application/json")).GetAwaiter().GetResult();
 
             Console.WriteLine($"PATCH - {url} - {(int) response.StatusCode}");
@@ -290,14 +301,14 @@ namespace ServiceBus.Management.AcceptanceTests
             return response.StatusCode;
         }
 
-        protected bool TryGet<T>(string url, out T response, Predicate<T> condition = null) where T : class
+        protected bool TryGet<T>(string url, out T response, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (condition == null)
             {
                 condition = _ => true;
             }
 
-            response = GetInternal<T>(url).GetAwaiter().GetResult();
+            response = GetInternal<T>(url, instanceName).GetAwaiter().GetResult();
 
             if (response == null || !condition(response))
             {
@@ -308,14 +319,14 @@ namespace ServiceBus.Management.AcceptanceTests
             return true;
         }
 
-        protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null) where T : class
+        protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (condition == null)
             {
                 condition = _ => true;
             }
 
-            var response = GetInternal<List<T>>(url).GetAwaiter().GetResult();
+            var response = GetInternal<List<T>>(url, instanceName).GetAwaiter().GetResult();
             item = null;
             if (response != null)
             {
@@ -339,13 +350,14 @@ namespace ServiceBus.Management.AcceptanceTests
             return false;
         }
 
-        protected HttpStatusCode Get(string url)
+        protected HttpStatusCode Get(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{port}{url}";
+                url = $"http://localhost:{SettingsPerInstance[instanceName].Port}{url}";
             }
 
+            var httpClient = httpClients[instanceName];
             var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
@@ -353,14 +365,15 @@ namespace ServiceBus.Management.AcceptanceTests
             return response.StatusCode;
         }
 
-        protected void Post<T>(string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
+        protected void Post<T>(string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{port}{url}";
+                url = $"http://localhost:{SettingsPerInstance[instanceName].Port}{url}";
             }
 
             var json = JsonConvert.SerializeObject(payload, serializerSettings);
+            var httpClient = httpClients[instanceName];
             var response = httpClient.PostAsync(url, new StringContent(json, null, "application/json")).GetAwaiter().GetResult();
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
@@ -381,13 +394,14 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        protected void Delete(string url)
+        protected void Delete(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{port}{url}";
+                url = $"http://localhost:{SettingsPerInstance[instanceName].Port}{url}";
             }
 
+            var httpClient = httpClients[instanceName];
             var response = httpClient.DeleteAsync(url).GetAwaiter().GetResult();
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
@@ -399,11 +413,11 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        protected void Put<T>(string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
+        protected void Put<T>(string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{port}{url}";
+                url = $"http://localhost:{SettingsPerInstance[instanceName].Port}{url}";
             }
 
             if (requestHasFailed == null)
@@ -412,6 +426,7 @@ namespace ServiceBus.Management.AcceptanceTests
             }
 
             var json = JsonConvert.SerializeObject(payload, serializerSettings);
+            var httpClient = httpClients[instanceName];
             var response = httpClient.PutAsync(url, new StringContent(json, null, "application/json")).GetAwaiter().GetResult();
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
@@ -422,13 +437,14 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        protected byte[] DownloadData(string url, HttpStatusCode successCode = HttpStatusCode.OK)
+        protected byte[] DownloadData(string url, HttpStatusCode successCode = HttpStatusCode.OK, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{port}/api{url}";
+                url = $"http://localhost:{SettingsPerInstance[instanceName].Port}/api{url}";
             }
 
+            var httpClient = httpClients[instanceName];
             var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
             if (response.StatusCode != successCode)
@@ -560,83 +576,109 @@ namespace ServiceBus.Management.AcceptanceTests
             return rule;
         }
 
-        private void InitializeServiceControl(ScenarioContext context)
+        private void InitializeServiceControl(ScenarioContext context, string[] instanceNames)
         {
+            if (instanceNames.Length == 0)
+            {
+                instanceNames = new[] { Settings.DEFAULT_SERVICE_NAME };
+            }
+
+            // how to deal with the statics here?
             LogManager.Use<NLogFactory>();
             NLog.LogManager.Configuration = SetupLogging(Settings.DEFAULT_SERVICE_NAME);
 
-            var settings = new Settings
+            var startPort = 33333;
+            foreach (var instanceName in instanceNames)
             {
-                Port = port,
-                DbPath = ravenPath,
-                ForwardErrorMessages = false,
-                ForwardAuditMessages = false,
-                TransportType = transportToUse.TypeName,
-                TransportConnectionString = transportToUse.ConnectionString,
-                ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
-                MaximumConcurrencyLevel = 2,
-                HttpDefaultConnectionLimit = int.MaxValue
-            };
-
-            SetSettings(settings);
-
-            var configuration = new BusConfiguration();
-            configuration.TypesToScan(GetTypesScopedByTestClass(transportToUse).Concat(new[]
-            {
-                typeof(MessageMapperInterceptor),
-                typeof(RegisterWrappers),
-                typeof(SessionCopInBehavior),
-                typeof(SessionCopInBehaviorForMainPipe),
-                typeof(TraceIncomingBehavior),
-                typeof(TraceOutgoingBehavior)
-            }));
-            configuration.EnableInstallers();
-
-            configuration.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
-            configuration.GetSettings().Set("SC.ScenarioContext", context);
-
-            // This is a hack to ensure ServiceControl picks the correct type for the messages that come from plugins otherwise we pick the type from the plugins assembly and that is not the type we want, we need to pick the type from ServiceControl assembly.
-            // This is needed because we no longer use the AppDomain separation.
-            configuration.EnableFeature<MessageMapperInterceptor>();
-            configuration.RegisterComponents(r => { configuration.GetSettings().Set("SC.ConfigureComponent", r); });
-
-            configuration.RegisterComponents(r =>
-            {
-                r.RegisterSingleton(context.GetType(), context);
-                r.RegisterSingleton(typeof(ScenarioContext), context);
-            });
-
-            configuration.Pipeline.Register<SessionCopInBehavior.Registration>();
-            configuration.Pipeline.Register<SessionCopInBehaviorForMainPipe.Registration>();
-            configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
-            configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
-
-            CustomConfiguration(configuration);
-
-            using (new DiagnosticTimer("Initializing Bootstrapper"))
-            {
-                var loggingSettings = new LoggingSettings(settings.ServiceName);
-                bootstrapper = new Bootstrapper(() => { }, settings, configuration, loggingSettings);
-            }
-            using (new DiagnosticTimer("Initializing AppBuilder"))
-            {
-                var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app);
-                var appFunc = app.Build();
-
-                Handler = new OwinHttpMessageHandler(appFunc)
+                startPort = FindAvailablePort(startPort);
+                var settings = new Settings
                 {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
+                    Port = startPort,
+                    DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
+                    ForwardErrorMessages = false,
+                    ForwardAuditMessages = false,
+                    TransportType = transportToUse.TypeName,
+                    TransportConnectionString = transportToUse.ConnectionString,
+                    ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
+                    MaximumConcurrencyLevel = 2,
+                    HttpDefaultConnectionLimit = int.MaxValue
                 };
-                httpClient = new HttpClient(Handler);
+
+                if (instanceName == Settings.DEFAULT_SERVICE_NAME)
+                {
+                    SetSettings(settings);
+                }
+
+                SetInstanceSettings(instanceName, settings);
+                SettingsPerInstance[instanceName] = settings;
+
+                var configuration = new BusConfiguration();
+                configuration.TypesToScan(GetTypesScopedByTestClass(transportToUse).Concat(new[]
+                {
+                    typeof(MessageMapperInterceptor),
+                    typeof(RegisterWrappers),
+                    typeof(SessionCopInBehavior),
+                    typeof(SessionCopInBehaviorForMainPipe),
+                    typeof(TraceIncomingBehavior),
+                    typeof(TraceOutgoingBehavior)
+                }));
+                configuration.EnableInstallers();
+
+                configuration.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
+                configuration.GetSettings().Set("SC.ScenarioContext", context);
+
+                // This is a hack to ensure ServiceControl picks the correct type for the messages that come from plugins otherwise we pick the type from the plugins assembly and that is not the type we want, we need to pick the type from ServiceControl assembly.
+                // This is needed because we no longer use the AppDomain separation.
+                configuration.EnableFeature<MessageMapperInterceptor>();
+                configuration.RegisterComponents(r => { configuration.GetSettings().Set("SC.ConfigureComponent", r); });
+
+                configuration.RegisterComponents(r =>
+                {
+                    r.RegisterSingleton(context.GetType(), context);
+                    r.RegisterSingleton(typeof(ScenarioContext), context);
+                });
+
+                configuration.Pipeline.Register<SessionCopInBehavior.Registration>();
+                configuration.Pipeline.Register<SessionCopInBehaviorForMainPipe.Registration>();
+                configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
+                configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
+
+                if (instanceName == Settings.DEFAULT_SERVICE_NAME)
+                {
+                    CustomConfiguration(configuration);
+                }
+
+                CustomInstanceConfiguration(instanceName, configuration);
+
+                Bootstrapper bootstrapper;
+                using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
+                {
+                    var loggingSettings = new LoggingSettings(settings.ServiceName);
+                    bootstrapper = new Bootstrapper(() => { }, settings, configuration, loggingSettings);
+                    bootstrappers[instanceName] = bootstrapper;
+                }
+                using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
+                {
+                    var app = new AppBuilder();
+                    bootstrapper.Startup.Configuration(app);
+                    var appFunc = app.Build();
+
+                    var handler = new OwinHttpMessageHandler(appFunc)
+                    {
+                        UseCookies = false,
+                        AllowAutoRedirect = false
+                    };
+                    Handlers[instanceName] = handler;
+                    httpClients[instanceName] = new HttpClient(handler);
+                }
+
+                using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
+                {
+                    busses[instanceName] = bootstrapper.Start(true);
+                }
             }
 
-            using (new DiagnosticTimer("Creating and starting Bus"))
-            {
-                bus = bootstrapper.Start(true);
-            }
-
+            // how to deal with the statics here?
             ArchivingManager.ArchiveOperations = new Dictionary<string, InMemoryArchive>();
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
         }
