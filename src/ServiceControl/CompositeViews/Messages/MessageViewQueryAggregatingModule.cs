@@ -10,12 +10,11 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Threading.Tasks;
     using Nancy;
     using Newtonsoft.Json;
-    using Raven.Abstractions.Extensions;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceBus.Management.Infrastructure.Settings;
+    using HttpStatusCode = System.Net.HttpStatusCode;
 
     public abstract class MessageViewQueryAggregatingModule : BaseModule
     {
@@ -24,6 +23,14 @@ namespace ServiceControl.CompositeViews.Messages
 
         string[] remotes;
 
+        static PartialQueryResult EmptyResult = new PartialQueryResult
+        {
+            Messages = new List<MessagesView>(),
+            TotalCount = 0,
+            ETag = string.Empty,
+            LastModified = DateTime.MinValue
+        };
+
         protected MessageViewQueryAggregatingModule(Settings settings)
         {
             remotes = settings.RemoteInstances;
@@ -31,11 +38,6 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected async Task<dynamic> CombineWithRemoteResults(IList<MessagesView> localResults, int localTocalCount, string localEtag, DateTime localLastModified)
         {
-            //TODO: It was only present in tthe GetByConversationId
-            //if (results.Length == 0)
-            //{
-            //    return HttpStatusCode.NotFound;
-            //}
 
             if (remotes.Length == 0)
             {
@@ -102,6 +104,10 @@ namespace ServiceControl.CompositeViews.Messages
         {
             var instanceUri = new Uri($"{remoteUri}{currentRequest.Path}?{currentRequest.Url.Query}");
             var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, instanceUri)).ConfigureAwait(false);
+            if (rawResponse.StatusCode == HttpStatusCode.NotFound)
+            {
+                return EmptyResult;
+            }
             return await ParseResult(rawResponse).ConfigureAwait(false);
         }
 
