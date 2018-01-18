@@ -46,9 +46,10 @@
         }
 
         [Test]
-        [Ignore("Times out, investigate")]
         public void Should_be_found_in_search_by_messageId()
         {
+            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+
             var context = new MyContext();
             List<MessagesView> response;
 
