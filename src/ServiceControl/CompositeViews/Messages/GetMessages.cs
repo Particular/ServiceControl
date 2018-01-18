@@ -4,12 +4,11 @@ namespace ServiceControl.CompositeViews.Messages
     using Infrastructure.Extensions;
     using Raven.Client;
     using Raven.Client.Linq;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class GetMessages : MessageViewQueryAggregatingModule
+    public class GetMessages : BaseModule
     {
-        public GetMessages(Settings settings) 
-            : base(settings)
+        public GetMessages() 
         {
             Get["/messages", true] = async (parameters, token) =>
             {
@@ -27,7 +26,7 @@ namespace ServiceControl.CompositeViews.Messages
                         .ConfigureAwait(false);
                 }
 
-                return await CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
+                return await this.CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
             };
 
 
@@ -50,10 +49,8 @@ namespace ServiceControl.CompositeViews.Messages
                         .ConfigureAwait(false);
                 }
 
-                return await CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
+                return await this.CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
             };
         }
-
-        
     }
 }

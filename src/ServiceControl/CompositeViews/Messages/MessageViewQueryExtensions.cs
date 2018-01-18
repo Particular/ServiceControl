@@ -9,67 +9,53 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Text;
     using System.Threading.Tasks;
     using Nancy;
+    using Nancy.Responses.Negotiation;
     using Newtonsoft.Json;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceBus.Management.Infrastructure.Settings;
     using HttpStatusCode = System.Net.HttpStatusCode;
 
-    public abstract class MessageViewQueryAggregatingModule : BaseModule
+    public static class MessageViewQueryExtensions
     {
         static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
         static HttpClient httpClient = new HttpClient();
 
-        string[] remotes;
-
         static PartialQueryResult EmptyResult = new PartialQueryResult
         {
             Messages = new List<MessagesView>(),
-            TotalCount = 0,
-            ETag = string.Empty,
-            LastModified = DateTime.MinValue
+            Header = new HeaderInfo(string.Empty, DateTime.MinValue, 0)
         };
 
-        protected MessageViewQueryAggregatingModule(Settings settings)
+        public static async Task<dynamic> CombineWithRemoteResults(this BaseModule module, IList<MessagesView> localResults, int localTocalCount, string localEtag, DateTime localLastModified)
         {
-            remotes = settings.RemoteInstances;
-        }
-
-        protected async Task<dynamic> CombineWithRemoteResults(IList<MessagesView> localResults, int localTocalCount, string localEtag, DateTime localLastModified)
-        {
-
+            var remotes = module.Settings.RemoteInstances;
+            var currentRequest = module.Request;
+            var negotiator = module.Negotiate;
             if (remotes.Length == 0)
             {
-                return Negotiate.WithModel(localResults)
-                    .WithPagingLinksAndTotalCount(localTocalCount, Request)
+                return negotiator.WithModel(localResults)
+                    .WithPagingLinksAndTotalCount(localTocalCount, currentRequest)
                     .WithEtagAndLastModified(localEtag, localLastModified);
             }
-            return await DistributeToSecondaries(localResults, localTocalCount).ConfigureAwait(false);
+
+            return await DistributeToSecondaries(currentRequest, negotiator, remotes, localResults, localTocalCount).ConfigureAwait(false);
         }
 
-        async Task<dynamic> DistributeToSecondaries(ICollection<MessagesView> localResults, int localTocalCount)
+        static async Task<dynamic> DistributeToSecondaries(Request currentRequest, Negotiator negotiator, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
         {
-            var totalCountAndEtagAndLastModified = await DistributeQuery(Request, localResults, localTocalCount);
+            var headerInfo = await DistributeQuery(currentRequest, remotes, localResults, localTocalCount).ConfigureAwait(false);
 
-            var sortedResults = SortResults(Request.Query as DynamicDictionary, localResults);
+            var sortedResults = SortResults(currentRequest.Query as DynamicDictionary, localResults);
 
             //Return all the results
-            return Negotiate.WithModel(sortedResults)
-                .WithPagingLinksAndTotalCount(totalCountAndEtagAndLastModified.Item1, Request)
-                .WithDeterministicEtag(totalCountAndEtagAndLastModified.Item2)
-                .WithLastModified(totalCountAndEtagAndLastModified.Item3);
+            return negotiator.WithModel(sortedResults)
+                .WithPagingLinksAndTotalCount(headerInfo.TotalCount, currentRequest)
+                .WithDeterministicEtag(headerInfo.ETag)
+                .WithLastModified(headerInfo.LastModified);
         }
 
-        class PartialQueryResult
-        {
-            public IList<MessagesView> Messages { get; set; }
-            public string ETag { get; set; }
-            public DateTime LastModified { get; set; }
-            public int TotalCount { get; set; }
-        }
-
-        async Task<Tuple<int, string, DateTime>> DistributeQuery(Request currentRequest, ICollection<MessagesView> localResults, int localTocalCount)
+        static async Task<HeaderInfo> DistributeQuery(Request currentRequest, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
         {
             var tasks = new List<Task<PartialQueryResult>>(remotes.Length);
             // ReSharper disable once LoopCanBeConvertedToQuery
@@ -88,16 +74,18 @@ namespace ServiceControl.CompositeViews.Messages
                     localResults.Add(messagesView);
                 }
 
-                totalCount += queryResult.TotalCount;
+                var header = queryResult.Header;
+                totalCount += header.TotalCount;
 
-                if (queryResult.LastModified > lastModified)
+                if (header.LastModified > lastModified)
                 {
-                    lastModified = queryResult.LastModified;
+                    lastModified = header.LastModified;
                 }
-                etagBuilder.Append(queryResult.ETag);
+
+                etagBuilder.Append(header.ETag);
             }
 
-            return Tuple.Create(totalCount, etagBuilder.ToString(), lastModified);
+            return new HeaderInfo(etagBuilder.ToString(), lastModified, totalCount);
         }
 
         static async Task<PartialQueryResult> FetchAndParse(Request currentRequest, string remoteUri)
@@ -108,6 +96,7 @@ namespace ServiceControl.CompositeViews.Messages
             {
                 return EmptyResult;
             }
+
             return await ParseResult(rawResponse).ConfigureAwait(false);
         }
 
@@ -135,11 +124,9 @@ namespace ServiceControl.CompositeViews.Messages
                 return new PartialQueryResult
                 {
                     Messages = messages,
-                    TotalCount = totalCount,
-                    ETag = etag,
-                    LastModified = lastModified
+                    Header = new HeaderInfo(etag, lastModified, totalCount)
                 };
-            }            
+            }
         }
 
         static MessagesView[] SortResults(DynamicDictionary queryString, ICollection<MessagesView> combinedMessages)
@@ -190,6 +177,26 @@ namespace ServiceControl.CompositeViews.Messages
             return sortOrder == "asc"
                 ? combinedMessages.OrderBy(keySelector).ToArray()
                 : combinedMessages.OrderByDescending(keySelector).ToArray();
+        }
+
+        class PartialQueryResult
+        {
+            public IList<MessagesView> Messages { get; set; }
+            public HeaderInfo Header { get; set; }
+        }
+
+        struct HeaderInfo
+        {
+            public readonly string ETag;
+            public readonly DateTime LastModified;
+            public readonly int TotalCount;
+
+            public HeaderInfo(string eTag, DateTime lastModified, int totalCount)
+            {
+                ETag = eTag;
+                LastModified = lastModified;
+                TotalCount = totalCount;
+            }
         }
     }
 }

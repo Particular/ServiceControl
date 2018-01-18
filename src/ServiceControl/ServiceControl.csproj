@@ -270,7 +270,7 @@
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewTransformer.cs" />
-    <Compile Include="CompositeViews\Messages\MessageViewQueryAggregatingModule.cs" />
+    <Compile Include="CompositeViews\Messages\MessageViewQueryExtensions.cs" />
     <Compile Include="ConfigErrorQueue.cs" />
     <Compile Include="ConfigTransportConfig.cs" />
     <Compile Include="Contracts\CustomChecks\CustomCheckFailed.cs" />
