@@ -4,12 +4,11 @@
     using Infrastructure.Extensions;
     using Raven.Client;
     using Raven.Client.Linq;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class GetMessagesByConversation : MessageViewQueryAggregatingModule
+    public class GetMessagesByConversation : BaseModule
     {
-        public GetMessagesByConversation(Settings settings) 
-            : base(settings)
+        public GetMessagesByConversation() 
         {
             Get["/conversations/{conversationid}", true] = async (parameters, token) =>
             {
@@ -30,7 +29,7 @@
                         .ConfigureAwait(false);
                 }
 
-                return await CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
+                return await this.CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
             };
         }
     }
