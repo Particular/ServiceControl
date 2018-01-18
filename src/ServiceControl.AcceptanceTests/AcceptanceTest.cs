@@ -679,16 +679,16 @@ namespace ServiceBus.Management.AcceptanceTests
 
         class ForwardingHandler : DelegatingHandler
         {
-            private Dictionary<int, HttpMessageHandler> delegatingHttpClients;
+            private Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers;
 
-            public ForwardingHandler(Dictionary<int, HttpMessageHandler> httpClients)
+            public ForwardingHandler(Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers)
             {
-                delegatingHttpClients = httpClients;
+                this.portsToHttpMessageHandlers = portsToHttpMessageHandlers;
             }
 
             protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
-                var delegatingHandler = delegatingHttpClients[request.RequestUri.Port];
+                var delegatingHandler = portsToHttpMessageHandlers[request.RequestUri.Port];
                 InnerHandler = delegatingHandler;
                 return base.SendAsync(request, cancellationToken);
             }
