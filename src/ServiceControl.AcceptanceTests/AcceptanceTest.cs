@@ -3,11 +3,11 @@ namespace ServiceBus.Management.AcceptanceTests
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Net.NetworkInformation;
     using System.Reflection;
     using System.Security.AccessControl;
@@ -16,7 +16,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Threading.Tasks;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using NLog;
     using NLog.Config;
     using NLog.Filters;
@@ -32,8 +31,8 @@ namespace ServiceBus.Management.AcceptanceTests
     using NUnit.Framework;
     using Particular.ServiceControl;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
+    using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.SignalR;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
     using LogManager = NServiceBus.Logging.LogManager;
@@ -42,27 +41,11 @@ namespace ServiceBus.Management.AcceptanceTests
     [TestFixture]
     public abstract class AcceptanceTest
     {
-        private static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
-        {
-            ContractResolver = new UnderscoreMappingResolver(),
-            Formatting = Formatting.None,
-            NullValueHandling = NullValueHandling.Ignore,
-            Converters =
-            {
-                new IsoDateTimeConverter
-                {
-                    DateTimeStyles = DateTimeStyles.RoundtripKind
-                },
-                new StringEnumConverter
-                {
-                    CamelCaseText = true
-                }
-            }
-        };
-
+        private static readonly JsonSerializerSettings serializerSettings = JsonNetSerializer.CreateDefault();
         private Dictionary<string, Bootstrapper> bootstrappers = new Dictionary<string, Bootstrapper>();
         private Dictionary<string, IBus> busses = new Dictionary<string, IBus>();
         private Dictionary<string, HttpClient> httpClients = new Dictionary<string, HttpClient>();
+        private Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
         protected Action<BusConfiguration> CustomConfiguration = _ => { };
         protected Action<string, BusConfiguration> CustomInstanceConfiguration = (i, c) => { };
         protected Dictionary<string, OwinHttpMessageHandler> Handlers = new Dictionary<string, OwinHttpMessageHandler>();
@@ -593,7 +576,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 startPort = FindAvailablePort(startPort);
                 var settings = new Settings
                 {
-                    Port = startPort,
+                    Port = startPort++,
                     DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                     ForwardErrorMessages = false,
                     ForwardAuditMessages = false,
@@ -656,6 +639,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     var loggingSettings = new LoggingSettings(settings.ServiceName);
                     bootstrapper = new Bootstrapper(() => { }, settings, configuration, loggingSettings);
                     bootstrappers[instanceName] = bootstrapper;
+                    bootstrapper.HttpClientFactory = HttpClientFactory;
                 }
                 using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
                 {
@@ -669,7 +653,10 @@ namespace ServiceBus.Management.AcceptanceTests
                         AllowAutoRedirect = false
                     };
                     Handlers[instanceName] = handler;
-                    httpClients[instanceName] = new HttpClient(handler);
+                    portToHandler[settings.Port] = handler; // port should be unique enough
+                    var httpClient = new HttpClient(handler);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    httpClients[instanceName] = httpClient;
                 }
 
                 using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
@@ -681,6 +668,30 @@ namespace ServiceBus.Management.AcceptanceTests
             // how to deal with the statics here?
             ArchivingManager.ArchiveOperations = new Dictionary<string, InMemoryArchive>();
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
+        }
+
+        private HttpClient HttpClientFactory()
+        {
+            var httpClient = new HttpClient(new ForwardingHandler(portToHandler));
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            return httpClient;
+        }
+
+        class ForwardingHandler : DelegatingHandler
+        {
+            private Dictionary<int, HttpMessageHandler> delegatingHttpClients;
+
+            public ForwardingHandler(Dictionary<int, HttpMessageHandler> httpClients)
+            {
+                delegatingHttpClients = httpClients;
+            }
+
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                var delegatingHandler = delegatingHttpClients[request.RequestUri.Port];
+                InnerHandler = delegatingHandler;
+                return base.SendAsync(request, cancellationToken);
+            }
         }
 
         private class MessageMapperInterceptor : Feature
