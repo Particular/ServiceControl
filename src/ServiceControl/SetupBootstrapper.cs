@@ -2,6 +2,7 @@ namespace Particular.ServiceControl
 {
     using Autofac;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Particular.ServiceControl.DbMigrations;
     using Raven.Client;
     using Raven.Client.Embedded;
@@ -25,6 +26,7 @@ namespace Particular.ServiceControl
 
             if (settings.SkipQueueCreation)
             {
+                log.Info("Skipping queue creation");
                 configuration.DoNotCreateQueues();
             }
 
@@ -44,5 +46,7 @@ namespace Particular.ServiceControl
                 container.Resolve<MigrationsManager>().ApplyMigrations();
             }
         }
+
+        private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
     }
 }
