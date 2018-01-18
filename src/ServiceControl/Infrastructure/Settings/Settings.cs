@@ -108,8 +108,8 @@
 
         public string DbPath { get; set; }
         public Address ErrorLogQueue { get; set; }
-        public Address ErrorQueue { get; }
-        public Address AuditQueue { get; }
+        public Address ErrorQueue { get; set; }
+        public Address AuditQueue { get; set; }
 
         public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
