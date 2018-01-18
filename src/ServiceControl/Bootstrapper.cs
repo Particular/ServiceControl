@@ -3,6 +3,7 @@ namespace Particular.ServiceControl
     using System;
     using System.IO;
     using System.Net;
+    using System.Net.Http;
     using Autofac;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
@@ -45,6 +46,8 @@ namespace Particular.ServiceControl
 
         public Startup Startup { get; private set; }
 
+        public Func<HttpClient> HttpClientFactory { get; set; } = () => new HttpClient();
+
         private void Initialize()
         {
             RecordStartup(loggingSettings);
@@ -63,6 +66,7 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            containerBuilder.Register(c => HttpClientFactory);
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
