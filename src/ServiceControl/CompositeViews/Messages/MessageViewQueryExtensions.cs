@@ -19,7 +19,6 @@ namespace ServiceControl.CompositeViews.Messages
     public static class MessageViewQueryExtensions
     {
         static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
-        static HttpClient httpClient = new HttpClient();
 
         static PartialQueryResult EmptyResult = new PartialQueryResult
         {
@@ -29,6 +28,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         public static async Task<dynamic> CombineWithRemoteResults(this BaseModule module, IList<MessagesView> localResults, int localTocalCount, string localEtag, DateTime localLastModified)
         {
+            var httpClientFactory = module.HttpClientFactory; // for testing purposes
             var remotes = module.Settings.RemoteInstances;
             var currentRequest = module.Request;
             var negotiator = module.Negotiate;
@@ -39,12 +39,12 @@ namespace ServiceControl.CompositeViews.Messages
                     .WithEtagAndLastModified(localEtag, localLastModified);
             }
 
-            return await DistributeToSecondaries(currentRequest, negotiator, remotes, localResults, localTocalCount).ConfigureAwait(false);
+            return await DistributeToSecondaries(currentRequest, negotiator, httpClientFactory, remotes, localResults, localTocalCount).ConfigureAwait(false);
         }
 
-        static async Task<dynamic> DistributeToSecondaries(Request currentRequest, Negotiator negotiator, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
+        static async Task<dynamic> DistributeToSecondaries(Request currentRequest, Negotiator negotiator, Func<HttpClient> httpClientFactory, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
         {
-            var headerInfo = await DistributeQuery(currentRequest, remotes, localResults, localTocalCount).ConfigureAwait(false);
+            var headerInfo = await DistributeQuery(currentRequest, httpClientFactory, remotes, localResults, localTocalCount).ConfigureAwait(false);
 
             var sortedResults = SortResults(currentRequest.Query as DynamicDictionary, localResults);
 
@@ -55,13 +55,13 @@ namespace ServiceControl.CompositeViews.Messages
                 .WithLastModified(headerInfo.LastModified);
         }
 
-        static async Task<HeaderInfo> DistributeQuery(Request currentRequest, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
+        static async Task<HeaderInfo> DistributeQuery(Request currentRequest, Func<HttpClient> httpClientFactory, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
         {
             var tasks = new List<Task<PartialQueryResult>>(remotes.Length);
             // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var remote in remotes)
             {
-                tasks.Add(FetchAndParse(currentRequest, remote));
+                tasks.Add(FetchAndParse(currentRequest, httpClientFactory, remote));
             }
 
             var totalCount = localTocalCount;
@@ -88,9 +88,10 @@ namespace ServiceControl.CompositeViews.Messages
             return new HeaderInfo(etagBuilder.ToString(), lastModified, totalCount);
         }
 
-        static async Task<PartialQueryResult> FetchAndParse(Request currentRequest, string remoteUri)
+        static async Task<PartialQueryResult> FetchAndParse(Request currentRequest, Func<HttpClient> httpClientFactory, string remoteUri)
         {
             var instanceUri = new Uri($"{remoteUri}{currentRequest.Path}?{currentRequest.Url.Query}");
+            var httpClient = httpClientFactory();
             var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, instanceUri)).ConfigureAwait(false);
             if (rawResponse.StatusCode == HttpStatusCode.NotFound)
             {
