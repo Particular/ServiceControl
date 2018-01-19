@@ -257,6 +257,7 @@
     <Compile Include="Contexts\DefaultServerWithAudit.cs" />
     <Compile Include="MessageRedirects\When_no_redirects_have_been_created.cs" />
     <Compile Include="Migrations\SplitFailedMessageDocumentsMigrationTests.cs" />
+    <Compile Include="MultiInstance\When_remote_instance_is_not_reachable.cs" />
     <Compile Include="MultiInstance\When_messages_have_been_successfully_processed_by_multiple_instances.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_retried.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_archived.cs" />
