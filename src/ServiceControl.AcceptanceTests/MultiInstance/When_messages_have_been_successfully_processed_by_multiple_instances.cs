@@ -35,9 +35,13 @@
             var searchString = typeof(MyMessage).Name;
 
             Define(context, Remote1, Master)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) => { bus.Send(new MyMessage()); }))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    bus.Send(new MyMessage());
+                    bus.SendLocal(new MyMessage());
+                }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c => TryGetMany("/api/messages/search/" + searchString, out response, instanceName: Master))
+                .Done(c => TryGetMany("/api/messages/search/" + searchString, out response, instanceName: Master) && response.Count == 2)
                 .Run(TimeSpan.FromSeconds(40));
         }
 
@@ -76,8 +80,26 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
+                EndpointSetup<DefaultServerWithAudit>()
+                    .AuditTo(Address.Parse(AuditMaster))
                     .AddMapping<MyMessage>(typeof(ReceiverRemote));
+            }
+
+            public class MyMessageHandler : IHandleMessages<MyMessage>
+            {
+                public MyContext Context { get; set; }
+
+                public IBus Bus { get; set; }
+
+                public ReadOnlySettings Settings { get; set; }
+
+                public void Handle(MyMessage message)
+                {
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.MessageId = Bus.CurrentMessageContext.Id;
+
+                    Thread.Sleep(200);
+                }
             }
         }
 
