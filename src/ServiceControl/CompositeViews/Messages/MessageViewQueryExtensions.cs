@@ -11,6 +11,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Nancy;
     using Nancy.Responses.Negotiation;
     using Newtonsoft.Json;
+    using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -19,6 +20,7 @@ namespace ServiceControl.CompositeViews.Messages
     public static class MessageViewQueryExtensions
     {
         static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
+        static ILog logger = LogManager.GetLogger(typeof(MessageViewQueryExtensions));
 
         static PartialQueryResult EmptyResult = new PartialQueryResult
         {
@@ -39,12 +41,12 @@ namespace ServiceControl.CompositeViews.Messages
                     .WithEtagAndLastModified(localEtag, localLastModified);
             }
 
-            return await DistributeToSecondaries(currentRequest, negotiator, httpClientFactory, remotes, localResults, localTocalCount).ConfigureAwait(false);
+            return await QueryRemoteInstances(currentRequest, negotiator, httpClientFactory, remotes, localResults, localTocalCount).ConfigureAwait(false);
         }
 
-        static async Task<dynamic> DistributeToSecondaries(Request currentRequest, Negotiator negotiator, Func<HttpClient> httpClientFactory, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
+        static async Task<dynamic> QueryRemoteInstances(Request currentRequest, Negotiator negotiator, Func<HttpClient> httpClientFactory, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
         {
-            var headerInfo = await DistributeQuery(currentRequest, httpClientFactory, remotes, localResults, localTocalCount).ConfigureAwait(false);
+            var headerInfo = await Query(currentRequest, httpClientFactory, remotes, localResults, localTocalCount).ConfigureAwait(false);
 
             var sortedResults = SortResults(currentRequest.Query as DynamicDictionary, localResults);
 
@@ -55,7 +57,7 @@ namespace ServiceControl.CompositeViews.Messages
                 .WithLastModified(headerInfo.LastModified);
         }
 
-        static async Task<HeaderInfo> DistributeQuery(Request currentRequest, Func<HttpClient> httpClientFactory, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
+        static async Task<HeaderInfo> Query(Request currentRequest, Func<HttpClient> httpClientFactory, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
         {
             var tasks = new List<Task<PartialQueryResult>>(remotes.Length);
             // ReSharper disable once LoopCanBeConvertedToQuery
@@ -92,13 +94,22 @@ namespace ServiceControl.CompositeViews.Messages
         {
             var instanceUri = new Uri($"{remoteUri}{currentRequest.Path}?{currentRequest.Url.Query}");
             var httpClient = httpClientFactory();
-            var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, instanceUri)).ConfigureAwait(false);
-            if (rawResponse.StatusCode == HttpStatusCode.NotFound)
+            try
             {
+                var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, instanceUri)).ConfigureAwait(false);
+                // special case - queried by conversation ID and nothing was found
+                if (rawResponse.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return EmptyResult;
+                }
+
+                return await ParseResult(rawResponse).ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                logger.Warn($"Failed to query remote instance at {remoteUri}.", exception);
                 return EmptyResult;
             }
-
-            return await ParseResult(rawResponse).ConfigureAwait(false);
         }
 
         static async Task<PartialQueryResult> ParseResult(HttpResponseMessage responseMessage)
