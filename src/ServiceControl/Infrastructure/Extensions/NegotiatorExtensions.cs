@@ -21,6 +21,13 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             return negotiator.WithPagingLinksAndTotalCount(stats.TotalResults, request);
         }
 
+        public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, int totalCount, int numberOfInstances,
+            Request request)
+        {
+            return negotiator.WithTotalCount(totalCount)
+                .WithPagingLinks(totalCount, numberOfInstances, request);
+        }
+
         public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, int totalCount,
             Request request)
         {
@@ -44,6 +51,11 @@ namespace ServiceBus.Management.Infrastructure.Extensions
         }
 
         public static Negotiator WithPagingLinks(this Negotiator negotiator, int totalResults, Request request)
+        {
+            return negotiator.WithPagingLinks(totalResults, 1, request);
+        }
+
+        public static Negotiator WithPagingLinks(this Negotiator negotiator, int totalResults, int numberOfInstances, Request request)
         {
             decimal maxResultsPerPage = 50;
 
@@ -70,13 +82,14 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             }
 
             // No need to add a Link header if no paging
-            if (totalResults <= maxResultsPerPage)
+            var maxResultsPerPageInTotal = numberOfInstances * maxResultsPerPage;
+            if (totalResults <= maxResultsPerPageInTotal)
             {
                 return negotiator;
             }
 
             var links = new List<string>();
-            var lastPage = (int) Math.Ceiling(totalResults / maxResultsPerPage);
+            var lastPage = (int) Math.Ceiling(totalResults / maxResultsPerPageInTotal);
 
             // No need to add a Link header if page does not exist!
             if (page > lastPage)
