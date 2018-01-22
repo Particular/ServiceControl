@@ -51,8 +51,10 @@ namespace ServiceControl.CompositeViews.Messages
             var sortedResults = SortResults(currentRequest.Query as DynamicDictionary, localResults);
 
             //Return all the results
+            var numberOfInstances = remotes.Length + 1;
+
             return negotiator.WithModel(sortedResults)
-                .WithPagingLinksAndTotalCount(headerInfo.TotalCount, currentRequest)
+                .WithPagingLinksAndTotalCount(headerInfo.TotalCount, numberOfInstances, currentRequest)
                 .WithDeterministicEtag(headerInfo.ETag)
                 .WithLastModified(headerInfo.LastModified);
         }
