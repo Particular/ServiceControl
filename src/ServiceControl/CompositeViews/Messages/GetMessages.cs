@@ -26,7 +26,7 @@ namespace ServiceControl.CompositeViews.Messages
                         .ConfigureAwait(false);
                 }
 
-                return await this.CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
+                return await this.CombineWithRemoteResults(new QueryResult(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults))).ConfigureAwait(false);
             };
 
 
@@ -49,7 +49,7 @@ namespace ServiceControl.CompositeViews.Messages
                         .ConfigureAwait(false);
                 }
 
-                return await this.CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
+                return await this.CombineWithRemoteResults(new QueryResult(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults))).ConfigureAwait(false);
             };
         }
     }

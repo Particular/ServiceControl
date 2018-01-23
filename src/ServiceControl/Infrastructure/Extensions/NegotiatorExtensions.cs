@@ -11,6 +11,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using global::Nancy.Helpers;
     using global::Nancy.Responses.Negotiation;
     using ServiceControl.Infrastructure;
+    using QueryResult = ServiceControl.CompositeViews.Messages.QueryResult;
 
     public static class NegotiatorExtensions
     {
@@ -28,6 +29,16 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 .WithPagingLinks(totalCount, highestTotalCountOfAllInstances, request);
         }
 
+        public static Negotiator WithPartialQueryResult(this Negotiator negotiator, QueryResult queryResult, Request request)
+        {
+            var queryStats = queryResult.QueryStats;
+
+            return negotiator.WithModel(queryResult.Messages)
+                .WithPagingLinksAndTotalCount(queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances, request)
+                .WithDeterministicEtag(queryStats.ETag)
+                .WithLastModified(queryStats.LastModified);
+        }
+
         public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, int totalCount,
             Request request)
         {
@@ -35,19 +46,9 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 .WithPagingLinks(totalCount, request);
         }
 
-        public static Negotiator WithTotalCount(this Negotiator negotiator, RavenQueryStatistics stats)
-        {
-            return negotiator.WithTotalCount(stats.TotalResults);
-        }
-
         public static Negotiator WithTotalCount(this Negotiator negotiator, int total)
         {
             return negotiator.WithHeader("Total-Count", total.ToString(CultureInfo.InvariantCulture));
-        }
-
-        public static Negotiator WithPagingLinks(this Negotiator negotiator, RavenQueryStatistics stats, Request request)
-        {
-            return negotiator.WithPagingLinks(stats.TotalResults, request);
         }
 
         public static Negotiator WithPagingLinks(this Negotiator negotiator, int totalResults, Request request)
@@ -136,14 +137,6 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             url.Query = queryParams + "page=" + page;
 
             links.Add($"<{url}>; rel=\"{rel}\"");
-        }
-
-        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, QueryHeaderInformation stats)
-        {
-            var etag = stats.IndexEtag;
-            var responseLastModified = stats.IndexTimestamp;
-
-            return WithEtagAndLastModified(negotiator, etag, responseLastModified);
         }
 
         public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, RavenQueryStatistics stats)
