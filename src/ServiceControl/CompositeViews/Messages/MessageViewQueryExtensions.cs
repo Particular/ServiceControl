@@ -25,7 +25,7 @@ namespace ServiceControl.CompositeViews.Messages
         static PartialQueryResult EmptyResult = new PartialQueryResult
         {
             Messages = new List<MessagesView>(),
-            Header = new HeaderInfo(string.Empty, DateTime.MinValue, 0)
+            Header = new HeaderInfo(string.Empty, DateTime.MinValue, 0, 0)
         };
 
         public static async Task<dynamic> CombineWithRemoteResults(this BaseModule module, IList<MessagesView> localResults, int localTocalCount, string localEtag, DateTime localLastModified)
@@ -51,10 +51,9 @@ namespace ServiceControl.CompositeViews.Messages
             var sortedResults = SortResults(currentRequest.Query as DynamicDictionary, localResults);
 
             //Return all the results
-            var numberOfInstances = remotes.Length + 1;
 
             return negotiator.WithModel(sortedResults)
-                .WithPagingLinksAndTotalCount(headerInfo.TotalCount, numberOfInstances, currentRequest)
+                .WithPagingLinksAndTotalCount(headerInfo.TotalCount, headerInfo.HighestTotalCountOfAllTheInstances, currentRequest)
                 .WithDeterministicEtag(headerInfo.ETag)
                 .WithLastModified(headerInfo.LastModified);
         }
@@ -68,6 +67,7 @@ namespace ServiceControl.CompositeViews.Messages
                 tasks.Add(FetchAndParse(currentRequest, httpClientFactory, remote));
             }
 
+            var highestTotalCount = localTocalCount;
             var totalCount = localTocalCount;
             var lastModified = DateTime.MinValue;
             var etagBuilder = new StringBuilder();
@@ -81,6 +81,11 @@ namespace ServiceControl.CompositeViews.Messages
                 var header = queryResult.Header;
                 totalCount += header.TotalCount;
 
+                if (header.HighestTotalCountOfAllTheInstances > highestTotalCount)
+                {
+                    highestTotalCount = header.HighestTotalCountOfAllTheInstances;
+                }
+
                 if (header.LastModified > lastModified)
                 {
                     lastModified = header.LastModified;
@@ -89,7 +94,7 @@ namespace ServiceControl.CompositeViews.Messages
                 etagBuilder.Append(header.ETag);
             }
 
-            return new HeaderInfo(etagBuilder.ToString(), lastModified, totalCount);
+            return new HeaderInfo(etagBuilder.ToString(), lastModified, totalCount, highestTotalCount);
         }
 
         static async Task<PartialQueryResult> FetchAndParse(Request currentRequest, Func<HttpClient> httpClientFactory, string remoteUri)
@@ -138,7 +143,7 @@ namespace ServiceControl.CompositeViews.Messages
                 return new PartialQueryResult
                 {
                     Messages = messages,
-                    Header = new HeaderInfo(etag, lastModified, totalCount)
+                    Header = new HeaderInfo(etag, lastModified, totalCount, totalCount)
                 };
             }
         }
@@ -204,12 +209,14 @@ namespace ServiceControl.CompositeViews.Messages
             public readonly string ETag;
             public readonly DateTime LastModified;
             public readonly int TotalCount;
+            public readonly int HighestTotalCountOfAllTheInstances;
 
-            public HeaderInfo(string eTag, DateTime lastModified, int totalCount)
+            public HeaderInfo(string eTag, DateTime lastModified, int totalCount, int highestTotalCountOfAllTheInstances)
             {
                 ETag = eTag;
                 LastModified = lastModified;
                 TotalCount = totalCount;
+                HighestTotalCountOfAllTheInstances = highestTotalCountOfAllTheInstances;
             }
         }
     }

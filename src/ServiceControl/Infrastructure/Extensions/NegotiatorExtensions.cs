@@ -21,11 +21,11 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             return negotiator.WithPagingLinksAndTotalCount(stats.TotalResults, request);
         }
 
-        public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, int totalCount, int numberOfInstances,
+        public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, int totalCount, int highestTotalCountOfAllInstances,
             Request request)
         {
             return negotiator.WithTotalCount(totalCount)
-                .WithPagingLinks(totalCount, numberOfInstances, request);
+                .WithPagingLinks(totalCount, highestTotalCountOfAllInstances, request);
         }
 
         public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, int totalCount,
@@ -55,7 +55,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             return negotiator.WithPagingLinks(totalResults, 1, request);
         }
 
-        public static Negotiator WithPagingLinks(this Negotiator negotiator, int totalResults, int numberOfInstances, Request request)
+        public static Negotiator WithPagingLinks(this Negotiator negotiator, int totalResults, int highestTotalCountOfAllInstances, Request request)
         {
             decimal maxResultsPerPage = 50;
 
@@ -82,14 +82,13 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             }
 
             // No need to add a Link header if no paging
-            var maxResultsPerPageInTotal = numberOfInstances * maxResultsPerPage;
-            if (totalResults <= maxResultsPerPageInTotal)
+            if (totalResults <= maxResultsPerPage)
             {
                 return negotiator;
             }
 
             var links = new List<string>();
-            var lastPage = (int) Math.Ceiling(totalResults / maxResultsPerPageInTotal);
+            var lastPage = (int) Math.Ceiling(highestTotalCountOfAllInstances / maxResultsPerPage);
 
             // No need to add a Link header if page does not exist!
             if (page > lastPage)
