@@ -125,7 +125,14 @@ namespace ServiceControl.CompositeViews.Messages
             using (var jsonReader = new JsonTextReader(new StreamReader(responseStream)))
             {
                 var messages = jsonSerializer.Deserialize<MessagesView[]>(jsonReader);
-                var totalCount = responseMessage.Headers.GetValues("Total-Count").Select(int.Parse).Cast<int?>().FirstOrDefault() ?? -1;
+
+                IEnumerable<string> totalCounts;
+                var totalCount = 0;
+                if (responseMessage.Headers.TryGetValues("Total-Count", out totalCounts))
+                {
+                    totalCount = int.Parse(totalCounts.ElementAt(0));
+                }
+
                 IEnumerable<string> etags;
                 string etag = null;
                 if (responseMessage.Headers.TryGetValues("ETag", out etags))
