@@ -1,14 +1,14 @@
 ﻿namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
-    using Infrastructure.Extensions;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceControl.Infrastructure.Extensions;
 
     public class GetMessagesByConversation : BaseModule
     {
-        public GetMessagesByConversation() 
+        public GetMessagesByConversation()
         {
             Get["/conversations/{conversationid}", true] = async (parameters, token) =>
             {
@@ -29,7 +29,7 @@
                         .ConfigureAwait(false);
                 }
 
-                return await this.CombineWithRemoteResults(results, stats.TotalResults, stats.IndexEtag, stats.IndexTimestamp).ConfigureAwait(false);
+                return await this.CombineWithRemoteResults(new QueryResult(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults))).ConfigureAwait(false);
             };
         }
     }

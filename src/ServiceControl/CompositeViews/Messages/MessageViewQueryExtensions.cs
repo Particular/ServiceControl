@@ -9,7 +9,6 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Text;
     using System.Threading.Tasks;
     using Nancy;
-    using Nancy.Responses.Negotiation;
     using Newtonsoft.Json;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Extensions;
@@ -22,63 +21,43 @@ namespace ServiceControl.CompositeViews.Messages
         static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
         static ILog logger = LogManager.GetLogger(typeof(MessageViewQueryExtensions));
 
-        static PartialQueryResult EmptyResult = new PartialQueryResult
-        {
-            Messages = new List<MessagesView>(),
-            Header = new HeaderInfo(string.Empty, DateTime.MinValue, 0, 0)
-        };
+        private static QueryResult EmptyResult = new QueryResult(new List<MessagesView>(), new QueryStatsInfo(string.Empty, DateTime.MinValue, 0, 0));
 
-        public static async Task<dynamic> CombineWithRemoteResults(this BaseModule module, IList<MessagesView> localResults, int localTocalCount, string localEtag, DateTime localLastModified)
+        public static async Task<dynamic> CombineWithRemoteResults(this BaseModule module, QueryResult localQueryResult)
         {
             var httpClientFactory = module.HttpClientFactory; // for testing purposes
             var remotes = module.Settings.RemoteInstances;
             var currentRequest = module.Request;
             var negotiator = module.Negotiate;
-            if (remotes.Length == 0)
+
+            if (remotes.Length > 0)
             {
-                return negotiator.WithModel(localResults)
-                    .WithPagingLinksAndTotalCount(localTocalCount, currentRequest)
-                    .WithEtagAndLastModified(localEtag, localLastModified);
+                await UpdateLocalQueryResultWithRemoteData(currentRequest, httpClientFactory, remotes, localQueryResult).ConfigureAwait(false);
+
+                localQueryResult.Messages.Sort(MessageViewComparer.FromRequest(currentRequest));
             }
 
-            return await QueryRemoteInstances(currentRequest, negotiator, httpClientFactory, remotes, localResults, localTocalCount).ConfigureAwait(false);
+            return negotiator.WithPartialQueryResult(localQueryResult, currentRequest);
         }
 
-        static async Task<dynamic> QueryRemoteInstances(Request currentRequest, Negotiator negotiator, Func<HttpClient> httpClientFactory, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
+        static async Task UpdateLocalQueryResultWithRemoteData(Request currentRequest, Func<HttpClient> httpClientFactory, string[] remotes, QueryResult localQueryResult)
         {
-            var headerInfo = await Query(currentRequest, httpClientFactory, remotes, localResults, localTocalCount).ConfigureAwait(false);
-
-            var sortedResults = SortResults(currentRequest.Query as DynamicDictionary, localResults);
-
-            //Return all the results
-
-            return negotiator.WithModel(sortedResults)
-                .WithPagingLinksAndTotalCount(headerInfo.TotalCount, headerInfo.HighestTotalCountOfAllTheInstances, currentRequest)
-                .WithDeterministicEtag(headerInfo.ETag)
-                .WithLastModified(headerInfo.LastModified);
-        }
-
-        static async Task<HeaderInfo> Query(Request currentRequest, Func<HttpClient> httpClientFactory, string[] remotes, ICollection<MessagesView> localResults, int localTocalCount)
-        {
-            var tasks = new List<Task<PartialQueryResult>>(remotes.Length);
+            var tasks = new List<Task<QueryResult>>(remotes.Length);
             // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var remote in remotes)
             {
                 tasks.Add(FetchAndParse(currentRequest, httpClientFactory, remote));
             }
 
-            var highestTotalCount = localTocalCount;
-            var totalCount = localTocalCount;
+            var highestTotalCount = localQueryResult.QueryStats.TotalCount;
+            var totalCount = localQueryResult.QueryStats.TotalCount;
             var lastModified = DateTime.MinValue;
             var etagBuilder = new StringBuilder();
             foreach (var queryResult in await Task.WhenAll(tasks))
             {
-                foreach (var messagesView in queryResult.Messages)
-                {
-                    localResults.Add(messagesView);
-                }
+                localQueryResult.Messages.AddRange(queryResult.Messages);
 
-                var header = queryResult.Header;
+                var header = queryResult.QueryStats;
                 totalCount += header.TotalCount;
 
                 if (header.HighestTotalCountOfAllTheInstances > highestTotalCount)
@@ -94,10 +73,11 @@ namespace ServiceControl.CompositeViews.Messages
                 etagBuilder.Append(header.ETag);
             }
 
-            return new HeaderInfo(etagBuilder.ToString(), lastModified, totalCount, highestTotalCount);
+            // not exactly beautiful but we are treating localQueryResult as mutable anyway
+            localQueryResult.QueryStats = new QueryStatsInfo(etagBuilder.ToString(), lastModified, totalCount, highestTotalCount);
         }
 
-        static async Task<PartialQueryResult> FetchAndParse(Request currentRequest, Func<HttpClient> httpClientFactory, string remoteUri)
+        static async Task<QueryResult> FetchAndParse(Request currentRequest, Func<HttpClient> httpClientFactory, string remoteUri)
         {
             var instanceUri = new Uri($"{remoteUri}{currentRequest.Path}?{currentRequest.Url.Query}");
             var httpClient = httpClientFactory();
@@ -119,12 +99,12 @@ namespace ServiceControl.CompositeViews.Messages
             }
         }
 
-        static async Task<PartialQueryResult> ParseResult(HttpResponseMessage responseMessage)
+        static async Task<QueryResult> ParseResult(HttpResponseMessage responseMessage)
         {
             using (var responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false))
             using (var jsonReader = new JsonTextReader(new StreamReader(responseStream)))
             {
-                var messages = jsonSerializer.Deserialize<MessagesView[]>(jsonReader);
+                var messages = jsonSerializer.Deserialize<List<MessagesView>>(jsonReader);
 
                 IEnumerable<string> totalCounts;
                 var totalCount = 0;
@@ -147,83 +127,7 @@ namespace ServiceControl.CompositeViews.Messages
                     lastModified = DateTime.ParseExact(lastModifiedValues.ElementAt(0), "R", CultureInfo.InvariantCulture);
                 }
 
-                return new PartialQueryResult
-                {
-                    Messages = messages,
-                    Header = new HeaderInfo(etag, lastModified, totalCount, totalCount)
-                };
-            }
-        }
-
-        static MessagesView[] SortResults(DynamicDictionary queryString, ICollection<MessagesView> combinedMessages)
-        {
-            //Set the default sort to time_sent if not already set
-            string sortBy = queryString.ContainsKey("sort")
-                ? queryString["sort"]
-                : "time_sent";
-
-            //Set the default sort direction to `desc` if not already set
-            string sortOrder = queryString.ContainsKey("direction")
-                ? queryString["direction"]
-                : "desc";
-
-            Func<MessagesView, IComparable> keySelector = m => m.TimeSent;
-            switch (sortBy)
-            {
-                case "id":
-                case "message_id":
-                    keySelector = m => m.MessageId;
-                    break;
-
-                case "message_type":
-                    keySelector = m => m.MessageType;
-                    break;
-
-                case "critical_time":
-                    keySelector = m => m.CriticalTime;
-                    break;
-
-                case "delivery_time":
-                    keySelector = m => m.DeliveryTime;
-                    break;
-
-                case "processing_time":
-                    keySelector = m => m.ProcessingTime;
-                    break;
-
-                case "processed_at":
-                    keySelector = m => m.ProcessedAt;
-                    break;
-
-                case "status":
-                    keySelector = m => m.Status;
-                    break;
-            }
-
-            return sortOrder == "asc"
-                ? combinedMessages.OrderBy(keySelector).ToArray()
-                : combinedMessages.OrderByDescending(keySelector).ToArray();
-        }
-
-        class PartialQueryResult
-        {
-            public IList<MessagesView> Messages { get; set; }
-            public HeaderInfo Header { get; set; }
-        }
-
-        struct HeaderInfo
-        {
-            public readonly string ETag;
-            public readonly DateTime LastModified;
-            public readonly int TotalCount;
-            public readonly int HighestTotalCountOfAllTheInstances;
-
-            public HeaderInfo(string eTag, DateTime lastModified, int totalCount, int highestTotalCountOfAllTheInstances)
-            {
-                ETag = eTag;
-                LastModified = lastModified;
-                TotalCount = totalCount;
-                HighestTotalCountOfAllTheInstances = highestTotalCountOfAllTheInstances;
+                return new QueryResult(messages, new QueryStatsInfo(etag, lastModified, totalCount, totalCount));
             }
         }
     }
