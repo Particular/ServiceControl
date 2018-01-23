@@ -574,7 +574,7 @@ namespace ServiceBus.Management.AcceptanceTests
             foreach (var instanceName in instanceNames)
             {
                 startPort = FindAvailablePort(startPort);
-                var settings = new Settings
+                var settings = new Settings(instanceName)
                 {
                     Port = startPort++,
                     DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
