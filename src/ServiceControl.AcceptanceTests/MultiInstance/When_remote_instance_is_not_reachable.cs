@@ -40,7 +40,14 @@
         private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             addressOfRemote = "http://localhost:12121";
-            settings.RemoteInstances = new[] { addressOfRemote };
+            settings.RemoteInstances = new List<Settings.RemoteInstanceSetting>
+            {
+                new Settings.RemoteInstanceSetting
+                {
+                    Uri = addressOfRemote,
+                    Address = "remote1"
+                }
+            };
             settings.AuditQueue = Address.Parse(AuditMaster);
             settings.ErrorQueue = Address.Parse(ErrorMaster);
         }

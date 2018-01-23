@@ -70,7 +70,14 @@
                     settings.ErrorQueue = Address.Parse(ErrorRemote);
                     break;
                 case Master:
-                    settings.RemoteInstances = new[] {addressOfRemote};
+                    settings.RemoteInstances = new List<Settings.RemoteInstanceSetting>
+                    {
+                        new Settings.RemoteInstanceSetting
+                        {
+                            Uri = addressOfRemote,
+                            Address = Remote1
+                        }
+                    };
                     settings.AuditQueue = Address.Parse(AuditMaster);
                     settings.ErrorQueue = Address.Parse(ErrorMaster);
                     break;

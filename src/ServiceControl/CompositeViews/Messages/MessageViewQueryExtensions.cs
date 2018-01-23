@@ -14,6 +14,7 @@ namespace ServiceControl.CompositeViews.Messages
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceBus.Management.Infrastructure.Settings;
     using HttpStatusCode = System.Net.HttpStatusCode;
 
     public static class MessageViewQueryExtensions
@@ -30,7 +31,7 @@ namespace ServiceControl.CompositeViews.Messages
             var currentRequest = module.Request;
             var negotiator = module.Negotiate;
 
-            if (remotes.Length > 0)
+            if (remotes.Count > 0)
             {
                 await UpdateLocalQueryResultWithRemoteData(currentRequest, httpClientFactory, remotes, localQueryResult).ConfigureAwait(false);
 
@@ -40,13 +41,13 @@ namespace ServiceControl.CompositeViews.Messages
             return negotiator.WithPartialQueryResult(localQueryResult, currentRequest);
         }
 
-        static async Task UpdateLocalQueryResultWithRemoteData(Request currentRequest, Func<HttpClient> httpClientFactory, string[] remotes, QueryResult localQueryResult)
+        static async Task UpdateLocalQueryResultWithRemoteData(Request currentRequest, Func<HttpClient> httpClientFactory, List<Settings.RemoteInstanceSetting> remotes, QueryResult localQueryResult)
         {
-            var tasks = new List<Task<QueryResult>>(remotes.Length);
+            var tasks = new List<Task<QueryResult>>(remotes.Count);
             // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var remote in remotes)
             {
-                tasks.Add(FetchAndParse(currentRequest, httpClientFactory, remote));
+                tasks.Add(FetchAndParse(currentRequest, httpClientFactory, remote.Uri));
             }
 
             var highestTotalCount = localQueryResult.QueryStats.TotalCount;

@@ -1,11 +1,14 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Newtonsoft.Json;
     using NLog.Common;
     using NServiceBus;
     using NServiceBus.Logging;
+    using ServiceBus.Management.Infrastructure.Nancy;
 
     public class Settings
     {
@@ -167,7 +170,7 @@
 
         public int RetryHistoryDepth { get; set; }
 
-        public string[] RemoteInstances { get; set; }
+        public List<RemoteInstanceSetting> RemoteInstances { get; set; }
 
         private Address GetAuditLogQueue()
         {
@@ -364,14 +367,24 @@
             return result;
         }
 
-        private static string[] GetRemoteInstances()
+        private static List<RemoteInstanceSetting> GetRemoteInstances()
         {
             var valueRead = SettingsReader<string>.Read("RemoteInstances");
             if (!string.IsNullOrEmpty(valueRead))
             {
-                return valueRead.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+                var jsonSerializer = Newtonsoft.Json.JsonSerializer.Create(JsonNetSerializer.CreateDefault());
+                using (var jsonReader = new JsonTextReader(new StringReader(valueRead)))
+                {
+                    return jsonSerializer.Deserialize<List<RemoteInstanceSetting>>(jsonReader) ?? new List<RemoteInstanceSetting>();
+                }
             }
-            return new string[] { };
+            return new List<RemoteInstanceSetting>();
+        }
+
+        public class RemoteInstanceSetting
+        {
+            public string Uri { get; set; }
+            public string Address { get; set; }
         }
     }
 }
