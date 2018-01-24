@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System.Threading.Tasks;
     using Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
@@ -7,10 +8,10 @@ namespace ServiceControl.Recoverability
     {
         public UnacknowledgedGroupsApi()
         {
-            Delete["/recoverability/unacknowledgedgroups/{groupId}"] = parameters => AcknowledgeOperation(parameters);
+            Delete["/recoverability/unacknowledgedgroups/{groupId}", true] = (parameters, token) => AcknowledgeOperation(parameters);
         }
 
-        private dynamic AcknowledgeOperation(dynamic parameters)
+        private async Task<dynamic> AcknowledgeOperation(dynamic parameters)
         {
             var groupId = parameters.groupId;
             if (ArchiveOperationManager.IsArchiveInProgressFor(groupId))
@@ -19,15 +20,15 @@ namespace ServiceControl.Recoverability
                 return HttpStatusCode.OK;
             }
 
-            using (var session = Store.OpenSession())
+            using (var session = Store.OpenAsyncSession())
             {
-                var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId());
+                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false);
                 if (retryHistory != null)
                 {
                     if (retryHistory.Acknowledge(groupId, RetryType.FailureGroup))
                     {
-                        session.Store(retryHistory);
-                        session.SaveChanges();
+                        await session.StoreAsync(retryHistory).ConfigureAwait(false);
+                        await session.SaveChangesAsync().ConfigureAwait(false);
 
                         return HttpStatusCode.OK;
                     }

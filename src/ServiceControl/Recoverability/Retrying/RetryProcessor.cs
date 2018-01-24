@@ -38,32 +38,34 @@ namespace ServiceControl.Recoverability
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
         }
 
-        public bool ProcessBatches(IDocumentSession session, CancellationToken cancellationToken)
+        public async Task<bool> ProcessBatches(IAsyncDocumentSession session, CancellationToken cancellationToken)
         {
-            return ForwardCurrentBatch(session, cancellationToken) || MoveStagedBatchesToForwardingBatch(session);
+            return await ForwardCurrentBatch(session, cancellationToken) || await MoveStagedBatchesToForwardingBatch(session);
         }
 
-        private bool MoveStagedBatchesToForwardingBatch(IDocumentSession session)
+        private async Task<bool> MoveStagedBatchesToForwardingBatch(IAsyncDocumentSession session)
         {
             isRecoveringFromPrematureShutdown = false;
 
-            var stagingBatch = session.Query<RetryBatch>()
+            var stagingBatch = await session.Query<RetryBatch>()
                 .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
-                .FirstOrDefault(b => b.Status == RetryBatchStatus.Staging);
+                .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging)
+                .ConfigureAwait(false);
 
             if (stagingBatch != null)
             {
-                redirects = MessageRedirectsCollection.GetOrCreate(session);
-                var stagedMessages = Stage(stagingBatch, session);
+                redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
+                var stagedMessages = await Stage(stagingBatch, session).ConfigureAwait(false);
                 var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
                 retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages);
 
                 if ( stagedMessages > 0)
                 {
-                    session.Store(new RetryBatchNowForwarding
+                    await session.StoreAsync(new RetryBatchNowForwarding
                     {
                         RetryBatchId = stagingBatch.Id
-                    }, RetryBatchNowForwarding.Id);
+                    }, RetryBatchNowForwarding.Id)
+                    .ConfigureAwait(false);
                 }
 
                 return true;
@@ -72,18 +74,19 @@ namespace ServiceControl.Recoverability
             return false;
         }
 
-        private bool ForwardCurrentBatch(IDocumentSession session, CancellationToken cancellationToken)
+        private async Task<bool> ForwardCurrentBatch(IAsyncDocumentSession session, CancellationToken cancellationToken)
         {
             Log.Debug("Looking for batch to forward");
 
-            var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-                .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
+            var nowForwarding = await session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
+                .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id)
+                .ConfigureAwait(false);
 
             if (nowForwarding != null)
             {
                 Log.DebugFormat("Loading batch {0} for forwarding", nowForwarding.RetryBatchId);
 
-                var forwardingBatch = session.Load<RetryBatch>(nowForwarding.RetryBatchId);
+                var forwardingBatch = await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId).ConfigureAwait(false);
 
                 if (forwardingBatch != null)
                 {
@@ -107,7 +110,7 @@ namespace ServiceControl.Recoverability
             return false;
         }
 
-        void Forward(RetryBatch forwardingBatch, IDocumentSession session, CancellationToken cancellationToken)
+        void Forward(RetryBatch forwardingBatch, IAsyncDocumentSession session, CancellationToken cancellationToken)
         {
             var messageCount = forwardingBatch.FailureRetries.Count;
 
@@ -141,10 +144,10 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        int Stage(RetryBatch stagingBatch, IDocumentSession session)
+        async Task<int> Stage(RetryBatch stagingBatch, IAsyncDocumentSession session)
         {
             var stagingId = Guid.NewGuid().ToString();
-            var failedMessageRetryDocs = session.Load<FailedMessageRetry>(stagingBatch.FailureRetries);
+            var failedMessageRetryDocs = await session.LoadAsync<FailedMessageRetry>(stagingBatch.FailureRetries).ConfigureAwait(false);
             var matchingFailures = failedMessageRetryDocs
                 .Where(r => r != null && r.RetryBatchId == stagingBatch.Id)
                 .ToArray();
@@ -166,7 +169,8 @@ namespace ServiceControl.Recoverability
                 return 0;
             }
 
-            var messages = session.Load<FailedMessage>(messageIds)
+            var failedMessagesDocs = await session.LoadAsync<FailedMessage>(messageIds).ConfigureAwait(false);
+            var messages = failedMessagesDocs
                 .Where(m => m != null)
                 .ToArray();
 

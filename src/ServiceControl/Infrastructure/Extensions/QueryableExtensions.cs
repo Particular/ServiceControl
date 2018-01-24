@@ -14,7 +14,7 @@ namespace ServiceControl.Infrastructure.Extensions
 
     public static class QueryableExtensions
     {
-        public static IDocumentQuery<TSource> Paging<TSource>(this IDocumentQuery<TSource> source, Request request)
+        public static IAsyncDocumentQuery<TSource> Paging<TSource>(this IAsyncDocumentQuery<TSource> source, Request request)
         {
             var maxResultsPerPage = 50;
 
@@ -46,7 +46,7 @@ namespace ServiceControl.Infrastructure.Extensions
                 .Take(maxResultsPerPage);
         }
 
-        public static IDocumentQuery<TSource> Sort<TSource>(this IDocumentQuery<TSource> source, Request request)
+        public static IAsyncDocumentQuery<TSource> Sort<TSource>(this IAsyncDocumentQuery<TSource> source, Request request)
         {
             var direction = "desc";
             var descending = true;
@@ -111,7 +111,7 @@ namespace ServiceControl.Infrastructure.Extensions
             return source.AddOrder(keySelector, descending);
         }
 
-        public static IDocumentQuery<T> FilterByStatusWhere<T>(this IDocumentQuery<T> source, Request request)
+        public static IAsyncDocumentQuery<T> FilterByStatusWhere<T>(this IAsyncDocumentQuery<T> source, Request request)
         {
             string status = null;
 
@@ -176,7 +176,7 @@ namespace ServiceControl.Infrastructure.Extensions
         }
 
 
-        public static IDocumentQuery<T> FilterByLastModifiedRange<T>(this IDocumentQuery<T> source, Request request)
+        public static IAsyncDocumentQuery<T> FilterByLastModifiedRange<T>(this IAsyncDocumentQuery<T> source, Request request)
         {
             string modified = null;
 
@@ -215,7 +215,7 @@ namespace ServiceControl.Infrastructure.Extensions
             return source;
         }
 
-        public static IDocumentQuery<T> FilterByQueueAddress<T>(this IDocumentQuery<T> source, Request request)
+        public static IAsyncDocumentQuery<T> FilterByQueueAddress<T>(this IAsyncDocumentQuery<T> source, Request request)
         {
             string queueAddress = null;
 

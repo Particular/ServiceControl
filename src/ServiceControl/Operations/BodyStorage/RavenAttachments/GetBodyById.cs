@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using CompositeViews.Messages;
     using System.Text;
     using Nancy;
@@ -15,25 +14,26 @@
 
         public GetBodyById()
         {
-            Get["/messages/{id*}/body"] = parameters =>
+            Get["/messages/{id*}/body", true] = async (parameters, token) =>
             {
                 string messageId = parameters.id;
                 messageId = messageId?.Replace("/", @"\");
                 Action<Stream> contents;
                 string contentType;
                 int bodySize;
-                var attachment = Store.DatabaseCommands.GetAttachment("messagebodies/" + messageId);
+                var attachment = await Store.AsyncDatabaseCommands.GetAttachmentAsync("messagebodies/" + messageId).ConfigureAwait(false);
                 Etag currentEtag;
 
                 if (attachment == null)
                 {
-                    using (var session = Store.OpenSession())
+                    using (var session = Store.OpenAsyncSession())
                     {
                         RavenQueryStatistics stats;
-                        var message = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                        var message = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                             .Statistics(out stats)
                             .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
-                            .FirstOrDefault(f => f.MessageId == messageId);
+                            .FirstOrDefaultAsync(f => f.MessageId == messageId)
+                            .ConfigureAwait(false);
 
                         if (message == null)
                         {

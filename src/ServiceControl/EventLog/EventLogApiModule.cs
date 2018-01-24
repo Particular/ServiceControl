@@ -11,14 +11,15 @@
     {
         public EventLogApiModule()
         {
-            Get["/eventlogitems"] = _ =>
+            Get["/eventlogitems", true] = async (_, token) =>
             {
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
                     RavenQueryStatistics stats;
-                    var results = session.Query<EventLogItem>().Statistics(out stats).OrderByDescending(p => p.RaisedAt)
+                    var results = await session.Query<EventLogItem>().Statistics(out stats).OrderByDescending(p => p.RaisedAt)
                     .Paging(Request)
-                    .ToArray();
+                    .ToListAsync()
+                    .ConfigureAwait(false);
 
                     return Negotiate.WithModel(results)
                         .WithPagingLinksAndTotalCount(stats, Request)

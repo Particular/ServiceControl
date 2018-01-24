@@ -11,17 +11,18 @@
     {
         public QueueAddressModule()
         {
-            Get["/errors/queues/addresses"] = parameters =>
+            Get["/errors/queues/addresses", true] = async (parameters, token) =>
             {
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
                     RavenQueryStatistics stats;
 
-                    var addresses = session
+                    var addresses = await session
                         .Query<QueueAddress, QueueAddressIndex>()
                         .Statistics(out stats)
                         .Paging(Request)
-                        .ToArray();
+                        .ToListAsync()
+                        .ConfigureAwait(false);
 
                     return Negotiate
                         .WithModel(addresses)
@@ -30,9 +31,9 @@
                 }
             };
 
-            Get["/errors/queues/addresses/search/{search}"] = parameters =>
+            Get["/errors/queues/addresses/search/{search}", true] = async (parameters, token) =>
             {
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
                     if (!parameters.search.HasValue)
                     {
@@ -49,12 +50,13 @@
                     RavenQueryStatistics stats;
 
                     var failedMessageQueues =
-                        session.Query<QueueAddress, QueueAddressIndex>()
+                        await session.Query<QueueAddress, QueueAddressIndex>()
                         .Statistics(out stats)
                         .Where(q => q.PhysicalAddress.StartsWith(search))
                         .OrderBy(q => q.PhysicalAddress)
                         .Paging(Request)
-                        .ToArray();
+                        .ToListAsync()
+                        .ConfigureAwait(false);
 
                     return Negotiate
                         .WithModel(failedMessageQueues)

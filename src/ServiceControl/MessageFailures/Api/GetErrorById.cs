@@ -11,13 +11,13 @@
     {
         public GetErrorById()
         {
-            Get["/errors/{id}"] = parameters =>
+            Get["/errors/{id}", true] = async (parameters, token) =>
             {
                 Guid failedMessageId = parameters.id;
 
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
-                    var message = session.Load<FailedMessage>(failedMessageId);
+                    var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
 
                     if (message == null)
                     {
@@ -28,13 +28,13 @@
                 }
             };
 
-            Get["/errors/last/{id}"] = parameters =>
+            Get["/errors/last/{id}", true] = async (parameters, token) =>
             {
                 Guid failedMessageId = parameters.id;
 
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
-                    var message = session.Load<FailedMessage>(failedMessageId);
+                    var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
 
                     if (message == null)
                     {
@@ -48,7 +48,7 @@
             };
         }
 
-        private static FailedMessageView Map(FailedMessage message, IDocumentSession session)
+        private static FailedMessageView Map(FailedMessage message, IAsyncDocumentSession session)
          {
              var processingAttempt = message.ProcessingAttempts.Last();
 

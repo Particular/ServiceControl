@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using Raven.Client;
     using System.Linq;
+    using System.Threading.Tasks;
 
     public class GroupFetcher
     {
@@ -15,11 +16,11 @@
             this.archivingManager = archivingManager;
         }
 
-        public GroupOperation[] GetGroups(IDocumentSession session, string classifier, string classifierFilter)
+        public async Task<GroupOperation[]> GetGroups(IAsyncDocumentSession session, string classifier, string classifierFilter)
         {
-            var dbGroups = GetDBGroups(session, classifier, classifierFilter);
+            var dbGroups = await GetDBGroups(session, classifier, classifierFilter).ConfigureAwait(false);
 
-            var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
+            var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false) ?? RetryHistory.CreateNew();
             var unacknowledgedRetries = retryHistory.GetUnacknowledgedByClassifier(classifier);
 
             var openRetryAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedRetries);
@@ -32,7 +33,7 @@
             openGroups = MapOpenGroups(openGroups, archivingManager.GetArchivalOperations()).ToList();
             openGroups = openGroups.Where(group => !closedGroups.Any(closedGroup => closedGroup.Id == group.Id)).ToList();
 
-            MakeSureForwardingBatchIsIncludedAsOpen(classifier, GetCurrentForwardingBatch(session), openGroups);
+            MakeSureForwardingBatchIsIncludedAsOpen(classifier, await GetCurrentForwardingBatch(session).ConfigureAwait(false), openGroups);
 
             var groups = openGroups.Union(closedGroups);
 
@@ -55,14 +56,14 @@
             open.Add(fg);
         }
 
-        private static UnacknowledgedRetryOperation[] MapAcksToOpenGroups(FailureGroupView[] groups, UnacknowledgedRetryOperation[] acks)
+        private static UnacknowledgedRetryOperation[] MapAcksToOpenGroups(IList<FailureGroupView> groups, UnacknowledgedRetryOperation[] acks)
         {
             return (from g in groups
                     join unack in acks on g.Id equals unack.RequestId
                     select unack).ToArray();
         }
 
-        private static FailureGroupView[] GetDBGroups(IDocumentSession session, string classifier, string classifierFilter)
+        private static Task<IList<FailureGroupView>> GetDBGroups(IAsyncDocumentSession session, string classifier, string classifierFilter)
         {
             var groups = session.Query<FailureGroupView, FailureGroupsViewIndex>()
                 .Where(v => v.Type == classifier);
@@ -74,7 +75,7 @@
 
             return groups.OrderByDescending(x => x.Last)
                 .Take(200)
-                .ToArray();
+                .ToListAsync();
         }
 
         private static bool IsCurrentForwardingOperationIncluded(List<GroupOperation> open, RetryBatch forwardingBatch)
@@ -102,12 +103,13 @@
             };
         }
 
-        private static RetryBatch GetCurrentForwardingBatch(IDocumentSession session)
+        private static async Task<RetryBatch> GetCurrentForwardingBatch(IAsyncDocumentSession session)
         {
-            var nowForwarding = session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-                .Load<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
+            var nowForwarding = await session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
+                .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id)
+                .ConfigureAwait(false);
 
-            return nowForwarding == null ? null : session.Load<RetryBatch>(nowForwarding.RetryBatchId);
+            return nowForwarding == null ? null : await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId).ConfigureAwait(false);
         }
 
         private static IEnumerable<GroupOperation> MapClosedGroups(string classifier, UnacknowledgedRetryOperation[] standaloneUnacknowledgements)

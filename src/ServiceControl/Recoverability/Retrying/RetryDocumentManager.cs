@@ -121,19 +121,20 @@ namespace ServiceControl.Recoverability
             store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
-        internal void AdoptOrphanedBatches(IDocumentSession session, DateTime cutoff, out bool hasMoreWorkToDo)
+        internal async Task<bool> AdoptOrphanedBatches(IAsyncDocumentSession session, DateTime cutoff)
         {
             RavenQueryStatistics stats;
 
-            var orphanedBatches = session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
+            var orphanedBatches = await session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
                 .Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
                 .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
                 .Statistics(out stats)
-                .ToArray();
+                .ToListAsync()
+                .ConfigureAwait(false);
 
-            log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatches.Length);
+            log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatches.Count);
 
-            AdoptBatches(session, orphanedBatches.Select(b => b.Id));
+            await AdoptBatches(session, orphanedBatches.Select(b => b.Id)).ConfigureAwait(false);
 
             foreach (var batch in orphanedBatches)
             {
@@ -145,28 +146,28 @@ namespace ServiceControl.Recoverability
 
             if (abort)
             {
-                hasMoreWorkToDo = false;
-                return;
+                return false;
             }
 
-            hasMoreWorkToDo = stats.IsStale || orphanedBatches.Any();
+            return stats.IsStale || orphanedBatches.Any();
         }
 
-        void AdoptBatches(IDocumentSession session, IEnumerable<string> batchIds)
+        Task AdoptBatches(IAsyncDocumentSession session, IEnumerable<string> batchIds)
         {
-            Parallel.ForEach(batchIds, batchId => AdoptBatch(session, batchId));
+            // Task.Run for offloading the while loop
+            return Task.WhenAll(batchIds.Select(batchid => Task.Run(() => AdoptBatch(session, batchid))));
         }
 
-        void AdoptBatch(IDocumentSession session, string batchId)
+        async Task AdoptBatch(IAsyncDocumentSession session, string batchId)
         {
             var query = session.Query<FailedMessageRetry, FailedMessageRetries_ByBatch>()
                 .Where(r => r.RetryBatchId == batchId);
 
             var messageIds = new List<string>();
 
-            using (var stream = session.Advanced.Stream(query))
+            using (var stream = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
             {
-                while (!abort && stream.MoveNext())
+                while (!abort && await stream.MoveNextAsync().ConfigureAwait(false))
                 {
                     messageIds.Add(stream.Current.Document.Id);
                 }
@@ -179,10 +180,12 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        internal void RebuildRetryOperationState(IDocumentSession session)
+        internal async Task RebuildRetryOperationState(IAsyncDocumentSession session)
         {
-            var stagingBatchGroups = session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
-                .Where(b => b.HasStagingBatches || b.HasForwardingBatches);
+            var stagingBatchGroups = await session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
+                .Where(b => b.HasStagingBatches || b.HasForwardingBatches)
+                .ToListAsync()
+                .ConfigureAwait(false);
 
             foreach (var group in stagingBatchGroups)
             {

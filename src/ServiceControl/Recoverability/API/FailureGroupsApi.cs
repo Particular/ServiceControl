@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Nancy;
     using NServiceBus;
     using Raven.Client;
@@ -27,25 +28,25 @@ namespace ServiceControl.Recoverability
             Post["/recoverability/groups/reclassify"] =
                 _ => ReclassifyErrors();
 
-            Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}"] =
-               parameters =>
+            Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}", true] =
+               (parameters, token) =>
                {
                    var classifierFilter = Request.Query["classifierFilter"] != "undefined" ? Request.Query["classifierFilter"] : null;
 
                    return GetAllGroups(parameters.Classifier, classifierFilter);
                };
 
-            Get["/recoverability/groups/{groupId}/errors"] =
-                parameters => GetGroupErrors(parameters.GroupId);
+            Get["/recoverability/groups/{groupId}/errors", true] =
+                (parameters, token) => GetGroupErrors(parameters.GroupId);
 
-            Head["/recoverability/groups/{groupId}/errors"] =
-                parameters => GetGroupErrorsCount(parameters.GroupId);
+            Head["/recoverability/groups/{groupId}/errors", true] =
+                (parameters, token) => GetGroupErrorsCount(parameters.GroupId);
 
-            Get["/recoverability/history/"] =
-            _ => GetRetryHistory();
+            Get["/recoverability/history/", true] =
+            (_, token) => GetRetryHistory();
 
-            Get["/recoverability/groups/id/{groupId}"] =
-                parameters => GetGroup(parameters.GroupId);
+            Get["/recoverability/groups/id/{groupId}", true] =
+                (parameters, token) => GetGroup(parameters.GroupId);
         }
 
         dynamic ReclassifyErrors()
@@ -69,11 +70,11 @@ namespace ServiceControl.Recoverability
                 .WithTotalCount(classifiers.Length);
         }
 
-        dynamic GetRetryHistory()
+        async Task<dynamic> GetRetryHistory()
         {
-            using (var session = Store.OpenSession())
+            using (var session = Store.OpenAsyncSession())
             {
-                var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
+                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false) ?? RetryHistory.CreateNew();
 
                 return Negotiate
                     .WithDeterministicEtag(retryHistory.GetHistoryOperationsUniqueIdentifier())
@@ -81,44 +82,45 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        dynamic GetAllGroups(string classifier, string classifierFilter)
+        async Task<dynamic> GetAllGroups(string classifier, string classifierFilter)
         {
-            using (var session = Store.OpenSession())
+            using (var session = Store.OpenAsyncSession())
             {
-                var results = GroupFetcher.GetGroups(session, classifier, classifierFilter);
+                var results = await GroupFetcher.GetGroups(session, classifier, classifierFilter).ConfigureAwait(false);
                 return Negotiate.WithModel(results)
                     .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
             }
         }
 
-        dynamic GetGroup(string groupId)
+        async Task<dynamic> GetGroup(string groupId)
         {
-            using (var session = Store.OpenSession())
+            using (var session = Store.OpenAsyncSession())
             {
                 RavenQueryStatistics stats;
 
-                var queryResult = session.Advanced
-                                    .LuceneQuery<FailureGroupView, FailureGroupsViewIndex>()
+                var queryResult = await session.Advanced
+                                    .AsyncLuceneQuery<FailureGroupView, FailureGroupsViewIndex>()
                                     .Statistics(out stats)
                                     .WhereEquals(group => group.Id, groupId)
                                     .FilterByStatusWhere(Request)
                                     .FilterByLastModifiedRange(Request)
-                                    .FirstOrDefault();
+                                    .ToListAsync()
+                                    .ConfigureAwait(false);
 
                 return Negotiate
-                         .WithModel(queryResult)
+                         .WithModel(queryResult.FirstOrDefault())
                          .WithEtagAndLastModified(stats);
             }
         }
 
-        dynamic GetGroupErrors(string groupId)
+        async Task<dynamic> GetGroupErrors(string groupId)
         {
-            using (var session = Store.OpenSession())
+            using (var session = Store.OpenAsyncSession())
             {
                 RavenQueryStatistics stats;
 
-                var results = session.Advanced
-                    .LuceneQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                var results = await session.Advanced
+                    .AsyncLuceneQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
                     .Statistics(out stats)
                     .WhereEquals(view => view.FailureGroupId, groupId)
                     .FilterByStatusWhere(Request)
@@ -127,7 +129,8 @@ namespace ServiceControl.Recoverability
                     .Paging(Request)
                     .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>()
-                    .ToArray();
+                    .ToListAsync()
+                    .ConfigureAwait(false);
 
                 return Negotiate.WithModel(results)
                     .WithPagingLinksAndTotalCount(stats, Request)
@@ -135,16 +138,17 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        dynamic GetGroupErrorsCount(string groupId)
+        async Task<dynamic> GetGroupErrorsCount(string groupId)
         {
-            using (var session = Store.OpenSession())
+            using (var session = Store.OpenAsyncSession())
             {
-                var queryResult = session.Advanced
-                    .LuceneQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                var queryResult = await session.Advanced
+                    .AsyncLuceneQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
                     .WhereEquals(view => view.FailureGroupId, groupId)
                     .FilterByStatusWhere(Request)
                     .FilterByLastModifiedRange(Request)
-                    .QueryResult;
+                    .QueryResultAsync
+                    .ConfigureAwait(false);
 
                 return Negotiate
                          .WithTotalCount(queryResult.TotalResults)

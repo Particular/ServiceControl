@@ -24,7 +24,7 @@
 
         public MessageRedirectsModule()
         {
-            Post["/redirects"] = parameters =>
+            Post["/redirects", true] = async (parameters, token) =>
             {
                 var request = this.Bind<MessageRedirectRequest>();
 
@@ -40,9 +40,9 @@
                     LastModifiedTicks = DateTime.UtcNow.Ticks
                 };
 
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
-                    var collection = MessageRedirectsCollection.GetOrCreate(session);
+                    var collection = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
 
                     var existing = collection[messageRedirect.MessageRedirectId];
 
@@ -62,7 +62,7 @@
 
                     collection.Redirects.Add(messageRedirect);
 
-                    collection.Save(session);
+                    await collection.Save(session).ConfigureAwait(false);
                 }
 
                 Bus.Publish(new MessageRedirectCreated
@@ -85,7 +85,7 @@
                 return HttpStatusCode.Created;
             };
 
-            Put["/redirects/{messageredirectid:guid}/"] = parameters =>
+            Put["/redirects/{messageredirectid:guid}/", true] = async (parameters, token) =>
             {
                 Guid messageRedirectId = parameters.messageredirectid;
 
@@ -96,9 +96,9 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
-                    var redirects = MessageRedirectsCollection.GetOrCreate(session);
+                    var redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
 
                     var messageRedirect = redirects[messageRedirectId];
 
@@ -124,7 +124,7 @@
 
                     messageRedirect.LastModifiedTicks = DateTime.UtcNow.Ticks;
 
-                    redirects.Save(session);
+                    await redirects.Save(session).ConfigureAwait(false);
 
                     Bus.Publish(messageRedirectChanged);
 
@@ -132,13 +132,13 @@
                 }
             };
 
-            Delete["/redirects/{messageredirectid:guid}/"] = parameters =>
+            Delete["/redirects/{messageredirectid:guid}/", true] = async (parameters, token) =>
             {
                 Guid messageRedirectId = parameters.messageredirectid;
 
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
-                    var redirects = MessageRedirectsCollection.GetOrCreate(session);
+                    var redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
 
                     var messageRedirect = redirects[messageRedirectId];
 
@@ -149,7 +149,7 @@
 
                     redirects.Redirects.Remove(messageRedirect);
 
-                    redirects.Save(session);
+                    await redirects.Save(session).ConfigureAwait(false);
 
                     Bus.Publish<MessageRedirectRemoved>(evt =>
                     {
@@ -162,11 +162,11 @@
                 return HttpStatusCode.NoContent;
             };
 
-            Head["/redirects"] = _ =>
+            Head["/redirects", true] = async (parameters, token) =>
             {
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
-                    var redirects = MessageRedirectsCollection.GetOrCreate(session);
+                    var redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
 
                     return Negotiate
                         .WithEtagAndLastModified(redirects.ETag, redirects.LastModified)
@@ -174,11 +174,11 @@
                 }
             };
 
-            Get["/redirects"] = _ =>
+            Get["/redirects", true] = async (parameters, token) =>
             {
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
-                    var redirects = MessageRedirectsCollection.GetOrCreate(session);
+                    var redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
 
                     var queryResult = redirects
                         .Sort(Request)
