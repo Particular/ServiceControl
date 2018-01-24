@@ -5,9 +5,9 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Client;
     using ServiceControl.Infrastructure.Extensions;
 
-    public class SearchApi : ScatterGatherApi<string>
+    public class SearchApi : ScatterGatherApiMessageView<string>
     {
-        public override async Task<QueryResult> LocalQuery(Request request, string input)
+        public override async Task<QueryResult<MessagesView>> LocalQuery(Request request, string input)
         {
             using (var session = Store.OpenAsyncSession())
             {
