@@ -6,88 +6,105 @@ namespace ServiceControl.CompositeViews.Messages
     using System.IO;
     using System.Linq;
     using System.Net.Http;
-    using System.Text;
     using System.Threading.Tasks;
+    using Autofac;
     using Nancy;
     using Newtonsoft.Json;
     using NServiceBus.Logging;
+    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceBus.Management.Infrastructure.Settings;
     using HttpStatusCode = System.Net.HttpStatusCode;
 
-    public static class MessageViewQueryExtensions
+    public interface IApi
+    {
+    }
+
+    public class ApisModule : Module
+    {
+        protected override void Load(ContainerBuilder builder)
+        {
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .AssignableTo<IApi>()
+                .AsSelf()
+                .AsImplementedInterfaces()
+                .PropertiesAutowired();
+        }
+    }
+
+    public abstract class ScatterGatherApi<TIn> : IApi
     {
         static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
-        static ILog logger = LogManager.GetLogger(typeof(MessageViewQueryExtensions));
+        static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn>));
 
-        private static QueryResult EmptyResult = new QueryResult(new List<MessagesView>(), new QueryStatsInfo(string.Empty, DateTime.MinValue, 0, 0));
+        public IDocumentStore Store { get; set; }
+        public Settings Settings { get; set; }
+        public Func<HttpClient> HttpClientFactory { get; set; }
 
-        public static async Task<dynamic> CombineWithRemoteResults(this BaseModule module, QueryResult localQueryResult)
+        public async Task<dynamic> Execute(BaseModule module, TIn input)
         {
-            var httpClientFactory = module.HttpClientFactory; // for testing purposes
-            var remotes = module.Settings.RemoteInstances;
+            var remotes = Settings.RemoteInstances;
             var currentRequest = module.Request;
-            var negotiator = module.Negotiate;
 
-            if (remotes.Length > 0)
+            var tasks = new List<Task<QueryResult>>(remotes.Length + 1)
             {
-                await UpdateLocalQueryResultWithRemoteData(currentRequest, httpClientFactory, remotes, localQueryResult).ConfigureAwait(false);
-
-                localQueryResult.Messages.Sort(MessageViewComparer.FromRequest(currentRequest));
-            }
-
-            return negotiator.WithPartialQueryResult(localQueryResult, currentRequest);
-        }
-
-        static async Task UpdateLocalQueryResultWithRemoteData(Request currentRequest, Func<HttpClient> httpClientFactory, string[] remotes, QueryResult localQueryResult)
-        {
-            var tasks = new List<Task<QueryResult>>(remotes.Length);
-            // ReSharper disable once LoopCanBeConvertedToQuery
+                LocalQuery(currentRequest, input)
+            };
             foreach (var remote in remotes)
             {
-                tasks.Add(FetchAndParse(currentRequest, httpClientFactory, remote));
+                tasks.Add(FetchAndParse(currentRequest, remote));
             }
 
-            var highestTotalCount = localQueryResult.QueryStats.TotalCount;
-            var totalCount = localQueryResult.QueryStats.TotalCount;
-            var lastModified = DateTime.MinValue;
-            var etagBuilder = new StringBuilder();
-            foreach (var queryResult in await Task.WhenAll(tasks))
-            {
-                localQueryResult.Messages.AddRange(queryResult.Messages);
-
-                var header = queryResult.QueryStats;
-                totalCount += header.TotalCount;
-
-                if (header.HighestTotalCountOfAllTheInstances > highestTotalCount)
-                {
-                    highestTotalCount = header.HighestTotalCountOfAllTheInstances;
-                }
-
-                if (header.LastModified > lastModified)
-                {
-                    lastModified = header.LastModified;
-                }
-
-                etagBuilder.Append(header.ETag);
-            }
-
-            // not exactly beautiful but we are treating localQueryResult as mutable anyway
-            localQueryResult.QueryStats = new QueryStatsInfo(etagBuilder.ToString(), lastModified, totalCount, highestTotalCount);
+            var response = AggregateResults(currentRequest, await Task.WhenAll(tasks));
+            
+            return module.Negotiate.WithPartialQueryResult(response, currentRequest);
         }
 
-        static async Task<QueryResult> FetchAndParse(Request currentRequest, Func<HttpClient> httpClientFactory, string remoteUri)
+        public abstract Task<QueryResult> LocalQuery(Request request, TIn input);
+
+        public virtual QueryResult AggregateResults(Request request, QueryResult[] results)
+        {
+            var combinedResults = results.SelectMany(x => x.Messages).ToList();
+            var comparer = FinalOrder(request);
+            if(comparer != null)
+                combinedResults.Sort(comparer);
+
+            return new QueryResult(
+                combinedResults,
+                AggregateStats(results.Select(x => x.QueryStats).ToArray())
+            );
+        }
+
+        protected IComparer<MessagesView> FinalOrder(Request request) => MessageViewComparer.FromRequest(request);
+
+        protected virtual QueryStatsInfo AggregateStats(QueryStatsInfo[] infos)
+        {
+            return new QueryStatsInfo(
+                string.Join("", infos.Select(x => x.ETag)),
+                infos.Max(x => x.LastModified),
+                infos.Sum(x => x.TotalCount),
+                infos.Max(x => x.HighestTotalCountOfAllTheInstances)
+            );
+        }
+
+        protected QueryResult Results(IList<MessagesView> results, RavenQueryStatistics stats)
+        {
+            return new QueryResult(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults));
+        }
+
+        async Task<QueryResult> FetchAndParse(Request currentRequest, string remoteUri)
         {
             var instanceUri = new Uri($"{remoteUri}{currentRequest.Path}?{currentRequest.Url.Query}");
-            var httpClient = httpClientFactory();
+            var httpClient = HttpClientFactory();
             try
             {
                 var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, instanceUri)).ConfigureAwait(false);
                 // special case - queried by conversation ID and nothing was found
                 if (rawResponse.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return EmptyResult;
+                    return QueryResult.Empty;
                 }
 
                 return await ParseResult(rawResponse).ConfigureAwait(false);
@@ -95,7 +112,7 @@ namespace ServiceControl.CompositeViews.Messages
             catch (Exception exception)
             {
                 logger.Warn($"Failed to query remote instance at {remoteUri}.", exception);
-                return EmptyResult;
+                return QueryResult.Empty;
             }
         }
 

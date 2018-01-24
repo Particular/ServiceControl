@@ -1,5 +1,6 @@
 namespace ServiceControl.CompositeViews.Messages
 {
+    using System;
     using System.Collections.Generic;
 
     public class QueryResult
@@ -18,5 +19,8 @@ namespace ServiceControl.CompositeViews.Messages
 
         public List<MessagesView> Messages { get; }
         public QueryStatsInfo QueryStats { get; set; }
+
+        public static QueryResult Empty = new QueryResult(new List<MessagesView>(), new QueryStatsInfo(string.Empty, DateTime.MinValue, 0, 0));
+
     }
 }
