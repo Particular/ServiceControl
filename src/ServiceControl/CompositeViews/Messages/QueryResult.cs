@@ -5,22 +5,31 @@ namespace ServiceControl.CompositeViews.Messages
 
     public class QueryResult
     {
-        public QueryResult(List<MessagesView> messages, QueryStatsInfo queryStatsInfo)
+        protected QueryResult(object results, QueryStatsInfo queryStatsInfo)
         {
-            Messages = messages;
+            DynamicResults = results;
             QueryStats = queryStatsInfo;
         }
 
-        public QueryResult(IList<MessagesView> messages, QueryStatsInfo queryStatsInfo)
+        public object DynamicResults { get; }
+
+        public QueryStatsInfo QueryStats { get; }
+    }
+
+    public class QueryResult<TOut> : QueryResult
+    {
+        public QueryResult(List<TOut> results, QueryStatsInfo queryStatsInfo) : base(results, queryStatsInfo)
         {
-            Messages = new List<MessagesView>(messages);
-            QueryStats = queryStatsInfo;
+            Results = results;
         }
 
-        public List<MessagesView> Messages { get; }
-        public QueryStatsInfo QueryStats { get; set; }
+        public QueryResult(IList<TOut> results, QueryStatsInfo queryStatsInfo) : base(results, queryStatsInfo)
+        {
+            Results = new List<TOut>(results);
+        }
 
-        public static QueryResult Empty = new QueryResult(new List<MessagesView>(), new QueryStatsInfo(string.Empty, DateTime.MinValue, 0, 0));
+        public List<TOut> Results { get; }
 
+        public static QueryResult<TOut> Empty = new QueryResult<TOut>(new List<TOut>(), new QueryStatsInfo(string.Empty, DateTime.MinValue, 0, 0));
     }
 }

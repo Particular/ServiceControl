@@ -33,7 +33,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
         {
             var queryStats = queryResult.QueryStats;
 
-            return negotiator.WithModel(queryResult.Messages)
+            return negotiator.WithModel(queryResult.DynamicResults)
                 .WithPagingLinksAndTotalCount(queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances, request)
                 .WithDeterministicEtag(queryStats.ETag)
                 .WithLastModified(queryStats.LastModified);

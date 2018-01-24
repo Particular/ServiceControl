@@ -34,10 +34,10 @@ namespace ServiceControl.CompositeViews.Messages
         }
     }
 
-    public abstract class ScatterGatherApi<TIn> : IApi
+    public abstract class ScatterGatherApi<TIn, TOut> : IApi
     {
         static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
-        static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn>));
+        static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn, TOut>));
 
         public IDocumentStore Store { get; set; }
         public Settings Settings { get; set; }
@@ -48,7 +48,7 @@ namespace ServiceControl.CompositeViews.Messages
             var remotes = Settings.RemoteInstances;
             var currentRequest = module.Request;
 
-            var tasks = new List<Task<QueryResult>>(remotes.Length + 1)
+            var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
             {
                 LocalQuery(currentRequest, input)
             };
@@ -62,22 +62,23 @@ namespace ServiceControl.CompositeViews.Messages
             return module.Negotiate.WithPartialQueryResult(response, currentRequest);
         }
 
-        public abstract Task<QueryResult> LocalQuery(Request request, TIn input);
+        public abstract Task<QueryResult<TOut>> LocalQuery(Request request, TIn input);
 
-        public virtual QueryResult AggregateResults(Request request, QueryResult[] results)
+        public virtual QueryResult<TOut> AggregateResults(Request request, QueryResult<TOut>[] results)
         {
-            var combinedResults = results.SelectMany(x => x.Messages).ToList();
-            var comparer = FinalOrder(request);
-            if(comparer != null)
-                combinedResults.Sort(comparer);
+            var combinedResults = results.SelectMany(x => x.Results).ToList();
 
-            return new QueryResult(
+            ProcessResults(request, combinedResults);
+
+            return new QueryResult<TOut>(
                 combinedResults,
                 AggregateStats(results.Select(x => x.QueryStats).ToArray())
             );
         }
 
-        protected IComparer<MessagesView> FinalOrder(Request request) => MessageViewComparer.FromRequest(request);
+        protected virtual void ProcessResults(Request request, List<TOut> results)
+        {
+        }
 
         protected virtual QueryStatsInfo AggregateStats(QueryStatsInfo[] infos)
         {
@@ -89,12 +90,12 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        protected QueryResult Results(IList<MessagesView> results, RavenQueryStatistics stats)
+        protected QueryResult<TOut> Results(IList<TOut> results, RavenQueryStatistics stats)
         {
-            return new QueryResult(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults));
+            return new QueryResult<TOut>(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults));
         }
 
-        async Task<QueryResult> FetchAndParse(Request currentRequest, string remoteUri)
+        async Task<QueryResult<TOut>> FetchAndParse(Request currentRequest, string remoteUri)
         {
             var instanceUri = new Uri($"{remoteUri}{currentRequest.Path}?{currentRequest.Url.Query}");
             var httpClient = HttpClientFactory();
@@ -104,7 +105,7 @@ namespace ServiceControl.CompositeViews.Messages
                 // special case - queried by conversation ID and nothing was found
                 if (rawResponse.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return QueryResult.Empty;
+                    return QueryResult<TOut>.Empty;
                 }
 
                 return await ParseResult(rawResponse).ConfigureAwait(false);
@@ -112,16 +113,16 @@ namespace ServiceControl.CompositeViews.Messages
             catch (Exception exception)
             {
                 logger.Warn($"Failed to query remote instance at {remoteUri}.", exception);
-                return QueryResult.Empty;
+                return QueryResult<TOut>.Empty;
             }
         }
 
-        static async Task<QueryResult> ParseResult(HttpResponseMessage responseMessage)
+        static async Task<QueryResult<TOut>> ParseResult(HttpResponseMessage responseMessage)
         {
             using (var responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false))
             using (var jsonReader = new JsonTextReader(new StreamReader(responseStream)))
             {
-                var messages = jsonSerializer.Deserialize<List<MessagesView>>(jsonReader);
+                var messages = jsonSerializer.Deserialize<List<TOut>>(jsonReader);
 
                 IEnumerable<string> totalCounts;
                 var totalCount = 0;
@@ -144,7 +145,7 @@ namespace ServiceControl.CompositeViews.Messages
                     lastModified = DateTime.ParseExact(lastModifiedValues.ElementAt(0), "R", CultureInfo.InvariantCulture);
                 }
 
-                return new QueryResult(messages, new QueryStatsInfo(etag, lastModified, totalCount, totalCount));
+                return new QueryResult<TOut>(messages, new QueryStatsInfo(etag, lastModified, totalCount, totalCount));
             }
         }
     }
