@@ -31,7 +31,7 @@
             //search for the message type
             var searchString = typeof(MyMessage).Name;
 
-            Define(context, Master)
+            Define(context, "Remote1", Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) => { bus.SendLocal(new MyMessage()); }))
                 .Done(c => TryGetMany("/api/messages/search/" + searchString, out response, instanceName: Master))
                 .Run(TimeSpan.FromSeconds(40));
@@ -40,7 +40,14 @@
         private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             addressOfRemote = "http://localhost:12121";
-            settings.RemoteInstances = new[] { addressOfRemote };
+            settings.RemoteInstances = new []
+            {
+                new RemoteInstanceSetting
+                {
+                    ApiUri = addressOfRemote,
+                    QueueAddress = "remote1"
+                }
+            };
             settings.AuditQueue = Address.Parse(AuditMaster);
             settings.ErrorQueue = Address.Parse(ErrorMaster);
         }
