@@ -14,7 +14,7 @@
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             config.AppSettings.Settings.Clear();
             // Remote instances
-            config.AppSettings.Settings.Add("ServiceControl/RemoteInstances", "[{'ApiUri':'http://instance1', 'QueueAddress':'instance1@pc1'},{'ApiUri':'http://instance2', 'QueueAddress':'instance1@pc2'}]'");
+            config.AppSettings.Settings.Add("ServiceControl/RemoteInstances", "[{'api_uri':'http://instance1', 'queue_address':'instance1@pc1'},{'api_uri':'http://instance2', 'queue_address':'instance1@pc2'}]'");
             // Various mandatory settings
             config.AppSettings.Settings.Add("ServiceControl/ForwardAuditMessages", "false");
             config.AppSettings.Settings.Add("ServiceControl/ForwardErrorMessages", "false");
@@ -29,7 +29,7 @@
         {
             var settings = new Settings();
             var remoteInstances = settings.RemoteInstances;
-            CollectionAssert.AreEqual(remoteInstances, new List<RemoteInstanceSetting>
+            CollectionAssert.AreEqual(remoteInstances, new []
             {
                 new RemoteInstanceSetting { ApiUri = "http://instance1", QueueAddress = "instance1@pc1"},
                 new RemoteInstanceSetting { ApiUri = "http://instance2", QueueAddress = "instance1@pc2"}
