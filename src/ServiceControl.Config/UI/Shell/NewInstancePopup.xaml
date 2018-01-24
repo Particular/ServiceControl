@@ -112,7 +112,7 @@
                                FontSize="13" 
                                FontWeight="SemiBold" 
                                VerticalAlignment="Center">
-                        <Hyperlink Command="{Binding AddMonitoringInstance}" Style="{StaticResource UnderlinedLink}">Add monitoring endpoint...</Hyperlink>
+                        <Hyperlink Command="{Binding AddMonitoringInstance}" Style="{StaticResource UnderlinedLink}">Add monitoring instance...</Hyperlink>
                     </TextBlock>
 
                 </Grid>
