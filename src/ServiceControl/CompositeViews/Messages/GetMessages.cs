@@ -1,6 +1,5 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using System.Collections.Generic;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class GetMessages : BaseModule

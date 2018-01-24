@@ -323,6 +323,7 @@
     <Compile Include="Infrastructure\RavenDB\Subscriptions\SubscriptionPersister.cs" />
     <Compile Include="Infrastructure\RavenDB\Subscriptions\SubscriptionStorage.cs" />
     <Compile Include="Infrastructure\Settings\ConfigFileSettingsReader.cs" />
+    <Compile Include="Infrastructure\Settings\RemoteInstanceSetting.cs" />
     <Compile Include="Licensing\LicenseCheckFeature.cs" />
     <Compile Include="Licensing\LicenseModule.cs" />
     <Compile Include="LoggingConfigurator.cs" />

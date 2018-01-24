@@ -1,6 +1,5 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Nancy;
     using Raven.Client;

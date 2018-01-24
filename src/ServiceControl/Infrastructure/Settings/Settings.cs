@@ -3,9 +3,11 @@
     using System;
     using System.IO;
     using System.Linq;
+    using Newtonsoft.Json;
     using NLog.Common;
     using NServiceBus;
     using NServiceBus.Logging;
+    using ServiceBus.Management.Infrastructure.Nancy;
 
     public class Settings
     {
@@ -174,7 +176,7 @@
 
         public int RetryHistoryDepth { get; set; }
 
-        public string[] RemoteInstances { get; set; }
+        public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         private Address GetAuditLogQueue()
         {
@@ -396,14 +398,18 @@
             return result;
         }
 
-        private static string[] GetRemoteInstances()
+        private static RemoteInstanceSetting[] GetRemoteInstances()
         {
             var valueRead = SettingsReader<string>.Read("RemoteInstances");
             if (!string.IsNullOrEmpty(valueRead))
             {
-                return valueRead.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+                var jsonSerializer = Newtonsoft.Json.JsonSerializer.Create(JsonNetSerializer.CreateDefault());
+                using (var jsonReader = new JsonTextReader(new StringReader(valueRead)))
+                {
+                    return jsonSerializer.Deserialize<RemoteInstanceSetting[]>(jsonReader) ?? new RemoteInstanceSetting[0];
+                }
             }
-            return new string[] { };
+            return new RemoteInstanceSetting[0];
         }
     }
 }

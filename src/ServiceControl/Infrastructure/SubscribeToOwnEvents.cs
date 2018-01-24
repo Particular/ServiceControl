@@ -25,16 +25,16 @@ namespace ServiceControl.Infrastructure
             {
                 SubscribeForBrokers(localAddress, eventTypes);
 
-                ServiceControlSettings.RemoteInstances.ForEach(remote =>
+                foreach (var remote in ServiceControlSettings.RemoteInstances)
                 {
-                    SubscribeForBrokers(Address.Parse(remote.Address), new []{ messageFailureResolvedByRetryType });
-                });
+                    SubscribeForBrokers(Address.Parse(remote.QueueAddress), new []{ messageFailureResolvedByRetryType });
+                }
             }
             else
             {
                 SubscribeForNonBrokers(localAddress, eventTypes);
 
-                ServiceControlSettings.RemoteInstances.ForEach(remote =>
+                foreach (var remote in ServiceControlSettings.RemoteInstances)
                 {
                     MessageSender.Send(
                         message: new TransportMessage(
@@ -43,11 +43,11 @@ namespace ServiceControl.Infrastructure
                             {
                                 { Headers.ControlMessageHeader, string.Empty },
                                 { Headers.MessageIntent, MessageIntentEnum.Subscribe.ToString() },
-                                { Headers.SubscriptionMessageType, messageFailureResolvedByRetryType.AssemblyQualifiedName },
+                                { Headers.SubscriptionMessageType, messageFailureResolvedByRetryType.FullName }, // assembly qualified name contains version
                                 { Headers.ReplyToAddress, localAddress.ToString() }
                             }),
-                        sendOptions: new SendOptions(Address.Parse(remote.Address)));
-                });
+                        sendOptions: new SendOptions(Address.Parse(remote.QueueAddress)));
+                }
             }
         }
 

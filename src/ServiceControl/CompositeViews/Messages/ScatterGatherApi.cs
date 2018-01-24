@@ -54,7 +54,7 @@ namespace ServiceControl.CompositeViews.Messages
             };
             foreach (var remote in remotes)
             {
-                tasks.Add(FetchAndParse(currentRequest, remote));
+                tasks.Add(FetchAndParse(currentRequest, remote.ApiUri));
             }
 
             var response = AggregateResults(currentRequest, await Task.WhenAll(tasks));

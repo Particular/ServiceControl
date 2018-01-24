@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using NServiceBus;
@@ -65,12 +64,12 @@
                     settings.ErrorQueue = Address.Parse(ErrorRemote);
                     break;
                 case Master:
-                    settings.RemoteInstances = new List<Settings.RemoteInstanceSetting>
+                    settings.RemoteInstances = new[]
                     {
-                        new Settings.RemoteInstanceSetting
+                        new RemoteInstanceSetting
                         {
-                            Uri = addressOfRemote,
-                            Address = Remote1
+                            ApiUri = addressOfRemote,
+                            QueueAddress = Remote1
                         }
                     };
                     settings.AuditQueue = Address.Parse(AuditMaster);

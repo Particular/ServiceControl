@@ -14,7 +14,7 @@
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             config.AppSettings.Settings.Clear();
             // Remote instances
-            config.AppSettings.Settings.Add("ServiceControl/RemoteInstances", "[{'Uri':'http://instance1', 'Address':'instance1@pc1'},{'Uri':'http://instance2', 'Address':'instance1@pc2'}]'");
+            config.AppSettings.Settings.Add("ServiceControl/RemoteInstances", "[{'ApiUri':'http://instance1', 'QueueAddress':'instance1@pc1'},{'ApiUri':'http://instance2', 'QueueAddress':'instance1@pc2'}]'");
             // Various mandatory settings
             config.AppSettings.Settings.Add("ServiceControl/ForwardAuditMessages", "false");
             config.AppSettings.Settings.Add("ServiceControl/ForwardErrorMessages", "false");
@@ -29,18 +29,18 @@
         {
             var settings = new Settings();
             var remoteInstances = settings.RemoteInstances;
-            CollectionAssert.AreEqual(remoteInstances, new List<Settings.RemoteInstanceSetting>
+            CollectionAssert.AreEqual(remoteInstances, new List<RemoteInstanceSetting>
             {
-                new Settings.RemoteInstanceSetting { Uri = "http://instance1", Address = "instance1@pc1"},
-                new Settings.RemoteInstanceSetting { Uri = "http://instance2", Address = "instance1@pc2"}
+                new RemoteInstanceSetting { ApiUri = "http://instance1", QueueAddress = "instance1@pc1"},
+                new RemoteInstanceSetting { ApiUri = "http://instance2", QueueAddress = "instance1@pc2"}
             }, new RemoteInstanceSettingComparer());
         }
 
-        class RemoteInstanceSettingComparer : Comparer<Settings.RemoteInstanceSetting>
+        class RemoteInstanceSettingComparer : Comparer<RemoteInstanceSetting>
         {
-            public override int Compare(Settings.RemoteInstanceSetting x, Settings.RemoteInstanceSetting y)
+            public override int Compare(RemoteInstanceSetting x, RemoteInstanceSetting y)
             {
-                return x.Address.Equals(y.Address) && x.Uri.Equals(y.Uri) ? 0 : 1;
+                return x.QueueAddress.Equals(y.QueueAddress) && x.ApiUri.Equals(y.ApiUri) ? 0 : 1;
             }
         }
     }
