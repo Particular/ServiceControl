@@ -60,6 +60,21 @@
                 .Run(TimeSpan.FromSeconds(40));
         }
 
+        [Test]
+        public void Should_be_found_in_query_by_conversationId()
+        {
+            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+
+            var context = new MyContext();
+            List<MessagesView> response;
+
+            Define(context, Remote1, Master)
+                .WithEndpoint<Sender>(b => b.Given((bus, c) => { bus.SendLocal(new TriggeringMessage()); }))
+                .WithEndpoint<ReceiverRemote>()
+                .Done(c => c.ConversationId != null && TryGetMany($"/api/conversations/{c.ConversationId}", out response, instanceName: Master) && response.Count == 2)
+                .Run(TimeSpan.FromSeconds(40));
+        }
+
         private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
@@ -83,7 +98,8 @@
             {
                 EndpointSetup<DefaultServerWithAudit>()
                     .AuditTo(Address.Parse(AuditMaster))
-                    .AddMapping<MyMessage>(typeof(ReceiverRemote));
+                    .AddMapping<MyMessage>(typeof(ReceiverRemote))
+                    .AddMapping<TriggeredMessage>(typeof(ReceiverRemote));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -99,6 +115,18 @@
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MessageId = Bus.CurrentMessageContext.Id;
 
+                    Thread.Sleep(200);
+                }
+            }
+
+            public class TriggeringMessageHandler : IHandleMessages<TriggeringMessage>
+            {
+                public MyContext Context { get; set; }
+                public IBus Bus { get; set; }
+                public void Handle(TriggeringMessage message)
+                {
+                    Context.ConversationId = Bus.CurrentMessageContext.Headers[Headers.ConversationId];
+                    Bus.Send(new TriggeredMessage());
                     Thread.Sleep(200);
                 }
             }
@@ -127,6 +155,19 @@
                     Thread.Sleep(200);
                 }
             }
+
+            public class TriggeredMessageHandler : IHandleMessages<TriggeredMessage>
+            {
+                public MyContext Context { get; set; }
+                public IBus Bus { get; set; }
+
+                public void Handle(TriggeredMessage message)
+                {
+                    Context.ConversationId = Bus.CurrentMessageContext.Headers[Headers.ConversationId];
+
+                    Thread.Sleep(200);
+                }
+            }
         }
 
         [Serializable]
@@ -135,11 +176,23 @@
             public string PropertyToSearchFor { get; set; }
         }
 
+        public class TriggeringMessage : ICommand
+        {
+            
+        }
+
+        public class TriggeredMessage : ICommand
+        {
+            
+        }
+
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
+
+            public string ConversationId { get; set; }
 
             public string PropertyToSearchFor { get; set; }
         }
