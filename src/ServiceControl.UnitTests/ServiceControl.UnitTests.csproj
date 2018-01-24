@@ -107,6 +107,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Services.Client" />
@@ -133,6 +134,7 @@
     <Compile Include="Infrastructure\RavenDB\Indexes\InMemoryStoreBuilder.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapperTests.cs" />
     <Compile Include="Infrastructure\SerializationTests.cs" />
+    <Compile Include="Infrastructure\Settings\SettingsTests.cs" />
     <Compile Include="MessageExtensions.cs" />
     <Compile Include="Migrations\1.27\SplitFailedMessageDocumentsMigrationTests.cs" />
     <Compile Include="ObjectApprover.cs" />
