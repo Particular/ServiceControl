@@ -1,55 +1,26 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
-    using Infrastructure.Extensions;
-    using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class GetMessages : BaseModule
     {
+        public GetAllMessagesApi GetAllMessagesApi { get; set; }
+        public GetAllMessagesForEndpointApi GetAllMessagesForEndpointApi { get; set; }
+
         public GetMessages() 
         {
-            Get["/messages", true] = async (parameters, token) =>
+            Get["/messages", true] = (parameters, token) =>
             {
-                IList<MessagesView> results;
-                RavenQueryStatistics stats;
-                using (var session = Store.OpenAsyncSession())
-                {
-                    results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                        .IncludeSystemMessagesWhere(Request)
-                        .Statistics(out stats)
-                        .Sort(Request)
-                        .Paging(Request)
-                        .TransformWith<MessagesViewTransformer, MessagesView>()
-                        .ToListAsync()
-                        .ConfigureAwait(false);
-                }
-
-                return await this.CombineWithRemoteResults(new QueryResult(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults))).ConfigureAwait(false);
+                return GetAllMessagesApi.Execute(this);
             };
 
 
-            Get["/endpoints/{name}/messages", true] = async (parameters, token) =>
+            Get["/endpoints/{name}/messages", true] = (parameters, token) =>
             {
-                IList<MessagesView> results;
-                RavenQueryStatistics stats;
-                using (var session = Store.OpenAsyncSession())
-                {
-                    string endpoint = parameters.name;
+                string endpoint = parameters.name;
 
-                    results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                        .IncludeSystemMessagesWhere(Request)
-                        .Where(m => m.ReceivingEndpointName == endpoint)
-                        .Statistics(out stats)
-                        .Sort(Request)
-                        .Paging(Request)
-                        .TransformWith<MessagesViewTransformer, MessagesView>()
-                        .ToListAsync()
-                        .ConfigureAwait(false);
-                }
-
-                return await this.CombineWithRemoteResults(new QueryResult(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults))).ConfigureAwait(false);
+                return GetAllMessagesForEndpointApi.Execute(this, endpoint);
             };
         }
     }
