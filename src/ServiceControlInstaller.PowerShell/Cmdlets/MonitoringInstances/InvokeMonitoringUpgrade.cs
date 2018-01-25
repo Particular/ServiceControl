@@ -15,6 +15,9 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
         public string[] Name;
 
+        [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
+        public SwitchParameter SkipQueueCreation { get; set; }
+
 
         protected override void BeginProcessing()
         {
@@ -36,6 +39,8 @@ namespace ServiceControlInstaller.PowerShell
                     WriteWarning($"No action taken. An instance called {name} was not found");
                     break;
                 }
+
+                instance.SkipQueueCreation = SkipQueueCreation;
                 
                 if (!installer.Upgrade(instance))
                 {

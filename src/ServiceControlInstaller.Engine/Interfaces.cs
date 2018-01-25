@@ -68,7 +68,7 @@
         bool SkipQueueCreation { get; }
     }
 
-    public interface IMonitoringInstance : IServiceInstance, IServicePaths, ITransportConfig, IHttpInstance, IURLInfo
+    public interface IMonitoringInstance : IServiceInstance, IServicePaths, ITransportConfig, IHttpInstance, IURLInfo, IInstallable
     {
     }
 

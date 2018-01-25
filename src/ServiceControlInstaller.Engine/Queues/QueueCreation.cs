@@ -24,7 +24,8 @@
             RunQueueCreation(instance.InstallPath,
                 Constants.MonitoringExe,
                 instance.Name,
-                accountName);
+                accountName, 
+                instance.SkipQueueCreation);
         }
 
         static void RunQueueCreation(string installPath, string exeName, string serviceName, string serviceAccount, bool skipQueueCreation = false)
