@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -9,6 +10,7 @@
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_messages_have_been_successfully_processed_by_multiple_instances : AcceptanceTest
@@ -74,6 +76,28 @@
                 .Done(c => c.ConversationId != null && TryGetMany($"/api/conversations/{c.ConversationId}", out response, instanceName: Master) && response.Count == 2)
                 .Run(TimeSpan.FromSeconds(40));
         }
+
+        [Test]
+        public void Should_list_the_endpoints_in_the_list_of_known_endpoints()
+        {
+
+
+            var context = new MyContext();
+            List<KnownEndpointsView> knownEndpoints = null;
+
+            Define(context, Remote1, Master)
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    bus.Send(new MyMessage());
+                }))
+                .WithEndpoint<ReceiverRemote>()
+                .Done(c => TryGetMany("/api/endpoints/known", out knownEndpoints, m => m.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint, Master))
+                .Run(TimeSpan.FromSeconds(20));
+
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).EndpointDetails.Name);
+            Assert.AreEqual(Environment.MachineName, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);
+        }
+
 
         private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
