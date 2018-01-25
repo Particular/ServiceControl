@@ -24,6 +24,12 @@
             return this;
         }
 
+        public EndpointConfigurationBuilder ErrorTo(Address addressOfErrorQueue)
+        {
+            configuration.AddressOfErrorQueue = addressOfErrorQueue;
+            return this;
+        }
+
         public EndpointConfigurationBuilder CustomMachineName(string customMachineName)
         {
             configuration.CustomMachineName = customMachineName;
