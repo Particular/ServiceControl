@@ -12,18 +12,51 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Infrastructure.Settings;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_messages_have_been_successfully_processed_by_multiple_instances : AcceptanceTest
     {
         private const string Master = "master";
-        private const string AuditMaster = "audit";
-        private const string ErrorMaster = "error";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
         private const string Remote1 = "remote1";
-        private const string AuditRemote = "audit1";
-        private const string ErrorRemote = "error1";
+        private static string AuditRemote = $"{Remote1}.audit";
+        private static string ErrorRemote = $"{Remote1}.error";
 
         private string addressOfRemote;
 
+        [Test]
+        public void Should_be_reported_by_get_messages_api()
+        {
+            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+
+            var context = new MyContext();
+            List<MessagesView> response = new List<MessagesView>();
+
+            Define(context, Remote1, Master)
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    bus.Send(new MyMessage());
+                    bus.SendLocal(new MyMessage());
+                }))
+                .WithEndpoint<ReceiverRemote>()
+                .Done(c => TryGetMany("/api/messages/", out response, instanceName: Master) && response.Count == 2)
+                .Run(TimeSpan.FromSeconds(40));
+
+            var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Master].ApiUrl);
+            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
+
+            var masterMessage = response.SingleOrDefault(msg => msg.MessageId == context.MasterMessageId);
+
+            Assert.NotNull(masterMessage, "Master message not found");
+            Assert.AreEqual(expectedMasterInstanceId, masterMessage.InstanceId, "Master instance id mismatch");
+
+            var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
+
+            Assert.NotNull(remote1Message, "Remote1 message not found");
+            Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
+        }
 
         [Test]
         public void Should_be_found_in_search_by_messageType()
@@ -31,7 +64,7 @@
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
             var context = new MyContext();
-            List<MessagesView> response;
+            List<MessagesView> response = new List<MessagesView>();
 
             //search for the message type
             var searchString = typeof(MyMessage).Name;
@@ -45,6 +78,19 @@
                 .WithEndpoint<ReceiverRemote>()
                 .Done(c => TryGetMany("/api/messages/search/" + searchString, out response, instanceName: Master) && response.Count == 2)
                 .Run(TimeSpan.FromSeconds(40));
+
+            var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Master].ApiUrl);
+            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
+
+            var masterMessage = response.SingleOrDefault(msg => msg.MessageId == context.MasterMessageId);
+
+            Assert.NotNull(masterMessage, "Master message not found");
+            Assert.AreEqual(expectedMasterInstanceId, masterMessage.InstanceId, "Master instance id mismatch");
+
+            var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
+
+            Assert.NotNull(remote1Message, "Remote1 message not found");
+            Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
         }
 
         [Test]
@@ -58,7 +104,7 @@
             Define(context, Remote1, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) => { bus.Send(new MyMessage()); }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c => c.MessageId != null && TryGetMany("/api/messages/search/" + c.MessageId, out response, instanceName: Master))
+                .Done(c => c.Remote1MessageId != null && TryGetMany("/api/messages/search/" + c.Remote1MessageId, out response, instanceName: Master))
                 .Run(TimeSpan.FromSeconds(40));
         }
 
@@ -75,6 +121,63 @@
                 .WithEndpoint<ReceiverRemote>()
                 .Done(c => c.ConversationId != null && TryGetMany($"/api/conversations/{c.ConversationId}", out response, instanceName: Master) && response.Count == 2)
                 .Run(TimeSpan.FromSeconds(40));
+        }
+
+        [Test]
+        public void Should_be_reported_by_endpoint_get_messages_api()
+        {
+            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+
+            var context = new MyContext();
+            List<MessagesView> response = new List<MessagesView>();
+
+            var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
+
+            Define(context, Remote1, Master)
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    bus.Send(new MyMessage());
+                }))
+                .WithEndpoint<ReceiverRemote>()
+                .Done(c => TryGetMany($"/api/endpoints/{endpointName}/messages/", out response, instanceName: Master) && response.Count == 1)
+                .Run(TimeSpan.FromSeconds(40));
+
+            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
+
+            var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
+
+            Assert.NotNull(remote1Message, "Remote1 message not found");
+            Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
+        }
+
+        [Test]
+        public void Should_be_found_in_endpoint_search_by_messageType()
+        {
+            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+
+            var context = new MyContext();
+            List<MessagesView> response = new List<MessagesView>();
+
+            var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
+
+            //search for the message type
+            var searchString = typeof(MyMessage).Name;
+
+            Define(context, Remote1, Master)
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    bus.Send(new MyMessage());
+                }))
+                .WithEndpoint<ReceiverRemote>()
+                .Done(c => TryGetMany($"/api/endpoints/{endpointName}/messages/search/" + searchString, out response, instanceName: Master) && response.Count == 1)
+                .Run(TimeSpan.FromSeconds(40));
+
+            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
+
+            var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
+
+            Assert.NotNull(remote1Message, "Remote1 message not found");
+            Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
         }
 
         [Test]
@@ -142,7 +245,7 @@
                 public void Handle(MyMessage message)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MasterMessageId = Bus.CurrentMessageContext.Id;
 
                     Thread.Sleep(200);
                 }
@@ -179,7 +282,7 @@
                 public void Handle(MyMessage message)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.Remote1MessageId = Bus.CurrentMessageContext.Id;
 
                     Thread.Sleep(200);
                 }
@@ -202,28 +305,26 @@
         [Serializable]
         public class MyMessage : ICommand
         {
-            public string PropertyToSearchFor { get; set; }
         }
 
         public class TriggeringMessage : ICommand
         {
-            
+
         }
 
         public class TriggeredMessage : ICommand
         {
-            
+
         }
 
         public class MyContext : ScenarioContext
         {
-            public string MessageId { get; set; }
+            public string MasterMessageId { get; set; }
+            public string Remote1MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
             public string ConversationId { get; set; }
-
-            public string PropertyToSearchFor { get; set; }
         }
     }
 }
