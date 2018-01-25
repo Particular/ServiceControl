@@ -1,6 +1,5 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using System;
     using System.Collections.Generic;
 
     public class QueryResult
@@ -30,6 +29,6 @@ namespace ServiceControl.CompositeViews.Messages
 
         public List<TOut> Results { get; }
 
-        public static QueryResult<TOut> Empty = new QueryResult<TOut>(new List<TOut>(), new QueryStatsInfo(string.Empty, DateTime.MinValue, 0, 0));
+        public static QueryResult<TOut> Empty = new QueryResult<TOut>(new List<TOut>(), QueryStatsInfo.Zero);
     }
 }

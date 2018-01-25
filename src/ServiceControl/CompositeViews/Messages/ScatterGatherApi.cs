@@ -90,10 +90,18 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        protected QueryResult<TOut> Results(IList<TOut> results, RavenQueryStatistics stats)
+        protected QueryResult<TOut> Results(IList<TOut> results, RavenQueryStatistics stats = null)
         {
-            return new QueryResult<TOut>(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults));
+            if (stats != null)
+            {
+                return new QueryResult<TOut>(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults));
+            }
+            else
+            {
+                return new QueryResult<TOut>(results, QueryStatsInfo.Zero);
+            }
         }
+
 
         async Task<QueryResult<TOut>> FetchAndParse(Request currentRequest, string remoteUri)
         {
