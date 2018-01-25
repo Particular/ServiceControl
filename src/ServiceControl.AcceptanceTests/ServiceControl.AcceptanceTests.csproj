@@ -258,6 +258,7 @@
     <Compile Include="MessageRedirects\When_no_redirects_have_been_created.cs" />
     <Compile Include="Migrations\SplitFailedMessageDocumentsMigrationTests.cs" />
     <Compile Include="MultiInstance\When_a_message_retry_audit_is_sent_to_a_remote_instance.cs" />
+    <Compile Include="MultiInstance\When_issuing_retry_on_master.cs" />
     <Compile Include="MultiInstance\When_remote_instance_is_not_reachable.cs" />
     <Compile Include="MultiInstance\When_messages_have_been_successfully_processed_by_multiple_instances.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_retried.cs" />

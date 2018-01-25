@@ -1,8 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Linq;
-    using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -14,7 +12,7 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    public class When_a_message_retry_audit_is_sent_to_a_remote_instance : AcceptanceTest
+    public class When_issuing_retry_on_master : AcceptanceTest
     {
         private const string Master = "master";
         private const string AuditMaster = "audit";
@@ -27,7 +25,7 @@
 
 
         [Test]
-        public void Should_mark_as_resolved_on_master()
+        public void Should_be_forwarded_to_remote()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
@@ -39,14 +37,15 @@
                 .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c =>
                 {
-                    if (!GetFailedMessage(c, out failure))
+                    if (!GetFailedMessage(c, Remote1, out failure) && !c.RetryIssued)
                     {
                         return false;
                     }
 
-                    if (failure.Status == FailedMessageStatus.Unresolved)
+                    if (failure.Status == FailedMessageStatus.Unresolved && !c.RetryIssued)
                     {
-                        IssueRetry(c, () => Post<object>($"/api/recoverability/groups/{failure.FailureGroups.First().Id}/errors/retry", null, null, Master));
+                        c.RetryIssued = true;
+                        Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_name={Remote1}", null, null, Master);
                         return false;
                     }
 
@@ -70,7 +69,8 @@
                         new RemoteInstanceSetting
                         {
                             ApiUri = addressOfRemote,
-                            QueueAddress = Remote1
+                            QueueAddress = Remote1,
+                            InstanceName = Remote1,
                         }
                     };
                     settings.AuditQueue = Address.Parse(AuditMaster);
@@ -79,7 +79,7 @@
             }
         }
 
-        bool GetFailedMessage(MyContext c, out FailedMessage failure)
+        bool GetFailedMessage(MyContext c, string instance, out FailedMessage failure)
         {
             failure = null;
             if (c.MessageId == null)
@@ -87,25 +87,11 @@
                 return false;
             }
 
-            if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure, null, Master))
+            if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure, null, instance))
             {
                 return false;
             }
             return true;
-        }
-
-        void IssueRetry(MyContext c, Action retryAction)
-        {
-            if (c.RetryIssued)
-            {
-                Thread.Sleep(1000); //todo: add support for a "default" delay when Done() returns false
-            }
-            else
-            {
-                c.RetryIssued = true;
-
-                retryAction();
-            }
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder
@@ -113,7 +99,11 @@
             public FailureEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
+                    .WithConfig<TransportConfig>(c =>
+                    {
+                        c.MaxRetries = 0;
+                    })
+                    .ErrorTo(Address.Parse(ErrorRemote))
                     .AuditTo(Address.Parse(AuditRemote));
             }
 
