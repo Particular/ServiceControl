@@ -17,7 +17,7 @@ namespace ServiceControl.CompositeViews.Messages
             public string Endpoint { get; set; }
         }
 
-        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, Input input)
+        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, Input input, string instanceId)
         {
             using (var session = Store.OpenAsyncSession())
             {
