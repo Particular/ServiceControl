@@ -14,7 +14,7 @@
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             config.AppSettings.Settings.Clear();
             // Remote instances
-            config.AppSettings.Settings.Add("ServiceControl/RemoteInstances", "[{'api_uri':'http://instance1', 'queue_address':'instance1@pc1'},{'api_uri':'http://instance2', 'queue_address':'instance1@pc2'}]'");
+            config.AppSettings.Settings.Add("ServiceControl/RemoteInstances", "[{'api_uri':'http://instance1', 'queue_address':'instance1@pc1', 'instance_name':'instance1'},{'api_uri':'http://instance2', 'queue_address':'instance1@pc2', 'instance_name':'instance2'}]'");
             // Various mandatory settings
             config.AppSettings.Settings.Add("ServiceControl/ForwardAuditMessages", "false");
             config.AppSettings.Settings.Add("ServiceControl/ForwardErrorMessages", "false");
@@ -31,8 +31,8 @@
             var remoteInstances = settings.RemoteInstances;
             CollectionAssert.AreEqual(remoteInstances, new []
             {
-                new RemoteInstanceSetting { ApiUri = "http://instance1", QueueAddress = "instance1@pc1"},
-                new RemoteInstanceSetting { ApiUri = "http://instance2", QueueAddress = "instance1@pc2"}
+                new RemoteInstanceSetting { ApiUri = "http://instance1", QueueAddress = "instance1@pc1", InstanceName = "instance1" },
+                new RemoteInstanceSetting { ApiUri = "http://instance2", QueueAddress = "instance1@pc2", InstanceName = "instance2" }
             }, new RemoteInstanceSettingComparer());
         }
 
@@ -40,7 +40,7 @@
         {
             public override int Compare(RemoteInstanceSetting x, RemoteInstanceSetting y)
             {
-                return x.QueueAddress.Equals(y.QueueAddress) && x.ApiUri.Equals(y.ApiUri) ? 0 : 1;
+                return x.QueueAddress.Equals(y.QueueAddress) && x.ApiUri.Equals(y.ApiUri) && x.InstanceName.Equals(y.InstanceName) ? 0 : 1;
             }
         }
     }
