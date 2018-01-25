@@ -1,5 +1,6 @@
 namespace ServiceControl.SagaAudit
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Nancy;
@@ -7,9 +8,9 @@ namespace ServiceControl.SagaAudit
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Extensions;
 
-    public class ListSagasApi : ScatterGatherApi<NoInput, SagaListIndex.Result[]>
+    public class ListSagasApi : ScatterGatherApi<NoInput, List<SagaListIndex.Result>>
     {
-        public override async Task<QueryResult<SagaListIndex.Result[]>> LocalQuery(Request request, NoInput input)
+        public override async Task<QueryResult<List<SagaListIndex.Result>>> LocalQuery(Request request, NoInput input)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -20,13 +21,13 @@ namespace ServiceControl.SagaAudit
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return Results(results.ToArray(), stats);
+                return Results(results.ToList(), stats);
             }
         }
 
-        protected override SagaListIndex.Result[] ProcessResults(Request request, QueryResult<SagaListIndex.Result[]>[] results)
+        protected override List<SagaListIndex.Result> ProcessResults(Request request, QueryResult<List<SagaListIndex.Result>>[] results)
         {
-            return results.SelectMany(p => p.Results).ToArray();
+            return results.SelectMany(p => p.Results).ToList();
         }
     }
 }
