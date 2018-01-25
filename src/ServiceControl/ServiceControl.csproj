@@ -262,9 +262,11 @@
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="App_Packages\StackTraceParser\StackTraceParser.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
+    <Compile Include="CompositeViews\Endpoints\GetKnownEndpointsApi.cs" />
     <Compile Include="CompositeViews\Endpoints\HeartbeatInformation.cs" />
     <Compile Include="CompositeViews\Endpoints\KnownEndpointIndex.cs" />
     <Compile Include="CompositeViews\Endpoints\EnableEndpointMonitoring.cs" />
+    <Compile Include="CompositeViews\Endpoints\KnownEndpointsView.cs" />
     <Compile Include="CompositeViews\Messages\GetAllMessagesApi.cs" />
     <Compile Include="CompositeViews\Messages\GetAllMessagesForEndpointApi.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
