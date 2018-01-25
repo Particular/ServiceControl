@@ -5,7 +5,8 @@ namespace ServiceControl.CompositeViews.Messages
 
     public static class NoInputExtensions
     {
-        public static Task<dynamic> Execute<TOut>(this ScatterGatherApi<NoInput, TOut> api, BaseModule module)
+        public static Task<dynamic> Execute<TOut>(this ScatterGatherApi<NoInput, TOut> api, BaseModule module) 
+            where TOut : class
         {
             return api.Execute(module, NoInput.Instance);
         }

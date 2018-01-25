@@ -11,7 +11,7 @@
     {
         protected string BaseUrl => Request.Url.SiteBase + Request.Url.BasePath;
 
-        protected new Negotiator Negotiate
+        public new Negotiator Negotiate
         {
             get
             {

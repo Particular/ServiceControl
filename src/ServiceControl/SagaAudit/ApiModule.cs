@@ -1,45 +1,26 @@
 namespace ServiceControl.SagaAudit
 {
     using System;
-    using Infrastructure.Extensions;
+    using System.Linq;
+    using Nancy;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using Nancy;
-    using System.Linq;
+    using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Infrastructure.Extensions;
 
     public class ApiModule : BaseModule
     {
+        public ListSagasApi ListSagasApi { get; set; }
+        public GetSagaByIdApi GetSagaByIdApi { get; set; }
+
         public ApiModule()
         {
-            Get["/sagas/{id}"] = parameters =>
-            {
-                using (var session = Store.OpenSession())
-                {
-                    Guid sagaId = parameters.id;
-                    RavenQueryStatistics stats;
-                    var sagaHistory =
-                        session.Query<SagaHistory, SagaDetailsIndex>()
-                            .Statistics(out stats)
-                            .SingleOrDefault(x => x.SagaId == sagaId);
+            Get["/sagas/{id}", true] = (parameters, token) => GetSagaByIdApi.Execute(this, (Guid) parameters.id);
 
-                    if (sagaHistory == null)
-                    {
-                        return HttpStatusCode.NotFound;
-                    }
+            Get["/sagas", true] = (_, token) => ListSagasApi.Execute(this, NoInput.Instance);
 
-                    var lastModified = sagaHistory.Changes.OrderByDescending(x => x.FinishTime)
-                        .Select(y => y.FinishTime)
-                        .First();
-
-                    return Negotiate
-                        .WithModel(sagaHistory)
-                        .WithLastModified(lastModified);
-                }
-            };
-
-
-            Get["/sagas"] = _ =>
+            Get["/sagas2"] = _ =>
             {
                 using (var session = Store.OpenSession())
                 {
@@ -49,6 +30,7 @@ namespace ServiceControl.SagaAudit
                             .Statistics(out stats)
                             .Paging(Request)
                             .ToArray();
+
 
                     return Negotiate
                         .WithModel(results)
