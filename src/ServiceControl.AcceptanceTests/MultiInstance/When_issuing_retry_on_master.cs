@@ -69,8 +69,7 @@
                         new RemoteInstanceSetting
                         {
                             ApiUri = addressOfRemote,
-                            QueueAddress = Remote1,
-                            InstanceName = Remote1,
+                            QueueAddress = Remote1
                         }
                     };
                     settings.AuditQueue = Address.Parse(AuditMaster);
