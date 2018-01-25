@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
-    using System.Linq;
     using Infrastructure.Extensions;
     using Nancy;
     using NServiceBus;
@@ -16,9 +15,9 @@
 
         public CustomChecksModule()
         {
-            Get["/customchecks"] = _ =>
+            Get["/customchecks", true] = async (_, token) =>
             {
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
                     RavenQueryStatistics stats;
                     var query =
@@ -26,9 +25,10 @@
 
                     query = AddStatusFilter(query);
 
-                    var results = query
+                    var results = await query
                         .Paging(Request)
-                        .ToArray();
+                        .ToListAsync()
+                        .ConfigureAwait(false);
 
                     return Negotiate
                         .WithModel(results)

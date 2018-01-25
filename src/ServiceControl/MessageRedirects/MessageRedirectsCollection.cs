@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Raven.Abstractions.Data;
     using Raven.Client;
 
@@ -22,15 +23,15 @@
         // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
         public List<MessageRedirect> Redirects { get; set; } = new List<MessageRedirect>();
 
-        public void Save(IDocumentSession session)
+        public async Task Save(IAsyncDocumentSession session)
         {
-            session.Store(this);
-            session.SaveChanges();
+            await session.StoreAsync(this).ConfigureAwait(false);
+            await session.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        public static MessageRedirectsCollection GetOrCreate(IDocumentSession session)
+        public static async Task<MessageRedirectsCollection> GetOrCreate(IAsyncDocumentSession session)
         {
-            var redirects = session.Load<MessageRedirectsCollection>(DefaultId);
+            var redirects = await session.LoadAsync<MessageRedirectsCollection>(DefaultId).ConfigureAwait(false);
 
             if (redirects != null)
             {

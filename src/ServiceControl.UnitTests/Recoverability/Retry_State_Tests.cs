@@ -16,6 +16,7 @@ using NServiceBus.ObjectBuilder.Common;
 namespace ServiceControl.UnitTests.Recoverability
 {
     using System.Threading;
+    using System.Threading.Tasks;
     using ServiceControl.Operations.BodyStorage;
 
     [TestFixture]
@@ -65,7 +66,7 @@ namespace ServiceControl.UnitTests.Recoverability
         }
 
         [Test]
-        public void When_a_group_is_prepared_with_three_batches_and_SC_is_restarted_while_the_first_group_is_being_forwarded_then_the_count_still_matches()
+        public async Task When_a_group_is_prepared_with_three_batches_and_SC_is_restarted_while_the_first_group_is_being_forwarded_then_the_count_still_matches()
         {
             var retryManager = new RetryingManager();
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
@@ -94,10 +95,10 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 documentStore.WaitForIndexing();
 
-                using (var session = documentStore.OpenSession())
+                using (var session = documentStore.OpenAsyncSession())
                 {
-                    processor.ProcessBatches(session, CancellationToken.None); // mark ready
-                    session.SaveChanges();
+                    await processor.ProcessBatches(session, CancellationToken.None); // mark ready
+                    await session.SaveChangesAsync();
 
 
                     // Simulate SC restart
@@ -108,12 +109,12 @@ namespace ServiceControl.UnitTests.Recoverability
                     {
                         OperationManager = retryManager
                     };
-                    documentManager.RebuildRetryOperationState(session);
+                    await documentManager.RebuildRetryOperationState(session);
 
                     processor = new RetryProcessor(sender, testBus, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, testBus, configure), retryManager);
 
-                    processor.ProcessBatches(session, CancellationToken.None);
-                    session.SaveChanges();
+                    await processor.ProcessBatches(session, CancellationToken.None);
+                    await session.SaveChangesAsync();
                 }
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
@@ -122,7 +123,7 @@ namespace ServiceControl.UnitTests.Recoverability
         }
 
         [Test]
-        public void When_a_group_is_forwarded_the_status_is_Completed()
+        public async Task When_a_group_is_forwarded_the_status_is_Completed()
         {
             var retryManager = new RetryingManager();
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
@@ -147,13 +148,13 @@ namespace ServiceControl.UnitTests.Recoverability
                 var returnToSender = new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, testBus, configure);
                 var processor = new RetryProcessor(sender, testBus, returnToSender, retryManager);
 
-                using (var session = documentStore.OpenSession())
+                using (var session = documentStore.OpenAsyncSession())
                 {
-                    processor.ProcessBatches(session, CancellationToken.None); // mark ready
-                    session.SaveChanges();
+                    await processor.ProcessBatches(session, CancellationToken.None); // mark ready
+                    await session.SaveChangesAsync();
 
-                    processor.ProcessBatches(session, CancellationToken.None);
-                    session.SaveChanges();
+                    await processor.ProcessBatches(session, CancellationToken.None);
+                    await session.SaveChangesAsync();
                 }
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
@@ -162,7 +163,7 @@ namespace ServiceControl.UnitTests.Recoverability
         }
 
         [Test]
-        public void When_a_group_has_one_batch_out_of_two_forwarded_the_status_is_Forwarding()
+        public async Task When_a_group_has_one_batch_out_of_two_forwarded_the_status_is_Forwarding()
         {
             var retryManager = new RetryingManager();
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
@@ -189,13 +190,13 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 documentStore.WaitForIndexing();
 
-                using (var session = documentStore.OpenSession())
+                using (var session = documentStore.OpenAsyncSession())
                 {
-                    processor.ProcessBatches(session, CancellationToken.None); // mark ready
-                    session.SaveChanges();
+                    await processor.ProcessBatches(session, CancellationToken.None); // mark ready
+                    await session.SaveChangesAsync();
 
-                    processor.ProcessBatches(session, CancellationToken.None);
-                    session.SaveChanges();
+                    await processor.ProcessBatches(session, CancellationToken.None);
+                    await session.SaveChangesAsync();
                 }
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
