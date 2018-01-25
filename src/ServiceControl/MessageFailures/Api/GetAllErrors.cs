@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System.Collections.Generic;
-    using System.Linq;
     using Infrastructure.Extensions;
     using Nancy;
     using Raven.Abstractions.Data;
@@ -13,16 +12,17 @@
     {
         public GetAllErrors()
         {
-            Head["/errors"] = _ =>
+            Head["/errors", true] = async (_, token) =>
             {
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
-                    var queryResult = session.Advanced
-                        .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    var queryResult = await session.Advanced
+                        .AsyncLuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .FilterByStatusWhere(Request)
                         .FilterByLastModifiedRange(Request)
                         .FilterByQueueAddress(Request)
-                        .QueryResult;
+                        .QueryResultAsync
+                        .ConfigureAwait(false);
 
                     return Negotiate
                         .WithTotalCount(queryResult.TotalResults)
@@ -30,14 +30,14 @@
                 }
             };
 
-            Get["/errors"] = _ =>
+            Get["/errors", true] = async (_, token) =>
             {
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
                     RavenQueryStatistics stats;
 
-                    var results = session.Advanced
-                        .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    var results = await session.Advanced
+                        .AsyncLuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
                         .FilterByLastModifiedRange(Request)
@@ -46,7 +46,7 @@
                         .Paging(Request)
                         .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                         .SelectFields<FailedMessageView>()
-                        .ToArray();
+                        .ToListAsync();
 
                     return Negotiate
                         .WithModel(results)
@@ -55,15 +55,15 @@
                 }
             };
 
-            Get["/endpoints/{name}/errors"] = parameters =>
+            Get["/endpoints/{name}/errors", true] = async (parameters, token) =>
             {
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
                     string endpoint = parameters.name;
 
                     RavenQueryStatistics stats;
-                    var results = session.Advanced
-                        .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    var results = await session.Advanced
+                        .AsyncLuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
                         .AndAlso()
@@ -73,7 +73,8 @@
                         .Paging(Request)
                         .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                         .SelectFields<FailedMessageView>()
-                        .ToArray();
+                        .ToListAsync()
+                        .ConfigureAwait(false);
 
                     return Negotiate
                         .WithModel(results)
@@ -82,20 +83,20 @@
                 }
             };
 
-            Get["/errors/summary"] = _ =>
+            Get["/errors/summary", true] = async (_, token) =>
             {
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
-                    var facetResults = session.Query<FailedMessage, FailedMessageFacetsIndex>()
-                        .ToFacets(new List<Facet>
+                    var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
+                        .ToFacetsAsync(new List<Facet>
                                     {
                                         new Facet {Name = "Name", DisplayName="Endpoints"},
                                         new Facet {Name = "Host", DisplayName = "Hosts"},
                                         new Facet {Name = "MessageType", DisplayName = "Message types"},
                                     })
-                        .Results;
+                        .ConfigureAwait(false);
 
-                    return Negotiate.WithModel(facetResults);
+                    return Negotiate.WithModel(facetResults.Results);
                 }
             };
         }

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
@@ -78,9 +79,14 @@
 
             protected override void OnStart()
             {
-                using (var session = store.OpenSession())
+                StartAsync().GetAwaiter().GetResult();
+            }
+
+            private async Task StartAsync()
+            {
+                using (var session = store.OpenAsyncSession())
                 {
-                    retryDocumentManager.RebuildRetryOperationState(session);
+                    await retryDocumentManager.RebuildRetryOperationState(session).ConfigureAwait(false);
                 }
             }
 
@@ -103,11 +109,15 @@
 
             internal bool AdoptOrphanedBatches()
             {
-                bool hasMoreWorkToDo;
+                return AdoptOrphanedBatchesAsync().GetAwaiter().GetResult();
+            }
 
-                using (var session = store.OpenSession())
+            private async Task<bool> AdoptOrphanedBatchesAsync()
+            {
+                bool hasMoreWorkToDo;
+                using (var session = store.OpenAsyncSession())
                 {
-                    retryDocumentManager.AdoptOrphanedBatches(session, startTime, out hasMoreWorkToDo);
+                    hasMoreWorkToDo = await retryDocumentManager.AdoptOrphanedBatches(session, startTime).ConfigureAwait(false);
                 }
 
                 if (!hasMoreWorkToDo)
@@ -163,20 +173,25 @@
             {
                 try
                 {
-                    bool batchesProcessed;
-                    do
-                    {
-                        using (var session = store.OpenSession())
-                        {
-                            batchesProcessed = processor.ProcessBatches(session, shuttingDown.Token);
-                            session.SaveChanges();
-                        }
-                    } while (batchesProcessed && !shuttingDown.IsCancellationRequested);
+                    ProcessAsync().GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {
                     log.Error("Error during retry batch processing", ex);
                 }
+            }
+
+            private async Task ProcessAsync()
+            {
+                bool batchesProcessed;
+                do
+                {
+                    using (var session = store.OpenAsyncSession())
+                    {
+                        batchesProcessed = await processor.ProcessBatches(session, shuttingDown.Token).ConfigureAwait(false);
+                        await session.SaveChangesAsync().ConfigureAwait(false);
+                    }
+                } while (batchesProcessed && !shuttingDown.IsCancellationRequested);
             }
 
             IDocumentStore store;
