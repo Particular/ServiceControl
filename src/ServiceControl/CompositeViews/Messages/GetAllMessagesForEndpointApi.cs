@@ -4,6 +4,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Threading.Tasks;
     using Nancy;
+    using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.Infrastructure.Extensions;
