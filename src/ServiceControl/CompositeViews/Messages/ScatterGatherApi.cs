@@ -35,6 +35,7 @@ namespace ServiceControl.CompositeViews.Messages
     }
 
     public abstract class ScatterGatherApi<TIn, TOut> : IApi
+        where TOut: class
     {
         static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
         static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn, TOut>));
@@ -58,17 +59,16 @@ namespace ServiceControl.CompositeViews.Messages
             }
 
             var response = AggregateResults(currentRequest, await Task.WhenAll(tasks));
-            
-            return module.Negotiate.WithPartialQueryResult(response, currentRequest);
+
+            var negotiate = module.Negotiate;
+            return negotiate.WithPartialQueryResult(response, currentRequest);
         }
 
         public abstract Task<QueryResult<TOut>> LocalQuery(Request request, TIn input);
 
         public virtual QueryResult<TOut> AggregateResults(Request request, QueryResult<TOut>[] results)
         {
-            var combinedResults = results.SelectMany(x => x.Results).ToList();
-
-            ProcessResults(request, combinedResults);
+            var combinedResults = ProcessResults(request, results);
 
             return new QueryResult<TOut>(
                 combinedResults,
@@ -76,9 +76,7 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        protected virtual void ProcessResults(Request request, List<TOut> results)
-        {
-        }
+        protected abstract TOut ProcessResults(Request request, QueryResult<TOut>[] results);
 
         protected virtual QueryStatsInfo AggregateStats(QueryStatsInfo[] infos)
         {
@@ -90,16 +88,11 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        protected QueryResult<TOut> Results(IList<TOut> results, RavenQueryStatistics stats = null)
+        protected QueryResult<TOut> Results(TOut results, RavenQueryStatistics stats = null)
         {
-            if (stats != null)
-            {
-                return new QueryResult<TOut>(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults));
-            }
-            else
-            {
-                return new QueryResult<TOut>(results, QueryStatsInfo.Zero);
-            }
+            return stats != null 
+                ? new QueryResult<TOut>(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults)) 
+                : new QueryResult<TOut>(results, QueryStatsInfo.Zero);
         }
 
 
@@ -130,7 +123,7 @@ namespace ServiceControl.CompositeViews.Messages
             using (var responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false))
             using (var jsonReader = new JsonTextReader(new StreamReader(responseStream)))
             {
-                var messages = jsonSerializer.Deserialize<List<TOut>>(jsonReader);
+                var remoteResults = jsonSerializer.Deserialize<TOut>(jsonReader);
 
                 IEnumerable<string> totalCounts;
                 var totalCount = 0;
@@ -153,7 +146,7 @@ namespace ServiceControl.CompositeViews.Messages
                     lastModified = DateTime.ParseExact(lastModifiedValues.ElementAt(0), "R", CultureInfo.InvariantCulture);
                 }
 
-                return new QueryResult<TOut>(messages, new QueryStatsInfo(etag, lastModified, totalCount, totalCount));
+                return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, lastModified, totalCount, totalCount));
             }
         }
     }

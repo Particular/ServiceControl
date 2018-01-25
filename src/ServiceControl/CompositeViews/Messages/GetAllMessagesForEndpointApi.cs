@@ -1,5 +1,7 @@
 namespace ServiceControl.CompositeViews.Messages
 {
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Nancy;
     using Raven.Client;
@@ -8,7 +10,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     public class GetAllMessagesForEndpointApi : ScatterGatherApiMessageView<string>
     {
-        public override async Task<QueryResult<MessagesView>> LocalQuery(Request request, string input)
+        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, string input)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -24,7 +26,7 @@ namespace ServiceControl.CompositeViews.Messages
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return Results(results, stats);
+                return Results(results.ToList(), stats);
             }
 
         }
