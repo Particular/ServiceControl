@@ -43,7 +43,7 @@ namespace ServiceControl.Infrastructure
                             {
                                 { Headers.ControlMessageHeader, string.Empty },
                                 { Headers.MessageIntent, MessageIntentEnum.Subscribe.ToString() },
-                                { Headers.SubscriptionMessageType, messageFailureResolvedByRetryType.FullName }, // assembly qualified name contains version
+                                { Headers.SubscriptionMessageType, $"{messageFailureResolvedByRetryType.FullName}, Version=1.0.0" }, // keep version stable
                                 { Headers.ReplyToAddress, localAddress.ToString() }
                             }),
                         sendOptions: new SendOptions(Address.Parse(remote.QueueAddress)));

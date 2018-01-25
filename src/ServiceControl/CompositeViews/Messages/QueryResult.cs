@@ -1,7 +1,5 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using System;
-
     public class QueryResult
     {
         protected QueryResult(object results, QueryStatsInfo queryStatsInfo)
