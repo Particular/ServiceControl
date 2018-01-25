@@ -117,5 +117,15 @@ namespace ServiceControl.Monitoring
                 }
             };
         }
+
+        public KnownEndpointsView GetKnownView()
+        {
+            return new KnownEndpointsView
+            {
+                Id = Id.UniqueId,
+                HostDisplayName = Id.HostName,
+                EndpointDetails = Convert(Id)
+            };
+        }
     }
 }

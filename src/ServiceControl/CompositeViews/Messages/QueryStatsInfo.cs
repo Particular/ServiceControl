@@ -24,5 +24,7 @@ namespace ServiceControl.CompositeViews.Messages
             TotalCount = totalCount;
             HighestTotalCountOfAllTheInstances = highestTotalCountOfAllTheInstances;
         }
+
+        public static readonly QueryStatsInfo Zero = new QueryStatsInfo(string.Empty, DateTime.MinValue, 0);
     }
 }
