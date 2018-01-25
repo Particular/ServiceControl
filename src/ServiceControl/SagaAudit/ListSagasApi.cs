@@ -10,7 +10,7 @@ namespace ServiceControl.SagaAudit
 
     public class ListSagasApi : ScatterGatherApi<NoInput, List<SagaListIndex.Result>>
     {
-        public override async Task<QueryResult<List<SagaListIndex.Result>>> LocalQuery(Request request, NoInput input)
+        public override async Task<QueryResult<List<SagaListIndex.Result>>> LocalQuery(Request request, NoInput input, string instanceId)
         {
             using (var session = Store.OpenAsyncSession())
             {

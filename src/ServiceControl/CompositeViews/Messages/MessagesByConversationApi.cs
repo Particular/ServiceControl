@@ -10,7 +10,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     public class MessagesByConversationApi : ScatterGatherApiMessageView<string>
     {
-        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, string input)
+        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, string input, string instanceId)
         {
             using (var session = Store.OpenAsyncSession())
             {
