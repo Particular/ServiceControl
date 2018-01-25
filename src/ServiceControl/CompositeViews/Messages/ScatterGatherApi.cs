@@ -88,16 +88,11 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        protected QueryResult<TOut> Results(TOut results, RavenQueryStatistics stats)
+        protected QueryResult<TOut> Results(TOut results, RavenQueryStatistics stats = null)
         {
-            if (stats != null)
-            {
-                return new QueryResult<TOut>(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults));
-            }
-            else
-            {
-                return new QueryResult<TOut>(results, QueryStatsInfo.Zero);
-            }
+            return stats != null 
+                ? new QueryResult<TOut>(results, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults)) 
+                : new QueryResult<TOut>(results, QueryStatsInfo.Zero);
         }
 
 
