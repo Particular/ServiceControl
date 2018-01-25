@@ -80,8 +80,6 @@
         [Test]
         public void Should_list_the_endpoints_in_the_list_of_known_endpoints()
         {
-
-
             var context = new MyContext();
             List<KnownEndpointsView> knownEndpoints = null;
 
