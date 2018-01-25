@@ -42,6 +42,7 @@
         public Type BuilderType { get; set; }
 
         public Address AddressOfAuditQueue { get; set; }
+        public Address AddressOfErrorQueue { get; set; }
 
         public IDictionary<Type, object> UserDefinedConfigSections { get; }
 
