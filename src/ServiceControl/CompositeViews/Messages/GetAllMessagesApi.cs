@@ -4,7 +4,6 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Threading.Tasks;
     using Nancy;
-    using Raven.Abstractions.Extensions;
     using Raven.Client;
     using ServiceControl.Infrastructure.Extensions;
 
@@ -25,9 +24,7 @@ namespace ServiceControl.CompositeViews.Messages
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                results.ForEach(r => r.InstanceId  = instanceId);
-
-                return Results(results.ToList(), stats);
+                return Results(results.ToList(), instanceId, stats);
             }
         }
     }
