@@ -1,7 +1,5 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Nancy.Modules
 {
-    using System;
-    using System.Net.Http;
     using global::Nancy;
     using global::Nancy.Responses.Negotiation;
     using Raven.Client;
@@ -31,7 +29,6 @@
 
         public IDocumentStore Store { get; set; }
         public Settings Settings { get; set; }
-        public Func<HttpClient> HttpClientFactory { get; set; }
     }
 
 }
