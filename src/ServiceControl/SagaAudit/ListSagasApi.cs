@@ -4,6 +4,7 @@ namespace ServiceControl.SagaAudit
     using System.Linq;
     using System.Threading.Tasks;
     using Nancy;
+    using Raven.Abstractions.Extensions;
     using Raven.Client;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Extensions;
@@ -20,6 +21,8 @@ namespace ServiceControl.SagaAudit
                     .Paging(request)
                     .ToListAsync()
                     .ConfigureAwait(false);
+
+                results.ForEach(r => r.Uri = $"{r.Uri}?instance_id={instanceId}");
 
                 return Results(results.ToList(), stats);
             }

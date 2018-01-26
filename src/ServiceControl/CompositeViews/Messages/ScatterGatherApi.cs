@@ -41,22 +41,100 @@ namespace ServiceControl.CompositeViews.Messages
         static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
         static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn, TOut>));
 
+        private Dictionary<string, string> instanceIdToApiUri;
+        private Dictionary<string, string> apiUriToInstanceId;
+        private string currentInstanceId;
+        private string currentInvariantApiUri;
+
         public IDocumentStore Store { get; set; }
         public Settings Settings { get; set; }
         public Func<HttpClient> HttpClientFactory { get; set; }
+
+        public string CurrentInstanceId
+        {
+            get
+            {
+                if (currentInstanceId == null)
+                {
+                    currentInstanceId = InstanceIdGenerator.FromApiUrl(Settings.ApiUrl);
+                }
+
+                return currentInstanceId;
+            }
+        }
+
+        public string CurrentInvariantApiUri
+        {
+            get
+            {
+                if (currentInvariantApiUri == null)
+                {
+                    currentInvariantApiUri = Settings.ApiUrl.ToLowerInvariant();
+                }
+
+                return currentInvariantApiUri;
+            }
+        }
+
+        public Dictionary<string, string> InstanceIdToApiUri
+        {
+            get
+            {
+                if (instanceIdToApiUri == null)
+                {
+                    instanceIdToApiUri = Settings.RemoteInstances.ToDictionary(k => InstanceIdGenerator.FromApiUrl(k.ApiUri), v => v.ApiUri.ToLowerInvariant());
+                    instanceIdToApiUri.Add(CurrentInstanceId, CurrentInvariantApiUri);
+                }
+
+                return instanceIdToApiUri;
+            }
+        }
+
+        public Dictionary<string, string> ApiUriToInstanceId
+        {
+            get
+            {
+                if (apiUriToInstanceId == null)
+                {
+                    apiUriToInstanceId = Settings.RemoteInstances.ToDictionary(k => k.ApiUri.ToLowerInvariant(), v => InstanceIdGenerator.FromApiUrl(v.ApiUri));
+                    apiUriToInstanceId.Add(CurrentInvariantApiUri, CurrentInstanceId);
+                }
+
+                return apiUriToInstanceId;
+            }
+        }
 
         public async Task<dynamic> Execute(BaseModule module, TIn input)
         {
             var remotes = Settings.RemoteInstances;
             var currentRequest = module.Request;
+            var query = (DynamicDictionary)module.Request.Query;
 
-            var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
+            var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1);
+            dynamic instanceId;
+            if (query.TryGetValue("instance_id", out instanceId))
             {
-                LocalQuery(currentRequest, input, InstanceIdGenerator.FromApiUrl(Settings.ApiUrl))
-            };
-            foreach (var remote in remotes)
+                var id = (string) instanceId;
+                if (id == CurrentInstanceId)
+                {
+                    tasks.Add(LocalQuery(currentRequest, input, ApiUriToInstanceId[CurrentInvariantApiUri]));
+                }
+                else
+                {
+                    string remoteUri;
+                    if (InstanceIdToApiUri.TryGetValue(id, out remoteUri))
+                    {
+                        tasks.Add(FetchAndParse(currentRequest, remoteUri));
+                    }
+                }
+            }
+            else
             {
-                tasks.Add(FetchAndParse(currentRequest, remote.ApiUri));
+                tasks.Add(LocalQuery(currentRequest, input, ApiUriToInstanceId[CurrentInvariantApiUri]));
+                foreach (var remote in remotes)
+                {
+                    tasks.Add(FetchAndParse(currentRequest, remote.ApiUri));
+                }
             }
 
             var response = AggregateResults(currentRequest, await Task.WhenAll(tasks));
