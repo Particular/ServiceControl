@@ -8,7 +8,7 @@ namespace ServiceControl.CompositeViews.Messages
     {
         protected override List<MessagesView> ProcessResults(Request request, QueryResult<List<MessagesView>>[] results)
         {
-            var combined = results.SelectMany(x => x.Results).ToList();
+            var combined = results.Where(x => x.Results != null).SelectMany(x => x.Results).ToList();
             var comparer = FinalOrder(request);
             if (comparer != null)
             {
