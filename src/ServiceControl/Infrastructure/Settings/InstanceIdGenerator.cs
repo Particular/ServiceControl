@@ -8,11 +8,11 @@
         /// <summary>
         /// Converts a string to a base64 encoded string using UTF8
         /// </summary>
-        public static string FromApiUrl(string apiUrl) => Convert.ToBase64String(Encoding.UTF8.GetBytes(apiUrl.ToLowerInvariant()));
+        public static string FromApiUrl(string apiUrl) => Convert.ToBase64String(Encoding.UTF8.GetBytes(apiUrl.ToLowerInvariant())).Replace('+','-').Replace('/','_').Replace('=','.');
 
         /// <summary>
         /// Converts from a base64 encoded string value using UTF8
         /// </summary>
-        public static string ToApiUrl(string instanceId) => Encoding.UTF8.GetString(Convert.FromBase64String(instanceId));
+        public static string ToApiUrl(string instanceId) => Encoding.UTF8.GetString(Convert.FromBase64String(instanceId.Replace('-', '+').Replace('_', '/').Replace('.', '=')));
     }
 }
