@@ -22,14 +22,14 @@ namespace ServiceControl.SagaAudit
 
                 if (sagaHistory == null)
                 {
-                    return QueryResult<SagaHistory>.Empty;
+                    return QueryResult<SagaHistory>.Empty(instanceId);
                 }
 
                 var lastModified = sagaHistory.Changes.OrderByDescending(x => x.FinishTime)
                     .Select(y => y.FinishTime)
                     .First();
 
-                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(stats.IndexEtag, lastModified, stats.TotalResults));
+                return new QueryResult<SagaHistory>(sagaHistory, instanceId, new QueryStatsInfo(stats.IndexEtag, lastModified, stats.TotalResults));
             }
         }
 
