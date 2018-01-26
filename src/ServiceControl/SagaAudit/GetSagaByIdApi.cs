@@ -35,7 +35,7 @@ namespace ServiceControl.SagaAudit
 
         protected override SagaHistory ProcessResults(Request request, QueryResult<SagaHistory>[] results)
         {
-            return results.Select(p => p.Results).First(x => x != null);
+            return results.Select(p => p.Results).FirstOrDefault(x => x != null);
         }
     }
 }
