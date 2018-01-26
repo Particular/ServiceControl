@@ -109,7 +109,7 @@ namespace ServiceControl.Recoverability
 
                 return Negotiate
                          .WithModel(queryResult.FirstOrDefault())
-                         .WithEtagAndLastModified(stats);
+                         .WithEtag(stats);
             }
         }
 
@@ -134,7 +134,7 @@ namespace ServiceControl.Recoverability
 
                 return Negotiate.WithModel(results)
                     .WithPagingLinksAndTotalCount(stats, Request)
-                    .WithEtagAndLastModified(stats);
+                    .WithEtag(stats);
             }
         }
 
@@ -152,7 +152,7 @@ namespace ServiceControl.Recoverability
 
                 return Negotiate
                          .WithTotalCount(queryResult.TotalResults)
-                         .WithEtagAndLastModified(queryResult.IndexEtag, queryResult.IndexTimestamp);
+                         .WithEtag(queryResult.IndexEtag);
             }
         }
     }
