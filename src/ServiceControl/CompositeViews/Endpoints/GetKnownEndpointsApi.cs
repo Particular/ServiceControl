@@ -15,12 +15,12 @@
         public override Task<QueryResult<List<KnownEndpointsView>>> LocalQuery(Request request, NoInput input, string instanceId)
         {
             var result = EndpointInstanceMonitoring.GetKnownEndpoints();
-            return Task.FromResult(Results(result));
+            return Task.FromResult(Results(result, instanceId));
         }
 
         protected override List<KnownEndpointsView> ProcessResults(Request request, QueryResult<List<KnownEndpointsView>>[] results)
         {
-            return results.SelectMany(p => p.Results).DistinctBy(e => e.Id).ToList();
+            return results.Where(p => p.Results != null).SelectMany(p => p.Results).DistinctBy(e => e.Id).ToList();
         }
     }
 }

@@ -27,7 +27,7 @@ namespace ServiceControl.CompositeViews.Messages
 
                 results.ForEach(msg => msg.InstanceId = instanceId);
 
-                return Results(results.ToList(), stats);
+                return Results(results.ToList(), instanceId, stats);
             }
         }
     }

@@ -21,7 +21,7 @@ namespace ServiceControl.SagaAudit
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return Results(results.ToList(), stats);
+                return Results(results.ToList(), instanceId, stats);
             }
         }
 

@@ -1,14 +1,25 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
-    using System.Linq;
     using Nancy;
 
     public abstract class ScatterGatherApiMessageView<TInput> : ScatterGatherApi<TInput, List<MessagesView>>
     {
         protected override List<MessagesView> ProcessResults(Request request, QueryResult<List<MessagesView>>[] results)
         {
-            var combined = results.Where(x => x.Results != null).SelectMany(x => x.Results).ToList();
+            var combined = new List<MessagesView>();
+            foreach (var queryResult in results)
+            {
+                var messagesViews = queryResult?.Results ?? new List<MessagesView>();
+                foreach (var result in messagesViews)
+                {
+                    if (result.InstanceId == null)
+                    {
+                        result.InstanceId = queryResult.InstanceId;
+                    }
+                }
+                combined.AddRange(messagesViews);
+            }
             var comparer = FinalOrder(request);
             if (comparer != null)
             {
