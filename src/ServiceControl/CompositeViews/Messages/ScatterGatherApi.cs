@@ -16,6 +16,7 @@ namespace ServiceControl.CompositeViews.Messages
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.Settings;
     using HttpStatusCode = System.Net.HttpStatusCode;
 
     public interface IApi
@@ -51,7 +52,7 @@ namespace ServiceControl.CompositeViews.Messages
 
             var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
             {
-                LocalQuery(currentRequest, input)
+                LocalQuery(currentRequest, input, InstanceIdGenerator.FromApiUrl(Settings.ApiUrl))
             };
             foreach (var remote in remotes)
             {
@@ -64,7 +65,7 @@ namespace ServiceControl.CompositeViews.Messages
             return negotiate.WithPartialQueryResult(response, currentRequest);
         }
 
-        public abstract Task<QueryResult<TOut>> LocalQuery(Request request, TIn input);
+        public abstract Task<QueryResult<TOut>> LocalQuery(Request request, TIn input, string instanceId);
 
         public virtual QueryResult<TOut> AggregateResults(Request request, QueryResult<TOut>[] results)
         {

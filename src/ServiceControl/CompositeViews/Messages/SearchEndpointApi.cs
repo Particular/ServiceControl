@@ -4,6 +4,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Threading.Tasks;
     using Nancy;
+    using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.Infrastructure.Extensions;
@@ -17,7 +18,7 @@ namespace ServiceControl.CompositeViews.Messages
             public string Endpoint { get; set; }
         }
 
-        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, Input input)
+        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, Input input, string instanceId)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -31,6 +32,8 @@ namespace ServiceControl.CompositeViews.Messages
                     .TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToListAsync()
                     .ConfigureAwait(false);
+
+                results.ForEach(msg => msg.InstanceId = instanceId);
 
                 return Results(results.ToList(), stats);
             }

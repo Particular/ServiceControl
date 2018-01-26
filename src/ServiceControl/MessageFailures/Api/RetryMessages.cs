@@ -8,6 +8,7 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceControl.Infrastructure.Settings;
     using ServiceControl.Recoverability;
 
     public class RetryMessages : BaseModule
@@ -26,11 +27,12 @@
                 }
 
                 var query = (DynamicDictionary)Request.Query;
-                dynamic name;
-                if (query.TryGetValue("instance_name", out name))
+
+                dynamic instanceId;
+                if (query.TryGetValue("instance_id", out instanceId) && InstanceIdGenerator.FromApiUrl(Settings.ApiUrl) != instanceId)
                 {
-                    var instanceName = (string) name;
-                    var remoteInstanceSettings = Settings.RemoteInstances.FirstOrDefault(r => r.InstanceName == instanceName);
+                    var instanceApiUri = InstanceIdGenerator.ToApiUrl((string) instanceId);
+                    var remoteInstanceSettings = Settings.RemoteInstances.FirstOrDefault(r => r.ApiUri == instanceApiUri);
                     if (remoteInstanceSettings != null)
                     {
                         Bus.Send<RetryMessage>(Address.Parse(remoteInstanceSettings.QueueAddress), m =>
@@ -40,7 +42,7 @@
                     }
                     else
                     {
-                        Logger.Warn($"Unable to find remote address for {instanceName}. Possibly it was removed from the settings and deprovisioned.");
+                        Logger.Warn($"Unable to find remote address for api uri '{instanceApiUri}'. Possibly it was removed from the settings and deprovisioned.");
                     }
                 }
                 else
