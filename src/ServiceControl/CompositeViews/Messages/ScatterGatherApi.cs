@@ -2,7 +2,6 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net.Http;
@@ -84,7 +83,7 @@ namespace ServiceControl.CompositeViews.Messages
         protected QueryResult<TOut> Results(TOut results, string instanceId, RavenQueryStatistics stats = null)
         {
             return stats != null
-                ? new QueryResult<TOut>(results, instanceId, new QueryStatsInfo(stats.IndexEtag, stats.IndexTimestamp, stats.TotalResults))
+                ? new QueryResult<TOut>(results, instanceId, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults))
                 : new QueryResult<TOut>(results, instanceId, QueryStatsInfo.Zero);
         }
 
@@ -94,7 +93,6 @@ namespace ServiceControl.CompositeViews.Messages
 
             return new QueryStatsInfo(
                 string.Join("", infos.Select(x => x.ETag)),
-                infos.Max(x => x.LastModified),
                 infos.Sum(x => x.TotalCount),
                 infos.Max(x => x.HighestTotalCountOfAllTheInstances)
             );
@@ -144,14 +142,7 @@ namespace ServiceControl.CompositeViews.Messages
                     etag = etags.ElementAt(0);
                 }
 
-                IEnumerable<string> lastModifiedValues;
-                var lastModified = DateTime.UtcNow;
-                if (responseMessage.Headers.TryGetValues("Last-Modified", out lastModifiedValues))
-                {
-                    lastModified = DateTime.ParseExact(lastModifiedValues.ElementAt(0), "R", CultureInfo.InvariantCulture);
-                }
-
-                return new QueryResult<TOut>(remoteResults, instanceId, new QueryStatsInfo(etag, lastModified, totalCount, totalCount));
+                return new QueryResult<TOut>(remoteResults, instanceId, new QueryStatsInfo(etag, totalCount, totalCount));
             }
         }
     }
