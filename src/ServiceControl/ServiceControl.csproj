@@ -638,7 +638,6 @@
     <Compile Include="Recoverability\Archiving\ArchiveProgress.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
     <Compile Include="SagaAudit\GetSagaByIdApi.cs" />
-    <Compile Include="SagaAudit\ListSagasApi.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeInitiator.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeOutput.cs" />
     <Compile Include="SagaAudit\Messages\SagaUpdatedMessage.cs" />
