@@ -22,5 +22,12 @@
         {
             return results.Where(p => p.Results != null).SelectMany(p => p.Results).DistinctBy(e => e.Id).ToList();
         }
+
+        protected override QueryStatsInfo AggregateStats(IEnumerable<QueryResult<List<KnownEndpointsView>>> results, List<KnownEndpointsView> processedResults)
+        {
+            var aggregatedStats = base.AggregateStats(results, processedResults);
+
+            return new QueryStatsInfo(aggregatedStats.ETag, processedResults.Count);
+        }
     }
 }

@@ -74,7 +74,7 @@ namespace ServiceControl.CompositeViews.Messages
             return new QueryResult<TOut>(
                 combinedResults,
                 instanceId,
-                AggregateStats(results)
+                AggregateStats(results, combinedResults)
             );
         }
 
@@ -87,7 +87,7 @@ namespace ServiceControl.CompositeViews.Messages
                 : new QueryResult<TOut>(results, instanceId, QueryStatsInfo.Zero);
         }
 
-        private QueryStatsInfo AggregateStats(IEnumerable<QueryResult<TOut>> results)
+        protected virtual QueryStatsInfo AggregateStats(IEnumerable<QueryResult<TOut>> results, TOut processedResults)
         {
             var infos = results.OrderBy(x => x.InstanceId, StringComparer.InvariantCultureIgnoreCase).Select(x => x.QueryStats).ToArray();
 
