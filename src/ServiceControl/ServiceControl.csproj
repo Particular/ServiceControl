@@ -429,6 +429,7 @@
     <Compile Include="Monitoring\MonitoringDataPersister.cs" />
     <Compile Include="Monitoring\RecordedHeartbeat.cs" />
     <Compile Include="Operations\AuditImporter.cs" />
+    <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyByIdApi.cs" />
     <Compile Include="Operations\FailedTransportMessage.cs" />
     <Compile Include="Operations\ImportFailedAudits.cs" />
     <Compile Include="Operations\FailedErrorImportCustomCheck.cs" />
