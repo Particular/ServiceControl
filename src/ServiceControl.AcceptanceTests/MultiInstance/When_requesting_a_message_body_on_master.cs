@@ -81,7 +81,7 @@
 
             Assert.AreEqual(context.Remote1MessageBody.Length, response.Content.Headers.ContentLength.Value, "ContentLength mismatch");
 
-            var body = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+            var body = await response.Content.ReadAsByteArrayAsync();
 
             Assert.AreEqual(context.Remote1MessageBody, body, "Body bytes mismatch");
 
