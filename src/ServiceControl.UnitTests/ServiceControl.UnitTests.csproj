@@ -154,6 +154,7 @@
     <Compile Include="SagaAudit\SagaListIndexTests.cs" />
     <Compile Include="SagaAudit\SagaRelationshipsEnricherTests.cs" />
     <Compile Include="ScatterGather\GetKnownEndpoints_ScatterGatherTest.cs" />
+    <Compile Include="ScatterGather\GetKnownEndpoints_ScatterGather_EtagsTest.cs" />
     <Compile Include="ScatterGather\GetKnownEndpoints_ScatterGather_LocalInstanceReturnsNoData.cs" />
     <Compile Include="ScatterGather\GetKnownEndpoints_ScatterGather_NoData.cs" />
     <Compile Include="ScatterGather\GetKnownEndpoints_ScatterGather_RemoteInstanceReturnsNoData.cs" />
