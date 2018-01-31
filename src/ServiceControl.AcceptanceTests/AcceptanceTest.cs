@@ -212,7 +212,7 @@ namespace ServiceBus.Management.AcceptanceTests
             return new ScenarioWithContext<T>(() => (T) scenarioContext);
         }
 
-        private async Task<T> GetInternal<T>(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public Task<HttpResponseMessage> GetRaw(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))
             {
@@ -220,7 +220,12 @@ namespace ServiceBus.Management.AcceptanceTests
             }
 
             var httpClient = httpClients[instanceName];
-            var response = await httpClient.GetAsync(url);
+            return httpClient.GetAsync(url);
+        }
+
+        private async Task<T> GetInternal<T>(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        {
+            var response = await GetRaw(url, instanceName);
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
 
