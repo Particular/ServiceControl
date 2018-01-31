@@ -67,7 +67,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         public abstract Task<QueryResult<TOut>> LocalQuery(Request request, TIn input, string instanceId);
 
-        private QueryResult<TOut> AggregateResults(Request request, string instanceId, QueryResult<TOut>[] results)
+        internal QueryResult<TOut> AggregateResults(Request request, string instanceId, QueryResult<TOut>[] results)
         {
             var combinedResults = ProcessResults(request, results);
 
