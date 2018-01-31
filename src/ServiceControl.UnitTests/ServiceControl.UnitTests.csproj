@@ -154,6 +154,14 @@
     <Compile Include="SagaAudit\SagaDetailsIndexTests.cs" />
     <Compile Include="SagaAudit\SagaListIndexTests.cs" />
     <Compile Include="SagaAudit\SagaRelationshipsEnricherTests.cs" />
+    <Compile Include="ScatterGather\GetKnownEndpoints_ScatterGatherTest.cs" />
+    <Compile Include="ScatterGather\GetKnownEndpoints_ScatterGather_LocalInstanceReturnsNoData.cs" />
+    <Compile Include="ScatterGather\GetKnownEndpoints_ScatterGather_NoData.cs" />
+    <Compile Include="ScatterGather\GetKnownEndpoints_ScatterGather_RemoteInstanceReturnsNoData.cs" />
+    <Compile Include="ScatterGather\GetKnownEndpoints_ScatterGather_DataFromBothInstances.cs" />
+    <Compile Include="ScatterGather\MessagesView_ScatterGather_DataFromBothInstances.cs" />
+    <Compile Include="ScatterGather\MessagesView_ScatterGather_NoData.cs" />
+    <Compile Include="ScatterGather\MessageView_ScatterGatherTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
