@@ -230,6 +230,7 @@
             {
                 EndpointSetup<DefaultServerWithAudit>()
                     .AuditTo(Address.Parse(AuditMaster))
+                    .ErrorTo(Address.Parse(ErrorMaster))
                     .AddMapping<MyMessage>(typeof(ReceiverRemote))
                     .AddMapping<TriggeredMessage>(typeof(ReceiverRemote));
             }
@@ -268,7 +269,9 @@
         {
             public ReceiverRemote()
             {
-                EndpointSetup<DefaultServerWithAudit>().AuditTo(Address.Parse(AuditRemote));
+                EndpointSetup<DefaultServerWithAudit>()
+                    .AuditTo(Address.Parse(AuditRemote))
+                    .ErrorTo(Address.Parse(ErrorRemote));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
