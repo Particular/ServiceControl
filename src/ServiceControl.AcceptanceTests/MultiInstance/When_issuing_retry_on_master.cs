@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -40,6 +41,7 @@
                 {
                     if (!GetFailedMessage(c, Remote1, out failure) && !c.RetryIssued)
                     {
+                        Thread.Sleep(500);
                         return false;
                     }
 
