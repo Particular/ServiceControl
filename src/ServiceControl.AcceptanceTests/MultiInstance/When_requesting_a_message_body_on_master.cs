@@ -36,7 +36,8 @@
             var context = new MyContext();
 
             HttpResponseMessage response = null;
-
+            MessagesView capturedMessage = null;
+            
             Define(context, Remote1, Master)
                 .WithEndpoint<RemoteEndpoint>(b => b.Given(bus =>
                 {
@@ -60,9 +61,10 @@
                             return false;
                         }
                         c.Remote1MessageAudited = true;
+                        capturedMessage = messages.Single(msg => msg.MessageId == c.Remote1MessageId);
                     }
 
-                    response = GetRaw($"/api/messages/{c.Remote1MessageId}/body?instance_id={c.Remote1InstanceId}", Master).GetAwaiter().GetResult();
+                    response = GetRaw($"/api/{capturedMessage.BodyUrl}", Master).GetAwaiter().GetResult();
                     Console.WriteLine($"GetRaw for {c.Remote1MessageId} resulted in {response.StatusCode}");
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
@@ -80,7 +82,7 @@
             Assert.NotNull(response.Content.Headers.ContentLength, "ContentLength not set");
 
             Assert.AreEqual(context.Remote1MessageBody.Length, response.Content.Headers.ContentLength.Value, "ContentLength mismatch");
-
+            
             var body = await response.Content.ReadAsByteArrayAsync();
 
             Assert.AreEqual(context.Remote1MessageBody, body, "Body bytes mismatch");
