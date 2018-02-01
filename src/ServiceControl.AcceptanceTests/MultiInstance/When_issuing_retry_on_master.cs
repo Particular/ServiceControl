@@ -27,7 +27,7 @@
 
 
         [Test]
-        public void Should_be_forwarded_to_remote()
+        public void Should_be_forwarded_and_resolved_on_remote()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
@@ -105,8 +105,8 @@
                     {
                         c.MaxRetries = 0;
                     })
-                    .ErrorTo(Address.Parse(ErrorRemote))
-                    .AuditTo(Address.Parse(AuditRemote));
+                    .AuditTo(Address.Parse(AuditRemote))
+                    .ErrorTo(Address.Parse(ErrorRemote));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
