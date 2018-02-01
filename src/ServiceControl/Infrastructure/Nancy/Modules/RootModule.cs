@@ -16,6 +16,7 @@
                 var model = new RootUrls
                 {
                     EndpointsUrl = BaseUrl + "/endpoints",
+                    KnownEndpointsUrl = BaseUrl + "/endpoints/known",
                     SagasUrl = BaseUrl + "/sagas",
                     ErrorsUrl = BaseUrl + "/errors/{?page,per_page,direction,sort}",
                     EndpointsErrorUrl = BaseUrl + "/endpoints/{name}/errors/{?page,per_page,direction,sort}",
@@ -90,6 +91,7 @@
         {
             public string Description { get; set; }
             public string EndpointsErrorUrl { get; set; }
+            public string KnownEndpointsUrl { get; set; }
             public string EndpointsMessageSearchUrl { get; set; }
             public string EndpointsMessagesUrl { get; set; }
             public string EndpointsUrl { get; set; }
