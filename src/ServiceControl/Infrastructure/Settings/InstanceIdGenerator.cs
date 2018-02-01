@@ -3,7 +3,7 @@
     using System;
     using System.Text;
 
-    static class InstanceIdGenerator
+    public static class InstanceIdGenerator
     {
         /// <summary>
         /// Converts a string to a base64 encoded string using UTF8

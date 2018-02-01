@@ -10,6 +10,7 @@
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.Settings;
     using ServiceControl.MessageFailures;
 
     public class When_issuing_retry_on_master : AcceptanceTest
@@ -45,7 +46,7 @@
                     if (failure.Status == FailedMessageStatus.Unresolved && !c.RetryIssued)
                     {
                         c.RetryIssued = true;
-                        Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_name={Remote1}", null, null, Master);
+                        Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfRemote)}", null, null, Master);
                         return false;
                     }
 
