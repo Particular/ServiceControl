@@ -97,7 +97,6 @@ namespace ServiceControl.CompositeViews.Messages
 
                 var rawResponse = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
 
-                // TODO: is it correct to merge headers??
                 var headers = rawResponse.Headers.Union(rawResponse.Content.Headers).ToDictionary(k => k.Key, v => v.Value.FirstOrDefault());
                 var httpStatusCode = (Nancy.HttpStatusCode) Enum.Parse(typeof(HttpStatusCode), rawResponse.StatusCode.ToString(), ignoreCase: true);
 
