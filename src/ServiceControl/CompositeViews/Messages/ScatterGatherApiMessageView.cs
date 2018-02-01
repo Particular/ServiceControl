@@ -17,6 +17,11 @@ namespace ServiceControl.CompositeViews.Messages
                     {
                         result.InstanceId = queryResult.InstanceId;
                     }
+
+                    if (result.BodyUrl != null && !result.BodyUrl.Contains("instance_id"))
+                    {
+                        result.BodyUrl += $"?instance_id={queryResult.InstanceId}";
+                    }
                 }
                 combined.AddRange(messagesViews);
             }

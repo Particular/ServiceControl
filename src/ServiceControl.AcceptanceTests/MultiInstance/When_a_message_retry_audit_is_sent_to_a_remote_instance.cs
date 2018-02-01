@@ -17,11 +17,11 @@
     public class When_a_message_retry_audit_is_sent_to_a_remote_instance : AcceptanceTest
     {
         private const string Master = "master";
-        private const string AuditMaster = "audit";
-        private const string ErrorMaster = "error";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
         private const string Remote1 = "remote1";
-        private const string AuditRemote = "audit1";
-        private const string ErrorRemote = "error1";
+        private static string AuditRemote = $"{Remote1}.audit1";
+        private static string ErrorRemote = $"{Remote1}.error1";
 
         private string addressOfRemote;
 
@@ -114,7 +114,8 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>())
                     .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
-                    .AuditTo(Address.Parse(AuditRemote));
+                    .AuditTo(Address.Parse(AuditRemote))
+                    .ErrorTo(Address.Parse(ErrorMaster));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

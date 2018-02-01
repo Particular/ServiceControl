@@ -8,16 +8,17 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.Infrastructure.Settings;
     using ServiceControl.Recoverability;
 
     public class RetryMessages : BaseModule
     {
         private static ILog Logger = LogManager.GetLogger<RetryMessages>();
 
+        public RetryMessagesApi RetryMessagesApi { get; set; }
+
         public RetryMessages()
         {
-            Post["/errors/{messageid}/retry"] = parameters =>
+            Post["/errors/{messageid}/retry", true] = async (parameters, token) =>
             {
                 var failedMessageId = parameters.MessageId;
 
@@ -26,34 +27,7 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                var query = (DynamicDictionary)Request.Query;
-
-                dynamic instanceId;
-                if (query.TryGetValue("instance_id", out instanceId) && InstanceIdGenerator.FromApiUrl(Settings.ApiUrl) != instanceId)
-                {
-                    var instanceApiUri = InstanceIdGenerator.ToApiUrl((string) instanceId);
-                    var remoteInstanceSettings = Settings.RemoteInstances.FirstOrDefault(r => r.ApiUri == instanceApiUri);
-                    if (remoteInstanceSettings != null)
-                    {
-                        Bus.Send<RetryMessage>(Address.Parse(remoteInstanceSettings.QueueAddress), m =>
-                        {
-                            m.FailedMessageId = failedMessageId;
-                        });
-                    }
-                    else
-                    {
-                        Logger.Warn($"Unable to find remote address for api uri '{instanceApiUri}'. Possibly it was removed from the settings and deprovisioned.");
-                    }
-                }
-                else
-                {
-                    Bus.SendLocal<RetryMessage>(m =>
-                    {
-                        m.FailedMessageId = failedMessageId;
-                    });
-                }
-
-                return HttpStatusCode.Accepted;
+                return await RetryMessagesApi.Execute(this, failedMessageId);
             };
 
             Post["/errors/retry"] = _ =>

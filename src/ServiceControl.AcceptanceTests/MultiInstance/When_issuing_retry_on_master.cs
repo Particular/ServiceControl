@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -10,22 +11,23 @@
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.Settings;
     using ServiceControl.MessageFailures;
 
     public class When_issuing_retry_on_master : AcceptanceTest
     {
         private const string Master = "master";
-        private const string AuditMaster = "audit";
-        private const string ErrorMaster = "error";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
         private const string Remote1 = "remote1";
-        private const string AuditRemote = "audit1";
-        private const string ErrorRemote = "error1";
+        private static string AuditRemote = $"{Remote1}.audit1";
+        private static string ErrorRemote = $"{Remote1}.error1";
 
         private string addressOfRemote;
 
 
         [Test]
-        public void Should_be_forwarded_to_remote()
+        public void Should_be_forwarded_and_resolved_on_remote()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
@@ -39,13 +41,14 @@
                 {
                     if (!GetFailedMessage(c, Remote1, out failure) && !c.RetryIssued)
                     {
+                        Thread.Sleep(500);
                         return false;
                     }
 
                     if (failure.Status == FailedMessageStatus.Unresolved && !c.RetryIssued)
                     {
                         c.RetryIssued = true;
-                        Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_name={Remote1}", null, null, Master);
+                        Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfRemote)}", null, null, Master);
                         return false;
                     }
 
@@ -102,8 +105,8 @@
                     {
                         c.MaxRetries = 0;
                     })
-                    .ErrorTo(Address.Parse(ErrorRemote))
-                    .AuditTo(Address.Parse(AuditRemote));
+                    .AuditTo(Address.Parse(AuditRemote))
+                    .ErrorTo(Address.Parse(ErrorRemote));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

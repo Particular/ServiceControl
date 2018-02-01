@@ -280,6 +280,7 @@
     <Compile Include="CompositeViews\Messages\NoInputExtensions.cs" />
     <Compile Include="CompositeViews\Messages\QueryResult.cs" />
     <Compile Include="CompositeViews\Messages\QueryStatsInfo.cs" />
+    <Compile Include="CompositeViews\Messages\RoutedApi.cs" />
     <Compile Include="CompositeViews\Messages\ScatterGatherApi.cs" />
     <Compile Include="CompositeViews\Messages\ScatterGatherApiMessageView.cs" />
     <Compile Include="CompositeViews\Messages\SearchApi.cs" />
@@ -333,6 +334,7 @@
     <Compile Include="LoggingConfigurator.cs" />
     <Compile Include="MaintenanceBootstrapper.cs" />
     <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
+    <Compile Include="MessageFailures\Api\RetryMessagesApi.cs" />
     <Compile Include="MessageFailures\InternalMessages\MarkPendingRetryAsResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
@@ -428,6 +430,7 @@
     <Compile Include="Monitoring\MonitoringDataPersister.cs" />
     <Compile Include="Monitoring\RecordedHeartbeat.cs" />
     <Compile Include="Operations\AuditImporter.cs" />
+    <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyByIdApi.cs" />
     <Compile Include="Operations\FailedTransportMessage.cs" />
     <Compile Include="Operations\ImportFailedAudits.cs" />
     <Compile Include="Operations\FailedErrorImportCustomCheck.cs" />
