@@ -334,6 +334,7 @@
     <Compile Include="LoggingConfigurator.cs" />
     <Compile Include="MaintenanceBootstrapper.cs" />
     <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
+    <Compile Include="MessageFailures\Api\RetryMessagesApi.cs" />
     <Compile Include="MessageFailures\InternalMessages\MarkPendingRetryAsResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
