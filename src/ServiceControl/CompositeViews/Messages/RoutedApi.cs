@@ -82,7 +82,6 @@ namespace ServiceControl.CompositeViews.Messages
                 var method = new HttpMethod(currentRequest.Method);
                 var requestMessage = new HttpRequestMessage(method, instanceUri);
                 var streamContent = new StreamContent(currentRequest.Body);
-                requestMessage.Content = streamContent;
                 foreach (var currentRequestHeader in currentRequest.Headers)
                 {
                     if (contentHeaders.Contains(currentRequestHeader.Key))
@@ -93,6 +92,11 @@ namespace ServiceControl.CompositeViews.Messages
                     {
                         requestMessage.Headers.Add(currentRequestHeader.Key, currentRequestHeader.Value);
                     }
+                }
+
+                if (method == HttpMethod.Post || method != HttpMethod.Put)
+                {
+                    requestMessage.Content = streamContent;
                 }
 
                 var rawResponse = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
