@@ -15,11 +15,11 @@
     public class When_issuing_retry_on_master : AcceptanceTest
     {
         private const string Master = "master";
-        private const string AuditMaster = "audit";
-        private const string ErrorMaster = "error";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
         private const string Remote1 = "remote1";
-        private const string AuditRemote = "audit1";
-        private const string ErrorRemote = "error1";
+        private static string AuditRemote = $"{Remote1}.audit1";
+        private static string ErrorRemote = $"{Remote1}.error1";
 
         private string addressOfRemote;
 

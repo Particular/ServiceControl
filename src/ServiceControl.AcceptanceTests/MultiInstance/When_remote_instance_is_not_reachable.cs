@@ -14,8 +14,8 @@
     public class When_remote_instance_is_not_reachable : AcceptanceTest
     {
         private const string Master = "master";
-        private const string AuditMaster = "audit";
-        private const string ErrorMaster = "error";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
 
         private string addressOfRemote;
 
@@ -56,7 +56,9 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithAudit>();
+                EndpointSetup<DefaultServerWithAudit>()
+                    .AuditTo(Address.Parse(AuditMaster))
+                    .ErrorTo(Address.Parse(ErrorMaster));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -80,7 +82,6 @@
         [Serializable]
         public class MyMessage : ICommand
         {
-            public string PropertyToSearchFor { get; set; }
         }
 
         public class MyContext : ScenarioContext
@@ -88,8 +89,6 @@
             public string MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
-
-            public string PropertyToSearchFor { get; set; }
         }
     }
 }
