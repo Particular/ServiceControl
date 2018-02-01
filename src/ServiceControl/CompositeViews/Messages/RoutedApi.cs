@@ -1,8 +1,10 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Nancy;
     using NServiceBus.Logging;
@@ -15,6 +17,21 @@ namespace ServiceControl.CompositeViews.Messages
     public abstract class RoutedApi<TIn> : IApi
     {
         static ILog logger = LogManager.GetLogger(typeof(RoutedApi<TIn>));
+
+        private static HashSet<string> contentHeaders = new HashSet<string>
+        {
+            "Allow",
+            "Content-Disposition",
+            "Content-Encoding",
+            "Content-Language",
+            "Content-Length",
+            "Content-Location",
+            "Content-MD5",
+            "Content-Range",
+            "Content-Type",
+            "Expires",
+            "Last-Modified"
+        };
 
         public IDocumentStore Store { get; set; }
         public Settings Settings { get; set; }
@@ -65,9 +82,18 @@ namespace ServiceControl.CompositeViews.Messages
             {
                 var method = new HttpMethod(currentRequest.Method);
                 var requestMessage = new HttpRequestMessage(method, instanceUri);
+                var streamContent = new StreamContent(currentRequest.Body);
+                requestMessage.Content = streamContent;
                 foreach (var currentRequestHeader in currentRequest.Headers)
                 {
-                    requestMessage.Headers.Add(currentRequestHeader.Key, currentRequestHeader.Value);
+                    if (contentHeaders.Contains(currentRequestHeader.Key))
+                    {
+                        streamContent.Headers.Add(currentRequestHeader.Key, currentRequestHeader.Value);
+                    }
+                    else
+                    {
+                        requestMessage.Headers.Add(currentRequestHeader.Key, currentRequestHeader.Value);
+                    }
                 }
 
                 var rawResponse = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
