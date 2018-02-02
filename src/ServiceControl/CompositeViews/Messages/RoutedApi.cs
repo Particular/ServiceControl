@@ -7,7 +7,6 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Threading.Tasks;
     using Nancy;
     using NServiceBus.Logging;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.Settings;
@@ -32,7 +31,6 @@ namespace ServiceControl.CompositeViews.Messages
             "Last-Modified"
         };
 
-        public IDocumentStore Store { get; set; }
         public Settings Settings { get; set; }
         public Func<HttpClient> HttpClientFactory { get; set; }
 
