@@ -21,6 +21,7 @@ namespace ServiceControl.UnitTests.ScatterGather
             var localResults = LocalPage(1);
             var returnedEndpointIds = Results.Results.Select(x => x.Id).ToList();
 
+            Assert.IsNotEmpty(localResults.Results);
             foreach (var localResult in localResults.Results)
             {
                 Assert.Contains(localResult.Id, returnedEndpointIds, "Local result missing in returned Results");
