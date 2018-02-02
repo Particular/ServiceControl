@@ -112,6 +112,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.Messaging" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Spatial, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Spatial.5.6.4\lib\net40\System.Spatial.dll</HintPath>
       <Private>True</Private>
@@ -150,6 +151,7 @@
     <Compile Include="Recoverability\RetryOperationProgressCalculatorTests.cs" />
     <Compile Include="Recoverability\MessageTypeFailureClassifierTest.cs" />
     <Compile Include="Recoverability\ReturnToSenderDequeuerTests.cs" />
+    <Compile Include="RouteApi\RetryMessage_RoutesApiTest.cs" />
     <Compile Include="SagaAudit\SagaDetailsIndexTests.cs" />
     <Compile Include="SagaAudit\SagaListIndexTests.cs" />
     <Compile Include="SagaAudit\SagaRelationshipsEnricherTests.cs" />
