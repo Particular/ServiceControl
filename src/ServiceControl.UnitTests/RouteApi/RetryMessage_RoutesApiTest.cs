@@ -23,7 +23,6 @@
 
         private string localInstanceId;
         private string remote1InstanceId;
-        private string remote2InstanceId;
 
         [SetUp]
         public void SetUp()
