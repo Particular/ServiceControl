@@ -11,6 +11,8 @@
 
     public class GetBodyByIdApi : RoutedApi<string>
     {
+        public IDocumentStore Store { get; set; }
+
         protected override async Task<Response> LocalQuery(Request request, string input, string instanceId)
         {
             string messageId = input;
