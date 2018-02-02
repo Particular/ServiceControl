@@ -94,7 +94,7 @@ namespace ServiceControl.CompositeViews.Messages
                     }
                 }
 
-                if (method == HttpMethod.Post || method != HttpMethod.Put)
+                if (method == HttpMethod.Post || method == HttpMethod.Put)
                 {
                     requestMessage.Content = streamContent;
                 }
