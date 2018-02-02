@@ -21,6 +21,7 @@
             var remoteResults = RemotePage(1);
             var returnedEndpointIds = Results.Results.Select(x => x.Id).ToList();
 
+            Assert.IsNotEmpty(remoteResults.Results);
             foreach (var remoteResult in remoteResults.Results)
             {
                 Assert.Contains(remoteResult.Id, returnedEndpointIds, "Remote result missing in returned Results");
