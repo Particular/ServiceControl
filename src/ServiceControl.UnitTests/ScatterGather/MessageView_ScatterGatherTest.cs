@@ -53,10 +53,7 @@
         {
             for (int i = 0; i < 200; i++)
             {
-                yield return new MessagesView
-                {
-
-                };
+                yield return new MessagesView();
             }
         }
 
@@ -64,10 +61,7 @@
         {
             for (int i = 0; i < 55; i++)
             {
-                yield return new MessagesView
-                {
-
-                };
+                yield return new MessagesView();
             }
         }
 
@@ -75,7 +69,7 @@
         {
             public override Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, NoInput input, string instanceId)
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
             }
         }
     }
