@@ -37,6 +37,8 @@
         public string ServiceDescription { get; set; }
         public string ServiceAccount { get; set; }
         public string ServiceAccountPwd { get; set; }
+        public bool SkipQueueCreation { get; set; }
+
 
         public Version Version { get; }
 

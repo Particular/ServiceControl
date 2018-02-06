@@ -27,6 +27,7 @@
         public string LogPath { get; set; }
         public AppConfig AppConfig { get; set; }
         public ReportCard ReportCard { get; set; }
+        public bool SkipQueueCreation { get; set; }
 
         public MonitoringInstance(WindowsServiceController service)
         {

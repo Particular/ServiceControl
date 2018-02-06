@@ -2,6 +2,7 @@ namespace Particular.ServiceControl
 {
     using Autofac;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Particular.ServiceControl.DbMigrations;
     using Raven.Client;
     using Raven.Client.Embedded;
@@ -23,6 +24,12 @@ namespace Particular.ServiceControl
             configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
             configuration.EnableInstallers(username);
 
+            if (settings.SkipQueueCreation)
+            {
+                log.Info("Skipping queue creation");
+                configuration.DoNotCreateQueues();
+            }
+
             var containerBuilder = new ContainerBuilder();
             var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings);
@@ -39,5 +46,7 @@ namespace Particular.ServiceControl
                 container.Resolve<MigrationsManager>().ApplyMigrations();
             }
         }
+
+        private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
     }
 }

@@ -14,7 +14,8 @@
             RunQueueCreation(instance.InstallPath,
                 Constants.ServiceControlExe,
                 instance.Name,
-                accountName);
+                accountName, 
+                instance.SkipQueueCreation);
         }
 
         public static void RunQueueCreation(IMonitoringInstance instance)
@@ -23,10 +24,11 @@
             RunQueueCreation(instance.InstallPath,
                 Constants.MonitoringExe,
                 instance.Name,
-                accountName);
+                accountName, 
+                instance.SkipQueueCreation);
         }
 
-        static void RunQueueCreation(string installPath, string exeName, string serviceName, string serviceAccount)
+        static void RunQueueCreation(string installPath, string exeName, string serviceName, string serviceAccount, bool skipQueueCreation = false)
         {
             var userAccount = UserAccount.ParseAccountName(serviceAccount);
 
@@ -35,6 +37,11 @@
             if (!userAccount.IsLocalSystem())
             {
                 args += $" --userName=\"{userAccount.QualifiedName}\"";
+            }
+
+            if (skipQueueCreation)
+            {
+                args += " --skip-queue-creation";
             }
 
             var processStartupInfo = new ProcessStartInfo

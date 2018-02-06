@@ -63,6 +63,9 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(HelpMessage = "The password for the ServiceAccount.  Do not use for builtin accounts or managed serviceaccount")]
         public string ServiceAccountPassword { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Do not automatically create queues")]
+        public SwitchParameter SkipQueueCreation { get; set; }
+
         [Parameter(Mandatory = false)]
         public SwitchParameter Force { get; set; }
 
@@ -102,7 +105,8 @@ namespace ServiceControlInstaller.PowerShell
                 Port = Port,
                 ErrorQueue = ErrorQueue,
                 ConnectionString = ConnectionString,
-                TransportPackage = Transport
+                TransportPackage = Transport, 
+                SkipQueueCreation = SkipQueueCreation
             };
             
             var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);

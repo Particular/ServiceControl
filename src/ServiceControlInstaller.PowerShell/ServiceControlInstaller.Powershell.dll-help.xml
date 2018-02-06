@@ -873,7 +873,19 @@ Get-SecurityIdentifier MyDomain\Foo</dev:code>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
-	</command:parameters>
+	  <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+	    <maml:name>SkipQueueCreation</maml:name>
+	    <maml:description>
+	      <maml:para>Normally an instance will attempt to create the queues that it uses. If this flag is set, queue creation will be skipped.</maml:para>
+	    </maml:description>
+	    <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+	    <dev:type>
+	      <maml:name>SwitchParameter</maml:name>
+	      <maml:uri/>
+	    </dev:type>
+	    <dev:defaultValue></dev:defaultValue>
+	  </command:parameter>
+  </command:parameters>
 	<command:inputTypes>
 		<command:inputType>
 			<dev:type>
@@ -1014,7 +1026,19 @@ The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-T
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
-	</command:parameters>
+	  <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+	    <maml:name>SkipQueueCreation</maml:name>
+	    <maml:description>
+	      <maml:para>Normally an instance will attempt to create the queues that it uses. If this flag is set, queue creation will be skipped.</maml:para>
+	    </maml:description>
+	    <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+	    <dev:type>
+	      <maml:name>SwitchParameter</maml:name>
+	      <maml:uri/>
+	    </dev:type>
+	    <dev:defaultValue></dev:defaultValue>
+	  </command:parameter>
+  </command:parameters>
 	<command:inputTypes>
 		<command:inputType>
 			<dev:type>
@@ -1320,7 +1344,19 @@ When specifying Active Directory Group Managed Service Accounts use single quote
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+	  <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+	    <maml:name>SkipQueueCreation</maml:name>
+	    <maml:description>
+	      <maml:para>Normally an instance will attempt to create the queues that it uses. If this flag is set, queue creation will be skipped.</maml:para>
+	    </maml:description>
+	    <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+	    <dev:type>
+	      <maml:name>SwitchParameter</maml:name>
+	      <maml:uri/>
+	    </dev:type>
+	    <dev:defaultValue></dev:defaultValue>
+	  </command:parameter>
+    <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Force</maml:name>
 			<maml:description>
 				<maml:para>Force the installation even if the directories specified are not empty</maml:para>
@@ -1821,7 +1857,19 @@ The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-T
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+	  <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+	    <maml:name>SkipQueueCreation</maml:name>
+	    <maml:description>
+	      <maml:para>Normally an instance will attempt to create the queues that it uses. If this flag is set, queue creation will be skipped.</maml:para>
+	    </maml:description>
+	    <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+	    <dev:type>
+	      <maml:name>SwitchParameter</maml:name>
+	      <maml:uri/>
+	    </dev:type>
+	    <dev:defaultValue></dev:defaultValue>
+	  </command:parameter>
+    <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Force</maml:name>
 			<maml:description>
 				<maml:para>Force the installation even if the directories specified are not empty</maml:para>

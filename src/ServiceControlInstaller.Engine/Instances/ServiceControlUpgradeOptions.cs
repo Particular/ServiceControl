@@ -7,6 +7,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool? OverrideEnableErrorForwarding { get; set; }
         public TimeSpan? ErrorRetentionPeriod { get; set; }
         public TimeSpan? AuditRetentionPeriod { get; set; }
+        public bool SkipQueueCreation { get; set; }
 
         public void ApplyChangesToInstance(ServiceControlInstance instance)
         {
@@ -24,6 +25,8 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 instance.AuditRetentionPeriod = AuditRetentionPeriod.Value;
             }
+
+            instance.SkipQueueCreation = SkipQueueCreation;
 
             instance.ApplyConfigChange();
         }

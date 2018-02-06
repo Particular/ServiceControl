@@ -63,11 +63,16 @@
         string DisplayName { get; }
     }
 
-    public interface IMonitoringInstance : IServiceInstance, IServicePaths, ITransportConfig, IHttpInstance, IURLInfo
+    public interface IInstallable
+    {
+        bool SkipQueueCreation { get; }
+    }
+
+    public interface IMonitoringInstance : IServiceInstance, IServicePaths, ITransportConfig, IHttpInstance, IURLInfo, IInstallable
     {
     }
 
-    public interface IServiceControlInstance : IServiceInstance,  IServiceControlPaths, IServiceControlTransportConfig, IHttpInstance, IURLInfo
+    public interface IServiceControlInstance : IServiceInstance,  IServiceControlPaths, IServiceControlTransportConfig, IHttpInstance, IURLInfo, IInstallable
     {
         string VirtualDirectory { get;  }
         bool ForwardAuditMessages { get; }

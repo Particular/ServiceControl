@@ -17,6 +17,8 @@ namespace Particular.ServiceControl.Hosting
         public string ServiceName { get; set; }
         public string Username { get; set; }
         public bool Portable { get; set; }
+        public bool SkipQueueCreation { get; set; }
+
         public HostArguments(string[] args)
         {
             if (ConfigFileSettingsReader<bool>.Read("MaintenanceMode"))
@@ -75,6 +77,11 @@ namespace Particular.ServiceControl.Hosting
                     "userName=",
                     @"Username for the account the service should run under."
                     , s => { Username = s; }
+                },
+                {
+                    "skip-queue-creation",
+                    @"Skip queue creation during install/update",
+                    s => { SkipQueueCreation = true; }
                 }
             };
 
