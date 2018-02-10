@@ -41,7 +41,7 @@ namespace Particular.ServiceControl
 
             using (documentStore)
             using (var container = containerBuilder.Build())
-            using (NServiceBusFactory.Create(settings, container, null, documentStore, configuration))
+            using (NServiceBusFactory.Create(settings, container, null, documentStore, configuration, false))
             {
                 container.Resolve<MigrationsManager>().ApplyMigrations();
             }

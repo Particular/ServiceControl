@@ -80,7 +80,7 @@ namespace Particular.ServiceControl
                 WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
             }
 
-            bus = NServiceBusFactory.CreateAndStart(settings, container, onCriticalError, documentStore, configuration);
+            bus = NServiceBusFactory.CreateAndStart(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
 

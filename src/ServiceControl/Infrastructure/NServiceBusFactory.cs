@@ -12,7 +12,7 @@ namespace ServiceBus.Management.Infrastructure
 
     public static class NServiceBusFactory
     {
-        public static IStartableBus Create(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration)
+        public static IStartableBus Create(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration, bool isRunningAcceptanceTests)
         {
             if (configuration == null)
             {
@@ -43,7 +43,12 @@ namespace ServiceBus.Management.Infrastructure
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
             configuration.EndpointName(settings.ServiceName);
-            configuration.ReportCustomChecksTo(settings.ServiceName);
+
+            if (!isRunningAcceptanceTests)
+            {
+                configuration.ReportCustomChecksTo(settings.ServiceName);
+            }
+
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
             var transport = configuration.UseTransport(transportType);
             if (settings.TransportConnectionString != null)
@@ -63,9 +68,9 @@ namespace ServiceBus.Management.Infrastructure
             return Bus.Create(configuration);
         }
 
-        public static IBus CreateAndStart(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration)
+        public static IBus CreateAndStart(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration, bool isRunningAcceptanceTests)
         {
-            var bus = Create(settings, container, onCriticalError, documentStore, configuration);
+            var bus = Create(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
 
             container.Resolve<SubscribeToOwnEvents>().Run();
 
