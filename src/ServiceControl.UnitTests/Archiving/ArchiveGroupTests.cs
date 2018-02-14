@@ -15,14 +15,14 @@ namespace ServiceControl.UnitTests.Archiving
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 var groupId = "TestGroup";
-                var emptyArchiveBatchId = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
+                var previousArchiveBatchId = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
 
                 using (var session = documentStore.OpenSession())
                 {
-                    var secondAchiveBatch = new ArchiveBatch { Id = emptyArchiveBatchId };
-                    session.Store(secondAchiveBatch);
+                    var previousAchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
+                    session.Store(previousAchiveBatch);
 
-                    var archiveOperation = new ArchiveOperation
+                    var previousArchiveOperation = new ArchiveOperation
                     {
                         Id = ArchiveOperation.MakeId(groupId, ArchiveType.FailureGroup),
                         RequestId = groupId,
@@ -34,7 +34,7 @@ namespace ServiceControl.UnitTests.Archiving
                         NumberOfBatches = 3,
                         CurrentBatch = 0
                     };
-                    session.Store(archiveOperation);
+                    session.Store(previousArchiveOperation);
 
                     session.SaveChanges();
                 }
@@ -53,7 +53,7 @@ namespace ServiceControl.UnitTests.Archiving
                 // Assert
                 using (var session = documentStore.OpenSession())
                 {
-                    var loadedBatch = session.Load<ArchiveBatch>(emptyArchiveBatchId);
+                    var loadedBatch = session.Load<ArchiveBatch>(previousArchiveBatchId);
                     Assert.IsNull(loadedBatch);
                 }
             }
