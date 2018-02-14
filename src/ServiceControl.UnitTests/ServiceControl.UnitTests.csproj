@@ -163,6 +163,7 @@
     <Compile Include="ScatterGather\GetKnownEndpoints_ScatterGather_DataFromBothInstances.cs" />
     <Compile Include="ScatterGather\MessagesView_ScatterGather_DataFromBothInstances.cs" />
     <Compile Include="ScatterGather\MessagesView_ScatterGather_NoData.cs" />
+    <Compile Include="ScatterGather\MessageViewComparerTests.cs" />
     <Compile Include="ScatterGather\MessageView_ScatterGatherTest.cs" />
   </ItemGroup>
   <ItemGroup>
