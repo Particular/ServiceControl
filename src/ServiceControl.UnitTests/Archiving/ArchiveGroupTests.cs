@@ -1,14 +1,7 @@
 ﻿using NUnit.Framework;
-using Raven.Client;
-using ServiceControl.Contracts.Operations;
-using ServiceControl.MessageFailures;
 using ServiceControl.Recoverability;
 using ServiceControl.UnitTests.Recoverability;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ServiceControl.UnitTests.Archiving
 {
@@ -22,10 +15,11 @@ namespace ServiceControl.UnitTests.Archiving
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 var groupId = "TestGroup";
+                var emptyArchiveBatchId = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
 
                 using (var session = documentStore.OpenSession())
                 {
-                    var secondAchiveBatch = new ArchiveBatch { Id = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1) };
+                    var secondAchiveBatch = new ArchiveBatch { Id = emptyArchiveBatchId };
                     session.Store(secondAchiveBatch);
 
                     var archiveOperation = new ArchiveOperation
@@ -59,7 +53,7 @@ namespace ServiceControl.UnitTests.Archiving
                 // Assert
                 using (var session = documentStore.OpenSession())
                 {
-                    var loadedBatch = session.Load<ArchiveBatch>(ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1));
+                    var loadedBatch = session.Load<ArchiveBatch>(emptyArchiveBatchId);
                     Assert.IsNull(loadedBatch);
                 }
             }
