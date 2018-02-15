@@ -71,21 +71,26 @@ namespace ServiceControl.Recoverability
                     {
                         // We're only here in the case where Raven indexes are stale
                         logger.Warn($"Attempting to archive a batch ({archiveOperation.Id}/{archiveOperation.CurrentBatch}) which appears to already have been archived.");
-                        break;
                     }
-
-                    logger.Info($"Archiving {nextBatch.DocumentIds.Count} messages from group {message.GroupId} starting");
+                    else
+                    {
+                        logger.Info($"Archiving {nextBatch.DocumentIds.Count} messages from group {message.GroupId} starting");
+                    }
 
                     documentManager.ArchiveMessageGroupBatch(batchSession, nextBatch);
 
-                    archiveOperationManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch.DocumentIds.Count);
+                    archiveOperationManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0);
+
                     archiveOperation = archiveOperationManager.GetStatusForArchiveOperation(archiveOperation.RequestId, archiveOperation.ArchiveType).ToArchiveOperation();
 
                     documentManager.UpdateArchiveOperation(batchSession, archiveOperation);
 
                     batchSession.SaveChanges();
 
-                    logger.Info($"Archiving of {nextBatch.DocumentIds.Count} messages from group {message.GroupId} completed");
+                    if (nextBatch != null)
+                    {
+                        logger.Info($"Archiving of {nextBatch.DocumentIds.Count} messages from group {message.GroupId} completed");
+                    }
                 }
             }
 
