@@ -98,7 +98,7 @@
 
         public Address InputAddress => settings.ErrorQueue;
 
-        public bool Disabled => InputAddress == Address.Undefined || !settings.IngestErrorMessages;
+        public bool Disabled => InputAddress == Address.Undefined || InputAddress == null || !settings.IngestErrorMessages;
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
