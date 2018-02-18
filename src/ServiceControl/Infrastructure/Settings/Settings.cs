@@ -31,8 +31,13 @@
             }
 
             AuditQueue = GetAuditQueue();
-            ErrorQueue = GetErrorQueue();
-            ErrorLogQueue = GetErrorLogQueue();
+
+            {
+                // order matters
+                ErrorQueue = GetErrorQueue();
+                ErrorLogQueue = GetErrorLogQueue();
+            }
+
             AuditLogQueue = GetAuditLogQueue();
             DbPath = GetDbPath();
             TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
@@ -200,6 +205,13 @@
                 logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
                 return Address.Undefined;
             }
+
+            if (value.Equals("!disable", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.Info("Error ingestion disabled.");
+                return null; // needs to be null to not create the queues
+            }
+
             return Address.Parse(value);
         }
 
@@ -207,11 +219,17 @@
         {
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
 
+            if (ErrorQueue == null)
+            {
+                return Address.Undefined;
+            }
+
             if (value == null)
             {
                 logger.Info("No settings found for error log queue to import, default name will be used");
                 return ErrorQueue.SubScope("log");
             }
+
             return Address.Parse(value);
         }
 
