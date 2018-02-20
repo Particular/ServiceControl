@@ -43,7 +43,7 @@
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <Prefer32Bit>false</Prefer32Bit>
-    <LangVersion>6</LangVersion>
+    <LangVersion>7</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -177,6 +177,9 @@
       <HintPath>..\packages\Owin.Metrics.0.3.7\lib\net45\Owin.Metrics.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="protobuf-net, Version=2.3.3.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <HintPath>..\packages\protobuf-net.2.3.3\lib\net40\protobuf-net.dll</HintPath>
+    </Reference>
     <Reference Include="Raven.Abstractions, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
       <HintPath>..\packages\RavenDB.Database.2.5.2996\lib\net45\Raven.Abstractions.dll</HintPath>
       <Private>True</Private>
@@ -284,6 +287,9 @@
     <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
+    <Compile Include="Data\HeaderId.cs" />
+    <Compile Include="Data\MetadataSerializer.cs" />
+    <Compile Include="Data\MetadataValue.cs" />
     <Compile Include="DbMigrations\1.41.3\AddEndpontDetailsClassifiers.cs" />
     <Compile Include="DbMigrations\1.39\RerunClassifiersMigration.cs" />
     <Compile Include="DbMigrations\Migrations.cs" />
