@@ -30,15 +30,15 @@
                 ServiceName = DEFAULT_SERVICE_NAME;
             }
 
-            AuditQueue = GetAuditQueue();
-
             {
                 // order matters
                 ErrorQueue = GetErrorQueue();
                 ErrorLogQueue = GetErrorLogQueue();
+
+                AuditQueue = GetAuditQueue();
+                AuditLogQueue = GetAuditLogQueue();
             }
 
-            AuditLogQueue = GetAuditLogQueue();
             DbPath = GetDbPath();
             TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
             ForwardAuditMessages = GetForwardAuditMessages();
@@ -176,6 +176,12 @@
         private Address GetAuditLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
+
+            if (AuditQueue == null)
+            {
+                return Address.Undefined;
+            }
+
             if (value == null)
             {
                 logger.Info("No settings found for audit log queue to import, default name will be used");
@@ -192,6 +198,12 @@
             {
                 logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
                 return Address.Undefined;
+            }
+
+            if (value.Equals("!disable", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.Info("Audit ingestion disabled.");
+                return null; // needs to be null to not create the queues
             }
             return Address.Parse(value);
         }

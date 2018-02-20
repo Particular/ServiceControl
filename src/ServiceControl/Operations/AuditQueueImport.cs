@@ -67,7 +67,7 @@
 
         public Address InputAddress => settings.AuditQueue;
 
-        public bool Disabled => !settings.IngestAuditMessages;
+        public bool Disabled => InputAddress == Address.Undefined || InputAddress == null || !settings.IngestAuditMessages;
 
         public Action<TransportReceiver> GetReceiverCustomization()
         {
