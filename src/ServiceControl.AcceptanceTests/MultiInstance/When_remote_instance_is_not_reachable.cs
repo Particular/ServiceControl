@@ -31,7 +31,7 @@
             //search for the message type
             var searchString = typeof(MyMessage).Name;
 
-            Define(context, "Remote1", Master)
+            Define(context, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) => { bus.SendLocal(new MyMessage()); }))
                 .Done(c => TryGetMany("/api/messages/search/" + searchString, out response, instanceName: Master))
                 .Run(TimeSpan.FromSeconds(40));
