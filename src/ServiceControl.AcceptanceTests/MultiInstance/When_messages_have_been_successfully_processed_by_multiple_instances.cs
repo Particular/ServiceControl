@@ -47,6 +47,8 @@
             var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Master].ApiUrl);
             var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
 
+            Assert.AreNotEqual(expectedMasterInstanceId, expectedRemote1InstanceId);
+
             var masterMessage = response.SingleOrDefault(msg => msg.MessageId == context.MasterMessageId);
 
             Assert.NotNull(masterMessage, "Master message not found");
