@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Linq;
     using System.Reflection;
     using Contexts;
@@ -27,6 +28,8 @@
         [Test]
         public void Saga_history_can_be_fetched_on_master()
         {
+            ConfigurationManager.AppSettings["ServiceControl/Queue"] = Remote1;
+
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
             var context = new MyContext();
@@ -91,7 +94,8 @@
                 })
                 .AddMapping<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga))
                 .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"))
-                .AuditTo(Address.Parse(AuditRemote));
+                .AuditTo(Address.Parse(AuditRemote))
+                .ErrorTo(Address.Parse(ErrorMaster));
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
