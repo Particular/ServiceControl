@@ -46,7 +46,7 @@
 
                     if (failure.Status == FailedMessageStatus.Unresolved)
                     {
-                        IssueRetry(c, () => Post<object>($"/api/recoverability/groups/{failure.FailureGroups.First().Id}/errors/retry", null, null, Master));
+                        IssueRetry(c, () => Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, Master));
                         return false;
                     }
 
