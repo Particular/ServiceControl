@@ -77,7 +77,7 @@
             Assert.AreEqual(context.Remote1MessageContentType, response.Content.Headers.ContentType.ToString(), "ContentType mismatch");
             Assert.NotNull(response.Content.Headers.Expires, "Expires header missing");
 
-            Assert.AreEqual(DateTime.UtcNow.Year + 1, response.Content.Headers.Expires.Value.Year, "Unexpected Expires datetime year value");
+            Assert.GreaterOrEqual(response.Content.Headers.Expires.Value, DateTimeOffset.UtcNow.AddDays(360), "Unexpected Expires datetime year value");
 
             Assert.NotNull(response.Content.Headers.ContentLength, "ContentLength not set");
 
