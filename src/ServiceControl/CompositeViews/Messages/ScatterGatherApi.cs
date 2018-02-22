@@ -59,7 +59,7 @@ namespace ServiceControl.CompositeViews.Messages
                 tasks.Add(FetchAndParse(currentRequest, remote.ApiUri, InstanceIdGenerator.FromApiUrl(remote.ApiUri)));
             }
 
-            var response = AggregateResults(currentRequest, instanceId, await Task.WhenAll(tasks));
+            var response = AggregateResults(currentRequest, instanceId, await Task.WhenAll(tasks).ConfigureAwait(false));
 
             var negotiate = module.Negotiate;
             return negotiate.WithPartialQueryResult(response, currentRequest);
