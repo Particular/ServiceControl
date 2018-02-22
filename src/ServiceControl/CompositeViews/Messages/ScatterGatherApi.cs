@@ -101,7 +101,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         async Task<QueryResult<TOut>> FetchAndParse(Request currentRequest, string remoteUri, string instanceId)
         {
-            var instanceUri = new Uri($"{remoteUri}{currentRequest.Path}?{currentRequest.Url.Query}");
+            var instanceUri = currentRequest.RedirectToRemoteUri(remoteUri);
             var httpClient = HttpClientFactory();
             try
             {
