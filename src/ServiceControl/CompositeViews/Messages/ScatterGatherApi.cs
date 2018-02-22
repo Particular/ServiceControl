@@ -89,10 +89,10 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected virtual QueryStatsInfo AggregateStats(IEnumerable<QueryResult<TOut>> results, TOut processedResults)
         {
-            var infos = results.OrderBy(x => x.InstanceId, StringComparer.InvariantCultureIgnoreCase).Select(x => x.QueryStats).ToArray();
+            var infos = results.Select(x => x.QueryStats).ToArray();
 
             return new QueryStatsInfo(
-                string.Join("", infos.Select(x => x.ETag)),
+                string.Join("", infos.OrderBy(x => x.ETag).Select(x => x.ETag)),
                 infos.Sum(x => x.TotalCount),
                 infos.Max(x => x.HighestTotalCountOfAllTheInstances)
             );
