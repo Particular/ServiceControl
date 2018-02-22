@@ -25,11 +25,31 @@
 
         private string addressOfRemote;
 
+        [SetUp]
+        public void SetUp()
+        {
+            // To configure the SagaAudit plugin
+            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var appSettings = (AppSettingsSection)config.GetSection("appSettings");
+            appSettings.Settings.Add("ServiceControl/Queue", Remote1);
+            config.Save();
+            ConfigurationManager.RefreshSection("appSettings");
+        }
+
+        [TearDown]
+        public void TearDown()
+        {            
+            // Cleanup the saga audit plugin configuration to not leak into other tests
+            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var appSettings = (AppSettingsSection)config.GetSection("appSettings");
+            appSettings.Settings.Remove("ServiceControl/Queue");
+            config.Save();
+            ConfigurationManager.RefreshSection("appSettings");
+        }
+
         [Test]
         public void Saga_history_can_be_fetched_on_master()
         {
-            ConfigurationManager.AppSettings["ServiceControl/Queue"] = Remote1;
-
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
             var context = new MyContext();
