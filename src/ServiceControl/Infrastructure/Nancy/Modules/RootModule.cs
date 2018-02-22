@@ -16,7 +16,7 @@
                 var model = new RootUrls
                 {
                     EndpointsUrl = BaseUrl + "/endpoints",
-                    KnownEndpointsUrl = BaseUrl + "/endpoints/known",
+                    KnownEndpointsUrl = "/endpoints/known", // relative URI to allow proxying
                     SagasUrl = BaseUrl + "/sagas",
                     ErrorsUrl = BaseUrl + "/errors/{?page,per_page,direction,sort}",
                     EndpointsErrorUrl = BaseUrl + "/endpoints/{name}/errors/{?page,per_page,direction,sort}",
