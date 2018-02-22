@@ -147,6 +147,11 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
         public static Negotiator WithDeterministicEtag(this Negotiator negotiator, string data)
         {
+            if (string.IsNullOrEmpty(data))
+            {
+                return negotiator;
+            }
+
             var guid = DeterministicGuid.MakeId(data);
             return negotiator
                 .WithHeader("ETag", guid.ToString());
