@@ -3,10 +3,16 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
+    using System.Security.Cryptography;
+    using System.Text;
     using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Config;
+    using NServiceBus.Hosting;
     using NServiceBus.Settings;
+    using NServiceBus.Unicast;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -23,6 +29,7 @@
         private const string Remote1 = "remote1";
         private static string AuditRemote = $"{Remote1}.audit";
         private static string ErrorRemote = $"{Remote1}.error";
+        private const string ReceiverHostDisplayName = "Rico";
 
         private string addressOfRemote;
 
@@ -46,6 +53,8 @@
 
             var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Master].ApiUrl);
             var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
+
+            Assert.AreNotEqual(expectedMasterInstanceId, expectedRemote1InstanceId);
 
             var masterMessage = response.SingleOrDefault(msg => msg.MessageId == context.MasterMessageId);
 
@@ -183,6 +192,8 @@
         [Test]
         public void Should_list_the_endpoints_in_the_list_of_known_endpoints()
         {
+            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+
             var context = new MyContext();
             List<KnownEndpointsView> knownEndpoints = null;
 
@@ -196,7 +207,7 @@
                 .Run(TimeSpan.FromSeconds(20));
 
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).EndpointDetails.Name);
-            Assert.AreEqual(Environment.MachineName, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);
+            Assert.AreEqual(ReceiverHostDisplayName, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);
         }
 
 
@@ -302,6 +313,40 @@
 
                     Thread.Sleep(200);
                 }
+            }
+        }
+
+        // Needed to override the host display name for ReceiverRemote endpoint
+        // (.UniquelyIdentifyRunningInstance().UsingNames(instanceName, hostName) didn't work)
+        public class HostIdFixer : IWantToRunWhenConfigurationIsComplete
+        {
+
+            public HostIdFixer(UnicastBus bus, ReadOnlySettings settings)
+            {
+                var hostId = CreateGuid(Environment.MachineName, settings.EndpointName());
+                var location = Assembly.GetExecutingAssembly().Location;
+                var properties = new Dictionary<string, string>
+                {
+                    {"Location", location}
+                };
+                bus.HostInformation = new HostInformation(
+                    hostId: hostId,
+                    displayName: ReceiverHostDisplayName,
+                    properties: properties);
+            }
+
+            static Guid CreateGuid(params string[] data)
+            {
+                using (var provider = new MD5CryptoServiceProvider())
+                {
+                    var inputBytes = Encoding.Default.GetBytes(string.Concat(data));
+                    var hashBytes = provider.ComputeHash(inputBytes);
+                    return new Guid(hashBytes);
+                }
+            }
+
+            public void Run(Configure config)
+            {
             }
         }
 
