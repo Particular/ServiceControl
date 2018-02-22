@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Http;
     using System.Reflection;
     using System.Security.Cryptography;
     using System.Text;
@@ -196,6 +197,7 @@
 
             var context = new MyContext();
             List<KnownEndpointsView> knownEndpoints = null;
+            HttpResponseMessage httpResponseMessage = null;
 
             Define(context, Remote1, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
@@ -203,13 +205,24 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c => TryGetMany("/api/endpoints/known", out knownEndpoints, m => m.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint, Master))
+                .Done(c =>
+                {
+                    if (TryGetMany("/api/endpoints/known", out knownEndpoints, m => m.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint, Master))
+                    {
+                        httpResponseMessage = GetRaw("/api/endpoints/known", Master).GetAwaiter().GetResult();
+
+                        return true;
+                    }
+                    return false;
+                })
                 .Run(TimeSpan.FromSeconds(20));
 
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).EndpointDetails.Name);
             Assert.AreEqual(ReceiverHostDisplayName, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);
-        }
 
+            Assert.NotNull(httpResponseMessage);
+            Assert.False(httpResponseMessage.Headers.Contains("ETag"), "Expected not to contain ETag header, but it was found.");
+        }
 
         private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
