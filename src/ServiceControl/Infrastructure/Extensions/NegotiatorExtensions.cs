@@ -29,7 +29,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 .WithPagingLinks(totalCount, highestTotalCountOfAllInstances, request);
         }
 
-        public static Negotiator WithPartialQueryResult(this Negotiator negotiator, QueryResult queryResult, Request request)
+        public static Negotiator WithQueryResult(this Negotiator negotiator, QueryResult queryResult, Request request)
         {
             var queryStats = queryResult.QueryStats;
 

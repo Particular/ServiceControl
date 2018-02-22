@@ -62,7 +62,7 @@ namespace ServiceControl.CompositeViews.Messages
             var response = AggregateResults(currentRequest, instanceId, await Task.WhenAll(tasks).ConfigureAwait(false));
 
             var negotiate = module.Negotiate;
-            return negotiate.WithPartialQueryResult(response, currentRequest);
+            return negotiate.WithQueryResult(response, currentRequest);
         }
 
         public abstract Task<QueryResult<TOut>> LocalQuery(Request request, TIn input, string instanceId);
