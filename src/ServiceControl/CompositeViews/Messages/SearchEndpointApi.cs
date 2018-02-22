@@ -32,7 +32,7 @@ namespace ServiceControl.CompositeViews.Messages
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return Results(results.ToList(), stats);
+                return new QueryResult<List<MessagesView>>(results.ToList(), stats.ToQueryStatsInfo());
             }
         }
     }
