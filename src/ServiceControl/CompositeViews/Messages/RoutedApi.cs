@@ -34,32 +34,20 @@ namespace ServiceControl.CompositeViews.Messages
         public Settings Settings { get; set; }
         public Func<HttpClient> HttpClientFactory { get; set; }
 
-        public async Task<Response> Execute(BaseModule module, TIn input)
+        public Task<Response> Execute(BaseModule module, TIn input)
         {
             var currentRequest = module.Request;
-            Response response;
 
             var instanceId = GetInstance(currentRequest, input);
 
             var localInstanceId = InstanceIdGenerator.FromApiUrl(Settings.ApiUrl);
 
-            if (!string.IsNullOrWhiteSpace(instanceId))
+            if (!string.IsNullOrWhiteSpace(instanceId) && instanceId != localInstanceId)
             {
-                if (instanceId == localInstanceId)
-                {
-                    response = await LocalQuery(currentRequest, input, localInstanceId);
-                }
-                else
-                {
-                    response = await RemoteCall(currentRequest, instanceId);
-                }
-            }
-            else
-            {
-                response = await LocalQuery(currentRequest, input, localInstanceId);
+                return RemoteCall(currentRequest, instanceId);
             }
 
-            return response;
+            return LocalQuery(currentRequest, input, localInstanceId);
         }
 
         protected virtual string GetInstance(Request currentRequest, TIn input)
