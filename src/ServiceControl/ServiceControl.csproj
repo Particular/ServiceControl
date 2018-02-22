@@ -280,6 +280,7 @@
     <Compile Include="CompositeViews\Messages\NoInputExtensions.cs" />
     <Compile Include="CompositeViews\Messages\QueryResult.cs" />
     <Compile Include="CompositeViews\Messages\QueryStatsInfo.cs" />
+    <Compile Include="CompositeViews\Messages\RequestExtensions.cs" />
     <Compile Include="CompositeViews\Messages\RoutedApi.cs" />
     <Compile Include="CompositeViews\Messages\ScatterGatherApi.cs" />
     <Compile Include="CompositeViews\Messages\ScatterGatherApiMessageView.cs" />
