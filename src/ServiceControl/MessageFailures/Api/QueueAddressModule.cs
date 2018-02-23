@@ -27,7 +27,7 @@
                     return Negotiate
                         .WithModel(addresses)
                         .WithPagingLinksAndTotalCount(stats, Request)
-                        .WithEtag(stats);
+                        .WithEtagAndLastModified(stats);
                 }
             };
 
@@ -61,7 +61,7 @@
                     return Negotiate
                         .WithModel(failedMessageQueues)
                         .WithPagingLinksAndTotalCount(stats, Request)
-                        .WithEtag(stats);
+                        .WithEtagAndLastModified(stats);
                 }
             };
         }

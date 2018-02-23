@@ -22,7 +22,6 @@
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
     using NServiceBus.Config;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
@@ -109,7 +108,7 @@
         {
             var context = new MyContext
             {
-                Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]
+                Handler = () => Handler
             };
 
             Define(context)

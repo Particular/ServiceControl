@@ -11,7 +11,6 @@
     using ServiceControl.Plugin.CustomChecks;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     [TestFixture]
     public class Custom_check_transition_should_trigger_signalr_event : AcceptanceTest
@@ -21,7 +20,7 @@
         {
             var context = new MyContext
             {
-                Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]
+                Handler = () => Handler
             };
 
             Define(context)

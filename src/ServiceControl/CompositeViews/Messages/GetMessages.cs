@@ -1,26 +1,60 @@
 namespace ServiceControl.CompositeViews.Messages
 {
+    using System.Linq;
+    using Infrastructure.Extensions;
+    using Nancy;
+    using Raven.Client;
+    using Raven.Client.Linq;
+    using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class GetMessages : BaseModule
     {
-        public GetAllMessagesApi GetAllMessagesApi { get; set; }
-        public GetAllMessagesForEndpointApi GetAllMessagesForEndpointApi { get; set; }
-
-        public GetMessages() 
+        public GetMessages()
         {
-            Get["/messages", true] = (parameters, token) =>
+            Get["/messages"] = parameters =>
             {
-                return GetAllMessagesApi.Execute(this);
+                using (var session = Store.OpenSession())
+                {
+                    RavenQueryStatistics stats;
+                    var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                        .IncludeSystemMessagesWhere(Request)
+                        .Statistics(out stats)
+                        .Sort(Request)
+                        .Paging(Request)
+                        .TransformWith<MessagesViewTransformer, MessagesView>()
+                        .ToArray();
+
+                    return Negotiate.WithModel(results)
+                                    .WithPagingLinksAndTotalCount(stats, Request)
+                                    .WithEtagAndLastModified(stats);
+                }
             };
 
-
-            Get["/endpoints/{name}/messages", true] = (parameters, token) =>
+            Get["/endpoints/{name}/messages"] = parameters =>
             {
-                string endpoint = parameters.name;
+                using (var session = Store.OpenSession())
+                {
+                    string endpoint = parameters.name;
 
-                return GetAllMessagesForEndpointApi.Execute(this, endpoint);
+                    RavenQueryStatistics stats;
+                    var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                        .IncludeSystemMessagesWhere(Request)
+                        .Where(m => m.ReceivingEndpointName == endpoint)
+                        .Statistics(out stats)
+                        .Sort(Request)
+                        .Paging(Request)
+                        .TransformWith<MessagesViewTransformer, MessagesView>()
+                        .ToArray();
+
+                    return Negotiate
+                        .WithModel(results)
+                        .WithPagingLinksAndTotalCount(stats, Request)
+                        .WithEtagAndLastModified(stats);
+                }
             };
         }
+
+
     }
 }

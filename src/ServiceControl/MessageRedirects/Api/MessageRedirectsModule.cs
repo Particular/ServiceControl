@@ -169,7 +169,7 @@
                     var redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
 
                     return Negotiate
-                        .WithEtag(redirects.ETag)
+                        .WithEtagAndLastModified(redirects.ETag, redirects.LastModified)
                         .WithTotalCount(redirects.Redirects.Count);
                 }
             };
@@ -193,7 +193,7 @@
 
                     return Negotiate
                         .WithModel(queryResult)
-                        .WithEtag(redirects.ETag)
+                        .WithEtagAndLastModified(redirects.ETag, redirects.LastModified)
                         .WithPagingLinksAndTotalCount(redirects.Redirects.Count, Request);
                 }
             };

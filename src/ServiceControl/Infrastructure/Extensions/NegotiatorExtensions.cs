@@ -11,7 +11,6 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using global::Nancy.Helpers;
     using global::Nancy.Responses.Negotiation;
     using ServiceControl.Infrastructure;
-    using QueryResult = ServiceControl.CompositeViews.Messages.QueryResult;
 
     public static class NegotiatorExtensions
     {
@@ -22,22 +21,6 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             return negotiator.WithPagingLinksAndTotalCount(stats.TotalResults, request);
         }
 
-        public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, int totalCount, int highestTotalCountOfAllInstances,
-            Request request)
-        {
-            return negotiator.WithTotalCount(totalCount)
-                .WithPagingLinks(totalCount, highestTotalCountOfAllInstances, request);
-        }
-
-        public static Negotiator WithQueryResult(this Negotiator negotiator, QueryResult queryResult, Request request)
-        {
-            var queryStats = queryResult.QueryStats;
-
-            return negotiator.WithModel(queryResult.DynamicResults)
-                .WithPagingLinksAndTotalCount(queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances, request)
-                .WithDeterministicEtag(queryStats.ETag);
-        }
-
         public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, int totalCount,
             Request request)
         {
@@ -45,17 +28,22 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 .WithPagingLinks(totalCount, request);
         }
 
+        public static Negotiator WithTotalCount(this Negotiator negotiator, RavenQueryStatistics stats)
+        {
+            return negotiator.WithTotalCount(stats.TotalResults);
+        }
+
         public static Negotiator WithTotalCount(this Negotiator negotiator, int total)
         {
             return negotiator.WithHeader("Total-Count", total.ToString(CultureInfo.InvariantCulture));
         }
 
-        public static Negotiator WithPagingLinks(this Negotiator negotiator, int totalResults, Request request)
+        public static Negotiator WithPagingLinks(this Negotiator negotiator, RavenQueryStatistics stats, Request request)
         {
-            return negotiator.WithPagingLinks(totalResults, 1, request);
+            return negotiator.WithPagingLinks(stats.TotalResults, request);
         }
 
-        public static Negotiator WithPagingLinks(this Negotiator negotiator, int totalResults, int highestTotalCountOfAllInstances, Request request)
+        public static Negotiator WithPagingLinks(this Negotiator negotiator, int totalResults, Request request)
         {
             decimal maxResultsPerPage = 50;
 
@@ -88,7 +76,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             }
 
             var links = new List<string>();
-            var lastPage = (int) Math.Ceiling(highestTotalCountOfAllInstances / maxResultsPerPage);
+            var lastPage = (int) Math.Ceiling(totalResults / maxResultsPerPage);
 
             // No need to add a Link header if page does not exist!
             if (page > lastPage)
@@ -138,38 +126,44 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             links.Add($"<{url}>; rel=\"{rel}\"");
         }
 
-        public static Negotiator WithEtag(this Negotiator negotiator, RavenQueryStatistics stats)
+        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, QueryHeaderInformation stats)
         {
             var etag = stats.IndexEtag;
+            var responseLastModified = stats.IndexTimestamp;
 
-            return WithEtag(negotiator, etag);
+            return WithEtagAndLastModified(negotiator, etag, responseLastModified);
+        }
+
+        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, RavenQueryStatistics stats)
+        {
+            var etag = stats.IndexEtag;
+            var responseLastModified = stats.IndexTimestamp;
+
+            return WithEtagAndLastModified(negotiator, etag, responseLastModified);
         }
 
         public static Negotiator WithDeterministicEtag(this Negotiator negotiator, string data)
         {
-            if (string.IsNullOrEmpty(data))
-            {
-                return negotiator;
-            }
-
             var guid = DeterministicGuid.MakeId(data);
             return negotiator
                 .WithHeader("ETag", guid.ToString());
         }
 
-        public static Negotiator WithEtag(this Negotiator negotiator, string etag)
+        public static Negotiator WithEtagAndLastModified(this Negotiator negotiator, Etag etag, DateTime responseLastModified)
         {
-            if (etag != null)
+            var currentEtag = etag?.ToString();
+            if (currentEtag != null)
             {
-                negotiator.WithHeader("ETag", etag);
+                negotiator.WithHeader("ETag", currentEtag);
             }
-
-            return negotiator;
+            return negotiator
+                .WithHeader("Last-Modified", responseLastModified.ToString("R"));
         }
 
-        public static Negotiator WithEtag(this Negotiator negotiator, Etag etag)
+        public static Negotiator WithLastModified(this Negotiator negotiator, DateTime responseLastModified)
         {
-            return negotiator.WithEtag(etag?.ToString());
+            return negotiator
+                .WithHeader("Last-Modified", responseLastModified.ToString("R"));
         }
     }
 }

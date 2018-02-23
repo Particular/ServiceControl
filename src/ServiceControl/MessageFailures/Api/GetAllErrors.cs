@@ -26,7 +26,7 @@
 
                     return Negotiate
                         .WithTotalCount(queryResult.TotalResults)
-                        .WithEtag(queryResult.IndexEtag);
+                        .WithEtagAndLastModified(queryResult.IndexEtag, queryResult.IndexTimestamp);
                 }
             };
 
@@ -51,7 +51,7 @@
                     return Negotiate
                         .WithModel(results)
                         .WithPagingLinksAndTotalCount(stats, Request)
-                        .WithEtag(stats);
+                        .WithEtagAndLastModified(stats);
                 }
             };
 
@@ -79,7 +79,7 @@
                     return Negotiate
                         .WithModel(results)
                         .WithPagingLinksAndTotalCount(stats, Request)
-                        .WithEtag(stats);
+                        .WithEtagAndLastModified(stats);
                 }
             };
 
