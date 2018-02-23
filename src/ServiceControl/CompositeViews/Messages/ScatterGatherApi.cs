@@ -86,13 +86,6 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected abstract TOut ProcessResults(Request request, QueryResult<TOut>[] results);
 
-        protected QueryResult<TOut> Results(TOut results, RavenQueryStatistics stats = null)
-        {
-            return stats != null
-                ? new QueryResult<TOut>(results, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults))
-                : new QueryResult<TOut>(results, QueryStatsInfo.Zero);
-        }
-
         protected virtual QueryStatsInfo AggregateStats(IEnumerable<QueryResult<TOut>> results, TOut processedResults)
         {
             var infos = results.Select(x => x.QueryStats).ToArray();
