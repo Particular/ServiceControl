@@ -64,7 +64,6 @@ namespace ServiceControl.CompositeViews.Messages
 
             var instanceUri = currentRequest.RedirectToRemoteUri(remoteUri);
                 
-                new Uri($"{remoteUri}{currentRequest.Path}{currentRequest.Url.Query}");
             var httpClient = HttpClientFactory();
             try
             {
