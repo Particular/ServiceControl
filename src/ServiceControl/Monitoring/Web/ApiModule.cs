@@ -23,7 +23,7 @@
 
             Get["/endpoints"] = _ => Negotiate.WithModel(Monitoring.GetEndpoints());
 
-            Get["/endpoints/known", true] = (_, token) => KnownEndpointsApi.Execute(this, NoInput.Instance);
+            Get["/endpoints/known", true] = (_, token) => KnownEndpointsApi.Execute(this);
 
             Patch["/endpoints/{id}"] = parameters =>
             {
