@@ -12,10 +12,10 @@
     {
         public EndpointInstanceMonitoring EndpointInstanceMonitoring { get; set; }
 
-        public override Task<QueryResult<List<KnownEndpointsView>>> LocalQuery(Request request, NoInput input, string instanceId)
+        public override Task<QueryResult<List<KnownEndpointsView>>> LocalQuery(Request request, NoInput input)
         {
             var result = EndpointInstanceMonitoring.GetKnownEndpoints();
-            return Task.FromResult(Results(result, instanceId));
+            return Task.FromResult(Results(result));
         }
 
         protected override List<KnownEndpointsView> ProcessResults(Request request, QueryResult<List<KnownEndpointsView>>[] results)

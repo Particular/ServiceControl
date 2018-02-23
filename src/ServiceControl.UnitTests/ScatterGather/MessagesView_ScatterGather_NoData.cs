@@ -9,8 +9,8 @@
     {
         protected override IEnumerable<QueryResult<List<MessagesView>>> GetData()
         {
-            yield return QueryResult<List<MessagesView>>.Empty(LocalInstanceID);
-            yield return QueryResult<List<MessagesView>>.Empty(RemoteInstanceId);
+            yield return QueryResult<List<MessagesView>>.Empty();
+            yield return QueryResult<List<MessagesView>>.Empty();
         }
 
         [Test]

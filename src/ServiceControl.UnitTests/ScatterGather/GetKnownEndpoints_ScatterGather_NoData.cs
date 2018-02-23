@@ -10,8 +10,8 @@
     {
         protected override IEnumerable<QueryResult<List<KnownEndpointsView>>> GetData()
         {
-            yield return QueryResult<List<KnownEndpointsView>>.Empty(LocalInstanceID);
-            yield return QueryResult<List<KnownEndpointsView>>.Empty(RemoteInstanceId);
+            yield return QueryResult<List<KnownEndpointsView>>.Empty();
+            yield return QueryResult<List<KnownEndpointsView>>.Empty();
         }
 
         [Test]
