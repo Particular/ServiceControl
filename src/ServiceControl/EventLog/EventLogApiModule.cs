@@ -23,7 +23,7 @@
 
                     return Negotiate.WithModel(results)
                         .WithPagingLinksAndTotalCount(stats, Request)
-                        .WithEtagAndLastModified(stats);
+                        .WithEtag(stats);
                 }
             };
         }

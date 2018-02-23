@@ -23,7 +23,10 @@
     {
         public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
-            endpointConfiguration.AddressOfAuditQueue = Address.Parse("audit");
+            if (endpointConfiguration.AddressOfAuditQueue == null)
+            {
+                endpointConfiguration.AddressOfAuditQueue = Address.Parse("audit");
+            }
 
             ServicePointManager.DefaultConnectionLimit = 100;
 

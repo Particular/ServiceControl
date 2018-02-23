@@ -3,9 +3,11 @@
     using System;
     using System.IO;
     using System.Linq;
+    using Newtonsoft.Json;
     using NLog.Common;
     using NServiceBus;
     using NServiceBus.Logging;
+    using ServiceBus.Management.Infrastructure.Nancy;
 
     public class Settings
     {
@@ -52,6 +54,7 @@
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
+            RemoteInstances = GetRemoteInstances();
         }
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
@@ -107,8 +110,8 @@
 
         public string DbPath { get; set; }
         public Address ErrorLogQueue { get; set; }
-        public Address ErrorQueue { get; }
-        public Address AuditQueue { get; }
+        public Address ErrorQueue { get; set; }
+        public Address AuditQueue { get; set; }
 
         public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
@@ -172,6 +175,8 @@
         public int MaximumConcurrencyLevel { get; set; }
 
         public int RetryHistoryDepth { get; set; }
+
+        public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         private Address GetAuditLogQueue()
         {
@@ -391,6 +396,20 @@
                 throw new Exception(message);
             }
             return result;
+        }
+
+        private static RemoteInstanceSetting[] GetRemoteInstances()
+        {
+            var valueRead = SettingsReader<string>.Read("RemoteInstances");
+            if (!string.IsNullOrEmpty(valueRead))
+            {
+                var jsonSerializer = Newtonsoft.Json.JsonSerializer.Create(JsonNetSerializer.CreateDefault());
+                using (var jsonReader = new JsonTextReader(new StringReader(valueRead)))
+                {
+                    return jsonSerializer.Deserialize<RemoteInstanceSetting[]>(jsonReader) ?? new RemoteInstanceSetting[0];
+                }
+            }
+            return new RemoteInstanceSetting[0];
         }
     }
 }

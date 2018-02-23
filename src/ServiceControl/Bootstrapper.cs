@@ -3,7 +3,10 @@ namespace Particular.ServiceControl
     using System;
     using System.IO;
     using System.Net;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
     using Autofac;
+    using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
@@ -18,6 +21,7 @@ namespace Particular.ServiceControl
 
     public class Bootstrapper
     {
+        private static HttpClient httpClient;
         private BusConfiguration configuration;
         private LoggingSettings loggingSettings;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
@@ -45,6 +49,17 @@ namespace Particular.ServiceControl
 
         public Startup Startup { get; private set; }
 
+        public Func<HttpClient> HttpClientFactory { get; set; } = () =>
+        {
+            if (httpClient == null)
+            {
+                httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            }
+
+            return httpClient;
+        };
+
         private void Initialize()
         {
             RecordStartup(loggingSettings);
@@ -63,6 +78,8 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            containerBuilder.Register(c => HttpClientFactory);
+            containerBuilder.RegisterModule<ApisModule>();
 
             container = containerBuilder.Build();
             Startup = new Startup(container);

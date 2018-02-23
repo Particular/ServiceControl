@@ -1,60 +1,26 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using System.Linq;
-    using Infrastructure.Extensions;
-    using Nancy;
-    using Raven.Client;
-    using Raven.Client.Linq;
-    using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
     public class GetMessages : BaseModule
     {
-        public GetMessages()
-        {
-            Get["/messages"] = parameters =>
-            {
-                using (var session = Store.OpenSession())
-                {
-                    RavenQueryStatistics stats;
-                    var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                        .IncludeSystemMessagesWhere(Request)
-                        .Statistics(out stats)
-                        .Sort(Request)
-                        .Paging(Request)
-                        .TransformWith<MessagesViewTransformer, MessagesView>()
-                        .ToArray();
+        public GetAllMessagesApi GetAllMessagesApi { get; set; }
+        public GetAllMessagesForEndpointApi GetAllMessagesForEndpointApi { get; set; }
 
-                    return Negotiate.WithModel(results)
-                                    .WithPagingLinksAndTotalCount(stats, Request)
-                                    .WithEtagAndLastModified(stats);
-                }
+        public GetMessages() 
+        {
+            Get["/messages", true] = (parameters, token) =>
+            {
+                return GetAllMessagesApi.Execute(this);
             };
 
-            Get["/endpoints/{name}/messages"] = parameters =>
+
+            Get["/endpoints/{name}/messages", true] = (parameters, token) =>
             {
-                using (var session = Store.OpenSession())
-                {
-                    string endpoint = parameters.name;
+                string endpoint = parameters.name;
 
-                    RavenQueryStatistics stats;
-                    var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                        .IncludeSystemMessagesWhere(Request)
-                        .Where(m => m.ReceivingEndpointName == endpoint)
-                        .Statistics(out stats)
-                        .Sort(Request)
-                        .Paging(Request)
-                        .TransformWith<MessagesViewTransformer, MessagesView>()
-                        .ToArray();
-
-                    return Negotiate
-                        .WithModel(results)
-                        .WithPagingLinksAndTotalCount(stats, Request)
-                        .WithEtagAndLastModified(stats);
-                }
+                return GetAllMessagesForEndpointApi.Execute(this, endpoint);
             };
         }
-
-
     }
 }

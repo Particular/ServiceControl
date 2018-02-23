@@ -205,6 +205,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.Messaging" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Reactive.Core, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
       <Private>True</Private>
@@ -261,14 +262,30 @@
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="App_Packages\StackTraceParser\StackTraceParser.cs" />
     <Compile Include="CompositeViews\Endpoints\EndpointsView.cs" />
+    <Compile Include="CompositeViews\Endpoints\GetKnownEndpointsApi.cs" />
     <Compile Include="CompositeViews\Endpoints\HeartbeatInformation.cs" />
     <Compile Include="CompositeViews\Endpoints\KnownEndpointIndex.cs" />
     <Compile Include="CompositeViews\Endpoints\EnableEndpointMonitoring.cs" />
+    <Compile Include="CompositeViews\Endpoints\KnownEndpointsView.cs" />
+    <Compile Include="CompositeViews\Messages\GetAllMessagesApi.cs" />
+    <Compile Include="CompositeViews\Messages\GetAllMessagesForEndpointApi.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
     <Compile Include="CompositeViews\Messages\MessagesBodyTransformer.cs" />
+    <Compile Include="CompositeViews\Messages\MessagesByConversationApi.cs" />
     <Compile Include="CompositeViews\Messages\MessagesView.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewIndex.cs" />
     <Compile Include="CompositeViews\Messages\MessagesViewTransformer.cs" />
+    <Compile Include="CompositeViews\Messages\MessageViewComparer.cs" />
+    <Compile Include="CompositeViews\Messages\NoInput.cs" />
+    <Compile Include="CompositeViews\Messages\NoInputExtensions.cs" />
+    <Compile Include="CompositeViews\Messages\QueryResult.cs" />
+    <Compile Include="CompositeViews\Messages\QueryStatsInfo.cs" />
+    <Compile Include="CompositeViews\Messages\RequestExtensions.cs" />
+    <Compile Include="CompositeViews\Messages\RoutedApi.cs" />
+    <Compile Include="CompositeViews\Messages\ScatterGatherApi.cs" />
+    <Compile Include="CompositeViews\Messages\ScatterGatherApiMessageView.cs" />
+    <Compile Include="CompositeViews\Messages\SearchApi.cs" />
+    <Compile Include="CompositeViews\Messages\SearchEndpointApi.cs" />
     <Compile Include="ConfigErrorQueue.cs" />
     <Compile Include="ConfigTransportConfig.cs" />
     <Compile Include="Contracts\CustomChecks\CustomCheckFailed.cs" />
@@ -299,6 +316,7 @@
     </Compile>
     <Compile Include="Infrastructure\DomainEvents\DomainEvents.cs" />
     <Compile Include="Infrastructure\EndpointInstanceId.cs" />
+    <Compile Include="Infrastructure\Extensions\RavenQueryStatisticsExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\WaitHandleExtensions.cs" />
     <Compile Include="Infrastructure\Nancy\NotFoundOverride.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\EventLogItemsCleaner.cs" />
@@ -311,11 +329,14 @@
     <Compile Include="Infrastructure\RavenDB\Subscriptions\SubscriptionPersister.cs" />
     <Compile Include="Infrastructure\RavenDB\Subscriptions\SubscriptionStorage.cs" />
     <Compile Include="Infrastructure\Settings\ConfigFileSettingsReader.cs" />
+    <Compile Include="Infrastructure\Settings\InstanceIdGenerator.cs" />
+    <Compile Include="Infrastructure\Settings\RemoteInstanceSetting.cs" />
     <Compile Include="Licensing\LicenseCheckFeature.cs" />
     <Compile Include="Licensing\LicenseModule.cs" />
     <Compile Include="LoggingConfigurator.cs" />
     <Compile Include="MaintenanceBootstrapper.cs" />
     <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
+    <Compile Include="MessageFailures\Api\RetryMessagesApi.cs" />
     <Compile Include="MessageFailures\InternalMessages\MarkPendingRetryAsResolved.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailed.cs" />
     <Compile Include="Contracts\MessageFailures\MessageFailedRepeatedly.cs" />
@@ -411,6 +432,7 @@
     <Compile Include="Monitoring\MonitoringDataPersister.cs" />
     <Compile Include="Monitoring\RecordedHeartbeat.cs" />
     <Compile Include="Operations\AuditImporter.cs" />
+    <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyByIdApi.cs" />
     <Compile Include="Operations\FailedTransportMessage.cs" />
     <Compile Include="Operations\ImportFailedAudits.cs" />
     <Compile Include="Operations\FailedErrorImportCustomCheck.cs" />
@@ -619,6 +641,7 @@
     <Compile Include="Recoverability\Retrying\History\UnacknowledgedRetryOperation.cs" />
     <Compile Include="Recoverability\Archiving\ArchiveProgress.cs" />
     <Compile Include="SagaAudit\ApiModule.cs" />
+    <Compile Include="SagaAudit\GetSagaByIdApi.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeInitiator.cs" />
     <Compile Include="SagaAudit\Messages\SagaChangeOutput.cs" />
     <Compile Include="SagaAudit\Messages\SagaUpdatedMessage.cs" />
@@ -665,7 +688,9 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Infrastructure\ApiFacade\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

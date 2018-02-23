@@ -3,12 +3,13 @@
     using global::Nancy;
     using global::Nancy.Responses.Negotiation;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public abstract class BaseModule : NancyModule
     {
         protected string BaseUrl => Request.Url.SiteBase + Request.Url.BasePath;
 
-        protected new Negotiator Negotiate
+        public new Negotiator Negotiate
         {
             get
             {
@@ -27,6 +28,7 @@
         }
 
         public IDocumentStore Store { get; set; }
+        public Settings Settings { get; set; }
     }
 
 }
