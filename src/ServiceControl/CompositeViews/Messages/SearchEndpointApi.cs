@@ -17,7 +17,7 @@ namespace ServiceControl.CompositeViews.Messages
             public string Endpoint { get; set; }
         }
 
-        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, Input input, string instanceId)
+        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, Input input)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -32,7 +32,7 @@ namespace ServiceControl.CompositeViews.Messages
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return Results(results.ToList(), instanceId, stats);
+                return Results(results.ToList(), stats);
             }
         }
     }

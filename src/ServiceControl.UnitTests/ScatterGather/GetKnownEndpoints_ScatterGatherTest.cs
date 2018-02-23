@@ -33,7 +33,7 @@
 
             var request = new Request("GET", new Url("http://localhost/api/endpoints/known"));
 
-            Results = api.AggregateResults(request, LocalInstanceID, GetData().ToArray());
+            Results = api.AggregateResults(request, GetData().ToArray());
 
         }
 
@@ -49,14 +49,20 @@
         {
             var result = LocalData().Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
-            return new QueryResult<List<KnownEndpointsView>>(result, LocalInstanceID, new QueryStatsInfo(LocalETag, result.Count));
+            return new QueryResult<List<KnownEndpointsView>>(result, new QueryStatsInfo(LocalETag, result.Count))
+            {
+                InstanceId = LocalInstanceID
+            };
         }
 
         protected QueryResult<List<KnownEndpointsView>> RemotePage(int page, int pageSize = PageSize)
         {
             var result = RemoteData().Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
-            return new QueryResult<List<KnownEndpointsView>>(result, RemoteInstanceId, new QueryStatsInfo(RemoteETag, result.Count));
+            return new QueryResult<List<KnownEndpointsView>>(result, new QueryStatsInfo(RemoteETag, result.Count))
+            {
+                InstanceId = RemoteInstanceId
+            };
         }
 
         private IEnumerable<KnownEndpointsView> LocalData()

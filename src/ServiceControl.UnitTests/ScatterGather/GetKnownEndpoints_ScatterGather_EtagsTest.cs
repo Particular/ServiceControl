@@ -21,21 +21,25 @@
             var request = new Request("GET", new Url("http://localhost/api/endpoints/known"));
 
             var localPage = new QueryResult<List<KnownEndpointsView>>(
-                new List<KnownEndpointsView>(0), 
-                LocalInstanceID,
-                new QueryStatsInfo(LocalETag, 0));
+                new List<KnownEndpointsView>(0),
+                new QueryStatsInfo(LocalETag, 0))
+            {
+                InstanceId = LocalInstanceID
+            };
 
             var remotePage = new QueryResult<List<KnownEndpointsView>>(
                 new List<KnownEndpointsView>(0),
-                RemoteInstanceId,
-                new QueryStatsInfo(RemoteETag, 0));
+                new QueryStatsInfo(RemoteETag, 0))
+            {
+                InstanceId = RemoteInstanceId
+            };
 
-            var localFirst = api.AggregateResults(request, LocalInstanceID, new[]
+            var localFirst = api.AggregateResults(request, new[]
             {
                 localPage,
                 remotePage
             });
-            var remoteFirst = api.AggregateResults(request, LocalInstanceID, new[]
+            var remoteFirst = api.AggregateResults(request, new[]
             {
                 remotePage,
                 localPage

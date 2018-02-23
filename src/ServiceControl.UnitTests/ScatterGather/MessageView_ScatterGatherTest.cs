@@ -25,7 +25,7 @@
 
             var request = new Request("GET", new Url($"http://doesnt/really/matter?{QueryString}"));
 
-            Results = api.AggregateResults(request, LocalInstanceID, GetData().ToArray());
+            Results = api.AggregateResults(request, GetData().ToArray());
         }
 
         protected virtual string QueryString => string.Empty;
@@ -45,8 +45,10 @@
 
             return new QueryResult<List<MessagesView>>(
                 pageOfResults,
-                instanceId,
-                new QueryStatsInfo(etag, allResults.Count));
+                new QueryStatsInfo(etag, allResults.Count))
+            {
+                InstanceId = instanceId
+            };
         }
 
         protected IEnumerable<MessagesView> LocalData()
@@ -67,7 +69,7 @@
 
         class TestApi : ScatterGatherApiMessageView<NoInput>
         {
-            public override Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, NoInput input, string instanceId)
+            public override Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, NoInput input)
             {
                 throw new NotImplementedException();
             }

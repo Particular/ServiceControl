@@ -9,7 +9,7 @@ namespace ServiceControl.SagaAudit
 
     public class GetSagaByIdApi : ScatterGatherApi<Guid, SagaHistory>
     {
-        public override async Task<QueryResult<SagaHistory>> LocalQuery(Request request, Guid sagaId, string instanceId)
+        public override async Task<QueryResult<SagaHistory>> LocalQuery(Request request, Guid sagaId)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -22,10 +22,10 @@ namespace ServiceControl.SagaAudit
 
                 if (sagaHistory == null)
                 {
-                    return QueryResult<SagaHistory>.Empty(instanceId);
+                    return QueryResult<SagaHistory>.Empty();
                 }
 
-                return new QueryResult<SagaHistory>(sagaHistory, instanceId, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
+                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
             }
         }
 
