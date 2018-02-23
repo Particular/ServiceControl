@@ -16,6 +16,7 @@ namespace ServiceControl.CompositeViews.Messages
     {
         static ILog logger = LogManager.GetLogger(typeof(RoutedApi<TIn>));
 
+        // Comes from System.Net.Http.Headers.HttpContentHeaders
         private static HashSet<string> contentHeaders = new HashSet<string>
         {
             "Allow",
