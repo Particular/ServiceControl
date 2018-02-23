@@ -10,7 +10,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     public class GetAllMessagesForEndpointApi : ScatterGatherApiMessageView<string>
     {
-        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, string input, string instanceId)
+        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, string input)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -26,7 +26,7 @@ namespace ServiceControl.CompositeViews.Messages
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return Results(results.ToList(), instanceId, stats);
+                return Results(results.ToList(), stats);
             }
 
         }

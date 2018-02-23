@@ -4,13 +4,12 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Threading.Tasks;
     using Nancy;
-    using Raven.Abstractions.Extensions;
     using Raven.Client;
     using ServiceControl.Infrastructure.Extensions;
 
     public class SearchApi : ScatterGatherApiMessageView<string>
     {
-        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, string input, string instanceId)
+        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, string input)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -25,9 +24,7 @@ namespace ServiceControl.CompositeViews.Messages
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                results.ForEach(msg => msg.InstanceId = instanceId);
-
-                return Results(results.ToList(), instanceId, stats);
+                return Results(results.ToList(), stats);
             }
         }
     }

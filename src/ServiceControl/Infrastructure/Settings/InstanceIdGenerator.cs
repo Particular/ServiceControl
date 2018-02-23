@@ -3,6 +3,7 @@
     using System;
     using System.Text;
 
+    // NOTE: This class implements a version of https://en.wikipedia.org/wiki/Base64#URL_applications
     public static class InstanceIdGenerator
     {
         /// <summary>

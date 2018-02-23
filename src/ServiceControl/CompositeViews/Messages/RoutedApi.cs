@@ -16,6 +16,7 @@ namespace ServiceControl.CompositeViews.Messages
     {
         static ILog logger = LogManager.GetLogger(typeof(RoutedApi<TIn>));
 
+        // Comes from System.Net.Http.Headers.HttpContentHeaders
         private static HashSet<string> contentHeaders = new HashSet<string>
         {
             "Allow",
@@ -34,32 +35,20 @@ namespace ServiceControl.CompositeViews.Messages
         public Settings Settings { get; set; }
         public Func<HttpClient> HttpClientFactory { get; set; }
 
-        public async Task<Response> Execute(BaseModule module, TIn input)
+        public Task<Response> Execute(BaseModule module, TIn input)
         {
             var currentRequest = module.Request;
-            Response response;
 
             var instanceId = GetInstance(currentRequest, input);
 
             var localInstanceId = InstanceIdGenerator.FromApiUrl(Settings.ApiUrl);
 
-            if (!string.IsNullOrWhiteSpace(instanceId))
+            if (!string.IsNullOrWhiteSpace(instanceId) && instanceId != localInstanceId)
             {
-                if (instanceId == localInstanceId)
-                {
-                    response = await LocalQuery(currentRequest, input, localInstanceId);
-                }
-                else
-                {
-                    response = await RemoteCall(currentRequest, instanceId);
-                }
-            }
-            else
-            {
-                response = await LocalQuery(currentRequest, input, localInstanceId);
+                return RemoteCall(currentRequest, instanceId);
             }
 
-            return response;
+            return LocalQuery(currentRequest, input, localInstanceId);
         }
 
         protected virtual string GetInstance(Request currentRequest, TIn input)
@@ -73,7 +62,8 @@ namespace ServiceControl.CompositeViews.Messages
         {
             var remoteUri = InstanceIdGenerator.ToApiUrl(instanceId);
 
-            var instanceUri = new Uri($"{remoteUri}{currentRequest.Path}{currentRequest.Url.Query}");
+            var instanceUri = currentRequest.RedirectToRemoteUri(remoteUri);
+                
             var httpClient = HttpClientFactory();
             try
             {

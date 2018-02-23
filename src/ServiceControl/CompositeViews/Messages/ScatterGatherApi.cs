@@ -52,56 +52,68 @@ namespace ServiceControl.CompositeViews.Messages
             var instanceId = InstanceIdGenerator.FromApiUrl(Settings.ApiUrl);
             var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
             {
-                LocalQuery(currentRequest, input, instanceId)
+                LocalCall(currentRequest, input, instanceId)
             };
             foreach (var remote in remotes)
             {
-                tasks.Add(FetchAndParse(currentRequest, remote.ApiUri, InstanceIdGenerator.FromApiUrl(remote.ApiUri)));
+                tasks.Add(RemoteCall(currentRequest, remote.ApiUri, InstanceIdGenerator.FromApiUrl(remote.ApiUri)));
             }
 
-            var response = AggregateResults(currentRequest, instanceId, await Task.WhenAll(tasks));
+            var response = AggregateResults(currentRequest, await Task.WhenAll(tasks).ConfigureAwait(false));
 
             var negotiate = module.Negotiate;
-            return negotiate.WithPartialQueryResult(response, currentRequest);
+            return negotiate.WithQueryResult(response, currentRequest);
         }
 
-        public abstract Task<QueryResult<TOut>> LocalQuery(Request request, TIn input, string instanceId);
+        private async Task<QueryResult<TOut>> LocalCall(Request request, TIn input, string instanceId)
+        {
+            var result = await LocalQuery(request, input).ConfigureAwait(false);
+            result.InstanceId = instanceId;
+            return result;
+        }
 
-        internal QueryResult<TOut> AggregateResults(Request request, string instanceId, QueryResult<TOut>[] results)
+        public abstract Task<QueryResult<TOut>> LocalQuery(Request request, TIn input);
+
+        internal QueryResult<TOut> AggregateResults(Request request, QueryResult<TOut>[] results)
         {
             var combinedResults = ProcessResults(request, results);
 
             return new QueryResult<TOut>(
                 combinedResults,
-                instanceId,
                 AggregateStats(results, combinedResults)
             );
         }
 
         protected abstract TOut ProcessResults(Request request, QueryResult<TOut>[] results);
 
-        protected QueryResult<TOut> Results(TOut results, string instanceId, RavenQueryStatistics stats = null)
+        protected QueryResult<TOut> Results(TOut results, RavenQueryStatistics stats = null)
         {
             return stats != null
-                ? new QueryResult<TOut>(results, instanceId, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults))
-                : new QueryResult<TOut>(results, instanceId, QueryStatsInfo.Zero);
+                ? new QueryResult<TOut>(results, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults))
+                : new QueryResult<TOut>(results, QueryStatsInfo.Zero);
         }
 
         protected virtual QueryStatsInfo AggregateStats(IEnumerable<QueryResult<TOut>> results, TOut processedResults)
         {
-            var infos = results.OrderBy(x => x.InstanceId, StringComparer.InvariantCultureIgnoreCase).Select(x => x.QueryStats).ToArray();
+            var infos = results.Select(x => x.QueryStats).ToArray();
 
             return new QueryStatsInfo(
-                string.Join("", infos.Select(x => x.ETag)),
+                string.Join("", infos.OrderBy(x => x.ETag).Select(x => x.ETag)),
                 infos.Sum(x => x.TotalCount),
                 infos.Max(x => x.HighestTotalCountOfAllTheInstances)
             );
         }
 
+        private async Task<QueryResult<TOut>> RemoteCall(Request currentRequest, string remoteUri, string instanceId)
+        {
+            var fetched = await FetchAndParse(currentRequest, remoteUri, instanceId).ConfigureAwait(false);
+            fetched.InstanceId = instanceId;
+            return fetched;
+        }
 
         async Task<QueryResult<TOut>> FetchAndParse(Request currentRequest, string remoteUri, string instanceId)
         {
-            var instanceUri = new Uri($"{remoteUri}{currentRequest.Path}?{currentRequest.Url.Query}");
+            var instanceUri = currentRequest.RedirectToRemoteUri(remoteUri);
             var httpClient = HttpClientFactory();
             try
             {
@@ -109,19 +121,19 @@ namespace ServiceControl.CompositeViews.Messages
                 // special case - queried by conversation ID and nothing was found
                 if (rawResponse.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return QueryResult<TOut>.Empty(instanceId);
+                    return QueryResult<TOut>.Empty();
                 }
 
-                return await ParseResult(rawResponse, instanceId).ConfigureAwait(false);
+                return await ParseResult(rawResponse).ConfigureAwait(false);
             }
             catch (Exception exception)
             {
                 logger.Warn($"Failed to query remote instance at {remoteUri}.", exception);
-                return QueryResult<TOut>.Empty(instanceId);
+                return QueryResult<TOut>.Empty();
             }
         }
 
-        static async Task<QueryResult<TOut>> ParseResult(HttpResponseMessage responseMessage, string instanceId)
+        static async Task<QueryResult<TOut>> ParseResult(HttpResponseMessage responseMessage)
         {
             using (var responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false))
             using (var jsonReader = new JsonTextReader(new StreamReader(responseStream)))
@@ -142,7 +154,7 @@ namespace ServiceControl.CompositeViews.Messages
                     etag = etags.ElementAt(0);
                 }
 
-                return new QueryResult<TOut>(remoteResults, instanceId, new QueryStatsInfo(etag, totalCount, totalCount));
+                return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount));
             }
         }
     }
