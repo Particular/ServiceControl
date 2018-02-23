@@ -27,7 +27,6 @@ namespace ServiceControl.CompositeViews.Messages
         public int BodySize { get; set; }
         public List<SagaInfo> InvokedSagas { get; set; }
         public SagaInfo OriginatesFromSaga { get; set; }
-        public string InstanceId { get; set; }
     }
 
 }

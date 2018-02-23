@@ -6,19 +6,14 @@
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
-    using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceControl.Recoverability;
 
     public class RetryMessages : BaseModule
     {
-        private static ILog Logger = LogManager.GetLogger<RetryMessages>();
-
-        public RetryMessagesApi RetryMessagesApi { get; set; }
-
         public RetryMessages()
         {
-            Post["/errors/{messageid}/retry", true] = async (parameters, token) =>
+            Post["/errors/{messageid}/retry"] = parameters =>
             {
                 var failedMessageId = parameters.MessageId;
 
@@ -27,7 +22,12 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                return await RetryMessagesApi.Execute(this, failedMessageId);
+                Bus.SendLocal<RetryMessage>(m =>
+                {
+                    m.FailedMessageId = failedMessageId;
+                });
+
+                return HttpStatusCode.Accepted;
             };
 
             Post["/errors/retry"] = _ =>

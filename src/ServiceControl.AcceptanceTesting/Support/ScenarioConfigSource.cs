@@ -40,15 +40,9 @@
             {
                 if (!configuration.SendOnly)
                 {
-                    var errorQueue = "error";
-                    if (configuration.AddressOfErrorQueue != null)
-                    {
-                        errorQueue = configuration.AddressOfErrorQueue.ToString();
-                    }
-
                     return new MessageForwardingInCaseOfFaultConfig
                     {
-                        ErrorQueue = errorQueue
+                        ErrorQueue = "error"
                     } as T;
                 }
             }

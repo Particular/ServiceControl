@@ -37,7 +37,7 @@
                         {
                             Count = count
                         })
-                        .WithEtag(stats);
+                        .WithEtagAndLastModified(stats);
                 }
             };
 

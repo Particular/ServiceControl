@@ -83,10 +83,5 @@ namespace ServiceControl.Monitoring
 
             return list.ToArray();
         }
-
-        public List<KnownEndpointsView> GetKnownEndpoints()
-        {
-            return endpoints.Values.Select(endpoint => endpoint.GetKnownView()).ToList();
-        }
     }
 }

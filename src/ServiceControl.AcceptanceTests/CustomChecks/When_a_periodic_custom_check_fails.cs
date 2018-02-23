@@ -9,7 +9,6 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.EventLog;
     using ServiceControl.Infrastructure.SignalR;
@@ -42,7 +41,7 @@
         {
             var context = Define(() => new MyContext
             {
-                Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]
+                Handler = () => Handler
             })
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
