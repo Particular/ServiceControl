@@ -6,11 +6,11 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Logging;
     using Raven.Client;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures.InternalMessages;
 
     class ReclassifyErrorsHandler : IHandleMessages<ReclassifyErrors>
     {
-        readonly IBus bus;
         readonly IDocumentStore store;
         readonly IEnumerable<IFailureClassifier> classifiers;
         readonly Reclassifier reclassifier;
@@ -18,9 +18,8 @@ namespace ServiceControl.Recoverability
 
         ILog logger = LogManager.GetLogger<ReclassifyErrorsHandler>();
 
-        public ReclassifyErrorsHandler(IBus bus, IDocumentStore store, ShutdownNotifier notifier, IEnumerable<IFailureClassifier> classifiers)
+        public ReclassifyErrorsHandler(IDocumentStore store, ShutdownNotifier notifier, IEnumerable<IFailureClassifier> classifiers)
         {
-            this.bus = bus;
             this.store = store;
             this.classifiers = classifiers;
 
@@ -41,7 +40,7 @@ namespace ServiceControl.Recoverability
 
                 if (failedMessagesReclassified > 0)
                 {
-                    bus.Publish(new ReclassificationOfErrorMessageComplete
+                    DomainEvents.Raise(new ReclassificationOfErrorMessageComplete
                     {
                         NumberofMessageReclassified = failedMessagesReclassified
                     });

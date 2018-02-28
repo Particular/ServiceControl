@@ -8,6 +8,7 @@
     using NUnit.Framework;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     [TestFixture]
     public class When_a_message_has_custom_checks : AcceptanceTest
@@ -27,7 +28,7 @@
 
             ExecuteWhen(() => context.ExternalProcessorSubscribed, bus =>
             {
-                bus.Publish(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded
+                DomainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded
                 {
                     Category = "Testing",
                     CustomCheckId = "Success custom check",
@@ -39,7 +40,7 @@
                     },
                     SucceededAt = DateTime.Now,
                 });
-                bus.Publish(new ServiceControl.Contracts.CustomChecks.CustomCheckFailed
+                DomainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckFailed
                 {
                     Category = "Testing",
                     CustomCheckId = "Fail custom check",

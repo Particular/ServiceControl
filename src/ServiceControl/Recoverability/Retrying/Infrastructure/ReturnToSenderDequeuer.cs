@@ -12,6 +12,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Unicast;
     using NServiceBus.Unicast.Transport;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
     using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
@@ -283,20 +284,20 @@ namespace ServiceControl.Recoverability
 
                         session.SaveChanges();
                     }
-
-                    bus.Publish<MessagesSubmittedForRetryFailed>(m =>
+                    string reason;
+                    try
                     {
-                        m.FailedMessageId = messageUniqueId;
-                        m.Destination = destination;
-                        try
-                        {
-                            m.Reason = e.GetBaseException().Message;
-                        }
-                        catch (Exception)
-                        {
-                            m.Reason = "Failed to retrieve reason!";
-                        }
-
+                        reason = e.GetBaseException().Message;
+                    }
+                    catch (Exception)
+                    {
+                        reason = "Failed to retrieve reason!";
+                    }
+                    DomainEvents.Raise(new MessagesSubmittedForRetryFailed
+                    {
+                        Reason = reason,
+                        FailedMessageId = messageUniqueId,
+                        Destination = destination
                     });
                 }
                 catch (Exception ex)

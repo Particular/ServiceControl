@@ -2,6 +2,8 @@
 {
     using NServiceBus;
     using NServiceBus.Features;
+    using ServiceControl.MessageFailures;
+    using MessageFailedPublisher = ServiceControl.Operations.MessageFailedPublisher;
 
     public class RecoverabilityFeature : Feature
     {
@@ -12,7 +14,8 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<PublishAllHandler>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<MessageFailureResolvedByRetryPublisher>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<MessageFailedPublisher>(DependencyLifecycle.SingleInstance);
         }
     }
 }

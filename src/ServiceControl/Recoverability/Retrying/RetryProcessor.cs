@@ -11,6 +11,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Transports;
     using NServiceBus.Unicast;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageRedirects;
 
@@ -180,12 +181,12 @@ namespace ServiceControl.Recoverability
 
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
-                bus.Publish<MessagesSubmittedForRetry>(m =>
+                var failedIds = messages.Select(x => x.UniqueMessageId).ToArray();
+                DomainEvents.Raise(new MessagesSubmittedForRetry
                 {
-                    var failedIds = messages.Select(x => x.UniqueMessageId).ToArray();
-                    m.FailedMessageIds = failedIds;
-                    m.NumberOfFailedMessages = failedIds.Length;
-                    m.Context = stagingBatch.Context;
+                    FailedMessageIds = failedIds,
+                    NumberOfFailedMessages = failedIds.Length,
+                    Context = stagingBatch.Context
                 });
             }
 

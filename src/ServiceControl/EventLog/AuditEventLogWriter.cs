@@ -3,13 +3,14 @@
     using Contracts.EventLog;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.SignalR;
 
     /// <summary>
     /// Only for events that have been defined (under EventLog\Definitions), a logentry item will
     /// be saved in Raven and an event will be raised.
     /// </summary>
-    public class GenericAuditHandler : IHandleMessages<IEvent>
+    public class AuditEventLogWriter : IDomainHandler<IEvent>
     {
         static string[] emptyArray = new string[0];
         private readonly IBus bus;
@@ -17,7 +18,7 @@
         private readonly IDocumentStore store;
         private readonly EventLogMappings mappings;
 
-        public GenericAuditHandler(IBus bus, GlobalEventHandler broadcaster, IDocumentStore store, EventLogMappings mappings)
+        public AuditEventLogWriter(IBus bus, GlobalEventHandler broadcaster, IDocumentStore store, EventLogMappings mappings)
         {
             this.bus = bus;
             this.broadcaster = broadcaster;

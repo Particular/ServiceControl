@@ -8,6 +8,7 @@
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
 
@@ -53,10 +54,10 @@
                     return;
                 }
 
-                bus.Publish<MessageFailureResolvedByRetry>(m =>
+                DomainEvents.Raise(new MessageFailureResolvedByRetry
                 {
-                    m.FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId;
-                    m.AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray();
+                    FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId,
+                    AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray()
                 });
             }
 

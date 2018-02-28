@@ -315,6 +315,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Infrastructure\DomainEvents\DomainEvents.cs" />
+    <Compile Include="Infrastructure\SignalR\ServicePulseNotifier.cs" />
     <Compile Include="Infrastructure\EndpointInstanceId.cs" />
     <Compile Include="Infrastructure\Extensions\RavenQueryStatisticsExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\WaitHandleExtensions.cs" />
@@ -331,6 +332,7 @@
     <Compile Include="Infrastructure\Settings\ConfigFileSettingsReader.cs" />
     <Compile Include="Infrastructure\Settings\InstanceIdGenerator.cs" />
     <Compile Include="Infrastructure\Settings\RemoteInstanceSetting.cs" />
+    <Compile Include="Infrastructure\SignalR\ServicePulseNotifierFeature.cs" />
     <Compile Include="Licensing\LicenseCheckFeature.cs" />
     <Compile Include="Licensing\LicenseModule.cs" />
     <Compile Include="LoggingConfigurator.cs" />
@@ -372,7 +374,7 @@
     <Compile Include="ExternalIntegrations\EventPublisher.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationDispatchRequest.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
-    <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
+    <Compile Include="ExternalIntegrations\IntegrationEventWriter.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationEventFailedToBePublished.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationsFeature.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckFailedPublisher.cs" />
@@ -416,6 +418,7 @@
     <Compile Include="MessageFailures\Api\ResolveMessages.cs" />
     <Compile Include="MessageFailures\Api\UnArchiveMessages.cs" />
     <Compile Include="MessageFailures\InternalMessages\MarkPendingRetriesAsResolved.cs" />
+    <Compile Include="MessageFailures\MessageFailureResolvedByRetryPublisher.cs" />
     <Compile Include="MessageFailures\QueueAddress.cs" />
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
@@ -437,6 +440,7 @@
     <Compile Include="Operations\ImportFailedAudits.cs" />
     <Compile Include="Operations\FailedErrorImportCustomCheck.cs" />
     <Compile Include="Operations\FailedAuditImportCustomCheck.cs" />
+    <Compile Include="Operations\MessageFailedPublisher.cs" />
     <Compile Include="Recoverability\API\UnacknowledgedGroupsApi.cs" />
     <Compile Include="Recoverability\Archiving\ArchiveDocumentManager.cs" />
     <Compile Include="Recoverability\Archiving\Raven\ArchiveOperation.cs" />
@@ -449,7 +453,6 @@
     <Compile Include="Recoverability\Grouping\Groupers\EndpointInstanceClassifier.cs" />
     <Compile Include="Recoverability\GroupOperation.cs" />
     <Compile Include="Recoverability\API\EtagHelper.cs" />
-    <Compile Include="Recoverability\PublishAllHandler.cs" />
     <Compile Include="Recoverability\Archiving\ArchivingManager.cs" />
     <Compile Include="Recoverability\Retrying\RetryingManager.cs" />
     <Compile Include="Recoverability\Retrying\History\StoreHistoryHandler.cs" />
@@ -491,7 +494,7 @@
     <Compile Include="EventLog\EventLogApiModule.cs" />
     <Compile Include="EventLog\EventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogMappings.cs" />
-    <Compile Include="EventLog\GenericAuditHandler.cs" />
+    <Compile Include="EventLog\AuditEventLogWriter.cs" />
     <Compile Include="EventLog\Severity.cs" />
     <Compile Include="CustomChecks\CustomCheck.cs" />
     <Compile Include="CustomChecks\CustomChecksModule.cs" />

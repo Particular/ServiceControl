@@ -14,6 +14,7 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public class EventDispatcher : FeatureStartupTask
     {
@@ -169,7 +170,7 @@
                         {
                             m.Reason = "Failed to retrieve reason!";
                         }
-                        bus.Publish(m);
+                        DomainEvents.Raise(m);
                     }
                 }
                 foreach (var dispatchedEvent in awaitingDispatching)

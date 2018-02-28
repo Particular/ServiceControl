@@ -5,15 +5,14 @@
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public class UnArchiveMessagesHandler : IHandleMessages<UnArchiveMessages>
     {
-        private readonly IBus bus;
         private readonly IDocumentStore store;
 
-        public UnArchiveMessagesHandler(IBus bus, IDocumentStore store)
+        public UnArchiveMessagesHandler(IDocumentStore store)
         {
-            this.bus = bus;
             this.store = store;
         }
 
@@ -38,7 +37,7 @@
                 session.SaveChanges();
             }
 
-            bus.Publish(new FailedMessagesUnArchived
+            DomainEvents.Raise(new FailedMessagesUnArchived
             {
                 MessagesCount = failedMessages.Length
             });

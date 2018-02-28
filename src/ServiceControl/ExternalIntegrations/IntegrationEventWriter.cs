@@ -6,13 +6,14 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class EventMappingHandler : IHandleMessages<IEvent>
+    public class IntegrationEventWriter : IDomainHandler<IEvent>
     {
         private readonly IDocumentStore store;
         private readonly IEnumerable<IEventPublisher> eventPublishers;
 
-        public EventMappingHandler(IDocumentStore store, IEnumerable<IEventPublisher> eventPublishers)
+        public IntegrationEventWriter(IDocumentStore store, IEnumerable<IEventPublisher> eventPublishers)
         {
             this.store = store;
             this.eventPublishers = eventPublishers;
@@ -21,7 +22,13 @@
         {
             var dispatchContexts = eventPublishers
                 .Where(p => p.Handles(message))
-                .Select(p => p.CreateDispatchContext(message));
+                .Select(p => p.CreateDispatchContext(message))
+                .ToArray();
+
+            if (dispatchContexts.Length == 0)
+            {
+                return;
+            }
 
             using (var session = store.OpenSession())
             {
@@ -44,6 +51,6 @@
             }
         }
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(EventMappingHandler));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(IntegrationEventWriter));
     }
 }

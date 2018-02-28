@@ -43,7 +43,7 @@ namespace ServiceControl.UnitTests.Archiving
                 var documentManager = new ArchiveDocumentManager();
                 var archivingManager = new ArchivingManager();
                 var retryingManager = new RetryingManager();
-                var handler = new ArchiveAllInGroupHandler(testBus, documentStore, documentManager, archivingManager, retryingManager);
+                var handler = new ArchiveAllInGroupHandler(documentStore, documentManager, archivingManager, retryingManager);
 
                 var message = new ArchiveAllInGroup { GroupId = groupId };
 

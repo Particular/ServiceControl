@@ -7,6 +7,7 @@
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
@@ -78,7 +79,7 @@
             {
                 if (message.HasFailed)
                 {
-                    bus.Publish(new CustomCheckFailed
+                    DomainEvents.Raise(new CustomCheckFailed
                     {
                         Id = id,
                         CustomCheckId = message.CustomCheckId,
@@ -90,7 +91,7 @@
                 }
                 else
                 {
-                    bus.Publish(new CustomCheckSucceeded
+                    DomainEvents.Raise(new CustomCheckSucceeded
                     {
                         Id = id,
                         CustomCheckId = message.CustomCheckId,

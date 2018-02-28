@@ -2,23 +2,21 @@
 {
     using System;
     using System.Linq;
-    using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures.Api;
 
     class FailedMessageViewIndexNotifications : IObserver<IndexChangeNotification>
     {
-        IBus bus;
         IDocumentStore store;
         int lastUnresolvedCount, lastArchivedCount;
         ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
 
-        public FailedMessageViewIndexNotifications(IDocumentStore store, IBus bus)
+        public FailedMessageViewIndexNotifications(IDocumentStore store)
         {
-            this.bus = bus;
             this.store = store;
         }
 
@@ -58,7 +56,7 @@
                 lastUnresolvedCount = failedUnresolvedMessageCount;
                 lastArchivedCount = failedArchivedMessageCount;
 
-                bus.Publish(new MessageFailuresUpdated
+                DomainEvents.Raise(new MessageFailuresUpdated
                 {
                     Total = failedUnresolvedMessageCount, // Left here for backwards compatibility, to be removed eventually.
                     UnresolvedTotal = failedUnresolvedMessageCount,

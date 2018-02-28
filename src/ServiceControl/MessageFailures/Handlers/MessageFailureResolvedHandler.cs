@@ -5,6 +5,7 @@
     using Contracts.MessageFailures;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.MessageFailures.InternalMessages;
 
@@ -43,7 +44,10 @@
         public void Handle(MarkPendingRetryAsResolved message)
         {
             MarkMessageAsResolved(message.FailedMessageId);
-            bus.Publish<MessageFailureResolvedManually>(m => m.FailedMessageId = message.FailedMessageId);
+            DomainEvents.Raise(new MessageFailureResolvedManually
+            {
+                FailedMessageId = message.FailedMessageId
+            });
         }
 
         public void Handle(MarkPendingRetriesAsResolved message)

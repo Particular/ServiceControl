@@ -20,6 +20,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
@@ -224,21 +225,21 @@
             string failedMessageId;
             if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
             {
-                bus.Publish<MessageFailed>(m =>
+                DomainEvents.Raise(new MessageFailed
                 {
-                    m.FailureDetails = failureDetails;
-                    m.EndpointId = failingEndpointId;
-                    m.FailedMessageId = failedMessageId;
-                    m.RepeatedFailure = true;
+                    FailureDetails = failureDetails,
+                    EndpointId = failingEndpointId,
+                    FailedMessageId = failedMessageId,
+                    RepeatedFailure = true
                 });
             }
             else
             {
-                bus.Publish<MessageFailed>(m =>
+                DomainEvents.Raise(new MessageFailed
                 {
-                    m.FailureDetails = failureDetails;
-                    m.EndpointId = failingEndpointId;
-                    m.FailedMessageId = headers.UniqueId();
+                    FailureDetails = failureDetails,
+                    EndpointId = failingEndpointId,
+                    FailedMessageId = headers.UniqueId(),
                 });
             }
         }

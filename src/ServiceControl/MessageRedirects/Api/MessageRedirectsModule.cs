@@ -9,6 +9,7 @@
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceControl.Contracts.MessageRedirects;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures.InternalMessages;
 
     public class MessageRedirectsModule : BaseModule
@@ -65,7 +66,7 @@
                     await collection.Save(session).ConfigureAwait(false);
                 }
 
-                Bus.Publish(new MessageRedirectCreated
+                DomainEvents.Raise(new MessageRedirectCreated
                 {
                     MessageRedirectId = messageRedirect.MessageRedirectId,
                     FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
@@ -126,7 +127,7 @@
 
                     await redirects.Save(session).ConfigureAwait(false);
 
-                    Bus.Publish(messageRedirectChanged);
+                    DomainEvents.Raise(messageRedirectChanged);
 
                     return HttpStatusCode.NoContent;
                 }
@@ -151,11 +152,11 @@
 
                     await redirects.Save(session).ConfigureAwait(false);
 
-                    Bus.Publish<MessageRedirectRemoved>(evt =>
+                    DomainEvents.Raise(new MessageRedirectRemoved
                     {
-                        evt.MessageRedirectId = messageRedirectId;
-                        evt.FromPhysicalAddress = messageRedirect.FromPhysicalAddress;
-                        evt.ToPhysicalAddress = messageRedirect.ToPhysicalAddress;
+                        MessageRedirectId = messageRedirectId,
+                        FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
+                        ToPhysicalAddress = messageRedirect.ToPhysicalAddress
                     });
                 }
 
