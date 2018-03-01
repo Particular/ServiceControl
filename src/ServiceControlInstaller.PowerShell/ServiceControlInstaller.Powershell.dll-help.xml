@@ -1145,7 +1145,7 @@ The allowed port range is 1 to 49151.</maml:para>
 			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Transport</maml:name>
 				<maml:description>
-					<maml:para>The name of the NServiceBus Transport to use.  e.g. &quot;AzureServiceBus&quot;, &quot;AzureStorageQueue&quot;, &quot;MSMQ&quot;, &quot;SQLServer&quot; or  &quot;RabbitMQ&quot;.
+					<maml:para>The name of the NServiceBus Transport to use.  e.g. &quot;AzureServiceBus&quot;, &quot;AzureStorageQueue&quot;, &quot;MSMQ&quot;, &quot;SQLServer&quot;, &quot;AmazonSQS&quot; or  &quot;RabbitMQ&quot;.
 Execute  &#39;Get-ServiceControlTransportTypes | Select -Property Name&#39;  to retrieve the full list of valid transports.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
