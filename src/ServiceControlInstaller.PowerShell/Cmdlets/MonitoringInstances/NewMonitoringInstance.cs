@@ -42,7 +42,7 @@ namespace ServiceControlInstaller.PowerShell
         public string ErrorQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
-        [ValidateSet("AzureServiceBus", "AzureStorageQueue", "MSMQ", "SQLServer", "RabbitMQ")]
+        [ValidateSet("AzureServiceBus", "AzureStorageQueue", "MSMQ", "SQLServer", "RabbitMQ", "AmazonSQS")]
         public string Transport { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the instance name will be used")]
