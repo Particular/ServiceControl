@@ -10,7 +10,7 @@
     /// Only for events that have been defined (under EventLog\Definitions), a logentry item will
     /// be saved in Raven and an event will be raised.
     /// </summary>
-    public class AuditEventLogWriter : IDomainHandler<IEvent>
+    public class AuditEventLogWriter : IDomainHandler<IDomainEvent>
     {
         static string[] emptyArray = new string[0];
         private readonly IBus bus;
@@ -26,7 +26,7 @@
             this.mappings = mappings;
         }
 
-        public void Handle(IEvent message)
+        public void Handle(IDomainEvent message)
         {
             if (!mappings.HasMapping(message))
             {
@@ -42,7 +42,7 @@
                 session.SaveChanges();
             }
 
-            broadcaster.Handle(new EventLogItemAdded
+            broadcaster.Broadcast(new EventLogItemAdded
             {
                 RaisedAt = logItem.RaisedAt,
                 Severity = logItem.Severity,

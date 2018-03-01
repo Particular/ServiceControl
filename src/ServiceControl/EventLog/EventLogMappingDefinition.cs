@@ -3,13 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
 
-    public abstract class EventLogMappingDefinition<T> : IEventLogMappingDefinition where T : IEvent
+    public abstract class EventLogMappingDefinition<T> : IEventLogMappingDefinition where T : IDomainEvent
     {
         public virtual string Category => typeof(T).Namespace.Split('.').Last();
 
-        public EventLogItem Apply(string messageId, IEvent @event)
+        public EventLogItem Apply(string messageId, IDomainEvent @event)
         {
             var eventMessage = (T) @event;
 

@@ -1,27 +1,22 @@
 ﻿namespace ServiceControl.Infrastructure.SignalR
 {
-    using System.Linq;
+    using System.Collections.Generic;
     using Microsoft.AspNet.SignalR;
-    using NServiceBus;
-    using NServiceBus.Unicast.Messages;
 
-    public class GlobalEventHandler : IHandleMessages<IEvent>
+    public class GlobalEventHandler
     {
         static string[] emptyArray = new string[0];
 
-        private readonly MessageMetadataRegistry registry;
-
-        public GlobalEventHandler(MessageMetadataRegistry registry)
+        public void Broadcast(object @event)
         {
-            this.registry = registry;
-        }
-
-        public void Handle(IEvent @event)
-        {
-            var metadata = registry.GetMessageMetadata(@event.GetType());
+            var typeName = @event.GetType().Name;
+            var types = new List<string>
+            {
+                typeName
+            };
             var context = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
 
-            context.Connection.Broadcast(new Envelope { Types = metadata.MessageHierarchy.Select(t=>t.Name).ToList(), Message = @event }, emptyArray)
+            context.Connection.Broadcast(new Envelope { Types = types, Message = @event }, emptyArray)
                  .Wait();
         }
     }

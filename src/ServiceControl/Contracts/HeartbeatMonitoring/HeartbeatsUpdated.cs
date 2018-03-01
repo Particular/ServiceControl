@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.Contracts.HeartbeatMonitoring
 {
     using System;
-    using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Infrastructure.SignalR;
 
-    class HeartbeatsUpdated : IEvent
+    class HeartbeatsUpdated : IDomainEvent, IUserInterfaceEvent
     {
         public HeartbeatsUpdated()
         {

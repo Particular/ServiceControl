@@ -12,6 +12,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.ExternalIntegrations;
+    using ServiceControl.Infrastructure.DomainEvents;
 
 
     /// <summary>
@@ -74,12 +75,12 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 
             public MyContext Context { get; set; }
 
-            public bool Handles(IEvent @event)
+            public bool Handles(IDomainEvent @event)
             {
                 return false;
             }
 
-            public object CreateDispatchContext(IEvent @event)
+            public object CreateDispatchContext(IDomainEvent @event)
             {
                 return null;
             }

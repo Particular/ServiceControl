@@ -2,7 +2,6 @@
 {
     using System.Collections.Generic;
     using Autofac;
-    using NServiceBus;
 
     public class DomainEvents : IDomainEvents
     {
@@ -13,7 +12,7 @@
             this.container = container;
         }
 
-        public void Raise<T>(T domainEvent) where T : IEvent
+        public void Raise<T>(T domainEvent) where T : IDomainEvent
         {
             if (container == null)
             {
@@ -27,22 +26,12 @@
                 handler.Handle(domainEvent);
             }
 
-            IEnumerable<IDomainHandler<IEvent>> ieventHandlers;
+            IEnumerable<IDomainHandler<IDomainEvent>> ieventHandlers;
             container.TryResolve(out ieventHandlers);
             foreach (var handler in ieventHandlers)
             {
                 handler.Handle(domainEvent);
             }
         }
-    }
-
-    public interface IDomainEvents
-    {
-        void Raise<T>(T domainEvent) where T : IEvent;
-    }
-
-    public interface IDomainHandler<in T> where T : IEvent
-    {
-        void Handle(T domainEvent);
     }
 }

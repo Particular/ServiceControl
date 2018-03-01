@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
-    using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Infrastructure.SignalR;
 
-    public class RetryMessagesForwarded : IEvent
+    public class RetryMessagesForwarded : IDomainEvent, IUserInterfaceEvent
     {
         public string RequestId { get; set; }
         public RetryType RetryType { get; set; }

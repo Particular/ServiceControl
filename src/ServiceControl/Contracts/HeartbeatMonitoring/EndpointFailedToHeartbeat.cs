@@ -1,10 +1,10 @@
 namespace ServiceControl.Contracts.HeartbeatMonitoring
 {
     using System;
-    using NServiceBus;
     using Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class EndpointFailedToHeartbeat : IEvent
+    public class EndpointFailedToHeartbeat : IDomainEvent
     {
         public EndpointDetails Endpoint { get; set; }
         public DateTime LastReceivedAt { get; set; }

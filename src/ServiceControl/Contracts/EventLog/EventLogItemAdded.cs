@@ -2,10 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus;
     using ServiceControl.EventLog;
 
-    public class EventLogItemAdded : IEvent
+    public class EventLogItemAdded
     {
         public string Id { get; set; }
         public string Description { get; set; }

@@ -1,8 +1,8 @@
 namespace ServiceControl.Recoverability
 {
-    using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class MessagesSubmittedForRetry : IEvent
+    public class MessagesSubmittedForRetry : IDomainEvent
     {
         public string Context { get; set; }
         public string[] FailedMessageIds { get; set; }

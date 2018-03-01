@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Contracts.MessageRedirects
 {
     using System;
-    using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class MessageRedirectRemoved : IEvent
+    public class MessageRedirectRemoved : IDomainEvent
     {
         public Guid MessageRedirectId { get; set; }
         public string FromPhysicalAddress { get; set; }

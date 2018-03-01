@@ -1,6 +1,5 @@
 ﻿using NUnit.Framework;
 using ServiceControl.Recoverability;
-using ServiceControl.UnitTests.Recoverability;
 using System;
 
 namespace ServiceControl.UnitTests.Archiving

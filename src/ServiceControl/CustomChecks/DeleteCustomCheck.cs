@@ -2,13 +2,14 @@
 {
     using System;
     using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     class DeleteCustomCheck : ICommand
     {
         public Guid Id { get; set; }
     }
 
-    class CustomCheckDeleted : IEvent
+    class CustomCheckDeleted : IDomainEvent
     {
         public Guid Id { get; set; }
     }

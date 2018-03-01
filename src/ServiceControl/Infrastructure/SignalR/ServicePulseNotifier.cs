@@ -1,23 +1,26 @@
-namespace ServiceControl.Infrastructure.DomainEvents
+namespace ServiceControl.Infrastructure.SignalR
 {
-    using NServiceBus;
-    using ServiceControl.Infrastructure.SignalR;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     /// <summary>
     /// Forwards all domain events via SignalR
     /// </summary>
-    public class ServicePulseNotifier : IDomainHandler<IEvent>
+    public class ServicePulseNotifier : IDomainHandler<IDomainEvent>
     {
-        private readonly GlobalEventHandler broadcaster;
+        GlobalEventHandler broadcaster;
 
         public ServicePulseNotifier(GlobalEventHandler broadcaster)
         {
             this.broadcaster = broadcaster;
         }
 
-        public void Handle(IEvent domainEvent)
+        public void Handle(IDomainEvent domainEvent)
         {
-            broadcaster.Handle(domainEvent);
+            var userInteraceEvent = domainEvent as IUserInterfaceEvent;
+            if (userInteraceEvent != null)
+            {
+                broadcaster.Broadcast(userInteraceEvent);
+            }
         }
     }
 }

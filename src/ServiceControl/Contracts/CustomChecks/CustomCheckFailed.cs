@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.Contracts.CustomChecks
 {
     using System;
-    using NServiceBus;
     using Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class CustomCheckFailed : IEvent
+    public class CustomCheckFailed : IDomainEvent
     {
         public string CustomCheckId { get; set; }
         public string Category { get; set; }
