@@ -3,8 +3,9 @@
     using System;
     using Operations;
     using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Infrastructure.SignalR;
 
-    public class CustomCheckFailed : IDomainEvent
+    public class CustomCheckFailed : IDomainEvent, IUserInterfaceEvent
     {
         public string CustomCheckId { get; set; }
         public string Category { get; set; }

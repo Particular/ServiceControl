@@ -2,8 +2,9 @@
 {
     using System;
     using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Infrastructure.SignalR;
 
-    public class MessageFailuresUpdated : IDomainEvent
+    public class MessageFailuresUpdated : IDomainEvent, IUserInterfaceEvent
     {
         public MessageFailuresUpdated()
         {

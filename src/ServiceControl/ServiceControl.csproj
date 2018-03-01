@@ -316,6 +316,7 @@
     <Compile Include="Infrastructure\BusInstance.cs" />
     <Compile Include="Infrastructure\DomainEvents\DomainEventBusPublisher.cs" />
     <Compile Include="Infrastructure\DomainEvents\DomainEvents.cs" />
+    <Compile Include="Infrastructure\DomainEvents\DomainEventsFeature.cs" />
     <Compile Include="Infrastructure\DomainEvents\IDomainEvent.cs" />
     <Compile Include="Infrastructure\DomainEvents\IDomainEvents.cs" />
     <Compile Include="Infrastructure\DomainEvents\IDomainHandler.cs" />
