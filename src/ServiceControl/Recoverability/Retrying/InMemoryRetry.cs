@@ -6,12 +6,15 @@
 
     public class InMemoryRetry
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(InMemoryRetry));
+        static readonly ILog Log = LogManager.GetLogger(typeof(InMemoryRetry));
 
-        public InMemoryRetry(string requestId, RetryType retryType)
+        IDomainEvents domainEvents;
+
+        public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents)
         {
             this.requestId = requestId;
             this.retryType = retryType;
+            this.domainEvents = domainEvents;
         }
 
         public int TotalNumberOfMessages { get; private set; }
@@ -48,7 +51,7 @@
             Last = last;
             Classifier = classifier;
 
-            DomainEvents.Raise(new RetryOperationWaiting
+            domainEvents.Raise(new RetryOperationWaiting
             {
                 RequestId = requestId,
                 RetryType = retryType,
@@ -69,7 +72,7 @@
             NumberOfMessagesForwarded = 0;
             NumberOfMessagesPrepared = 0;
 
-            DomainEvents.Raise(new RetryOperationPreparing
+            domainEvents.Raise(new RetryOperationPreparing
             {
                 RequestId = requestId,
                 RetryType = retryType,
@@ -84,7 +87,7 @@
         {
             NumberOfMessagesPrepared = numberOfMessagesPrepared;
 
-            DomainEvents.Raise(new RetryOperationPreparing
+            domainEvents.Raise(new RetryOperationPreparing
             {
                 RequestId = requestId,
                 RetryType = retryType,
@@ -109,7 +112,7 @@
         {
             RetryState = RetryState.Forwarding;
 
-            DomainEvents.Raise(new RetryOperationForwarding
+            domainEvents.Raise(new RetryOperationForwarding
             {
                 RequestId = requestId,
                 RetryType = retryType,
@@ -124,7 +127,7 @@
         {
             NumberOfMessagesForwarded += numberOfMessagesForwarded;
 
-            DomainEvents.Raise(new RetryMessagesForwarded
+            domainEvents.Raise(new RetryMessagesForwarded
             {
                 RequestId = requestId,
                 RetryType = retryType,
@@ -153,7 +156,7 @@
             RetryState = RetryState.Completed;
             CompletionTime = DateTime.UtcNow;
 
-            DomainEvents.Raise(new RetryOperationCompleted
+            domainEvents.Raise(new RetryOperationCompleted
             {
                 RequestId = requestId,
                 RetryType = retryType,
@@ -169,7 +172,7 @@
 
             if (retryType == RetryType.FailureGroup)
             {
-                DomainEvents.Raise(new MessagesSubmittedForRetry
+                domainEvents.Raise(new MessagesSubmittedForRetry
                 {
                     FailedMessageIds = new string[0],
                     NumberOfFailedMessages = NumberOfMessagesForwarded,

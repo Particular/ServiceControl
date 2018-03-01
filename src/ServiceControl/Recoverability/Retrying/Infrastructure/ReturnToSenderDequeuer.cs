@@ -31,7 +31,7 @@ namespace ServiceControl.Recoverability
         CaptureIfMessageSendingFails faultManager;
         IBodyStorage bodyStorage;
 
-        public ReturnToSenderDequeuer(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IBus bus, Configure configure)
+        public ReturnToSenderDequeuer(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IDomainEvents domainEvents, Configure configure)
         {
             this.sender = sender;
             this.bodyStorage = bodyStorage;
@@ -48,7 +48,7 @@ namespace ServiceControl.Recoverability
                 }
             };
 
-            faultManager = new CaptureIfMessageSendingFails(store, bus, executeOnFailure);
+            faultManager = new CaptureIfMessageSendingFails(store, domainEvents, executeOnFailure);
             timer = new Timer(state => StopInternal());
             InputAddress = Address.Parse(configure.Settings.EndpointName()).SubScope("staging");
         }
@@ -245,15 +245,15 @@ namespace ServiceControl.Recoverability
         class CaptureIfMessageSendingFails : IManageMessageFailures
         {
             static ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
-            private IDocumentStore store;
-            private IBus bus;
+            IDocumentStore store;
+            IDomainEvents domainEvents;
             readonly Action executeOnFailure;
 
-            public CaptureIfMessageSendingFails(IDocumentStore store, IBus bus, Action executeOnFailure)
+            public CaptureIfMessageSendingFails(IDocumentStore store, IDomainEvents domainEvents, Action executeOnFailure)
             {
                 this.store = store;
-                this.bus = bus;
                 this.executeOnFailure = executeOnFailure;
+                this.domainEvents = domainEvents;
             }
 
             public void SerializationFailedForMessage(TransportMessage message, Exception e)
@@ -293,7 +293,7 @@ namespace ServiceControl.Recoverability
                     {
                         reason = "Failed to retrieve reason!";
                     }
-                    DomainEvents.Raise(new MessagesSubmittedForRetryFailed
+                    domainEvents.Raise(new MessagesSubmittedForRetryFailed
                     {
                         Reason = reason,
                         FailedMessageId = messageUniqueId,

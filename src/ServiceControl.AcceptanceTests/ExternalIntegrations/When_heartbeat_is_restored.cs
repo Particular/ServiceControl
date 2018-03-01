@@ -9,7 +9,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     /// <summary>
     /// The test simulates the heartbeat subsystem by publishing EndpointHeartbeatRestored event.
@@ -30,7 +29,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 }
             });
 
-            ExecuteWhen(() => context.ExternalProcessorSubscribed, bus => DomainEvents.Raise(new EndpointHeartbeatRestored
+            ExecuteWhen(() => context.ExternalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointHeartbeatRestored
             {
                 RestoredAt = new DateTime(2013, 09, 13, 13, 15, 13),
                 Endpoint = new EndpointDetails

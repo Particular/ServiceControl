@@ -28,14 +28,16 @@
 
         class DetectSuccessfullRetriesEnricher : ImportEnricher
         {
-            public override bool EnrichErrors => false;
-
             IBus bus;
+            IDomainEvents domainEvents;
 
-            public DetectSuccessfullRetriesEnricher(IBus bus)
+            public DetectSuccessfullRetriesEnricher(IBus bus, IDomainEvents domainEvents)
             {
                 this.bus = bus;
+                this.domainEvents = domainEvents;
             }
+
+            public override bool EnrichErrors => false;
 
             public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
@@ -54,7 +56,7 @@
                     return;
                 }
 
-                DomainEvents.Raise(new MessageFailureResolvedByRetry
+                domainEvents.Raise(new MessageFailureResolvedByRetry
                 {
                     FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId,
                     AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray()

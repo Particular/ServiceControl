@@ -4,31 +4,41 @@
     using Autofac;
     using NServiceBus;
 
-    public static class DomainEvents
+    public class DomainEvents : IDomainEvents
     {
-        public static IContainer Container { get; set; }
+        IContainer container;
 
-        public static void Raise<T>(T domainEvent) where T : IEvent
+        public void SetContainer(IContainer container)
         {
-            if (Container == null)
+            this.container = container;
+        }
+
+        public void Raise<T>(T domainEvent) where T : IEvent
+        {
+            if (container == null)
             {
                 return;
             }
 
             IEnumerable<IDomainHandler<T>> handlers;
-            Container.TryResolve(out handlers);
+            container.TryResolve(out handlers);
             foreach (var handler in handlers)
             {
                 handler.Handle(domainEvent);
             }
 
             IEnumerable<IDomainHandler<IEvent>> ieventHandlers;
-            Container.TryResolve(out ieventHandlers);
+            container.TryResolve(out ieventHandlers);
             foreach (var handler in ieventHandlers)
             {
                 handler.Handle(domainEvent);
             }
         }
+    }
+
+    public interface IDomainEvents
+    {
+        void Raise<T>(T domainEvent) where T : IEvent;
     }
 
     public interface IDomainHandler<in T> where T : IEvent

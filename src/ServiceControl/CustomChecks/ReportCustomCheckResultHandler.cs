@@ -11,13 +11,15 @@
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
-        private readonly IBus bus;
-        private readonly IDocumentStore store;
+        IBus bus;
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
-        public ReportCustomCheckResultHandler(IBus bus, IDocumentStore store)
+        public ReportCustomCheckResultHandler(IBus bus, IDocumentStore store, IDomainEvents domainEvents)
         {
             this.bus = bus;
             this.store = store;
+            this.domainEvents = domainEvents;
         }
 
         public void Handle(ReportCustomCheckResult message)
@@ -79,7 +81,7 @@
             {
                 if (message.HasFailed)
                 {
-                    DomainEvents.Raise(new CustomCheckFailed
+                    domainEvents.Raise(new CustomCheckFailed
                     {
                         Id = id,
                         CustomCheckId = message.CustomCheckId,
@@ -91,7 +93,7 @@
                 }
                 else
                 {
-                    DomainEvents.Raise(new CustomCheckSucceeded
+                    domainEvents.Raise(new CustomCheckSucceeded
                     {
                         Id = id,
                         CustomCheckId = message.CustomCheckId,

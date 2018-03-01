@@ -31,8 +31,10 @@ namespace ServiceBus.Management.AcceptanceTests
     using NUnit.Framework;
     using Particular.ServiceControl;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
+    using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.DomainEvents;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
     using LogManager = NServiceBus.Logging.LogManager;
@@ -43,7 +45,7 @@ namespace ServiceBus.Management.AcceptanceTests
     {
         private static readonly JsonSerializerSettings serializerSettings = JsonNetSerializer.CreateDefault();
         private Dictionary<string, Bootstrapper> bootstrappers = new Dictionary<string, Bootstrapper>();
-        private Dictionary<string, IBus> busses = new Dictionary<string, IBus>();
+        private Dictionary<string, BusInstance> busses = new Dictionary<string, BusInstance>();
         private Dictionary<string, HttpClient> httpClients = new Dictionary<string, HttpClient>();
         private Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
         protected Action<BusConfiguration> CustomConfiguration = _ => { };
@@ -170,7 +172,7 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        protected void ExecuteWhen(Func<bool> execute, Action<IBus> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        protected void ExecuteWhen(Func<bool> execute, Action<IDomainEvents> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             var timeout = TimeSpan.FromSeconds(1);
 
@@ -180,7 +182,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 {
                 }
 
-                action(busses[instanceName]);
+                action(busses[instanceName].DomainEvents);
             });
         }
 

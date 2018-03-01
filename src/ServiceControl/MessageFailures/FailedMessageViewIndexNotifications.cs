@@ -12,12 +12,14 @@
     class FailedMessageViewIndexNotifications : IObserver<IndexChangeNotification>
     {
         IDocumentStore store;
+        IDomainEvents domainEvents;
         int lastUnresolvedCount, lastArchivedCount;
         ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
 
-        public FailedMessageViewIndexNotifications(IDocumentStore store)
+        public FailedMessageViewIndexNotifications(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
+            this.domainEvents = domainEvents;
         }
 
         public void OnNext(IndexChangeNotification value)
@@ -56,7 +58,7 @@
                 lastUnresolvedCount = failedUnresolvedMessageCount;
                 lastArchivedCount = failedArchivedMessageCount;
 
-                DomainEvents.Raise(new MessageFailuresUpdated
+                domainEvents.Raise(new MessageFailuresUpdated
                 {
                     Total = failedUnresolvedMessageCount, // Left here for backwards compatibility, to be removed eventually.
                     UnresolvedTotal = failedUnresolvedMessageCount,

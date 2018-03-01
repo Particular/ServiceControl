@@ -9,6 +9,7 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus.Logging;
     using Raven.Client;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public static class NServiceBusFactory
     {
@@ -68,13 +69,15 @@ namespace ServiceBus.Management.Infrastructure
             return Bus.Create(configuration);
         }
 
-        public static IBus CreateAndStart(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration, bool isRunningAcceptanceTests)
+        public static BusInstance CreateAndStart(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var bus = Create(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
 
             container.Resolve<SubscribeToOwnEvents>().Run();
+            var domainEvents = container.Resolve<IDomainEvents>();
 
-            return bus.Start();
+            var startedBus = bus.Start();
+            return new BusInstance(startedBus, domainEvents);
         }
 
         static Type DetermineTransportType(Settings.Settings settings)

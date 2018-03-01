@@ -3,10 +3,18 @@
     using System;
     using System.Linq;
     using System.Collections.Generic;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public class ArchivingManager
     {
+        IDomainEvents domainEvents;
+
         internal static Dictionary<string, InMemoryArchive> ArchiveOperations = new Dictionary<string, InMemoryArchive>();
+
+        public ArchivingManager(IDomainEvents domainEvents)
+        {
+            this.domainEvents = domainEvents;
+        }
 
         public bool IsArchiveInProgressFor(string requestId)
         {
@@ -34,7 +42,7 @@
             InMemoryArchive summary;
             if (!ArchiveOperations.TryGetValue(InMemoryArchive.MakeId(requestId, archiveType), out summary))
             {
-                summary = new InMemoryArchive(requestId, archiveType);
+                summary = new InMemoryArchive(requestId, archiveType, domainEvents);
                 ArchiveOperations[InMemoryArchive.MakeId(requestId, archiveType)] = summary;
             }
             return summary;

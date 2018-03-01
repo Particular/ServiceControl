@@ -11,17 +11,19 @@ namespace ServiceControl.Recoverability
 
     class ReclassifyErrorsHandler : IHandleMessages<ReclassifyErrors>
     {
-        readonly IDocumentStore store;
-        readonly IEnumerable<IFailureClassifier> classifiers;
-        readonly Reclassifier reclassifier;
-        private static int executing;
+        IDomainEvents domainEvents;
+        IDocumentStore store;
+        IEnumerable<IFailureClassifier> classifiers;
+        Reclassifier reclassifier;
+        static int executing;
 
         ILog logger = LogManager.GetLogger<ReclassifyErrorsHandler>();
 
-        public ReclassifyErrorsHandler(IDocumentStore store, ShutdownNotifier notifier, IEnumerable<IFailureClassifier> classifiers)
+        public ReclassifyErrorsHandler(IDocumentStore store, IDomainEvents domainEvents, ShutdownNotifier notifier, IEnumerable<IFailureClassifier> classifiers)
         {
             this.store = store;
             this.classifiers = classifiers;
+            this.domainEvents = domainEvents;
 
             reclassifier = new Reclassifier(notifier);
         }
@@ -40,7 +42,7 @@ namespace ServiceControl.Recoverability
 
                 if (failedMessagesReclassified > 0)
                 {
-                    DomainEvents.Raise(new ReclassificationOfErrorMessageComplete
+                    domainEvents.Raise(new ReclassificationOfErrorMessageComplete
                     {
                         NumberofMessageReclassified = failedMessagesReclassified
                     });

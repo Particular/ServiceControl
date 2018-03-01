@@ -145,6 +145,7 @@
     <Compile Include="Recoverability\CorruptedReplyToHeaderStrategyTests.cs" />
     <Compile Include="HeaderAssertions.cs" />
     <Compile Include="Recoverability\EndpointInstanceIdClassifierTests.cs" />
+    <Compile Include="FakeDomainEvents.cs" />
     <Compile Include="Recoverability\RetryGroupEtagHelperTests.cs" />
     <Compile Include="Recoverability\Retry_State_Tests.cs" />
     <Compile Include="Recoverability\ExceptionTypeAndStackTraceFailureClassifierTest.cs" />

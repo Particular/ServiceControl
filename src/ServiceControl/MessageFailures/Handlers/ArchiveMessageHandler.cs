@@ -9,11 +9,13 @@
 
     public class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>
     {
-        private readonly IDocumentStore store;
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
-        public ArchiveMessageHandler(IDocumentStore store)
+        public ArchiveMessageHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
+            this.domainEvents = domainEvents;
         }
 
         public void Handle(ArchiveMessage message)
@@ -31,7 +33,7 @@
                 {
                     failedMessage.Status = FailedMessageStatus.Archived;
 
-                    DomainEvents.Raise(new FailedMessageArchived
+                    domainEvents.Raise(new FailedMessageArchived
                     {
                         FailedMessageId = message.FailedMessageId
                     });

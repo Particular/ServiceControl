@@ -11,13 +11,15 @@
 
     public class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>, IHandleMessages<MarkPendingRetryAsResolved>, IHandleMessages<MarkPendingRetriesAsResolved>
     {
-        private readonly IBus bus;
-        private readonly IDocumentStore store;
+        IBus bus;
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
-        public MessageFailureResolvedHandler(IBus bus, IDocumentStore store)
+        public MessageFailureResolvedHandler(IBus bus, IDocumentStore store, IDomainEvents domainEvents)
         {
             this.bus = bus;
             this.store = store;
+            this.domainEvents = domainEvents;
         }
 
         public void Handle(MessageFailureResolvedByRetry message)
@@ -44,7 +46,7 @@
         public void Handle(MarkPendingRetryAsResolved message)
         {
             MarkMessageAsResolved(message.FailedMessageId);
-            DomainEvents.Raise(new MessageFailureResolvedManually
+            domainEvents.Raise(new MessageFailureResolvedManually
             {
                 FailedMessageId = message.FailedMessageId
             });

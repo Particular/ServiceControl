@@ -29,22 +29,22 @@
 
     public class ErrorQueueImport : IAdvancedSatellite, IDisposable
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
-        private static readonly RavenJObject JObjectMetadata;
-        private static readonly JsonSerializer Serializer;
+        static ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
+        static RavenJObject JObjectMetadata;
+        static JsonSerializer Serializer;
 
-        private readonly Timer timer = Metric.Timer("Error messages processed", Unit.Custom("Messages"));
-        private readonly IBuilder builder;
-        private readonly IBus bus;
-        private readonly CriticalError criticalError;
-        private readonly ISendMessages forwarder;
-        private readonly LoggingSettings loggingSettings;
-        private readonly Settings settings;
-        private readonly IDocumentStore store;
-        private readonly IEnrichImportedMessages[] enrichers;
-        private readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
-        private readonly FailedMessageFactory failedMessageFactory;
-        private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
+        Timer timer = Metric.Timer("Error messages processed", Unit.Custom("Messages"));
+        IBuilder builder;
+        IDomainEvents domainEvents;
+        CriticalError criticalError;
+        ISendMessages forwarder;
+        LoggingSettings loggingSettings;
+        Settings settings;
+        IDocumentStore store;
+        IEnrichImportedMessages[] enrichers;
+        BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        FailedMessageFactory failedMessageFactory;
+        SatelliteImportFailuresHandler satelliteImportFailuresHandler;
 
         static ErrorQueueImport()
         {
@@ -58,16 +58,16 @@
                                     }}");
         }
 
-        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IBus bus, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
+        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
         {
             this.builder = builder;
             this.forwarder = forwarder;
             this.store = store;
-            this.bus = bus;
             this.criticalError = criticalError;
             this.loggingSettings = loggingSettings;
             this.settings = settings;
             this.bodyStorageEnricher = bodyStorageEnricher;
+            this.domainEvents = domainEvents;
 
             enrichers = builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichErrors).ToArray();
             var failedEnrichers = builder.BuildAll<IFailedMessageEnricher>().ToArray();
@@ -225,7 +225,7 @@
             string failedMessageId;
             if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
             {
-                DomainEvents.Raise(new MessageFailed
+                domainEvents.Raise(new MessageFailed
                 {
                     FailureDetails = failureDetails,
                     EndpointId = failingEndpointId,
@@ -235,7 +235,7 @@
             }
             else
             {
-                DomainEvents.Raise(new MessageFailed
+                domainEvents.Raise(new MessageFailed
                 {
                     FailureDetails = failureDetails,
                     EndpointId = failingEndpointId,

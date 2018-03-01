@@ -9,11 +9,13 @@
 
     public class UnArchiveMessagesHandler : IHandleMessages<UnArchiveMessages>
     {
-        private readonly IDocumentStore store;
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
-        public UnArchiveMessagesHandler(IDocumentStore store)
+        public UnArchiveMessagesHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
+            this.domainEvents = domainEvents;
         }
 
         public void Handle(UnArchiveMessages messages)
@@ -37,7 +39,7 @@
                 session.SaveChanges();
             }
 
-            DomainEvents.Raise(new FailedMessagesUnArchived
+            domainEvents.Raise(new FailedMessagesUnArchived
             {
                 MessagesCount = failedMessages.Length
             });

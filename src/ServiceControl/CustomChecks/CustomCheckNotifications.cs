@@ -9,9 +9,10 @@
 
     class CustomCheckNotifications : IObserver<IndexChangeNotification>
     {
-        public CustomCheckNotifications(IDocumentStore store)
+        public CustomCheckNotifications(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
+            this.domainEvents = domainEvents;
         }
 
         public void OnNext(IndexChangeNotification value)
@@ -34,7 +35,7 @@
                 if (lastCount == failedCustomCheckCount)
                     return;
                 lastCount = failedCustomCheckCount;
-                DomainEvents.Raise(new CustomChecksUpdated
+                domainEvents.Raise(new CustomChecksUpdated
                 {
                     Failed = lastCount
                 });
@@ -51,6 +52,7 @@
             //Ignore
         }
 
+        IDomainEvents domainEvents;
         IDocumentStore store;
         int lastCount;
         ILog logging = LogManager.GetLogger(typeof(CustomCheckNotifications));

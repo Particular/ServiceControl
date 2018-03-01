@@ -17,7 +17,9 @@ namespace ServiceControl.UnitTests.Recoverability
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.UnitTests.Operations;
 
     [TestFixture]
     public class Retry_State_Tests
@@ -25,7 +27,8 @@ namespace ServiceControl.UnitTests.Recoverability
         [Test]
         public void When_a_group_is_processed_it_is_set_to_the_Preparing_state()
         {
-            var retryManager = new RetryingManager();
+            var domainEvents = new FakeDomainEvents();
+            var retryManager = new RetryingManager(domainEvents);
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
@@ -40,7 +43,8 @@ namespace ServiceControl.UnitTests.Recoverability
         [Test]
         public void When_a_group_is_prepared_and_SC_is_started_the_group_is_marked_as_failed()
         {
-            var retryManager = new RetryingManager();
+            var domainEvents = new FakeDomainEvents();
+            var retryManager = new RetryingManager(domainEvents);
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
@@ -68,7 +72,8 @@ namespace ServiceControl.UnitTests.Recoverability
         [Test]
         public async Task When_a_group_is_prepared_with_three_batches_and_SC_is_restarted_while_the_first_group_is_being_forwarded_then_the_count_still_matches()
         {
-            var retryManager = new RetryingManager();
+            var domainEvents = new FakeDomainEvents();
+            var retryManager = new RetryingManager(domainEvents);
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
@@ -76,8 +81,6 @@ namespace ServiceControl.UnitTests.Recoverability
                 CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 2001);
 
                 new RetryBatches_ByStatus_ReduceInitialBatchSize().Execute(documentStore);
-
-                var testBus = new TestBus();
 
                 var sender = new TestSender();
 
@@ -91,7 +94,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
 
-                var processor = new RetryProcessor(sender, testBus, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, testBus, configure), retryManager);
+                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, domainEvents, configure), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -102,7 +105,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
 
                     // Simulate SC restart
-                    retryManager = new RetryingManager();
+                    retryManager = new RetryingManager(domainEvents);
                     RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
                     var documentManager = new CustomRetryDocumentManager(false, documentStore)
@@ -111,7 +114,7 @@ namespace ServiceControl.UnitTests.Recoverability
                     };
                     await documentManager.RebuildRetryOperationState(session);
 
-                    processor = new RetryProcessor(sender, testBus, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, testBus, configure), retryManager);
+                    processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, domainEvents, configure), retryManager);
 
                     await processor.ProcessBatches(session, CancellationToken.None);
                     await session.SaveChangesAsync();
@@ -125,14 +128,13 @@ namespace ServiceControl.UnitTests.Recoverability
         [Test]
         public async Task When_a_group_is_forwarded_the_status_is_Completed()
         {
-            var retryManager = new RetryingManager();
+            var domainEvents = new FakeDomainEvents();
+            var retryManager = new RetryingManager(domainEvents);
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1);
-
-                var testBus = new TestBus();
 
                 var sender = new TestSender();
 
@@ -145,8 +147,8 @@ namespace ServiceControl.UnitTests.Recoverability
                 settingsHolder.Set("EndpointName", "TestEndpoint");
 
                 var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
-                var returnToSender = new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, testBus, configure);
-                var processor = new RetryProcessor(sender, testBus, returnToSender, retryManager);
+                var returnToSender = new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, domainEvents, configure);
+                var processor = new RetryProcessor(sender, domainEvents, returnToSender, retryManager);
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
@@ -165,7 +167,8 @@ namespace ServiceControl.UnitTests.Recoverability
         [Test]
         public async Task When_a_group_has_one_batch_out_of_two_forwarded_the_status_is_Forwarding()
         {
-            var retryManager = new RetryingManager();
+            var domainEvents = new FakeDomainEvents();
+            var retryManager = new RetryingManager(domainEvents);
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
@@ -177,8 +180,6 @@ namespace ServiceControl.UnitTests.Recoverability
                     DocumentStore = documentStore
                 };
 
-                var testBus = new TestBus();
-
                 var sender = new TestSender();
 
                 var settingsHolder = new NServiceBus.Settings.SettingsHolder();
@@ -186,7 +187,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
 
-                var processor = new RetryProcessor(sender, testBus, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, testBus, configure), retryManager);
+                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, domainEvents, configure), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -288,8 +289,8 @@ namespace ServiceControl.UnitTests.Recoverability
 
     public class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
     {
-        public TestReturnToSenderDequeuer(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IBus bus, Configure configure)
-            : base(bodyStorage, sender, store, bus, configure)
+        public TestReturnToSenderDequeuer(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IDomainEvents domainEvents, Configure configure)
+            : base(bodyStorage, sender, store, domainEvents, configure)
         {
         }
 

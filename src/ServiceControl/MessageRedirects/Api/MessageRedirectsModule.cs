@@ -15,6 +15,7 @@
     public class MessageRedirectsModule : BaseModule
     {
         public IBus Bus { get; set; }
+        public IDomainEvents DomainEvents { get; set; }
 
         private class MessageRedirectRequest
         {

@@ -12,11 +12,13 @@
 
     public class UnArchiveMessagesByRangeHandler : IHandleMessages<UnArchiveMessagesByRange>
     {
-        private readonly IDocumentStore store;
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
-        public UnArchiveMessagesByRangeHandler(IDocumentStore store)
+        public UnArchiveMessagesByRangeHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
+            this.domainEvents = domainEvents;
         }
 
         public void Handle(UnArchiveMessagesByRange message)
@@ -43,7 +45,7 @@ if(this.Status === archivedStatus) {
 
             var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
 
-            DomainEvents.Raise(new FailedMessagesUnArchived
+            domainEvents.Raise(new FailedMessagesUnArchived
             {
                 MessagesCount = patchedDocumentIds.Length
             });

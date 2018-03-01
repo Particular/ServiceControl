@@ -14,6 +14,7 @@
     using Raven.Client;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
@@ -25,7 +26,7 @@
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            CustomConfiguration = config => { config.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(b.Build<IBodyStorage>(), new SendMessagesWrapper(b.Build<ISendMessages>(), b.Build<MyContext>()), b.Build<IDocumentStore>(), b.Build<IBus>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)); };
+            CustomConfiguration = config => { config.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(b.Build<IBodyStorage>(), new SendMessagesWrapper(b.Build<ISendMessages>(), b.Build<MyContext>()), b.Build<IDocumentStore>(), b.Build<IDomainEvents>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)); };
 
             Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.Given((bus, ctx) =>

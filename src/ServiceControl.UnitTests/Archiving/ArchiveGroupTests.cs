@@ -5,6 +5,8 @@ using System;
 
 namespace ServiceControl.UnitTests.Archiving
 {
+    using ServiceControl.UnitTests.Operations;
+
     [TestFixture]
     public class ArchiveGroupTests
     {
@@ -39,11 +41,11 @@ namespace ServiceControl.UnitTests.Archiving
                     session.SaveChanges();
                 }
 
-                var testBus = new TestBus();
                 var documentManager = new ArchiveDocumentManager();
-                var archivingManager = new ArchivingManager();
-                var retryingManager = new RetryingManager();
-                var handler = new ArchiveAllInGroupHandler(documentStore, documentManager, archivingManager, retryingManager);
+                var domainEvents = new FakeDomainEvents();
+                var archivingManager = new ArchivingManager(domainEvents);
+                var retryingManager = new RetryingManager(domainEvents);
+                var handler = new ArchiveAllInGroupHandler(documentStore, domainEvents, documentManager, archivingManager, retryingManager);
 
                 var message = new ArchiveAllInGroup { GroupId = groupId };
 
