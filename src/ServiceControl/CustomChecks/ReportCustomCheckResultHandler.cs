@@ -11,13 +11,11 @@
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
-        IBus bus;
         IDocumentStore store;
         IDomainEvents domainEvents;
 
-        public ReportCustomCheckResultHandler(IBus bus, IDocumentStore store, IDomainEvents domainEvents)
+        public ReportCustomCheckResultHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
-            this.bus = bus;
             this.store = store;
             this.domainEvents = domainEvents;
         }
