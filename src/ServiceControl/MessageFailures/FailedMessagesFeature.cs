@@ -28,12 +28,10 @@
 
         class DetectSuccessfullRetriesEnricher : ImportEnricher
         {
-            IBus bus;
             IDomainEvents domainEvents;
 
-            public DetectSuccessfullRetriesEnricher(IBus bus, IDomainEvents domainEvents)
+            public DetectSuccessfullRetriesEnricher(IDomainEvents domainEvents)
             {
-                this.bus = bus;
                 this.domainEvents = domainEvents;
             }
 
