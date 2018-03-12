@@ -1,9 +1,10 @@
 namespace ServiceBus.Management.Infrastructure
 {
+    using System;
     using NServiceBus;
     using ServiceControl.Infrastructure.DomainEvents;
 
-    public class BusInstance
+    public class BusInstance : IDisposable
     {
         public BusInstance(IBus bus, IDomainEvents domainEvents)
         {
@@ -13,5 +14,9 @@ namespace ServiceBus.Management.Infrastructure
 
         public IBus Bus { get; }
         public IDomainEvents DomainEvents { get; }
+        public void Dispose()
+        {
+            Bus.Dispose();
+        }
     }
 }

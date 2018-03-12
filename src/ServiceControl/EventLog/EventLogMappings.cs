@@ -18,11 +18,11 @@
             return mappings.ContainsKey(message.GetType());
         }
 
-        public EventLogItem ApplyMapping(string messageId, IDomainEvent @event)
+        public EventLogItem ApplyMapping(IDomainEvent @event)
         {
             var mapping = (IEventLogMappingDefinition)Activator.CreateInstance(mappings[@event.GetType()]);
 
-            return mapping.Apply(messageId, @event);
+            return mapping.Apply(@event);
         }
     }
 }

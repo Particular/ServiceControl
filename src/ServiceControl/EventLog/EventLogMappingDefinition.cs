@@ -9,13 +9,13 @@
     {
         public virtual string Category => typeof(T).Namespace.Split('.').Last();
 
-        public EventLogItem Apply(string messageId, IDomainEvent @event)
+        public EventLogItem Apply(IDomainEvent @event)
         {
             var eventMessage = (T) @event;
-
+            var eventId = Guid.NewGuid().ToString();
             var item = new EventLogItem
             {
-                Id = $"EventLogItem/{Category}/{typeof(T).Name}/{messageId}",
+                Id = $"EventLogItem/{Category}/{typeof(T).Name}/{eventId}",
                 Category = Category,
                 RaisedAt = raisedAtFunc(eventMessage),
                 Description = descriptionFunc(eventMessage),

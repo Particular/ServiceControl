@@ -110,7 +110,7 @@ namespace Particular.ServiceControl
         public void Stop()
         {
             notifier.Dispose();
-            bus?.Bus.Dispose();
+            bus?.Dispose();
             timeKeeper.Dispose();
             documentStore.Dispose();
             WebApp?.Dispose();
