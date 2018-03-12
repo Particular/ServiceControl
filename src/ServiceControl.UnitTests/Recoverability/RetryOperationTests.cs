@@ -77,6 +77,23 @@
         }
 
         [Test]
+        public void Should_raise_domain_events()
+        {
+            var domainEvents = new FakeDomainEvents();
+            var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, domainEvents);
+            summary.Prepare(1000);
+            summary.PrepareBatch(1000);
+            summary.Forwarding();
+            summary.BatchForwarded(1000);
+
+            Assert.IsTrue(domainEvents.RaisedEvents[0] is RetryOperationPreparing);
+            Assert.IsTrue(domainEvents.RaisedEvents[1] is RetryOperationPreparing);
+            Assert.IsTrue(domainEvents.RaisedEvents[2] is RetryOperationForwarding);
+            Assert.IsTrue(domainEvents.RaisedEvents[3] is RetryMessagesForwarded);
+            Assert.IsTrue(domainEvents.RaisedEvents[4] is RetryOperationCompleted);
+        }
+
+        [Test]
         public void Batch_forwarded_all_forwarded_should_set_completed_state()
         {
             var summary = new InMemoryRetry("abc123", RetryType.FailureGroup, new FakeDomainEvents());
