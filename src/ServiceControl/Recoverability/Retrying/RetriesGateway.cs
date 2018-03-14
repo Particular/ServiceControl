@@ -157,21 +157,22 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            var batchDocumentId = retryDocumentManager.CreateBatchDocument(requestId, retryType, messageIds.Length, originator, startTime, last, batchName, classifier);
+            var failedMessageRetryIds = messageIds.Select(FailedMessageRetry.MakeDocumentId).ToArray();
+
+            var batchDocumentId = retryDocumentManager.CreateBatchDocument(requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier);
 
             log.InfoFormat("Created Batch '{0}' with {1} messages for '{2}'", batchDocumentId, messageIds.Length, batchName);
 
-            var retryIds = new string[messageIds.Length];
             var commands = new ICommandData[messageIds.Length];
             for (var i = 0; i < messageIds.Length; i++)
             {
                 commands[i] = retryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
-                retryIds[i] = commands[i].Key;
             }
 
             store.DatabaseCommands.Batch(commands);
 
-            retryDocumentManager.MoveBatchToStaging(batchDocumentId, retryIds);
+            retryDocumentManager.MoveBatchToStaging(batchDocumentId);
+
             log.InfoFormat("Moved Batch '{0}' to Staging", batchDocumentId);
         }
 

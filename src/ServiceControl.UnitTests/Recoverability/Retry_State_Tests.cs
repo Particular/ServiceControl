@@ -276,14 +276,6 @@ namespace ServiceControl.UnitTests.Recoverability
             RetrySessionId = Guid.NewGuid().ToString();
             this.progressToStaged = progressToStaged;
         }
-
-        public override void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
-        {
-            if (progressToStaged)
-            {
-                base.MoveBatchToStaging(batchDocumentId, failedMessageRetryIds);
-            }
-        }
     }
 
     public class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
