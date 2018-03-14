@@ -58,7 +58,7 @@ namespace ServiceControl.UnitTests.Recoverability
                 };
 
                 var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, null, documentStore);
-                orphanage.AdoptOrphanedBatches();
+                orphanage.AdoptOrphanedBatchesAsync().GetAwaiter().GetResult();
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
                 Assert.True(status.Failed);
@@ -275,6 +275,14 @@ namespace ServiceControl.UnitTests.Recoverability
         {
             RetrySessionId = Guid.NewGuid().ToString();
             this.progressToStaged = progressToStaged;
+        }
+
+        public override void MoveBatchToStaging(string batchDocumentId)
+        {
+            if (progressToStaged)
+            {
+                base.MoveBatchToStaging(batchDocumentId);
+            }
         }
     }
 
