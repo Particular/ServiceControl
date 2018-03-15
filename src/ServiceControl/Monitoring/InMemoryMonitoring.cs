@@ -44,10 +44,10 @@
             protected override void OnStart()
             {
                 persistence.WarmupMonitoringFromPersistence();
-                timer = timeKeeper.NewTimer(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+                timer = timeKeeper.New(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5));
             }
 
-            private bool CheckEndpoints()
+            private void CheckEndpoints()
             {
                 try
                 {
@@ -59,7 +59,6 @@
                 {
                     log.Error("Exception occurred when monitoring endpoint instances", exception);
                 }
-                return true;
             }
 
             protected override void OnStop()
