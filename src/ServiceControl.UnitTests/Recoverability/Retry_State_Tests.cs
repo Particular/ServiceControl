@@ -38,7 +38,7 @@ namespace ServiceControl.UnitTests.Recoverability
         }
 
         [Test]
-        public void When_a_group_is_prepared_and_SC_is_started_the_group_is_marked_as_failed()
+        public async Task When_a_group_is_prepared_and_SC_is_started_the_group_is_marked_as_failed()
         {
             var retryManager = new RetryingManager();
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
@@ -58,7 +58,7 @@ namespace ServiceControl.UnitTests.Recoverability
                 };
 
                 var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, null, documentStore);
-                orphanage.AdoptOrphanedBatchesAsync().GetAwaiter().GetResult();
+                await orphanage.AdoptOrphanedBatchesAsync();
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
                 Assert.True(status.Failed);
