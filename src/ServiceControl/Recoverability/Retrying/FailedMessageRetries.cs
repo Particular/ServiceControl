@@ -107,9 +107,9 @@
                 startTime = DateTime.UtcNow;
             }
 
-            bool AdoptOrphanedBatches()
+            async Task<bool> AdoptOrphanedBatches()
             {
-                var hasMoreWork = AdoptOrphanedBatchesAsync().GetAwaiter().GetResult();
+                var hasMoreWork = await AdoptOrphanedBatchesAsync().ConfigureAwait(false);
 
                 if (!hasMoreWork)
                 {
@@ -133,7 +133,7 @@
 
             protected override void OnStart()
             {
-                timer = timeKeeper.NewTimer(AdoptOrphanedBatches, TimeSpan.Zero, TimeSpan.FromMinutes(2));
+                timer = timeKeeper.NewTimer(() => AdoptOrphanedBatches(), TimeSpan.Zero, TimeSpan.FromMinutes(2));
             }
 
             protected override void OnStop()
