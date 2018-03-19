@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Concurrent;
     using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus.Logging;
 
     public class TimeKeeper : IDisposable
@@ -11,8 +12,10 @@
         private ILog log = LogManager.GetLogger<TimeKeeper>();
         private bool disposed;
         private int disposeSignaled;
+        private static Task<bool> TrueTask = Task.FromResult(true);
+        private static Task<bool> FalseTask = Task.FromResult(true);
 
-        public Timer NewTimer(Func<bool> callback, TimeSpan dueTime, TimeSpan period)
+        public Timer NewTimer(Func<Task<bool>> callback, TimeSpan dueTime, TimeSpan period)
         {
             ThrowIfDisposed();
 
@@ -24,7 +27,7 @@
 
                 try
                 {
-                    reschedule = callback();
+                    reschedule = callback().GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {
@@ -45,6 +48,13 @@
 
             timers.TryAdd(timer, null);
             return timer;
+        }
+
+        public Timer NewTimer(Func<bool> callback, TimeSpan dueTime, TimeSpan period)
+        {
+            ThrowIfDisposed();
+
+            return NewTimer(() => callback() ? TrueTask : FalseTask, dueTime, period);
         }
 
         public Timer New(Action callback, TimeSpan dueTime, TimeSpan period)

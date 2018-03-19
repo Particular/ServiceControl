@@ -1,8 +1,6 @@
 namespace ServiceControl.Recoverability
 {
     using System;
-    using System.Collections;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
@@ -37,7 +35,7 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string requestId, RetryType retryType, int initialBatchSize, string originator, DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
+        public string CreateBatchDocument(string requestId, RetryType retryType, string[] failedMessageRetryIds, string originator, DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
             using (var session = store.OpenSession())
@@ -52,8 +50,9 @@ namespace ServiceControl.Recoverability
                     Classifier = classifier,
                     StartTime = startTime,
                     Last = last,
-                    InitialBatchSize = initialBatchSize,
+                    InitialBatchSize = failedMessageRetryIds.Length,
                     RetrySessionId = RetrySessionId,
+                    FailureRetries = failedMessageRetryIds,
                     Status = RetryBatchStatus.MarkingDocuments
                 });
                 session.SaveChanges();
@@ -61,10 +60,8 @@ namespace ServiceControl.Recoverability
             return batchDocumentId;
         }
 
-        public ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageUniqueId)
+        public ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
         {
-            var failureRetryId = FailedMessageRetry.MakeDocumentId(messageUniqueId);
-
             return new PatchCommandData
             {
                 Patches = patchRequestsEmpty,
@@ -74,7 +71,7 @@ namespace ServiceControl.Recoverability
                     {
                         Name = "FailedMessageId",
                         Type = PatchCommandType.Set,
-                        Value = FailedMessage.MakeDocumentId(messageUniqueId)
+                        Value = FailedMessage.MakeDocumentId(messageId)
                     },
                     new PatchRequest
                     {
@@ -83,12 +80,12 @@ namespace ServiceControl.Recoverability
                         Value = batchDocumentId
                     }
                 },
-                Key = failureRetryId,
+                Key = FailedMessageRetry.MakeDocumentId(messageId),
                 Metadata = defaultMetadata
             };
         }
 
-        public virtual void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
+        public virtual void MoveBatchToStaging(string batchDocumentId)
         {
             try
             {
@@ -101,12 +98,6 @@ namespace ServiceControl.Recoverability
                             Name = "Status",
                             Value = (int) RetryBatchStatus.Staging,
                             PrevVal = (int) RetryBatchStatus.MarkingDocuments
-                        },
-                        new PatchRequest
-                        {
-                            Type = PatchCommandType.Set,
-                            Name = "FailureRetries",
-                            Value = new RavenJArray((IEnumerable) failedMessageRetryIds)
                         }
                     });
             }
@@ -134,7 +125,11 @@ namespace ServiceControl.Recoverability
 
             log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatches.Count);
 
-            await AdoptBatches(session, orphanedBatches.Select(b => b.Id)).ConfigureAwait(false);
+            await Task.WhenAll(orphanedBatches.Select(b => Task.Run(() =>
+            {
+                log.InfoFormat("Adopting retry batch {0} from previous session with {1} messages", b.Id, b.FailureRetries.Count);
+                MoveBatchToStaging(b.Id);
+            })));
 
             foreach (var batch in orphanedBatches)
             {
@@ -150,34 +145,6 @@ namespace ServiceControl.Recoverability
             }
 
             return stats.IsStale || orphanedBatches.Any();
-        }
-
-        Task AdoptBatches(IAsyncDocumentSession session, IEnumerable<string> batchIds)
-        {
-            // Task.Run for offloading the while loop
-            return Task.WhenAll(batchIds.Select(batchid => Task.Run(() => AdoptBatch(session, batchid))));
-        }
-
-        async Task AdoptBatch(IAsyncDocumentSession session, string batchId)
-        {
-            var query = session.Query<FailedMessageRetry, FailedMessageRetries_ByBatch>()
-                .Where(r => r.RetryBatchId == batchId);
-
-            var messageIds = new List<string>();
-
-            using (var stream = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
-            {
-                while (!abort && await stream.MoveNextAsync().ConfigureAwait(false))
-                {
-                    messageIds.Add(stream.Current.Document.Id);
-                }
-            }
-
-            if (!abort)
-            {
-                log.InfoFormat("Adopting retry batch {0} from previous session with {1} messages", batchId, messageIds.Count);
-                MoveBatchToStaging(batchId, messageIds.ToArray());
-            }
         }
 
         internal async Task RebuildRetryOperationState(IAsyncDocumentSession session)

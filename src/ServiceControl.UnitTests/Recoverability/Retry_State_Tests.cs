@@ -38,7 +38,7 @@ namespace ServiceControl.UnitTests.Recoverability
         }
 
         [Test]
-        public void When_a_group_is_prepared_and_SC_is_started_the_group_is_marked_as_failed()
+        public async Task When_a_group_is_prepared_and_SC_is_started_the_group_is_marked_as_failed()
         {
             var retryManager = new RetryingManager();
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
@@ -58,7 +58,7 @@ namespace ServiceControl.UnitTests.Recoverability
                 };
 
                 var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, null, documentStore);
-                orphanage.AdoptOrphanedBatches();
+                await orphanage.AdoptOrphanedBatchesAsync();
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
                 Assert.True(status.Failed);
@@ -277,11 +277,11 @@ namespace ServiceControl.UnitTests.Recoverability
             this.progressToStaged = progressToStaged;
         }
 
-        public override void MoveBatchToStaging(string batchDocumentId, string[] failedMessageRetryIds)
+        public override void MoveBatchToStaging(string batchDocumentId)
         {
             if (progressToStaged)
             {
-                base.MoveBatchToStaging(batchDocumentId, failedMessageRetryIds);
+                base.MoveBatchToStaging(batchDocumentId);
             }
         }
     }

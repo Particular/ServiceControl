@@ -107,12 +107,20 @@
                 startTime = DateTime.UtcNow;
             }
 
-            internal bool AdoptOrphanedBatches()
+            async Task<bool> AdoptOrphanedBatches()
             {
-                return AdoptOrphanedBatchesAsync().GetAwaiter().GetResult();
+                var hasMoreWork = await AdoptOrphanedBatchesAsync().ConfigureAwait(false);
+
+                if (!hasMoreWork)
+                {
+                    //Disable timeout
+                    timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                }
+
+                return hasMoreWork;
             }
 
-            private async Task<bool> AdoptOrphanedBatchesAsync()
+            internal async Task<bool> AdoptOrphanedBatchesAsync()
             {
                 bool hasMoreWorkToDo;
                 using (var session = store.OpenAsyncSession())
@@ -120,18 +128,12 @@
                     hasMoreWorkToDo = await retryDocumentManager.AdoptOrphanedBatches(session, startTime).ConfigureAwait(false);
                 }
 
-                if (!hasMoreWorkToDo)
-                {
-                    //Disable timeout
-                    timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-                }
-
                 return hasMoreWorkToDo;
             }
 
             protected override void OnStart()
             {
-                timer = timeKeeper.NewTimer(AdoptOrphanedBatches, TimeSpan.Zero, TimeSpan.FromMinutes(2));
+                timer = timeKeeper.NewTimer(() => AdoptOrphanedBatches(), TimeSpan.Zero, TimeSpan.FromMinutes(2));
             }
 
             protected override void OnStop()
