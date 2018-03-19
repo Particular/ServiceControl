@@ -3,10 +3,17 @@
     using System;
     using System.Linq;
     using System.Collections.Generic;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public class RetryingManager
     {
+        IDomainEvents domainEvents;
         internal static Dictionary<string, InMemoryRetry> RetryOperations = new Dictionary<string, InMemoryRetry>();
+
+        public RetryingManager(IDomainEvents domainEvents)
+        {
+            this.domainEvents = domainEvents;
+        }
 
         public void Wait(string requestId, RetryType retryType, DateTime started, string originator = null, string classifier = null, DateTime? last = null)
         {
@@ -125,7 +132,7 @@
             InMemoryRetry summary;
             if (!RetryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out summary))
             {
-                summary = new InMemoryRetry(requestId, retryType);
+                summary = new InMemoryRetry(requestId, retryType, domainEvents);
                 RetryOperations[InMemoryRetry.MakeOperationId(requestId, retryType)] = summary;
             }
             return summary;

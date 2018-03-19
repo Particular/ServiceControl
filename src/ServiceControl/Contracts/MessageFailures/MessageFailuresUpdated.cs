@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.Contracts.MessageFailures
 {
     using System;
-    using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Infrastructure.SignalR;
 
-    public class MessageFailuresUpdated : IEvent
+    public class MessageFailuresUpdated : IDomainEvent, IUserInterfaceEvent
     {
         public MessageFailuresUpdated()
         {

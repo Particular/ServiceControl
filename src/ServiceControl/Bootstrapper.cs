@@ -30,7 +30,7 @@ namespace Particular.ServiceControl
         private Settings settings;
         private TimeKeeper timeKeeper;
         private IContainer container;
-        private IBus bus;
+        private BusInstance bus;
         public IDisposable WebApp;
 
         // Windows Service
@@ -71,6 +71,8 @@ namespace Particular.ServiceControl
 
             var containerBuilder = new ContainerBuilder();
 
+            var domainEvents = new DomainEvents();
+            containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
@@ -83,10 +85,11 @@ namespace Particular.ServiceControl
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
-            DomainEvents.Container = container;
+
+            domainEvents.SetContainer(container);
         }
 
-        public IBus Start(bool isRunningAcceptanceTests = false)
+        public BusInstance Start(bool isRunningAcceptanceTests = false)
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 

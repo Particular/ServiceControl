@@ -2,18 +2,18 @@ namespace ServiceControl.ExternalIntegrations
 {
     using System.Collections.Generic;
     using System.Linq;
-    using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public abstract class EventPublisher<TEvent, TDispatchContext> :IEventPublisher
-        where TEvent : IEvent
+        where TEvent : IDomainEvent
     {
-        public bool Handles(IEvent @event)
+        public bool Handles(IDomainEvent @event)
         {
             return @event is TEvent;
         }
 
-        public object CreateDispatchContext(IEvent @event)
+        public object CreateDispatchContext(IDomainEvent @event)
         {
             return CreateDispatchRequest((TEvent)@event);
         }

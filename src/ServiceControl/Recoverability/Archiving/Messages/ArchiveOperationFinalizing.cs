@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
-    using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Infrastructure.SignalR;
 
-    public class ArchiveOperationFinalizing : IEvent
+    public class ArchiveOperationFinalizing : IDomainEvent, IUserInterfaceEvent
     {
         public string RequestId { get; set; }
         public ArchiveType ArchiveType { get; set; }

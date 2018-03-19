@@ -4,25 +4,26 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
-        private static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
-        private const int batchSize = 1000;
+        static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
+        const int batchSize = 1000;
 
-        private readonly IBus bus;
-        private readonly IDocumentStore store;
-        private readonly ArchiveDocumentManager documentManager;
-        private readonly ArchivingManager archiveOperationManager;
-        private readonly RetryingManager retryingManager;
+        IDocumentStore store;
+        IDomainEvents domainEvents;
+        ArchiveDocumentManager documentManager;
+        ArchivingManager archiveOperationManager;
+        RetryingManager retryingManager;
 
-        public ArchiveAllInGroupHandler(IBus bus, IDocumentStore store, ArchiveDocumentManager documentManager, ArchivingManager archiveOperationManager, RetryingManager retryingManager)
+        public ArchiveAllInGroupHandler(IDocumentStore store, IDomainEvents domainEvents, ArchiveDocumentManager documentManager, ArchivingManager archiveOperationManager, RetryingManager retryingManager)
         {
-            this.bus = bus;
             this.store = store;
             this.documentManager = documentManager;
             this.archiveOperationManager = archiveOperationManager;
             this.retryingManager = retryingManager;
+            this.domainEvents = domainEvents;
         }
 
         public void Handle(ArchiveAllInGroup message)
@@ -105,7 +106,7 @@ namespace ServiceControl.Recoverability
             archiveOperationManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType);
             documentManager.RemoveArchiveOperation(store, archiveOperation);
 
-            bus.Publish(new FailedMessageGroupArchived
+            domainEvents.Raise(new FailedMessageGroupArchived
             {
                 GroupId = message.GroupId,
                 GroupName = archiveOperation.GroupName,

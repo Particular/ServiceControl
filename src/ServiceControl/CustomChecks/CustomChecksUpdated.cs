@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
-    using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Infrastructure.SignalR;
 
-    internal class CustomChecksUpdated : IEvent
+    internal class CustomChecksUpdated : IDomainEvent, IUserInterfaceEvent
     {
         public CustomChecksUpdated()
         {

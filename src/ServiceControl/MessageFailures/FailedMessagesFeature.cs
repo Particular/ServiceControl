@@ -8,6 +8,7 @@
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
 
@@ -27,14 +28,14 @@
 
         class DetectSuccessfullRetriesEnricher : ImportEnricher
         {
-            public override bool EnrichErrors => false;
+            IDomainEvents domainEvents;
 
-            IBus bus;
-
-            public DetectSuccessfullRetriesEnricher(IBus bus)
+            public DetectSuccessfullRetriesEnricher(IDomainEvents domainEvents)
             {
-                this.bus = bus;
+                this.domainEvents = domainEvents;
             }
+
+            public override bool EnrichErrors => false;
 
             public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
@@ -53,10 +54,10 @@
                     return;
                 }
 
-                bus.Publish<MessageFailureResolvedByRetry>(m =>
+                domainEvents.Raise(new MessageFailureResolvedByRetry
                 {
-                    m.FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId;
-                    m.AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray();
+                    FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId,
+                    AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray()
                 });
             }
 

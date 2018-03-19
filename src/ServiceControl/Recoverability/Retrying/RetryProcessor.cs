@@ -11,6 +11,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Transports;
     using NServiceBus.Unicast;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageRedirects;
 
@@ -29,12 +30,12 @@ namespace ServiceControl.Recoverability
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
 
-        public RetryProcessor(ISendMessages sender, IBus bus, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
+        public RetryProcessor(ISendMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
         {
             this.sender = sender;
-            this.bus = bus;
             this.returnToSender = returnToSender;
             this.retryingManager = retryingManager;
+            this.domainEvents = domainEvents;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
         }
 
@@ -180,12 +181,12 @@ namespace ServiceControl.Recoverability
 
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
-                bus.Publish<MessagesSubmittedForRetry>(m =>
+                var failedIds = messages.Select(x => x.UniqueMessageId).ToArray();
+                domainEvents.Raise(new MessagesSubmittedForRetry
                 {
-                    var failedIds = messages.Select(x => x.UniqueMessageId).ToArray();
-                    m.FailedMessageIds = failedIds;
-                    m.NumberOfFailedMessages = failedIds.Length;
-                    m.Context = stagingBatch.Context;
+                    FailedMessageIds = failedIds,
+                    NumberOfFailedMessages = failedIds.Length,
+                    Context = stagingBatch.Context
                 });
             }
 
@@ -238,11 +239,11 @@ namespace ServiceControl.Recoverability
         }
 
         ISendMessages sender;
-        IBus bus;
+        IDomainEvents domainEvents;
         ReturnToSenderDequeuer returnToSender;
         RetryingManager retryingManager;
-        private MessageRedirectsCollection redirects;
+        MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
-        private CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
+        CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
     }
 }

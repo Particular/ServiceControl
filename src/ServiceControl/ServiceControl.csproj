@@ -309,12 +309,19 @@
     <Compile Include="DbMigrations\MigrationsModule.cs" />
     <Compile Include="DbMigrations\1.27\SplitFailedMessageDocumentsMigration.cs" />
     <Compile Include="HeartbeatMonitoring\LegacyHandler.cs" />
-    <Compile Include="ExternalIntegrations\MessageFailedRepeatedlyPublisher.cs" />
     <Compile Include="Hosting\Commands\ImportFailedAuditsCommand.cs" />
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Infrastructure\BusInstance.cs" />
+    <Compile Include="Infrastructure\DomainEvents\DomainEventBusPublisher.cs" />
     <Compile Include="Infrastructure\DomainEvents\DomainEvents.cs" />
+    <Compile Include="Infrastructure\DomainEvents\DomainEventsFeature.cs" />
+    <Compile Include="Infrastructure\DomainEvents\IDomainEvent.cs" />
+    <Compile Include="Infrastructure\DomainEvents\IDomainEvents.cs" />
+    <Compile Include="Infrastructure\DomainEvents\IDomainHandler.cs" />
+    <Compile Include="Infrastructure\SignalR\IUserInterfaceEvent.cs" />
+    <Compile Include="Infrastructure\SignalR\ServicePulseNotifier.cs" />
     <Compile Include="Infrastructure\EndpointInstanceId.cs" />
     <Compile Include="Infrastructure\Extensions\RavenQueryStatisticsExtensions.cs" />
     <Compile Include="Infrastructure\Extensions\WaitHandleExtensions.cs" />
@@ -331,6 +338,7 @@
     <Compile Include="Infrastructure\Settings\ConfigFileSettingsReader.cs" />
     <Compile Include="Infrastructure\Settings\InstanceIdGenerator.cs" />
     <Compile Include="Infrastructure\Settings\RemoteInstanceSetting.cs" />
+    <Compile Include="Infrastructure\SignalR\ServicePulseNotifierFeature.cs" />
     <Compile Include="Licensing\LicenseCheckFeature.cs" />
     <Compile Include="Licensing\LicenseModule.cs" />
     <Compile Include="LoggingConfigurator.cs" />
@@ -372,7 +380,7 @@
     <Compile Include="ExternalIntegrations\EventPublisher.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationDispatchRequest.cs" />
     <Compile Include="ExternalIntegrations\EventDispatcher.cs" />
-    <Compile Include="ExternalIntegrations\EventMappingHandler.cs" />
+    <Compile Include="ExternalIntegrations\IntegrationEventWriter.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationEventFailedToBePublished.cs" />
     <Compile Include="ExternalIntegrations\ExternalIntegrationsFeature.cs" />
     <Compile Include="ExternalIntegrations\CustomCheckFailedPublisher.cs" />
@@ -449,13 +457,11 @@
     <Compile Include="Recoverability\Grouping\Groupers\EndpointInstanceClassifier.cs" />
     <Compile Include="Recoverability\GroupOperation.cs" />
     <Compile Include="Recoverability\API\EtagHelper.cs" />
-    <Compile Include="Recoverability\PublishAllHandler.cs" />
     <Compile Include="Recoverability\Archiving\ArchivingManager.cs" />
     <Compile Include="Recoverability\Retrying\RetryingManager.cs" />
     <Compile Include="Recoverability\Retrying\History\StoreHistoryHandler.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\AddressOfFailingEndpointClassifier.cs" />
     <Compile Include="Recoverability\Archiving\ArchivingFeature.cs" />
-    <Compile Include="Recoverability\RecoverabilityFeature.cs" />
     <Compile Include="Recoverability\Grouping\IFailedMessageEnricher.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesByRangeHandler.cs" />
     <Compile Include="MessageFailures\IHaveStatus.cs" />
@@ -491,7 +497,7 @@
     <Compile Include="EventLog\EventLogApiModule.cs" />
     <Compile Include="EventLog\EventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogMappings.cs" />
-    <Compile Include="EventLog\GenericAuditHandler.cs" />
+    <Compile Include="EventLog\AuditEventLogWriter.cs" />
     <Compile Include="EventLog\Severity.cs" />
     <Compile Include="CustomChecks\CustomCheck.cs" />
     <Compile Include="CustomChecks\CustomChecksModule.cs" />

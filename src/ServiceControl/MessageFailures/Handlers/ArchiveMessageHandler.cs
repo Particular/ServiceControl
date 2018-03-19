@@ -5,16 +5,17 @@
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>
     {
-        private readonly IBus bus;
-        private readonly IDocumentStore store;
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
-        public ArchiveMessageHandler(IBus bus, IDocumentStore store)
+        public ArchiveMessageHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
-            this.bus = bus;
             this.store = store;
+            this.domainEvents = domainEvents;
         }
 
         public void Handle(ArchiveMessage message)
@@ -32,7 +33,10 @@
                 {
                     failedMessage.Status = FailedMessageStatus.Archived;
 
-                    bus.Publish<FailedMessageArchived>(m => m.FailedMessageId = message.FailedMessageId);
+                    domainEvents.Raise(new FailedMessageArchived
+                    {
+                        FailedMessageId = message.FailedMessageId
+                    });
                 }
 
                 session.SaveChanges();

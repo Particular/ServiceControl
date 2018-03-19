@@ -2,18 +2,24 @@
 {
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     class DeleteCustomCheckHandler : IHandleMessages<DeleteCustomCheck>
     {
-        public IDocumentStore Store { get; set; }
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
-        public IBus Bus { get; set; }
+        public DeleteCustomCheckHandler(IDocumentStore store, IDomainEvents domainEvents)
+        {
+            this.store = store;
+            this.domainEvents = domainEvents;
+        }
 
         public void Handle(DeleteCustomCheck message)
         {
-            Store.DatabaseCommands.Delete(Store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null);
+            store.DatabaseCommands.Delete(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null);
 
-            Bus.Publish(new CustomCheckDeleted {Id = message.Id});
+            domainEvents.Raise(new CustomCheckDeleted { Id = message.Id });
         }
     }
 }

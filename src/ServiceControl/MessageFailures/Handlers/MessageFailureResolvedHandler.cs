@@ -5,18 +5,21 @@
     using Contracts.MessageFailures;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.MessageFailures.InternalMessages;
 
     public class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>, IHandleMessages<MarkPendingRetryAsResolved>, IHandleMessages<MarkPendingRetriesAsResolved>
     {
-        private readonly IBus bus;
-        private readonly IDocumentStore store;
+        IBus bus;
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
-        public MessageFailureResolvedHandler(IBus bus, IDocumentStore store)
+        public MessageFailureResolvedHandler(IBus bus, IDocumentStore store, IDomainEvents domainEvents)
         {
             this.bus = bus;
             this.store = store;
+            this.domainEvents = domainEvents;
         }
 
         public void Handle(MessageFailureResolvedByRetry message)
@@ -43,7 +46,10 @@
         public void Handle(MarkPendingRetryAsResolved message)
         {
             MarkMessageAsResolved(message.FailedMessageId);
-            bus.Publish<MessageFailureResolvedManually>(m => m.FailedMessageId = message.FailedMessageId);
+            domainEvents.Raise(new MessageFailureResolvedManually
+            {
+                FailedMessageId = message.FailedMessageId
+            });
         }
 
         public void Handle(MarkPendingRetriesAsResolved message)

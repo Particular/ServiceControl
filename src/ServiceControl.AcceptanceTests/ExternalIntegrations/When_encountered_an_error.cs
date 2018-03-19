@@ -12,6 +12,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.ExternalIntegrations;
+    using ServiceControl.Infrastructure.DomainEvents;
 
 
     /// <summary>
@@ -38,7 +39,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 config.RegisterComponents(cc => cc.ConfigureComponent<FaultyPublisher>(DependencyLifecycle.SingleInstance));
             };
 
-            ExecuteWhen(() => context.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointFailedToHeartbeat
+            ExecuteWhen(() => context.ExternalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointFailedToHeartbeat
             {
                 DetectedAt = new DateTime(2013, 09, 13, 13, 14, 13),
                 LastReceivedAt = new DateTime(2013, 09, 13, 13, 13, 13),
@@ -74,12 +75,12 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 
             public MyContext Context { get; set; }
 
-            public bool Handles(IEvent @event)
+            public bool Handles(IDomainEvent @event)
             {
                 return false;
             }
 
-            public object CreateDispatchContext(IEvent @event)
+            public object CreateDispatchContext(IDomainEvent @event)
             {
                 return null;
             }

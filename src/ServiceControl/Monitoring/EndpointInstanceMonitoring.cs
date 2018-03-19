@@ -10,8 +10,15 @@ namespace ServiceControl.Monitoring
 
     public class EndpointInstanceMonitoring
     {
-        private ConcurrentDictionary<Guid, EndpointInstanceMonitor> endpoints = new ConcurrentDictionary<Guid, EndpointInstanceMonitor>();
-        private ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor> heartbeats = new ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor>();
+        IDomainEvents domainEvents;
+        ConcurrentDictionary<Guid, EndpointInstanceMonitor> endpoints = new ConcurrentDictionary<Guid, EndpointInstanceMonitor>();
+        ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor> heartbeats = new ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor>();
+        EndpointMonitoringStats previousStats;
+
+        public EndpointInstanceMonitoring(IDomainEvents domainEvents)
+        {
+            this.domainEvents = domainEvents;
+        }
 
         public void RecordHeartbeat(EndpointInstanceId endpointInstanceId, DateTime timestamp) => heartbeats.GetOrAdd(endpointInstanceId, id => new HeartbeatMonitor()).MarkAlive(timestamp);
 
@@ -33,7 +40,7 @@ namespace ServiceControl.Monitoring
 
         public EndpointInstanceMonitor GetOrCreateMonitor(EndpointInstanceId endpointInstanceId, bool monitorIfNew)
         {
-            return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitorIfNew));
+            return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitorIfNew, domainEvents));
         }
 
         private void Update(EndpointMonitoringStats stats)
@@ -42,7 +49,7 @@ namespace ServiceControl.Monitoring
             var previousDead = previousStats?.Failing ?? 0;
             if (previousActive != stats.Active || previousDead != stats.Failing)
             {
-                DomainEvents.Raise(new HeartbeatsUpdated
+                domainEvents.Raise(new HeartbeatsUpdated
                 {
                     Active = stats.Active,
                     Failing = stats.Failing,
@@ -51,8 +58,6 @@ namespace ServiceControl.Monitoring
                 previousStats = stats;
             }
         }
-
-        private EndpointMonitoringStats previousStats;
 
         public EndpointMonitoringStats GetStats()
         {

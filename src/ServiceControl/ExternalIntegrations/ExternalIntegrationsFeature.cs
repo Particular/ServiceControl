@@ -19,6 +19,8 @@ namespace ServiceControl.ExternalIntegrations
             {
                 context.Container.ConfigureComponent(eventPublisherType, DependencyLifecycle.SingleInstance);
             }
+
+            context.Container.ConfigureComponent<IntegrationEventWriter>(DependencyLifecycle.SingleInstance);
         }
     }
 }

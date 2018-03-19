@@ -1,13 +1,13 @@
 namespace ServiceControl.ExternalIntegrations
 {
     using System.Collections.Generic;
-    using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public interface IEventPublisher
     {
-        bool Handles(IEvent @event);
-        object CreateDispatchContext(IEvent @event);
+        bool Handles(IDomainEvent @event);
+        object CreateDispatchContext(IDomainEvent @event);
 
         IEnumerable<object> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IDocumentSession session);
     }

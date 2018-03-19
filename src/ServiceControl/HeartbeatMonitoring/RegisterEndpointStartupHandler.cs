@@ -9,11 +9,13 @@
 
     class RegisterEndpointStartupHandler : IHandleMessages<RegisterEndpointStartup>
     {
-        private EndpointInstanceMonitoring monitoring;
+        EndpointInstanceMonitoring monitoring;
+        IDomainEvents domainEvents;
 
-        public RegisterEndpointStartupHandler(EndpointInstanceMonitoring monitoring)
+        public RegisterEndpointStartupHandler(EndpointInstanceMonitoring monitoring, IDomainEvents domainEvents)
         {
             this.monitoring = monitoring;
+            this.domainEvents = domainEvents;
         }
 
         public void Handle(RegisterEndpointStartup message)
@@ -23,7 +25,7 @@
                 true
             );
 
-            DomainEvents.Raise(new EndpointStarted
+            domainEvents.Raise(new EndpointStarted
             {
                 EndpointDetails = new EndpointDetails
                 {

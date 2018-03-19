@@ -7,16 +7,17 @@
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
-        private readonly IBus bus;
-        private readonly IDocumentStore store;
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
-        public ReportCustomCheckResultHandler(IBus bus, IDocumentStore store)
+        public ReportCustomCheckResultHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
-            this.bus = bus;
             this.store = store;
+            this.domainEvents = domainEvents;
         }
 
         public void Handle(ReportCustomCheckResult message)
@@ -78,7 +79,7 @@
             {
                 if (message.HasFailed)
                 {
-                    bus.Publish(new CustomCheckFailed
+                    domainEvents.Raise(new CustomCheckFailed
                     {
                         Id = id,
                         CustomCheckId = message.CustomCheckId,
@@ -90,7 +91,7 @@
                 }
                 else
                 {
-                    bus.Publish(new CustomCheckSucceeded
+                    domainEvents.Raise(new CustomCheckSucceeded
                     {
                         Id = id,
                         CustomCheckId = message.CustomCheckId,

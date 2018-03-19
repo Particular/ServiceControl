@@ -6,18 +6,19 @@
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.MessageFailures.InternalMessages;
 
     public class UnArchiveMessagesByRangeHandler : IHandleMessages<UnArchiveMessagesByRange>
     {
-        private readonly IDocumentStore store;
-        private readonly IBus bus;
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
-        public UnArchiveMessagesByRangeHandler(IDocumentStore store, IBus bus)
+        public UnArchiveMessagesByRangeHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
-            this.bus = bus;
+            this.domainEvents = domainEvents;
         }
 
         public void Handle(UnArchiveMessagesByRange message)
@@ -26,7 +27,7 @@
                 new FailedMessageViewIndex().IndexName,
                 new IndexQuery
                 {
-                    Query = string.Format(CultureInfo.InvariantCulture, "LastModified:[{0} TO {1}] AND Status:{2}", message.From.Ticks, message.To.Ticks, (int) FailedMessageStatus.Archived),
+                    Query = string.Format(CultureInfo.InvariantCulture, "LastModified:[{0} TO {1}] AND Status:{2}", message.From.Ticks, message.To.Ticks, (int)FailedMessageStatus.Archived),
                     Cutoff = message.CutOff
                 }, new ScriptedPatchRequest
                 {
@@ -44,9 +45,9 @@ if(this.Status === archivedStatus) {
 
             var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
 
-            bus.Publish<FailedMessagesUnArchived>(m =>
+            domainEvents.Raise(new FailedMessagesUnArchived
             {
-                m.MessagesCount = patchedDocumentIds.Length;
+                MessagesCount = patchedDocumentIds.Length
             });
         }
 

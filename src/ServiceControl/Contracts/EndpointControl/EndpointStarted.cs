@@ -1,10 +1,10 @@
 namespace ServiceControl.Contracts.EndpointControl
 {
     using System;
-    using NServiceBus;
     using Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class EndpointStarted : IEvent
+    public class EndpointStarted : IDomainEvent
     {
         public EndpointDetails EndpointDetails { get; set; }
         public DateTime StartedAt { get; set; }

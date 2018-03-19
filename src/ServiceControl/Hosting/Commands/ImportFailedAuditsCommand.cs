@@ -31,7 +31,7 @@
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
             var bootstrapper = new Bootstrapper(() => { tokenSource.Cancel();}, settings, busConfiguration, loggingSettings);
-            var bus = (UnicastBus)bootstrapper.Start();
+            var bus = (UnicastBus)bootstrapper.Start().Bus;
 
             Console.CancelKeyPress += (sender, eventArgs) =>
             {

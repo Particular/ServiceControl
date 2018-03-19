@@ -1,10 +1,10 @@
 namespace ServiceControl.EndpointControl.Contracts
 {
     using System;
-    using NServiceBus;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class MonitoringDisabledForEndpoint : IEvent
+    public class MonitoringDisabledForEndpoint : IDomainEvent
     {
         public Guid EndpointInstanceId { get; set; }
 

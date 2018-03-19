@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.Contracts.CustomChecks
 {
     using System;
-    using NServiceBus;
     using Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class CustomCheckSucceeded : IEvent
+    public class CustomCheckSucceeded : IDomainEvent
     {
         public Guid Id { get; set; }
 

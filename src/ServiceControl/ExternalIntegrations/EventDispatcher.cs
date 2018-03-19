@@ -14,29 +14,32 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public class EventDispatcher : FeatureStartupTask
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
-        private readonly IBus bus;
-        private readonly CriticalError criticalError;
-        private readonly IEnumerable<IEventPublisher> eventPublishers;
-        private readonly Settings settings;
-        private readonly ManualResetEventSlim signal = new ManualResetEventSlim();
-        private readonly IDocumentStore store;
-        private RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
-        private IDisposable subscription;
-        private Task task;
-        private CancellationTokenSource tokenSource;
-        private Etag latestEtag = Etag.Empty;
+        static ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
+        IBus bus;
+        CriticalError criticalError;
+        IEnumerable<IEventPublisher> eventPublishers;
+        Settings settings;
+        ManualResetEventSlim signal = new ManualResetEventSlim();
+        IDocumentStore store;
+        IDomainEvents domainEvents;
+        RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
+        IDisposable subscription;
+        Task task;
+        CancellationTokenSource tokenSource;
+        Etag latestEtag = Etag.Empty;
 
-        public EventDispatcher(IDocumentStore store, IBus bus, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
+        public EventDispatcher(IDocumentStore store, IBus bus, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
         {
             this.store = store;
             this.bus = bus;
             this.criticalError = criticalError;
             this.settings = settings;
             this.eventPublishers = eventPublishers;
+            this.domainEvents = domainEvents;
         }
 
         protected override void OnStart()
@@ -169,7 +172,7 @@
                         {
                             m.Reason = "Failed to retrieve reason!";
                         }
-                        bus.Publish(m);
+                        domainEvents.Raise(m);
                     }
                 }
                 foreach (var dispatchedEvent in awaitingDispatching)

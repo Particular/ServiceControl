@@ -5,10 +5,13 @@
 
     public class InMemoryArchive // in memory
     {
-        public InMemoryArchive(string requestId, ArchiveType archiveType)
+        IDomainEvents domainEvents;
+
+        public InMemoryArchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents)
         {
             RequestId = requestId;
             ArchiveType = archiveType;
+            this.domainEvents = domainEvents;
         }
 
         public int TotalNumberOfMessages { get; set; }
@@ -43,7 +46,7 @@
             ArchiveState = ArchiveState.ArchiveStarted;
             CompletionTime = null;
 
-            DomainEvents.Raise(new ArchiveOperationStarting
+            domainEvents.Raise(new ArchiveOperationStarting
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,
@@ -59,7 +62,7 @@
             CurrentBatch++;
             Last = DateTime.Now;
 
-            DomainEvents.Raise(new ArchiveOperationBatchCompleted
+            domainEvents.Raise(new ArchiveOperationBatchCompleted
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,
@@ -75,7 +78,7 @@
             NumberOfMessagesArchived = TotalNumberOfMessages;
             Last = DateTime.Now;
 
-            DomainEvents.Raise(new ArchiveOperationFinalizing
+            domainEvents.Raise(new ArchiveOperationFinalizing
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,
@@ -92,7 +95,7 @@
             CompletionTime = DateTime.Now;
             Last = DateTime.Now;
 
-            DomainEvents.Raise(new ArchiveOperationCompleted
+            domainEvents.Raise(new ArchiveOperationCompleted
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,

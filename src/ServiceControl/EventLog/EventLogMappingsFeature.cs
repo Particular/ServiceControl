@@ -34,6 +34,7 @@
             }
 
             context.Container.RegisterSingleton(new EventLogMappings(mappings));
+            context.Container.ConfigureComponent<AuditEventLogWriter>(DependencyLifecycle.SingleInstance);
         }
     }
 }

@@ -2,8 +2,10 @@
 {
     using NServiceBus;
     using Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Infrastructure.SignalR;
 
-    public class MessageFailed : IEvent
+    public class MessageFailed : IDomainEvent, IEvent, IUserInterfaceEvent
     {
         public string EndpointId{ get; set; }
         public FailureDetails FailureDetails { get; set; }

@@ -20,6 +20,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
@@ -28,22 +29,22 @@
 
     public class ErrorQueueImport : IAdvancedSatellite, IDisposable
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
-        private static readonly RavenJObject JObjectMetadata;
-        private static readonly JsonSerializer Serializer;
+        static ILog Logger = LogManager.GetLogger(typeof(ErrorQueueImport));
+        static RavenJObject JObjectMetadata;
+        static JsonSerializer Serializer;
 
-        private readonly Timer timer = Metric.Timer("Error messages processed", Unit.Custom("Messages"));
-        private readonly IBuilder builder;
-        private readonly IBus bus;
-        private readonly CriticalError criticalError;
-        private readonly ISendMessages forwarder;
-        private readonly LoggingSettings loggingSettings;
-        private readonly Settings settings;
-        private readonly IDocumentStore store;
-        private readonly IEnrichImportedMessages[] enrichers;
-        private readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
-        private readonly FailedMessageFactory failedMessageFactory;
-        private SatelliteImportFailuresHandler satelliteImportFailuresHandler;
+        Timer timer = Metric.Timer("Error messages processed", Unit.Custom("Messages"));
+        IBuilder builder;
+        IDomainEvents domainEvents;
+        CriticalError criticalError;
+        ISendMessages forwarder;
+        LoggingSettings loggingSettings;
+        Settings settings;
+        IDocumentStore store;
+        IEnrichImportedMessages[] enrichers;
+        BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        FailedMessageFactory failedMessageFactory;
+        SatelliteImportFailuresHandler satelliteImportFailuresHandler;
 
         static ErrorQueueImport()
         {
@@ -57,16 +58,16 @@
                                     }}");
         }
 
-        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IBus bus, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
+        public ErrorQueueImport(IBuilder builder, ISendMessages forwarder, IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, LoggingSettings loggingSettings, Settings settings, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
         {
             this.builder = builder;
             this.forwarder = forwarder;
             this.store = store;
-            this.bus = bus;
             this.criticalError = criticalError;
             this.loggingSettings = loggingSettings;
             this.settings = settings;
             this.bodyStorageEnricher = bodyStorageEnricher;
+            this.domainEvents = domainEvents;
 
             enrichers = builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichErrors).ToArray();
             var failedEnrichers = builder.BuildAll<IFailedMessageEnricher>().ToArray();
@@ -224,21 +225,21 @@
             string failedMessageId;
             if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
             {
-                bus.Publish<MessageFailed>(m =>
+                domainEvents.Raise(new MessageFailed
                 {
-                    m.FailureDetails = failureDetails;
-                    m.EndpointId = failingEndpointId;
-                    m.FailedMessageId = failedMessageId;
-                    m.RepeatedFailure = true;
+                    FailureDetails = failureDetails,
+                    EndpointId = failingEndpointId,
+                    FailedMessageId = failedMessageId,
+                    RepeatedFailure = true
                 });
             }
             else
             {
-                bus.Publish<MessageFailed>(m =>
+                domainEvents.Raise(new MessageFailed
                 {
-                    m.FailureDetails = failureDetails;
-                    m.EndpointId = failingEndpointId;
-                    m.FailedMessageId = headers.UniqueId();
+                    FailureDetails = failureDetails,
+                    EndpointId = failingEndpointId,
+                    FailedMessageId = headers.UniqueId(),
                 });
             }
         }

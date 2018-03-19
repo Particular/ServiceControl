@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     public class EventLogMappings
     {
@@ -13,16 +13,16 @@
             this.mappings = mappings;
         }
 
-        public bool HasMapping(IEvent message)
+        public bool HasMapping(IDomainEvent message)
         {
             return mappings.ContainsKey(message.GetType());
         }
 
-        public EventLogItem ApplyMapping(string messageId, IEvent @event)
+        public EventLogItem ApplyMapping(IDomainEvent @event)
         {
             var mapping = (IEventLogMappingDefinition)Activator.CreateInstance(mappings[@event.GetType()]);
 
-            return mapping.Apply(messageId, @event);
+            return mapping.Apply(@event);
         }
     }
 }

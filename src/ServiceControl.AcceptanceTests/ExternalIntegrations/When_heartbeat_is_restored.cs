@@ -29,7 +29,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 }
             });
 
-            ExecuteWhen(() => context.ExternalProcessorSubscribed, bus => bus.Publish(new EndpointHeartbeatRestored
+            ExecuteWhen(() => context.ExternalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointHeartbeatRestored
             {
                 RestoredAt = new DateTime(2013, 09, 13, 13, 15, 13),
                 Endpoint = new EndpointDetails

@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.MessageFailures.InternalMessages
 {
-    using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class ReclassificationOfErrorMessageComplete : IEvent
+    public class ReclassificationOfErrorMessageComplete : IDomainEvent
     {
         public int NumberofMessageReclassified { get; set; }
     }

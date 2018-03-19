@@ -2,17 +2,17 @@
 {
     using System;
     using System.Linq;
-    using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     class CustomCheckNotifications : IObserver<IndexChangeNotification>
     {
-        public CustomCheckNotifications(IDocumentStore store, IBus bus)
+        public CustomCheckNotifications(IDocumentStore store, IDomainEvents domainEvents)
         {
-            this.bus = bus;
             this.store = store;
+            this.domainEvents = domainEvents;
         }
 
         public void OnNext(IndexChangeNotification value)
@@ -35,7 +35,7 @@
                 if (lastCount == failedCustomCheckCount)
                     return;
                 lastCount = failedCustomCheckCount;
-                bus.Publish(new CustomChecksUpdated
+                domainEvents.Raise(new CustomChecksUpdated
                 {
                     Failed = lastCount
                 });
@@ -52,7 +52,7 @@
             //Ignore
         }
 
-        IBus bus;
+        IDomainEvents domainEvents;
         IDocumentStore store;
         int lastCount;
         ILog logging = LogManager.GetLogger(typeof(CustomCheckNotifications));

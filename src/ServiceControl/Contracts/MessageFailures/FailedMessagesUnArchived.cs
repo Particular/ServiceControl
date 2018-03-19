@@ -1,7 +1,8 @@
 ﻿namespace ServiceControl.Contracts.MessageFailures
 {
-    using NServiceBus;
-    public class FailedMessagesUnArchived: IEvent
+    using ServiceControl.Infrastructure.DomainEvents;
+
+    public class FailedMessagesUnArchived: IDomainEvent
     {
         public int MessagesCount { get; set; }
     }

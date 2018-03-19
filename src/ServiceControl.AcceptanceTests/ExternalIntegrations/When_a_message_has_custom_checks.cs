@@ -25,9 +25,9 @@
                 }
             });
 
-            ExecuteWhen(() => context.ExternalProcessorSubscribed, bus =>
+            ExecuteWhen(() => context.ExternalProcessorSubscribed, domainEvents =>
             {
-                bus.Publish(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded
+                domainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded
                 {
                     Category = "Testing",
                     CustomCheckId = "Success custom check",
@@ -39,7 +39,7 @@
                     },
                     SucceededAt = DateTime.Now,
                 });
-                bus.Publish(new ServiceControl.Contracts.CustomChecks.CustomCheckFailed
+                domainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckFailed
                 {
                     Category = "Testing",
                     CustomCheckId = "Fail custom check",

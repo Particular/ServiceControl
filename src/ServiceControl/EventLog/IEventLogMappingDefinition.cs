@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.EventLog
 {
-    using NServiceBus;
+    using ServiceControl.Infrastructure.DomainEvents;
 
 
     public interface IEventLogMappingDefinition
     {
-        EventLogItem Apply(string messageId, IEvent @event);
+        EventLogItem Apply(IDomainEvent @event);
     }
 }
