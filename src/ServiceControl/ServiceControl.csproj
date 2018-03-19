@@ -682,6 +682,10 @@
       <Project>{ca2e1704-e47e-466a-98eb-76ab72418397}</Project>
       <Name>Particular.HealthMonitoring.Uptime</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Particular.Operations.Heartbeats.Api\Particular.Operations.Heartbeats.Api.csproj">
+      <Project>{4E0F1C48-722E-45CC-B1F9-4BE45E2C14DF}</Project>
+      <Name>Particular.Operations.Heartbeats.Api</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj">
       <Project>{fd673418-10ef-40ea-b97a-18328c73917e}</Project>
       <Name>ServiceControl.Api</Name>

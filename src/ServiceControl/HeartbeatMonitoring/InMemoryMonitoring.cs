@@ -1,12 +1,11 @@
 ﻿namespace ServiceControl.Monitoring
 {
-    using System;
-    using System.Threading;
     using NServiceBus;
     using NServiceBus.Features;
-    using NServiceBus.Logging;
+    using Particular.HealthMonitoring.Uptime;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     class InMemoryMonitoring : Feature
     {
@@ -19,54 +18,37 @@
         protected override void Setup(FeatureConfigurationContext context)
         {
             var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
-            context.Container.ConfigureComponent<MonitorEndpointInstances>(DependencyLifecycle.SingleInstance)
-                .ConfigureProperty(p => p.GracePeriod, settings.HeartbeatGracePeriod);
-            context.Container.ConfigureComponent<EndpointInstanceMonitoring>(DependencyLifecycle.SingleInstance);
+
+            context.Container.ConfigureComponent(
+                b => new UptimeMonitoring(settings.HeartbeatGracePeriod, b.Build<IDomainEvents>(), b.Build<ITimeKeeper>()), 
+                DependencyLifecycle.SingleInstance
+             );
+
             context.Container.ConfigureComponent<MonitoringDataPersister>(DependencyLifecycle.SingleInstance);
         }
 
         class MonitorEndpointInstances : FeatureStartupTask
         {
-            private readonly EndpointInstanceMonitoring monitor;
-            private readonly TimeKeeper timeKeeper;
-            private readonly MonitoringDataPersister persistence;
-            private Timer timer;
+            MonitoringDataPersister persistence;
+            UptimeMonitoring uptimeMonitoring;
 
-            public MonitorEndpointInstances(EndpointInstanceMonitoring monitor, TimeKeeper timeKeeper, MonitoringDataPersister persistence)
+            public MonitorEndpointInstances(MonitoringDataPersister persistence, UptimeMonitoring uptimeMonitoring)
             {
-                this.monitor = monitor;
-                this.timeKeeper = timeKeeper;
                 this.persistence = persistence;
+                this.uptimeMonitoring = uptimeMonitoring;
             }
-
-            public TimeSpan GracePeriod { get; set; }
 
             protected override void OnStart()
             {
                 persistence.WarmupMonitoringFromPersistence();
-                timer = timeKeeper.New(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5));
-            }
-
-            private void CheckEndpoints()
-            {
-                try
-                {
-                    var inactivityThreshold = DateTime.UtcNow - GracePeriod;
-                    log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
-                    monitor.CheckEndpoints(inactivityThreshold);
-                }
-                catch (Exception exception)
-                {
-                    log.Error("Exception occurred when monitoring endpoint instances", exception);
-                }
+                uptimeMonitoring.Start();
             }
 
             protected override void OnStop()
             {
-                timeKeeper.Release(timer);
+                uptimeMonitoring.Stop();
             }
         }
 
-        private static ILog log = LogManager.GetLogger<MonitorEndpointInstances>();
     }
 }

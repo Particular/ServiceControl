@@ -10,11 +10,11 @@
 
     public class GetKnownEndpointsApi : ScatterGatherApi<NoInput, List<KnownEndpointsView>>
     {
-        public EndpointInstanceMonitoring EndpointInstanceMonitoring { get; set; }
+        public MonitoringDataPersister Persister { get; set; }
 
         public override Task<QueryResult<List<KnownEndpointsView>>> LocalQuery(Request request, NoInput input)
         {
-            var result = EndpointInstanceMonitoring.GetKnownEndpoints();
+            var result = Persister.GetKnownEndpoints();
             return Task.FromResult(new QueryResult<List<KnownEndpointsView>>(result, new QueryStatsInfo(string.Empty, result.Count)));
         }
 

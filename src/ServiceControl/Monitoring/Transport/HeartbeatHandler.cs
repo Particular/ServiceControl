@@ -1,22 +1,37 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using NServiceBus;
+    using Particular.HealthMonitoring.Uptime;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.Plugin.Heartbeat.Messages;
 
     class HeartbeatHandler : IHandleMessages<EndpointHeartbeat>
     {
         public void Handle(EndpointHeartbeat message)
         {
-            var endpointInstanceId = new EndpointInstanceId(message.EndpointName, message.Host, message.HostId);
+            monitor.RecordHeartbeat(new Particular.Operations.Heartbeats.Api.EndpointHeartbeat
+            {
+                EndpointName = message.EndpointName,
+                ExecutedAt = message.ExecutedAt,
+                Host = message.Host,
+                HostId = message.HostId,
+            });
 
-            monitor.RecordHeartbeat(endpointInstanceId, message.ExecutedAt);
+            persister.RegisterEndpoint(new EndpointDetails
+            {
+                Host = message.Host,
+                HostId = message.HostId,
+                Name =  message.EndpointName
+            });
         }
 
-        public HeartbeatHandler(EndpointInstanceMonitoring monitor)
+        public HeartbeatHandler(UptimeMonitoring uptimeMonitoring, MonitoringDataPersister persister)
         {
-            this.monitor = monitor;
+            this.persister = persister;
+            this.monitor = uptimeMonitoring.Monitoring;
         }
 
-        private EndpointInstanceMonitoring monitor;
+        EndpointInstanceMonitoring monitor;
+        MonitoringDataPersister persister;
     }
 }

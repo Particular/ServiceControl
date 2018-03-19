@@ -5,6 +5,7 @@
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
+    using Particular.HealthMonitoring.Uptime;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Monitoring;
 
@@ -45,11 +46,12 @@
 
         class DetectNewEndpointsFromImportsEnricher : ImportEnricher
         {
-            private EndpointInstanceMonitoring monitoring;
+            EndpointInstanceMonitoring monitoring;
+            MonitoringDataPersister persister;
 
-            public DetectNewEndpointsFromImportsEnricher(EndpointInstanceMonitoring monitoring)
+            public DetectNewEndpointsFromImportsEnricher(UptimeMonitoring uptimeMonitoring)
             {
-                this.monitoring = monitoring;
+                this.monitoring = uptimeMonitoring.Monitoring;
             }
 
             public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
@@ -84,10 +86,14 @@
                     return;
                 }
 
-                monitoring.GetOrCreateMonitor(
-                    new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId),
-                    false
-                );
+                monitoring.GetOrCreateMonitor(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId, false);
+
+                persister.RegisterEndpoint(new EndpointDetails
+                {
+                    Host = endpointDetails.Host,
+                    Name = endpointDetails.Name,
+                    HostId = endpointDetails.HostId
+                });
             }
         }
     }

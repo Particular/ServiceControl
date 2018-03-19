@@ -4,6 +4,7 @@ namespace ServiceControl.Monitoring
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using Particular.Operations.Heartbeats.Api;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -15,20 +16,27 @@ namespace ServiceControl.Monitoring
         ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor> heartbeats = new ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor>();
         EndpointMonitoringStats previousStats;
 
-        public EndpointInstanceMonitoring(IDomainEvents domainEvents)
+        internal EndpointInstanceMonitoring(IDomainEvents domainEvents)
         {
             this.domainEvents = domainEvents;
         }
 
-        public void RecordHeartbeat(EndpointInstanceId endpointInstanceId, DateTime timestamp) => heartbeats.GetOrAdd(endpointInstanceId, id => new HeartbeatMonitor()).MarkAlive(timestamp);
+        public void RecordHeartbeat(EndpointHeartbeat message)
+        {
+            var endpointInstanceId = new EndpointInstanceId(message.EndpointName, message.Host, message.HostId);
 
-        public void CheckEndpoints(DateTime threshold)
+            heartbeats.GetOrAdd(endpointInstanceId, id => new HeartbeatMonitor()).MarkAlive(message.ExecutedAt);
+        }
+
+        internal void CheckEndpoints(DateTime threshold)
         {
             foreach (var entry in heartbeats)
             {
                 var recordedHeartbeat = entry.Value.MarkDeadIfOlderThan(threshold);
 
-                var monitor = GetOrCreateMonitor(entry.Key, true);
+                var instanceId = entry.Key;
+
+                var monitor = GetOrCreateMonitor(instanceId.LogicalName, instanceId.HostName, instanceId.HostGuid, true);
 
                 monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp);
             }
@@ -38,12 +46,14 @@ namespace ServiceControl.Monitoring
             Update(stats);
         }
 
-        public EndpointInstanceMonitor GetOrCreateMonitor(EndpointInstanceId endpointInstanceId, bool monitorIfNew)
+        public EndpointInstanceMonitor GetOrCreateMonitor(string name, string host, Guid hostId, bool monitorIfNew)
         {
+            var endpointInstanceId = new EndpointInstanceId(name, host, hostId);
+
             return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitorIfNew, domainEvents));
         }
 
-        private void Update(EndpointMonitoringStats stats)
+        void Update(EndpointMonitoringStats stats)
         {
             var previousActive = previousStats?.Active ?? 0;
             var previousDead = previousStats?.Failing ?? 0;
@@ -59,7 +69,7 @@ namespace ServiceControl.Monitoring
             }
         }
 
-        public EndpointMonitoringStats GetStats()
+        internal EndpointMonitoringStats GetStats()
         {
             var stats = new EndpointMonitoringStats();
             foreach (var monitor in endpoints.Values)
@@ -73,7 +83,7 @@ namespace ServiceControl.Monitoring
         public void DisableMonitoring(Guid id) => endpoints[id]?.DisableMonitoring();
         public bool IsMonitored(Guid id) => endpoints[id]?.Monitored ?? false;
 
-        public EndpointsView[] GetEndpoints()
+        internal EndpointsView[] GetEndpoints()
         {
             var list = new List<EndpointsView>();
 
@@ -89,7 +99,7 @@ namespace ServiceControl.Monitoring
             return list.ToArray();
         }
 
-        public List<KnownEndpointsView> GetKnownEndpoints()
+        internal List<KnownEndpointsView> GetKnownEndpoints()
         {
             return endpoints.Values.Select(endpoint => endpoint.GetKnownView()).ToList();
         }

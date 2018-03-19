@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using NServiceBus.Logging;
 
-    public class TimeKeeper : IDisposable
+    public class TimeKeeper : IDisposable, ITimeKeeper
     {
         ConcurrentDictionary<Timer, object> timers = new ConcurrentDictionary<Timer, object>();
         private ILog log = LogManager.GetLogger<TimeKeeper>();

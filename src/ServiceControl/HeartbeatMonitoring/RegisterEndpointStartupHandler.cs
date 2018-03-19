@@ -20,10 +20,7 @@
 
         public void Handle(RegisterEndpointStartup message)
         {
-            monitoring.GetOrCreateMonitor(
-                new EndpointInstanceId(message.Endpoint, message.Host, message.HostId),
-                true
-            );
+            monitoring.GetOrCreateMonitor(message.Endpoint, message.Host, message.HostId, true);
 
             domainEvents.Raise(new EndpointStarted
             {
