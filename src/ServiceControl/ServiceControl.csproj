@@ -292,13 +292,7 @@
     <Compile Include="Contracts\CustomChecks\CustomCheckSucceeded.cs" />
     <Compile Include="Contracts\EndpointControl\NewEndpointDetected.cs" />
     <Compile Include="Contracts\EventLog\EventLogItemAdded.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\EndpointFailedToHeartbeat.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\EndpointHeartbeatRestored.cs" />
     <Compile Include="Contracts\EndpointControl\EndpointStarted.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatingEndpointDetected.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatMonitoringDisabled.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatMonitoringEnabled.cs" />
-    <Compile Include="Contracts\HeartbeatMonitoring\HeartbeatsUpdated.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessageArchived.cs" />
     <Compile Include="Contracts\MessageFailures\FailedMessagesUnArchived.cs" />
     <Compile Include="DbMigrations\1.41.3\AddEndpontDetailsClassifiers.cs" />
@@ -317,10 +311,6 @@
     <Compile Include="Infrastructure\DomainEvents\DomainEventBusPublisher.cs" />
     <Compile Include="Infrastructure\DomainEvents\DomainEvents.cs" />
     <Compile Include="Infrastructure\DomainEvents\DomainEventsFeature.cs" />
-    <Compile Include="Infrastructure\DomainEvents\IDomainEvent.cs" />
-    <Compile Include="Infrastructure\DomainEvents\IDomainEvents.cs" />
-    <Compile Include="Infrastructure\DomainEvents\IDomainHandler.cs" />
-    <Compile Include="Infrastructure\SignalR\IUserInterfaceEvent.cs" />
     <Compile Include="Infrastructure\SignalR\ServicePulseNotifier.cs" />
     <Compile Include="Infrastructure\EndpointInstanceId.cs" />
     <Compile Include="Infrastructure\Extensions\RavenQueryStatisticsExtensions.cs" />
@@ -356,7 +346,6 @@
     <Compile Include="Contracts\MessageRedirects\MessageRedirectCreated.cs" />
     <Compile Include="Contracts\MessageRedirects\MessageRedirectRemoved.cs" />
     <Compile Include="Contracts\Operations\EndpointDetails.cs" />
-    <Compile Include="Contracts\EndpointControl\MonitoringDisabledForEndpoint.cs" />
     <Compile Include="Contracts\Operations\DefaultEnrichers.cs" />
     <Compile Include="Contracts\Operations\ExceptionDetails.cs" />
     <Compile Include="Contracts\Operations\FailureDetails.cs" />
@@ -429,16 +418,8 @@
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
     <Compile Include="Monitoring\Web\ApiModule.cs" />
-    <Compile Include="Monitoring\EndpointInstanceId.cs" />
-    <Compile Include="Monitoring\EndpointInstanceMonitor.cs" />
-    <Compile Include="Monitoring\EndpointInstanceMonitoring.cs" />
-    <Compile Include="Monitoring\EndpointMonitoringStats.cs" />
     <Compile Include="Monitoring\Transport\HeartbeatHandler.cs" />
-    <Compile Include="Monitoring\HeartbeatMonitor.cs" />
-    <Compile Include="Monitoring\HeartbeatStatus.cs" />
-    <Compile Include="Monitoring\InMemoryMonitoring.cs" />
     <Compile Include="Monitoring\MonitoringDataPersister.cs" />
-    <Compile Include="Monitoring\RecordedHeartbeat.cs" />
     <Compile Include="Operations\AuditImporter.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyByIdApi.cs" />
     <Compile Include="Operations\FailedTransportMessage.cs" />
@@ -481,7 +462,6 @@
     <Compile Include="EndpointControl\DetectNewEndpointsFromImportsEnricher.cs" />
     <Compile Include="EndpointControl\KnownEndpoint.cs" />
     <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />
-    <Compile Include="Contracts\EndpointControl\MonitoringEnabledForEndpoint.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckDeletedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
@@ -535,7 +515,6 @@
     <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />
     <Compile Include="MessageFailures\InternalMessages\PerformRetry.cs" />
     <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
-    <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="Infrastructure\Nancy\ExtraHeaders.cs" />
     <Compile Include="Infrastructure\Nancy\Helpers.cs" />
     <Compile Include="Infrastructure\Nancy\JsonNetBodyDeserializer.cs" />
@@ -696,6 +675,16 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Infrastructure\ApiFacade\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Particular.HealthMonitoring.Uptime.Api\Particular.HealthMonitoring.Uptime.Api.csproj">
+      <Project>{3c27eed3-c346-43c3-a560-f70b684ed1ce}</Project>
+      <Name>Particular.HealthMonitoring.Uptime.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj">
+      <Project>{fd673418-10ef-40ea-b97a-18328c73917e}</Project>
+      <Name>ServiceControl.Api</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
