@@ -4,7 +4,7 @@
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.SignalR;
 
-    class HeartbeatsUpdated : IDomainEvent, IUserInterfaceEvent
+    public class HeartbeatsUpdated : IDomainEvent, IUserInterfaceEvent
     {
         public HeartbeatsUpdated()
         {

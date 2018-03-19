@@ -40,7 +40,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EndpointDetails.cs" />
     <Compile Include="EndpointFailedToHeartbeat.cs" />
     <Compile Include="EndpointHeartbeatRestored.cs" />
     <Compile Include="HeartbeatingEndpointDetected.cs" />

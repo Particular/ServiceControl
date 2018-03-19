@@ -297,9 +297,21 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Particular.HealthMonitoring.Uptime.Api\Particular.HealthMonitoring.Uptime.Api.csproj">
+      <Project>{3c27eed3-c346-43c3-a560-f70b684ed1ce}</Project>
+      <Name>Particular.HealthMonitoring.Uptime.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Particular.HealthMonitoring.Uptime\Particular.HealthMonitoring.Uptime.csproj">
+      <Project>{ca2e1704-e47e-466a-98eb-76ab72418397}</Project>
+      <Name>Particular.HealthMonitoring.Uptime</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj">
       <Project>{758357f6-cd31-4337-80c4-ba377fc257af}</Project>
       <Name>ServiceControl.AcceptanceTesting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj">
+      <Project>{fd673418-10ef-40ea-b97a-18328c73917e}</Project>
+      <Name>ServiceControl.Api</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4c6b71b2-74ef-4b9e-88ff-c56532727c6d}</Project>

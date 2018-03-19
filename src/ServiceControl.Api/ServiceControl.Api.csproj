@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EndpointDetails.cs" />
     <Compile Include="IDomainEvent.cs" />
     <Compile Include="IDomainEvents.cs" />
     <Compile Include="IDomainHandler.cs" />

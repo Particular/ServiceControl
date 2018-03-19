@@ -169,6 +169,14 @@
     <Compile Include="ScatterGather\MessageView_ScatterGatherTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Particular.HealthMonitoring.Uptime\Particular.HealthMonitoring.Uptime.csproj">
+      <Project>{ca2e1704-e47e-466a-98eb-76ab72418397}</Project>
+      <Name>Particular.HealthMonitoring.Uptime</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj">
+      <Project>{fd673418-10ef-40ea-b97a-18328c73917e}</Project>
+      <Name>ServiceControl.Api</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>
       <Name>ServiceControl</Name>
