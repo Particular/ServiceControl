@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring
+﻿namespace Particular.HealthMonitoring.Uptime
 {
     public class EndpointUpdateModel
     {

@@ -6,7 +6,6 @@ namespace Particular.HealthMonitoring.Uptime
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Monitoring;
 
     class HeartbeatFailureDetector : IStartable
     {

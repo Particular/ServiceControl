@@ -4,9 +4,8 @@
     using System.Threading.Tasks;
     using Particular.Operations.Audits.Api;
     using ServiceControl.Contracts.Operations;
-    using ServiceControl.Monitoring;
 
-    public class EndpointDetectingAuditProcessor : IProcessAudits
+    class EndpointDetectingAuditProcessor : IProcessAudits
     {
         EndpointInstanceMonitoring monitoring;
 

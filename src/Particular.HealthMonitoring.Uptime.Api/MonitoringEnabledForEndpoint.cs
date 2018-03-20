@@ -1,7 +1,6 @@
-namespace ServiceControl.EndpointControl.Contracts
+namespace Particular.HealthMonitoring.Uptime.Api
 {
     using System;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
 
     public class MonitoringEnabledForEndpoint : IHeartbeatEvent

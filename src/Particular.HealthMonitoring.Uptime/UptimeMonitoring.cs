@@ -2,9 +2,8 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
+    using Particular.HealthMonitoring.Uptime.Api;
     using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Monitoring;
 
     public class UptimeMonitoringDependencies
     {

@@ -1,11 +1,11 @@
-namespace ServiceControl.Monitoring
+namespace Particular.HealthMonitoring.Uptime
 {
     using System;
     using Nancy;
     using Nancy.ModelBinding;
     using Nancy.Responses.Negotiation;
 
-    public class UptimeApiModule : NancyModule
+    class UptimeApiModule : NancyModule
     {
         public UptimeApiModule(EndpointInstanceMonitoring monitoring)
         {

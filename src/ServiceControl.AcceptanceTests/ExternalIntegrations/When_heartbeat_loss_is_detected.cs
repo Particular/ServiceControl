@@ -6,8 +6,8 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using NServiceBus.Config;
     using NServiceBus.Config.ConfigurationSource;
     using NUnit.Framework;
+    using Particular.HealthMonitoring.Uptime.Api;
     using ServiceControl.Contracts;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
 
 

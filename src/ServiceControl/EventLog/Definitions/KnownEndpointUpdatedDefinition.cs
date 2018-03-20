@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.EventLog.Definitions
 {
-    using EndpointControl.Contracts;
+    using Particular.HealthMonitoring.Uptime.Api;
 
     public class KnownEndpointUpdatedDefinition : EventLogMappingDefinition<MonitoringEnabledForEndpoint>
     {

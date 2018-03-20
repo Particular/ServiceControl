@@ -1,4 +1,4 @@
-namespace ServiceControl.Contracts.HeartbeatMonitoring
+namespace Particular.HealthMonitoring.Uptime.Api
 {
     using System.Threading.Tasks;
 

@@ -1,8 +1,9 @@
 ﻿namespace Particular.HealthMonitoring.Uptime
 {
-    public enum Status
+    enum HeartbeatStatus
     {
-        Beating,
+        Unknown,
+        Alive,
         Dead
     }
 }

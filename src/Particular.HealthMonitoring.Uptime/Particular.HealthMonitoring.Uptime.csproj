@@ -51,6 +51,7 @@
     <Compile Include="EventUnitOfWork.cs" />
     <Compile Include="HeartbeatFailureDetector.cs" />
     <Compile Include="HeartbeatProcessor.cs" />
+    <Compile Include="HeartbeatStatus.cs" />
     <Compile Include="Status.cs" />
     <Compile Include="HeartbeatInformation.cs" />
     <Compile Include="HeartbeatMonitor.cs" />

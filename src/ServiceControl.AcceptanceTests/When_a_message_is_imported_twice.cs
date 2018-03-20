@@ -7,7 +7,7 @@
     using NServiceBus.Config;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Endpoints;
+    using Particular.HealthMonitoring.Uptime;
 
     public class When_a_message_is_imported_twice : AcceptanceTest
     {

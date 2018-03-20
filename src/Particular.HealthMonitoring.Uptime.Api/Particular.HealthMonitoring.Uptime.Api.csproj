@@ -44,7 +44,6 @@
     <Compile Include="EndpointFailedToHeartbeat.cs" />
     <Compile Include="EndpointHeartbeatRestored.cs" />
     <Compile Include="HeartbeatingEndpointDetected.cs" />
-    <Compile Include="HeartbeatStatus.cs" />
     <Compile Include="HeartbeatsUpdated.cs" />
     <Compile Include="IHeartbeatEvent.cs" />
     <Compile Include="IPersistEndpointUptimeInformation.cs" />

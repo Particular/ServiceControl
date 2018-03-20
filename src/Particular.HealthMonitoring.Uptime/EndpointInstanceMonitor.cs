@@ -1,14 +1,11 @@
-namespace ServiceControl.Monitoring
+namespace Particular.HealthMonitoring.Uptime
 {
     using System;
-    using ServiceControl.CompositeViews.Endpoints;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
+    using Particular.HealthMonitoring.Uptime.Api;
     using ServiceControl.Contracts.Operations;
-    using ServiceControl.EndpointControl.Contracts;
-    using ServiceControl.HeartbeatMonitoring;
     using ServiceControl.Infrastructure.DomainEvents;
 
-    public class EndpointInstanceMonitor
+    class EndpointInstanceMonitor
     {
         public EndpointInstanceId Id { get; }
         DateTime? lastSeen;

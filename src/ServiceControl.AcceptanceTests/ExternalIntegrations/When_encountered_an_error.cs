@@ -7,9 +7,9 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using NServiceBus.Config;
     using NServiceBus.Config.ConfigurationSource;
     using NUnit.Framework;
+    using Particular.HealthMonitoring.Uptime.Api;
     using Raven.Client;
     using ServiceControl.Contracts;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure.DomainEvents;

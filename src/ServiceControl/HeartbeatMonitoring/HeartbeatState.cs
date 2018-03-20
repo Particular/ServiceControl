@@ -1,7 +1,7 @@
 namespace ServiceControl.Monitoring
 {
     using System.Collections.Generic;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
+    using Particular.HealthMonitoring.Uptime.Api;
 
     class HeartbeatState
     {

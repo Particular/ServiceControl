@@ -3,9 +3,9 @@ namespace ServiceControl.ExternalIntegrations
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Particular.HealthMonitoring.Uptime.Api;
     using Raven.Client;
     using ServiceControl.Contracts;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
 
     public class HeartbeatRestoredPublisher : EventPublisher<EndpointHeartbeatRestored, HeartbeatRestoredPublisher.DispatchContext>
     {

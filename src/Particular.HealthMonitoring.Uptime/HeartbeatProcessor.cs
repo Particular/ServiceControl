@@ -2,9 +2,8 @@
 {
     using System.Threading.Tasks;
     using Particular.Operations.Heartbeats.Api;
-    using ServiceControl.Monitoring;
 
-    public class HeartbeatProcessor : IProcessHeartbeats
+    class HeartbeatProcessor : IProcessHeartbeats
     {
         EndpointInstanceMonitoring monitoring;
 

@@ -1,4 +1,4 @@
-namespace ServiceControl.CompositeViews.Endpoints
+namespace Particular.HealthMonitoring.Uptime
 {
     using System;
 

@@ -1,11 +1,11 @@
-namespace ServiceControl.Monitoring
+namespace Particular.HealthMonitoring.Uptime
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
+    using Particular.HealthMonitoring.Uptime.Api;
     using ServiceControl.Infrastructure.DomainEvents;
 
-    public class EventUnitOfWork : IDomainEvents
+    class EventUnitOfWork : IDomainEvents
     {
         IDomainEvents domainEvents;
         IPersistEndpointUptimeInformation persister;

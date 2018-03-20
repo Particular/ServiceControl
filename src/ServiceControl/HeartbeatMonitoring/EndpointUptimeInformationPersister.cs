@@ -4,8 +4,8 @@ namespace ServiceControl.Monitoring
     using System.Collections.Concurrent;
     using System.Linq;
     using System.Threading.Tasks;
+    using Particular.HealthMonitoring.Uptime.Api;
     using Raven.Client;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
 
 
     public class EndpointUptimeInformationPersister : IPersistEndpointUptimeInformation
