@@ -40,7 +40,7 @@
                 return Task.FromResult(0);
             }
 
-            return monitoring.EndpointDetected(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
+            return monitoring.StartTrackingEndpoint(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
         }
     }
 }

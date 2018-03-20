@@ -34,7 +34,7 @@ namespace Particular.HealthMonitoring.Uptime
 
         public Task Start(ITimeKeeper timeKeeper)
         {
-            timer = timer = timeKeeper.New(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            timer = timeKeeper.New(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5));
             return Task.FromResult(0);
         }
 

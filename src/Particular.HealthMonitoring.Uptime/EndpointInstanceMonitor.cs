@@ -64,7 +64,7 @@ namespace Particular.HealthMonitoring.Uptime
             });
         }
 
-        public void Initialize(IDomainEvents domainEvents)
+        public void StartTrackingEndpoint(IDomainEvents domainEvents)
         {
             Publish(domainEvents, new EndpointDetected
             {

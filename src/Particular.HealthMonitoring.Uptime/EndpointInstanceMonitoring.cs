@@ -18,7 +18,7 @@ namespace Particular.HealthMonitoring.Uptime
         EndpointMonitoringStats previousStats;
 
 
-        public async Task Initialize(IPersistEndpointUptimeInformation persister, IDomainEvents domainEvents)
+        public async Task InitializeFromPersistence(IPersistEndpointUptimeInformation persister, IDomainEvents domainEvents)
         {
             this.domainEvents = domainEvents;
             this.persister = persister;
@@ -39,11 +39,11 @@ namespace Particular.HealthMonitoring.Uptime
             heartbeatMonitor.MarkAlive(timestamp);
         }
 
-        public Task EndpointDetected(string name, string host, Guid hostId)
+        public Task StartTrackingEndpoint(string name, string host, Guid hostId)
         {
             var monitor = GetOrCreateMonitor(name, host, hostId);
             var uow = new EventUnitOfWork(domainEvents, persister);
-            monitor.Initialize(uow);
+            monitor.StartTrackingEndpoint(uow);
 
             return uow.Persist();
         }

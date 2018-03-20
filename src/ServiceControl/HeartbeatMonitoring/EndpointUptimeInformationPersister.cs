@@ -2,6 +2,7 @@ namespace ServiceControl.Monitoring
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Particular.HealthMonitoring.Uptime.Api;
@@ -33,9 +34,12 @@ namespace ServiceControl.Monitoring
             }
         }
 
-        public async Task Store(IHeartbeatEvent @event)
+        public async Task Store(IEnumerable<IHeartbeatEvent> events)
         {
-            cache.AddOrUpdate(@event.EndpointInstanceId, @event, (id, old) => @event);
+            foreach (var @event in events)
+            {
+                cache.AddOrUpdate(@event.EndpointInstanceId, @event, (id, old) => @event);
+            }
 
             var state = new HeartbeatState
             {

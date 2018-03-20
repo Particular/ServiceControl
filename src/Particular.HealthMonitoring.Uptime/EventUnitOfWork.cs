@@ -29,10 +29,7 @@ namespace Particular.HealthMonitoring.Uptime
 
         public async Task Persist()
         {
-            foreach (var @event in recordedEvents)
-            {
-                await persister.Store(@event).ConfigureAwait(false);
-            }
+            await persister.Store(recordedEvents).ConfigureAwait(false);
         }
     }
 }

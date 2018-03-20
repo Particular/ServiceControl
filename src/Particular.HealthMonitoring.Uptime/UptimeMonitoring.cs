@@ -30,7 +30,7 @@
 
         public Task Initialize(UptimeMonitoringDependencies dependencies)
         {
-            return monitoring.Initialize(dependencies.Persister, dependencies.DomainEvents);
+            return monitoring.InitializeFromPersistence(dependencies.Persister, dependencies.DomainEvents);
         }
 
         public Task TearDown()

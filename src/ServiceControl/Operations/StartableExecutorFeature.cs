@@ -1,6 +1,8 @@
 namespace ServiceControl.EndpointControl.Handlers
 {
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus.Features;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -30,18 +32,16 @@ namespace ServiceControl.EndpointControl.Handlers
 
             protected override void OnStart()
             {
-                foreach (var startable in startables)
-                {
-                    startable.Start(timeKeeper).GetAwaiter().GetResult();
-                }
+                var tasks = startables.Select(s => s.Start(timeKeeper));
+                var waitTask = Task.WhenAll(tasks);
+                waitTask.GetAwaiter().GetResult();
             }
 
             protected override void OnStop()
             {
-                foreach (var startable in startables)
-                {
-                    startable.Stop(timeKeeper).GetAwaiter().GetResult();
-                }
+                var tasks = startables.Select(s => s.Stop(timeKeeper));
+                var waitTask = Task.WhenAll(tasks);
+                waitTask.GetAwaiter().GetResult();
             }
         }
     }
