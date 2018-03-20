@@ -44,7 +44,6 @@ namespace ServiceControl.Monitoring
                     done = true;
                 }
             }
-
             return heartbeat;
         }
 

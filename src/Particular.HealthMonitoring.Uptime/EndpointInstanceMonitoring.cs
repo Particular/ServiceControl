@@ -21,24 +21,41 @@ namespace ServiceControl.Monitoring
             this.domainEvents = domainEvents;
         }
 
+        public void Load(IEnumerable<IHeartbeatEvent> events)
+        {
+            foreach (var @event in events)
+            {
+                var monitor = GetOrCreateMonitor(@event.Endpoint.Name, @event.Endpoint.Host, @event.Endpoint.HostId);
+                monitor.Apply(@event);
+            }
+        }
+
         public void RecordHeartbeat(EndpointHeartbeat message)
         {
             var endpointInstanceId = new EndpointInstanceId(message.EndpointName, message.Host, message.HostId);
 
-            heartbeats.GetOrAdd(endpointInstanceId, id => new HeartbeatMonitor()).MarkAlive(message.ExecutedAt);
+            var heartbeatMonitor = heartbeats.GetOrAdd(endpointInstanceId, id => new HeartbeatMonitor());
+            heartbeatMonitor.MarkAlive(message.ExecutedAt);
         }
 
-        internal void CheckEndpoints(DateTime threshold)
+        public void EndpointDetected(string name, string host, Guid hostId)
+        {
+            var monitor = GetOrCreateMonitor(name, host, hostId);
+
+            monitor.Initialize();
+        }
+
+        public void CheckEndpoints(DateTime threshold, DateTime currentTime)
         {
             foreach (var entry in heartbeats)
             {
-                var recordedHeartbeat = entry.Value.MarkDeadIfOlderThan(threshold);
-
                 var instanceId = entry.Key;
 
-                var monitor = GetOrCreateMonitor(instanceId.LogicalName, instanceId.HostName, instanceId.HostGuid, true);
+                var monitor = GetOrCreateMonitor(instanceId.LogicalName, instanceId.HostName, instanceId.HostGuid);
 
-                monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp);
+                var newState = entry.Value.MarkDeadIfOlderThan(threshold);
+
+                monitor.UpdateStatus(newState.Status, newState.Timestamp, currentTime);
             }
 
             var stats = GetStats();
@@ -46,11 +63,11 @@ namespace ServiceControl.Monitoring
             Update(stats);
         }
 
-        public EndpointInstanceMonitor GetOrCreateMonitor(string name, string host, Guid hostId, bool monitorIfNew)
+        EndpointInstanceMonitor GetOrCreateMonitor(string name, string host, Guid hostId)
         {
             var endpointInstanceId = new EndpointInstanceId(name, host, hostId);
 
-            return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitorIfNew, domainEvents));
+            return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, domainEvents));
         }
 
         void Update(EndpointMonitoringStats stats)
@@ -97,11 +114,6 @@ namespace ServiceControl.Monitoring
             }
 
             return list.ToArray();
-        }
-
-        internal List<KnownEndpointsView> GetKnownEndpoints()
-        {
-            return endpoints.Values.Select(endpoint => endpoint.GetKnownView()).ToList();
         }
     }
 }

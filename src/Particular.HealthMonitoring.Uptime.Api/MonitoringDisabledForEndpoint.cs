@@ -1,10 +1,10 @@
 namespace ServiceControl.EndpointControl.Contracts
 {
     using System;
+    using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
-    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class MonitoringDisabledForEndpoint : IDomainEvent
+    public class MonitoringDisabledForEndpoint : IHeartbeatEvent
     {
         public Guid EndpointInstanceId { get; set; }
 
