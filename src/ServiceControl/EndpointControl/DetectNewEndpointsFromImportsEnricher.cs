@@ -5,7 +5,6 @@
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
-    using Particular.HealthMonitoring.Uptime;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Monitoring;
 
@@ -18,6 +17,7 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            context.Container.ConfigureComponent<KnownEndpointsPersister>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<DetectNewEndpointsFromImportsEnricher>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<EnrichWithEndpointDetails>(DependencyLifecycle.SingleInstance);
         }
@@ -46,12 +46,11 @@
 
         class DetectNewEndpointsFromImportsEnricher : ImportEnricher
         {
-            EndpointInstanceMonitoring monitoring;
-            MonitoringDataPersister persister;
+            KnownEndpointsPersister persister;
 
-            public DetectNewEndpointsFromImportsEnricher(UptimeMonitoring uptimeMonitoring)
+            public DetectNewEndpointsFromImportsEnricher(KnownEndpointsPersister persister)
             {
-                this.monitoring = uptimeMonitoring.Monitoring;
+                this.persister = persister;
             }
 
             public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
@@ -85,8 +84,6 @@
                 {
                     return;
                 }
-
-                monitoring.GetOrCreateMonitor(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId, false);
 
                 persister.RegisterEndpoint(new EndpointDetails
                 {

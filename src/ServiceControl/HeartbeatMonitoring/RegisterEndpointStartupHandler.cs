@@ -1,26 +1,38 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
+    using System.Collections.Generic;
     using NServiceBus;
-    using Plugin.Heartbeat.Messages;
+    using Particular.Operations.Heartbeats.Api;
     using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Monitoring;
+    using RegisterEndpointStartup = ServiceControl.Plugin.Heartbeat.Messages.RegisterEndpointStartup;
 
     class RegisterEndpointStartupHandler : IHandleMessages<RegisterEndpointStartup>
     {
-        EndpointInstanceMonitoring monitoring;
+        IEnumerable<IProcessHeartbeats> heartbeatProcessors;
         IDomainEvents domainEvents;
 
-        public RegisterEndpointStartupHandler(EndpointInstanceMonitoring monitoring, IDomainEvents domainEvents)
+        public RegisterEndpointStartupHandler(IDomainEvents domainEvents, IEnumerable<IProcessHeartbeats> heartbeatProcessors)
         {
-            this.monitoring = monitoring;
             this.domainEvents = domainEvents;
+            this.heartbeatProcessors = heartbeatProcessors;
         }
 
         public void Handle(RegisterEndpointStartup message)
         {
-            monitoring.GetOrCreateMonitor(message.Endpoint, message.Host, message.HostId, true);
+            foreach (var processor in heartbeatProcessors)
+            {
+                processor.Handle(new Particular.Operations.Heartbeats.Api.RegisterEndpointStartup
+                {
+                    Endpoint = message.Endpoint,
+                    HostId = message.HostId,
+                    Host = message.Host,
+                    HostDisplayName = message.HostDisplayName,
+                    HostProperties = message.HostProperties,
+                    StartedAt = message.StartedAt
+                }).GetAwaiter().GetResult();
+            }
 
             domainEvents.Raise(new EndpointStarted
             {

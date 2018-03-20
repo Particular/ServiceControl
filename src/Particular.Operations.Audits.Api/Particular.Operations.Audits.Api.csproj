@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3C27EED3-C346-43C3-A560-F70B684ED1CE}</ProjectGuid>
+    <ProjectGuid>{5F673E60-D2E9-446A-80E6-B02B5DB050E4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Particular.HealthMonitoring.Uptime.Api</RootNamespace>
-    <AssemblyName>Particular.HealthMonitoring.Uptime.Api</AssemblyName>
+    <RootNamespace>Particular.Operations.Audits.Api</RootNamespace>
+    <AssemblyName>Particular.Operations.Audits.Api</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,16 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EndpointDetected.cs" />
-    <Compile Include="EndpointFailedToHeartbeat.cs" />
-    <Compile Include="EndpointHeartbeatRestored.cs" />
-    <Compile Include="HeartbeatingEndpointDetected.cs" />
-    <Compile Include="HeartbeatStatus.cs" />
-    <Compile Include="HeartbeatsUpdated.cs" />
-    <Compile Include="IHeartbeatEvent.cs" />
-    <Compile Include="IPersistEndpointUptimeInformation.cs" />
-    <Compile Include="MonitoringDisabledForEndpoint.cs" />
-    <Compile Include="MonitoringEnabledForEndpoint.cs" />
+    <Compile Include="AuditMessage.cs" />
+    <Compile Include="IProcessAudits.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

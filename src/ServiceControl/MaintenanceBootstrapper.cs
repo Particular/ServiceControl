@@ -13,7 +13,7 @@ namespace Particular.ServiceControl
             var settings = new Settings(args.ServiceName);
             var documentStore = new EmbeddableDocumentStore();
 
-            new RavenBootstrapper().StartRaven(documentStore, settings, true);
+            RavenBootstrapper.StartRaven(documentStore, settings, true);
 
             if (Environment.UserInteractive)
             {

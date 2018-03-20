@@ -10,18 +10,15 @@ namespace ServiceControl.Monitoring
 
     public class EndpointInstanceMonitor
     {
-        IDomainEvents domainEvents;
-
         public EndpointInstanceId Id { get; }
         DateTime? lastSeen;
         HeartbeatStatus status;
 
         public bool Monitored { get; private set; }
 
-        public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId, IDomainEvents domainEvents)
+        public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId)
         {
             Id = endpointInstanceId;
-            this.domainEvents = domainEvents;
         }
 
         public bool Apply(IHeartbeatEvent @event)
@@ -45,40 +42,41 @@ namespace ServiceControl.Monitoring
             return false;
         }
 
-        void Publish(IHeartbeatEvent @event)
+        void Publish<T>(IDomainEvents domainEvents, T @event)
+            where T : IHeartbeatEvent
         {
             Apply(@event);
             domainEvents.Raise(@event);
         }
 
-        public void EnableMonitoring()
+        public void EnableMonitoring(IDomainEvents domainEvents)
         {
-            domainEvents.Raise(new MonitoringEnabledForEndpoint
+            Publish(domainEvents, new MonitoringEnabledForEndpoint
             {
                 EndpointInstanceId = Id.UniqueId,
                 Endpoint = Convert(Id)
             });
         }
 
-        public void DisableMonitoring()
+        public void DisableMonitoring(IDomainEvents domainEvents)
         {
-            domainEvents.Raise(new MonitoringDisabledForEndpoint
+            Publish(domainEvents, new MonitoringDisabledForEndpoint
             {
                 EndpointInstanceId = Id.UniqueId,
                 Endpoint = Convert(Id)
             });
         }
 
-        public void Initialize()
+        public void Initialize(IDomainEvents domainEvents)
         {
-            domainEvents.Raise(new EndpointDetected
+            Publish(domainEvents, new EndpointDetected
             {
                 EndpointInstanceId = Id.UniqueId,
                 Endpoint = Convert(Id)
             });
         }
 
-        public void UpdateStatus(HeartbeatStatus newStatus, DateTime? latestTimestamp, DateTime currentTime)
+        public void UpdateStatus(HeartbeatStatus newStatus, DateTime? latestTimestamp, DateTime currentTime, IDomainEvents domainEvents)
         {
             if (newStatus == status)
             {
@@ -91,7 +89,7 @@ namespace ServiceControl.Monitoring
                 {
                     // NOTE: If an endpoint starts randomly sending heartbeats we monitor it by default
                     // NOTE: This means we'll start monitoring endpoints sending heartbeats after a restart
-                    Publish(new HeartbeatingEndpointDetected
+                    Publish(domainEvents, new HeartbeatingEndpointDetected
                     {
                         EndpointInstanceId = Id.UniqueId,
                         Endpoint = Convert(Id),
@@ -100,7 +98,7 @@ namespace ServiceControl.Monitoring
                 }
                 else if (status == HeartbeatStatus.Dead && Monitored)
                 {
-                    Publish(new EndpointHeartbeatRestored
+                    Publish(domainEvents, new EndpointHeartbeatRestored
                     {
                         EndpointInstanceId = Id.UniqueId,
                         Endpoint = Convert(Id),
@@ -110,7 +108,7 @@ namespace ServiceControl.Monitoring
             }
             else if (newStatus == HeartbeatStatus.Dead && Monitored)
             {
-                Publish(new EndpointFailedToHeartbeat
+                Publish(domainEvents, new EndpointFailedToHeartbeat
                 {
                     EndpointInstanceId = Id.UniqueId,
                     Endpoint = Convert(Id),
@@ -129,12 +127,14 @@ namespace ServiceControl.Monitoring
 
         void Apply(EndpointHeartbeatRestored @event)
         {
+            Monitored = true;
             status = HeartbeatStatus.Alive;
             lastSeen = @event.RestoredAt;
         }
 
         void Apply(EndpointFailedToHeartbeat @event)
         {
+            Monitored = true;
             status = HeartbeatStatus.Dead;
             lastSeen = @event.LastReceivedAt;
         }

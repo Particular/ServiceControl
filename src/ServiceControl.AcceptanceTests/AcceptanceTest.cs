@@ -29,6 +29,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.MessageInterfaces;
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NUnit.Framework;
+    using Particular.HealthMonitoring.Uptime;
     using Particular.ServiceControl;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
     using ServiceBus.Management.Infrastructure;
@@ -644,7 +645,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
                 {
                     var loggingSettings = new LoggingSettings(settings.ServiceName);
-                    bootstrapper = new Bootstrapper(() => { }, settings, configuration, loggingSettings);
+                    bootstrapper = new Bootstrapper(() => { }, settings, configuration, loggingSettings, new[]{new UptimeMonitoring().CreateActivator() });
                     bootstrappers[instanceName] = bootstrapper;
                     bootstrapper.HttpClientFactory = HttpClientFactory;
                 }

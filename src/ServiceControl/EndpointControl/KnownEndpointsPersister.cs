@@ -8,15 +8,12 @@
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EndpointControl;
-    using ServiceControl.EndpointControl.Contracts;
     using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class MonitoringDataPersister : 
-       
+    public class KnownEndpointsPersister
     {
+        IDocumentStore store;
         ConcurrentDictionary<Guid, KnownEndpoint> knownEndpoints = new ConcurrentDictionary<Guid, KnownEndpoint>();
-        
      
         public void WarmupMonitoringFromPersistence()
         {
@@ -37,10 +34,7 @@
             }
         }
 
-        private IDocumentStore store;
-
-
-        public MonitoringDataPersister(IDocumentStore store)
+        public KnownEndpointsPersister(IDocumentStore store)
         {
             this.store = store;
         }

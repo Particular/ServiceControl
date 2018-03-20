@@ -8,7 +8,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     ///     Wrapper to read registry keys.
     /// </summary>
     /// <typeparam name="T">The type of the key to retrieve</typeparam>
-    class RegistryReader<T>
+    public class RegistryReader<T>
     {
         /// <summary>
         ///     Attempts to read the key from the registry.
@@ -64,8 +64,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
             catch (Exception ex)
             {
-                Logger.Warn(
-                    $@"We couldn't read the registry to retrieve the {name}, from '{regPath}'.", ex);
+                Logger.Warn($@"We couldn't read the registry to retrieve the {name}, from '{regPath}'.", ex);
             }
 
             return defaultValue;

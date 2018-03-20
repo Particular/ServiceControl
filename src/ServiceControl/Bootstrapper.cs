@@ -2,6 +2,7 @@ namespace Particular.ServiceControl
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -9,7 +10,9 @@ namespace Particular.ServiceControl
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
+    using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
+    using global::ServiceControl.Monitoring;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using Raven.Client;
@@ -24,6 +27,7 @@ namespace Particular.ServiceControl
         private static HttpClient httpClient;
         private BusConfiguration configuration;
         private LoggingSettings loggingSettings;
+        readonly ComponentActivator[] components;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         private Action onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
@@ -34,7 +38,7 @@ namespace Particular.ServiceControl
         public IDisposable WebApp;
 
         // Windows Service
-        public Bootstrapper(Action onCriticalError, Settings settings, BusConfiguration configuration, LoggingSettings loggingSettings)
+        public Bootstrapper(Action onCriticalError, Settings settings, BusConfiguration configuration, LoggingSettings loggingSettings, ComponentActivator[] components)
         {
             if (configuration == null)
             {
@@ -43,6 +47,7 @@ namespace Particular.ServiceControl
             this.onCriticalError = onCriticalError;
             this.configuration = configuration;
             this.loggingSettings = loggingSettings;
+            this.components = components;
             this.settings = settings;
             Initialize();
         }
@@ -77,11 +82,24 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
-            containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
+            containerBuilder.RegisterInstance(timeKeeper).AsSelf().AsImplementedInterfaces().ExternallyOwned();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            containerBuilder.RegisterType<EndpointUptimeInformationPersister>().AsImplementedInterfaces().SingleInstance();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
+
+            foreach (var component in components)
+            {
+                component.RegisterDependency(containerBuilder);
+
+                var parts = component.CreateParts();
+
+                foreach (var part in parts)
+                {
+                    containerBuilder.RegisterInstance(part).ExternallyOwned().AsImplementedInterfaces().AsSelf();
+                }
+            }
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
@@ -100,6 +118,13 @@ namespace Particular.ServiceControl
                 WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
             }
 
+            RavenBootstrapper.StartRaven(documentStore, settings, false);
+
+            foreach (var component in components)
+            {
+                component.Initialize(container).GetAwaiter().GetResult();
+            }
+
             bus = NServiceBusFactory.CreateAndStart(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
@@ -115,6 +140,11 @@ namespace Particular.ServiceControl
             documentStore.Dispose();
             WebApp?.Dispose();
             container.Dispose();
+
+            foreach (var component in components)
+            {
+                component.TearDown().GetAwaiter().GetResult();
+            }
         }
 
         private long DataSize()

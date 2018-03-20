@@ -4,7 +4,7 @@ namespace ServiceControl.Contracts.HeartbeatMonitoring
 
     public interface IPersistEndpointUptimeInformation
     {
-        Task<EndpointUptimeInfo[]>Load();
-        Task Store(EndpointUptimeInfo info);
+        Task<IHeartbeatEvent[]> Load();
+        Task Store(IHeartbeatEvent @event);
     }
 }
