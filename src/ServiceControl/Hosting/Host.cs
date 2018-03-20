@@ -2,7 +2,6 @@
 {
     using System;
     using System.ServiceProcess;
-    using global::ServiceControl.Infrastructure.DomainEvents;
     using NServiceBus;
     using Particular.HealthMonitoring.Uptime;
     using ServiceBus.Management.Infrastructure.Settings;

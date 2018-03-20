@@ -42,13 +42,15 @@
   <ItemGroup>
     <Compile Include="AuditMessage.cs" />
     <Compile Include="IProcessAudits.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj">
       <Project>{fd673418-10ef-40ea-b97a-18328c73917e}</Project>
       <Name>ServiceControl.Api</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -54,7 +54,6 @@
     <Compile Include="Status.cs" />
     <Compile Include="HeartbeatInformation.cs" />
     <Compile Include="HeartbeatMonitor.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecordedHeartbeat.cs" />
     <Compile Include="UptimeApiModule.cs" />
     <Compile Include="UptimeMonitoring.cs" />
@@ -81,6 +80,9 @@
     <PackageReference Include="Nancy">
       <Version>1.4.3</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

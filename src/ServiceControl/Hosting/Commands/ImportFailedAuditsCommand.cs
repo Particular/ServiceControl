@@ -2,7 +2,6 @@
 {
     using System;
     using System.Threading;
-    using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Operations;
     using Hosting;
     using NLog;
