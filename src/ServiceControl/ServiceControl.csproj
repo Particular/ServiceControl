@@ -304,7 +304,7 @@
     <Compile Include="EndpointControl\KnownEndpointsView.cs" />
     <Compile Include="HeartbeatMonitoring\HeartbeatState.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenPersistenceConfigurator.cs" />
-    <Compile Include="Operations\AuditProcessorExecutorFeature.cs" />
+    <Compile Include="Operations\ProcessorExecutorFeature.cs" />
     <Compile Include="HeartbeatMonitoring\EndpointUptimeInformationPersister.cs" />
     <Compile Include="EndpointControl\Legacy\LegacyHandler.cs" />
     <Compile Include="Hosting\Commands\ImportFailedAuditsCommand.cs" />
@@ -688,6 +688,10 @@
     <ProjectReference Include="..\Particular.Operations.Audits.Api\Particular.Operations.Audits.Api.csproj">
       <Project>{5f673e60-d2e9-446a-80e6-b02b5db050e4}</Project>
       <Name>Particular.Operations.Audits.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Particular.Operations.Errors.Api\Particular.Operations.Errors.Api.csproj">
+      <Project>{1be3ceec-9263-479b-9e2b-b21e1af7f714}</Project>
+      <Name>Particular.Operations.Errors.Api</Name>
     </ProjectReference>
     <ProjectReference Include="..\Particular.Operations.Heartbeats.Api\Particular.Operations.Heartbeats.Api.csproj">
       <Project>{4E0F1C48-722E-45CC-B1F9-4BE45E2C14DF}</Project>

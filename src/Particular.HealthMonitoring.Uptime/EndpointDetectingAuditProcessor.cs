@@ -3,18 +3,25 @@
     using System;
     using System.Threading.Tasks;
     using Particular.Operations.Audits.Api;
+    using Particular.Operations.Errors.Api;
     using ServiceControl.Contracts.Operations;
 
-    class EndpointDetectingAuditProcessor : IProcessAudits
+    class EndpointDetectingProcessor : IProcessAudits, IProcessErrors
     {
         EndpointInstanceMonitoring monitoring;
 
-        public EndpointDetectingAuditProcessor(EndpointInstanceMonitoring monitoring)
+        public EndpointDetectingProcessor(EndpointInstanceMonitoring monitoring)
         {
             this.monitoring = monitoring;
         }
         
         public async Task Handle(AuditMessage message)
+        {
+            await TryAddEndpoint(message.ProcessingEndpoint).ConfigureAwait(false);
+            await TryAddEndpoint(message.SendingEndpoint).ConfigureAwait(false);
+        }
+
+        public async Task Handle(ErrorMessage message)
         {
             await TryAddEndpoint(message.ProcessingEndpoint).ConfigureAwait(false);
             await TryAddEndpoint(message.SendingEndpoint).ConfigureAwait(false);

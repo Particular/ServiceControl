@@ -25,7 +25,7 @@
             yield return new UptimeApiModule(monitoring);
             yield return new HeartbeatFailureDetector(monitoring);
             yield return new HeartbeatProcessor(monitoring);
-            yield return new EndpointDetectingAuditProcessor(monitoring);
+            yield return new EndpointDetectingProcessor(monitoring);
         }
 
         public Task Initialize(UptimeMonitoringDependencies dependencies)
