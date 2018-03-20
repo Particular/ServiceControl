@@ -37,6 +37,5 @@
                 Name =  message.EndpointName
             });
         }
-        
     }
 }
