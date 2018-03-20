@@ -14,7 +14,7 @@
 
         public Task Handle(RegisterEndpointStartup endpointStartup)
         {
-            return Task.FromResult(0);
+            return monitoring.EndpointDetected(endpointStartup.Endpoint, endpointStartup.Host, endpointStartup.HostId);
         }
 
         public Task Handle(EndpointHeartbeat heartbeat)
