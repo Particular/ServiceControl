@@ -3,6 +3,7 @@ namespace Particular.HealthMonitoring.Uptime
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -12,6 +13,8 @@ namespace Particular.HealthMonitoring.Uptime
         EndpointInstanceMonitoring monitoring;
         TimeSpan gracePeriod;
         Timer timer;
+
+        static readonly ILog log = LogManager.GetLogger<HeartbeatFailureDetector>();
 
         public HeartbeatFailureDetector(EndpointInstanceMonitoring monitoring)
         {
@@ -27,7 +30,7 @@ namespace Particular.HealthMonitoring.Uptime
             }
             catch (Exception ex)
             {
-                //logger.Error($"HeartbeatGracePeriod settings invalid - {ex}. Defaulting HeartbeatGracePeriod to '00:00:40'");
+                log.Error($"HeartbeatGracePeriod settings invalid - {ex}. Defaulting HeartbeatGracePeriod to '00:00:40'");
                 return TimeSpan.FromSeconds(40);
             }
         }
@@ -44,12 +47,12 @@ namespace Particular.HealthMonitoring.Uptime
             {
                 var now = DateTime.UtcNow;
                 var inactivityThreshold = now - gracePeriod;
-                //log.Debug($"monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
+                log.Debug($"monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
                 monitoring.CheckEndpoints(inactivityThreshold, now).GetAwaiter().GetResult();
             }
             catch (Exception exception)
             {
-                //log.Error("Exception occurred when monitoring endpoint instances", exception);
+                log.Error("Exception occurred when monitoring endpoint instances", exception);
             }
         }
 

@@ -85,6 +85,9 @@
     <PackageReference Include="Nancy">
       <Version>1.4.3</Version>
     </PackageReference>
+    <PackageReference Include="NServiceBus">
+      <Version>5.2.24</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
