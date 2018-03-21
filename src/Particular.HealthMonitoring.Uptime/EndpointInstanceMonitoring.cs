@@ -4,30 +4,22 @@ namespace Particular.HealthMonitoring.Uptime
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using Particular.HealthMonitoring.Uptime.Api;
     using ServiceControl.Infrastructure.DomainEvents;
 
     class EndpointInstanceMonitoring
     {
-        IDomainEvents domainEvents;
-        IPersistEndpointUptimeInformation persister;
-
         ConcurrentDictionary<Guid, EndpointInstanceMonitor> endpoints = new ConcurrentDictionary<Guid, EndpointInstanceMonitor>();
         ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor> heartbeats = new ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor>();
         EndpointMonitoringStats previousStats;
 
 
-        public async Task InitializeFromPersistence(IPersistEndpointUptimeInformation persister, IDomainEvents domainEvents)
+        public void Initialize(IEnumerable<IHeartbeatEvent> events)
         {
-            this.domainEvents = domainEvents;
-            this.persister = persister;
-
-            var state = await persister.Load().ConfigureAwait(false);
-            foreach (var @event in state)
+            foreach (var @event in events)
             {
                 var monitor = GetOrCreateMonitor(@event.Endpoint.Name, @event.Endpoint.Host, @event.Endpoint.HostId);
-                monitor.Apply(@event);
+                monitor.TryApply(@event);
             }
         }
 
@@ -39,19 +31,15 @@ namespace Particular.HealthMonitoring.Uptime
             heartbeatMonitor.MarkAlive(timestamp);
         }
 
-        public Task StartTrackingEndpoint(string name, string host, Guid hostId)
+        public IHeartbeatEvent StartTrackingEndpoint(string name, string host, Guid hostId)
         {
             var monitor = GetOrCreateMonitor(name, host, hostId);
-            var uow = new EventUnitOfWork(domainEvents, persister);
-            monitor.StartTrackingEndpoint(uow);
-
-            return uow.Persist();
+            return monitor.StartTrackingEndpoint();
         }
 
-        public Task CheckEndpoints(DateTime threshold, DateTime currentTime)
+        public IEnumerable<IDomainEvent> CheckEndpoints(DateTime threshold, DateTime currentTime)
         {
-            var uow = new EventUnitOfWork(domainEvents, persister);
-
+            var events = new List<IDomainEvent>();
             foreach (var entry in heartbeats)
             {
                 var instanceId = entry.Key;
@@ -60,13 +48,21 @@ namespace Particular.HealthMonitoring.Uptime
 
                 var newState = entry.Value.MarkDeadIfOlderThan(threshold);
 
-                monitor.UpdateStatus(newState.Status, newState.Timestamp, currentTime, uow);
+                var update = monitor.UpdateStatus(newState.Status, newState.Timestamp, currentTime);
+                if (update != null)
+                {
+                    events.Add(update);
+                }
             }
 
             var stats = GetStats();
-            Update(stats);
+            var statsUpdate = Update(stats);
+            if (statsUpdate != null)
+            {
+                events.Add(statsUpdate);
+            }
 
-            return uow.Persist();
+            return events;
         }
 
         EndpointInstanceMonitor GetOrCreateMonitor(string name, string host, Guid hostId)
@@ -76,20 +72,22 @@ namespace Particular.HealthMonitoring.Uptime
             return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId));
         }
 
-        void Update(EndpointMonitoringStats stats)
+        IDomainEvent Update(EndpointMonitoringStats stats)
         {
             var previousActive = previousStats?.Active ?? 0;
             var previousDead = previousStats?.Failing ?? 0;
             if (previousActive != stats.Active || previousDead != stats.Failing)
             {
-                domainEvents.Raise(new HeartbeatsUpdated
+                previousStats = stats;
+                return new HeartbeatsUpdated
                 {
                     Active = stats.Active,
                     Failing = stats.Failing,
                     RaisedAt = DateTime.UtcNow
-                });
-                previousStats = stats;
+                };
             }
+
+            return null;
         }
 
         internal EndpointMonitoringStats GetStats()
@@ -102,28 +100,16 @@ namespace Particular.HealthMonitoring.Uptime
             return stats;
         }
 
-        public Task EnableMonitoring(Guid id)
+        public IHeartbeatEvent EnableMonitoring(Guid id)
         {
             EndpointInstanceMonitor monitor;
-            if (!endpoints.TryGetValue(id, out monitor))
-            {
-                return Task.FromResult(0);
-            }
-            var uow = new EventUnitOfWork(domainEvents, persister);
-            monitor.EnableMonitoring(uow);
-            return uow.Persist();
+            return !endpoints.TryGetValue(id, out monitor) ? null : monitor.EnableMonitoring();
         }
 
-        public Task DisableMonitoring(Guid id)
+        public IHeartbeatEvent DisableMonitoring(Guid id)
         {
             EndpointInstanceMonitor monitor;
-            if (!endpoints.TryGetValue(id, out monitor))
-            {
-                return Task.FromResult(0);
-            }
-            var uow = new EventUnitOfWork(domainEvents, persister);
-            monitor.DisableMonitoring(uow);
-            return uow.Persist();
+            return !endpoints.TryGetValue(id, out monitor) ? null : monitor.DisableMonitoring();
         }
 
         public bool IsMonitored(Guid id) => endpoints[id]?.Monitored ?? false;
