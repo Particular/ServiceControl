@@ -7,9 +7,9 @@
 
     class HeartbeatProcessor : IProcessHeartbeats
     {
-        private IDomainEvents domainEvents;
+        IDomainEvents domainEvents;
         EndpointInstanceMonitoring monitoring;
-        private IPersistEndpointUptimeInformation persister;
+        IPersistEndpointUptimeInformation persister;
 
         public HeartbeatProcessor(EndpointInstanceMonitoring monitoring, IDomainEvents domainEvents, IPersistEndpointUptimeInformation persister)
         {

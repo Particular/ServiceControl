@@ -45,7 +45,7 @@
   <ItemGroup>
     <Compile Include="EndpointUpdateModel.cs" />
     <Compile Include="DeterministicGuid.cs" />
-    <Compile Include="EndpointDetectingAuditProcessor.cs" />
+    <Compile Include="EndpointDetectingProcessor.cs" />
     <Compile Include="EndpointInstanceId.cs" />
     <Compile Include="EndpointInstanceMonitor.cs" />
     <Compile Include="EndpointInstanceMonitoring.cs" />

@@ -16,7 +16,7 @@
             var apiModule = new UptimeApiModule(monitoring, persister);
             var failureDetector = new HeartbeatFailureDetector(monitoring, input.DomainEvents, persister);
             var heartbeatProcessor = new HeartbeatProcessor(monitoring, input.DomainEvents, persister);
-            var endpointDetector = new EndpointDetectingProcessor(monitoring);
+            var endpointDetector = new EndpointDetectingProcessor(monitoring, input.DomainEvents, persister);
 
             return new Output(endpointDetector, endpointDetector, heartbeatProcessor, apiModule, failureDetector);
         }

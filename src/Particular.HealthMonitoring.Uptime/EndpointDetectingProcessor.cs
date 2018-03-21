@@ -2,17 +2,23 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Particular.HealthMonitoring.Uptime.Api;
     using Particular.Operations.Audits.Api;
     using Particular.Operations.Errors.Api;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     class EndpointDetectingProcessor : IProcessAudits, IProcessErrors
     {
         EndpointInstanceMonitoring monitoring;
+        IDomainEvents domainEvents;
+        IPersistEndpointUptimeInformation persister;
 
-        public EndpointDetectingProcessor(EndpointInstanceMonitoring monitoring)
+        public EndpointDetectingProcessor(EndpointInstanceMonitoring monitoring, IDomainEvents domainEvents, IPersistEndpointUptimeInformation persister)
         {
             this.monitoring = monitoring;
+            this.domainEvents = domainEvents;
+            this.persister = persister;
         }
         
         public async Task Handle(AuditMessage message)
@@ -41,8 +47,9 @@
             }
 
             // TODO: What to do with the heartbeat event?
-            monitoring.StartTrackingEndpoint(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
-            return Task.FromResult(0);
+            var @event = monitoring.StartTrackingEndpoint(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
+            domainEvents.Raise(@event);
+            return persister.Store(new [] { @event });
         }
     }
 }

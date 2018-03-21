@@ -112,8 +112,6 @@ namespace Particular.HealthMonitoring.Uptime
             return !endpoints.TryGetValue(id, out monitor) ? null : monitor.DisableMonitoring();
         }
 
-        public bool IsMonitored(Guid id) => endpoints[id]?.Monitored ?? false;
-
         internal EndpointsView[] GetEndpoints()
         {
             var list = new List<EndpointsView>();
