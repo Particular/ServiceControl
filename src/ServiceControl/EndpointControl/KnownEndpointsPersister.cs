@@ -42,6 +42,7 @@
         public void RegisterEndpoint(EndpointDetails endpointDetails)
         {
             var id = DeterministicGuid.MakeId(endpointDetails.Name, endpointDetails.HostId.ToString());
+
             using (var session = store.OpenSession())
             {
                 var knownEndpoint = session.Load<KnownEndpoint>(id);
@@ -53,6 +54,9 @@
                         EndpointDetails = endpointDetails,
                         HostDisplayName = endpointDetails.Host,
                     };
+
+                    knownEndpoints.AddOrUpdate(id, knownEndpoint, (_, __) => knownEndpoint);
+
                     session.Store(knownEndpoint);
                 }
 

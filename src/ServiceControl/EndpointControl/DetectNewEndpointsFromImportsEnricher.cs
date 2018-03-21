@@ -20,6 +20,22 @@
             context.Container.ConfigureComponent<KnownEndpointsPersister>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<DetectNewEndpointsFromImportsEnricher>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<EnrichWithEndpointDetails>(DependencyLifecycle.SingleInstance);
+            RegisterStartupTask<KnownEndpointsPersisterWarmupTask>();
+        }
+
+        class KnownEndpointsPersisterWarmupTask : FeatureStartupTask
+        {
+            KnownEndpointsPersister persister;
+
+            public KnownEndpointsPersisterWarmupTask(KnownEndpointsPersister persister)
+            {
+                this.persister = persister;
+            }
+
+            protected override void OnStart()
+            {
+                persister.WarmupMonitoringFromPersistence();
+            }
         }
 
         class EnrichWithEndpointDetails : ImportEnricher
