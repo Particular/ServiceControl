@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.EndpointControl.Handlers
 {
     using System.Collections.Generic;
+    using System.Linq;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
@@ -25,9 +26,9 @@
         {
             IEnumerable<IProcessErrors> errorProcessors;
 
-            public InvokeErrorProcessorsEnricher(IEnumerable<IProcessErrors> errorProcessors)
+            public InvokeErrorProcessorsEnricher(IEnumerable<IProvideErrorProcessor> components)
             {
-                this.errorProcessors = errorProcessors;
+                errorProcessors = components.Select(c => c.ProcessErrors).ToArray();
             }
 
             public void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
@@ -51,9 +52,9 @@
         {
             IEnumerable<IProcessAudits> auditProcessors;
 
-            public InvokeAuditProcessorsEnricher(IEnumerable<IProcessAudits> auditProcessors)
+            public InvokeAuditProcessorsEnricher(IEnumerable<IProvideAuditProcessor> components)
             {
-                this.auditProcessors = auditProcessors;
+                auditProcessors = components.Select(c => c.ProcessAudits).ToArray();
             }
 
             public void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)

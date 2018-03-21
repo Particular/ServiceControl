@@ -24,9 +24,9 @@ namespace ServiceControl.EndpointControl.Handlers
             IEnumerable<IStartable> startables;
             ITimeKeeper timeKeeper;
 
-            public StartableExecutor(IEnumerable<IStartable> startables, ITimeKeeper timeKeeper)
+            public StartableExecutor(IEnumerable<IProvideStartable> components, ITimeKeeper timeKeeper)
             {
-                this.startables = startables;
+                startables = components.Select(c => c.Startable).ToArray();
                 this.timeKeeper = timeKeeper;
             }
 

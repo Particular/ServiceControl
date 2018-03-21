@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="EndpointHeartbeat.cs" />
     <Compile Include="IProcessHeartbeats.cs" />
+    <Compile Include="IProvideHeartbeatProcessor.cs" />
     <Compile Include="RegisterEndpointStartup.cs" />
   </ItemGroup>
   <ItemGroup>

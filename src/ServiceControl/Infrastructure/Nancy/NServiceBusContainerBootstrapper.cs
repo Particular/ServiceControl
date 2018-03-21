@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Nancy
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Text;
     using Autofac;
@@ -14,6 +15,7 @@
     using global::Nancy.Diagnostics;
     using global::Nancy.Responses;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceControl.Api;
 
     public class NServiceBusContainerBootstrapper : AutofacNancyBootstrapper
     {
@@ -92,6 +94,12 @@
                 {
                     builder.RegisterType(moduleRegistrationType.ModuleType).As<INancyModule>().PropertiesAutowired();
                 }
+            }
+
+            var componentModules = container.Resolve<IEnumerable<IProvideNancyModule>>();
+            foreach (var module in componentModules)
+            {
+                builder.RegisterInstance(module.NancyModule).AsImplementedInterfaces();
             }
 
             builder.Update(container.ComponentRegistry);

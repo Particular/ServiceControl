@@ -35,6 +35,7 @@ namespace Particular.ServiceControl
         private IContainer container;
         private BusInstance bus;
         public IDisposable WebApp;
+        DomainEvents domainEvents;
 
         // Windows Service
         public Bootstrapper(Action onCriticalError, Settings settings, BusConfiguration configuration, LoggingSettings loggingSettings, IComponent[] components)
@@ -75,7 +76,7 @@ namespace Particular.ServiceControl
 
             var containerBuilder = new ContainerBuilder();
 
-            var domainEvents = new DomainEvents();
+            domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterInstance(loggingSettings);
@@ -87,12 +88,6 @@ namespace Particular.ServiceControl
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
 
-            foreach (var component in components)
-            {
-                var output = component.Initialize(new ComponentInput(domainEvents, documentStore)).GetAwaiter().GetResult();
-                containerBuilder.RegisterInstance(output).ExternallyOwned().AsImplementedInterfaces().AsSelf();
-            }
-
             container = containerBuilder.Build();
             Startup = new Startup(container);
 
@@ -103,14 +98,22 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
+            RavenBootstrapper.StartRaven(documentStore, settings, false);
+
+            var componentContainerBuilder = new ContainerBuilder();
+            foreach (var component in components)
+            {
+                var output = component.Initialize(new ComponentInput(domainEvents, documentStore)).GetAwaiter().GetResult();
+                componentContainerBuilder.RegisterInstance(output).ExternallyOwned().AsImplementedInterfaces().AsSelf();
+            }
+            componentContainerBuilder.Update(container.ComponentRegistry);
+
             if (!isRunningAcceptanceTests)
             {
                 var startOptions = new StartOptions(settings.RootUrl);
 
                 WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
             }
-
-            RavenBootstrapper.StartRaven(documentStore, settings, false);
 
             bus = NServiceBusFactory.CreateAndStart(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
 

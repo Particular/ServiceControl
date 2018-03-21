@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System.Collections.Generic;
+    using System.Linq;
     using NServiceBus;
     using Particular.Operations.Heartbeats.Api;
     using ServiceControl.Contracts.EndpointControl;
@@ -13,10 +14,10 @@
         IEnumerable<IProcessHeartbeats> heartbeatProcessors;
         IDomainEvents domainEvents;
 
-        public RegisterEndpointStartupHandler(IDomainEvents domainEvents, IEnumerable<IProcessHeartbeats> heartbeatProcessors)
+        public RegisterEndpointStartupHandler(IDomainEvents domainEvents, IEnumerable<IProvideHeartbeatProcessor> components)
         {
             this.domainEvents = domainEvents;
-            this.heartbeatProcessors = heartbeatProcessors;
+            heartbeatProcessors = components.Select(c => c.ProcessHeartbeats).ToArray();
         }
 
         public void Handle(RegisterEndpointStartup message)

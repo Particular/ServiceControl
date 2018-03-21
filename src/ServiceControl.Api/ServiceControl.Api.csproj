@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Nancy, Version=1.4.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nancy.1.4.3\lib\net40\Nancy.dll</HintPath>
+    </Reference>
     <Reference Include="NServiceBus.Core, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <HintPath>..\packages\NServiceBus.5.2.24\lib\net45\NServiceBus.Core.dll</HintPath>
     </Reference>
@@ -57,6 +60,8 @@
     <Compile Include="IDomainEvents.cs" />
     <Compile Include="IDomainHandler.cs" />
     <Compile Include="IEnrichImportedMessages.cs" />
+    <Compile Include="IProvideNancyModule.cs" />
+    <Compile Include="IProvideStartable.cs" />
     <Compile Include="IStartable.cs" />
     <Compile Include="ITimeKeeper.cs" />
     <Compile Include="IUserInterfaceEvent.cs" />

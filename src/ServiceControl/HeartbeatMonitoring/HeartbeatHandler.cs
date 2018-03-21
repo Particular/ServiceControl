@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System.Collections.Generic;
+    using System.Linq;
     using NServiceBus;
     using Particular.Operations.Heartbeats.Api;
     using ServiceControl.Contracts.Operations;
@@ -11,9 +12,9 @@
         IEnumerable<IProcessHeartbeats> heartbeatProcessors;
         KnownEndpointsPersister persister;
 
-        public HeartbeatHandler(IEnumerable<IProcessHeartbeats> heartbeatProcessors, KnownEndpointsPersister persister)
+        public HeartbeatHandler(IEnumerable<IProvideHeartbeatProcessor> components, KnownEndpointsPersister persister)
         {
-            this.heartbeatProcessors = heartbeatProcessors;
+            heartbeatProcessors = components.Select(c => c.ProcessHeartbeats).ToArray();
             this.persister = persister;
         }
 
