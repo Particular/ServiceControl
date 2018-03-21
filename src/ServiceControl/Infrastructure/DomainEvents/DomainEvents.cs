@@ -19,11 +19,14 @@
                 return;
             }
 
-            IEnumerable<IDomainHandler<T>> handlers;
-            container.TryResolve(out handlers);
-            foreach (var handler in handlers)
+            var domainEventType = domainEvent.GetType();
+            var enumerableOfDomainHandlers = typeof(IEnumerable<>).MakeGenericType(typeof(IDomainHandler<>).MakeGenericType(domainEventType));
+
+            object outHandlers;
+            container.TryResolve(enumerableOfDomainHandlers, out outHandlers);
+            foreach (var handler in (IEnumerable<dynamic>)outHandlers)
             {
-                handler.Handle(domainEvent);
+                handler.Handle((dynamic) domainEvent);
             }
 
             IEnumerable<IDomainHandler<IDomainEvent>> ieventHandlers;
