@@ -1,9 +1,11 @@
 namespace Particular.HealthMonitoring.Uptime
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
+    using Particular.HealthMonitoring.Uptime.Api;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -15,9 +17,13 @@ namespace Particular.HealthMonitoring.Uptime
         Timer timer;
 
         static readonly ILog log = LogManager.GetLogger<HeartbeatFailureDetector>();
+        private IPersistEndpointUptimeInformation persister;
+        private IDomainEvents domainEvents;
 
-        public HeartbeatFailureDetector(EndpointInstanceMonitoring monitoring)
+        public HeartbeatFailureDetector(EndpointInstanceMonitoring monitoring, IDomainEvents domainEvents, IPersistEndpointUptimeInformation persister)
         {
+            this.domainEvents = domainEvents;
+            this.persister = persister;
             gracePeriod = GetHeartbeatGracePeriod();
             this.monitoring = monitoring;
         }
@@ -48,7 +54,15 @@ namespace Particular.HealthMonitoring.Uptime
                 var now = DateTime.UtcNow;
                 var inactivityThreshold = now - gracePeriod;
                 log.Debug($"monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
-                monitoring.CheckEndpoints(inactivityThreshold, now).GetAwaiter().GetResult();
+
+                var events = monitoring.CheckEndpoints(inactivityThreshold, now);
+                var enumerable = events as IDomainEvent[] ?? events.ToArray();
+                foreach (var domainEvent in enumerable)
+                {
+                    domainEvents.Raise(domainEvent);
+                }
+
+                persister.Store(enumerable.OfType<IHeartbeatEvent>());
             }
             catch (Exception exception)
             {
