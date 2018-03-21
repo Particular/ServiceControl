@@ -4,10 +4,11 @@ namespace Particular.HealthMonitoring.Uptime
     using Nancy;
     using Nancy.ModelBinding;
     using Nancy.Responses.Negotiation;
+    using Particular.HealthMonitoring.Uptime.Api;
 
     class UptimeApiModule : NancyModule
     {
-        public UptimeApiModule(EndpointInstanceMonitoring monitoring)
+        public UptimeApiModule(EndpointInstanceMonitoring monitoring, IPersistEndpointUptimeInformation persister)
         {
             Get["/heartbeats/stats"] = _ => Negotiate.WithModel(monitoring.GetStats());
 
@@ -18,14 +19,17 @@ namespace Particular.HealthMonitoring.Uptime
                 var data = this.Bind<EndpointUpdateModel>();
                 var endpointId = (Guid) parameters.id;
 
+                IHeartbeatEvent @event;
                 if (data.MonitorHeartbeat)
                 {
-                    await monitoring.EnableMonitoring(endpointId).ConfigureAwait(false);
+                    @event = monitoring.EnableMonitoring(endpointId);
                 }
                 else
                 {
-                    await monitoring.DisableMonitoring(endpointId).ConfigureAwait(false);
+                   @event = monitoring.DisableMonitoring(endpointId);
                 }
+
+                await persister.Store(new[] {@event}).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };

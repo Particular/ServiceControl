@@ -57,6 +57,7 @@
     <Compile Include="HeartbeatProcessor.cs" />
     <Compile Include="HeartbeatState.cs" />
     <Compile Include="HeartbeatStatus.cs" />
+    <Compile Include="Output.cs" />
     <Compile Include="Status.cs" />
     <Compile Include="HeartbeatInformation.cs" />
     <Compile Include="HeartbeatMonitor.cs" />

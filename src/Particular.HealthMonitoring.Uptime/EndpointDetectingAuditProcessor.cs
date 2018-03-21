@@ -40,7 +40,9 @@
                 return Task.FromResult(0);
             }
 
-            return monitoring.StartTrackingEndpoint(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
+            // TODO: What to do with the heartbeat event?
+            monitoring.StartTrackingEndpoint(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
+            return Task.FromResult(0);
         }
     }
 }

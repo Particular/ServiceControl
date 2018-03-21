@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Particular.HealthMonitoring.Uptime.Api;
-    using Particular.Operations.Audits.Api;
     using ServiceControl.Api;
     using ServiceControl.Infrastructure.DomainEvents;
 
@@ -28,27 +27,19 @@
             persister = new EndpointUptimeInformationPersister(input.DocumentStore);
             var events = await persister.Load().ConfigureAwait(false);
             monitoring.Initialize(events);
-            return new object[]
-            {
-                new UptimeApiModule(monitoring),
-                new HeartbeatFailureDetector(monitoring, dependencies.DomainEvents, dependencies.Persister),
-                new HeartbeatProcessor(monitoring, dependencies.DomainEvents, dependencies.Persister),
-                new EndpointDetectingProcessor(monitoring)
-            };
+            
+            // The stuff here needs to be provide to SC
+            var modules = new UptimeApiModule(monitoring, persister);
+            var detector = new HeartbeatFailureDetector(monitoring, input.DomainEvents, persister);
+            var heartbeatProcessor = new HeartbeatProcessor(monitoring, input.DomainEvents, persister);
+            var auditProcessor = new EndpointDetectingProcessor(monitoring);
+
+            return new Output(auditProcessor);
         }
 
         public Task TearDown()
         {
             return Task.FromResult(0);
         }
-    }
-
-    class Output : ComponentOutput, IProvideAuditProcessor
-    {
-        public Output(IProcessAudits auditProcessor)
-        {
-            ProcessAudits = auditProcessor;
-        }
-        public IProcessAudits ProcessAudits { get; }
     }
 }

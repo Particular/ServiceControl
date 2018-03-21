@@ -112,11 +112,6 @@ namespace Particular.ServiceControl
 
             RavenBootstrapper.StartRaven(documentStore, settings, false);
 
-            foreach (var component in components)
-            {
-                component.Initialize(container).GetAwaiter().GetResult();
-            }
-
             bus = NServiceBusFactory.CreateAndStart(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);

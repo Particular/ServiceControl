@@ -8,7 +8,7 @@
         /// Initializes and returns the parts.
         /// </summary>
         /// <returns></returns>
-        Task<object> Initialize(ComponentInput dependencies);
+        Task<ComponentOutput> Initialize(ComponentInput dependencies);
 
         /// <summary>
         /// No parts are used after this call.
