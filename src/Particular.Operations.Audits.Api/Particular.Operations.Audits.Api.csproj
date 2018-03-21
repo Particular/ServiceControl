@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="AuditMessage.cs" />
     <Compile Include="IProcessAudits.cs" />
+    <Compile Include="IProvideAuditProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj">

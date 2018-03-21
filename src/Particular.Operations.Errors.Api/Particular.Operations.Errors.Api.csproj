@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="IProcessErrors.cs" />
+    <Compile Include="IProvideErrorProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj">

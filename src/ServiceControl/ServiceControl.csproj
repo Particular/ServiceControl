@@ -261,7 +261,6 @@
     <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="App_Packages\StackTraceParser\StackTraceParser.cs" />
-    <Compile Include="ComponentActivator.cs" />
     <Compile Include="EndpointControl\GetKnownEndpointsApi.cs" />
     <Compile Include="CompositeViews\Endpoints\KnownEndpointIndex.cs" />
     <Compile Include="EndpointControl\Legacy\DisableEndpointMonitoring.cs" />
@@ -302,10 +301,8 @@
     <Compile Include="DbMigrations\MigrationsModule.cs" />
     <Compile Include="DbMigrations\1.27\SplitFailedMessageDocumentsMigration.cs" />
     <Compile Include="EndpointControl\KnownEndpointsView.cs" />
-    <Compile Include="HeartbeatMonitoring\HeartbeatState.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenPersistenceConfigurator.cs" />
     <Compile Include="Operations\ProcessorExecutorFeature.cs" />
-    <Compile Include="HeartbeatMonitoring\EndpointUptimeInformationPersister.cs" />
     <Compile Include="EndpointControl\Legacy\LegacyHandler.cs" />
     <Compile Include="Hosting\Commands\ImportFailedAuditsCommand.cs" />
     <Compile Include="Hosting\MaintenanceHost.cs">
@@ -647,7 +644,9 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Hosting\Help.txt" />

@@ -1,18 +1,14 @@
-﻿namespace ServiceControl.Infrastructure.DomainEvents
+﻿namespace ServiceControl.Api
 {
-    using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    public interface IComponent<in T>
-        where T: class, new()
+    public interface IComponent
     {
-        IEnumerable<object> CreateParts();
-
         /// <summary>
-        /// Called before using any parts.
+        /// Initializes and returns the parts.
         /// </summary>
         /// <returns></returns>
-        Task Initialize(T dependencies);
+        Task<object> Initialize(ComponentInput dependencies);
 
         /// <summary>
         /// No parts are used after this call.

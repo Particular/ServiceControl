@@ -1,4 +1,4 @@
-namespace ServiceControl.Monitoring
+namespace Particular.HealthMonitoring.Uptime
 {
     using System;
     using System.Collections.Concurrent;
@@ -7,7 +7,6 @@ namespace ServiceControl.Monitoring
     using System.Threading.Tasks;
     using Particular.HealthMonitoring.Uptime.Api;
     using Raven.Client;
-
 
     public class EndpointUptimeInformationPersister : IPersistEndpointUptimeInformation
     {

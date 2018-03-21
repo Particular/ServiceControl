@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Raven.Client.Lightweight">
+      <HintPath>..\packages\RavenDB.Client.2.5.2996\lib\net45\Raven.Client.Lightweight.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -48,9 +51,11 @@
     <Compile Include="EndpointInstanceMonitoring.cs" />
     <Compile Include="EndpointMonitoringStats.cs" />
     <Compile Include="EndpointsView.cs" />
+    <Compile Include="EndpointUptimeInformationPersister.cs" />
     <Compile Include="EventUnitOfWork.cs" />
     <Compile Include="HeartbeatFailureDetector.cs" />
     <Compile Include="HeartbeatProcessor.cs" />
+    <Compile Include="HeartbeatState.cs" />
     <Compile Include="HeartbeatStatus.cs" />
     <Compile Include="Status.cs" />
     <Compile Include="HeartbeatInformation.cs" />
@@ -87,6 +92,9 @@
     </PackageReference>
     <PackageReference Include="NServiceBus">
       <Version>5.2.24</Version>
+    </PackageReference>
+    <PackageReference Include="RavenDB.Client">
+      <Version>2.5.2996</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

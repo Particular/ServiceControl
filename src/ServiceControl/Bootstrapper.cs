@@ -6,12 +6,12 @@ namespace Particular.ServiceControl
     using System.Net.Http;
     using System.Net.Http.Headers;
     using Autofac;
+    using global::ServiceControl.Api;
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
-    using global::ServiceControl.Monitoring;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using Raven.Client;
@@ -26,7 +26,7 @@ namespace Particular.ServiceControl
         private static HttpClient httpClient;
         private BusConfiguration configuration;
         private LoggingSettings loggingSettings;
-        readonly ComponentActivator[] components;
+        readonly IComponent[] components;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         private Action onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
@@ -37,7 +37,7 @@ namespace Particular.ServiceControl
         public IDisposable WebApp;
 
         // Windows Service
-        public Bootstrapper(Action onCriticalError, Settings settings, BusConfiguration configuration, LoggingSettings loggingSettings, ComponentActivator[] components)
+        public Bootstrapper(Action onCriticalError, Settings settings, BusConfiguration configuration, LoggingSettings loggingSettings, IComponent[] components)
         {
             if (configuration == null)
             {
@@ -84,20 +84,13 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(timeKeeper).AsSelf().AsImplementedInterfaces().ExternallyOwned();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.RegisterType<EndpointUptimeInformationPersister>().AsImplementedInterfaces().SingleInstance();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
 
             foreach (var component in components)
             {
-                component.RegisterDependency(containerBuilder);
-
-                var parts = component.CreateParts();
-
-                foreach (var part in parts)
-                {
-                    containerBuilder.RegisterInstance(part).ExternallyOwned().AsImplementedInterfaces().AsSelf();
-                }
+                var output = component.Initialize(new ComponentInput(domainEvents, documentStore)).GetAwaiter().GetResult();
+                containerBuilder.RegisterInstance(output).ExternallyOwned().AsImplementedInterfaces().AsSelf();
             }
 
             container = containerBuilder.Build();

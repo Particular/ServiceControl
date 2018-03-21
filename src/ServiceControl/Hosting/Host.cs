@@ -39,7 +39,7 @@
 
             bootstrapper = new Bootstrapper(Stop, new Settings(ServiceName), busConfiguration, loggingSettings, new[]
             {
-                new UptimeMonitoring().CreateActivator()
+                new UptimeMonitoring()
             });
             bootstrapper.Start();
         }
