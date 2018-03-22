@@ -161,7 +161,7 @@
                         }
                     }
                     return done(runDescriptor.ScenarioContext);
-                });
+                }).GetAwaiter().GetResult();
 
                 runTimer.Stop();
 
@@ -207,7 +207,7 @@
             Console.WriteLine();
         }
 
-        static void PerformScenarios(RunDescriptor runDescriptor, IEnumerable<ActiveRunner> runners, Func<bool> done)
+        static async Task PerformScenarios(RunDescriptor runDescriptor, IEnumerable<ActiveRunner> runners, Func<bool> done)
         {
             var endpoints = runners.Select(r => r.Instance).ToList();
             try
@@ -217,15 +217,20 @@
                 runDescriptor.ScenarioContext.EndpointsStarted = true;
 
                 var maxTime = runDescriptor.TestExecutionTimeout;
-                ExecuteWhens(maxTime, endpoints);
+                await ExecuteWhens(maxTime, endpoints).ConfigureAwait(false);
 
-                var timedOut = false;
-
-                Task.Run(() => timedOut = !SpinWait.SpinUntil(done, maxTime)).Wait();
-
-                if (timedOut)
+                var startTime = DateTime.UtcNow;
+                while (!done())
                 {
-                    throw new ScenarioException(GenerateTestTimedOutMessage(maxTime));
+                    if (!Debugger.IsAttached)
+                    {
+                        if (DateTime.UtcNow - startTime > maxTime)
+                        {
+                            throw new ScenarioException(GenerateTestTimedOutMessage(maxTime));
+                        }
+                    }
+
+                    await Task.Yield();
                 }
             }
             finally
@@ -234,7 +239,7 @@
             }
         }
 
-        private static void ExecuteWhens(TimeSpan maxTime, List<EndpointRunner> endpoints)
+        private static async Task ExecuteWhens(TimeSpan maxTime, List<EndpointRunner> endpoints)
         {
             var tasks = endpoints.Select(endpoint =>
             {
@@ -250,7 +255,7 @@
 
             var whenAll = Task.WhenAll(tasks);
             var timeoutTask = Task.Delay(maxTime);
-            var completedTask = Task.WhenAny(whenAll, timeoutTask).GetAwaiter().GetResult();
+            var completedTask = await Task.WhenAny(whenAll, timeoutTask).ConfigureAwait(false);
 
             if (completedTask.Equals(timeoutTask))
             {
