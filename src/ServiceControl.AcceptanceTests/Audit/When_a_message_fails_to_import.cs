@@ -22,8 +22,10 @@
             {
                 if (!Context.FailedImport)
                 {
+                    Console.WriteLine("Simulating message processing failure");
                     throw new Exception("Boom!");
                 }
+                Console.WriteLine("Message processed correctly");
             }
         }
 
